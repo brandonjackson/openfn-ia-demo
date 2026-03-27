@@ -5,10 +5,28 @@ import {
   Plus,
   User,
   Building2,
+  LayoutDashboard,
+  Globe,
+  BookOpen,
+  Clock,
+  FolderKanban,
+  FileText,
+  Sparkles,
+  Database,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { IANode } from "../ia-tree";
 import { mainNavTree, projectsTree } from "../ia-tree";
+import type { LucideIcon } from "lucide-react";
+
+const navIcons: Record<string, LucideIcon> = {
+  overview: LayoutDashboard,
+  "connected-systems": Globe,
+  "service-catalog": BookOpen,
+  history: Clock,
+};
+
+const flatNavIds = new Set(["connected-systems", "service-catalog"]);
 
 function NavItem({
   node,
@@ -23,8 +41,9 @@ function NavItem({
   const fullPath = path + "/" + node.id;
   const isActive = location.pathname === fullPath;
   const isAncestor = location.pathname.startsWith(fullPath + "/");
-  const hasChildren = node.children && node.children.length > 0;
+  const hasChildren = node.children && node.children.length > 0 && !flatNavIds.has(node.id);
   const [expanded, setExpanded] = useState(false);
+  const Icon = depth === 0 ? navIcons[node.id] : undefined;
 
   useEffect(() => {
     if (isAncestor || isActive) {
@@ -60,6 +79,7 @@ function NavItem({
         ) : (
           <span className="w-5 flex-shrink-0" />
         )}
+        {Icon && <Icon size={14} className="flex-shrink-0" />}
         <Link to={fullPath} className="flex-1 truncate">
           {node.label}
         </Link>
@@ -87,20 +107,74 @@ function ProjectNavItem({ node }: { node: IANode }) {
   const isActive =
     location.pathname === fullPath ||
     location.pathname.startsWith(fullPath + "/");
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    if (isActive) {
+      setExpanded(true);
+    }
+  }, [isActive]);
+
+  const resourceChildren = node.children?.find((c) => c.id === "resources")?.children || [];
 
   return (
-    <Link
-      to={fullPath}
-      className={`block rounded-md px-2 py-1.5 text-sm transition-colors ${
-        isActive
-          ? "bg-blue-50 text-blue-700 font-medium"
-          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-      }`}
-    >
-      {node.label}
-    </Link>
+    <div>
+      <div className="flex items-center gap-1">
+        {resourceChildren.length > 0 ? (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="p-0.5 hover:bg-gray-200 rounded flex-shrink-0 text-gray-400"
+          >
+            {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          </button>
+        ) : (
+          <span className="w-5 flex-shrink-0" />
+        )}
+        <Link
+          to={fullPath}
+          className={`flex-1 flex items-center gap-2 rounded-md px-1 py-1.5 text-sm transition-colors ${
+            isActive
+              ? "bg-blue-50 text-blue-700 font-medium"
+              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+          }`}
+        >
+          <FolderKanban size={14} className="flex-shrink-0" />
+          {node.label}
+        </Link>
+      </div>
+
+      {expanded && resourceChildren.length > 0 && (
+        <div className="ml-5">
+          {resourceChildren.map((res) => {
+            const resIcon = resourceIcons[res.id];
+            const resPath = `${fullPath}/resources/${res.id}`;
+            const resActive = location.pathname === resPath || location.pathname.startsWith(resPath + "/");
+            return (
+              <Link
+                key={res.id}
+                to={resPath}
+                className={`flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors ${
+                  resActive
+                    ? "bg-blue-50 text-blue-700 font-medium"
+                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
+                }`}
+              >
+                {resIcon && (() => { const I = resIcon; return <I size={13} className="flex-shrink-0" />; })()}
+                {res.label}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }
+
+const resourceIcons: Record<string, LucideIcon> = {
+  artifacts: FileText,
+  skills: Sparkles,
+  collections: Database,
+};
 
 export default function Sidebar() {
   return (
@@ -114,8 +188,6 @@ export default function Sidebar() {
           <span className="text-lg font-semibold text-gray-900">OpenFn</span>
         </Link>
       </div>
-
-      {/* Dividing line is the border-b above */}
 
       {/* Main nav items */}
       <nav className="p-2 flex-1 overflow-y-auto">

@@ -21,24 +21,8 @@ export const mainNavTree: IANode[] = [
       "High-level dashboard showing system health, recent activity, and key metrics.",
   },
   {
-    id: "service-catalog",
-    label: "Service Catalog",
-    description: "Browse the catalog of published services.",
-    children: [
-      {
-        id: "live-services",
-        label: "Aggregation of Live Services",
-        badges: ["Aggregation"],
-        description:
-          "All live services published from projects across the organization.",
-        linkedFrom: "/projects",
-      },
-    ],
-  },
-  {
     id: "connected-systems",
     label: "Connected Systems",
-    badges: ["Aggregation"],
     description: "Browse and manage all connected external systems.",
     filters: [{ label: "Visibility", options: ["Available", "Shared", "Private"] }],
     children: [
@@ -53,22 +37,11 @@ export const mainNavTree: IANode[] = [
             label: "Channels",
             description: "Channels associated with this connected system.",
           },
-          {
-            id: "edit",
-            label: "Edit",
-            description: "Edit this connected system's configuration.",
-          },
-          {
-            id: "delete",
-            label: "Delete",
-            description: "Delete this connected system.",
-          },
         ],
       },
       {
         id: "credentials",
-        label: "Aggregation of Credentials",
-        badges: ["Aggregation"],
+        label: "Credentials",
         description: "View and manage credentials across the organization.",
         children: [
           {
@@ -86,31 +59,26 @@ export const mainNavTree: IANode[] = [
     ],
   },
   {
+    id: "service-catalog",
+    label: "Service Catalog",
+    description: "Browse the catalog of published services.",
+    children: [
+      {
+        id: "live-services",
+        label: "Live Services",
+        description:
+          "All live services published from projects across the organization.",
+        linkedFrom: "/projects",
+      },
+    ],
+  },
+  {
     id: "history",
     label: "History",
     description: "View historical work orders across all projects.",
     filters: [
       { label: "Project", options: ["All Projects", "Project A", "Project B"] },
       { label: "Status", options: ["All", "Success", "Failed", "Pending"] },
-    ],
-    children: [
-      {
-        id: "overview",
-        label: "Overview",
-        description: "High-level overview of system activity and history.",
-      },
-      {
-        id: "all-channels",
-        label: "Aggregation of All Channels",
-        badges: ["Aggregation"],
-        description: "Aggregated view of all channels across projects.",
-      },
-      {
-        id: "all-work-orders",
-        label: "Aggregation of All Work Orders",
-        badges: ["Aggregation"],
-        description: "Aggregated view of all work orders across projects.",
-      },
     ],
   },
 ];

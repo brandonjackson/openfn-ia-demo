@@ -4,6 +4,8 @@ import { projectsTree } from "../ia-tree";
 import { findNodeByPath } from "../ia-utils";
 import PageShell from "../components/PageShell";
 import ProjectRootView from "../components/ProjectRootView";
+import ConnectedSystemsView from "../components/ConnectedSystemsView";
+import HistoryView from "../components/HistoryView";
 
 export default function IAPage() {
   const location = useLocation();
@@ -41,6 +43,25 @@ export default function IAPage() {
         node={result.node}
         ancestors={result.ancestors}
         currentPath={pathname}
+      />
+    );
+  }
+
+  if (result.node.id === "connected-systems") {
+    return (
+      <ConnectedSystemsView
+        node={result.node}
+        ancestors={result.ancestors}
+        currentPath={pathname}
+      />
+    );
+  }
+
+  if (result.node.id === "history") {
+    return (
+      <HistoryView
+        node={result.node}
+        ancestors={result.ancestors}
       />
     );
   }

@@ -83,6 +83,13 @@ export const mainNavTree: IANode[] = [
           "All live services published from projects across the organization.",
         linkedFrom: "/projects",
       },
+      {
+        id: "channels",
+        label: "Channels",
+        description:
+          "Channels exposed by connected systems.",
+        linkedFrom: "/connected-systems",
+      },
     ],
   },
   {
@@ -105,28 +112,67 @@ export const projectsTree: IANode[] = [
     id: "project-a",
     label: "Project A",
     description:
-      "An example project with services, work orders, and resources.",
+      "An example project with services and reusable components.",
     children: [
       {
-        id: "service-live",
-        label: "Service (Live)",
-        badges: ["Live"],
-        description: "The live, published version of this project's service.",
-        linkedFrom: "/service-builder",
+        id: "services",
+        label: "Services",
+        description: "Published services built from project components.",
+        children: [
+          {
+            id: "crvs-birth-registration",
+            label: "CRVS Birth Registration",
+            badges: ["Live"],
+            description:
+              "Registers births from OpenCRVS and syncs records to the national CRVS database.",
+            linkedFrom: "/service-builder",
+          },
+          {
+            id: "dhis2-facility-sync",
+            label: "DHIS2 Facility Data Sync",
+            badges: ["Draft"],
+            description:
+              "Syncs facility-level health data to DHIS2 on a nightly schedule.",
+            linkedFrom: "/service-builder",
+          },
+        ],
       },
       {
-        id: "service-draft",
-        label: "Service (Draft)",
-        badges: ["Draft"],
-        description:
-          "The draft version of this project's service, not yet published.",
-        linkedFrom: "/service-builder",
-      },
-      {
-        id: "sandbox",
-        label: "Project A (Sandbox)",
-        description:
-          "A sandboxed copy of this project for safe experimentation.",
+        id: "components",
+        label: "Components",
+        description: "Reusable building blocks — workflows, artifacts, forms, and collections.",
+        children: [
+          {
+            id: "birth-registration-workflow",
+            label: "birth-registration-workflow",
+            description: "Workflow that maps and routes birth notification data.",
+            badges: ["Workflow"],
+          },
+          {
+            id: "facility-sync-workflow",
+            label: "facility-sync-workflow",
+            description: "Scheduled workflow for syncing facility data to DHIS2.",
+            badges: ["Workflow"],
+          },
+          {
+            id: "birth-field-mapping",
+            label: "birth-field-mapping.json",
+            description: "Maps OpenCRVS birth fields to national CRVS schema.",
+            badges: ["Artifact"],
+          },
+          {
+            id: "facility-registration-form",
+            label: "facility-registration-form",
+            description: "Kobo form for collecting facility registration data.",
+            badges: ["Form"],
+          },
+          {
+            id: "facility-codes",
+            label: "facility-codes",
+            description: "Lookup table of facility codes and names.",
+            badges: ["Collection"],
+          },
+        ],
       },
       {
         id: "work-orders",
@@ -140,29 +186,6 @@ export const projectsTree: IANode[] = [
           },
         ],
       },
-      {
-        id: "resources",
-        label: "Resources",
-        description:
-          "Manage project resources including artifacts, skills, and collections.",
-        children: [
-          {
-            id: "artifacts",
-            label: "Artifacts",
-            description: "Files and outputs produced by this project.",
-          },
-          {
-            id: "skills",
-            label: "Skills",
-            description: "Reusable skills available to this project.",
-          },
-          {
-            id: "collections",
-            label: "Collections",
-            description: "Data collections managed by this project.",
-          },
-        ],
-      },
     ],
   },
   {
@@ -171,14 +194,42 @@ export const projectsTree: IANode[] = [
     description: "Another integration project.",
     children: [
       {
+        id: "services",
+        label: "Services",
+        description: "Published services for this project.",
+        children: [
+          {
+            id: "commcare-case-sync",
+            label: "CommCare Case Sync",
+            badges: ["Live"],
+            description:
+              "Syncs case data from CommCare to the shared data warehouse.",
+          },
+        ],
+      },
+      {
+        id: "components",
+        label: "Components",
+        description: "Reusable building blocks for this project.",
+        children: [
+          {
+            id: "case-sync-workflow",
+            label: "case-sync-workflow",
+            description: "Workflow for processing CommCare case updates.",
+            badges: ["Workflow"],
+          },
+          {
+            id: "case-mapping",
+            label: "case-mapping.json",
+            description: "Field mapping from CommCare cases to warehouse schema.",
+            badges: ["Artifact"],
+          },
+        ],
+      },
+      {
         id: "work-orders",
         label: "Work Orders",
         description: "View and manage work orders for this project.",
-      },
-      {
-        id: "resources",
-        label: "Resources",
-        description: "Manage project resources.",
       },
     ],
   },

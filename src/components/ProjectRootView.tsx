@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ChevronRight,
@@ -8,8 +7,6 @@ import {
   FileSpreadsheet,
   ClipboardList,
   Plus,
-  Send,
-  Sparkles,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { IANode } from "../ia-tree";
@@ -105,42 +102,42 @@ function ComponentRow({
 /*  Add component input (chatbot-style)                                 */
 /* ------------------------------------------------------------------ */
 
-function AddComponentInput() {
-  const [value, setValue] = useState("");
+const componentTypeDescriptions: Record<string, string> = {
+  Workflow: "Automated data pipeline or integration",
+  Form: "Data entry or collection form",
+  Artifact: "Configuration file or mapping",
+  Collection: "Structured dataset or lookup table",
+};
 
+function AddComponentInput() {
   return (
     <div className="border border-gray-200 rounded-lg bg-white shadow-sm">
       <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-100">
-        <Sparkles size={14} className="text-purple-400" />
+        <Plus size={14} className="text-gray-400" />
         <span className="text-xs font-medium text-gray-400">
           Add a component
         </span>
       </div>
-      <div className="flex items-center gap-2 px-3 py-2">
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          placeholder="Describe a workflow, form, artifact, or collection to add…"
-          className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
-        />
-        <button
-          className="p-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-          disabled={!value.trim()}
-        >
-          <Send size={14} />
-        </button>
-      </div>
-      <div className="flex items-center gap-1.5 px-3 py-1.5 border-t border-gray-100">
+      <div className="grid grid-cols-2 gap-2 p-3">
         {["Workflow", "Form", "Artifact", "Collection"].map((type) => {
           const Icon = componentTypeIcons[type] || FileText;
           return (
             <button
               key={type}
-              className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 hover:bg-gray-100 px-2 py-1 rounded transition-colors"
+              className="flex items-start gap-2.5 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all text-left group"
             >
-              <Icon size={12} />
-              {type}
+              <Icon
+                size={16}
+                className="text-gray-400 group-hover:text-blue-500 flex-shrink-0 mt-0.5"
+              />
+              <div>
+                <div className="text-sm font-medium text-gray-700 group-hover:text-blue-700">
+                  {type}
+                </div>
+                <div className="text-xs text-gray-400 leading-snug mt-0.5">
+                  {componentTypeDescriptions[type]}
+                </div>
+              </div>
             </button>
           );
         })}

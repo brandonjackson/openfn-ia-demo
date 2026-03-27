@@ -4,64 +4,14 @@ import { ChevronRight, Globe, Lock, Users } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import Breadcrumbs from "./Breadcrumbs";
 import SuggestedSystemsToAdd from "./SuggestedSystemsToAdd";
+import type { ConnectedSystem } from "../connected-systems-data";
+import { connectedSystems } from "../connected-systems-data";
 
 interface Props {
   node: IANode;
   ancestors: { node: IANode; path: string }[];
   currentPath: string;
 }
-
-interface ConnectedSystem {
-  id: string;
-  name: string;
-  description: string;
-  credentialType: "user" | "org";
-}
-
-const mockSystems: ConnectedSystem[] = [
-  {
-    id: "dhis2",
-    name: "DHIS2",
-    description: "Health information management system for data collection and analysis.",
-    credentialType: "org",
-  },
-  {
-    id: "salesforce",
-    name: "Salesforce",
-    description: "CRM platform for managing customer relationships and data.",
-    credentialType: "org",
-  },
-  {
-    id: "commcare",
-    name: "CommCare",
-    description: "Mobile data collection platform for frontline workers.",
-    credentialType: "user",
-  },
-  {
-    id: "kobo-toolbox",
-    name: "KoBoToolbox",
-    description: "Data collection tool for humanitarian and development work.",
-    credentialType: "user",
-  },
-  {
-    id: "google-sheets",
-    name: "Google Sheets",
-    description: "Cloud-based spreadsheet for collaborative data management.",
-    credentialType: "org",
-  },
-  {
-    id: "fhir",
-    name: "FHIR Server",
-    description: "HL7 FHIR-compliant server for health data interoperability.",
-    credentialType: "user",
-  },
-  {
-    id: "opencrvs",
-    name: "OpenCRVS",
-    description: "Civil registration platform for recording births and deaths.",
-    credentialType: "org",
-  },
-];
 
 type FilterOption = "Available" | "Shared" | "Private";
 
@@ -95,6 +45,9 @@ function SystemCard({ system, basePath }: { system: ConnectedSystem; basePath: s
           )}
         </div>
         <p className="mt-0.5 text-sm text-gray-500 truncate">{system.description}</p>
+        {system.url && (
+          <p className="mt-0.5 text-xs text-gray-400 truncate">{system.url}</p>
+        )}
       </div>
       <ChevronRight
         size={16}
@@ -107,7 +60,7 @@ function SystemCard({ system, basePath }: { system: ConnectedSystem; basePath: s
 export default function ConnectedSystemsView({ node, ancestors, currentPath }: Props) {
   const [selected, setSelected] = useState<FilterOption>("Available");
 
-  const filtered = mockSystems.filter((s) => {
+  const filtered = connectedSystems.filter((s) => {
     if (selected === "Private") return s.credentialType === "user";
     if (selected === "Shared") return s.credentialType === "org";
     return true; // Available = both

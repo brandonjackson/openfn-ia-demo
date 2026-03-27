@@ -8,6 +8,8 @@ export interface IANode {
   linkedFrom?: string;
   /** Filter options for list views (e.g., Connected Systems, History) */
   filters?: { label: string; options: string[] }[];
+  /** Determines which template renders this node. Defaults to "generic". */
+  pageType?: "dashboard" | "list" | "detail" | "catalog" | "table" | "project" | "generic";
 }
 
 /**
@@ -19,11 +21,13 @@ export const mainNavTree: IANode[] = [
     label: "Overview",
     description:
       "High-level dashboard showing system health, recent activity, and key metrics.",
+    pageType: "dashboard",
   },
   {
     id: "connected-systems",
     label: "Connected Systems",
     description: "Browse and manage all connected external systems.",
+    pageType: "list",
     filters: [{ label: "Visibility", options: ["Available", "Shared", "Private"] }],
     children: [
       {
@@ -44,6 +48,7 @@ export const mainNavTree: IANode[] = [
         label: "OpenCRVS",
         description:
           "Civil registration platform for recording births and deaths.",
+        pageType: "detail",
         children: [
           {
             id: "opencrvs-channels",
@@ -75,6 +80,7 @@ export const mainNavTree: IANode[] = [
     id: "service-catalog",
     label: "Service Catalog",
     description: "Browse the catalog of published services.",
+    pageType: "catalog",
     children: [
       {
         id: "live-services",
@@ -96,6 +102,7 @@ export const mainNavTree: IANode[] = [
     id: "history",
     label: "History",
     description: "View historical work orders and channel requests across all projects.",
+    pageType: "table",
     filters: [
       { label: "Project", options: ["All Projects", "Project A", "Project B"] },
       { label: "Type", options: ["All", "Work Order", "Channel Request"] },
@@ -111,6 +118,7 @@ export const projectsTree: IANode[] = [
   {
     id: "project-a",
     label: "Project A",
+    pageType: "project",
     description:
       "Automates the intake and routing of planning applications from the e-planning portal to local authority case management systems.",
     children: [
@@ -191,6 +199,7 @@ export const projectsTree: IANode[] = [
   {
     id: "project-b",
     label: "Project B",
+    pageType: "project",
     description: "Another integration project.",
     children: [
       {

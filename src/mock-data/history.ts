@@ -1,3 +1,5 @@
+import type { TablePageData } from "../page-data";
+
 export interface HistoryEntry {
   id: number;
   type: "Work Order" | "Channel Request";
@@ -21,3 +23,36 @@ export const mockEntries: HistoryEntry[] = [
   { id: 11, type: "Channel Request", name: "PUT /api/stock (OpenLMIS)", project: "Project A", status: "Success", timestamp: "2026-03-26 22:58" },
   { id: 12, type: "Work Order", name: "Update contact records", project: "Project B", status: "Failed", timestamp: "2026-03-26 22:15" },
 ];
+
+export const historyData: TablePageData = {
+  pageType: "table",
+  filters: [
+    { label: "Project", options: ["All Projects", "Project A", "Project B"] },
+    { label: "Type", options: ["All", "Work Order", "Channel Request"] },
+    { label: "Status", options: ["All", "Success", "Failed", "Pending"] },
+  ],
+  columns: [
+    { key: "id", label: "#" },
+    { key: "name", label: "Name" },
+    {
+      key: "type",
+      label: "Type",
+      colorMap: {
+        "Work Order": "bg-blue-50 text-blue-700",
+        "Channel Request": "bg-purple-50 text-purple-700",
+      },
+    },
+    { key: "project", label: "Project" },
+    {
+      key: "status",
+      label: "Status",
+      colorMap: {
+        Success: "bg-green-100 text-green-700",
+        Failed: "bg-red-100 text-red-700",
+        Pending: "bg-yellow-100 text-yellow-700",
+      },
+    },
+    { key: "timestamp", label: "Timestamp" },
+  ],
+  rows: mockEntries as unknown as Record<string, unknown>[],
+};

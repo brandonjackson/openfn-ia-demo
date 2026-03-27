@@ -54,12 +54,20 @@ const mockSystems: ConnectedSystem[] = [
     description: "HL7 FHIR-compliant server for health data interoperability.",
     credentialType: "user",
   },
+  {
+    id: "opencrvs",
+    name: "OpenCRVS",
+    description: "Civil registration platform for recording births and deaths.",
+    credentialType: "org",
+  },
 ];
 
 type FilterOption = "Available" | "Shared" | "Private";
 
 function SystemCard({ system, basePath }: { system: ConnectedSystem; basePath: string }) {
-  const to = `${basePath}/connected-system`;
+  const to = system.id === "opencrvs"
+    ? `${basePath}/opencrvs`
+    : `${basePath}/connected-system`;
   return (
     <Link
       to={to}

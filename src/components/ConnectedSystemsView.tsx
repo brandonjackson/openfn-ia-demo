@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ChevronRight, Globe, Lock, Users } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import Breadcrumbs from "./Breadcrumbs";
-import SuggestedServicesSection from "./SuggestedServicesSection";
+import SuggestedSystemsToAdd from "./SuggestedSystemsToAdd";
 
 interface Props {
   node: IANode;
@@ -165,8 +165,8 @@ export default function ConnectedSystemsView({ node, ancestors, currentPath }: P
         )}
       </div>
 
-      <div className="mt-10">
-        <SuggestedServicesSection connectedSystemCount={mockSystems.length} />
+      <div className="mt-8">
+        <SuggestedSystemsToAdd />
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { IANode } from "../ia-tree";
-import { mainNavTree, projectsTree, settingsTree } from "../ia-tree";
+import { mainNavTree, projectsTree } from "../ia-tree";
 
 function NavItem({
   node,

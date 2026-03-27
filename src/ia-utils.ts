@@ -3,8 +3,8 @@ import type { IANode } from "./ia-tree";
 export interface LookupResult {
   node: IANode;
   ancestors: { node: IANode; path: string }[];
-  /** When a dynamic template node matched, this holds the actual URL slug */
-  dynamicSlug?: string;
+  /** Map of template node IDs to the actual URL slugs they matched */
+  params: Record<string, string>;
 }
 
 export function findNodeByPath(
@@ -16,19 +16,19 @@ export function findNodeByPath(
 
   let currentLevel = tree;
   const ancestors: { node: IANode; path: string }[] = [];
+  const params: Record<string, string> = {};
   let pathSoFar = "";
 
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
     let found = currentLevel.find((n) => n.id === seg);
-    let dynamicSlug: string | undefined;
 
     // If no exact match, fall back to a dynamic template child
     if (!found) {
       const dynamicNode = currentLevel.find((n) => n.dynamic);
       if (dynamicNode) {
         found = dynamicNode;
-        dynamicSlug = seg;
+        params[dynamicNode.id] = seg;
       } else {
         return null;
       }
@@ -37,7 +37,7 @@ export function findNodeByPath(
     pathSoFar += "/" + seg;
 
     if (i === segments.length - 1) {
-      return { node: found, ancestors, dynamicSlug };
+      return { node: found, ancestors, params };
     }
 
     ancestors.push({ node: found, path: pathSoFar });

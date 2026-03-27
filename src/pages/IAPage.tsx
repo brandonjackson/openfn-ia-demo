@@ -1,16 +1,17 @@
 import { useLocation } from "react-router-dom";
 import { iaTree } from "../ia-tree";
 import { findNodeByPath } from "../ia-utils";
+import type { LookupResult } from "../ia-utils";
 import { pageDataRegistry } from "../mock-data";
 import { connectedSystems } from "../mock-data/connected-systems";
+import { projects } from "../mock-data/projects";
 import { templateMap } from "../templates";
 import PageShell from "../components/PageShell";
-import type { DashboardPageData, DetailPageData } from "../page-data";
+import type { DashboardPageData, DetailPageData, ProjectPageData, PageData } from "../page-data";
 import DashboardTemplate from "../templates/DashboardTemplate";
 
 /**
  * Build DetailPageData on the fly from the connectedSystems array.
- * No per-system data file required.
  */
 function buildSystemDetailData(systemId: string): DetailPageData | undefined {
   const system = connectedSystems.find((s) => s.id === systemId);
@@ -25,6 +26,62 @@ function buildSystemDetailData(systemId: string): DetailPageData | undefined {
     systemId: system.id,
     sections: [],
   };
+}
+
+/**
+ * Build ProjectPageData on the fly from the projects array.
+ */
+function buildProjectData(projectId: string): ProjectPageData | undefined {
+  const project = projects.find((p) => p.id === projectId);
+  if (!project) return undefined;
+
+  return {
+    pageType: "project",
+    projectId: project.id,
+    services: project.services,
+    components: project.components,
+  };
+}
+
+/**
+ * Resolve dynamic data and node label overrides based on params.
+ */
+function resolveDynamic(
+  result: LookupResult
+): { node: typeof result.node; data: PageData | undefined } | null {
+  const params = result.params;
+  const hasDynamic = Object.keys(params).length > 0;
+
+  if (!hasDynamic) {
+    return {
+      node: result.node,
+      data: pageDataRegistry.get(result.node.id),
+    };
+  }
+
+  // Connected system detail
+  if (params["connected-system"]) {
+    const slug = params["connected-system"];
+    const system = connectedSystems.find((s) => s.id === slug);
+    if (!system) return null;
+    return {
+      node: { ...result.node, label: system.name, description: system.description },
+      data: buildSystemDetailData(slug),
+    };
+  }
+
+  // Project page
+  if (params["project"]) {
+    const slug = params["project"];
+    const project = projects.find((p) => p.id === slug);
+    if (!project) return null;
+    return {
+      node: { ...result.node, label: project.name, description: project.description },
+      data: buildProjectData(slug),
+    };
+  }
+
+  return { node: result.node, data: undefined };
 }
 
 export default function IAPage() {
@@ -51,37 +108,25 @@ export default function IAPage() {
     );
   }
 
-  const pageType = result.node.pageType ?? "generic";
+  const resolved = resolveDynamic(result);
+
+  if (!resolved) {
+    return (
+      <div className="text-center py-20">
+        <h1 className="text-2xl font-semibold text-gray-900">Page Not Found</h1>
+        <p className="mt-2 text-gray-500">
+          No data found for{" "}
+          <code className="bg-gray-100 px-2 py-0.5 rounded">{pathname}</code>
+        </p>
+      </div>
+    );
+  }
+
+  const { node, data } = resolved;
+  const pageType = node.pageType ?? "generic";
   const Template = templateMap[pageType];
 
   if (Template) {
-    // For dynamic nodes, build data from the source array; otherwise use registry
-    let data = result.dynamicSlug
-      ? buildSystemDetailData(result.dynamicSlug)
-      : pageDataRegistry.get(result.node.id);
-
-    // Override node label with actual system name for dynamic routes
-    const node = result.dynamicSlug
-      ? {
-          ...result.node,
-          label:
-            connectedSystems.find((s) => s.id === result.dynamicSlug)?.name ??
-            result.node.label,
-        }
-      : result.node;
-
-    if (!data && result.dynamicSlug) {
-      return (
-        <div className="text-center py-20">
-          <h1 className="text-2xl font-semibold text-gray-900">Page Not Found</h1>
-          <p className="mt-2 text-gray-500">
-            No connected system found for{" "}
-            <code className="bg-gray-100 px-2 py-0.5 rounded">{result.dynamicSlug}</code>
-          </p>
-        </div>
-      );
-    }
-
     return (
       <Template
         node={node}
@@ -95,7 +140,7 @@ export default function IAPage() {
   // Fallback to generic PageShell
   return (
     <PageShell
-      node={result.node}
+      node={node}
       ancestors={result.ancestors}
       currentPath={pathname}
     />

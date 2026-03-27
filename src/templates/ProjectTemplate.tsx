@@ -10,13 +10,9 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { IANode } from "../ia-tree";
-import Badge from "./Badge";
-import Breadcrumbs from "./Breadcrumbs";
-import { mockEntries } from "../mock-history";
-
-/* ------------------------------------------------------------------ */
-/*  Icon mapping for component types                                    */
-/* ------------------------------------------------------------------ */
+import Badge from "../components/Badge";
+import Breadcrumbs from "../components/Breadcrumbs";
+import { mockEntries } from "../mock-data";
 
 const componentTypeIcons: Record<string, LucideIcon> = {
   Workflow: Workflow,
@@ -25,17 +21,7 @@ const componentTypeIcons: Record<string, LucideIcon> = {
   Collection: Database,
 };
 
-/* ------------------------------------------------------------------ */
-/*  Service card                                                        */
-/* ------------------------------------------------------------------ */
-
-function ServiceCard({
-  node,
-  basePath,
-}: {
-  node: IANode;
-  basePath: string;
-}) {
+function ServiceCard({ node, basePath }: { node: IANode; basePath: string }) {
   const to = basePath + "/services/" + node.id;
   return (
     <Link
@@ -63,17 +49,7 @@ function ServiceCard({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Component row (file-list style)                                     */
-/* ------------------------------------------------------------------ */
-
-function ComponentRow({
-  node,
-  basePath,
-}: {
-  node: IANode;
-  basePath: string;
-}) {
+function ComponentRow({ node, basePath }: { node: IANode; basePath: string }) {
   const to = basePath + "/components/" + node.id;
   const typeBadge = node.badges?.[0] || "File";
   const Icon = componentTypeIcons[typeBadge] || FileText;
@@ -99,10 +75,6 @@ function ComponentRow({
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Add component input (chatbot-style)                                 */
-/* ------------------------------------------------------------------ */
-
 const componentTypeDescriptions: Record<string, string> = {
   Workflow: "Automated data pipeline or integration",
   Form: "Data entry or collection form",
@@ -115,9 +87,7 @@ function AddComponentInput() {
     <div className="border border-gray-200 rounded-lg bg-white shadow-sm">
       <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-100">
         <Plus size={14} className="text-gray-400" />
-        <span className="text-xs font-medium text-gray-400">
-          Add a component
-        </span>
+        <span className="text-xs font-medium text-gray-400">Add a component</span>
       </div>
       <div className="grid grid-cols-2 gap-2 p-3">
         {["Workflow", "Form", "Artifact", "Collection"].map((type) => {
@@ -147,28 +117,19 @@ function AddComponentInput() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  Main project view                                                   */
-/* ------------------------------------------------------------------ */
-
 interface Props {
   node: IANode;
   ancestors: { node: IANode; path: string }[];
   currentPath: string;
 }
 
-export default function ProjectRootView({
-  node,
-  ancestors,
-  currentPath,
-}: Props) {
+export default function ProjectTemplate({ node, ancestors, currentPath }: Props) {
   const servicesNode = node.children?.find((c) => c.id === "services");
   const services = servicesNode?.children || [];
 
   const componentsNode = node.children?.find((c) => c.id === "components");
   const components = componentsNode?.children || [];
 
-  // Other top-level children (work orders, etc.)
   const otherChildren =
     node.children?.filter(
       (c) => c.id !== "services" && c.id !== "components"
@@ -181,10 +142,7 @@ export default function ProjectRootView({
   return (
     <div>
       <Breadcrumbs
-        ancestors={ancestors.map((a) => ({
-          label: a.node.label,
-          path: a.path,
-        }))}
+        ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))}
         current={node.label}
       />
 
@@ -195,18 +153,20 @@ export default function ProjectRootView({
         )}
       </div>
 
-      {/* Metric cards */}
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link
           to={`/history?project=${encodeURIComponent(node.label)}&type=Work+Order`}
           className="group rounded-lg border border-gray-200 p-5 hover:border-blue-300 hover:shadow-sm transition-all"
         >
-          <p className="text-sm text-gray-500 group-hover:text-blue-600 transition-colors">Work Orders</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">{workOrderCount}</p>
+          <p className="text-sm text-gray-500 group-hover:text-blue-600 transition-colors">
+            Work Orders
+          </p>
+          <p className="mt-1 text-2xl font-semibold text-gray-900">
+            {workOrderCount}
+          </p>
         </Link>
       </div>
 
-      {/* Services */}
       <div className="mt-8">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -222,11 +182,7 @@ export default function ProjectRootView({
         </div>
         <div className="space-y-2">
           {services.map((child) => (
-            <ServiceCard
-              key={child.id}
-              node={child}
-              basePath={currentPath}
-            />
+            <ServiceCard key={child.id} node={child} basePath={currentPath} />
           ))}
           {services.length === 0 && (
             <p className="text-sm text-gray-400 italic">
@@ -236,7 +192,6 @@ export default function ProjectRootView({
         </div>
       </div>
 
-      {/* Components */}
       <div className="mt-8">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
@@ -251,11 +206,7 @@ export default function ProjectRootView({
         </div>
         <div className="rounded-lg border border-gray-200 bg-white divide-y divide-gray-100">
           {components.map((child) => (
-            <ComponentRow
-              key={child.id}
-              node={child}
-              basePath={currentPath}
-            />
+            <ComponentRow key={child.id} node={child} basePath={currentPath} />
           ))}
           {components.length === 0 && (
             <p className="text-sm text-gray-400 italic px-3 py-4">
@@ -265,12 +216,10 @@ export default function ProjectRootView({
         </div>
       </div>
 
-      {/* Add component input */}
       <div className="mt-4">
         <AddComponentInput />
       </div>
 
-      {/* Other sections (Work Orders, etc.) */}
       {otherChildren.length > 0 && (
         <div className="mt-8">
           <div className="flex items-center gap-2 mb-3">

@@ -102,15 +102,14 @@ export const mainNavTree: IANode[] = [
 ];
 
 /**
- * Projects listed separately in the sidebar under a "Projects" heading
+ * Dynamic project template (matches any project slug under /projects/)
  */
-export const projectsTree: IANode[] = [
+export const projectTemplateTree: IANode[] = [
   {
-    id: "project-a",
-    label: "Project A",
+    id: "project",
+    label: "Project",
     pageType: "project",
-    description:
-      "Automates the intake and routing of planning applications from the e-planning portal to local authority case management systems.",
+    dynamic: true,
     children: [
       {
         id: "services",
@@ -118,19 +117,9 @@ export const projectsTree: IANode[] = [
         description: "Published services built from project components.",
         children: [
           {
-            id: "planning-application-intake",
-            label: "Planning Application Intake",
-            badges: ["Live"],
-            description:
-              "Receives planning applications from the e-planning portal and routes them to the local authority case management system.",
-            linkedFrom: "/service-builder",
-          },
-          {
-            id: "decision-status-sync",
-            label: "Decision Status Sync",
-            badges: ["Draft"],
-            description:
-              "Syncs planning decision statuses back to the applicant portal on a daily schedule.",
+            id: "service",
+            label: "Service",
+            dynamic: true,
             linkedFrom: "/service-builder",
           },
         ],
@@ -141,34 +130,9 @@ export const projectsTree: IANode[] = [
         description: "Reusable building blocks — workflows, artifacts, forms, and collections.",
         children: [
           {
-            id: "planning-application-workflow",
-            label: "planning-application-workflow",
-            description: "Workflow that validates and routes incoming planning application data.",
-            badges: ["Workflow"],
-          },
-          {
-            id: "decision-notification-workflow",
-            label: "decision-notification-workflow",
-            description: "Scheduled workflow for syncing decision statuses back to the applicant portal.",
-            badges: ["Workflow"],
-          },
-          {
-            id: "application-field-mapping",
-            label: "application-field-mapping.json",
-            description: "Maps e-planning portal fields to the local authority case management schema.",
-            badges: ["Artifact"],
-          },
-          {
-            id: "planning-submission-form",
-            label: "planning-submission-form",
-            description: "Kobo form for collecting supporting information for planning applications.",
-            badges: ["Form"],
-          },
-          {
-            id: "planning-authority-codes",
-            label: "planning-authority-codes",
-            description: "Lookup table of planning authority codes and jurisdictions.",
-            badges: ["Collection"],
+            id: "component",
+            label: "Component",
+            dynamic: true,
           },
         ],
       },
@@ -183,52 +147,6 @@ export const projectsTree: IANode[] = [
             description: "Execution runs triggered by work orders.",
           },
         ],
-      },
-    ],
-  },
-  {
-    id: "project-b",
-    label: "Project B",
-    pageType: "project",
-    description: "Another integration project.",
-    children: [
-      {
-        id: "services",
-        label: "Services",
-        description: "Published services for this project.",
-        children: [
-          {
-            id: "commcare-case-sync",
-            label: "CommCare Case Sync",
-            badges: ["Live"],
-            description:
-              "Syncs case data from CommCare to the shared data warehouse.",
-          },
-        ],
-      },
-      {
-        id: "components",
-        label: "Components",
-        description: "Reusable building blocks for this project.",
-        children: [
-          {
-            id: "case-sync-workflow",
-            label: "case-sync-workflow",
-            description: "Workflow for processing CommCare case updates.",
-            badges: ["Workflow"],
-          },
-          {
-            id: "case-mapping",
-            label: "case-mapping.json",
-            description: "Field mapping from CommCare cases to warehouse schema.",
-            badges: ["Artifact"],
-          },
-        ],
-      },
-      {
-        id: "work-orders",
-        label: "Work Orders",
-        description: "View and manage work orders for this project.",
       },
     ],
   },
@@ -349,7 +267,7 @@ export const iaTree: IANode[] = [
     id: "projects",
     label: "Projects",
     description: "Manage your integration projects.",
-    children: projectsTree,
+    children: projectTemplateTree,
   },
   serviceBuilderTree,
   ...settingsTree,

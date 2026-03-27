@@ -150,9 +150,26 @@ export interface DashboardPageData {
 /*  Project page                                                       */
 /* ------------------------------------------------------------------ */
 
+export interface ProjectServiceItem {
+  id: string;
+  name: string;
+  description: string;
+  status: "Live" | "Draft";
+}
+
+export interface ProjectComponentItem {
+  id: string;
+  name: string;
+  description: string;
+  type: "Workflow" | "Form" | "Artifact" | "Collection";
+}
+
 export interface ProjectPageData {
   pageType: "project";
+  projectId: string;
   metrics?: MetricCard[];
+  services: ProjectServiceItem[];
+  components: ProjectComponentItem[];
 }
 
 /* ------------------------------------------------------------------ */

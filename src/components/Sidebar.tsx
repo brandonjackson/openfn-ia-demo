@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { IANode } from "../ia-tree";
-import { mainNavTree, projectsTree } from "../ia-tree";
+import { mainNavTree } from "../ia-tree";
+import { projects } from "../mock-data/projects";
 import type { LucideIcon } from "lucide-react";
 
 const navIcons: Record<string, LucideIcon> = {
@@ -98,9 +99,9 @@ function NavItem({
   );
 }
 
-function ProjectNavItem({ node }: { node: IANode }) {
+function ProjectNavItem({ id, name }: { id: string; name: string }) {
   const location = useLocation();
-  const fullPath = "/projects/" + node.id;
+  const fullPath = "/projects/" + id;
   const isActive =
     location.pathname === fullPath ||
     location.pathname.startsWith(fullPath + "/");
@@ -118,7 +119,7 @@ function ProjectNavItem({ node }: { node: IANode }) {
           }`}
         >
           <FolderKanban size={14} className="flex-shrink-0" />
-          {node.label}
+          {name}
         </Link>
       </div>
     </div>
@@ -154,8 +155,8 @@ export default function Sidebar() {
               <Plus size={14} />
             </button>
           </div>
-          {projectsTree.map((project) => (
-            <ProjectNavItem key={project.id} node={project} />
+          {projects.map((project) => (
+            <ProjectNavItem key={project.id} id={project.id} name={project.name} />
           ))}
         </div>
       </nav>

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { IANode } from "../ia-tree";
+import type { ProjectPageData, ProjectServiceItem, ProjectComponentItem } from "../page-data";
 import Badge from "../components/Badge";
 import Breadcrumbs from "../components/Breadcrumbs";
 import { mockEntries } from "../mock-data";
@@ -21,8 +22,8 @@ const componentTypeIcons: Record<string, LucideIcon> = {
   Collection: Database,
 };
 
-function ServiceCard({ node, basePath }: { node: IANode; basePath: string }) {
-  const to = basePath + "/services/" + node.id;
+function ServiceCard({ service, basePath }: { service: ProjectServiceItem; basePath: string }) {
+  const to = basePath + "/services/" + service.id;
   return (
     <Link
       to={to}
@@ -31,28 +32,27 @@ function ServiceCard({ node, basePath }: { node: IANode; basePath: string }) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="font-medium text-gray-900 group-hover:text-blue-600 text-sm">
-            {node.label}
+            {service.name}
           </h3>
-          {node.badges?.map((b) => <Badge key={b} label={b} />)}
+          <Badge label={service.status} />
         </div>
         <ChevronRight
           size={16}
           className="text-gray-300 group-hover:text-blue-400"
         />
       </div>
-      {node.description && (
+      {service.description && (
         <p className="mt-1 text-xs text-gray-500 leading-relaxed">
-          {node.description}
+          {service.description}
         </p>
       )}
     </Link>
   );
 }
 
-function ComponentRow({ node, basePath }: { node: IANode; basePath: string }) {
-  const to = basePath + "/components/" + node.id;
-  const typeBadge = node.badges?.[0] || "File";
-  const Icon = componentTypeIcons[typeBadge] || FileText;
+function ComponentRow({ component, basePath }: { component: ProjectComponentItem; basePath: string }) {
+  const to = basePath + "/components/" + component.id;
+  const Icon = componentTypeIcons[component.type] || FileText;
 
   return (
     <Link
@@ -65,11 +65,11 @@ function ComponentRow({ node, basePath }: { node: IANode; basePath: string }) {
       />
       <div className="flex-1 min-w-0">
         <span className="text-sm text-gray-900 group-hover:text-blue-600 font-mono truncate block">
-          {node.label}
+          {component.name}
         </span>
       </div>
       <span className="text-xs text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 flex-shrink-0">
-        {typeBadge}
+        {component.type}
       </span>
     </Link>
   );
@@ -121,19 +121,12 @@ interface Props {
   node: IANode;
   ancestors: { node: IANode; path: string }[];
   currentPath: string;
+  data: ProjectPageData;
 }
 
-export default function ProjectTemplate({ node, ancestors, currentPath }: Props) {
-  const servicesNode = node.children?.find((c) => c.id === "services");
-  const services = servicesNode?.children || [];
-
-  const componentsNode = node.children?.find((c) => c.id === "components");
-  const components = componentsNode?.children || [];
-
-  const otherChildren =
-    node.children?.filter(
-      (c) => c.id !== "services" && c.id !== "components"
-    ) || [];
+export default function ProjectTemplate({ node, ancestors, currentPath, data }: Props) {
+  const services = data.services;
+  const components = data.components;
 
   const workOrderCount = mockEntries.filter(
     (e) => e.type === "Work Order" && e.project === node.label
@@ -181,8 +174,8 @@ export default function ProjectTemplate({ node, ancestors, currentPath }: Props)
           </button>
         </div>
         <div className="space-y-2">
-          {services.map((child) => (
-            <ServiceCard key={child.id} node={child} basePath={currentPath} />
+          {services.map((svc) => (
+            <ServiceCard key={svc.id} service={svc} basePath={currentPath} />
           ))}
           {services.length === 0 && (
             <p className="text-sm text-gray-400 italic">
@@ -205,8 +198,8 @@ export default function ProjectTemplate({ node, ancestors, currentPath }: Props)
           </span>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white divide-y divide-gray-100">
-          {components.map((child) => (
-            <ComponentRow key={child.id} node={child} basePath={currentPath} />
+          {components.map((comp) => (
+            <ComponentRow key={comp.id} component={comp} basePath={currentPath} />
           ))}
           {components.length === 0 && (
             <p className="text-sm text-gray-400 italic px-3 py-4">
@@ -220,39 +213,28 @@ export default function ProjectTemplate({ node, ancestors, currentPath }: Props)
         <AddComponentInput />
       </div>
 
-      {otherChildren.length > 0 && (
-        <div className="mt-8">
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-              More
-            </h2>
-          </div>
-          <div className="space-y-2">
-            {otherChildren.map((child) => (
-              <Link
-                key={child.id}
-                to={currentPath + "/" + child.id}
-                className="group flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 hover:border-blue-300 hover:shadow-sm transition-all"
-              >
-                <div>
-                  <h3 className="font-medium text-gray-900 group-hover:text-blue-600 text-sm">
-                    {child.label}
-                  </h3>
-                  {child.description && (
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {child.description}
-                    </p>
-                  )}
-                </div>
-                <ChevronRight
-                  size={16}
-                  className="text-gray-300 group-hover:text-blue-400"
-                />
-              </Link>
-            ))}
-          </div>
+      {/* Work Orders link */}
+      <div className="mt-8">
+        <div className="space-y-2">
+          <Link
+            to={currentPath + "/work-orders"}
+            className="group flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 hover:border-blue-300 hover:shadow-sm transition-all"
+          >
+            <div>
+              <h3 className="font-medium text-gray-900 group-hover:text-blue-600 text-sm">
+                Work Orders
+              </h3>
+              <p className="text-xs text-gray-500 mt-0.5">
+                View and manage work orders for this project.
+              </p>
+            </div>
+            <ChevronRight
+              size={16}
+              className="text-gray-300 group-hover:text-blue-400"
+            />
+          </Link>
         </div>
-      )}
+      </div>
     </div>
   );
 }

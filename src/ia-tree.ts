@@ -44,6 +44,20 @@ export const mainNavTree: IANode[] = [
         ],
       },
       {
+        id: "salesforce",
+        label: "Salesforce",
+        description:
+          "CRM platform for managing customer relationships and data.",
+        pageType: "detail",
+        children: [
+          {
+            id: "salesforce-channels",
+            label: "Channels",
+            description: "Channels exposed by the Salesforce integration.",
+          },
+        ],
+      },
+      {
         id: "opencrvs",
         label: "OpenCRVS",
         description:

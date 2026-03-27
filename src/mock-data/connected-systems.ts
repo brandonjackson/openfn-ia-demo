@@ -39,6 +39,7 @@ export const connectedSystems: ConnectedSystem[] = [
     description: "CRM platform for managing customer relationships and data.",
     credentialType: "org",
     color: "bg-sky-100 text-sky-700",
+    linkTo: "/connected-systems/salesforce",
     url: "https://acme.my.salesforce.com",
     owner: "Acme Operations",
     ownerType: "org",

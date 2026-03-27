@@ -1,6 +1,7 @@
 import type { PageData } from "../page-data";
 import { connectedSystemListItems } from "./connected-systems";
 import { opencrvsData } from "./opencrvs";
+import { salesforceData } from "./salesforce";
 import { serviceCatalogData } from "./service-catalog";
 import { historyData } from "./history";
 import { overviewData } from "./overview";
@@ -23,6 +24,8 @@ pageDataRegistry.set("connected-systems", {
 });
 
 pageDataRegistry.set("opencrvs", opencrvsData);
+
+pageDataRegistry.set("salesforce", salesforceData);
 
 pageDataRegistry.set("service-catalog", serviceCatalogData);
 

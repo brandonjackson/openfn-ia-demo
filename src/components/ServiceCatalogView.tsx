@@ -32,6 +32,7 @@ interface ChannelEntry {
   channelType: ChannelType;
   system: string;
   systemPath: string;
+  section: string;
 }
 
 interface WorkflowEntry {
@@ -42,6 +43,7 @@ interface WorkflowEntry {
   project: string;
   projectPath: string;
   badges?: string[];
+  section: string;
 }
 
 type CatalogEntry = ChannelEntry | WorkflowEntry;
@@ -51,7 +53,7 @@ type CatalogEntry = ChannelEntry | WorkflowEntry;
 /* ------------------------------------------------------------------ */
 
 const catalogEntries: CatalogEntry[] = [
-  // OpenCRVS channels (pointers — source of truth is /connected-systems/opencrvs)
+  // Ministry of Health — vital events via OpenCRVS
   {
     kind: "channel",
     id: "opencrvs-notify-birth",
@@ -60,6 +62,7 @@ const catalogEntries: CatalogEntry[] = [
     channelType: "write",
     system: "OpenCRVS",
     systemPath: "/connected-systems/opencrvs",
+    section: "Ministry of Health",
   },
   {
     kind: "channel",
@@ -69,6 +72,7 @@ const catalogEntries: CatalogEntry[] = [
     channelType: "event",
     system: "OpenCRVS",
     systemPath: "/connected-systems/opencrvs",
+    section: "Ministry of Health",
   },
   {
     kind: "channel",
@@ -78,6 +82,7 @@ const catalogEntries: CatalogEntry[] = [
     channelType: "read",
     system: "OpenCRVS",
     systemPath: "/connected-systems/opencrvs",
+    section: "Ministry of Health",
   },
   {
     kind: "channel",
@@ -87,6 +92,7 @@ const catalogEntries: CatalogEntry[] = [
     channelType: "write",
     system: "OpenCRVS",
     systemPath: "/connected-systems/opencrvs",
+    section: "Ministry of Health",
   },
   {
     kind: "channel",
@@ -96,6 +102,7 @@ const catalogEntries: CatalogEntry[] = [
     channelType: "event",
     system: "OpenCRVS",
     systemPath: "/connected-systems/opencrvs",
+    section: "Ministry of Health",
   },
   {
     kind: "channel",
@@ -105,18 +112,23 @@ const catalogEntries: CatalogEntry[] = [
     channelType: "read",
     system: "OpenCRVS",
     systemPath: "/connected-systems/opencrvs",
+    section: "Ministry of Health",
   },
 
-  // Service endpoints published from projects
+  // Department of Planning
   {
     kind: "workflow",
     id: "project-a-planning-application-intake",
     name: "Planning Application Intake",
-    description: "Receives planning applications from the e-planning portal and routes them to the local authority case management system.",
+    description:
+      "Receives planning applications from the e-planning portal and routes them to the local authority case management system.",
     project: "Project A",
     projectPath: "/projects/project-a/services/planning-application-intake",
     badges: ["Live"],
+    section: "Department of Planning",
   },
+
+  // Ministry of Social Welfare
   {
     kind: "workflow",
     id: "project-b-commcare-case-sync",
@@ -125,6 +137,7 @@ const catalogEntries: CatalogEntry[] = [
     project: "Project B",
     projectPath: "/projects/project-b/services/commcare-case-sync",
     badges: ["Live"],
+    section: "Ministry of Social Welfare",
   },
 ];
 
@@ -240,19 +253,12 @@ export default function ServiceCatalogView({
   node,
   ancestors,
 }: Props) {
-  const channelEntries = catalogEntries.filter(
-    (e): e is ChannelEntry => e.kind === "channel"
-  );
-  const workflowEntries = catalogEntries.filter(
-    (e): e is WorkflowEntry => e.kind === "workflow"
-  );
-
-  // Group channels by system
-  const channelsBySystem = new Map<string, ChannelEntry[]>();
-  for (const ch of channelEntries) {
-    const list = channelsBySystem.get(ch.system) ?? [];
-    list.push(ch);
-    channelsBySystem.set(ch.system, list);
+  // Group all entries by section, preserving insertion order
+  const bySection = new Map<string, CatalogEntry[]>();
+  for (const entry of catalogEntries) {
+    const list = bySection.get(entry.section) ?? [];
+    list.push(entry);
+    bySection.set(entry.section, list);
   }
 
   return (
@@ -276,39 +282,19 @@ export default function ServiceCatalogView({
         {catalogEntries.length} services published across the organization
       </p>
 
-      {/* Workflow endpoints from projects */}
-      {workflowEntries.length > 0 && (
-        <div className="mt-6">
+      {[...bySection.entries()].map(([section, entries]) => (
+        <div key={section} className="mt-8">
           <h2 className="text-sm font-semibold text-gray-700 mb-3">
-            Workflow Endpoints
+            {section}
           </h2>
           <div className="space-y-2">
-            {workflowEntries.map((entry) => (
-              <WorkflowCatalogCard key={entry.id} entry={entry} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Channels from connected systems */}
-      {[...channelsBySystem.entries()].map(([system, entries]) => (
-        <div key={system} className="mt-8">
-          <div className="flex items-center gap-2 mb-3">
-            <h2 className="text-sm font-semibold text-gray-700">
-              {system}
-            </h2>
-            <Link
-              to={entries[0].systemPath}
-              className="text-xs text-gray-400 hover:text-blue-600 inline-flex items-center gap-0.5"
-            >
-              Connected System
-              <ArrowUpRight size={10} />
-            </Link>
-          </div>
-          <div className="space-y-2">
-            {entries.map((entry) => (
-              <ChannelCatalogCard key={entry.id} entry={entry} />
-            ))}
+            {entries.map((entry) =>
+              entry.kind === "channel" ? (
+                <ChannelCatalogCard key={entry.id} entry={entry} />
+              ) : (
+                <WorkflowCatalogCard key={entry.id} entry={entry} />
+              )
+            )}
           </div>
         </div>
       ))}

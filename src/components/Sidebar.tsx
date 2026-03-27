@@ -23,7 +23,7 @@ function NavItem({
   const fullPath = path + "/" + node.id;
   const isActive = location.pathname === fullPath;
   const isAncestor = location.pathname.startsWith(fullPath + "/");
-  const hasChildren = node.children && node.children.length > 0;
+  const hasChildren = node.children && node.children.length > 0 && node.id !== "connected-systems";
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {

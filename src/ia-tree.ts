@@ -27,8 +27,7 @@ export const mainNavTree: IANode[] = [
     children: [
       {
         id: "live-services",
-        label: "Aggregation of Live Services",
-        badges: ["Aggregation"],
+        label: "Live Services",
         description:
           "All live services published from projects across the organization.",
         linkedFrom: "/projects",
@@ -38,7 +37,6 @@ export const mainNavTree: IANode[] = [
   {
     id: "connected-systems",
     label: "Connected Systems",
-    badges: ["Aggregation"],
     description: "Browse and manage all connected external systems.",
     filters: [{ label: "Visibility", options: ["Available", "Shared", "Private"] }],
     children: [
@@ -53,22 +51,11 @@ export const mainNavTree: IANode[] = [
             label: "Channels",
             description: "Channels associated with this connected system.",
           },
-          {
-            id: "edit",
-            label: "Edit",
-            description: "Edit this connected system's configuration.",
-          },
-          {
-            id: "delete",
-            label: "Delete",
-            description: "Delete this connected system.",
-          },
         ],
       },
       {
         id: "credentials",
-        label: "Aggregation of Credentials",
-        badges: ["Aggregation"],
+        label: "Credentials",
         description: "View and manage credentials across the organization.",
         children: [
           {
@@ -101,15 +88,13 @@ export const mainNavTree: IANode[] = [
       },
       {
         id: "all-channels",
-        label: "Aggregation of All Channels",
-        badges: ["Aggregation"],
-        description: "Aggregated view of all channels across projects.",
+        label: "All Channels",
+        description: "View of all channels across projects.",
       },
       {
         id: "all-work-orders",
-        label: "Aggregation of All Work Orders",
-        badges: ["Aggregation"],
-        description: "Aggregated view of all work orders across projects.",
+        label: "All Work Orders",
+        description: "View of all work orders across projects.",
       },
     ],
   },

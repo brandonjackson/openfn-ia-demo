@@ -1,8 +1,15 @@
 import { Link } from "react-router-dom";
-import { ChevronRight, FileText, Boxes } from "lucide-react";
+import { ChevronRight, FileText, Boxes, Sparkles, Database } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import Badge from "./Badge";
 import Breadcrumbs from "./Breadcrumbs";
+
+const resourceIcons: Record<string, LucideIcon> = {
+  artifacts: FileText,
+  skills: Sparkles,
+  collections: Database,
+};
 
 interface Props {
   node: IANode;
@@ -33,13 +40,14 @@ function WorkflowCard({ node, basePath }: { node: IANode; basePath: string }) {
 
 function ResourceCard({ node, basePath }: { node: IANode; basePath: string }) {
   const to = basePath + "/" + node.id;
+  const Icon = resourceIcons[node.id] || Boxes;
   return (
     <Link
       to={to}
       className="group flex items-center gap-3 rounded-lg border border-gray-200 px-4 py-3 hover:border-blue-300 hover:shadow-sm transition-all"
     >
       <div className="w-8 h-8 rounded bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-50">
-        <Boxes size={16} className="text-gray-400 group-hover:text-blue-500" />
+        <Icon size={16} className="text-gray-400 group-hover:text-blue-500" />
       </div>
       <div>
         <h3 className="font-medium text-gray-900 group-hover:text-blue-600 text-sm">
@@ -58,17 +66,15 @@ export default function ProjectRootView({
   ancestors,
   currentPath,
 }: Props) {
-  // Split children into workflows (services, sandbox) and resources/other
+  // Split children into workflows (services, sandbox) and resources
   const workflows =
     node.children?.filter(
       (c) =>
         c.id.startsWith("service-") || c.id === "sandbox" || c.id === "work-orders"
     ) || [];
-  const resources =
-    node.children?.filter(
-      (c) =>
-        !c.id.startsWith("service-") && c.id !== "sandbox" && c.id !== "work-orders"
-    ) || [];
+  // Show resource type children (artifacts, skills, collections) directly
+  const resourcesNode = node.children?.find((c) => c.id === "resources");
+  const resources = resourcesNode?.children || [];
 
   return (
     <div>
@@ -123,7 +129,7 @@ export default function ProjectRootView({
               <ResourceCard
                 key={child.id}
                 node={child}
-                basePath={currentPath}
+                basePath={currentPath + "/resources"}
               />
             ))}
             {resources.length === 0 && (

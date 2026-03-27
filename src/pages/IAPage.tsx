@@ -5,6 +5,7 @@ import type { LookupResult } from "../ia-utils";
 import { pageDataRegistry } from "../mock-data";
 import { connectedSystems } from "../mock-data/connected-systems";
 import { projects } from "../mock-data/projects";
+import { serviceCatalogData } from "../mock-data/service-catalog";
 import { templateMap } from "../templates";
 import PageShell from "../components/PageShell";
 import type { DashboardPageData, DetailPageData, ProjectPageData, PageData } from "../page-data";
@@ -12,10 +13,17 @@ import DashboardTemplate from "../templates/DashboardTemplate";
 
 /**
  * Build DetailPageData on the fly from the connectedSystems array.
+ * Pulls matching channels from the service catalog for the system.
+ * Every system gets a "Channels" section so the default HTTP channel appears.
  */
 function buildSystemDetailData(systemId: string): DetailPageData | undefined {
   const system = connectedSystems.find((s) => s.id === systemId);
   if (!system) return undefined;
+
+  // Find channels defined in the service catalog for this system
+  const systemChannels = serviceCatalogData.entries.filter(
+    (e) => e.kind === "channel" && e.systemPath === `/connected-systems/${systemId}`
+  );
 
   return {
     pageType: "detail",
@@ -24,7 +32,19 @@ function buildSystemDetailData(systemId: string): DetailPageData | undefined {
       variant: system.credentialType === "org" ? "shared" : "private",
     },
     systemId: system.id,
-    sections: [],
+    sections: [
+      {
+        id: "channels",
+        title: "Channels",
+        display: "cards" as const,
+        items: systemChannels.map((ch) => ({
+          id: ch.id,
+          name: ch.name,
+          description: ch.description,
+          metadata: { channelType: ch.kind === "channel" ? ch.channelType : "" },
+        })),
+      },
+    ],
   };
 }
 

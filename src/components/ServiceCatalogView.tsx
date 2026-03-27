@@ -107,14 +107,23 @@ const catalogEntries: CatalogEntry[] = [
     systemPath: "/connected-systems/opencrvs",
   },
 
-  // Workflow endpoints published from projects
+  // Service endpoints published from projects
   {
     kind: "workflow",
-    id: "project-a-service-live",
-    name: "Project A — Service",
-    description: "The live, published version of Project A's service.",
+    id: "project-a-crvs-birth-registration",
+    name: "CRVS Birth Registration",
+    description: "Registers births from OpenCRVS and syncs records to the national CRVS database.",
     project: "Project A",
-    projectPath: "/projects/project-a/service-live",
+    projectPath: "/projects/project-a/services/crvs-birth-registration",
+    badges: ["Live"],
+  },
+  {
+    kind: "workflow",
+    id: "project-b-commcare-case-sync",
+    name: "CommCare Case Sync",
+    description: "Syncs case data from CommCare to the shared data warehouse.",
+    project: "Project B",
+    projectPath: "/projects/project-b/services/commcare-case-sync",
     badges: ["Live"],
   },
 ];

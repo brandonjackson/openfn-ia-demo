@@ -138,16 +138,16 @@ export default function HomeView() {
       {/* Metric strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-lg border border-gray-200 p-5">
+          <p className="text-sm text-gray-500">Connected Systems</p>
+          <p className="mt-1 text-2xl font-semibold text-gray-900">{total}</p>
+        </div>
+        <div className="rounded-lg border border-gray-200 p-5">
           <p className="text-sm text-gray-500">Active Services</p>
           <p className="mt-1 text-2xl font-semibold text-gray-900">12</p>
         </div>
         <div className="rounded-lg border border-gray-200 p-5">
           <p className="text-sm text-gray-500">Work Orders (24h)</p>
           <p className="mt-1 text-2xl font-semibold text-gray-900">347</p>
-        </div>
-        <div className="rounded-lg border border-gray-200 p-5">
-          <p className="text-sm text-gray-500">Connected Systems</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">{total}</p>
         </div>
       </div>
 

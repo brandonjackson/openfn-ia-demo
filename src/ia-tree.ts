@@ -21,20 +21,6 @@ export const mainNavTree: IANode[] = [
       "High-level dashboard showing system health, recent activity, and key metrics.",
   },
   {
-    id: "service-catalog",
-    label: "Service Catalog",
-    description: "Browse the catalog of published services.",
-    children: [
-      {
-        id: "live-services",
-        label: "Live Services",
-        description:
-          "All live services published from projects across the organization.",
-        linkedFrom: "/projects",
-      },
-    ],
-  },
-  {
     id: "connected-systems",
     label: "Connected Systems",
     description: "Browse and manage all connected external systems.",
@@ -73,29 +59,26 @@ export const mainNavTree: IANode[] = [
     ],
   },
   {
+    id: "service-catalog",
+    label: "Service Catalog",
+    description: "Browse the catalog of published services.",
+    children: [
+      {
+        id: "live-services",
+        label: "Live Services",
+        description:
+          "All live services published from projects across the organization.",
+        linkedFrom: "/projects",
+      },
+    ],
+  },
+  {
     id: "history",
     label: "History",
     description: "View historical work orders across all projects.",
     filters: [
       { label: "Project", options: ["All Projects", "Project A", "Project B"] },
       { label: "Status", options: ["All", "Success", "Failed", "Pending"] },
-    ],
-    children: [
-      {
-        id: "overview",
-        label: "Overview",
-        description: "High-level overview of system activity and history.",
-      },
-      {
-        id: "all-channels",
-        label: "All Channels",
-        description: "View of all channels across projects.",
-      },
-      {
-        id: "all-work-orders",
-        label: "All Work Orders",
-        description: "View of all work orders across projects.",
-      },
     ],
   },
 ];

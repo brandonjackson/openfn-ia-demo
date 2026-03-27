@@ -40,6 +40,19 @@ export const mainNavTree: IANode[] = [
         ],
       },
       {
+        id: "opencrvs",
+        label: "OpenCRVS",
+        description:
+          "Civil registration platform for recording births and deaths.",
+        children: [
+          {
+            id: "opencrvs-channels",
+            label: "Channels",
+            description: "Channels exposed by the OpenCRVS integration.",
+          },
+        ],
+      },
+      {
         id: "credentials",
         label: "Credentials",
         description: "View and manage credentials across the organization.",

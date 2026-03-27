@@ -7,6 +7,7 @@ import ProjectRootView from "../components/ProjectRootView";
 import ConnectedSystemsView from "../components/ConnectedSystemsView";
 import HistoryView from "../components/HistoryView";
 import OpenCRVSSystemView from "../components/OpenCRVSSystemView";
+import HomeView from "../components/HomeView";
 import ServiceCatalogView from "../components/ServiceCatalogView";
 
 export default function IAPage() {
@@ -14,7 +15,7 @@ export default function IAPage() {
   const pathname = location.pathname;
 
   if (pathname === "/" || pathname === "/overview") {
-    return <HomePage />;
+    return <HomeView />;
   }
 
   const result = findNodeByPath(iaTree, pathname);
@@ -94,34 +95,5 @@ export default function IAPage() {
       ancestors={result.ancestors}
       currentPath={pathname}
     />
-  );
-}
-
-function HomePage() {
-  return (
-    <div>
-      <h1 className="text-2xl font-semibold text-gray-900">Overview</h1>
-      <p className="mt-2 text-gray-500">
-        Welcome to OpenFn. View system health, recent activity, and key metrics
-        at a glance.
-      </p>
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-lg border border-gray-200 p-5">
-          <p className="text-sm text-gray-500">Active Services</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">12</p>
-        </div>
-        <div className="rounded-lg border border-gray-200 p-5">
-          <p className="text-sm text-gray-500">Work Orders (24h)</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">347</p>
-        </div>
-        <div className="rounded-lg border border-gray-200 p-5">
-          <p className="text-sm text-gray-500">Connected Systems</p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">8</p>
-        </div>
-      </div>
-      <div className="mt-6 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 p-8 text-center text-gray-400">
-        Dashboard content goes here.
-      </div>
-    </div>
   );
 }

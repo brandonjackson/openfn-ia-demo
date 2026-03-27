@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ChevronRight, Globe, Lock, Users } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import Breadcrumbs from "./Breadcrumbs";
+import SuggestedServicesSection from "./SuggestedServicesSection";
 
 interface Props {
   node: IANode;
@@ -162,6 +163,10 @@ export default function ConnectedSystemsView({ node, ancestors, currentPath }: P
             No systems match the selected filter.
           </div>
         )}
+      </div>
+
+      <div className="mt-10">
+        <SuggestedServicesSection connectedSystemCount={mockSystems.length} />
       </div>
     </div>
   );

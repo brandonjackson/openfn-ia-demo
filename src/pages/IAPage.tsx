@@ -7,6 +7,7 @@ import ProjectRootView from "../components/ProjectRootView";
 import ConnectedSystemsView from "../components/ConnectedSystemsView";
 import HistoryView from "../components/HistoryView";
 import OpenCRVSSystemView from "../components/OpenCRVSSystemView";
+import ServiceCatalogView from "../components/ServiceCatalogView";
 
 export default function IAPage() {
   const location = useLocation();
@@ -51,6 +52,16 @@ export default function IAPage() {
   if (result.node.id === "connected-systems") {
     return (
       <ConnectedSystemsView
+        node={result.node}
+        ancestors={result.ancestors}
+        currentPath={pathname}
+      />
+    );
+  }
+
+  if (result.node.id === "service-catalog") {
+    return (
+      <ServiceCatalogView
         node={result.node}
         ancestors={result.ancestors}
         currentPath={pathname}

@@ -129,7 +129,25 @@ export const projectsTree: IANode[] = [
       {
         id: "resources",
         label: "Resources",
-        description: "Manage project resources.",
+        description:
+          "Manage project resources including artifacts, skills, and collections.",
+        children: [
+          {
+            id: "artifacts",
+            label: "Artifacts",
+            description: "Files and outputs produced by this project.",
+          },
+          {
+            id: "skills",
+            label: "Skills",
+            description: "Reusable skills available to this project.",
+          },
+          {
+            id: "collections",
+            label: "Collections",
+            description: "Data collections managed by this project.",
+          },
+        ],
       },
     ],
   },

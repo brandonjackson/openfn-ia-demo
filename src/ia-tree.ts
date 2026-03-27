@@ -10,6 +10,8 @@ export interface IANode {
   filters?: { label: string; options: string[] }[];
   /** Determines which template renders this node. Defaults to "generic". */
   pageType?: "dashboard" | "list" | "detail" | "catalog" | "table" | "project" | "generic";
+  /** When true, this node acts as a template that matches any sibling slug not found by exact ID */
+  dynamic?: boolean;
 }
 
 /**
@@ -34,40 +36,14 @@ export const mainNavTree: IANode[] = [
         id: "connected-system",
         label: "Connected System",
         description: "View details of a specific connected system.",
+        pageType: "detail",
+        dynamic: true,
         actions: ["Edit", "Delete"],
         children: [
           {
             id: "channels",
             label: "Channels",
             description: "Channels associated with this connected system.",
-          },
-        ],
-      },
-      {
-        id: "salesforce",
-        label: "Salesforce",
-        description:
-          "CRM platform for managing customer relationships and data.",
-        pageType: "detail",
-        children: [
-          {
-            id: "salesforce-channels",
-            label: "Channels",
-            description: "Channels exposed by the Salesforce integration.",
-          },
-        ],
-      },
-      {
-        id: "opencrvs",
-        label: "OpenCRVS",
-        description:
-          "Civil registration platform for recording births and deaths.",
-        pageType: "detail",
-        children: [
-          {
-            id: "opencrvs-channels",
-            label: "Channels",
-            description: "Channels exposed by the OpenCRVS integration.",
           },
         ],
       },

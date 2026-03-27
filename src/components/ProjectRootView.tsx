@@ -12,6 +12,7 @@ import type { LucideIcon } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import Badge from "./Badge";
 import Breadcrumbs from "./Breadcrumbs";
+import { mockEntries } from "../mock-history";
 
 /* ------------------------------------------------------------------ */
 /*  Icon mapping for component types                                    */
@@ -173,6 +174,10 @@ export default function ProjectRootView({
       (c) => c.id !== "services" && c.id !== "components"
     ) || [];
 
+  const workOrderCount = mockEntries.filter(
+    (e) => e.type === "Work Order" && e.project === node.label
+  ).length;
+
   return (
     <div>
       <Breadcrumbs
@@ -188,6 +193,17 @@ export default function ProjectRootView({
         {node.description && (
           <p className="mt-1 text-gray-500 text-sm">{node.description}</p>
         )}
+      </div>
+
+      {/* Metric cards */}
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Link
+          to={`/history?project=${encodeURIComponent(node.label)}&type=Work+Order`}
+          className="group rounded-lg border border-gray-200 p-5 hover:border-blue-300 hover:shadow-sm transition-all"
+        >
+          <p className="text-sm text-gray-500 group-hover:text-blue-600 transition-colors">Work Orders</p>
+          <p className="mt-1 text-2xl font-semibold text-gray-900">{workOrderCount}</p>
+        </Link>
       </div>
 
       {/* Services */}

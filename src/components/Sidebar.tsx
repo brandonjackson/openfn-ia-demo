@@ -10,9 +10,6 @@ import {
   BookOpen,
   Clock,
   FolderKanban,
-  FileText,
-  Sparkles,
-  Database,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { IANode } from "../ia-tree";
@@ -107,29 +104,11 @@ function ProjectNavItem({ node }: { node: IANode }) {
   const isActive =
     location.pathname === fullPath ||
     location.pathname.startsWith(fullPath + "/");
-  const [expanded, setExpanded] = useState(false);
-
-  useEffect(() => {
-    if (isActive) {
-      setExpanded(true);
-    }
-  }, [isActive]);
-
-  const resourceChildren = node.children?.find((c) => c.id === "resources")?.children || [];
 
   return (
     <div>
       <div className="flex items-center gap-1">
-        {resourceChildren.length > 0 ? (
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="p-0.5 hover:bg-gray-200 rounded flex-shrink-0 text-gray-400"
-          >
-            {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          </button>
-        ) : (
-          <span className="w-5 flex-shrink-0" />
-        )}
+        <span className="w-5 flex-shrink-0" />
         <Link
           to={fullPath}
           className={`flex-1 flex items-center gap-2 rounded-md px-1 py-1.5 text-sm transition-colors ${
@@ -142,39 +121,9 @@ function ProjectNavItem({ node }: { node: IANode }) {
           {node.label}
         </Link>
       </div>
-
-      {expanded && resourceChildren.length > 0 && (
-        <div className="ml-5">
-          {resourceChildren.map((res) => {
-            const resIcon = resourceIcons[res.id];
-            const resPath = `${fullPath}/resources/${res.id}`;
-            const resActive = location.pathname === resPath || location.pathname.startsWith(resPath + "/");
-            return (
-              <Link
-                key={res.id}
-                to={resPath}
-                className={`flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors ${
-                  resActive
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
-                }`}
-              >
-                {resIcon && (() => { const I = resIcon; return <I size={13} className="flex-shrink-0" />; })()}
-                {res.label}
-              </Link>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }
-
-const resourceIcons: Record<string, LucideIcon> = {
-  artifacts: FileText,
-  skills: Sparkles,
-  collections: Database,
-};
 
 export default function Sidebar() {
   return (

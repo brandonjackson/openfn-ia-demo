@@ -43,6 +43,9 @@ function ListItemCard({ item, basePath }: { item: ListItem; basePath: string }) 
           ) : null}
         </div>
         <p className="mt-0.5 text-sm text-gray-500 truncate">{item.description}</p>
+        {item.metadata?.url && (
+          <p className="mt-0.5 text-xs text-gray-400 truncate">{item.metadata.url}</p>
+        )}
       </div>
       <ChevronRight
         size={16}

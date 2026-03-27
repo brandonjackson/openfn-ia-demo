@@ -3,6 +3,7 @@ import type { DetailPageData } from "../page-data";
 export const opencrvsData: DetailPageData = {
   pageType: "detail",
   headerBadge: { label: "Shared", variant: "shared" },
+  systemId: "opencrvs",
   sections: [
     {
       id: "channels",

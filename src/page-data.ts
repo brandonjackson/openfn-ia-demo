@@ -58,6 +58,8 @@ export interface DetailSection {
 export interface DetailPageData {
   pageType: "detail";
   headerBadge?: { label: string; variant: "shared" | "private" };
+  /** System ID to look up full system data (url, owner, credentials, etc.) */
+  systemId?: string;
   metrics?: MetricCard[];
   sections: DetailSection[];
 }

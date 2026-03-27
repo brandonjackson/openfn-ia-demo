@@ -1,6 +1,5 @@
 import type { PageData } from "../page-data";
 import { connectedSystemListItems } from "./connected-systems";
-import { opencrvsData } from "./opencrvs";
 import { serviceCatalogData } from "./service-catalog";
 import { historyData } from "./history";
 import { overviewData } from "./overview";
@@ -21,8 +20,6 @@ pageDataRegistry.set("connected-systems", {
   filterMap: { Private: "user", Shared: "org" },
   showSuggestions: true,
 });
-
-pageDataRegistry.set("opencrvs", opencrvsData);
 
 pageDataRegistry.set("service-catalog", serviceCatalogData);
 

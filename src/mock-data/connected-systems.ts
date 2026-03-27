@@ -104,7 +104,6 @@ export const connectedSystems: ConnectedSystem[] = [
     description: "Civil registration platform for recording births and deaths.",
     credentialType: "org",
     color: "bg-rose-100 text-rose-700",
-    linkTo: "/connected-systems/opencrvs",
     url: "https://opencrvs.example.org",
     owner: "Acme Health Ministry",
     ownerType: "org",

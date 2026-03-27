@@ -75,9 +75,10 @@ export const mainNavTree: IANode[] = [
   {
     id: "history",
     label: "History",
-    description: "View historical work orders across all projects.",
+    description: "View historical work orders and channel requests across all projects.",
     filters: [
       { label: "Project", options: ["All Projects", "Project A", "Project B"] },
+      { label: "Type", options: ["All", "Work Order", "Channel Request"] },
       { label: "Status", options: ["All", "Success", "Failed", "Pending"] },
     ],
   },

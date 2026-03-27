@@ -112,7 +112,7 @@ export const projectsTree: IANode[] = [
     id: "project-a",
     label: "Project A",
     description:
-      "An example project with services and reusable components.",
+      "Automates the intake and routing of planning applications from the e-planning portal to local authority case management systems.",
     children: [
       {
         id: "services",
@@ -120,19 +120,19 @@ export const projectsTree: IANode[] = [
         description: "Published services built from project components.",
         children: [
           {
-            id: "crvs-birth-registration",
-            label: "CRVS Birth Registration",
+            id: "planning-application-intake",
+            label: "Planning Application Intake",
             badges: ["Live"],
             description:
-              "Registers births from OpenCRVS and syncs records to the national CRVS database.",
+              "Receives planning applications from the e-planning portal and routes them to the local authority case management system.",
             linkedFrom: "/service-builder",
           },
           {
-            id: "dhis2-facility-sync",
-            label: "DHIS2 Facility Data Sync",
+            id: "decision-status-sync",
+            label: "Decision Status Sync",
             badges: ["Draft"],
             description:
-              "Syncs facility-level health data to DHIS2 on a nightly schedule.",
+              "Syncs planning decision statuses back to the applicant portal on a daily schedule.",
             linkedFrom: "/service-builder",
           },
         ],
@@ -143,33 +143,33 @@ export const projectsTree: IANode[] = [
         description: "Reusable building blocks — workflows, artifacts, forms, and collections.",
         children: [
           {
-            id: "birth-registration-workflow",
-            label: "birth-registration-workflow",
-            description: "Workflow that maps and routes birth notification data.",
+            id: "planning-application-workflow",
+            label: "planning-application-workflow",
+            description: "Workflow that validates and routes incoming planning application data.",
             badges: ["Workflow"],
           },
           {
-            id: "facility-sync-workflow",
-            label: "facility-sync-workflow",
-            description: "Scheduled workflow for syncing facility data to DHIS2.",
+            id: "decision-notification-workflow",
+            label: "decision-notification-workflow",
+            description: "Scheduled workflow for syncing decision statuses back to the applicant portal.",
             badges: ["Workflow"],
           },
           {
-            id: "birth-field-mapping",
-            label: "birth-field-mapping.json",
-            description: "Maps OpenCRVS birth fields to national CRVS schema.",
+            id: "application-field-mapping",
+            label: "application-field-mapping.json",
+            description: "Maps e-planning portal fields to the local authority case management schema.",
             badges: ["Artifact"],
           },
           {
-            id: "facility-registration-form",
-            label: "facility-registration-form",
-            description: "Kobo form for collecting facility registration data.",
+            id: "planning-submission-form",
+            label: "planning-submission-form",
+            description: "Kobo form for collecting supporting information for planning applications.",
             badges: ["Form"],
           },
           {
-            id: "facility-codes",
-            label: "facility-codes",
-            description: "Lookup table of facility codes and names.",
+            id: "planning-authority-codes",
+            label: "planning-authority-codes",
+            description: "Lookup table of planning authority codes and jurisdictions.",
             badges: ["Collection"],
           },
         ],

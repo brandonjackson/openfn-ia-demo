@@ -110,11 +110,11 @@ const catalogEntries: CatalogEntry[] = [
   // Service endpoints published from projects
   {
     kind: "workflow",
-    id: "project-a-crvs-birth-registration",
-    name: "CRVS Birth Registration",
-    description: "Registers births from OpenCRVS and syncs records to the national CRVS database.",
+    id: "project-a-planning-application-intake",
+    name: "Planning Application Intake",
+    description: "Receives planning applications from the e-planning portal and routes them to the local authority case management system.",
     project: "Project A",
-    projectPath: "/projects/project-a/services/crvs-birth-registration",
+    projectPath: "/projects/project-a/services/planning-application-intake",
     badges: ["Live"],
   },
   {

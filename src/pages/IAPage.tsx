@@ -10,6 +10,7 @@ import { templateMap } from "../templates";
 import PageShell from "../components/PageShell";
 import type { DashboardPageData, DetailPageData, ProjectPageData, PageData } from "../page-data";
 import DashboardTemplate from "../templates/DashboardTemplate";
+import IAComparisonPage from "./IAComparisonPage";
 
 /**
  * Build DetailPageData on the fly from the connectedSystems array.
@@ -107,6 +108,11 @@ function resolveDynamic(
 export default function IAPage() {
   const location = useLocation();
   const pathname = location.pathname;
+
+  // IA Comparison page
+  if (pathname === "/ia-comparison") {
+    return <IAComparisonPage />;
+  }
 
   // Dashboard / home page
   if (pathname === "/" || pathname === "/overview") {

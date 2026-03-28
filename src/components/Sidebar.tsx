@@ -5,6 +5,7 @@ import {
   Plus,
   User,
   Building2,
+  GitCompare,
   LayoutDashboard,
   Globe,
   BookOpen,
@@ -163,6 +164,13 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="border-t border-gray-200 p-2">
+        <Link
+          to="/ia-comparison"
+          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+        >
+          <GitCompare size={14} />
+          <span>IA Comparison</span>
+        </Link>
         <Link
           to="/user-settings"
           className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"

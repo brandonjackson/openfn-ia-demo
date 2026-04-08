@@ -55,6 +55,14 @@ export interface DetailSection {
   display: "cards" | "rows" | "links";
 }
 
+export interface AccessGrant {
+  id: string;
+  grantedTo: string;
+  grantedToType: "user" | "project";
+  scope: string;
+  lastAccessed: string | null;
+}
+
 export interface DetailPageData {
   pageType: "detail";
   headerBadge?: { label: string; variant: "shared" | "private" };
@@ -62,6 +70,7 @@ export interface DetailPageData {
   systemId?: string;
   metrics?: MetricCard[];
   sections: DetailSection[];
+  accessGrants?: AccessGrant[];
 }
 
 /* ------------------------------------------------------------------ */

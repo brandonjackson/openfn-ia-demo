@@ -586,7 +586,7 @@ interface Props {
   data: ProjectSettingsPageData;
 }
 
-export default function ProjectSettingsTemplate({ node, ancestors, currentPath, data }: Props) {
+export default function ProjectSettingsTemplate({ node, ancestors, data }: Props) {
   const [activeTab, setActiveTab] = useState("setup");
 
   const projectLabel = ancestors.length > 0

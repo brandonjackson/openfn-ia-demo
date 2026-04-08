@@ -13,9 +13,10 @@ const defaultSuggestions: SuggestedSystem[] = [
 
 interface Props {
   suggestions?: SuggestedSystem[];
+  onSelect?: (systemName: string) => void;
 }
 
-export default function SuggestedSystemsToAdd({ suggestions = defaultSuggestions }: Props) {
+export default function SuggestedSystemsToAdd({ suggestions = defaultSuggestions, onSelect }: Props) {
   return (
     <div>
       <p className="text-xs font-medium text-gray-500 mb-2.5 uppercase tracking-wide">
@@ -25,6 +26,7 @@ export default function SuggestedSystemsToAdd({ suggestions = defaultSuggestions
         {suggestions.map((sys) => (
           <li
             key={sys.name}
+            onClick={() => onSelect?.(sys.name)}
             className="flex items-center gap-2.5 rounded-md border border-dashed border-gray-200 px-2.5 py-2 hover:border-blue-200 hover:bg-blue-50/30 group cursor-pointer transition-colors"
           >
             <div className="w-6 h-6 rounded-md border border-dashed border-gray-300 flex items-center justify-center group-hover:border-blue-300">

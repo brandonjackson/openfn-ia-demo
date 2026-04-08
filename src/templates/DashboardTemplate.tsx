@@ -1,12 +1,22 @@
+import { useState } from "react";
 import type { DashboardPageData } from "../page-data";
 import ConnectedSystemsSetupSection from "./dashboard-sections/ConnectedSystemsSetupSection";
 import SuggestedServicesSection from "./dashboard-sections/SuggestedServicesSection";
+import AddConnectedSystemFlow from "../components/AddConnectedSystemFlow";
 
 interface Props {
   data: DashboardPageData;
 }
 
 export default function DashboardTemplate({ data }: Props) {
+  const [addFlowOpen, setAddFlowOpen] = useState(false);
+  const [preselectedSystem, setPreselectedSystem] = useState<string | undefined>();
+
+  const handleOpenAddFlow = (systemName?: string) => {
+    setPreselectedSystem(systemName);
+    setAddFlowOpen(true);
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -31,11 +41,18 @@ export default function DashboardTemplate({ data }: Props) {
         systems={data.connectedSystems}
         recommendedSystems={data.recommendedSystems}
         recommended={data.recommended}
+        onAddSystem={handleOpenAddFlow}
       />
 
       <SuggestedServicesSection
         services={data.suggestedServices}
         systems={data.connectedSystems}
+      />
+
+      <AddConnectedSystemFlow
+        open={addFlowOpen}
+        onClose={() => setAddFlowOpen(false)}
+        preselectedSystem={preselectedSystem}
       />
     </div>
   );

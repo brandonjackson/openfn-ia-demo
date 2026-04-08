@@ -14,12 +14,14 @@ interface Props {
   systems: ConnectedSystemSummary[];
   recommendedSystems: { name: string; description: string }[];
   recommended: number;
+  onAddSystem?: (systemName?: string) => void;
 }
 
 export default function ConnectedSystemsSetupSection({
   systems,
   recommendedSystems,
   recommended,
+  onAddSystem,
 }: Props) {
   const total = systems.length;
   const sharedCount = systems.filter((s) => s.credentialType === "org").length;
@@ -41,13 +43,13 @@ export default function ConnectedSystemsSetupSection({
             </p>
           </div>
         </div>
-        <Link
-          to="/connected-systems"
+        <button
+          onClick={() => onAddSystem?.()}
           className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors"
         >
           <Plus size={13} />
           Add a system
-        </Link>
+        </button>
       </div>
 
       <div className="px-5 py-3 bg-gray-50 border-b border-gray-100">
@@ -95,7 +97,7 @@ export default function ConnectedSystemsSetupSection({
 
         <div>
           <div className="mb-4">
-            <SuggestedSystemsToAdd suggestions={recommendedSystems} />
+            <SuggestedSystemsToAdd suggestions={recommendedSystems} onSelect={onAddSystem} />
           </div>
 
           <div className="rounded-lg bg-blue-50 border border-blue-100 p-3.5 space-y-2">

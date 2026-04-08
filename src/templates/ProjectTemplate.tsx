@@ -7,6 +7,7 @@ import {
   FileSpreadsheet,
   ClipboardList,
   Plus,
+  Settings,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { IANode } from "../ia-tree";
@@ -213,7 +214,7 @@ export default function ProjectTemplate({ node, ancestors, currentPath, data }: 
         <AddComponentInput />
       </div>
 
-      {/* Work Orders link */}
+      {/* Work Orders & Settings links */}
       <div className="mt-8">
         <div className="space-y-2">
           <Link
@@ -227,6 +228,26 @@ export default function ProjectTemplate({ node, ancestors, currentPath, data }: 
               <p className="text-xs text-gray-500 mt-0.5">
                 View and manage work orders for this project.
               </p>
+            </div>
+            <ChevronRight
+              size={16}
+              className="text-gray-300 group-hover:text-blue-400"
+            />
+          </Link>
+          <Link
+            to={currentPath + "/settings"}
+            className="group flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 hover:border-blue-300 hover:shadow-sm transition-all"
+          >
+            <div className="flex items-center gap-2">
+              <Settings size={14} className="text-gray-400 group-hover:text-blue-500" />
+              <div>
+                <h3 className="font-medium text-gray-900 group-hover:text-blue-600 text-sm">
+                  Settings
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Manage project configuration, credentials, and collaborators.
+                </p>
+              </div>
             </div>
             <ChevronRight
               size={16}

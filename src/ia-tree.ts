@@ -9,7 +9,7 @@ export interface IANode {
   /** Filter options for list views (e.g., Connected Systems, History) */
   filters?: { label: string; options: string[] }[];
   /** Determines which template renders this node. Defaults to "generic". */
-  pageType?: "dashboard" | "list" | "detail" | "catalog" | "table" | "project" | "generic";
+  pageType?: "dashboard" | "list" | "detail" | "catalog" | "table" | "project" | "project-settings" | "generic";
   /** When true, this node acts as a template that matches any sibling slug not found by exact ID */
   dynamic?: boolean;
 }
@@ -147,6 +147,12 @@ export const projectTemplateTree: IANode[] = [
             description: "Execution runs triggered by work orders.",
           },
         ],
+      },
+      {
+        id: "settings",
+        label: "Settings",
+        description: "View and manage project settings.",
+        pageType: "project-settings",
       },
     ],
   },

@@ -14,9 +14,11 @@ import {
   Plus,
   BookOpen,
   Plug,
+  FolderOpen,
+  ShieldX,
 } from "lucide-react";
 import type { IANode } from "../ia-tree";
-import type { DetailPageData, DetailSectionItem } from "../page-data";
+import type { AccessGrant, DetailPageData, DetailSectionItem } from "../page-data";
 import type { ChannelType } from "../page-data";
 import Breadcrumbs from "../components/Breadcrumbs";
 import { connectedSystems } from "../mock-data/connected-systems";
@@ -138,6 +140,50 @@ function CredentialRow({
         Add
       </button>
     </div>
+  );
+}
+
+function AccessGrantRow({ grant }: { grant: AccessGrant }) {
+  return (
+    <tr className="hover:bg-gray-50">
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-2">
+          {grant.grantedToType === "project" ? (
+            <FolderOpen size={14} className="text-gray-400 flex-shrink-0" />
+          ) : (
+            <User size={14} className="text-gray-400 flex-shrink-0" />
+          )}
+          <span className="text-sm font-medium text-gray-900">{grant.grantedTo}</span>
+          <span
+            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${
+              grant.grantedToType === "project"
+                ? "bg-purple-50 text-purple-700 border-purple-200"
+                : "bg-blue-50 text-blue-600 border-blue-200"
+            }`}
+          >
+            {grant.grantedToType === "project" ? "Project" : "User"}
+          </span>
+        </div>
+      </td>
+      <td className="px-4 py-3">
+        {grant.scope === "All Resources" ? (
+          <span className="text-sm text-gray-700">All Resources</span>
+        ) : (
+          <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono text-gray-700">
+            {grant.scope}
+          </code>
+        )}
+      </td>
+      <td className="px-4 py-3 text-sm text-gray-500">
+        {grant.lastAccessed ?? <span className="text-gray-300">Never</span>}
+      </td>
+      <td className="px-4 py-3 text-right">
+        <button className="inline-flex items-center gap-1 rounded-md border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
+          <ShieldX size={12} />
+          Revoke
+        </button>
+      </td>
+    </tr>
   );
 }
 
@@ -286,6 +332,41 @@ export default function DetailTemplate({ node, ancestors, data }: Props) {
             {allChannelItems.map((item) => (
               <ChannelCard key={item.id} item={item} />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Access List */}
+      {data.accessGrants && data.accessGrants.length > 0 && (
+        <div className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold text-gray-900">Access</h2>
+            <span className="text-xs text-gray-400">
+              {data.accessGrants.length} grant{data.accessGrants.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Granted To
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Scope
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Last Accessed
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {data.accessGrants.map((grant) => (
+                  <AccessGrantRow key={grant.id} grant={grant} />
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

@@ -1,4 +1,4 @@
-import type { ListItem, ConnectedSystemSummary } from "../page-data";
+import type { ListItem, ConnectedSystemSummary, AccessGrant } from "../page-data";
 
 export interface ConnectedSystem {
   id: string;
@@ -112,6 +112,44 @@ export const connectedSystems: ConnectedSystem[] = [
     apiDocsUrl: "https://documentation.opencrvs.org/technology/interoperability/",
   },
 ];
+
+/**
+ * Mock access grants per connected system.
+ * Maps system ID to its access grants.
+ */
+export const systemAccessGrants: Record<string, AccessGrant[]> = {
+  dhis2: [
+    { id: "ag-1", grantedTo: "Brandon Jackson", grantedToType: "user", scope: "All Resources", lastAccessed: "2026-04-07" },
+    { id: "ag-2", grantedTo: "Project A", grantedToType: "project", scope: "/api/trackedEntityInstances", lastAccessed: "2026-04-06" },
+    { id: "ag-3", grantedTo: "Project B", grantedToType: "project", scope: "/api/dataValueSets", lastAccessed: "2026-03-28" },
+    { id: "ag-4", grantedTo: "adiallo", grantedToType: "user", scope: "/api/analytics", lastAccessed: null },
+  ],
+  salesforce: [
+    { id: "ag-5", grantedTo: "Project A", grantedToType: "project", scope: "All Resources", lastAccessed: "2026-04-05" },
+    { id: "ag-6", grantedTo: "Brandon Jackson", grantedToType: "user", scope: "/services/data/v59.0/sobjects", lastAccessed: "2026-04-02" },
+  ],
+  commcare: [
+    { id: "ag-7", grantedTo: "jsmith", grantedToType: "user", scope: "All Resources", lastAccessed: "2026-04-07" },
+    { id: "ag-8", grantedTo: "Project B", grantedToType: "project", scope: "/a/{domain}/api/v0.5/case", lastAccessed: "2026-04-01" },
+  ],
+  "kobo-toolbox": [
+    { id: "ag-9", grantedTo: "adiallo", grantedToType: "user", scope: "All Resources", lastAccessed: "2026-03-15" },
+  ],
+  "google-sheets": [
+    { id: "ag-10", grantedTo: "Project A", grantedToType: "project", scope: "All Resources", lastAccessed: "2026-04-04" },
+    { id: "ag-11", grantedTo: "Brandon Jackson", grantedToType: "user", scope: "All Resources", lastAccessed: "2026-04-03" },
+  ],
+  fhir: [
+    { id: "ag-12", grantedTo: "bwilson", grantedToType: "user", scope: "All Resources", lastAccessed: "2026-04-06" },
+    { id: "ag-13", grantedTo: "Project A", grantedToType: "project", scope: "/Patient", lastAccessed: "2026-04-05" },
+    { id: "ag-14", grantedTo: "Project B", grantedToType: "project", scope: "/Observation", lastAccessed: null },
+  ],
+  opencrvs: [
+    { id: "ag-15", grantedTo: "Project A", grantedToType: "project", scope: "All Resources", lastAccessed: "2026-04-07" },
+    { id: "ag-16", grantedTo: "Brandon Jackson", grantedToType: "user", scope: "/births", lastAccessed: "2026-03-20" },
+    { id: "ag-17", grantedTo: "adiallo", grantedToType: "user", scope: "/deaths", lastAccessed: null },
+  ],
+};
 
 /** ListItem shape for the list template */
 export const connectedSystemListItems: ListItem[] = connectedSystems.map((s) => ({

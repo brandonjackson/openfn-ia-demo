@@ -3,7 +3,7 @@ import { iaTree } from "../ia-tree";
 import { findNodeByPath } from "../ia-utils";
 import type { LookupResult } from "../ia-utils";
 import { pageDataRegistry } from "../mock-data";
-import { connectedSystems } from "../mock-data/connected-systems";
+import { connectedSystems, systemAccessGrants } from "../mock-data/connected-systems";
 import { projects } from "../mock-data/projects";
 import { serviceCatalogData } from "../mock-data/service-catalog";
 import { templateMap } from "../templates";
@@ -46,6 +46,7 @@ function buildSystemDetailData(systemId: string): DetailPageData | undefined {
         })),
       },
     ],
+    accessGrants: systemAccessGrants[systemId] ?? [],
   };
 }
 

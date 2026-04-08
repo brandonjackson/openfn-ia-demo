@@ -173,6 +173,42 @@ export interface ProjectPageData {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Project Settings page                                              */
+/* ------------------------------------------------------------------ */
+
+export interface Collaborator {
+  name: string;
+  email: string;
+  role: "Owner" | "Editor" | "Viewer" | "Admin";
+  isSelf?: boolean;
+  failureAlert: string;
+  digest: string;
+}
+
+export interface OrgCredential {
+  id: string;
+  name: string;
+  system: string;
+  owner: string;
+  hasAccess: boolean;
+}
+
+export interface ProjectSettingsPageData {
+  pageType: "project-settings";
+  projectName: string;
+  projectEnvironment: string;
+  projectDescription: string;
+  collaborators: Collaborator[];
+  orgCredentials: OrgCredential[];
+  retentionPeriod: string;
+  ioDataPolicy: "retain" | "zero-persistence";
+  ioRetentionPeriod: string;
+  mfaRequired: boolean;
+  githubConnected: boolean;
+  concurrencyDisabled: boolean;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Union type                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -182,4 +218,5 @@ export type PageData =
   | CatalogPageData
   | TablePageData
   | DashboardPageData
-  | ProjectPageData;
+  | ProjectPageData
+  | ProjectSettingsPageData;

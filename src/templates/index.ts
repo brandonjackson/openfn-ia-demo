@@ -6,6 +6,7 @@ import DetailTemplate from "./DetailTemplate";
 import TableTemplate from "./TableTemplate";
 import CatalogTemplate from "./CatalogTemplate";
 import ProjectTemplate from "./ProjectTemplate";
+import ProjectSettingsTemplate from "./ProjectSettingsTemplate";
 import DashboardTemplate from "./DashboardTemplate";
 
 export interface TemplateProps {
@@ -24,5 +25,6 @@ export const templateMap: Record<string, React.FC<any>> = {
   table: TableTemplate,
   catalog: CatalogTemplate,
   project: ProjectTemplate,
+  "project-settings": ProjectSettingsTemplate,
   dashboard: DashboardTemplate,
 };

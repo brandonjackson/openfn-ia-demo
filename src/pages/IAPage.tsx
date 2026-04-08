@@ -8,7 +8,7 @@ import { projects } from "../mock-data/projects";
 import { serviceCatalogData } from "../mock-data/service-catalog";
 import { templateMap } from "../templates";
 import PageShell from "../components/PageShell";
-import type { DashboardPageData, DetailPageData, ProjectPageData, PageData } from "../page-data";
+import type { DashboardPageData, DetailPageData, ProjectPageData, ProjectSettingsPageData, PageData } from "../page-data";
 import DashboardTemplate from "../templates/DashboardTemplate";
 import IAComparisonPage from "./IAComparisonPage";
 
@@ -65,6 +65,43 @@ function buildProjectData(projectId: string): ProjectPageData | undefined {
 }
 
 /**
+ * Build ProjectSettingsPageData for a given project.
+ */
+function buildProjectSettingsData(projectId: string): ProjectSettingsPageData | undefined {
+  const project = projects.find((p) => p.id === projectId);
+  if (!project) return undefined;
+
+  return {
+    pageType: "project-settings",
+    projectName: project.name.toLowerCase().replace(/\s+/g, "-"),
+    projectEnvironment: "main",
+    projectDescription: project.description,
+    collaborators: [
+      {
+        name: "Brandon Jackson",
+        email: "brandon@openfn.org",
+        role: "Owner",
+        isSelf: true,
+        failureAlert: "Unavailable",
+        digest: "Never",
+      },
+    ],
+    orgCredentials: [
+      { id: "cred-dhis2", name: "DHIS2 Production", system: "DHIS2", owner: "Org", hasAccess: true },
+      { id: "cred-commcare", name: "CommCare HQ", system: "CommCare", owner: "Org", hasAccess: false },
+      { id: "cred-kobo", name: "KoboToolbox", system: "Kobo", owner: "Org", hasAccess: true },
+      { id: "cred-salesforce", name: "Salesforce Sandbox", system: "Salesforce", owner: "Org", hasAccess: false },
+    ],
+    retentionPeriod: "7 Days",
+    ioDataPolicy: "retain",
+    ioRetentionPeriod: "7 Days",
+    mfaRequired: false,
+    githubConnected: false,
+    concurrencyDisabled: false,
+  };
+}
+
+/**
  * Resolve dynamic data and node label overrides based on params.
  */
 function resolveDynamic(
@@ -96,6 +133,15 @@ function resolveDynamic(
     const slug = params["project"];
     const project = projects.find((p) => p.id === slug);
     if (!project) return null;
+
+    // Project settings page
+    if (result.node.pageType === "project-settings") {
+      return {
+        node: result.node,
+        data: buildProjectSettingsData(slug),
+      };
+    }
+
     return {
       node: { ...result.node, label: project.name, description: project.description },
       data: buildProjectData(slug),

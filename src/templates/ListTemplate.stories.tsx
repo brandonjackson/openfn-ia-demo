@@ -6,7 +6,7 @@ import type { IANode } from "../ia-tree";
 
 const node: IANode = {
   id: "connected-systems",
-  label: "Connected Systems",
+  label: "Systems",
   description: "Browse and manage all connected external systems.",
 };
 

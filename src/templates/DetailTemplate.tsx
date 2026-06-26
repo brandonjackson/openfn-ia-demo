@@ -165,15 +165,6 @@ function AccessGrantRow({ grant }: { grant: AccessGrant }) {
           </span>
         </div>
       </td>
-      <td className="px-4 py-3">
-        {grant.scope === "All Resources" ? (
-          <span className="text-sm text-gray-700">All Resources</span>
-        ) : (
-          <code className="rounded bg-gray-100 px-1.5 py-0.5 text-xs font-mono text-gray-700">
-            {grant.scope}
-          </code>
-        )}
-      </td>
       <td className="px-4 py-3 text-sm text-gray-500">
         {grant.lastAccessed ?? <span className="text-gray-300">Never</span>}
       </td>
@@ -351,9 +342,6 @@ export default function DetailTemplate({ node, ancestors, data }: Props) {
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Granted To
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Scope
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Last Accessed

@@ -4,7 +4,7 @@ import { connectedSystemSummaries } from "./connected-systems";
 export const overviewData: DashboardPageData = {
   pageType: "dashboard",
   metrics: [
-    { label: "Connected Systems", value: connectedSystemSummaries.length },
+    { label: "Systems", value: connectedSystemSummaries.length },
     { label: "Active Services", value: 12 },
     { label: "Work Orders (24h)", value: 347 },
   ],

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, Globe, Lock, Users, Plus } from "lucide-react";
+import { ChevronRight, Globe, Lock, Users, Plus, Download } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { ListPageData, ListItem } from "../page-data";
 import Breadcrumbs from "../components/Breadcrumbs";
@@ -88,13 +88,19 @@ export default function ListTemplate({ node, ancestors, currentPath, data }: Pro
             <p className="mt-1 text-gray-500 text-sm">{node.description}</p>
           )}
         </div>
-        <button
-          onClick={() => handleOpenAddFlow()}
-          className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-        >
-          <Plus size={14} />
-          Add System
-        </button>
+        <div className="flex-shrink-0 flex items-center gap-2">
+          <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+            <Download size={14} />
+            Export
+          </button>
+          <button
+            onClick={() => handleOpenAddFlow()}
+            className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          >
+            <Plus size={14} />
+            Add System
+          </button>
+        </div>
       </div>
 
       {firstFilter && (

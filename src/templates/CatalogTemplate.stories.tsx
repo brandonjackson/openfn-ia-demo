@@ -6,7 +6,7 @@ import type { IANode } from "../ia-tree";
 
 const node: IANode = {
   id: "service-catalog",
-  label: "Service Catalog",
+  label: "Services",
   description: "Browse the catalog of published services.",
 };
 

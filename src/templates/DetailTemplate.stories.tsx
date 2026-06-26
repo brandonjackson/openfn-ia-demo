@@ -12,7 +12,7 @@ const node: IANode = {
 
 const ancestors = [
   { node: { id: "root", label: "Home" }, path: "/" },
-  { node: { id: "connected-systems", label: "Connected Systems" }, path: "/connected-systems" },
+  { node: { id: "connected-systems", label: "Systems" }, path: "/connected-systems" },
 ];
 
 const detailData: DetailPageData = {

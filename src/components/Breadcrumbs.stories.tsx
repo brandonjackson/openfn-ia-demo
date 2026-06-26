@@ -13,7 +13,7 @@ type Story = StoryObj<typeof Breadcrumbs>;
 
 export const SingleAncestor: Story = {
   args: {
-    ancestors: [{ label: "Connected Systems", path: "/connected-systems" }],
+    ancestors: [{ label: "Systems", path: "/connected-systems" }],
     current: "DHIS2",
   },
 };

@@ -27,7 +27,7 @@ export const mainNavTree: IANode[] = [
   },
   {
     id: "connected-systems",
-    label: "Connected Systems",
+    label: "Systems",
     description: "Browse and manage all connected external systems.",
     pageType: "list",
     filters: [{ label: "Visibility", options: ["Available", "Shared", "Private"] }],
@@ -68,7 +68,7 @@ export const mainNavTree: IANode[] = [
   },
   {
     id: "service-catalog",
-    label: "Service Catalog",
+    label: "Services",
     description: "Browse the catalog of published services.",
     pageType: "catalog",
     children: [

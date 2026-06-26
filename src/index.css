@@ -1,7 +1,8 @@
+/* Geist + Geist Mono power the OpenFn themes; system fallbacks keep the
+   default ("Sim DTU") theme and offline rendering looking right. */
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400..600&display=swap");
 @import "tailwindcss";
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
-}
+/* Theme tokens + the data-theme overrides that drive the Style Picker.
+   Imported AFTER tailwindcss so its variable redefinitions win. */
+@import "./theme/theme.css";

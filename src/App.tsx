@@ -8,6 +8,7 @@ export default function App() {
     <Routes>
       {/* Full-screen editor lives outside the standard sidebar layout. */}
       <Route path="/workflow-editor" element={<WorkflowEditorPage />} />
+      <Route path="/workflow-editor/:workflowId" element={<WorkflowEditorPage />} />
       <Route element={<Layout />}>
         <Route path="*" element={<IAPage />} />
       </Route>

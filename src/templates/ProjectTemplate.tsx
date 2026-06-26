@@ -52,7 +52,12 @@ function ServiceCard({ service, basePath }: { service: ProjectServiceItem; baseP
 }
 
 function ComponentRow({ component, basePath }: { component: ProjectComponentItem; basePath: string }) {
-  const to = basePath + "/components/" + component.id;
+  // Opening a workflow drops you straight into the workflow editor; other
+  // component types open their generic detail page.
+  const to =
+    component.type === "Workflow"
+      ? "/workflow-editor/" + component.id
+      : basePath + "/components/" + component.id;
   const Icon = componentTypeIcons[component.type] || FileText;
 
   return (

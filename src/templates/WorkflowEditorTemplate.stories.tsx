@@ -29,3 +29,13 @@ export const WithJobSelected: Story = {
     initialSelectedId: "search",
   },
 };
+
+export const JobExpanded: Story = {
+  name: "Job expanded (code editor)",
+  args: {
+    workflow: nationalIdWorkflow,
+    history: recentHistory,
+    initialSelectedId: "search",
+    initialExpandedId: "search",
+  },
+};

@@ -134,9 +134,9 @@ export default function Sidebar() {
       <div className="p-4 border-b border-gray-200">
         <Link to="/" className="flex items-center gap-2">
           <div className="w-7 h-7 bg-indigo-600 rounded-md flex items-center justify-center">
-            <span className="text-white text-xs font-bold">Of</span>
+            <span className="text-white text-xs font-bold">SD</span>
           </div>
-          <span className="text-lg font-semibold text-gray-900">OpenFn</span>
+          <span className="text-lg font-semibold text-gray-900">Sim DTU</span>
         </Link>
       </div>
 

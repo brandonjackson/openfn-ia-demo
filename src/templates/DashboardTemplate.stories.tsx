@@ -22,7 +22,7 @@ export const FewSystems: Story = {
     data: {
       ...overviewData,
       metrics: [
-        { label: "Connected Systems", value: 2 },
+        { label: "Systems", value: 2 },
         { label: "Active Services", value: 3 },
         { label: "Work Orders (24h)", value: 18 },
       ],

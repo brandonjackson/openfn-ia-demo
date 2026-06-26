@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, Navigate } from "react-router-dom";
 import { iaTree } from "../ia-tree";
 import { findNodeByPath } from "../ia-utils";
 import type { LookupResult } from "../ia-utils";
@@ -165,6 +165,21 @@ export default function IAPage() {
   if (pathname === "/" || pathname === "/overview") {
     const data = pageDataRegistry.get("overview") as DashboardPageData;
     return <DashboardTemplate data={data} />;
+  }
+
+  // Opening a workflow component (even via a direct or legacy URL) drops you
+  // into the full-screen workflow editor.
+  const componentMatch = pathname.match(
+    /^\/projects\/[^/]+\/components\/([^/]+)$/
+  );
+  if (componentMatch) {
+    const componentId = componentMatch[1];
+    const isWorkflow = projects.some((p) =>
+      p.components.some((c) => c.id === componentId && c.type === "Workflow")
+    );
+    if (isWorkflow) {
+      return <Navigate to={`/workflow-editor/${componentId}`} replace />;
+    }
   }
 
   const result = findNodeByPath(iaTree, pathname);

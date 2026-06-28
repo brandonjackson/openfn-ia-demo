@@ -1,4 +1,5 @@
 import {
+  ArrowLeft,
   ChevronDown,
   HelpCircle,
   SlidersHorizontal,
@@ -10,18 +11,33 @@ import type { Workflow } from "../../mock-data/workflow";
 /**
  * The editor top bar: project / workflow breadcrumb with a version selector on
  * the left, and the inspector toggle, Run and Save actions on the right.
+ *
+ * When `onBack` is provided, a back control is shown in the top-left corner to
+ * leave the full-screen editor and return to the app shell.
  */
 export default function WorkflowTopBar({
   workflow,
   runLabel = "Run",
+  onBack,
 }: {
   workflow: Workflow;
   runLabel?: string;
+  onBack?: () => void;
 }) {
   return (
     <div className="flex items-center justify-between gap-4 border-b border-gray-200 bg-white px-4 py-2.5">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm min-w-0">
+        {onBack && (
+          <button
+            onClick={onBack}
+            title="Back to app"
+            aria-label="Back to app"
+            className="inline-flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+          >
+            <ArrowLeft size={16} />
+          </button>
+        )}
         <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 px-2 py-1 text-gray-700 hover:bg-gray-50">
           <span className="inline-block w-4 h-4 rounded bg-gray-200" />
           <span className="font-medium">{workflow.project}</span>

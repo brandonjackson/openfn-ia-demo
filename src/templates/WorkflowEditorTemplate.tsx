@@ -27,12 +27,14 @@ export default function WorkflowEditorTemplate({
   run = sampleRun,
   initialSelectedId,
   initialExpandedId,
+  onBack,
 }: {
   workflow: Workflow;
   history: RunHistoryEntry[];
   run?: RunDetails;
   initialSelectedId?: string;
   initialExpandedId?: string;
+  onBack?: () => void;
 }) {
   const [selectedId, setSelectedId] = useState<string | undefined>(initialSelectedId);
   const [expandedId, setExpandedId] = useState<string | undefined>(initialExpandedId);
@@ -52,6 +54,7 @@ export default function WorkflowEditorTemplate({
       <WorkflowTopBar
         workflow={workflow}
         runLabel={expandedJob ? "Run (Retry)" : "Run"}
+        onBack={onBack}
       />
 
       {expandedJob ? (

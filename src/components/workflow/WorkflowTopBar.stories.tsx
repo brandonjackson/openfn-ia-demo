@@ -15,3 +15,6 @@ export const Default: Story = { args: { workflow: nationalIdWorkflow } };
 export const RetryRun: Story = {
   args: { workflow: nationalIdWorkflow, runLabel: "Run (Retry)" },
 };
+export const WithBackButton: Story = {
+  args: { workflow: nationalIdWorkflow, onBack: () => {} },
+};

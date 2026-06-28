@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronDown,
   ChevronRight,
@@ -17,6 +17,7 @@ import { useState, useEffect } from "react";
 import type { IANode } from "../ia-tree";
 import { mainNavTree } from "../ia-tree";
 import { projects } from "../mock-data/projects";
+import CreateProjectFlow from "./CreateProjectFlow";
 import type { LucideIcon } from "lucide-react";
 
 const navIcons: Record<string, LucideIcon> = {
@@ -129,6 +130,15 @@ function ProjectNavItem({ id, name }: { id: string; name: string }) {
 }
 
 export default function Sidebar() {
+  const navigate = useNavigate();
+  const [createOpen, setCreateOpen] = useState(false);
+
+  const handleCreateProject = () => {
+    // Prototype flow: a new project routes the user through to Project A.
+    setCreateOpen(false);
+    navigate("/projects/project-a");
+  };
+
   return (
     <aside className="w-72 border-r border-gray-200 bg-gray-50 flex-shrink-0 flex flex-col h-full">
       {/* Logo */}
@@ -153,7 +163,13 @@ export default function Sidebar() {
             <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
               Projects
             </span>
-            <button className="p-0.5 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors">
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              aria-label="New project"
+              title="New project"
+              className="p-0.5 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
+            >
               <Plus size={14} />
             </button>
           </div>
@@ -194,6 +210,12 @@ export default function Sidebar() {
           <span>Org Settings</span>
         </Link>
       </div>
+
+      <CreateProjectFlow
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreate={handleCreateProject}
+      />
     </aside>
   );
 }

@@ -5,6 +5,13 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OpenFN — Information Architecture</title>
+    <!-- Apply the saved theme before first paint to avoid a flash of the default look. -->
+    <script>
+      try {
+        var t = localStorage.getItem("openfn-ia-theme");
+        if (t) document.documentElement.setAttribute("data-theme", t);
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

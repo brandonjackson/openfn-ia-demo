@@ -1,5 +1,4 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
 import WorkflowEditorTemplate from "../templates/WorkflowEditorTemplate";
 import {
   nationalIdWorkflow,
@@ -38,8 +37,8 @@ function resolveWorkflow(workflowId?: string): Workflow {
  * Full-screen route that drops the prototype's standard sidebar/chrome and
  * shows the workflow editor on its own, mirroring the real Lightning editor.
  * Opened from anywhere a workflow is opened (e.g. a project's components list)
- * via `/workflow-editor/:workflowId`. A floating control returns you to where
- * you came from.
+ * via `/workflow-editor/:workflowId`. A back control in the top-left corner
+ * returns you to the app shell view you came from.
  */
 export default function WorkflowEditorPage() {
   const navigate = useNavigate();
@@ -47,16 +46,12 @@ export default function WorkflowEditorPage() {
   const workflow = resolveWorkflow(workflowId);
 
   return (
-    <div className="relative h-screen">
-      <WorkflowEditorTemplate workflow={workflow} history={recentHistory} />
-      <button
-        onClick={() => navigate(-1)}
-        title="Back to prototype"
-        className="absolute bottom-4 left-1/2 z-50 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-gray-200 bg-white/90 px-3 py-1.5 text-xs font-medium text-gray-600 shadow-sm backdrop-blur hover:bg-white hover:text-gray-900"
-      >
-        <ArrowLeft size={13} />
-        Back to prototype
-      </button>
+    <div className="h-screen">
+      <WorkflowEditorTemplate
+        workflow={workflow}
+        history={recentHistory}
+        onBack={() => navigate(-1)}
+      />
     </div>
   );
 }

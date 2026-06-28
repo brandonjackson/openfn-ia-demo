@@ -22,6 +22,14 @@ export const Default: Story = {
   args: { workflow: nationalIdWorkflow, history: recentHistory },
 };
 
+export const WithBackButton: Story = {
+  args: {
+    workflow: nationalIdWorkflow,
+    history: recentHistory,
+    onBack: () => {},
+  },
+};
+
 export const WithJobSelected: Story = {
   args: {
     workflow: nationalIdWorkflow,

@@ -11,7 +11,6 @@ import {
   BookOpen,
   Clock,
   FolderKanban,
-  Workflow,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { IANode } from "../ia-tree";
@@ -165,13 +164,6 @@ export default function Sidebar() {
 
       {/* Footer */}
       <div className="border-t border-gray-200 p-2">
-        <Link
-          to="/workflow-editor"
-          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-        >
-          <Workflow size={14} />
-          <span>Workflow Editor</span>
-        </Link>
         <Link
           to="/ia-comparison"
           className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"

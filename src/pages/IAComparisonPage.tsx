@@ -8,6 +8,7 @@ import {
   Equal,
   GitCompare,
 } from "lucide-react";
+import SidebarSection from "../components/SidebarSection";
 
 /* ------------------------------------------------------------------ */
 /*  Old (Lightning) IA tree – derived from the current app hierarchy  */
@@ -176,7 +177,7 @@ const proposedTree: TreeNode[] = [
   {
     label: "Handbook",
     path: "/handbook",
-    note: "Context — How the org works, with the files that go with it",
+    note: "How the org works, with the files that go with it",
   },
   {
     label: "Systems",
@@ -214,12 +215,12 @@ const proposedTree: TreeNode[] = [
   {
     label: "Status",
     path: "/status",
-    note: "Monitoring — What's up, degraded, or failing right now",
+    note: "What's up, degraded, or failing right now",
   },
   {
     label: "Insights",
     path: "/insights",
-    note: "Monitoring — Runs, errors & throughput over time",
+    note: "Runs, errors & throughput over time",
   },
   {
     label: "History",
@@ -263,7 +264,12 @@ const proposedTree: TreeNode[] = [
   {
     label: "Get Help Now",
     path: "/get-help",
-    note: "Support — Pinned to the bottom of the sidebar, next to OpenFn Docs",
+    note: "Pinned to the bottom of the sidebar on every page",
+  },
+  {
+    label: "OpenFn Docs",
+    path: "docs.openfn.org",
+    note: "External link to the OpenFn documentation",
   },
   {
     label: "Service Builder",
@@ -300,6 +306,19 @@ const proposedTree: TreeNode[] = [
       { label: "Billing", note: "Billing, usage, subscriptions" },
     ],
   },
+];
+
+/**
+ * How the proposed tree is grouped, matching the sidebar's section headings
+ * (see mainNavGroups in ia-tree.ts). Items are top-level node labels.
+ */
+const proposedGroups: { label?: string; items: string[] }[] = [
+  { items: ["Overview"] },
+  { label: "Context", items: ["Handbook", "Systems", "Catalog"] },
+  { label: "Monitoring", items: ["Status", "Insights", "History"] },
+  { label: "Projects", items: ["Projects", "Workflow Editor", "Service Builder"] },
+  { label: "Support", items: ["Get Help Now", "OpenFn Docs"] },
+  { label: "Account menu", items: ["User Settings", "Org Settings"] },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -497,9 +516,16 @@ export default function IAComparisonPage() {
               </p>
             </div>
             <div className="p-3 max-h-[calc(100vh-280px)] overflow-y-auto">
-              {proposedTree.map((node, i) => (
-                <TreeNodeRow key={node.label + i} node={node} side="new" />
-              ))}
+              <div className="space-y-4">
+                {proposedGroups.map((group) => (
+                  <SidebarSection key={group.label ?? "top"} label={group.label}>
+                    {group.items.map((label) => {
+                      const node = proposedTree.find((n) => n.label === label);
+                      return node ? <TreeNodeRow key={label} node={node} side="new" /> : null;
+                    })}
+                  </SidebarSection>
+                ))}
+              </div>
             </div>
           </div>
         </div>

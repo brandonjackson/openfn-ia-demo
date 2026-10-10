@@ -9,3 +9,15 @@ export const withRouter: Decorator = (Story) => (
     <Story />
   </MemoryRouter>
 );
+
+/**
+ * Like {@link withRouter}, but starts the router at a given URL so
+ * location-aware components (e.g. the sidebar) render that context.
+ */
+export const withRouterAt =
+  (path: string): Decorator =>
+  (Story) => (
+    <MemoryRouter initialEntries={[path]}>
+      <Story />
+    </MemoryRouter>
+  );

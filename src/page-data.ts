@@ -156,6 +156,27 @@ export interface DashboardPageData {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Projects list                                                      */
+/* ------------------------------------------------------------------ */
+
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  description: string;
+  environment: string;
+  lastActivity: string;
+  memberCount: number;
+  workflowCount: number;
+  serviceCount: number;
+  liveServiceCount: number;
+}
+
+export interface ProjectsPageData {
+  pageType: "projects";
+  projects: ProjectSummary[];
+}
+
+/* ------------------------------------------------------------------ */
 /*  Project page                                                       */
 /* ------------------------------------------------------------------ */
 
@@ -179,6 +200,12 @@ export interface ProjectPageData {
   metrics?: MetricCard[];
   services: ProjectServiceItem[];
   components: ProjectComponentItem[];
+}
+
+export interface ProjectWorkflowsPageData {
+  pageType: "project-workflows";
+  projectId: string;
+  workflows: ProjectComponentItem[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -273,6 +300,8 @@ export type PageData =
   | CatalogPageData
   | TablePageData
   | DashboardPageData
+  | ProjectsPageData
   | ProjectPageData
+  | ProjectWorkflowsPageData
   | ProjectSettingsPageData
   | UserSettingsPageData;

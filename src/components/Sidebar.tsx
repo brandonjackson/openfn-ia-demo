@@ -1,8 +1,6 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
-  ChevronDown,
-  ChevronRight,
-  Plus,
+  ChevronLeft,
   User,
   Building2,
   GitCompare,
@@ -11,139 +9,151 @@ import {
   BookOpen,
   Clock,
   FolderKanban,
+  Layers,
+  ArrowLeftRight,
+  FlaskConical,
+  Archive,
+  Settings,
 } from "lucide-react";
-import { useState, useEffect } from "react";
-import type { IANode } from "../ia-tree";
 import { mainNavTree } from "../ia-tree";
 import { projects } from "../mock-data/projects";
+import type { Project } from "../mock-data/projects";
 import { currentUser } from "../mock-data/user";
-import CreateProjectFlow from "./CreateProjectFlow";
 import type { LucideIcon } from "lucide-react";
 
 const navIcons: Record<string, LucideIcon> = {
   overview: LayoutDashboard,
+  projects: FolderKanban,
   "connected-systems": Globe,
   "service-catalog": BookOpen,
   history: Clock,
 };
 
-const flatNavIds = new Set(["connected-systems", "service-catalog"]);
+/** Sections of the in-project nav, mirroring Lightning's project menu. */
+const projectSections: { id: string; label: string; icon: LucideIcon }[] = [
+  { id: "", label: "Overview", icon: LayoutDashboard },
+  { id: "workflows", label: "Workflows", icon: Layers },
+  { id: "channels", label: "Channels", icon: ArrowLeftRight },
+  { id: "sandboxes", label: "Sandboxes", icon: FlaskConical },
+  { id: "history", label: "History", icon: Archive },
+  { id: "settings", label: "Settings", icon: Settings },
+];
 
-function NavItem({
-  node,
-  path,
-  depth = 0,
+function SidebarLink({
+  to,
+  icon: Icon,
+  label,
+  active,
 }: {
-  node: IANode;
-  path: string;
-  depth?: number;
+  to: string;
+  icon: LucideIcon;
+  label: string;
+  active: boolean;
 }) {
-  const location = useLocation();
-  const fullPath = path + "/" + node.id;
-  const isActive = location.pathname === fullPath;
-  const isAncestor = location.pathname.startsWith(fullPath + "/");
-  const hasChildren = node.children && node.children.length > 0 && !flatNavIds.has(node.id);
-  const [expanded, setExpanded] = useState(false);
-  const Icon = depth === 0 ? navIcons[node.id] : undefined;
-
-  useEffect(() => {
-    if (isAncestor || isActive) {
-      setExpanded(true);
-    }
-  }, [isAncestor, isActive]);
-
   return (
-    <div>
-      <div
-        className={`flex items-center gap-1 rounded-md px-2 py-1.5 text-sm cursor-pointer transition-colors ${
-          isActive
-            ? "bg-blue-50 text-blue-700 font-medium"
-            : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-        }`}
-        style={{ paddingLeft: `${depth * 16 + 8}px` }}
-      >
-        {hasChildren ? (
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setExpanded(!expanded);
-            }}
-            className="p-0.5 -ml-1 hover:bg-gray-200 rounded flex-shrink-0"
-          >
-            {expanded ? (
-              <ChevronDown size={14} />
-            ) : (
-              <ChevronRight size={14} />
-            )}
-          </button>
-        ) : (
-          <span className="w-5 flex-shrink-0" />
-        )}
-        {Icon && <Icon size={14} className="flex-shrink-0" />}
-        <Link to={fullPath} className="flex-1 truncate">
-          {node.label}
-        </Link>
-      </div>
-
-      {hasChildren && expanded && (
-        <div>
-          {node.children!.map((child) => (
-            <NavItem
-              key={child.id}
-              node={child}
-              path={fullPath}
-              depth={depth + 1}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+    <Link
+      to={to}
+      className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors ${
+        active
+          ? "bg-blue-50 text-blue-700 font-medium"
+          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+      }`}
+    >
+      <Icon size={14} className="flex-shrink-0" />
+      <span className="truncate">{label}</span>
+    </Link>
   );
 }
 
-function ProjectNavItem({ id, name }: { id: string; name: string }) {
+function ProjectNav({ project }: { project: Project }) {
   const location = useLocation();
-  const fullPath = "/projects/" + id;
-  const isActive =
-    location.pathname === fullPath ||
-    location.pathname.startsWith(fullPath + "/");
+  const base = "/projects/" + project.id;
+  const sectionIds = projectSections.map((s) => s.id).filter(Boolean);
+  // Anything under the project that isn't its own nav section (services,
+  // components) is reached from the Overview, so Overview stays lit.
+  const activeSection =
+    sectionIds.find(
+      (id) => location.pathname === `${base}/${id}` || location.pathname.startsWith(`${base}/${id}/`)
+    ) ?? "";
 
   return (
-    <div>
-      <div className="flex items-center gap-1">
-        <span className="w-5 flex-shrink-0" />
+    <>
+      <div className="px-4 py-3 border-b border-gray-200">
         <Link
-          to={fullPath}
-          className={`flex-1 flex items-center gap-2 rounded-md px-1 py-1.5 text-sm transition-colors ${
-            isActive
-              ? "bg-blue-50 text-blue-700 font-medium"
-              : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-          }`}
+          to="/projects"
+          className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 transition-colors"
         >
-          <FolderKanban size={14} className="flex-shrink-0" />
-          {name}
+          <ChevronLeft size={12} />
+          All projects
         </Link>
+        <p className="mt-1 text-sm font-semibold text-gray-900 line-clamp-2" title={project.name}>
+          {project.name}
+        </p>
+        <p className="mt-0.5 text-xs text-gray-400">{project.environment}</p>
       </div>
-    </div>
+      <nav className="p-2 flex-1 overflow-y-auto space-y-0.5">
+        {projectSections.map((section) => (
+          <SidebarLink
+            key={section.label}
+            to={section.id ? `${base}/${section.id}` : base}
+            icon={section.icon}
+            label={section.label}
+            active={activeSection === section.id}
+          />
+        ))}
+      </nav>
+    </>
   );
 }
 
-export default function Sidebar() {
-  const navigate = useNavigate();
-  const [createOpen, setCreateOpen] = useState(false);
+function OrgNav() {
+  const location = useLocation();
+  return (
+    <nav className="p-2 flex-1 overflow-y-auto space-y-0.5">
+      {mainNavTree.map((node) => {
+        const path = "/" + node.id;
+        const active =
+          location.pathname === path ||
+          location.pathname.startsWith(path + "/") ||
+          (node.id === "overview" && location.pathname === "/");
+        return (
+          <SidebarLink
+            key={node.id}
+            to={path}
+            icon={navIcons[node.id] ?? LayoutDashboard}
+            label={node.label}
+            active={active}
+          />
+        );
+      })}
+    </nav>
+  );
+}
 
-  const handleCreateProject = () => {
-    // Prototype flow: a new project routes the user through to Project A.
-    setCreateOpen(false);
-    navigate("/projects/project-a");
-  };
+/** The project the current URL is inside, if any. */
+function useCurrentProject(): Project | undefined {
+  const location = useLocation();
+  const match = location.pathname.match(/^\/projects\/([^/]+)/);
+  return match ? projects.find((p) => p.id === match[1]) : undefined;
+}
+
+/**
+ * App sidebar. At the org level it shows the top-level IA (Overview,
+ * Projects, Systems, ...). Once you open a project it swaps to that project's
+ * own menu, with the top-left corner taking you back to all projects.
+ */
+export default function Sidebar() {
+  const project = useCurrentProject();
 
   return (
     <aside className="w-72 border-r border-gray-200 bg-gray-50 flex-shrink-0 flex flex-col h-full">
-      {/* Logo */}
+      {/* Logo: inside a project it doubles as the way back out. */}
       <div className="p-4 border-b border-gray-200">
-        <Link to="/" className="flex items-center gap-2">
+        <Link
+          to={project ? "/projects" : "/"}
+          className="flex items-center gap-2"
+          title={project ? "Back to all projects" : undefined}
+        >
           <div className="w-7 h-7 bg-indigo-600 rounded-md flex items-center justify-center">
             <span className="text-white text-xs font-bold">SD</span>
           </div>
@@ -151,33 +161,11 @@ export default function Sidebar() {
         </Link>
       </div>
 
-      {/* Main nav items */}
-      <nav className="p-2 flex-1 overflow-y-auto">
-        {mainNavTree.map((node) => (
-          <NavItem key={node.id} node={node} path="" />
-        ))}
-
-        {/* Projects section */}
-        <div className="mt-6">
-          <div className="flex items-center justify-between px-2 mb-1">
-            <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-              Projects
-            </span>
-            <button
-              type="button"
-              onClick={() => setCreateOpen(true)}
-              aria-label="New project"
-              title="New project"
-              className="p-0.5 rounded hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
-            >
-              <Plus size={14} />
-            </button>
-          </div>
-          {projects.map((project) => (
-            <ProjectNavItem key={project.id} id={project.id} name={project.name} />
-          ))}
-        </div>
-      </nav>
+      {project ? (
+        <ProjectNav project={project} />
+      ) : (
+        <OrgNav />
+      )}
 
       {/* Footer */}
       <div className="border-t border-gray-200 p-2">
@@ -205,12 +193,6 @@ export default function Sidebar() {
           <span>Org Settings</span>
         </Link>
       </div>
-
-      <CreateProjectFlow
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onCreate={handleCreateProject}
-      />
     </aside>
   );
 }

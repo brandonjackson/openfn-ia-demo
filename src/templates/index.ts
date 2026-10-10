@@ -5,7 +5,9 @@ import ListTemplate from "./ListTemplate";
 import DetailTemplate from "./DetailTemplate";
 import TableTemplate from "./TableTemplate";
 import CatalogTemplate from "./CatalogTemplate";
+import ProjectsTemplate from "./ProjectsTemplate";
 import ProjectTemplate from "./ProjectTemplate";
+import ProjectWorkflowsTemplate from "./ProjectWorkflowsTemplate";
 import ProjectSettingsTemplate from "./ProjectSettingsTemplate";
 import DashboardTemplate from "./DashboardTemplate";
 import UserSettingsTemplate from "./UserSettingsTemplate";
@@ -25,7 +27,9 @@ export const templateMap: Record<string, React.FC<any>> = {
   detail: DetailTemplate,
   table: TableTemplate,
   catalog: CatalogTemplate,
+  projects: ProjectsTemplate,
   project: ProjectTemplate,
+  "project-workflows": ProjectWorkflowsTemplate,
   "project-settings": ProjectSettingsTemplate,
   dashboard: DashboardTemplate,
   "user-settings": UserSettingsTemplate,

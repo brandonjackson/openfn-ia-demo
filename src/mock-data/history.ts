@@ -1,4 +1,5 @@
 import type { TablePageData } from "../page-data";
+import { projects } from "./projects";
 
 export interface HistoryEntry {
   id: number;
@@ -22,12 +23,15 @@ export const mockEntries: HistoryEntry[] = [
   { id: 10, type: "Work Order", name: "Sync inventory levels", project: "Project A", status: "Success", timestamp: "2026-03-26 23:00" },
   { id: 11, type: "Channel Request", name: "PUT /api/stock (OpenLMIS)", project: "Project A", status: "Success", timestamp: "2026-03-26 22:58" },
   { id: 12, type: "Work Order", name: "Update contact records", project: "Project B", status: "Failed", timestamp: "2026-03-26 22:15" },
+  { id: 13, type: "Work Order", name: "Sync CHW referrals", project: "Malawi Community Health Worker Referrals to National HMIS (DHIS2 Tracker)", status: "Success", timestamp: "2026-03-24 14:00" },
+  { id: 14, type: "Channel Request", name: "POST /api/tracker (DHIS2)", project: "Malawi Community Health Worker Referrals to National HMIS (DHIS2 Tracker)", status: "Success", timestamp: "2026-03-24 14:01" },
+  { id: 15, type: "Work Order", name: "De-duplicate clients", project: "Malawi Community Health Worker Referrals to National HMIS (DHIS2 Tracker)", status: "Failed", timestamp: "2026-03-24 13:45" },
 ];
 
 export const historyData: TablePageData = {
   pageType: "table",
   filters: [
-    { label: "Project", options: ["All Projects", "Project A", "Project B"] },
+    { label: "Project", options: ["All Projects", ...projects.map((p) => p.name)] },
     { label: "Type", options: ["All", "Work Order", "Channel Request"] },
     { label: "Status", options: ["All", "Success", "Failed", "Pending"] },
   ],

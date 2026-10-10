@@ -1,3 +1,5 @@
+import { projects } from "./mock-data/projects";
+
 export interface IANode {
   id: string;
   label: string;
@@ -15,13 +17,86 @@ export interface IANode {
     | "detail"
     | "catalog"
     | "table"
+    | "projects"
     | "project"
+    | "project-workflows"
     | "project-settings"
     | "user-settings"
     | "generic";
   /** When true, this node acts as a template that matches any sibling slug not found by exact ID */
   dynamic?: boolean;
 }
+
+/**
+ * Dynamic project template (matches any project slug under /projects/)
+ */
+export const projectTemplateTree: IANode[] = [
+  {
+    id: "project",
+    label: "Project",
+    pageType: "project",
+    dynamic: true,
+    children: [
+      {
+        id: "workflows",
+        label: "Workflows",
+        description: "Every workflow in this project.",
+        pageType: "project-workflows",
+      },
+      {
+        id: "channels",
+        label: "Channels",
+        description:
+          "Channels this project uses to read from and write to connected systems.",
+      },
+      {
+        id: "sandboxes",
+        label: "Sandboxes",
+        description:
+          "Isolated copies of this project for trying out changes before merging them back.",
+        actions: ["New Sandbox"],
+      },
+      {
+        id: "history",
+        label: "History",
+        description: "Work orders and channel requests for this project.",
+        pageType: "table",
+      },
+      {
+        id: "settings",
+        label: "Settings",
+        description: "View and manage project settings.",
+        pageType: "project-settings",
+      },
+      // Not in the project nav, but linked from the project Overview.
+      {
+        id: "services",
+        label: "Services",
+        description: "Published services built from project components.",
+        children: [
+          {
+            id: "service",
+            label: "Service",
+            dynamic: true,
+            linkedFrom: "/service-builder",
+          },
+        ],
+      },
+      {
+        id: "components",
+        label: "Components",
+        description: "Reusable building blocks — workflows, artifacts, forms, and collections.",
+        children: [
+          {
+            id: "component",
+            label: "Component",
+            dynamic: true,
+          },
+        ],
+      },
+    ],
+  },
+];
 
 /**
  * Main navigation items (shown at top of sidebar)
@@ -33,6 +108,13 @@ export const mainNavTree: IANode[] = [
     description:
       "High-level dashboard showing system health, recent activity, and key metrics.",
     pageType: "dashboard",
+  },
+  {
+    id: "projects",
+    label: "Projects",
+    description: "Every integration project in your organization.",
+    pageType: "projects",
+    children: projectTemplateTree,
   },
   {
     id: "connected-systems",
@@ -103,66 +185,9 @@ export const mainNavTree: IANode[] = [
     description: "View historical work orders and channel requests across all projects.",
     pageType: "table",
     filters: [
-      { label: "Project", options: ["All Projects", "Project A", "Project B"] },
+      { label: "Project", options: ["All Projects", ...projects.map((p) => p.name)] },
       { label: "Type", options: ["All", "Work Order", "Channel Request"] },
       { label: "Status", options: ["All", "Success", "Failed", "Pending"] },
-    ],
-  },
-];
-
-/**
- * Dynamic project template (matches any project slug under /projects/)
- */
-export const projectTemplateTree: IANode[] = [
-  {
-    id: "project",
-    label: "Project",
-    pageType: "project",
-    dynamic: true,
-    children: [
-      {
-        id: "services",
-        label: "Services",
-        description: "Published services built from project components.",
-        children: [
-          {
-            id: "service",
-            label: "Service",
-            dynamic: true,
-            linkedFrom: "/service-builder",
-          },
-        ],
-      },
-      {
-        id: "components",
-        label: "Components",
-        description: "Reusable building blocks — workflows, artifacts, forms, and collections.",
-        children: [
-          {
-            id: "component",
-            label: "Component",
-            dynamic: true,
-          },
-        ],
-      },
-      {
-        id: "work-orders",
-        label: "Work Orders",
-        description: "View and manage work orders for this project.",
-        children: [
-          {
-            id: "runs",
-            label: "Runs",
-            description: "Execution runs triggered by work orders.",
-          },
-        ],
-      },
-      {
-        id: "settings",
-        label: "Settings",
-        description: "View and manage project settings.",
-        pageType: "project-settings",
-      },
     ],
   },
 ];
@@ -292,12 +317,6 @@ export const settingsTree: IANode[] = [
  */
 export const iaTree: IANode[] = [
   ...mainNavTree,
-  {
-    id: "projects",
-    label: "Projects",
-    description: "Manage your integration projects.",
-    children: projectTemplateTree,
-  },
   serviceBuilderTree,
   ...settingsTree,
 ];

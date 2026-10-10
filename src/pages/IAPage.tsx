@@ -5,11 +5,20 @@ import type { LookupResult } from "../ia-utils";
 import { pageDataRegistry } from "../mock-data";
 import { connectedSystems, systemAccessGrants } from "../mock-data/connected-systems";
 import { projects } from "../mock-data/projects";
+import { historyData } from "../mock-data/history";
 import { serviceCatalogData } from "../mock-data/service-catalog";
 import { userSettingsData } from "../mock-data/user";
 import { templateMap } from "../templates";
 import PageShell from "../components/PageShell";
-import type { DashboardPageData, DetailPageData, ProjectPageData, ProjectSettingsPageData, PageData } from "../page-data";
+import type {
+  DashboardPageData,
+  DetailPageData,
+  ProjectPageData,
+  ProjectSettingsPageData,
+  ProjectWorkflowsPageData,
+  TablePageData,
+  PageData,
+} from "../page-data";
 import DashboardTemplate from "../templates/DashboardTemplate";
 import IAComparisonPage from "./IAComparisonPage";
 
@@ -63,6 +72,18 @@ function buildProjectData(projectId: string): ProjectPageData | undefined {
     projectId: project.id,
     services: project.services,
     components: project.components,
+  };
+}
+
+/**
+ * The org-wide History table, narrowed to a single project.
+ */
+function buildProjectHistoryData(projectName: string): TablePageData {
+  return {
+    ...historyData,
+    filters: historyData.filters.filter((f) => f.label !== "Project"),
+    columns: historyData.columns.filter((c) => c.key !== "project"),
+    rows: historyData.rows.filter((r) => r.project === projectName),
   };
 }
 
@@ -140,18 +161,28 @@ function resolveDynamic(
     const project = projects.find((p) => p.id === slug);
     if (!project) return null;
 
-    // Project settings page
-    if (result.node.pageType === "project-settings") {
-      return {
-        node: result.node,
-        data: buildProjectSettingsData(slug),
-      };
+    switch (result.node.pageType) {
+      case "project":
+        // The project root is its Overview.
+        return {
+          node: { ...result.node, label: project.name, description: project.description },
+          data: buildProjectData(slug),
+        };
+      case "project-settings":
+        return { node: result.node, data: buildProjectSettingsData(slug) };
+      case "project-workflows": {
+        const data: ProjectWorkflowsPageData = {
+          pageType: "project-workflows",
+          projectId: project.id,
+          workflows: project.components.filter((c) => c.type === "Workflow"),
+        };
+        return { node: result.node, data };
+      }
+      case "table":
+        return { node: result.node, data: buildProjectHistoryData(project.name) };
+      default:
+        return { node: result.node, data: undefined };
     }
-
-    return {
-      node: { ...result.node, label: project.name, description: project.description },
-      data: buildProjectData(slug),
-    };
   }
 
   return { node: result.node, data: undefined };
@@ -216,6 +247,16 @@ export default function IAPage() {
   }
 
   const { node, data } = resolved;
+
+  // Breadcrumbs show the real project name rather than the "Project" template.
+  const projectSlug = result.params["project"];
+  const projectName = projects.find((p) => p.id === projectSlug)?.name;
+  const ancestors = result.ancestors.map((a) =>
+    a.node.id === "project" && projectName
+      ? { ...a, node: { ...a.node, label: projectName } }
+      : a
+  );
+
   const pageType = node.pageType ?? "generic";
   const Template = templateMap[pageType];
 
@@ -223,7 +264,7 @@ export default function IAPage() {
     return (
       <Template
         node={node}
-        ancestors={result.ancestors}
+        ancestors={ancestors}
         currentPath={pathname}
         data={data}
       />
@@ -234,7 +275,7 @@ export default function IAPage() {
   return (
     <PageShell
       node={node}
-      ancestors={result.ancestors}
+      ancestors={ancestors}
       currentPath={pathname}
     />
   );

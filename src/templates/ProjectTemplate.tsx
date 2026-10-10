@@ -154,7 +154,7 @@ export default function ProjectTemplate({ node, ancestors, currentPath, data }: 
 
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link
-          to={`/history?project=${encodeURIComponent(node.label)}&type=Work+Order`}
+          to={`${currentPath}/history?type=Work+Order`}
           className="group rounded-lg border border-gray-200 p-5 hover:border-blue-300 hover:shadow-sm transition-all"
         >
           <p className="text-sm text-gray-500 group-hover:text-blue-600 transition-colors">
@@ -219,19 +219,19 @@ export default function ProjectTemplate({ node, ancestors, currentPath, data }: 
         <AddComponentInput />
       </div>
 
-      {/* Work Orders & Settings links */}
+      {/* History & Settings links */}
       <div className="mt-8">
         <div className="space-y-2">
           <Link
-            to={currentPath + "/work-orders"}
+            to={currentPath + "/history"}
             className="group flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 hover:border-blue-300 hover:shadow-sm transition-all"
           >
             <div>
               <h3 className="font-medium text-gray-900 group-hover:text-blue-600 text-sm">
-                Work Orders
+                History
               </h3>
               <p className="text-xs text-gray-500 mt-0.5">
-                View and manage work orders for this project.
+                Work orders and channel requests for this project.
               </p>
             </div>
             <ChevronRight

@@ -229,30 +229,36 @@ const proposedTree: TreeNode[] = [
   {
     label: "Projects",
     path: "/projects",
+    note: "Projects — Every project; the four most recent are pinned in the sidebar",
     children: [
       {
         label: ":project",
         path: "/projects/:project",
-        note: "Project — Overview with services & components",
+        note: "Project — Overview with services & components; swaps in its own sidebar menu",
         children: [
+          { label: "Workflows", note: "Every workflow in this project" },
+          { label: "Channels", note: "Channels this project reads from and writes to" },
+          { label: "Sandboxes", note: "Isolated copies for trying out changes" },
+          { label: "History", note: "Work orders & channel requests for this project" },
+          { label: "Settings", note: "8-tab project settings" },
           {
             label: "Services",
-            note: "Published services from this project",
+            note: "Published services from this project (linked from Overview)",
             children: [{ label: ":service", note: "Individual service (links to builder)" }],
           },
           {
             label: "Components",
-            note: "Workflows, artifacts, forms, collections",
+            note: "Workflows, artifacts, forms, collections (linked from Overview)",
             children: [{ label: ":component", note: "Individual component" }],
-          },
-          {
-            label: "Work Orders",
-            note: "Project work orders",
-            children: [{ label: "Runs", note: "Execution runs" }],
           },
         ],
       },
     ],
+  },
+  {
+    label: "Workflow Editor",
+    path: "/workflow-editor/:workflow",
+    note: "Full-screen editor, outside the sidebar layout",
   },
   {
     label: "Get Help Now",
@@ -292,17 +298,6 @@ const proposedTree: TreeNode[] = [
     children: [
       { label: "Team / Members", note: "Team members & roles" },
       { label: "Billing", note: "Billing, usage, subscriptions" },
-      {
-        label: "Project Settings",
-        note: "Per-project config",
-        children: [
-          { label: "Members", note: "Project member access" },
-          { label: "Concurrency", note: "Concurrency limits" },
-          { label: "Data Retention", note: "Retention policies" },
-          { label: "Webhooks", note: "Webhook endpoints" },
-          { label: "Delete", note: "Delete project" },
-        ],
-      },
     ],
   },
 ];
@@ -319,21 +314,30 @@ interface MappingEntry {
 }
 
 const mappings: MappingEntry[] = [
-  { oldPath: "/projects", newPath: "/overview", status: "renamed", note: "Dashboard promoted to top-level Overview" },
-  { oldPath: "/projects/:id/w", newPath: "/projects/:id/components", status: "renamed", note: "Workflows now part of Components" },
-  { oldPath: "/projects/:id/w/:wid", newPath: "/service-builder", status: "moved", note: "Workflow editor becomes Service Builder" },
-  { oldPath: "/projects/:id/history", newPath: "/history", status: "moved", note: "History promoted to global cross-project view" },
-  { oldPath: "/projects/:id/channels", newPath: "/connected-systems/:sys/channels", status: "moved", note: "Channels moved under Connected Systems" },
-  { oldPath: "/credentials", newPath: "/connected-systems/credentials + /user-settings/credentials", status: "split", note: "Org credentials grouped under Connected Systems; personal credentials & OAuth clients in User Settings" },
-  { oldPath: "/projects/:id/settings", newPath: "/org-settings/project-settings", status: "moved", note: "Project settings moved to Org Settings" },
+  { oldPath: "—", newPath: "/overview", status: "new", note: "Org-level home: what needs attention and recent activity" },
+  { oldPath: "/projects", newPath: "/projects", status: "same", note: "Projects list stays; recent projects are also pinned in the sidebar" },
+  { oldPath: "/projects/:id/w", newPath: "/projects/:id/workflows", status: "renamed", note: "Same page, readable URL" },
+  { oldPath: "/projects/:id/w/:wid", newPath: "/workflow-editor/:wid", status: "moved", note: "Editor goes full-screen, outside the sidebar layout" },
+  { oldPath: "/projects/:id/history", newPath: "/projects/:id/history", status: "same", note: "Still per project; /history adds the cross-project view" },
+  { oldPath: "/projects/:id/channels", newPath: "/projects/:id/channels", status: "same", note: "Still per project" },
+  { oldPath: "/projects/:id/sandboxes", newPath: "/projects/:id/sandboxes", status: "same", note: "Still per project" },
+  { oldPath: "/projects/:id/settings", newPath: "/projects/:id/settings", status: "same", note: "Still per project; Collections tab moves to project Components" },
+  { oldPath: "/credentials", newPath: "/connected-systems/credentials + /user-settings/credentials", status: "split", note: "Org credentials grouped under Systems; personal credentials & OAuth clients in User Settings" },
   { oldPath: "/profile", newPath: "/user-settings/profile", status: "moved", note: "Profile nested under User Settings" },
   { oldPath: "/profile/tokens", newPath: "/user-settings/api-tokens", status: "moved", note: "API tokens are a User Settings section" },
   { oldPath: "/settings/users", newPath: "/org-settings/team-members", status: "renamed", note: "Admin users → Team / Members" },
   { oldPath: "/settings/audit", newPath: "—", status: "removed", note: "Not in proposed IA (may be added later)" },
   { oldPath: "/settings/authentication", newPath: "—", status: "removed", note: "Not in proposed IA (may be added later)" },
-  { oldPath: "—", newPath: "/connected-systems", status: "new", note: "New top-level concept for external integrations" },
-  { oldPath: "—", newPath: "/service-catalog", status: "new", note: "New aggregated catalog view" },
+  { oldPath: "—", newPath: "/handbook", status: "new", note: "How the org works, with the files that go with it" },
+  { oldPath: "—", newPath: "/connected-systems", status: "new", note: "Systems: new top-level concept for external integrations" },
+  { oldPath: "—", newPath: "/service-catalog", status: "new", note: "Catalog: published services and channels across the org" },
+  { oldPath: "—", newPath: "/status", status: "new", note: "What's up, degraded, or failing right now" },
+  { oldPath: "—", newPath: "/insights", status: "new", note: "Runs, errors & throughput over time" },
+  { oldPath: "—", newPath: "/history", status: "new", note: "Cross-project work orders & channel requests" },
+  { oldPath: "—", newPath: "/projects/:id/services", status: "new", note: "Published services, linked from the project Overview" },
+  { oldPath: "—", newPath: "/projects/:id/components", status: "new", note: "Workflows, artifacts, forms & collections, linked from the project Overview" },
   { oldPath: "—", newPath: "/service-builder", status: "new", note: "New dedicated service design tool" },
+  { oldPath: "—", newPath: "/get-help", status: "new", note: "Support, pinned to the bottom of the sidebar" },
 ];
 
 /* ------------------------------------------------------------------ */

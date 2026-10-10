@@ -328,40 +328,6 @@ export const settingsTree: IANode[] = [
         description:
           "View and manage billing, usage, and subscription details.",
       },
-      {
-        id: "project-settings",
-        label: "Project Settings",
-        description:
-          "Configure settings for projects within the organization.",
-        children: [
-          {
-            id: "members",
-            label: "Members",
-            description: "Manage project-level member access and roles.",
-          },
-          {
-            id: "concurrency",
-            label: "Concurrency",
-            description: "Configure concurrency limits for project runs.",
-          },
-          {
-            id: "data-retention",
-            label: "Data Retention",
-            description: "Set data retention policies for this project.",
-          },
-          {
-            id: "webhooks",
-            label: "Webhooks",
-            description: "Configure webhook endpoints for this project.",
-          },
-          {
-            id: "delete",
-            label: "Delete",
-            description: "Permanently delete this project.",
-            actions: ["Delete"],
-          },
-        ],
-      },
     ],
   },
 ];

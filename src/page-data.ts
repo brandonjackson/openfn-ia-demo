@@ -8,6 +8,29 @@ export interface MetricCard {
   linkTo?: string;
 }
 
+/** A headline number for a KPI row, optionally with a trend and a link. */
+export interface StatTileData {
+  label: string;
+  value: string | number;
+  /** Short supporting line under the value. */
+  detail?: string;
+  /** Recent values, oldest first, drawn as a sparkline. */
+  trend?: number[];
+  badge?: { label: string; tone: "green" | "yellow" | "red" | "blue" | "gray" };
+  linkTo?: string;
+}
+
+export type ActivityKind = "created" | "updated" | "tested" | "deployed" | "warning" | "error";
+
+/** One line in an activity or needs-attention feed. Strong parts are bolded. */
+export interface ActivityItem {
+  id: string;
+  kind: ActivityKind;
+  parts: (string | { strong: string })[];
+  when: string;
+  linkTo?: string;
+}
+
 export interface FilterDef {
   label: string;
   options: string[];
@@ -148,11 +171,72 @@ export interface SuggestedService {
 
 export interface DashboardPageData {
   pageType: "dashboard";
-  metrics: MetricCard[];
+  /** Summary tiles that link through to Status and Insights. */
+  tiles: StatTileData[];
+  /** Open problems, newest first. Empty when everything is fine. */
+  attention: ActivityItem[];
+  recentActivity: ActivityItem[];
   connectedSystems: ConnectedSystemSummary[];
   recommendedSystems: { name: string; description: string }[];
   suggestedServices: SuggestedService[];
   recommended: number;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Status page (Monitoring: right now)                                */
+/* ------------------------------------------------------------------ */
+
+export type HealthState = "operational" | "degraded" | "down";
+
+export interface SystemStatus {
+  id: string;
+  name: string;
+  status: HealthState;
+  note: string;
+  linkTo: string;
+}
+
+export interface WorkflowStatus {
+  id: string;
+  name: string;
+  project: string;
+  projectId: string;
+  status: HealthState;
+  lastRun: string;
+  note: string;
+}
+
+export interface StatusPageData {
+  pageType: "status";
+  checkedAt: string;
+  systems: SystemStatus[];
+  workflows: WorkflowStatus[];
+}
+
+/* ------------------------------------------------------------------ */
+/*  Insights page (Monitoring: over time)                              */
+/* ------------------------------------------------------------------ */
+
+export interface DailyRuns {
+  day: string;
+  succeeded: number;
+  failed: number;
+}
+
+export interface ProjectInsight {
+  id: string;
+  name: string;
+  runs: number;
+  failed: number;
+  avgDuration: string;
+}
+
+export interface InsightsPageData {
+  pageType: "insights";
+  range: string;
+  tiles: StatTileData[];
+  daily: DailyRuns[];
+  projects: ProjectInsight[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -300,6 +384,8 @@ export type PageData =
   | CatalogPageData
   | TablePageData
   | DashboardPageData
+  | StatusPageData
+  | InsightsPageData
   | ProjectsPageData
   | ProjectPageData
   | ProjectWorkflowsPageData

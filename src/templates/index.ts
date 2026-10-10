@@ -10,6 +10,8 @@ import ProjectTemplate from "./ProjectTemplate";
 import ProjectWorkflowsTemplate from "./ProjectWorkflowsTemplate";
 import ProjectSettingsTemplate from "./ProjectSettingsTemplate";
 import DashboardTemplate from "./DashboardTemplate";
+import StatusTemplate from "./StatusTemplate";
+import InsightsTemplate from "./InsightsTemplate";
 import UserSettingsTemplate from "./UserSettingsTemplate";
 
 export interface TemplateProps {
@@ -32,5 +34,7 @@ export const templateMap: Record<string, React.FC<any>> = {
   "project-workflows": ProjectWorkflowsTemplate,
   "project-settings": ProjectSettingsTemplate,
   dashboard: DashboardTemplate,
+  status: StatusTemplate,
+  insights: InsightsTemplate,
   "user-settings": UserSettingsTemplate,
 };

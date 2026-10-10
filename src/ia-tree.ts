@@ -13,6 +13,8 @@ export interface IANode {
   /** Determines which template renders this node. Defaults to "generic". */
   pageType?:
     | "dashboard"
+    | "status"
+    | "insights"
     | "list"
     | "detail"
     | "catalog"
@@ -183,13 +185,15 @@ export const mainNavTree: IANode[] = [
     id: "status",
     label: "Status",
     description:
-      "Right now: which systems, workflows, and channels are up, degraded, or failing.",
+      "Right now: which systems and workflows are up, degraded, or failing.",
+    pageType: "status",
   },
   {
     id: "insights",
     label: "Insights",
     description:
-      "Trends over time: runs, errors, and throughput across projects and systems.",
+      "Trends over time: runs, errors, and how long things take, across every project.",
+    pageType: "insights",
   },
   {
     id: "history",

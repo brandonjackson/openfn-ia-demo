@@ -1,13 +1,89 @@
-import type { DashboardPageData } from "../page-data";
+import type { ActivityItem, DashboardPageData } from "../page-data";
 import { connectedSystemSummaries } from "./connected-systems";
+import { openIssues } from "./status";
+import { errorRate, errorTrend, runTrend, totalErrors, totalRuns } from "./insights";
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+const issueCount = openIssues.systems.length + openIssues.workflows.length;
+
+/** Open problems from Status, worst first. */
+const attention: ActivityItem[] = [
+  ...openIssues.workflows.map((w) => ({
+    id: `wf-${w.id}`,
+    kind: (w.status === "down" ? "error" : "warning") as ActivityItem["kind"],
+    parts: [{ strong: w.name }, ` is failing. ${w.note}`],
+    when: w.lastRun,
+    linkTo: "/status",
+  })),
+  ...openIssues.systems.map((s) => ({
+    id: `sys-${s.id}`,
+    kind: (s.status === "down" ? "error" : "warning") as ActivityItem["kind"],
+    parts: [{ strong: s.name }, ` is ${s.status}. ${s.note}`],
+    when: "Now",
+    linkTo: "/status",
+  })),
+];
+
+const recentActivity: ActivityItem[] = [
+  {
+    id: "act-1",
+    kind: "deployed",
+    parts: ["Amina deployed ", { strong: "planning-application-workflow" }, " to production"],
+    when: "2 hours ago",
+    linkTo: "/projects/project-a/workflows",
+  },
+  {
+    id: "act-2",
+    kind: "tested",
+    parts: ["Tomás added a test to ", { strong: "case-sync-workflow" }],
+    when: "5 hours ago",
+    linkTo: "/projects/project-b/workflows",
+  },
+  {
+    id: "act-3",
+    kind: "created",
+    parts: ["Jane created a new workflow called ", { strong: "referral-followup-workflow" }],
+    when: "Yesterday",
+    linkTo: "/projects/malawi-chw-referrals/workflows",
+  },
+  {
+    id: "act-4",
+    kind: "updated",
+    parts: ["Kwame connected ", { strong: "Google Sheets" }, " as a shared system"],
+    when: "2 days ago",
+    linkTo: "/connected-systems/google-sheets",
+  },
+];
 
 export const overviewData: DashboardPageData = {
   pageType: "dashboard",
-  metrics: [
-    { label: "Systems", value: connectedSystemSummaries.length },
-    { label: "Active Services", value: 12 },
-    { label: "Work Orders (24h)", value: 347 },
+  tiles: [
+    {
+      label: "Status",
+      value: issueCount === 0 ? "All clear" : `${issueCount} issue${issueCount === 1 ? "" : "s"}`,
+      detail: `${plural(openIssues.systems.length, "system")}, ${plural(openIssues.workflows.length, "workflow")}`,
+      badge:
+        issueCount === 0
+          ? { label: "Operational", tone: "green" }
+          : { label: "Needs attention", tone: "red" },
+      linkTo: "/status",
+    },
+    {
+      label: "Runs this week",
+      value: totalRuns.toLocaleString("en-US"),
+      trend: runTrend,
+      linkTo: "/insights",
+    },
+    {
+      label: "Errors this week",
+      value: totalErrors,
+      detail: `${errorRate} of runs`,
+      trend: errorTrend,
+      linkTo: "/insights",
+    },
   ],
+  attention,
+  recentActivity,
   connectedSystems: connectedSystemSummaries,
   recommendedSystems: [
     { name: "OpenMRS", description: "Electronic medical records" },

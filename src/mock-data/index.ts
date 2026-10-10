@@ -3,6 +3,8 @@ import { connectedSystemListItems } from "./connected-systems";
 import { serviceCatalogData } from "./service-catalog";
 import { historyData } from "./history";
 import { overviewData } from "./overview";
+import { statusData } from "./status";
+import { insightsData } from "./insights";
 import { projectSummaries } from "./projects";
 
 export { mockEntries } from "./history";
@@ -27,3 +29,7 @@ pageDataRegistry.set("connected-systems", {
 pageDataRegistry.set("service-catalog", serviceCatalogData);
 
 pageDataRegistry.set("history", historyData);
+
+pageDataRegistry.set("status", statusData);
+
+pageDataRegistry.set("insights", insightsData);

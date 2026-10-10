@@ -21,12 +21,22 @@ export const FewSystems: Story = {
   args: {
     data: {
       ...overviewData,
-      metrics: [
-        { label: "Systems", value: 2 },
-        { label: "Active Services", value: 3 },
-        { label: "Work Orders (24h)", value: 18 },
-      ],
       connectedSystems: overviewData.connectedSystems.slice(0, 2),
+    },
+  },
+};
+
+/** A quiet week: nothing open, no recent activity. */
+export const AllClear: Story = {
+  args: {
+    data: {
+      ...overviewData,
+      tiles: [
+        { ...overviewData.tiles[0], value: "All clear", detail: "Every system and workflow is running", badge: { label: "Operational", tone: "green" } },
+        ...overviewData.tiles.slice(1),
+      ],
+      attention: [],
+      recentActivity: [],
     },
   },
 };

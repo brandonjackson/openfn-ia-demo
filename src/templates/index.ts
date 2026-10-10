@@ -8,6 +8,7 @@ import CatalogTemplate from "./CatalogTemplate";
 import ProjectTemplate from "./ProjectTemplate";
 import ProjectSettingsTemplate from "./ProjectSettingsTemplate";
 import DashboardTemplate from "./DashboardTemplate";
+import UserSettingsTemplate from "./UserSettingsTemplate";
 
 export interface TemplateProps {
   node: IANode;
@@ -27,4 +28,5 @@ export const templateMap: Record<string, React.FC<any>> = {
   project: ProjectTemplate,
   "project-settings": ProjectSettingsTemplate,
   dashboard: DashboardTemplate,
+  "user-settings": UserSettingsTemplate,
 };

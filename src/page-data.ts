@@ -218,6 +218,52 @@ export interface ProjectSettingsPageData {
 }
 
 /* ------------------------------------------------------------------ */
+/*  User settings                                                      */
+/* ------------------------------------------------------------------ */
+
+export interface UserProfile {
+  firstName: string;
+  lastName: string;
+  email: string;
+  createdAt: string;
+  contactPreference: "Anytime" | "Critical only";
+  mfaEnabled: boolean;
+  githubConnected: boolean;
+}
+
+export interface UserCredential {
+  id: string;
+  name: string;
+  type: string;
+  projects: string[];
+  production: boolean;
+  createdAt: string;
+}
+
+export interface OAuthClient {
+  id: string;
+  name: string;
+  system: string;
+  scope: "Global" | "Project";
+}
+
+export interface ApiToken {
+  id: string;
+  /** Last characters of the token; the rest is masked in the UI. */
+  suffix: string;
+  createdAt: string;
+  lastUsedAt?: string;
+}
+
+export interface UserSettingsPageData {
+  pageType: "user-settings";
+  profile: UserProfile;
+  credentials: UserCredential[];
+  oauthClients: OAuthClient[];
+  apiTokens: ApiToken[];
+}
+
+/* ------------------------------------------------------------------ */
 /*  Union type                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -228,4 +274,5 @@ export type PageData =
   | TablePageData
   | DashboardPageData
   | ProjectPageData
-  | ProjectSettingsPageData;
+  | ProjectSettingsPageData
+  | UserSettingsPageData;

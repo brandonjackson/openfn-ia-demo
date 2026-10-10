@@ -9,7 +9,16 @@ export interface IANode {
   /** Filter options for list views (e.g., Connected Systems, History) */
   filters?: { label: string; options: string[] }[];
   /** Determines which template renders this node. Defaults to "generic". */
-  pageType?: "dashboard" | "list" | "detail" | "catalog" | "table" | "project" | "project-settings" | "generic";
+  pageType?:
+    | "dashboard"
+    | "list"
+    | "detail"
+    | "catalog"
+    | "table"
+    | "project"
+    | "project-settings"
+    | "user-settings"
+    | "generic";
   /** When true, this node acts as a template that matches any sibling slug not found by exact ID */
   dynamic?: boolean;
 }
@@ -202,11 +211,25 @@ export const settingsTree: IANode[] = [
     id: "user-settings",
     label: "User Settings",
     description: "Configure your personal account settings.",
+    pageType: "user-settings",
     children: [
       {
         id: "profile",
         label: "Profile",
         description: "View and edit your user profile information.",
+        pageType: "user-settings",
+      },
+      {
+        id: "credentials",
+        label: "Credentials",
+        description: "Credentials and OAuth clients you own.",
+        pageType: "user-settings",
+      },
+      {
+        id: "api-tokens",
+        label: "API Tokens",
+        description: "Personal access tokens for the OpenFn CLI and API.",
+        pageType: "user-settings",
       },
     ],
   },

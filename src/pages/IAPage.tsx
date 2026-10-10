@@ -6,6 +6,7 @@ import { pageDataRegistry } from "../mock-data";
 import { connectedSystems, systemAccessGrants } from "../mock-data/connected-systems";
 import { projects } from "../mock-data/projects";
 import { serviceCatalogData } from "../mock-data/service-catalog";
+import { userSettingsData } from "../mock-data/user";
 import { templateMap } from "../templates";
 import PageShell from "../components/PageShell";
 import type { DashboardPageData, DetailPageData, ProjectPageData, ProjectSettingsPageData, PageData } from "../page-data";
@@ -112,6 +113,10 @@ function resolveDynamic(
   const hasDynamic = Object.keys(params).length > 0;
 
   if (!hasDynamic) {
+    // Every user settings section renders from the same user data.
+    if (result.node.pageType === "user-settings") {
+      return { node: result.node, data: userSettingsData };
+    }
     return {
       node: result.node,
       data: pageDataRegistry.get(result.node.id),

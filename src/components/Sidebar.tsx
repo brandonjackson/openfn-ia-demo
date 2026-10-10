@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
 import type { IANode } from "../ia-tree";
 import { mainNavTree } from "../ia-tree";
 import { projects } from "../mock-data/projects";
+import { currentUser } from "../mock-data/user";
 import CreateProjectFlow from "./CreateProjectFlow";
 import type { LucideIcon } from "lucide-react";
 
@@ -192,7 +193,9 @@ export default function Sidebar() {
           className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
         >
           <User size={14} />
-          <span>Jane Doe</span>
+          <span>
+            {currentUser.firstName} {currentUser.lastName}
+          </span>
         </Link>
         <Link
           to="/org-settings"

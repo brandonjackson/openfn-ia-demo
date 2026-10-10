@@ -41,7 +41,7 @@ Nested under projects, provides a spec-based builder with Input, Workflow/Module
 
 ### Settings
 
-- **User Settings** - Profile
+- **User Settings** - Profile (name, email, password, MFA, GitHub, delete account), Credentials (personal credentials & OAuth clients), API Tokens. Opened from the user link in the sidebar footer.
 - **Org Settings** - Team/Members, Billing, Project Settings (members, concurrency, data retention, webhooks, delete)
 
 ## Page Types

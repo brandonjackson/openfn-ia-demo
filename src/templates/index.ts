@@ -13,6 +13,7 @@ import DashboardTemplate from "./DashboardTemplate";
 import StatusTemplate from "./StatusTemplate";
 import InsightsTemplate from "./InsightsTemplate";
 import UserSettingsTemplate from "./UserSettingsTemplate";
+import HandbookTemplate from "./HandbookTemplate";
 
 export interface TemplateProps {
   node: IANode;
@@ -37,4 +38,5 @@ export const templateMap: Record<string, React.FC<any>> = {
   status: StatusTemplate,
   insights: InsightsTemplate,
   "user-settings": UserSettingsTemplate,
+  handbook: HandbookTemplate,
 };

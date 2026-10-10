@@ -24,6 +24,7 @@ export interface IANode {
     | "project-workflows"
     | "project-settings"
     | "user-settings"
+    | "handbook"
     | "generic";
   /** When true, this node acts as a template that matches any sibling slug not found by exact ID */
   dynamic?: boolean;
@@ -117,6 +118,7 @@ export const mainNavTree: IANode[] = [
     label: "Handbook",
     description:
       "How this organization works: who you integrate with, the agreements behind each system, conventions, and the files that go with them.",
+    pageType: "handbook",
   },
   {
     id: "connected-systems",

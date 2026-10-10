@@ -6,6 +6,7 @@ import { overviewData } from "./overview";
 import { statusData } from "./status";
 import { insightsData } from "./insights";
 import { projectSummaries } from "./projects";
+import { handbookData } from "./handbook";
 
 export { mockEntries } from "./history";
 export type { HistoryEntry } from "./history";
@@ -33,3 +34,5 @@ pageDataRegistry.set("history", historyData);
 pageDataRegistry.set("status", statusData);
 
 pageDataRegistry.set("insights", insightsData);
+
+pageDataRegistry.set("handbook", handbookData);

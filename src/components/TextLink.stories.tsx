@@ -18,3 +18,13 @@ export const Default: Story = {
 export const Action: Story = {
   args: { to: "/status", children: "View status", variant: "action" },
 };
+
+/** A link inside running prose, e.g. in the Handbook. */
+export const Inline: Story = {
+  render: (args) => (
+    <p className="text-sm text-gray-700">
+      Production credentials belong to the <TextLink {...args} />, not to a person.
+    </p>
+  ),
+  args: { to: "/connected-systems", children: "system", variant: "inline" },
+};

@@ -99,22 +99,22 @@ export const projectTemplateTree: IANode[] = [
 ];
 
 /**
- * Main navigation items (shown at top of sidebar)
+ * Org-level pages. Every page reachable from the sidebar lives here; the
+ * sidebar groups them (see {@link mainNavGroups}) but URLs stay flat.
  */
 export const mainNavTree: IANode[] = [
   {
     id: "overview",
     label: "Overview",
     description:
-      "High-level dashboard showing system health, recent activity, and key metrics.",
+      "What needs your attention and what's happened recently, with links into Status and Insights.",
     pageType: "dashboard",
   },
   {
-    id: "projects",
-    label: "Projects",
-    description: "Every integration project in your organization.",
-    pageType: "projects",
-    children: projectTemplateTree,
+    id: "handbook",
+    label: "Handbook",
+    description:
+      "How this organization works: who you integrate with, the agreements behind each system, conventions, and the files that go with them.",
   },
   {
     id: "connected-systems",
@@ -159,8 +159,8 @@ export const mainNavTree: IANode[] = [
   },
   {
     id: "service-catalog",
-    label: "Services",
-    description: "Browse the catalog of published services.",
+    label: "Catalog",
+    description: "Browse the catalog of published services and channels.",
     pageType: "catalog",
     children: [
       {
@@ -180,6 +180,18 @@ export const mainNavTree: IANode[] = [
     ],
   },
   {
+    id: "status",
+    label: "Status",
+    description:
+      "Right now: which systems, workflows, and channels are up, degraded, or failing.",
+  },
+  {
+    id: "insights",
+    label: "Insights",
+    description:
+      "Trends over time: runs, errors, and throughput across projects and systems.",
+  },
+  {
     id: "history",
     label: "History",
     description: "View historical work orders and channel requests across all projects.",
@@ -190,7 +202,45 @@ export const mainNavTree: IANode[] = [
       { label: "Status", options: ["All", "Success", "Failed", "Pending"] },
     ],
   },
+  {
+    id: "projects",
+    label: "Projects",
+    description: "Every integration project in your organization.",
+    pageType: "projects",
+    children: projectTemplateTree,
+  },
 ];
+
+export interface NavGroup {
+  /** Small grey section label. Omitted for the unlabelled top group. */
+  label?: string;
+  /** IDs of {@link mainNavTree} nodes, in display order. */
+  items: string[];
+}
+
+/**
+ * How the org-level sidebar groups {@link mainNavTree}. Projects and
+ * Support are rendered after these by the sidebar itself, since their
+ * contents aren't plain IA nodes (recent projects, external links).
+ */
+export const mainNavGroups: NavGroup[] = [
+  { items: ["overview"] },
+  { label: "Context", items: ["handbook", "connected-systems", "service-catalog"] },
+  { label: "Monitoring", items: ["status", "insights", "history"] },
+];
+
+/**
+ * Support pages, pinned to the bottom of the sidebar on every page.
+ */
+export const supportTree: IANode[] = [
+  {
+    id: "get-help",
+    label: "Get Help Now",
+    description: "Talk to someone at OpenFn about a problem you're stuck on.",
+  },
+];
+
+export const openfnDocsUrl = "https://docs.openfn.org";
 
 /**
  * Service builder is accessed from within a project context
@@ -317,6 +367,7 @@ export const settingsTree: IANode[] = [
  */
 export const iaTree: IANode[] = [
   ...mainNavTree,
+  ...supportTree,
   serviceBuilderTree,
   ...settingsTree,
 ];

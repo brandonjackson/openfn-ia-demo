@@ -16,6 +16,12 @@ export const currentUser: UserProfile = {
   githubConnected: false,
 };
 
+/** The organization the current user is signed in to. */
+export const currentOrg = {
+  name: "Sim DTU",
+  initials: "SD",
+};
+
 export const userCredentials: UserCredential[] = [
   {
     id: "ucred-dhis2-play",

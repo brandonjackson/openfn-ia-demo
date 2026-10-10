@@ -171,10 +171,15 @@ const proposedTree: TreeNode[] = [
   {
     label: "Overview",
     path: "/overview",
-    note: "Dashboard — System health, metrics, connected systems, suggested services",
+    note: "Dashboard — What needs attention, recent activity, links into Status & Insights",
   },
   {
-    label: "Connected Systems",
+    label: "Handbook",
+    path: "/handbook",
+    note: "Context — How the org works, with the files that go with it",
+  },
+  {
+    label: "Systems",
     path: "/connected-systems",
     note: "List — Browse & manage all connected external systems",
     children: [
@@ -198,13 +203,23 @@ const proposedTree: TreeNode[] = [
     ],
   },
   {
-    label: "Service Catalog",
+    label: "Catalog",
     path: "/service-catalog",
     note: "Catalog — Published services from all projects & systems",
     children: [
       { label: "Live Services", note: "All live services from projects" },
       { label: "Channels", note: "Channels exposed by connected systems" },
     ],
+  },
+  {
+    label: "Status",
+    path: "/status",
+    note: "Monitoring — What's up, degraded, or failing right now",
+  },
+  {
+    label: "Insights",
+    path: "/insights",
+    note: "Monitoring — Runs, errors & throughput over time",
   },
   {
     label: "History",
@@ -238,6 +253,11 @@ const proposedTree: TreeNode[] = [
         ],
       },
     ],
+  },
+  {
+    label: "Get Help Now",
+    path: "/get-help",
+    note: "Support — Pinned to the bottom of the sidebar, next to OpenFn Docs",
   },
   {
     label: "Service Builder",

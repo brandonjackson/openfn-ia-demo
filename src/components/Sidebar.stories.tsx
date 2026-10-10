@@ -18,12 +18,23 @@ const meta: Meta<typeof Sidebar> = {
 export default meta;
 type Story = StoryObj<typeof Sidebar>;
 
-/** Org level: the top-level IA, including the Projects tab. */
+/** Org level: Overview, Context, Monitoring and recent Projects. */
 export const Default: Story = {
+  decorators: [withRouterAt("/overview")],
+};
+
+/** A page inside one of the labelled groups. */
+export const MonitoringActive: Story = {
+  decorators: [withRouterAt("/status")],
+};
+
+/** The full Projects list, reached from "View all". */
+export const AllProjects: Story = {
   decorators: [withRouterAt("/projects")],
 };
 
-/** Inside a project: the project's own menu, with a way back to all projects. */
+/** Inside a project: the project's own menu, with a way back to all projects.
+ *  Support and the account menu stay pinned at the bottom. */
 export const InsideProject: Story = {
   decorators: [withRouterAt("/projects/project-a/workflows")],
 };

@@ -1,32 +1,41 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   ChevronLeft,
-  User,
-  Building2,
-  GitCompare,
   LayoutDashboard,
   Globe,
+  LibraryBig,
   BookOpen,
+  Activity,
+  ChartColumn,
   Clock,
+  Folder,
   FolderKanban,
   Layers,
   ArrowLeftRight,
   FlaskConical,
   Archive,
   Settings,
+  BookMarked,
+  LifeBuoy,
 } from "lucide-react";
-import { mainNavTree } from "../ia-tree";
-import { projects } from "../mock-data/projects";
+import { mainNavGroups, mainNavTree, openfnDocsUrl, supportTree } from "../ia-tree";
+import { projects, recentProjects } from "../mock-data/projects";
 import type { Project } from "../mock-data/projects";
-import { currentUser } from "../mock-data/user";
+import { currentOrg, currentUser } from "../mock-data/user";
+import SidebarLink from "./SidebarLink";
+import SidebarSection from "./SidebarSection";
+import AccountMenu from "./AccountMenu";
 import type { LucideIcon } from "lucide-react";
 
 const navIcons: Record<string, LucideIcon> = {
   overview: LayoutDashboard,
-  projects: FolderKanban,
+  handbook: BookOpen,
   "connected-systems": Globe,
-  "service-catalog": BookOpen,
+  "service-catalog": LibraryBig,
+  status: Activity,
+  insights: ChartColumn,
   history: Clock,
+  projects: FolderKanban,
 };
 
 /** Sections of the in-project nav, mirroring Lightning's project menu. */
@@ -39,30 +48,9 @@ const projectSections: { id: string; label: string; icon: LucideIcon }[] = [
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
-function SidebarLink({
-  to,
-  icon: Icon,
-  label,
-  active,
-}: {
-  to: string;
-  icon: LucideIcon;
-  label: string;
-  active: boolean;
-}) {
-  return (
-    <Link
-      to={to}
-      className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors ${
-        active
-          ? "bg-blue-50 text-blue-700 font-medium"
-          : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-      }`}
-    >
-      <Icon size={14} className="flex-shrink-0" />
-      <span className="truncate">{label}</span>
-    </Link>
-  );
+/** True when the URL is at `path` or anywhere beneath it. */
+function isAt(pathname: string, path: string) {
+  return pathname === path || pathname.startsWith(path + "/");
 }
 
 function ProjectNav({ project }: { project: Project }) {
@@ -72,9 +60,7 @@ function ProjectNav({ project }: { project: Project }) {
   // Anything under the project that isn't its own nav section (services,
   // components) is reached from the Overview, so Overview stays lit.
   const activeSection =
-    sectionIds.find(
-      (id) => location.pathname === `${base}/${id}` || location.pathname.startsWith(`${base}/${id}/`)
-    ) ?? "";
+    sectionIds.find((id) => isAt(location.pathname, `${base}/${id}`)) ?? "";
 
   return (
     <>
@@ -91,7 +77,7 @@ function ProjectNav({ project }: { project: Project }) {
         </p>
         <p className="mt-0.5 text-xs text-gray-400">{project.environment}</p>
       </div>
-      <nav className="p-2 flex-1 overflow-y-auto space-y-0.5">
+      <nav className="p-3 flex-1 overflow-y-auto space-y-0.5">
         {projectSections.map((section) => (
           <SidebarLink
             key={section.label}
@@ -107,25 +93,44 @@ function ProjectNav({ project }: { project: Project }) {
 }
 
 function OrgNav() {
-  const location = useLocation();
+  const { pathname } = useLocation();
+
   return (
-    <nav className="p-2 flex-1 overflow-y-auto space-y-0.5">
-      {mainNavTree.map((node) => {
-        const path = "/" + node.id;
-        const active =
-          location.pathname === path ||
-          location.pathname.startsWith(path + "/") ||
-          (node.id === "overview" && location.pathname === "/");
-        return (
+    <nav className="p-3 flex-1 overflow-y-auto space-y-5">
+      {mainNavGroups.map((group) => (
+        <SidebarSection key={group.label ?? "top"} label={group.label}>
+          {group.items.map((id) => {
+            const node = mainNavTree.find((n) => n.id === id);
+            if (!node) return null;
+            return (
+              <SidebarLink
+                key={id}
+                to={"/" + id}
+                icon={navIcons[id] ?? LayoutDashboard}
+                label={node.label}
+                active={isAt(pathname, "/" + id) || (id === "overview" && pathname === "/")}
+              />
+            );
+          })}
+        </SidebarSection>
+      ))}
+
+      <SidebarSection label="Projects">
+        {recentProjects.slice(0, 4).map((project) => (
           <SidebarLink
-            key={node.id}
-            to={path}
-            icon={navIcons[node.id] ?? LayoutDashboard}
-            label={node.label}
-            active={active}
+            key={project.id}
+            to={"/projects/" + project.id}
+            icon={Folder}
+            label={project.name}
           />
-        );
-      })}
+        ))}
+        <SidebarLink
+          to="/projects"
+          icon={FolderKanban}
+          label="View all"
+          active={pathname === "/projects"}
+        />
+      </SidebarSection>
     </nav>
   );
 }
@@ -138,60 +143,43 @@ function useCurrentProject(): Project | undefined {
 }
 
 /**
- * App sidebar. At the org level it shows the top-level IA (Overview,
- * Projects, Systems, ...). Once you open a project it swaps to that project's
- * own menu, with the top-left corner taking you back to all projects.
+ * App sidebar. At the org level it shows the grouped top-level IA
+ * (Overview; Context; Monitoring; recent Projects). Once you open a project
+ * it swaps to that project's own menu. The logo always returns to Overview,
+ * Support stays pinned near the bottom, and the account menu sits below it.
  */
 export default function Sidebar() {
   const project = useCurrentProject();
+  const { pathname } = useLocation();
+  const getHelp = supportTree.find((n) => n.id === "get-help")!;
 
   return (
-    <aside className="w-72 border-r border-gray-200 bg-gray-50 flex-shrink-0 flex flex-col h-full">
-      {/* Logo: inside a project it doubles as the way back out. */}
-      <div className="p-4 border-b border-gray-200">
-        <Link
-          to={project ? "/projects" : "/"}
-          className="flex items-center gap-2"
-          title={project ? "Back to all projects" : undefined}
-        >
+    <aside className="w-72 border-r border-gray-200 bg-white flex-shrink-0 flex flex-col h-full">
+      {/* Logo: always a clear way back to the root. */}
+      <div className="px-4 py-4">
+        <Link to="/" className="flex items-center gap-2" title="Back to Overview">
           <div className="w-7 h-7 bg-indigo-600 rounded-md flex items-center justify-center">
-            <span className="text-white text-xs font-bold">SD</span>
+            <span className="text-white text-xs font-bold">{currentOrg.initials}</span>
           </div>
-          <span className="text-lg font-semibold text-gray-900">Sim DTU</span>
+          <span className="text-lg font-semibold text-gray-900">{currentOrg.name}</span>
         </Link>
       </div>
 
-      {project ? (
-        <ProjectNav project={project} />
-      ) : (
-        <OrgNav />
-      )}
+      {project ? <ProjectNav project={project} /> : <OrgNav />}
 
-      {/* Footer */}
-      <div className="border-t border-gray-200 p-2">
-        <Link
-          to="/ia-comparison"
-          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-        >
-          <GitCompare size={14} />
-          <span>IA Comparison</span>
-        </Link>
-        <Link
-          to="/user-settings"
-          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-        >
-          <User size={14} />
-          <span>
-            {currentUser.firstName} {currentUser.lastName}
-          </span>
-        </Link>
-        <Link
-          to="/org-settings"
-          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
-        >
-          <Building2 size={14} />
-          <span>Org Settings</span>
-        </Link>
+      <div className="p-3 space-y-3">
+        <SidebarSection label="Support">
+          <SidebarLink href={openfnDocsUrl} icon={BookMarked} label="OpenFn Docs" />
+          <SidebarLink
+            to={"/" + getHelp.id}
+            icon={LifeBuoy}
+            label={getHelp.label}
+            active={isAt(pathname, "/" + getHelp.id)}
+          />
+        </SidebarSection>
+        <div className="border-t border-gray-200 pt-3">
+          <AccountMenu user={currentUser} org={currentOrg} />
+        </div>
       </div>
     </aside>
   );

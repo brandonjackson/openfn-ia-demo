@@ -220,3 +220,13 @@ export function summarizeProject(project: Project): ProjectSummary {
 }
 
 export const projectSummaries: ProjectSummary[] = projects.map(summarizeProject);
+
+/** The projects the current user opened most recently, newest first. */
+export const recentProjects: Project[] = [
+  "malawi-chw-referrals",
+  "project-a",
+  "project-b",
+  "data-quality-checks",
+]
+  .map((id) => projects.find((p) => p.id === id))
+  .filter((p): p is Project => p !== undefined);

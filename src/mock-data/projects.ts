@@ -1,11 +1,11 @@
-import type { ProjectComponentType, ProjectSummary, SandboxItem } from "../page-data";
+import type {
+  ProjectComponentType,
+  ProjectServiceItem,
+  ProjectSummary,
+  SandboxItem,
+} from "../page-data";
 
-export interface ProjectService {
-  id: string;
-  name: string;
-  description: string;
-  status: "Live" | "Draft";
-}
+export type ProjectService = ProjectServiceItem;
 
 export interface ProjectComponent {
   id: string;
@@ -46,6 +46,33 @@ export const projects: Project[] = [
         description:
           "Receives planning applications from the e-planning portal and routes them to the local authority case management system.",
         status: "Live",
+        workflowId: "planning-application-workflow",
+        api: {
+          trigger: "webhook",
+          invocation: "POST https://app.openfn.org/i/project-a/planning-application-intake",
+          auth: "API key in the x-api-key header",
+          inputFields: [
+            { name: "applicationRef", type: "string", required: true, description: "Reference issued by the e-planning portal." },
+            { name: "applicant", type: "object", required: true, description: "Applicant name, email and postal address." },
+            { name: "siteAddress", type: "string", required: true, description: "Address of the site the application covers." },
+            { name: "proposal", type: "string", required: true, description: "Short description of the proposed development." },
+            { name: "documents", type: "string[]", required: false, description: "URLs of supporting plans and drawings." },
+          ],
+          requestExample: `curl -X POST https://app.openfn.org/i/project-a/planning-application-intake \\
+  -H "x-api-key: $OPENFN_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "applicationRef": "EP-2026-04417",
+    "applicant": { "name": "A. Mensah", "email": "a.mensah@example.org" },
+    "siteAddress": "14 Harbour Road",
+    "proposal": "Single-storey rear extension"
+  }'`,
+          outputDescription: "Returns the work order ID straight away; the case is created in the local authority's case management system a few seconds later.",
+          outputExample: `{
+  "workOrderId": "wo_8f2c1e",
+  "status": "accepted"
+}`,
+        },
       },
       {
         id: "decision-status-sync",
@@ -53,6 +80,7 @@ export const projects: Project[] = [
         description:
           "Syncs planning decision statuses back to the applicant portal on a daily schedule.",
         status: "Draft",
+        workflowId: "decision-notification-workflow",
       },
     ],
     components: [
@@ -120,6 +148,25 @@ export const projects: Project[] = [
         description:
           "Syncs case data from CommCare to the shared data warehouse.",
         status: "Live",
+        workflowId: "case-sync-workflow",
+        api: {
+          trigger: "webhook",
+          invocation: "POST https://app.openfn.org/i/project-b/commcare-case-sync",
+          auth: "CommCare data forwarding, signed with a shared secret",
+          inputFields: [
+            { name: "case_id", type: "string", required: true, description: "CommCare case ID." },
+            { name: "case_type", type: "string", required: true, description: "CommCare case type, e.g. household." },
+            { name: "properties", type: "object", required: true, description: "Case properties to copy to the warehouse." },
+          ],
+          requestExample: `curl -X POST https://app.openfn.org/i/project-b/commcare-case-sync \\
+  -H "Content-Type: application/json" \\
+  -d '{ "case_id": "a1b2c3", "case_type": "household", "properties": { "district": "Lilongwe" } }'`,
+          outputDescription: "Upserts one row per case into the shared data warehouse.",
+          outputExample: `{
+  "workOrderId": "wo_31d9aa",
+  "status": "accepted"
+}`,
+        },
       },
     ],
     components: [
@@ -161,18 +208,32 @@ export const projects: Project[] = [
         name: "CHW Referral Sync",
         description: "Pushes CommCare referrals into DHIS2 Tracker every 15 minutes.",
         status: "Live",
+        workflowId: "chw-referral-workflow",
+        api: {
+          trigger: "schedule",
+          invocation: "Every 15 minutes",
+          outputDescription: "Creates a DHIS2 Tracker enrolment and referral event for each new CommCare referral since the last run.",
+          outputExample: `{
+  "trackedEntity": "PQfMcpmXeFE",
+  "program": "chw-referrals",
+  "enrollment": "nQ7ULa0aR2A",
+  "events": [{ "programStage": "referral", "status": "ACTIVE" }]
+}`,
+        },
       },
       {
         id: "client-registry-lookup",
         name: "Client Registry Lookup",
         description: "Matches incoming patients against the national client registry.",
         status: "Live",
+        workflowId: "client-dedup-workflow",
       },
       {
         id: "district-monthly-report",
         name: "District Monthly Report",
         description: "Aggregates referral outcomes into a monthly district report.",
         status: "Draft",
+        workflowId: "monthly-aggregate-workflow",
       },
     ],
     components: [

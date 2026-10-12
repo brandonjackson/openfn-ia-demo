@@ -4,7 +4,6 @@ import {
   PenLine,
   Zap,
   Globe,
-  ArrowRight,
   ArrowUpRight,
   Workflow,
 } from "lucide-react";
@@ -17,6 +16,7 @@ import type {
   ChannelType,
 } from "../page-data";
 import Breadcrumbs from "../components/Breadcrumbs";
+import StartWorkflowFromChannel from "../components/StartWorkflowFromChannel";
 import Badge from "../components/Badge";
 
 interface Props {
@@ -79,13 +79,7 @@ function ChannelCatalogCard({ entry }: { entry: ChannelCatalogEntry }) {
             <ArrowUpRight size={10} />
           </Link>
           {entry.channelType === "event" && (
-            <Link
-              to="/projects"
-              className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700"
-            >
-              Create a workflow here
-              <ArrowRight size={12} />
-            </Link>
+            <StartWorkflowFromChannel channelId={entry.id} />
           )}
         </div>
       </div>

@@ -269,6 +269,50 @@ export interface ProjectServiceItem {
   name: string;
   description: string;
   status: "Live" | "Draft";
+  /** The workflow component that runs this service. */
+  workflowId?: string;
+  /** How other teams call the service. Generated from the workflow when absent. */
+  api?: ServiceApiSpec;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Service page (a published service's catalog entry / API docs)      */
+/* ------------------------------------------------------------------ */
+
+export interface ServiceApiField {
+  name: string;
+  type: string;
+  required: boolean;
+  description: string;
+}
+
+export interface ServiceApiSpec {
+  /**
+   * `webhook` services are called over HTTP; `schedule` services run on a
+   * timer and only publish what they produce.
+   */
+  trigger: "webhook" | "schedule";
+  /** Webhook: `POST https://…`. Schedule: e.g. "Every 15 minutes". */
+  invocation: string;
+  /** How callers authenticate (webhook only). */
+  auth?: string;
+  /** Fields the caller sends (webhook only). */
+  inputFields?: ServiceApiField[];
+  /** A sample request, e.g. a curl command (webhook only). */
+  requestExample?: string;
+  /** What the service returns or publishes. */
+  outputDescription: string;
+  outputExample: string;
+}
+
+export interface ServicePageData {
+  pageType: "service";
+  projectId: string;
+  projectName: string;
+  service: ProjectServiceItem;
+  /** The workflow behind the service, if it's been linked. */
+  workflow?: ProjectComponentItem;
+  api: ServiceApiSpec;
 }
 
 /** Kinds of building block a project is made from. */
@@ -542,6 +586,7 @@ export type PageData =
   | ProjectCreatePageData
   | ProjectSandboxesPageData
   | ProjectSettingsPageData
+  | ServicePageData
   | UserSettingsPageData
   | InstanceSettingsPageData
   | HandbookPageData;

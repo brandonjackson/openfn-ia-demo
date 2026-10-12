@@ -26,6 +26,7 @@ export interface IANode {
     | "project-create"
     | "project-sandboxes"
     | "project-settings"
+    | "service"
     | "user-settings"
     | "instance-settings"
     | "handbook"
@@ -106,7 +107,7 @@ export const projectTemplateTree: IANode[] = [
         description: "View and manage project settings.",
         pageType: "project-settings",
       },
-      // Not in the project nav, but linked from the project Overview.
+      // Not in the project nav, but linked from the project Overview and Services.
       {
         id: "services",
         label: "Services",
@@ -115,8 +116,9 @@ export const projectTemplateTree: IANode[] = [
           {
             id: "service",
             label: "Service",
+            description: "A published service's catalog entry: how to call it and what it returns.",
+            pageType: "service",
             dynamic: true,
-            linkedFrom: "/service-builder",
           },
         ],
       },
@@ -125,7 +127,7 @@ export const projectTemplateTree: IANode[] = [
 ];
 
 /**
- * Org-level pages. Every page reachable from the sidebar lives here; the
+ * Instance-level pages. Every page reachable from the sidebar lives here; the
  * sidebar groups them (see {@link mainNavGroups}) but URLs stay flat.
  */
 export const mainNavTree: IANode[] = [
@@ -248,7 +250,7 @@ export interface NavGroup {
 }
 
 /**
- * How the org-level sidebar groups {@link mainNavTree}. Projects and
+ * How the instance-level sidebar groups {@link mainNavTree}. Projects and
  * Support are rendered after these by the sidebar itself, since their
  * contents aren't plain IA nodes (recent projects, external links).
  */

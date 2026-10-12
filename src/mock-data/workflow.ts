@@ -269,3 +269,45 @@ export const sampleRun: RunDetails = {
     { source: "ADA", message: "GET https://simdpgidentity-production.up.railway.app/citizens/search?name=Aleksa&dob=1950-01-01 - 200 in 372ms" },
   ],
 };
+
+/**
+ * A blank workflow for "New Workflow": a trigger wired to one empty step.
+ * Starting from an event channel names the trigger after that channel so
+ * the new workflow fires when the channel does.
+ */
+export function buildStarterWorkflow({
+  projectName,
+  channel,
+}: {
+  projectName: string;
+  channel?: { name: string; system: string };
+}): Workflow {
+  return {
+    id: "new",
+    name: "Untitled workflow",
+    project: projectName,
+    version: "latest",
+    nodes: [
+      {
+        id: "trigger",
+        type: "trigger",
+        triggerType: "webhook",
+        label: channel ? channel.name : "Webhook trigger",
+        subtitle: channel ? `On each ${channel.system} event` : "On each request received",
+        x: 360,
+        y: 70,
+      },
+      {
+        id: "first-step",
+        type: "job",
+        label: "Untitled step",
+        adaptor: "common",
+        adaptorPackage: "@openfn/language-common",
+        body: "// Start writing your job here\nfn(state => state);",
+        x: 360,
+        y: 230,
+      },
+    ],
+    edges: [{ id: "e-trigger-first-step", source: "trigger", target: "first-step", condition: "always" }],
+  };
+}

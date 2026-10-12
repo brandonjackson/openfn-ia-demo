@@ -16,8 +16,8 @@ export const currentUser: UserProfile = {
   githubConnected: false,
 };
 
-/** The organization the current user is signed in to. */
-export const currentOrg = {
+/** The OpenFn instance the current user is signed in to (named after the team that runs it). */
+export const currentInstance = {
   name: "Sim DTU",
   initials: "SD",
 };

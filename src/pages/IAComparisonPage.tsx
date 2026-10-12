@@ -336,7 +336,7 @@ interface MappingEntry {
 }
 
 const mappings: MappingEntry[] = [
-  { oldPath: "—", newPath: "/overview", status: "new", note: "Org-level home: what needs attention and recent activity" },
+  { oldPath: "—", newPath: "/overview", status: "new", note: "Instance-level home: what needs attention and recent activity" },
   { oldPath: "/projects", newPath: "/projects", status: "same", note: "Projects list stays; recent projects are also pinned in the sidebar" },
   { oldPath: "/projects/:id/w", newPath: "/projects/:id/workflows", status: "renamed", note: "Same page, readable URL" },
   { oldPath: "/projects/:id/w/:wid", newPath: "/workflow-editor/:wid", status: "moved", note: "Editor goes full-screen, outside the sidebar layout" },
@@ -356,7 +356,7 @@ const mappings: MappingEntry[] = [
   { oldPath: "—", newPath: "/status", status: "new", note: "What's up, degraded, or failing right now" },
   { oldPath: "—", newPath: "/insights", status: "new", note: "Runs, errors & throughput over time" },
   { oldPath: "—", newPath: "/history", status: "new", note: "Cross-project work orders & channel requests" },
-  { oldPath: "—", newPath: "/projects/:id/services", status: "new", note: "Published services, linked from the project Overview" },
+  { oldPath: "—", newPath: "/projects/:id/services/:sid", status: "new", note: "A published service's catalog entry (API docs), linked from the project Overview and Services" },
   { oldPath: "—", newPath: "/projects/:id/create", status: "new", note: "AI prompt for new public service ideas, showcasing available systems, channels & services" },
   { oldPath: "—", newPath: "/projects/:id/insights", status: "new", note: "Per-project runs, errors & run times" },
   { oldPath: "—", newPath: "/projects/:id/deployments", status: "new", note: "What's deployed, when, and from which sandbox" },
@@ -517,7 +517,7 @@ export default function IAComparisonPage() {
                 Proposed (New IA)
               </h2>
               <p className="text-xs text-green-600 mt-0.5">
-                React SPA — top-level concepts, org-wide views
+                React SPA — top-level concepts, instance-wide views
               </p>
             </div>
             <div className="p-3 max-h-[calc(100vh-280px)] overflow-y-auto">

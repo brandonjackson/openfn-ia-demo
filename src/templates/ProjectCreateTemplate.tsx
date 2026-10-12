@@ -48,9 +48,11 @@ function BlockSection({
  * already has to build with (systems, channels and live services).
  */
 export default function ProjectCreateTemplate({ node, ancestors, data }: Props) {
-  // A prompt started on the project Overview arrives in router state.
-  const initialPrompt = (useLocation().state as { prompt?: string } | null)?.prompt ?? "";
-  const [prompt, setPrompt] = useState(initialPrompt);
+  // A prompt started on the project Overview arrives in router state, already
+  // submitted; a draft (e.g. from "New Component") only pre-fills the box.
+  const routeState = useLocation().state as { prompt?: string; draft?: string } | null;
+  const initialPrompt = routeState?.prompt ?? "";
+  const [prompt, setPrompt] = useState(initialPrompt || routeState?.draft || "");
   const [submitted, setSubmitted] = useState<string | null>(initialPrompt || null);
 
   return (

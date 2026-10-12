@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Plus, Workflow } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { ProjectComponentItem, ProjectWorkflowsPageData } from "../page-data";
@@ -33,6 +33,7 @@ const columns: DataTableColumn<ProjectComponentItem>[] = [
 ];
 
 export default function ProjectWorkflowsTemplate({ node, ancestors, data }: Props) {
+  const navigate = useNavigate();
   return (
     <div>
       <Breadcrumbs
@@ -45,7 +46,11 @@ export default function ProjectWorkflowsTemplate({ node, ancestors, data }: Prop
           <h1 className="text-2xl font-semibold text-gray-900">{node.label}</h1>
           {node.description && <p className="mt-1 text-sm text-gray-500">{node.description}</p>}
         </div>
-        <Button icon={Plus} size="sm">
+        <Button
+          icon={Plus}
+          size="sm"
+          onClick={() => navigate(`/workflow-editor/new?project=${data.projectId}`)}
+        >
           New Workflow
         </Button>
       </div>

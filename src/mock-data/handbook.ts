@@ -1,5 +1,5 @@
 import type { HandbookFile, HandbookPageData, WikiSection } from "../page-data";
-import { currentOrg } from "./user";
+import { currentInstance } from "./user";
 
 const MB = 1024 * 1024;
 
@@ -11,7 +11,7 @@ export const handbookSections: WikiSection[] = [
       {
         type: "paragraph",
         content: [
-          `${currentOrg.name} is the digital transformation unit that connects the ministry's health, civil registration and planning systems. We build and run the integrations that move data between partner systems, so that programme teams can work from one consistent picture instead of reconciling spreadsheets.`,
+          `${currentInstance.name} is the digital transformation unit that connects the ministry's health, civil registration and planning systems. We build and run the integrations that move data between partner systems, so that programme teams can work from one consistent picture instead of reconciling spreadsheets.`,
         ],
       },
       {

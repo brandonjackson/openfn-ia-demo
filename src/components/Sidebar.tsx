@@ -23,7 +23,7 @@ import {
 import { mainNavGroups, mainNavTree, openfnDocsUrl, supportTree } from "../ia-tree";
 import { projects, recentProjects } from "../mock-data/projects";
 import type { Project } from "../mock-data/projects";
-import { currentOrg, currentUser } from "../mock-data/user";
+import { currentInstance, currentUser } from "../mock-data/user";
 import SidebarLink from "./SidebarLink";
 import SidebarSection from "./SidebarSection";
 import AccountMenu from "./AccountMenu";
@@ -47,7 +47,7 @@ interface ProjectSection {
 }
 
 /**
- * The in-project nav, grouped like the org-level sidebar: Overview on its
+ * The in-project nav, grouped like the instance-level sidebar: Overview on its
  * own, then Build (making things) and Maintain (keeping them running).
  */
 const projectNavGroups: { label?: string; sections: ProjectSection[] }[] = [
@@ -169,7 +169,7 @@ function useCurrentProject(): Project | undefined {
 }
 
 /**
- * App sidebar. At the org level it shows the grouped top-level IA
+ * App sidebar. At the instance level it shows the grouped top-level IA
  * (Overview; Context; Monitoring; recent Projects). Once you open a project
  * it swaps to that project's own menu (Overview; Build; Maintain). The logo always returns to Overview,
  * Support stays pinned near the bottom, and the account menu sits below it.
@@ -185,9 +185,9 @@ export default function Sidebar() {
       <div className="px-4 py-4">
         <Link to="/" className="flex items-center gap-2" title="Back to Overview">
           <div className="w-7 h-7 bg-indigo-600 rounded-md flex items-center justify-center">
-            <span className="text-white text-xs font-bold">{currentOrg.initials}</span>
+            <span className="text-white text-xs font-bold">{currentInstance.initials}</span>
           </div>
-          <span className="text-lg font-semibold text-gray-900">{currentOrg.name}</span>
+          <span className="text-lg font-semibold text-gray-900">{currentInstance.name}</span>
         </Link>
       </div>
 
@@ -204,7 +204,7 @@ export default function Sidebar() {
           />
         </SidebarSection>
         <div className="border-t border-gray-200 pt-3">
-          <AccountMenu user={currentUser} org={currentOrg} />
+          <AccountMenu user={currentUser} instance={currentInstance} />
         </div>
       </div>
     </aside>

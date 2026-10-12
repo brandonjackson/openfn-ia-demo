@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import AccountMenu from "./AccountMenu";
 import { withRouter } from "../stories/decorators";
-import { currentOrg, currentUser } from "../mock-data/user";
+import { currentInstance, currentUser } from "../mock-data/user";
 
 const meta: Meta<typeof AccountMenu> = {
   title: "Components/AccountMenu",
@@ -17,7 +17,7 @@ const meta: Meta<typeof AccountMenu> = {
       </div>
     ),
   ],
-  args: { user: currentUser, org: currentOrg },
+  args: { user: currentUser, instance: currentInstance },
 };
 
 export default meta;

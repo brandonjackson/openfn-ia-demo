@@ -21,6 +21,8 @@ import type {
   ProjectSettingsPageData,
   ProjectWorkflowsPageData,
   ProjectSandboxesPageData,
+  ServiceApiSpec,
+  ServicePageData,
   TablePageData,
   PageData,
 } from "../page-data";
@@ -137,6 +139,33 @@ function buildProjectSettingsData(projectId: string): ProjectSettingsPageData | 
 }
 
 /**
+ * Build a published service's catalog entry. Services without a written-up
+ * API get a default webhook spec, so every service has something to show.
+ */
+function buildServiceData(projectId: string, serviceId: string): ServicePageData | undefined {
+  const project = projects.find((p) => p.id === projectId);
+  const service = project?.services.find((s) => s.id === serviceId);
+  if (!project || !service) return undefined;
+
+  const defaultApi: ServiceApiSpec = {
+    trigger: "webhook",
+    invocation: `POST https://app.openfn.org/i/${project.id}/${service.id}`,
+    auth: "API key in the x-api-key header",
+    outputDescription: "Returns the work order ID; the workflow runs in the background.",
+    outputExample: `{\n  "workOrderId": "wo_…",\n  "status": "accepted"\n}`,
+  };
+
+  return {
+    pageType: "service",
+    projectId: project.id,
+    projectName: project.name,
+    service,
+    workflow: project.components.find((c) => c.id === service.workflowId),
+    api: service.api ?? defaultApi,
+  };
+}
+
+/**
  * Resolve dynamic data and node label overrides based on params.
  */
 function resolveDynamic(
@@ -215,6 +244,11 @@ function resolveDynamic(
       }
       case "table":
         return { node: result.node, data: buildProjectHistoryData(project.name) };
+      case "service": {
+        const data = buildServiceData(slug, params["service"]);
+        if (!data) return null;
+        return { node: { ...result.node, label: data.service.name }, data };
+      }
       default:
         return { node: result.node, data: undefined };
     }
@@ -286,11 +320,17 @@ export default function IAPage() {
   // Breadcrumbs show the real project name rather than the "Project" template.
   const projectSlug = result.params["project"];
   const projectName = projects.find((p) => p.id === projectSlug)?.name;
-  const ancestors = result.ancestors.map((a) =>
-    a.node.id === "project" && projectName
-      ? { ...a, node: { ...a.node, label: projectName } }
-      : a
-  );
+  // A project's "Services" has no page of its own, so that crumb goes to the
+  // Services catalog instead.
+  const ancestors = result.ancestors.map((a) => {
+    if (a.node.id === "project" && projectName) {
+      return { ...a, node: { ...a.node, label: projectName } };
+    }
+    if (a.node.id === "services" && projectSlug) {
+      return { ...a, path: "/service-catalog" };
+    }
+    return a;
+  });
 
   const pageType = node.pageType ?? "generic";
   const Template = templateMap[pageType];

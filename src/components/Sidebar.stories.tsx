@@ -18,7 +18,7 @@ const meta: Meta<typeof Sidebar> = {
 export default meta;
 type Story = StoryObj<typeof Sidebar>;
 
-/** Org level: Overview, Context, Monitoring and recent Projects. */
+/** Instance level: Overview, Context, Monitoring and recent Projects. */
 export const Default: Story = {
   decorators: [withRouterAt("/overview")],
 };

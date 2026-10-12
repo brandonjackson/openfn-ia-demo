@@ -5,7 +5,8 @@ import type { LucideIcon } from "lucide-react";
 
 interface Props {
   user: { firstName: string; lastName: string; email: string };
-  org: { name: string; initials: string };
+  /** The instance you're signed in to; its settings live under Instance Settings. */
+  instance: { name: string; initials: string };
   /** Called when "Log out" is chosen. */
   onLogOut?: () => void;
   /** Start with the menu open (useful for stories and screenshots). */
@@ -38,10 +39,10 @@ function MenuItem({
 
 /**
  * Account switcher pinned to the bottom of the sidebar. Shows who you are
- * and which org you're in; opens upwards into your personal and instance
+ * and which instance you're in; opens upwards into your personal and instance
  * settings.
  */
-export default function AccountMenu({ user, org, onLogOut, defaultOpen = false }: Props) {
+export default function AccountMenu({ user, instance, onLogOut, defaultOpen = false }: Props) {
   const [open, setOpen] = useState(defaultOpen);
   const ref = useRef<HTMLDivElement>(null);
   const close = () => setOpen(false);
@@ -105,11 +106,11 @@ export default function AccountMenu({ user, org, onLogOut, defaultOpen = false }
         }`}
       >
         <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-indigo-600 text-[11px] font-bold text-white">
-          {org.initials}
+          {instance.initials}
         </span>
         <span className="min-w-0 flex-1 truncate text-sm">
           <span className="font-medium text-gray-900">{user.firstName}</span>
-          <span className="text-gray-500"> · {org.name}</span>
+          <span className="text-gray-500"> · {instance.name}</span>
         </span>
         <ChevronsUpDown size={14} className="flex-shrink-0 text-gray-400" />
       </button>

@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import {
   Eye,
   PenLine,
@@ -7,7 +6,6 @@ import {
   User,
   Lock,
   Globe,
-  ArrowRight,
   ExternalLink,
   KeyRound,
   AlertCircle,
@@ -21,6 +19,7 @@ import type { IANode } from "../ia-tree";
 import type { AccessGrant, DetailPageData, DetailSectionItem } from "../page-data";
 import type { ChannelType } from "../page-data";
 import Breadcrumbs from "../components/Breadcrumbs";
+import StartWorkflowFromChannel from "../components/StartWorkflowFromChannel";
 import { connectedSystems } from "../mock-data/connected-systems";
 
 interface Props {
@@ -89,13 +88,9 @@ function ChannelCard({ item }: { item: DetailSectionItem }) {
         </div>
         <p className="mt-0.5 text-sm text-gray-500">{item.description}</p>
         {channelType === "event" && (
-          <Link
-            to="/projects"
-            className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700"
-          >
-            Create a workflow here
-            <ArrowRight size={12} />
-          </Link>
+          <div className="mt-2">
+            <StartWorkflowFromChannel channelId={item.id} />
+          </div>
         )}
       </div>
     </div>

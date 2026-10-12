@@ -40,8 +40,9 @@ const projectColumns: DataTableColumn<ProjectInsight>[] = [
 
 /**
  * Monitoring, over time: headline numbers, daily runs and errors, and a
- * per-project breakdown. Runs and errors are on very different scales, so
- * they get a chart each rather than sharing one.
+ * per-project breakdown (left out inside a single project). Runs and errors
+ * are on very different scales, so they get a chart each rather than sharing
+ * one.
  */
 export default function InsightsTemplate({ node, ancestors, data }: Props) {
   return (
@@ -86,14 +87,16 @@ export default function InsightsTemplate({ node, ancestors, data }: Props) {
         </Card>
       </div>
 
-      <section>
-        <SectionHeading title="By project" description={`${data.range}, busiest first.`} />
-        <DataTable
-          columns={projectColumns}
-          rows={[...data.projects].sort((a, b) => b.runs - a.runs)}
-          getRowKey={(p) => p.id}
-        />
-      </section>
+      {data.projects.length > 0 && (
+        <section>
+          <SectionHeading title="By project" description={`${data.range}, busiest first.`} />
+          <DataTable
+            columns={projectColumns}
+            rows={[...data.projects].sort((a, b) => b.runs - a.runs)}
+            getRowKey={(p) => p.id}
+          />
+        </section>
+      )}
     </div>
   );
 }

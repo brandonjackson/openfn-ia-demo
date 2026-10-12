@@ -1,4 +1,4 @@
-import type { ProjectSummary } from "../page-data";
+import type { ProjectComponentType, ProjectSummary } from "../page-data";
 
 export interface ProjectService {
   id: string;
@@ -11,7 +11,7 @@ export interface ProjectComponent {
   id: string;
   name: string;
   description: string;
-  type: "Workflow" | "Form" | "Artifact" | "Collection";
+  type: ProjectComponentType;
 }
 
 export interface Project {
@@ -71,6 +71,18 @@ export const projects: Project[] = [
         type: "Workflow",
       },
       {
+        id: "eplanning-submission-received",
+        name: "eplanning-submission-received",
+        description: "Fires when a new application is submitted on the e-planning portal.",
+        type: "Channel",
+      },
+      {
+        id: "case-management-create-case",
+        name: "case-management-create-case",
+        description: "Opens a case in the local authority case management system.",
+        type: "Channel",
+      },
+      {
         id: "application-field-mapping",
         name: "application-field-mapping.json",
         description:
@@ -117,6 +129,12 @@ export const projects: Project[] = [
         description:
           "Workflow for processing CommCare case updates.",
         type: "Workflow",
+      },
+      {
+        id: "commcare-case-updated",
+        name: "commcare-case-updated",
+        description: "Fires when a case is created or updated in CommCare.",
+        type: "Channel",
       },
       {
         id: "case-mapping",
@@ -181,6 +199,24 @@ export const projects: Project[] = [
         name: "monthly-aggregate-workflow",
         description: "Builds monthly aggregate data values for district reporting.",
         type: "Workflow",
+      },
+      {
+        id: "commcare-referral-created",
+        name: "commcare-referral-created",
+        description: "Fires when a community health worker logs a referral.",
+        type: "Channel",
+      },
+      {
+        id: "dhis2-enrol-tracked-entity",
+        name: "dhis2-enrol-tracked-entity",
+        description: "Creates a DHIS2 Tracker enrolment for a referred patient.",
+        type: "Channel",
+      },
+      {
+        id: "client-registry-search",
+        name: "client-registry-search",
+        description: "Looks up a patient in the national client registry.",
+        type: "Channel",
       },
       {
         id: "commcare-dhis2-mapping",

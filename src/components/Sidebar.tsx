@@ -11,7 +11,9 @@ import {
   Folder,
   FolderKanban,
   Layers,
-  ArrowLeftRight,
+  Boxes,
+  Sparkles,
+  Rocket,
   FlaskConical,
   Archive,
   Settings,
@@ -38,14 +40,36 @@ const navIcons: Record<string, LucideIcon> = {
   projects: FolderKanban,
 };
 
-/** Sections of the in-project nav, mirroring Lightning's project menu. */
-const projectSections: { id: string; label: string; icon: LucideIcon }[] = [
-  { id: "", label: "Overview", icon: LayoutDashboard },
-  { id: "workflows", label: "Workflows", icon: Layers },
-  { id: "channels", label: "Channels", icon: ArrowLeftRight },
-  { id: "sandboxes", label: "Sandboxes", icon: FlaskConical },
-  { id: "history", label: "History", icon: Archive },
-  { id: "settings", label: "Settings", icon: Settings },
+interface ProjectSection {
+  id: string;
+  label: string;
+  icon: LucideIcon;
+}
+
+/**
+ * The in-project nav, grouped like the org-level sidebar: Overview on its
+ * own, then Build (making things) and Maintain (keeping them running).
+ */
+const projectNavGroups: { label?: string; sections: ProjectSection[] }[] = [
+  { sections: [{ id: "", label: "Overview", icon: LayoutDashboard }] },
+  {
+    label: "Build",
+    sections: [
+      { id: "create", label: "Create", icon: Sparkles },
+      { id: "workflows", label: "Workflows", icon: Layers },
+      { id: "components", label: "Components", icon: Boxes },
+      { id: "sandboxes", label: "Sandboxes", icon: FlaskConical },
+    ],
+  },
+  {
+    label: "Maintain",
+    sections: [
+      { id: "history", label: "History", icon: Archive },
+      { id: "insights", label: "Insights", icon: ChartColumn },
+      { id: "deployments", label: "Deployments", icon: Rocket },
+      { id: "settings", label: "Settings", icon: Settings },
+    ],
+  },
 ];
 
 /** True when the URL is at `path` or anywhere beneath it. */
@@ -56,9 +80,11 @@ function isAt(pathname: string, path: string) {
 function ProjectNav({ project }: { project: Project }) {
   const location = useLocation();
   const base = "/projects/" + project.id;
-  const sectionIds = projectSections.map((s) => s.id).filter(Boolean);
-  // Anything under the project that isn't its own nav section (services,
-  // components) is reached from the Overview, so Overview stays lit.
+  const sectionIds = projectNavGroups
+    .flatMap((g) => g.sections.map((s) => s.id))
+    .filter(Boolean);
+  // Anything under the project that isn't its own nav section (services)
+  // is reached from the Overview, so Overview stays lit.
   const activeSection =
     sectionIds.find((id) => isAt(location.pathname, `${base}/${id}`)) ?? "";
 
@@ -73,15 +99,19 @@ function ProjectNav({ project }: { project: Project }) {
           All projects
         </Link>
       </div>
-      <nav className="p-3 flex-1 overflow-y-auto space-y-0.5">
-        {projectSections.map((section) => (
-          <SidebarLink
-            key={section.label}
-            to={section.id ? `${base}/${section.id}` : base}
-            icon={section.icon}
-            label={section.label}
-            active={activeSection === section.id}
-          />
+      <nav className="p-3 flex-1 overflow-y-auto space-y-5">
+        {projectNavGroups.map((group) => (
+          <SidebarSection key={group.label ?? "top"} label={group.label}>
+            {group.sections.map((section) => (
+              <SidebarLink
+                key={section.label}
+                to={section.id ? `${base}/${section.id}` : base}
+                icon={section.icon}
+                label={section.label}
+                active={activeSection === section.id}
+              />
+            ))}
+          </SidebarSection>
         ))}
       </nav>
     </>
@@ -141,7 +171,7 @@ function useCurrentProject(): Project | undefined {
 /**
  * App sidebar. At the org level it shows the grouped top-level IA
  * (Overview; Context; Monitoring; recent Projects). Once you open a project
- * it swaps to that project's own menu. The logo always returns to Overview,
+ * it swaps to that project's own menu (Overview; Build; Maintain). The logo always returns to Overview,
  * Support stays pinned near the bottom, and the account menu sits below it.
  */
 export default function Sidebar() {

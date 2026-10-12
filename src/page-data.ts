@@ -271,11 +271,14 @@ export interface ProjectServiceItem {
   status: "Live" | "Draft";
 }
 
+/** Kinds of building block a project is made from. */
+export type ProjectComponentType = "Workflow" | "Channel" | "Form" | "Artifact" | "Collection";
+
 export interface ProjectComponentItem {
   id: string;
   name: string;
   description: string;
-  type: "Workflow" | "Form" | "Artifact" | "Collection";
+  type: ProjectComponentType;
 }
 
 export interface ProjectPageData {
@@ -290,6 +293,46 @@ export interface ProjectWorkflowsPageData {
   pageType: "project-workflows";
   projectId: string;
   workflows: ProjectComponentItem[];
+}
+
+export interface ProjectComponentsPageData {
+  pageType: "project-components";
+  projectId: string;
+  components: ProjectComponentItem[];
+}
+
+/* ------------------------------------------------------------------ */
+/*  Project Create page                                                */
+/* ------------------------------------------------------------------ */
+
+/** A starter idea for a new public service, built from available systems. */
+export interface BuildIdea {
+  id: string;
+  title: string;
+  description: string;
+  /** Names of the systems the idea connects. */
+  systems: string[];
+  /** The prompt this idea drops into the builder. */
+  prompt: string;
+}
+
+/** Something already available to build with: a system, channel or service. */
+export interface BuildingBlock {
+  id: string;
+  name: string;
+  description: string;
+  /** Short label for the block's owner or system, e.g. "OpenCRVS". */
+  meta?: string;
+  to: string;
+}
+
+export interface ProjectCreatePageData {
+  pageType: "project-create";
+  projectId: string;
+  ideas: BuildIdea[];
+  systems: BuildingBlock[];
+  channels: BuildingBlock[];
+  services: BuildingBlock[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -473,6 +516,8 @@ export type PageData =
   | ProjectsPageData
   | ProjectPageData
   | ProjectWorkflowsPageData
+  | ProjectComponentsPageData
+  | ProjectCreatePageData
   | ProjectSettingsPageData
   | UserSettingsPageData
   | InstanceSettingsPageData

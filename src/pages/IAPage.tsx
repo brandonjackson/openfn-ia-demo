@@ -9,11 +9,14 @@ import { historyData } from "../mock-data/history";
 import { serviceCatalogData } from "../mock-data/service-catalog";
 import { userSettingsData } from "../mock-data/user";
 import { instanceSettingsData } from "../mock-data/instance";
+import { buildProjectInsightsData } from "../mock-data/insights";
+import { buildCreatePageData } from "../mock-data/build-ideas";
 import { templateMap } from "../templates";
 import PageShell from "../components/PageShell";
 import type {
   DashboardPageData,
   DetailPageData,
+  ProjectComponentsPageData,
   ProjectPageData,
   ProjectSettingsPageData,
   ProjectWorkflowsPageData,
@@ -182,6 +185,18 @@ function resolveDynamic(
         };
         return { node: result.node, data };
       }
+      case "project-components": {
+        const data: ProjectComponentsPageData = {
+          pageType: "project-components",
+          projectId: project.id,
+          components: project.components,
+        };
+        return { node: result.node, data };
+      }
+      case "project-create":
+        return { node: result.node, data: buildCreatePageData(project.id) };
+      case "insights":
+        return { node: result.node, data: buildProjectInsightsData(project.id) };
       case "table":
         return { node: result.node, data: buildProjectHistoryData(project.name) };
       default:

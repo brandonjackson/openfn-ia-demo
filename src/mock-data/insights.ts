@@ -41,3 +41,35 @@ export const insightsData: InsightsPageData = {
   daily,
   projects: projectInsights,
 };
+
+/**
+ * Insights for a single project: its share of the org's daily runs, without
+ * the per-project breakdown.
+ */
+export function buildProjectInsightsData(projectId: string): InsightsPageData {
+  const project = projectInsights.find((p) => p.id === projectId);
+  const runShare = project ? project.runs / totalRuns : 0;
+  const errorShare = project ? project.failed / totalErrors : 0;
+  const projectDaily = daily.map((d) => ({
+    day: d.day,
+    succeeded: Math.round(d.succeeded * runShare),
+    failed: Math.round(d.failed * errorShare),
+  }));
+  const runs = projectDaily.map((d) => d.succeeded + d.failed);
+  const errors = projectDaily.map((d) => d.failed);
+  const runTotal = runs.reduce((a, b) => a + b, 0);
+  const errorTotal = errors.reduce((a, b) => a + b, 0);
+  const rate = runTotal ? `${((errorTotal / runTotal) * 100).toFixed(1)}%` : "0.0%";
+  return {
+    pageType: "insights",
+    range: "Last 7 days",
+    tiles: [
+      { label: "Runs", value: runTotal.toLocaleString("en-US"), detail: "Last 7 days", trend: runs },
+      { label: "Errors", value: errorTotal, detail: `${rate} of runs`, trend: errors },
+      { label: "Error rate", value: rate, detail: "This project" },
+      { label: "Average run time", value: project?.avgDuration ?? "—", detail: "This project" },
+    ],
+    daily: projectDaily,
+    projects: [],
+  };
+}

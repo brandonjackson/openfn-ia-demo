@@ -33,9 +33,20 @@ export const AllProjects: Story = {
   decorators: [withRouterAt("/projects")],
 };
 
-/** Inside a project: the project's own menu, with a way back to all projects.
+/** Inside a project: the project's own menu (Overview; Build; Maintain),
+ *  with a way back to all projects.
  *  The project name lives in the top bar's project picker, not here.
  *  Support and the account menu stay pinned at the bottom. */
 export const InsideProject: Story = {
   decorators: [withRouterAt("/projects/project-a/workflows")],
+};
+
+/** The project's Create page, the first item under Build. */
+export const InsideProjectCreate: Story = {
+  decorators: [withRouterAt("/projects/project-a/create")],
+};
+
+/** A page under Maintain. */
+export const InsideProjectMaintain: Story = {
+  decorators: [withRouterAt("/projects/project-a/deployments")],
 };

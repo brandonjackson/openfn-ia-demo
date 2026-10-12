@@ -1,26 +1,12 @@
 import { Link } from "react-router-dom";
-import {
-  ChevronRight,
-  FileText,
-  Workflow,
-  Database,
-  FileSpreadsheet,
-  ClipboardList,
-  Plus,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Boxes, ChevronRight, ClipboardList, Plus } from "lucide-react";
 import type { IANode } from "../ia-tree";
-import type { ProjectPageData, ProjectServiceItem, ProjectComponentItem } from "../page-data";
+import type { ProjectPageData, ProjectServiceItem } from "../page-data";
 import Badge from "../components/Badge";
 import Breadcrumbs from "../components/Breadcrumbs";
+import ComponentRow from "../components/ComponentRow";
+import { componentTypes } from "../component-types";
 import { mockEntries } from "../mock-data";
-
-const componentTypeIcons: Record<string, LucideIcon> = {
-  Workflow: Workflow,
-  Artifact: FileText,
-  Form: FileSpreadsheet,
-  Collection: Database,
-};
 
 function ServiceCard({ service, basePath }: { service: ProjectServiceItem; basePath: string }) {
   const to = basePath + "/services/" + service.id;
@@ -50,53 +36,15 @@ function ServiceCard({ service, basePath }: { service: ProjectServiceItem; baseP
   );
 }
 
-function ComponentRow({ component, basePath }: { component: ProjectComponentItem; basePath: string }) {
-  // Opening a workflow drops you straight into the workflow editor; other
-  // component types open their generic detail page.
-  const to =
-    component.type === "Workflow"
-      ? "/workflow-editor/" + component.id
-      : basePath + "/components/" + component.id;
-  const Icon = componentTypeIcons[component.type] || FileText;
-
-  return (
-    <Link
-      to={to}
-      className="group flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
-    >
-      <Icon
-        size={16}
-        className="text-gray-400 group-hover:text-blue-500 flex-shrink-0"
-      />
-      <div className="flex-1 min-w-0">
-        <span className="text-sm text-gray-900 group-hover:text-blue-600 font-mono truncate block">
-          {component.name}
-        </span>
-      </div>
-      <span className="text-xs text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 flex-shrink-0">
-        {component.type}
-      </span>
-    </Link>
-  );
-}
-
-const componentTypeDescriptions: Record<string, string> = {
-  Workflow: "Automated data pipeline or integration",
-  Form: "Data entry or collection form",
-  Artifact: "Configuration file or mapping",
-  Collection: "Structured dataset or lookup table",
-};
-
 function AddComponentInput() {
   return (
     <div className="border border-gray-200 rounded-lg bg-white shadow-sm">
       <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-100">
         <Plus size={14} className="text-gray-400" />
-        <span className="text-xs font-medium text-gray-400">Add a resource</span>
+        <span className="text-xs font-medium text-gray-400">Add a component</span>
       </div>
       <div className="grid grid-cols-2 gap-2 p-3">
-        {["Workflow", "Form", "Artifact", "Collection"].map((type) => {
-          const Icon = componentTypeIcons[type] || FileText;
+        {componentTypes.map(({ type, icon: Icon, description }) => {
           return (
             <button
               key={type}
@@ -111,7 +59,7 @@ function AddComponentInput() {
                   {type}
                 </div>
                 <div className="text-xs text-gray-400 leading-snug mt-0.5">
-                  {componentTypeDescriptions[type]}
+                  {description}
                 </div>
               </div>
             </button>
@@ -193,9 +141,9 @@ export default function ProjectTemplate({ node, ancestors, currentPath, data }: 
       <div className="mt-8">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <FileText size={16} className="text-gray-400" />
+            <Boxes size={16} className="text-gray-400" />
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-              Resources
+              Components
             </h2>
           </div>
           <span className="text-xs text-gray-400">
@@ -204,11 +152,11 @@ export default function ProjectTemplate({ node, ancestors, currentPath, data }: 
         </div>
         <div className="rounded-lg border border-gray-200 bg-white divide-y divide-gray-100">
           {components.map((comp) => (
-            <ComponentRow key={comp.id} component={comp} basePath={currentPath} />
+            <ComponentRow key={comp.id} component={comp} projectPath={currentPath} />
           ))}
           {components.length === 0 && (
             <p className="text-sm text-gray-400 italic px-3 py-4">
-              No resources yet.
+              No components yet.
             </p>
           )}
         </div>

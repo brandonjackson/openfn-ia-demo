@@ -18,3 +18,9 @@ export const RetryRun: Story = {
 export const WithBackButton: Story = {
   args: { workflow: nationalIdWorkflow, onBack: () => {} },
 };
+export const ProjectPickerOpen: Story = {
+  args: { workflow: { ...nationalIdWorkflow, project: "Project A" } },
+  play: async ({ canvasElement }) => {
+    canvasElement.querySelector<HTMLButtonElement>('[aria-label="Switch project"]')?.click();
+  },
+};

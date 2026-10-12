@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, Globe, Lock, Users, Plus, Download } from "lucide-react";
+import { Check, ChevronRight, Globe, Lock, Plus, Download } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { ListPageData, ListItem } from "../page-data";
 import Breadcrumbs from "../components/Breadcrumbs";
+import Badge from "../components/Badge";
 import SuggestedSystemsToAdd from "../components/SuggestedSystemsToAdd";
 import AddConnectedSystemFlow from "../components/AddConnectedSystemFlow";
 
@@ -16,7 +17,7 @@ interface Props {
 
 function ListItemCard({ item, basePath }: { item: ListItem; basePath: string }) {
   const to = item.linkTo ?? `${basePath}/${item.id}`;
-  const credentialType = item.metadata?.credentialType;
+  const access = item.metadata?.access;
 
   return (
     <Link
@@ -31,16 +32,10 @@ function ListItemCard({ item, basePath }: { item: ListItem; basePath: string }) 
           <h3 className="font-medium text-gray-900 group-hover:text-blue-600 text-sm">
             {item.name}
           </h3>
-          {credentialType === "user" ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
-              <Lock size={10} />
-              Private
-            </span>
-          ) : credentialType === "org" ? (
-            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-600">
-              <Users size={10} />
-              Shared
-            </span>
+          {access === "yes" ? (
+            <Badge label="You have access" tone="green" icon={Check} />
+          ) : access === "no" ? (
+            <Badge label="No access" tone="gray" icon={Lock} />
           ) : null}
         </div>
         <p className="mt-0.5 text-sm text-gray-500 truncate">{item.description}</p>
@@ -70,7 +65,7 @@ export default function ListTemplate({ node, ancestors, currentPath, data }: Pro
   const filtered = data.items.filter((item) => {
     if (!data.filterKey || !data.filterMap) return true;
     const mapped = data.filterMap[selected];
-    if (!mapped) return true; // "Available" or similar = show all
+    if (!mapped) return true; // "All" = show everything
     return item.metadata?.[data.filterKey] === mapped;
   });
 

@@ -204,9 +204,9 @@ const proposedTree: TreeNode[] = [
     ],
   },
   {
-    label: "Catalog",
+    label: "Services",
     path: "/service-catalog",
-    note: "Catalog — Published services from all projects & systems",
+    note: "Services — Published services from all projects & systems",
     children: [
       { label: "Live Services", note: "All live services from projects" },
       { label: "Channels", note: "Channels exposed by connected systems" },
@@ -235,7 +235,7 @@ const proposedTree: TreeNode[] = [
       {
         label: ":project",
         path: "/projects/:project",
-        note: "Project — Overview with services & components; swaps in its own sidebar menu",
+        note: "Project — Overview with published services & resources; top bar shows project and sandbox pickers, sidebar swaps in the project menu",
         children: [
           { label: "Workflows", note: "Every workflow in this project" },
           { label: "Channels", note: "Channels this project reads from and writes to" },
@@ -248,9 +248,9 @@ const proposedTree: TreeNode[] = [
             children: [{ label: ":service", note: "Individual service (links to builder)" }],
           },
           {
-            label: "Components",
+            label: "Resources",
             note: "Workflows, artifacts, forms, collections (linked from Overview)",
-            children: [{ label: ":component", note: "Individual component" }],
+            children: [{ label: ":component", note: "Individual resource" }],
           },
         ],
       },
@@ -298,12 +298,13 @@ const proposedTree: TreeNode[] = [
     ],
   },
   {
-    label: "Org Settings",
-    path: "/org-settings",
-    note: "Organization-level settings",
+    label: "Instance Settings",
+    path: "/instance-settings",
+    note: "Instance-level settings",
     children: [
-      { label: "Team / Members", note: "Team members & roles" },
+      { label: "Collaboration", note: "Members & roles" },
       { label: "Billing", note: "Billing, usage, subscriptions" },
+      { label: "Context", note: "Connected context layers; request access to more" },
     ],
   },
 ];
@@ -314,11 +315,11 @@ const proposedTree: TreeNode[] = [
  */
 const proposedGroups: { label?: string; items: string[] }[] = [
   { items: ["Overview"] },
-  { label: "Context", items: ["Handbook", "Systems", "Catalog"] },
+  { label: "Context", items: ["Handbook", "Systems", "Services"] },
   { label: "Monitoring", items: ["Status", "Insights", "History"] },
   { label: "Projects", items: ["Projects", "Workflow Editor", "Service Builder"] },
   { label: "Support", items: ["Get Help Now", "OpenFn Docs"] },
-  { label: "Account menu", items: ["User Settings", "Org Settings"] },
+  { label: "Account menu", items: ["User Settings", "Instance Settings"] },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -344,12 +345,12 @@ const mappings: MappingEntry[] = [
   { oldPath: "/credentials", newPath: "/connected-systems/credentials + /user-settings/credentials", status: "split", note: "Org credentials grouped under Systems; personal credentials & OAuth clients in User Settings" },
   { oldPath: "/profile", newPath: "/user-settings/profile", status: "moved", note: "Profile nested under User Settings" },
   { oldPath: "/profile/tokens", newPath: "/user-settings/api-tokens", status: "moved", note: "API tokens are a User Settings section" },
-  { oldPath: "/settings/users", newPath: "/org-settings/team-members", status: "renamed", note: "Admin users → Team / Members" },
+  { oldPath: "/settings/users", newPath: "/instance-settings/collaboration", status: "renamed", note: "Admin users → Collaboration" },
   { oldPath: "/settings/audit", newPath: "—", status: "removed", note: "Not in proposed IA (may be added later)" },
   { oldPath: "/settings/authentication", newPath: "—", status: "removed", note: "Not in proposed IA (may be added later)" },
   { oldPath: "—", newPath: "/handbook", status: "new", note: "How the org works, with the files that go with it" },
   { oldPath: "—", newPath: "/connected-systems", status: "new", note: "Systems: new top-level concept for external integrations" },
-  { oldPath: "—", newPath: "/service-catalog", status: "new", note: "Catalog: published services and channels across the org" },
+  { oldPath: "—", newPath: "/service-catalog", status: "new", note: "Services: published services and channels across the org" },
   { oldPath: "—", newPath: "/status", status: "new", note: "What's up, degraded, or failing right now" },
   { oldPath: "—", newPath: "/insights", status: "new", note: "Runs, errors & throughput over time" },
   { oldPath: "—", newPath: "/history", status: "new", note: "Cross-project work orders & channel requests" },

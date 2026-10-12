@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ProjectSettingsTemplate from "./ProjectSettingsTemplate";
-import { withRouter } from "../stories/decorators";
+import { withRouterAt } from "../stories/decorators";
 import type { IANode } from "../ia-tree";
 import type { ProjectSettingsPageData } from "../page-data";
 
@@ -66,7 +66,7 @@ const defaultData: ProjectSettingsPageData = {
 const meta: Meta<typeof ProjectSettingsTemplate> = {
   title: "Templates/ProjectSettingsTemplate",
   component: ProjectSettingsTemplate,
-  decorators: [withRouter],
+  decorators: [withRouterAt("/projects/project-a/settings")],
   parameters: { layout: "padded" },
 };
 

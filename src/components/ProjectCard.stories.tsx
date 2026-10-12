@@ -9,7 +9,7 @@ const meta: Meta<typeof ProjectCard> = {
   decorators: [
     withRouter,
     (Story) => (
-      <div className="w-80">
+      <div className="max-w-3xl">
         <Story />
       </div>
     ),

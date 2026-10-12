@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ProjectWorkflowsTemplate from "./ProjectWorkflowsTemplate";
-import { withRouter } from "../stories/decorators";
+import { withRouterAt } from "../stories/decorators";
 import { projects } from "../mock-data/projects";
 import type { IANode } from "../ia-tree";
 
@@ -20,7 +20,7 @@ const ancestors = [
 const meta: Meta<typeof ProjectWorkflowsTemplate> = {
   title: "Templates/ProjectWorkflowsTemplate",
   component: ProjectWorkflowsTemplate,
-  decorators: [withRouter],
+  decorators: [withRouterAt("/projects/malawi-chw-referrals/workflows")],
   parameters: { layout: "padded" },
 };
 

@@ -7,7 +7,6 @@ import {
   FileSpreadsheet,
   ClipboardList,
   Plus,
-  Settings,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { IANode } from "../ia-tree";
@@ -93,7 +92,7 @@ function AddComponentInput() {
     <div className="border border-gray-200 rounded-lg bg-white shadow-sm">
       <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-100">
         <Plus size={14} className="text-gray-400" />
-        <span className="text-xs font-medium text-gray-400">Add a component</span>
+        <span className="text-xs font-medium text-gray-400">Add a resource</span>
       </div>
       <div className="grid grid-cols-2 gap-2 p-3">
         {["Workflow", "Form", "Artifact", "Collection"].map((type) => {
@@ -171,7 +170,7 @@ export default function ProjectTemplate({ node, ancestors, currentPath, data }: 
           <div className="flex items-center gap-2">
             <ClipboardList size={16} className="text-gray-400" />
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-              Services
+              Published Services
             </h2>
           </div>
           <button className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 transition-colors">
@@ -185,7 +184,7 @@ export default function ProjectTemplate({ node, ancestors, currentPath, data }: 
           ))}
           {services.length === 0 && (
             <p className="text-sm text-gray-400 italic">
-              No services yet. Create one to publish to the Service Catalog.
+              No published services yet. Create one to list it in Services.
             </p>
           )}
         </div>
@@ -196,7 +195,7 @@ export default function ProjectTemplate({ node, ancestors, currentPath, data }: 
           <div className="flex items-center gap-2">
             <FileText size={16} className="text-gray-400" />
             <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-              Components
+              Resources
             </h2>
           </div>
           <span className="text-xs text-gray-400">
@@ -209,7 +208,7 @@ export default function ProjectTemplate({ node, ancestors, currentPath, data }: 
           ))}
           {components.length === 0 && (
             <p className="text-sm text-gray-400 italic px-3 py-4">
-              No components yet.
+              No resources yet.
             </p>
           )}
         </div>
@@ -217,49 +216,6 @@ export default function ProjectTemplate({ node, ancestors, currentPath, data }: 
 
       <div className="mt-4">
         <AddComponentInput />
-      </div>
-
-      {/* History & Settings links */}
-      <div className="mt-8">
-        <div className="space-y-2">
-          <Link
-            to={currentPath + "/history"}
-            className="group flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 hover:border-blue-300 hover:shadow-sm transition-all"
-          >
-            <div>
-              <h3 className="font-medium text-gray-900 group-hover:text-blue-600 text-sm">
-                History
-              </h3>
-              <p className="text-xs text-gray-500 mt-0.5">
-                Work orders and channel requests for this project.
-              </p>
-            </div>
-            <ChevronRight
-              size={16}
-              className="text-gray-300 group-hover:text-blue-400"
-            />
-          </Link>
-          <Link
-            to={currentPath + "/settings"}
-            className="group flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 hover:border-blue-300 hover:shadow-sm transition-all"
-          >
-            <div className="flex items-center gap-2">
-              <Settings size={14} className="text-gray-400 group-hover:text-blue-500" />
-              <div>
-                <h3 className="font-medium text-gray-900 group-hover:text-blue-600 text-sm">
-                  Settings
-                </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Manage project configuration, credentials, and collaborators.
-                </p>
-              </div>
-            </div>
-            <ChevronRight
-              size={16}
-              className="text-gray-300 group-hover:text-blue-400"
-            />
-          </Link>
-        </div>
       </div>
     </div>
   );

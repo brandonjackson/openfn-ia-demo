@@ -23,6 +23,8 @@ export interface Project {
   /** Human-readable time since the project last ran or changed. */
   lastActivity: string;
   memberCount: number;
+  /** Sandboxes (branches) of this project. The first is always "main". */
+  sandboxes: string[];
   services: ProjectService[];
   components: ProjectComponent[];
 }
@@ -36,6 +38,7 @@ export const projects: Project[] = [
     environment: "production",
     lastActivity: "12 minutes ago",
     memberCount: 4,
+    sandboxes: ["main", "intake-validation-v2", "decision-sync-fix"],
     services: [
       {
         id: "planning-application-intake",
@@ -97,6 +100,7 @@ export const projects: Project[] = [
     environment: "production",
     lastActivity: "2 hours ago",
     memberCount: 2,
+    sandboxes: ["main", "warehouse-schema-update"],
     services: [
       {
         id: "commcare-case-sync",
@@ -132,6 +136,7 @@ export const projects: Project[] = [
     environment: "staging",
     lastActivity: "3 days ago",
     memberCount: 11,
+    sandboxes: ["main", "dhis2-41-upgrade", "dedup-tuning", "district-report-pilot"],
     services: [
       {
         id: "chw-referral-sync",
@@ -199,6 +204,7 @@ export const projects: Project[] = [
     environment: "development",
     lastActivity: "Never",
     memberCount: 1,
+    sandboxes: ["main"],
     services: [],
     components: [],
   },

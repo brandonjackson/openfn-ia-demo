@@ -5,6 +5,8 @@ export interface ConnectedSystem {
   name: string;
   description: string;
   credentialType: "user" | "org";
+  /** Whether the current user personally has access to this system. */
+  hasAccess: boolean;
   color: string;
   url?: string;
   owner: string;
@@ -25,6 +27,7 @@ export const connectedSystems: ConnectedSystem[] = [
     name: "DHIS2",
     description: "Health information management system for data collection and analysis.",
     credentialType: "org",
+    hasAccess: true,
     color: "bg-blue-100 text-blue-700",
     url: "https://dhis2.example.org",
     owner: "Acme Health Ministry",
@@ -38,6 +41,7 @@ export const connectedSystems: ConnectedSystem[] = [
     name: "Salesforce",
     description: "CRM platform for managing customer relationships and data.",
     credentialType: "org",
+    hasAccess: true,
     color: "bg-sky-100 text-sky-700",
     url: "https://acme.my.salesforce.com",
     owner: "Acme Operations",
@@ -51,6 +55,7 @@ export const connectedSystems: ConnectedSystem[] = [
     name: "CommCare",
     description: "Mobile data collection platform for frontline workers.",
     credentialType: "user",
+    hasAccess: false,
     color: "bg-green-100 text-green-700",
     url: "https://www.commcarehq.org",
     owner: "jsmith",
@@ -64,6 +69,7 @@ export const connectedSystems: ConnectedSystem[] = [
     name: "KoBoToolbox",
     description: "Data collection tool for humanitarian and development work.",
     credentialType: "user",
+    hasAccess: false,
     color: "bg-orange-100 text-orange-700",
     url: "https://kf.kobotoolbox.org",
     owner: "adiallo",
@@ -77,6 +83,7 @@ export const connectedSystems: ConnectedSystem[] = [
     name: "Google Sheets",
     description: "Cloud-based spreadsheet for collaborative data management.",
     credentialType: "org",
+    hasAccess: true,
     color: "bg-emerald-100 text-emerald-700",
     url: undefined,
     owner: "Acme Data Team",
@@ -90,6 +97,7 @@ export const connectedSystems: ConnectedSystem[] = [
     name: "FHIR Server",
     description: "HL7 FHIR-compliant server for health data interoperability.",
     credentialType: "user",
+    hasAccess: false,
     color: "bg-purple-100 text-purple-700",
     url: "https://fhir.example.org/r4",
     owner: "bwilson",
@@ -103,6 +111,7 @@ export const connectedSystems: ConnectedSystem[] = [
     name: "OpenCRVS",
     description: "Civil registration platform for recording births and deaths.",
     credentialType: "org",
+    hasAccess: true,
     color: "bg-rose-100 text-rose-700",
     url: "https://opencrvs.example.org",
     owner: "Acme Health Ministry",
@@ -156,7 +165,11 @@ export const connectedSystemListItems: ListItem[] = connectedSystems.map((s) => 
   id: s.id,
   name: s.name,
   description: s.description,
-  metadata: { credentialType: s.credentialType, ...(s.url ? { url: s.url } : {}) },
+  metadata: {
+    credentialType: s.credentialType,
+    access: s.hasAccess ? "yes" : "no",
+    ...(s.url ? { url: s.url } : {}),
+  },
   linkTo: s.linkTo,
 }));
 

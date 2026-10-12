@@ -38,7 +38,7 @@ function MenuItem({
 
 /**
  * Account switcher pinned to the bottom of the sidebar. Shows who you are
- * and which org you're in; opens upwards into your personal and org
+ * and which org you're in; opens upwards into your personal and instance
  * settings.
  */
 export default function AccountMenu({ user, org, onLogOut, defaultOpen = false }: Props) {
@@ -72,9 +72,9 @@ export default function AccountMenu({ user, org, onLogOut, defaultOpen = false }
           <p className="truncate px-2 pt-1 pb-1.5 text-xs text-gray-500">{user.email}</p>
           <MenuItem to="/user-settings" icon={Settings} label="Settings" onSelect={close} />
           <MenuItem
-            to="/org-settings"
+            to="/instance-settings"
             icon={Wrench}
-            label="Organization settings"
+            label="Instance Settings"
             onSelect={close}
           />
           <div className="my-1.5 border-t border-gray-200" />

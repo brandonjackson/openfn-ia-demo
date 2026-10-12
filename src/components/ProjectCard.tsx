@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
-import { Workflow, Users } from "lucide-react";
+import { ChevronRight, Folder, Workflow, Users } from "lucide-react";
 import type { ProjectSummary } from "../page-data";
-import Card from "./Card";
 
 const environmentDot: Record<string, string> = {
   production: "bg-green-500",
@@ -13,53 +12,58 @@ interface Props {
 }
 
 /**
- * Clickable tile on the Projects list. Opening it drops you into the project.
+ * Full-width row on the Projects list, laid out like the Systems and
+ * Services lists. Opening it drops you into the project.
  */
 export default function ProjectCard({ project }: Props) {
   const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
   return (
-    <Link to={`/projects/${project.id}`} className="group block h-full">
-      <Card className="h-full flex flex-col transition-all group-hover:border-blue-300 group-hover:shadow-sm">
-        <h3
-          className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 line-clamp-2 break-words"
-          title={project.name}
-        >
-          {project.name}
-        </h3>
-        <p className="mt-1 text-xs text-gray-500 leading-relaxed line-clamp-2 min-h-[2.5rem]">
+    <Link
+      to={`/projects/${project.id}`}
+      className="group flex items-center gap-4 rounded-lg border border-gray-200 bg-white p-4 hover:border-blue-300 hover:shadow-sm transition-all"
+    >
+      <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-50">
+        <Folder size={20} className="text-gray-400 group-hover:text-blue-500" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 min-w-0">
+          <h3
+            className="font-medium text-gray-900 group-hover:text-blue-600 text-sm truncate"
+            title={project.name}
+          >
+            {project.name}
+          </h3>
+          <span className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${environmentDot[project.environment] ?? "bg-gray-400"}`}
+            />
+            {project.environment}
+          </span>
+        </div>
+        <p className="mt-0.5 text-sm text-gray-500 truncate">
           {project.description || <span className="italic text-gray-400">No description</span>}
         </p>
-
-        <div className="mt-4 flex items-center gap-4 text-xs text-gray-500">
+        <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-400">
           <span className="inline-flex items-center gap-1">
-            <Workflow size={12} className="text-gray-400" />
+            <Workflow size={11} />
             {plural(project.workflowCount, "workflow")}
           </span>
           <span className="inline-flex items-center gap-1">
-            <Users size={12} className="text-gray-400" />
+            <Users size={11} />
             {plural(project.memberCount, "member")}
           </span>
+          <span>
+            {project.serviceCount === 0
+              ? "No services"
+              : `${project.liveServiceCount}/${project.serviceCount} services live`}
+          </span>
+          <span>
+            {project.lastActivity === "Never" ? "No activity yet" : `Active ${project.lastActivity}`}
+          </span>
         </div>
-
-        <div className="mt-auto pt-4">
-          <div className="flex items-center gap-1.5 border-t border-gray-100 pt-3 text-xs text-gray-500">
-            <span
-              className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${environmentDot[project.environment] ?? "bg-gray-400"}`}
-            />
-            <span>{project.environment}</span>
-            <span className="text-gray-300">·</span>
-            <span>
-              {project.serviceCount === 0
-                ? "No services"
-                : `${project.liveServiceCount}/${project.serviceCount} services live`}
-            </span>
-            <span className="ml-auto truncate text-gray-400">
-              {project.lastActivity === "Never" ? "No activity yet" : project.lastActivity}
-            </span>
-          </div>
-        </div>
-      </Card>
+      </div>
+      <ChevronRight size={16} className="text-gray-300 group-hover:text-blue-400 flex-shrink-0" />
     </Link>
   );
 }

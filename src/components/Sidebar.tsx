@@ -72,10 +72,6 @@ function ProjectNav({ project }: { project: Project }) {
           <ChevronLeft size={12} />
           All projects
         </Link>
-        <p className="mt-1 text-sm font-semibold text-gray-900 line-clamp-2" title={project.name}>
-          {project.name}
-        </p>
-        <p className="mt-0.5 text-xs text-gray-400">{project.environment}</p>
       </div>
       <nav className="p-3 flex-1 overflow-y-auto space-y-0.5">
         {projectSections.map((section) => (

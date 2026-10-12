@@ -81,7 +81,7 @@ export default function SuggestedServicesSection({ services, systems }: Props) {
           to="/service-catalog"
           className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
         >
-          View service catalog
+          View all services
           <ChevronRight size={12} />
         </Link>
       </div>

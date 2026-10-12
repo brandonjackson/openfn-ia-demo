@@ -68,7 +68,7 @@ export default function ProjectsTemplate({ node, ancestors, data }: Props) {
       </p>
 
       {filtered.length > 0 ? (
-        <div className="mt-3 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-3 space-y-2">
           {filtered.map((project) => (
             <ProjectCard key={project.id} project={project} />
           ))}

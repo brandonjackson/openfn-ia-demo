@@ -34,12 +34,8 @@ export const AllProjects: Story = {
 };
 
 /** Inside a project: the project's own menu, with a way back to all projects.
+ *  The project name lives in the top bar's project picker, not here.
  *  Support and the account menu stay pinned at the bottom. */
 export const InsideProject: Story = {
   decorators: [withRouterAt("/projects/project-a/workflows")],
-};
-
-/** A long project name wraps to two lines and then truncates. */
-export const LongProjectName: Story = {
-  decorators: [withRouterAt("/projects/malawi-chw-referrals")],
 };

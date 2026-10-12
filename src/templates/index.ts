@@ -13,6 +13,7 @@ import DashboardTemplate from "./DashboardTemplate";
 import StatusTemplate from "./StatusTemplate";
 import InsightsTemplate from "./InsightsTemplate";
 import UserSettingsTemplate from "./UserSettingsTemplate";
+import InstanceSettingsTemplate from "./InstanceSettingsTemplate";
 import HandbookTemplate from "./HandbookTemplate";
 
 export interface TemplateProps {
@@ -38,5 +39,6 @@ export const templateMap: Record<string, React.FC<any>> = {
   status: StatusTemplate,
   insights: InsightsTemplate,
   "user-settings": UserSettingsTemplate,
+  "instance-settings": InstanceSettingsTemplate,
   handbook: HandbookTemplate,
 };

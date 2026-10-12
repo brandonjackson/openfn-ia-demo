@@ -24,6 +24,7 @@ export interface IANode {
     | "project-workflows"
     | "project-settings"
     | "user-settings"
+    | "instance-settings"
     | "handbook"
     | "generic";
   /** When true, this node acts as a template that matches any sibling slug not found by exact ID */
@@ -87,12 +88,12 @@ export const projectTemplateTree: IANode[] = [
       },
       {
         id: "components",
-        label: "Components",
+        label: "Resources",
         description: "Reusable building blocks — workflows, artifacts, forms, and collections.",
         children: [
           {
             id: "component",
-            label: "Component",
+            label: "Resource",
             dynamic: true,
           },
         ],
@@ -125,7 +126,7 @@ export const mainNavTree: IANode[] = [
     label: "Systems",
     description: "Browse and manage all connected external systems.",
     pageType: "list",
-    filters: [{ label: "Visibility", options: ["Available", "Shared", "Private"] }],
+    filters: [{ label: "Access", options: ["All", "I have access", "No access"] }],
     children: [
       {
         id: "connected-system",
@@ -163,7 +164,7 @@ export const mainNavTree: IANode[] = [
   },
   {
     id: "service-catalog",
-    label: "Catalog",
+    label: "Services",
     description: "Browse the catalog of published services and channels.",
     pageType: "catalog",
     children: [
@@ -315,20 +316,28 @@ export const settingsTree: IANode[] = [
     ],
   },
   {
-    id: "org-settings",
-    label: "Org Settings",
-    description: "Configure organization-level settings.",
+    id: "instance-settings",
+    label: "Instance Settings",
+    description: "Manage who's in this instance, billing, and the context layers it draws on.",
+    pageType: "instance-settings",
     children: [
       {
-        id: "team-members",
-        label: "Team / Members",
-        description: "Manage team members and their roles.",
+        id: "collaboration",
+        label: "Collaboration",
+        description: "Manage members of this instance and their roles.",
+        pageType: "instance-settings",
       },
       {
         id: "billing",
         label: "Billing",
-        description:
-          "View and manage billing, usage, and subscription details.",
+        description: "View and manage billing, usage, and subscription details.",
+        pageType: "instance-settings",
+      },
+      {
+        id: "context",
+        label: "Context",
+        description: "Context layers this instance draws its handbook, systems and services from.",
+        pageType: "instance-settings",
       },
     ],
   },

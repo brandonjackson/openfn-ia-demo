@@ -1,29 +1,41 @@
 import {
   ArrowLeft,
   ChevronDown,
+  Folder,
   HelpCircle,
   SlidersHorizontal,
   Play,
   MessageSquare,
 } from "lucide-react";
 import type { Workflow } from "../../mock-data/workflow";
+import { recentProjects } from "../../mock-data/projects";
+import Picker from "../Picker";
 
 /**
  * The editor top bar: project / workflow breadcrumb with a version selector on
  * the left, and the inspector toggle, Run and Save actions on the right.
  *
  * When `onBack` is provided, a back control is shown in the top-left corner to
- * leave the full-screen editor and return to the app shell.
+ * leave the full-screen editor and return to the app shell. The project chip
+ * is a {@link Picker}; `onSelectProject` receives the chosen project's name.
  */
 export default function WorkflowTopBar({
   workflow,
   runLabel = "Run",
   onBack,
+  onSelectProject,
 }: {
   workflow: Workflow;
   runLabel?: string;
   onBack?: () => void;
+  onSelectProject?: (projectName: string) => void;
 }) {
+  // Recent projects, plus the workflow's own project if it isn't one of them.
+  const names = recentProjects.map((p) => p.name);
+  const projectOptions = (names.includes(workflow.project) ? names : [workflow.project, ...names]).map(
+    (name) => ({ id: name, label: name })
+  );
+
   return (
     <div className="flex items-center justify-between gap-4 border-b border-gray-200 bg-white px-4 py-2.5">
       {/* Breadcrumb */}
@@ -38,11 +50,13 @@ export default function WorkflowTopBar({
             <ArrowLeft size={16} />
           </button>
         )}
-        <button className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 px-2 py-1 text-gray-700 hover:bg-gray-50">
-          <span className="inline-block w-4 h-4 rounded bg-gray-200" />
-          <span className="font-medium">{workflow.project}</span>
-          <ChevronDown size={14} className="text-gray-400" />
-        </button>
+        <Picker
+          icon={Folder}
+          ariaLabel="Switch project"
+          options={projectOptions}
+          value={workflow.project}
+          onChange={onSelectProject}
+        />
         <span className="text-gray-300">/</span>
         <span className="text-gray-500">Workflows</span>
         <span className="text-gray-300">/</span>

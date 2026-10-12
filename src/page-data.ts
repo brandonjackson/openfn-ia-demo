@@ -375,6 +375,47 @@ export interface UserSettingsPageData {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Instance settings                                                  */
+/* ------------------------------------------------------------------ */
+
+export interface InstanceMember {
+  id: string;
+  name: string;
+  email: string;
+  role: "Owner" | "Admin" | "Member";
+  lastActive: string;
+}
+
+export interface BillingDetails {
+  plan: string;
+  /** e.g. "$1,200 / month". */
+  price: string;
+  renewsOn: string;
+  runsUsed: number;
+  runsIncluded: number;
+  invoices: { id: string; date: string; amount: string; status: "Paid" | "Due" }[];
+}
+
+/** A context layer: a shared source of handbook, systems and services. */
+export interface ContextLayer {
+  id: string;
+  name: string;
+  /** Where the layer lives, e.g. "Hosted on OpenFn Cloud". */
+  host: string;
+  url: string;
+  status: "connected" | "pending";
+  /** Human-readable time of the last successful fetch. */
+  lastFetched?: string;
+}
+
+export interface InstanceSettingsPageData {
+  pageType: "instance-settings";
+  members: InstanceMember[];
+  billing: BillingDetails;
+  contextLayers: ContextLayer[];
+}
+
+/* ------------------------------------------------------------------ */
 /*  Union type                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -434,4 +475,5 @@ export type PageData =
   | ProjectWorkflowsPageData
   | ProjectSettingsPageData
   | UserSettingsPageData
+  | InstanceSettingsPageData
   | HandbookPageData;

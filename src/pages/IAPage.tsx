@@ -8,6 +8,7 @@ import { projects } from "../mock-data/projects";
 import { historyData } from "../mock-data/history";
 import { serviceCatalogData } from "../mock-data/service-catalog";
 import { userSettingsData } from "../mock-data/user";
+import { instanceSettingsData } from "../mock-data/instance";
 import { templateMap } from "../templates";
 import PageShell from "../components/PageShell";
 import type {
@@ -137,6 +138,9 @@ function resolveDynamic(
     // Every user settings section renders from the same user data.
     if (result.node.pageType === "user-settings") {
       return { node: result.node, data: userSettingsData };
+    }
+    if (result.node.pageType === "instance-settings") {
+      return { node: result.node, data: instanceSettingsData };
     }
     return {
       node: result.node,

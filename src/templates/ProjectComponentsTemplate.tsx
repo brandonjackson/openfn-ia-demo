@@ -17,12 +17,14 @@ interface Props {
 }
 
 /**
- * Every component in the project, grouped by type: workflows, channels,
- * forms, artifacts and collections. Empty groups are left out.
+ * Every component in the project, grouped by type: channels, forms,
+ * artifacts and collections. Workflows have their own page, so they are
+ * left out here, as are empty groups.
  */
 export default function ProjectComponentsTemplate({ node, ancestors, data }: Props) {
   const projectPath = `/projects/${data.projectId}`;
   const groups = componentTypes
+    .filter((t) => t.type !== "Workflow")
     .map((t) => ({ ...t, items: data.components.filter((c) => c.type === t.type) }))
     .filter((g) => g.items.length > 0);
 
@@ -63,7 +65,7 @@ export default function ProjectComponentsTemplate({ node, ancestors, data }: Pro
         <EmptyState
           icon={Boxes}
           title="No components yet"
-          description="Components are the building blocks of a project: workflows, channels, forms, artifacts and collections."
+          description="Components are the building blocks of a project: channels, forms, artifacts and collections."
         />
       )}
     </div>

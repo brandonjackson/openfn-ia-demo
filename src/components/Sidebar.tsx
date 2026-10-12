@@ -19,7 +19,8 @@ import {
   LifeBuoy,
 } from "lucide-react";
 import { mainNavGroups, mainNavTree, openfnDocsUrl, supportTree } from "../ia-tree";
-import { projects, recentProjects } from "../mock-data/projects";
+import { recentProjects } from "../mock-data/projects";
+import { useCurrentProject } from "../hooks/useCurrentProject";
 import type { Project } from "../mock-data/projects";
 import { currentOrg, currentUser } from "../mock-data/user";
 import SidebarLink from "./SidebarLink";
@@ -64,7 +65,9 @@ function ProjectNav({ project }: { project: Project }) {
 
   return (
     <>
-      <div className="px-4 py-3 border-b border-gray-200">
+      {/* The project name lives in the top bar's switcher, so the nav just
+          offers the way back out. */}
+      <div className="px-5 pb-1">
         <Link
           to="/projects"
           className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 transition-colors"
@@ -72,10 +75,6 @@ function ProjectNav({ project }: { project: Project }) {
           <ChevronLeft size={12} />
           All projects
         </Link>
-        <p className="mt-1 text-sm font-semibold text-gray-900 line-clamp-2" title={project.name}>
-          {project.name}
-        </p>
-        <p className="mt-0.5 text-xs text-gray-400">{project.environment}</p>
       </div>
       <nav className="p-3 flex-1 overflow-y-auto space-y-0.5">
         {projectSections.map((section) => (
@@ -133,13 +132,6 @@ function OrgNav() {
       </SidebarSection>
     </nav>
   );
-}
-
-/** The project the current URL is inside, if any. */
-function useCurrentProject(): Project | undefined {
-  const location = useLocation();
-  const match = location.pathname.match(/^\/projects\/([^/]+)/);
-  return match ? projects.find((p) => p.id === match[1]) : undefined;
 }
 
 /**

@@ -14,6 +14,14 @@ export interface ProjectComponent {
   type: "Workflow" | "Form" | "Artifact" | "Collection";
 }
 
+export interface ProjectSandbox {
+  id: string;
+  name: string;
+  /** Who created the sandbox. */
+  createdBy: string;
+  lastActivity: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -23,6 +31,8 @@ export interface Project {
   /** Human-readable time since the project last ran or changed. */
   lastActivity: string;
   memberCount: number;
+  /** Isolated copies of the project, picked from the branch picker. */
+  sandboxes: ProjectSandbox[];
   services: ProjectService[];
   components: ProjectComponent[];
 }
@@ -36,6 +46,10 @@ export const projects: Project[] = [
     environment: "production",
     lastActivity: "12 minutes ago",
     memberCount: 4,
+    sandboxes: [
+      { id: "dev", name: "dev", createdBy: "Jane Doe", lastActivity: "1 hour ago" },
+      { id: "new-intake-form", name: "new-intake-form", createdBy: "Brandon Jackson", lastActivity: "yesterday" },
+    ],
     services: [
       {
         id: "planning-application-intake",
@@ -97,6 +111,7 @@ export const projects: Project[] = [
     environment: "production",
     lastActivity: "2 hours ago",
     memberCount: 2,
+    sandboxes: [],
     services: [
       {
         id: "commcare-case-sync",
@@ -132,6 +147,13 @@ export const projects: Project[] = [
     environment: "staging",
     lastActivity: "3 days ago",
     memberCount: 11,
+    sandboxes: [
+      { id: "staging-dhis2-2-41", name: "staging-dhis2-2.41-upgrade", createdBy: "Jane Doe", lastActivity: "2 hours ago" },
+      { id: "dedup-threshold-tuning", name: "dedup-threshold-tuning", createdBy: "Brandon Jackson", lastActivity: "yesterday" },
+      { id: "monthly-report-v2", name: "monthly-report-v2", createdBy: "Jane Doe", lastActivity: "4 days ago" },
+      { id: "commcare-api-v2-migration-with-very-long-name", name: "commcare-api-v2-migration-with-a-very-long-sandbox-name", createdBy: "Jane Doe", lastActivity: "2 weeks ago" },
+      { id: "training", name: "training", createdBy: "Brandon Jackson", lastActivity: "1 month ago" },
+    ],
     services: [
       {
         id: "chw-referral-sync",
@@ -199,6 +221,7 @@ export const projects: Project[] = [
     environment: "development",
     lastActivity: "Never",
     memberCount: 1,
+    sandboxes: [],
     services: [],
     components: [],
   },

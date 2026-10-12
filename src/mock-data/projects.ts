@@ -1,4 +1,4 @@
-import type { ProjectSummary } from "../page-data";
+import type { ProjectSummary, SandboxItem } from "../page-data";
 
 export interface ProjectService {
   id: string;
@@ -236,3 +236,60 @@ export const recentProjects: Project[] = [
 ]
   .map((id) => projects.find((p) => p.id === id))
   .filter((p): p is Project => p !== undefined);
+
+/** Details for each sandbox shown on a project's Sandboxes list. */
+const sandboxDetails: Record<string, Omit<SandboxItem, "name" | "isMain">> = {
+  "intake-validation-v2": {
+    description: "Stricter validation of incoming planning applications before routing.",
+    createdBy: "Amara Okafor",
+    lastActivity: "25 minutes ago",
+  },
+  "decision-sync-fix": {
+    description: "Fixes duplicate decision updates sent back to the applicant portal.",
+    createdBy: "Brandon Jackson",
+    lastActivity: "2 days ago",
+  },
+  "warehouse-schema-update": {
+    description: "Maps CommCare cases onto the new warehouse schema.",
+    createdBy: "Lucas Ferreira",
+    lastActivity: "5 hours ago",
+  },
+  "dhis2-41-upgrade": {
+    description: "Updates Tracker enrolment payloads for DHIS2 2.41.",
+    createdBy: "Grace Banda",
+    lastActivity: "1 day ago",
+  },
+  "dedup-tuning": {
+    description: "Tightens the client registry match threshold to cut duplicate patients.",
+    createdBy: "Chikondi Phiri",
+    lastActivity: "4 days ago",
+  },
+  "district-report-pilot": {
+    description: "Pilots the monthly district report with two districts.",
+    createdBy: "Brandon Jackson",
+    lastActivity: "1 week ago",
+  },
+};
+
+/** A project's sandboxes with their details, "main" first. */
+export function projectSandboxes(project: Project): SandboxItem[] {
+  return project.sandboxes.map((name) =>
+    name === "main"
+      ? {
+          name,
+          isMain: true,
+          description: "The live version of this project. Sandboxes merge back into main.",
+          createdBy: "Project owner",
+          lastActivity: project.lastActivity,
+        }
+      : {
+          name,
+          isMain: false,
+          ...(sandboxDetails[name] ?? {
+            description: "",
+            createdBy: "Unknown",
+            lastActivity: "Never",
+          }),
+        }
+  );
+}

@@ -22,6 +22,7 @@ export interface IANode {
     | "projects"
     | "project"
     | "project-workflows"
+    | "project-sandboxes"
     | "project-settings"
     | "user-settings"
     | "instance-settings"
@@ -58,6 +59,7 @@ export const projectTemplateTree: IANode[] = [
         label: "Sandboxes",
         description:
           "Isolated copies of this project for trying out changes before merging them back.",
+        pageType: "project-sandboxes",
         actions: ["New Sandbox"],
       },
       {

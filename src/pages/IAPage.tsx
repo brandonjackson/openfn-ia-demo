@@ -4,7 +4,7 @@ import { findNodeByPath } from "../ia-utils";
 import type { LookupResult } from "../ia-utils";
 import { pageDataRegistry } from "../mock-data";
 import { connectedSystems, systemAccessGrants } from "../mock-data/connected-systems";
-import { projects } from "../mock-data/projects";
+import { projects, projectSandboxes } from "../mock-data/projects";
 import { historyData } from "../mock-data/history";
 import { serviceCatalogData } from "../mock-data/service-catalog";
 import { userSettingsData } from "../mock-data/user";
@@ -20,6 +20,7 @@ import type {
   ProjectPageData,
   ProjectSettingsPageData,
   ProjectWorkflowsPageData,
+  ProjectSandboxesPageData,
   TablePageData,
   PageData,
 } from "../page-data";
@@ -197,6 +198,14 @@ function resolveDynamic(
         return { node: result.node, data: buildCreatePageData(project.id) };
       case "insights":
         return { node: result.node, data: buildProjectInsightsData(project.id) };
+      case "project-sandboxes": {
+        const data: ProjectSandboxesPageData = {
+          pageType: "project-sandboxes",
+          projectId: project.id,
+          sandboxes: projectSandboxes(project),
+        };
+        return { node: result.node, data };
+      }
       case "table":
         return { node: result.node, data: buildProjectHistoryData(project.name) };
       default:

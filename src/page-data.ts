@@ -336,6 +336,25 @@ export interface ProjectCreatePageData {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Project Sandboxes page                                             */
+/* ------------------------------------------------------------------ */
+
+export interface SandboxItem {
+  name: string;
+  /** The project's main line, which every other sandbox merges back into. */
+  isMain: boolean;
+  description: string;
+  createdBy: string;
+  lastActivity: string;
+}
+
+export interface ProjectSandboxesPageData {
+  pageType: "project-sandboxes";
+  projectId: string;
+  sandboxes: SandboxItem[];
+}
+
+/* ------------------------------------------------------------------ */
 /*  Project Settings page                                              */
 /* ------------------------------------------------------------------ */
 
@@ -518,6 +537,7 @@ export type PageData =
   | ProjectWorkflowsPageData
   | ProjectComponentsPageData
   | ProjectCreatePageData
+  | ProjectSandboxesPageData
   | ProjectSettingsPageData
   | UserSettingsPageData
   | InstanceSettingsPageData

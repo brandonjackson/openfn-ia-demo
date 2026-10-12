@@ -34,3 +34,7 @@ export const WithAction: Story = {
     ),
   },
 };
+
+export const Label: Story = {
+  args: { title: "Active", variant: "label" },
+};

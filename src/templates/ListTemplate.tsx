@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Check, ChevronRight, Globe, Lock, Plus, Download } from "lucide-react";
+import { Check, Globe, Lock, Plus, Download } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { ListPageData, ListItem } from "../page-data";
 import Breadcrumbs from "../components/Breadcrumbs";
 import Badge from "../components/Badge";
+import ListRow from "../components/ListRow";
 import SuggestedSystemsToAdd from "../components/SuggestedSystemsToAdd";
 import AddConnectedSystemFlow from "../components/AddConnectedSystemFlow";
 
@@ -15,39 +15,24 @@ interface Props {
   data: ListPageData;
 }
 
-function ListItemCard({ item, basePath }: { item: ListItem; basePath: string }) {
-  const to = item.linkTo ?? `${basePath}/${item.id}`;
+function ListItemRow({ item, basePath }: { item: ListItem; basePath: string }) {
   const access = item.metadata?.access;
 
   return (
-    <Link
-      to={to}
-      className="group flex items-center gap-4 rounded-lg border border-gray-200 p-4 hover:border-blue-300 hover:shadow-sm transition-all"
-    >
-      <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-50">
-        <Globe size={20} className="text-gray-400 group-hover:text-blue-500" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <h3 className="font-medium text-gray-900 group-hover:text-blue-600 text-sm">
-            {item.name}
-          </h3>
-          {access === "yes" ? (
-            <Badge label="You have access" tone="green" icon={Check} />
-          ) : access === "no" ? (
-            <Badge label="No access" tone="gray" icon={Lock} />
-          ) : null}
-        </div>
-        <p className="mt-0.5 text-sm text-gray-500 truncate">{item.description}</p>
-        {item.metadata?.url && (
-          <p className="mt-0.5 text-xs text-gray-400 truncate">{item.metadata.url}</p>
-        )}
-      </div>
-      <ChevronRight
-        size={16}
-        className="text-gray-300 group-hover:text-blue-400 flex-shrink-0"
-      />
-    </Link>
+    <ListRow
+      to={item.linkTo ?? `${basePath}/${item.id}`}
+      icon={Globe}
+      title={item.name}
+      badges={
+        access === "yes" ? (
+          <Badge label="You have access" tone="green" icon={Check} />
+        ) : access === "no" ? (
+          <Badge label="No access" tone="gray" icon={Lock} />
+        ) : null
+      }
+      description={item.description}
+      meta={item.metadata?.url && <span className="truncate">{item.metadata.url}</span>}
+    />
   );
 }
 
@@ -124,7 +109,7 @@ export default function ListTemplate({ node, ancestors, currentPath, data }: Pro
 
       <div className="mt-6 space-y-2">
         {filtered.map((item) => (
-          <ListItemCard key={item.id} item={item} basePath={currentPath} />
+          <ListItemRow key={item.id} item={item} basePath={currentPath} />
         ))}
         {filtered.length === 0 && (
           <div className="rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 p-8 text-center text-gray-400">

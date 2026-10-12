@@ -10,6 +10,7 @@ import ProjectTemplate from "./ProjectTemplate";
 import ProjectWorkflowsTemplate from "./ProjectWorkflowsTemplate";
 import ProjectComponentsTemplate from "./ProjectComponentsTemplate";
 import ProjectCreateTemplate from "./ProjectCreateTemplate";
+import ProjectSandboxesTemplate from "./ProjectSandboxesTemplate";
 import ProjectSettingsTemplate from "./ProjectSettingsTemplate";
 import DashboardTemplate from "./DashboardTemplate";
 import StatusTemplate from "./StatusTemplate";
@@ -38,6 +39,7 @@ export const templateMap: Record<string, React.FC<any>> = {
   "project-workflows": ProjectWorkflowsTemplate,
   "project-components": ProjectComponentsTemplate,
   "project-create": ProjectCreateTemplate,
+  "project-sandboxes": ProjectSandboxesTemplate,
   "project-settings": ProjectSettingsTemplate,
   dashboard: DashboardTemplate,
   status: StatusTemplate,

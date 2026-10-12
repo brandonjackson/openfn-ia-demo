@@ -1,4 +1,4 @@
-import type { DailyRuns, InsightsPageData, ProjectInsight } from "../page-data";
+import type { DailyRuns, InsightsPageData, ProjectInsight, StatTileData } from "../page-data";
 
 const daily: DailyRuns[] = [
   { day: "Mon", succeeded: 312, failed: 1 },
@@ -72,4 +72,26 @@ export function buildProjectInsightsData(projectId: string): InsightsPageData {
     daily: projectDaily,
     projects: [],
   };
+}
+
+/**
+ * The project Overview's headline tiles: runs and errors from Insights, plus
+ * the open work orders from History. Each links through for the detail.
+ */
+export function buildProjectOverviewTiles(
+  projectId: string,
+  workOrderCount: number
+): StatTileData[] {
+  const [runs, errors] = buildProjectInsightsData(projectId).tiles;
+  const base = `/projects/${projectId}`;
+  return [
+    { ...runs, linkTo: `${base}/insights` },
+    { ...errors, linkTo: `${base}/insights` },
+    {
+      label: "Work orders",
+      value: workOrderCount,
+      detail: "Across this project's services",
+      linkTo: `${base}/history?type=Work+Order`,
+    },
+  ];
 }

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { ArrowLeftRight, Globe, LibraryBig } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { IANode } from "../ia-tree";
@@ -47,8 +48,10 @@ function BlockSection({
  * already has to build with (systems, channels and live services).
  */
 export default function ProjectCreateTemplate({ node, ancestors, data }: Props) {
-  const [prompt, setPrompt] = useState("");
-  const [submitted, setSubmitted] = useState<string | null>(null);
+  // A prompt started on the project Overview arrives in router state.
+  const initialPrompt = (useLocation().state as { prompt?: string } | null)?.prompt ?? "";
+  const [prompt, setPrompt] = useState(initialPrompt);
+  const [submitted, setSubmitted] = useState<string | null>(initialPrompt || null);
 
   return (
     <div className="space-y-10">

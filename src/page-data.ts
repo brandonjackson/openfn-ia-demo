@@ -284,7 +284,10 @@ export interface ProjectComponentItem {
 export interface ProjectPageData {
   pageType: "project";
   projectId: string;
-  metrics?: MetricCard[];
+  /** Headline numbers from Insights and History, linking through. */
+  tiles: StatTileData[];
+  /** Starter ideas from Create, to kick off something new. */
+  ideas: BuildIdea[];
   services: ProjectServiceItem[];
   components: ProjectComponentItem[];
 }

@@ -5,12 +5,12 @@ import type { LookupResult } from "../ia-utils";
 import { pageDataRegistry } from "../mock-data";
 import { connectedSystems, systemAccessGrants } from "../mock-data/connected-systems";
 import { projects, projectSandboxes } from "../mock-data/projects";
-import { historyData } from "../mock-data/history";
+import { historyData, mockEntries } from "../mock-data/history";
 import { serviceCatalogData } from "../mock-data/service-catalog";
 import { userSettingsData } from "../mock-data/user";
 import { instanceSettingsData } from "../mock-data/instance";
-import { buildProjectInsightsData } from "../mock-data/insights";
-import { buildCreatePageData } from "../mock-data/build-ideas";
+import { buildProjectInsightsData, buildProjectOverviewTiles } from "../mock-data/insights";
+import { buildCreatePageData, buildIdeas } from "../mock-data/build-ideas";
 import { templateMap } from "../templates";
 import PageShell from "../components/PageShell";
 import type {
@@ -66,15 +66,22 @@ function buildSystemDetailData(systemId: string): DetailPageData | undefined {
 }
 
 /**
- * Build ProjectPageData on the fly from the projects array.
+ * Build ProjectPageData on the fly from the projects array: the project's
+ * Insights tiles, Create's starter ideas, and its services and components.
  */
 function buildProjectData(projectId: string): ProjectPageData | undefined {
   const project = projects.find((p) => p.id === projectId);
   if (!project) return undefined;
 
+  const workOrderCount = mockEntries.filter(
+    (e) => e.type === "Work Order" && e.project === project.name
+  ).length;
+
   return {
     pageType: "project",
     projectId: project.id,
+    tiles: buildProjectOverviewTiles(project.id, workOrderCount),
+    ideas: buildIdeas,
     services: project.services,
     components: project.components,
   };

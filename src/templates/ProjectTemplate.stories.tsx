@@ -3,12 +3,16 @@ import ProjectTemplate from "./ProjectTemplate";
 import { withRouterAt } from "../stories/decorators";
 import type { IANode } from "../ia-tree";
 import type { ProjectPageData } from "../page-data";
+import { projects } from "../mock-data/projects";
+import { buildIdeas } from "../mock-data/build-ideas";
+import { buildProjectOverviewTiles } from "../mock-data/insights";
+
+const project = projects[0];
 
 const node: IANode = {
-  id: "project-a",
-  label: "Project A",
-  description:
-    "Automates the intake and routing of planning applications from the e-planning portal.",
+  id: project.id,
+  label: project.name,
+  description: project.description,
 };
 
 const ancestors = [
@@ -18,34 +22,17 @@ const ancestors = [
 
 const projectData: ProjectPageData = {
   pageType: "project",
-  projectId: "project-a",
-  services: [
-    {
-      id: "planning-application-intake",
-      name: "Planning Application Intake",
-      description:
-        "Receives planning applications from the e-planning portal and routes them to the local authority case management system.",
-      status: "Live",
-    },
-    {
-      id: "decision-status-sync",
-      name: "Decision Status Sync",
-      description: "Syncs planning decision statuses back to the applicant portal on a daily schedule.",
-      status: "Draft",
-    },
-  ],
-  components: [
-    { id: "wf1", name: "planning-application-workflow", description: "Validates incoming data.", type: "Workflow" },
-    { id: "a1", name: "application-field-mapping.json", description: "Maps portal fields.", type: "Artifact" },
-    { id: "f1", name: "planning-submission-form", description: "Kobo form for supporting info.", type: "Form" },
-    { id: "c1", name: "planning-authority-codes", description: "Lookup table of authority codes.", type: "Collection" },
-  ],
+  projectId: project.id,
+  tiles: buildProjectOverviewTiles(project.id, 3),
+  ideas: buildIdeas,
+  services: project.services,
+  components: project.components,
 };
 
 const meta: Meta<typeof ProjectTemplate> = {
   title: "Templates/ProjectTemplate",
   component: ProjectTemplate,
-  decorators: [withRouterAt("/projects/project-a")],
+  decorators: [withRouterAt(`/projects/${project.id}`)],
   parameters: { layout: "padded" },
 };
 
@@ -56,11 +43,12 @@ export const Default: Story = {
   args: {
     node,
     ancestors,
-    currentPath: "/projects/project-a",
+    currentPath: `/projects/${project.id}`,
     data: projectData,
   },
 };
 
+/** A brand new project: no runs yet, nothing published, no components. */
 export const EmptyProject: Story = {
   args: {
     node: { id: "new-project", label: "New Project", description: "A brand new project with nothing in it yet." },
@@ -69,6 +57,8 @@ export const EmptyProject: Story = {
     data: {
       pageType: "project",
       projectId: "new-project",
+      tiles: buildProjectOverviewTiles("new-project", 0),
+      ideas: buildIdeas,
       services: [],
       components: [],
     },

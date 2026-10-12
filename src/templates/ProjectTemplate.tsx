@@ -1,74 +1,19 @@
-import { Link } from "react-router-dom";
-import { Boxes, ChevronRight, ClipboardList, Plus } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ClipboardList } from "lucide-react";
 import type { IANode } from "../ia-tree";
-import type { ProjectPageData, ProjectServiceItem } from "../page-data";
+import type { ProjectPageData } from "../page-data";
 import Badge from "../components/Badge";
 import Breadcrumbs from "../components/Breadcrumbs";
+import BuildPrompt from "../components/BuildPrompt";
+import Card from "../components/Card";
 import ComponentRow from "../components/ComponentRow";
-import { componentTypes } from "../component-types";
-import { mockEntries } from "../mock-data";
-
-function ServiceCard({ service, basePath }: { service: ProjectServiceItem; basePath: string }) {
-  const to = basePath + "/services/" + service.id;
-  return (
-    <Link
-      to={to}
-      className="group block rounded-lg border border-gray-200 px-4 py-3 hover:border-blue-300 hover:shadow-sm transition-all"
-    >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <h3 className="font-medium text-gray-900 group-hover:text-blue-600 text-sm">
-            {service.name}
-          </h3>
-          <Badge label={service.status} />
-        </div>
-        <ChevronRight
-          size={16}
-          className="text-gray-300 group-hover:text-blue-400"
-        />
-      </div>
-      {service.description && (
-        <p className="mt-1 text-xs text-gray-500 leading-relaxed">
-          {service.description}
-        </p>
-      )}
-    </Link>
-  );
-}
-
-function AddComponentInput() {
-  return (
-    <div className="border border-gray-200 rounded-lg bg-white shadow-sm">
-      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-100">
-        <Plus size={14} className="text-gray-400" />
-        <span className="text-xs font-medium text-gray-400">Add a component</span>
-      </div>
-      <div className="grid grid-cols-2 gap-2 p-3">
-        {componentTypes.map(({ type, icon: Icon, description }) => {
-          return (
-            <button
-              key={type}
-              className="flex items-start gap-2.5 p-3 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all text-left group"
-            >
-              <Icon
-                size={16}
-                className="text-gray-400 group-hover:text-blue-500 flex-shrink-0 mt-0.5"
-              />
-              <div>
-                <div className="text-sm font-medium text-gray-700 group-hover:text-blue-700">
-                  {type}
-                </div>
-                <div className="text-xs text-gray-400 leading-snug mt-0.5">
-                  {description}
-                </div>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+import EmptyState from "../components/EmptyState";
+import IdeaCard from "../components/IdeaCard";
+import ListRow from "../components/ListRow";
+import SectionHeading from "../components/SectionHeading";
+import StatTile from "../components/StatTile";
+import TextLink from "../components/TextLink";
 
 interface Props {
   node: IANode;
@@ -77,93 +22,136 @@ interface Props {
   data: ProjectPageData;
 }
 
-export default function ProjectTemplate({ node, ancestors, currentPath, data }: Props) {
-  const services = data.services;
-  const components = data.components;
+/** How many components the Overview lists before "View all". */
+const COMPONENT_PREVIEW = 6;
 
-  const workOrderCount = mockEntries.filter(
-    (e) => e.type === "Work Order" && e.project === node.label
-  ).length;
+/**
+ * A project at a glance: how it's running (the best of Insights), a prompt
+ * and starter ideas for building something new (the best of Create), then
+ * what it already publishes and is built from.
+ */
+export default function ProjectTemplate({ node, ancestors, currentPath, data }: Props) {
+  const navigate = useNavigate();
+  const [prompt, setPrompt] = useState("");
+  const { tiles, ideas, services, components } = data;
+
+  // The prompt carries over to Create, where the drafting happens.
+  const startBuilding = () => {
+    const text = prompt.trim();
+    if (text) navigate(`${currentPath}/create`, { state: { prompt: text } });
+  };
 
   return (
-    <div>
-      <Breadcrumbs
-        ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))}
-        current={node.label}
-      />
-
-      <div className="mt-6">
-        <h1 className="text-2xl font-semibold text-gray-900">{node.label}</h1>
-        {node.description && (
-          <p className="mt-1 text-gray-500 text-sm">{node.description}</p>
-        )}
-      </div>
-
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Link
-          to={`${currentPath}/history?type=Work+Order`}
-          className="group rounded-lg border border-gray-200 p-5 hover:border-blue-300 hover:shadow-sm transition-all"
-        >
-          <p className="text-sm text-gray-500 group-hover:text-blue-600 transition-colors">
-            Work Orders
-          </p>
-          <p className="mt-1 text-2xl font-semibold text-gray-900">
-            {workOrderCount}
-          </p>
-        </Link>
-      </div>
-
-      <div className="mt-8">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <ClipboardList size={16} className="text-gray-400" />
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-              Published Services
-            </h2>
-          </div>
-          <button className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-blue-600 transition-colors">
-            <Plus size={14} />
-            New Service
-          </button>
+    <div className="space-y-10">
+      <div>
+        <Breadcrumbs
+          ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))}
+          current={node.label}
+        />
+        <div className="mt-6">
+          <h1 className="text-2xl font-semibold text-gray-900">{node.label}</h1>
+          {node.description && <p className="mt-1 text-sm text-gray-500">{node.description}</p>}
         </div>
-        <div className="space-y-2">
-          {services.map((svc) => (
-            <ServiceCard key={svc.id} service={svc} basePath={currentPath} />
+      </div>
+
+      <section>
+        <SectionHeading
+          title="This week"
+          description="Runs and errors over the last 7 days, and open work orders."
+          action={
+            <TextLink to={`${currentPath}/insights`} variant="action">
+              View insights
+            </TextLink>
+          }
+        />
+        <div className="-mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {tiles.map((tile) => (
+            <StatTile
+              key={tile.label}
+              {...tile}
+              trendClassName={tile.label === "Errors" ? "text-red-500" : undefined}
+            />
           ))}
-          {services.length === 0 && (
-            <p className="text-sm text-gray-400 italic">
-              No published services yet. Create one to list it in Services.
-            </p>
-          )}
         </div>
-      </div>
+      </section>
 
-      <div className="mt-8">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <Boxes size={16} className="text-gray-400" />
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
-              Components
-            </h2>
+      <section>
+        <SectionHeading
+          title="Build something new"
+          description="Describe a service in plain words, or start from an idea."
+          action={
+            <TextLink to={`${currentPath}/create`} variant="action">
+              See what you can build with
+            </TextLink>
+          }
+        />
+        <div className="-mt-3 space-y-4">
+          <BuildPrompt value={prompt} onChange={setPrompt} onSubmit={startBuilding} />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {ideas.map((idea) => (
+              <IdeaCard key={idea.id} idea={idea} onSelect={(i) => setPrompt(i.prompt)} />
+            ))}
           </div>
-          <span className="text-xs text-gray-400">
-            {components.length} item{components.length !== 1 ? "s" : ""}
-          </span>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white divide-y divide-gray-100">
-          {components.map((comp) => (
-            <ComponentRow key={comp.id} component={comp} projectPath={currentPath} />
-          ))}
-          {components.length === 0 && (
-            <p className="text-sm text-gray-400 italic px-3 py-4">
-              No components yet.
-            </p>
-          )}
-        </div>
-      </div>
+      </section>
 
-      <div className="mt-4">
-        <AddComponentInput />
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <section>
+          <SectionHeading
+            title="Published services"
+            description="What this project offers the rest of the organization."
+          />
+          {services.length > 0 ? (
+            <div className="-mt-3 space-y-2">
+              {services.map((svc) => (
+                <ListRow
+                  key={svc.id}
+                  icon={ClipboardList}
+                  title={svc.name}
+                  badges={<Badge label={svc.status} />}
+                  description={svc.description}
+                  to={`${currentPath}/services/${svc.id}`}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="-mt-3">
+              <EmptyState
+                icon={ClipboardList}
+                title="No published services yet"
+                description="Publish a workflow as a service to list it in Services."
+              />
+            </div>
+          )}
+        </section>
+
+        <section>
+          <SectionHeading
+            title="Components"
+            description={`${components.length} building block${components.length !== 1 ? "s" : ""} in this project.`}
+            action={
+              components.length > 0 && (
+                <TextLink to={`${currentPath}/components`} variant="action">
+                  View all
+                </TextLink>
+              )
+            }
+          />
+          {components.length > 0 ? (
+            <Card flush className="-mt-3">
+              {components.slice(0, COMPONENT_PREVIEW).map((comp) => (
+                <ComponentRow key={comp.id} component={comp} projectPath={currentPath} />
+              ))}
+            </Card>
+          ) : (
+            <div className="-mt-3">
+              <EmptyState
+                title="No components yet"
+                description="Describe what you'd like to build above, and we'll draft the first ones."
+              />
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );

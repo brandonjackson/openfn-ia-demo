@@ -1,7 +1,11 @@
 import type { CatalogPageData } from "../page-data";
 
+/** The organization's MCP server: every callable service is also a tool here. */
+export const mcpServerUrl = "https://app.openfn.org/mcp/ministry-of-health";
+
 export const serviceCatalogData: CatalogPageData = {
   pageType: "catalog",
+  mcpServerUrl,
   entries: [
     // Ministry of Health — vital events via OpenCRVS
     {
@@ -64,6 +68,28 @@ export const serviceCatalogData: CatalogPageData = {
       systemPath: "/connected-systems/opencrvs",
       section: "Ministry of Health",
     },
+    {
+      kind: "workflow",
+      id: "malawi-chw-referrals-client-registry-lookup",
+      name: "Client Registry Lookup",
+      description: "Matches a patient against the national client registry and returns their national ID.",
+      project: "Malawi CHW Referrals",
+      projectPath: "/projects/malawi-chw-referrals/services/client-registry-lookup",
+      badges: ["Live"],
+      section: "Ministry of Health",
+      callableAs: ["workflow", "mcp"],
+      mcpToolName: "client_registry_lookup",
+    },
+    {
+      kind: "workflow",
+      id: "malawi-chw-referrals-chw-referral-sync",
+      name: "CHW Referral Sync",
+      description: "Pushes CommCare referrals into DHIS2 Tracker every 15 minutes.",
+      project: "Malawi CHW Referrals",
+      projectPath: "/projects/malawi-chw-referrals/services/chw-referral-sync",
+      badges: ["Live"],
+      section: "Ministry of Health",
+    },
 
     // Department of Planning
     {
@@ -76,6 +102,8 @@ export const serviceCatalogData: CatalogPageData = {
       projectPath: "/projects/project-a/services/planning-application-intake",
       badges: ["Live"],
       section: "Department of Planning",
+      callableAs: ["workflow", "mcp"],
+      mcpToolName: "submit_planning_application",
     },
 
     // Ministry of Social Welfare
@@ -88,6 +116,7 @@ export const serviceCatalogData: CatalogPageData = {
       projectPath: "/projects/project-b/services/commcare-case-sync",
       badges: ["Live"],
       section: "Ministry of Social Welfare",
+      callableAs: ["workflow"],
     },
   ],
 };

@@ -60,3 +60,6 @@ export const Draft: Story = {
     };
   })(),
 };
+
+/** A lookup service other workflows and agents call for answers. */
+export const Lookup: Story = { args: storyArgs(projects[2], 1) };

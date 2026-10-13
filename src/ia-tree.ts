@@ -63,7 +63,7 @@ export const projectTemplateTree: IANode[] = [
         id: "components",
         label: "Components",
         description:
-          "Every building block in this project, grouped by type: channels, forms, artifacts and collections.",
+          "Every building block in this project, grouped by type: channels, forms, artifacts, collections, AI skills, documents and static websites.",
         pageType: "project-components",
         children: [
           {

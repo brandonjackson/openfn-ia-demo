@@ -241,7 +241,7 @@ const proposedTree: TreeNode[] = [
           { label: "Workflows", note: "Build: every workflow in this project" },
           {
             label: "Components",
-            note: "Build: channels, forms, artifacts & collections, grouped by type",
+            note: "Build: Add New Component panel, then channels, forms, artifacts, collections, AI skills, documents & static websites, grouped by type",
             children: [{ label: ":component", note: "Individual component" }],
           },
           { label: "Sandboxes", note: "Build: isolated copies for trying out changes" },

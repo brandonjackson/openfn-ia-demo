@@ -1,13 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { Boxes, Plus } from "lucide-react";
+import { Boxes } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { ProjectComponentsPageData } from "../page-data";
+import AddComponentPanel from "../components/AddComponentPanel";
 import Breadcrumbs from "../components/Breadcrumbs";
 import Card from "../components/Card";
 import ComponentRow from "../components/ComponentRow";
 import { componentTypes } from "../component-types";
 import EmptyState from "../components/EmptyState";
-import MenuButton from "../components/MenuButton";
 import SectionHeading from "../components/SectionHeading";
 
 interface Props {
@@ -18,9 +18,9 @@ interface Props {
 }
 
 /**
- * Every component in the project, grouped by type: channels, forms,
- * artifacts and collections. Workflows have their own page, so they are
- * left out here, as are empty groups.
+ * Every component in the project, grouped by type, under a panel for adding
+ * a new one. Workflows have their own page, so they are left out here, as
+ * are empty groups.
  */
 export default function ProjectComponentsTemplate({ node, ancestors, data }: Props) {
   const navigate = useNavigate();
@@ -37,16 +37,14 @@ export default function ProjectComponentsTemplate({ node, ancestors, data }: Pro
         current={node.label}
       />
 
-      <div className="mt-6 mb-8 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{node.label}</h1>
-          {node.description && <p className="mt-1 text-sm text-gray-500">{node.description}</p>}
-        </div>
-        <MenuButton
-          label="New Component"
-          icon={Plus}
-          align="right"
-          items={types.map((t) => ({ id: t.type, label: t.type, description: t.description, icon: t.icon }))}
+      <div className="mt-6 mb-6">
+        <h1 className="text-2xl font-semibold text-gray-900">{node.label}</h1>
+        {node.description && <p className="mt-1 text-sm text-gray-500">{node.description}</p>}
+      </div>
+
+      <div className="mb-8">
+        <AddComponentPanel
+          options={types}
           // Components are drafted from a plain-words description on Create.
           onSelect={(type) =>
             navigate(`${projectPath}/create`, {
@@ -76,7 +74,7 @@ export default function ProjectComponentsTemplate({ node, ancestors, data }: Pro
         <EmptyState
           icon={Boxes}
           title="No components yet"
-          description="Components are the building blocks of a project: channels, forms, artifacts and collections."
+          description="Components are the building blocks of a project: channels, forms, documents, AI skills and more. Add one above."
         />
       )}
     </div>

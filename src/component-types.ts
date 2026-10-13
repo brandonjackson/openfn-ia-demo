@@ -3,6 +3,9 @@ import {
   Database,
   FileSpreadsheet,
   FileText,
+  PanelsTopLeft,
+  ScrollText,
+  Sparkles,
   Workflow,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -20,6 +23,9 @@ export const componentTypes: {
   { type: "Form", plural: "Forms", icon: FileSpreadsheet, description: "Data entry and collection forms." },
   { type: "Artifact", plural: "Artifacts", icon: FileText, description: "Configuration files and mappings." },
   { type: "Collection", plural: "Collections", icon: Database, description: "Structured datasets and lookup tables." },
+  { type: "AI Skill", plural: "AI Skills", icon: Sparkles, description: "Instructions and tools an AI assistant can use." },
+  { type: "Document", plural: "Documents", icon: ScrollText, description: "Guides, policies and reference material." },
+  { type: "Static Website", plural: "Static Websites", icon: PanelsTopLeft, description: "Public pages that show information or link to services." },
 ];
 
 export const componentTypeIcons = Object.fromEntries(

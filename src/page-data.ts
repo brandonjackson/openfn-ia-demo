@@ -338,7 +338,15 @@ export interface ServicePageData {
 }
 
 /** Kinds of building block a project is made from. */
-export type ProjectComponentType = "Workflow" | "Channel" | "Form" | "Artifact" | "Collection";
+export type ProjectComponentType =
+  | "Workflow"
+  | "Channel"
+  | "Form"
+  | "Artifact"
+  | "Collection"
+  | "AI Skill"
+  | "Document"
+  | "Static Website";
 
 export interface ProjectComponentItem {
   id: string;

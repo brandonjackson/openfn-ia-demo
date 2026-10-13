@@ -87,7 +87,7 @@ export const handbookSections: WikiSection[] = [
         type: "list",
         items: [
           ["Name workflows in kebab-case after what they do, e.g. ", "chw-referral-workflow", "."],
-          ["Build and test in a sandbox; only merge to main after a run succeeds against staging credentials."],
+          ["Every system has three environments: production, staging and mock. Build in a sandbox against mock credentials, and only merge to main after a run succeeds against staging credentials."],
           [
             "Production credentials belong to the organization, never to a person. Add them to the ",
             { text: "system", to: "/connected-systems" },

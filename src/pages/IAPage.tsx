@@ -3,7 +3,7 @@ import { iaTree } from "../ia-tree";
 import { findNodeByPath } from "../ia-utils";
 import type { LookupResult } from "../ia-utils";
 import { pageDataRegistry } from "../mock-data";
-import { connectedSystems, systemAccessGrants } from "../mock-data/connected-systems";
+import { connectedSystems, orgCredentials, systemAccessGrants } from "../mock-data/connected-systems";
 import { projects, projectSandboxes } from "../mock-data/projects";
 import { historyData, mockEntries } from "../mock-data/history";
 import { serviceCatalogData } from "../mock-data/service-catalog";
@@ -123,12 +123,7 @@ function buildProjectSettingsData(projectId: string): ProjectSettingsPageData | 
         digest: "Never",
       },
     ],
-    orgCredentials: [
-      { id: "cred-dhis2", name: "DHIS2 Production", system: "DHIS2", owner: "Org", hasAccess: true },
-      { id: "cred-commcare", name: "CommCare HQ", system: "CommCare", owner: "Org", hasAccess: false },
-      { id: "cred-kobo", name: "KoboToolbox", system: "Kobo", owner: "Org", hasAccess: true },
-      { id: "cred-salesforce", name: "Salesforce Sandbox", system: "Salesforce", owner: "Org", hasAccess: false },
-    ],
+    orgCredentials,
     retentionPeriod: "7 Days",
     ioDataPolicy: "retain",
     ioRetentionPeriod: "7 Days",

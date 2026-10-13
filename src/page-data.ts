@@ -149,6 +149,28 @@ export interface TablePageData {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Environments                                                       */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Every connected system has these three environments, and every credential
+ * belongs to exactly one of them.
+ * - production: the live system, real data.
+ * - staging: a real instance of the system used for testing, test data.
+ * - mock: a simulated stand-in (no real system behind it) for building offline.
+ */
+export type Environment = "production" | "staging" | "mock";
+
+export const ENVIRONMENTS: Environment[] = ["production", "staging", "mock"];
+
+/** How one connected system is reached in one environment. */
+export interface SystemEnvironment {
+  url?: string;
+  /** Name of the credential used in this environment, if one has been added. */
+  credential?: string;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Dashboard page (Overview / Home)                                   */
 /* ------------------------------------------------------------------ */
 
@@ -418,6 +440,7 @@ export interface OrgCredential {
   id: string;
   name: string;
   system: string;
+  environment: Environment;
   owner: string;
   hasAccess: boolean;
 }
@@ -456,7 +479,7 @@ export interface UserCredential {
   name: string;
   type: string;
   projects: string[];
-  production: boolean;
+  environment: Environment;
   createdAt: string;
 }
 

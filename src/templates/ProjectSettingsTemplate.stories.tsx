@@ -3,6 +3,7 @@ import ProjectSettingsTemplate from "./ProjectSettingsTemplate";
 import { withRouterAt } from "../stories/decorators";
 import type { IANode } from "../ia-tree";
 import type { ProjectSettingsPageData } from "../page-data";
+import { orgCredentials } from "../mock-data/connected-systems";
 
 const node: IANode = {
   id: "settings",
@@ -49,12 +50,7 @@ const defaultData: ProjectSettingsPageData = {
       digest: "Weekly",
     },
   ],
-  orgCredentials: [
-    { id: "cred-dhis2", name: "DHIS2 Production", system: "DHIS2", owner: "Org", hasAccess: true },
-    { id: "cred-commcare", name: "CommCare HQ", system: "CommCare", owner: "Org", hasAccess: false },
-    { id: "cred-kobo", name: "KoboToolbox", system: "Kobo", owner: "Org", hasAccess: true },
-    { id: "cred-salesforce", name: "Salesforce Sandbox", system: "Salesforce", owner: "Org", hasAccess: false },
-  ],
+  orgCredentials,
   retentionPeriod: "7 Days",
   ioDataPolicy: "retain",
   ioRetentionPeriod: "7 Days",

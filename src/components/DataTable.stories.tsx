@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import DataTable from "./DataTable";
 import type { DataTableColumn } from "./DataTable";
-import Badge from "./Badge";
+import EnvironmentBadge from "./EnvironmentBadge";
 import Button from "./Button";
 import { userCredentials } from "../mock-data/user";
 import type { UserCredential } from "../page-data";
@@ -11,9 +11,9 @@ const columns: DataTableColumn<UserCredential>[] = [
   { key: "type", header: "Type", render: (c) => c.type },
   { key: "projects", header: "Projects", render: (c) => c.projects.join(", ") || "—" },
   {
-    key: "status",
-    header: "Status",
-    render: (c) => <Badge label={c.production ? "Production" : "Sandbox"} tone={c.production ? "green" : "gray"} />,
+    key: "environment",
+    header: "Environment",
+    render: (c) => <EnvironmentBadge environment={c.environment} />,
   },
   {
     key: "actions",

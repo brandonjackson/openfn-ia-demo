@@ -1,4 +1,11 @@
-import type { ListItem, ConnectedSystemSummary, AccessGrant } from "../page-data";
+import type {
+  ListItem,
+  ConnectedSystemSummary,
+  AccessGrant,
+  Environment,
+  OrgCredential,
+  SystemEnvironment,
+} from "../page-data";
 
 export interface ConnectedSystem {
   id: string;
@@ -8,11 +15,10 @@ export interface ConnectedSystem {
   /** Whether the current user personally has access to this system. */
   hasAccess: boolean;
   color: string;
-  url?: string;
   owner: string;
   ownerType: "user" | "org";
-  productionCredential?: string;
-  stagingCredential?: string;
+  /** Where the system lives, and which credential reaches it, in each environment. */
+  environments: Record<Environment, SystemEnvironment>;
   apiDocsUrl?: string;
   linkTo?: string;
 }
@@ -29,11 +35,13 @@ export const connectedSystems: ConnectedSystem[] = [
     credentialType: "org",
     hasAccess: true,
     color: "bg-blue-100 text-blue-700",
-    url: "https://dhis2.example.org",
     owner: "Acme Health Ministry",
     ownerType: "org",
-    productionCredential: "dhis2-prod",
-    stagingCredential: "dhis2-staging",
+    environments: {
+      production: { url: "https://dhis2.example.org", credential: "dhis2-prod" },
+      staging: { url: "https://staging.dhis2.example.org", credential: "dhis2-staging" },
+      mock: { url: "https://mock.dhis2.example.org", credential: "dhis2-mock" },
+    },
     apiDocsUrl: "https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/introduction.html",
   },
   {
@@ -43,11 +51,13 @@ export const connectedSystems: ConnectedSystem[] = [
     credentialType: "org",
     hasAccess: true,
     color: "bg-sky-100 text-sky-700",
-    url: "https://acme.my.salesforce.com",
     owner: "Acme Operations",
     ownerType: "org",
-    productionCredential: "salesforce-prod",
-    stagingCredential: undefined,
+    environments: {
+      production: { url: "https://acme.my.salesforce.com", credential: "salesforce-prod" },
+      staging: { url: "https://acme--uat.sandbox.my.salesforce.com", credential: undefined },
+      mock: { url: undefined, credential: undefined },
+    },
     apiDocsUrl: "https://developer.salesforce.com/docs/apis",
   },
   {
@@ -57,11 +67,13 @@ export const connectedSystems: ConnectedSystem[] = [
     credentialType: "user",
     hasAccess: false,
     color: "bg-green-100 text-green-700",
-    url: "https://www.commcarehq.org",
     owner: "jsmith",
     ownerType: "user",
-    productionCredential: "commcare-prod",
-    stagingCredential: "commcare-staging",
+    environments: {
+      production: { url: "https://www.commcarehq.org", credential: "commcare-prod" },
+      staging: { url: "https://staging.commcarehq.org", credential: "commcare-staging" },
+      mock: { url: "https://mock.commcare.example.org", credential: "commcare-mock" },
+    },
     apiDocsUrl: "https://confluence.dimagi.com/display/commcarepublic/CommCare+API",
   },
   {
@@ -71,11 +83,13 @@ export const connectedSystems: ConnectedSystem[] = [
     credentialType: "user",
     hasAccess: false,
     color: "bg-orange-100 text-orange-700",
-    url: "https://kf.kobotoolbox.org",
     owner: "adiallo",
     ownerType: "user",
-    productionCredential: undefined,
-    stagingCredential: undefined,
+    environments: {
+      production: { url: "https://kf.kobotoolbox.org", credential: undefined },
+      staging: { url: undefined, credential: undefined },
+      mock: { url: undefined, credential: undefined },
+    },
     apiDocsUrl: "https://support.kobotoolbox.org/api.html",
   },
   {
@@ -85,11 +99,13 @@ export const connectedSystems: ConnectedSystem[] = [
     credentialType: "org",
     hasAccess: true,
     color: "bg-emerald-100 text-emerald-700",
-    url: undefined,
     owner: "Acme Data Team",
     ownerType: "org",
-    productionCredential: "google-sheets-prod",
-    stagingCredential: undefined,
+    environments: {
+      production: { url: undefined, credential: "google-sheets-prod" },
+      staging: { url: undefined, credential: undefined },
+      mock: { url: undefined, credential: undefined },
+    },
     apiDocsUrl: "https://developers.google.com/sheets/api",
   },
   {
@@ -99,11 +115,13 @@ export const connectedSystems: ConnectedSystem[] = [
     credentialType: "user",
     hasAccess: false,
     color: "bg-purple-100 text-purple-700",
-    url: "https://fhir.example.org/r4",
     owner: "bwilson",
     ownerType: "user",
-    productionCredential: "fhir-prod",
-    stagingCredential: undefined,
+    environments: {
+      production: { url: "https://fhir.example.org/r4", credential: "fhir-prod" },
+      staging: { url: undefined, credential: undefined },
+      mock: { url: "https://mock.fhir.example.org/r4", credential: "fhir-mock" },
+    },
     apiDocsUrl: "https://hl7.org/fhir/http.html",
   },
   {
@@ -113,11 +131,13 @@ export const connectedSystems: ConnectedSystem[] = [
     credentialType: "org",
     hasAccess: true,
     color: "bg-rose-100 text-rose-700",
-    url: "https://opencrvs.example.org",
     owner: "Acme Health Ministry",
     ownerType: "org",
-    productionCredential: "opencrvs-prod",
-    stagingCredential: undefined,
+    environments: {
+      production: { url: "https://opencrvs.example.org", credential: "opencrvs-prod" },
+      staging: { url: "https://staging.opencrvs.example.org", credential: undefined },
+      mock: { url: "https://mock.opencrvs.example.org", credential: "opencrvs-mock" },
+    },
     apiDocsUrl: "https://documentation.opencrvs.org/technology/interoperability/",
   },
 ];
@@ -160,18 +180,34 @@ export const systemAccessGrants: Record<string, AccessGrant[]> = {
   ],
 };
 
+/**
+ * Org credentials shared with projects, each tagged with the environment it
+ * reaches. Names match the per-environment credentials on `connectedSystems`.
+ */
+export const orgCredentials: OrgCredential[] = [
+  { id: "cred-dhis2-prod", name: "dhis2-prod", system: "DHIS2", environment: "production", owner: "Org", hasAccess: true },
+  { id: "cred-dhis2-staging", name: "dhis2-staging", system: "DHIS2", environment: "staging", owner: "Org", hasAccess: true },
+  { id: "cred-dhis2-mock", name: "dhis2-mock", system: "DHIS2", environment: "mock", owner: "Org", hasAccess: true },
+  { id: "cred-commcare-prod", name: "commcare-prod", system: "CommCare", environment: "production", owner: "Org", hasAccess: false },
+  { id: "cred-commcare-mock", name: "commcare-mock", system: "CommCare", environment: "mock", owner: "Org", hasAccess: true },
+  { id: "cred-salesforce-prod", name: "salesforce-prod", system: "Salesforce", environment: "production", owner: "Org", hasAccess: false },
+];
+
 /** ListItem shape for the list template */
-export const connectedSystemListItems: ListItem[] = connectedSystems.map((s) => ({
-  id: s.id,
-  name: s.name,
-  description: s.description,
-  metadata: {
-    credentialType: s.credentialType,
-    access: s.hasAccess ? "yes" : "no",
-    ...(s.url ? { url: s.url } : {}),
-  },
-  linkTo: s.linkTo,
-}));
+export const connectedSystemListItems: ListItem[] = connectedSystems.map((s) => {
+  const url = s.environments.production.url;
+  return {
+    id: s.id,
+    name: s.name,
+    description: s.description,
+    metadata: {
+      credentialType: s.credentialType,
+      access: s.hasAccess ? "yes" : "no",
+      ...(url ? { url } : {}),
+    },
+    linkTo: s.linkTo,
+  };
+});
 
 /** Dashboard summary shape */
 export const connectedSystemSummaries: ConnectedSystemSummary[] = connectedSystems.map((s) => ({

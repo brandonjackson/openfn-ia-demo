@@ -19,6 +19,7 @@ import SectionHeading from "../components/SectionHeading";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import Badge from "../components/Badge";
+import EnvironmentBadge from "../components/EnvironmentBadge";
 import Callout from "../components/Callout";
 import EmptyState from "../components/EmptyState";
 import FormField from "../components/FormField";
@@ -133,6 +134,7 @@ function SetupSection({ data }: { data: ProjectSettingsPageData }) {
 const credentialColumns: DataTableColumn<OrgCredential>[] = [
   { key: "name", header: "Name", render: (c) => <span className="font-medium text-gray-900">{c.name}</span> },
   { key: "system", header: "System", render: (c) => c.system },
+  { key: "environment", header: "Environment", render: (c) => <EnvironmentBadge environment={c.environment} /> },
   { key: "owner", header: "Owner", render: (c) => c.owner },
   {
     key: "access",
@@ -157,7 +159,7 @@ function CredentialsSection({ data }: { data: ProjectSettingsPageData }) {
     <div className="space-y-6">
       <SectionHeading
         title="Credentials"
-        description="Manage credentials available to this project."
+        description="Manage credentials available to this project. Each credential belongs to one environment: production, staging or mock."
         action={
           <Button
             variant="secondary"

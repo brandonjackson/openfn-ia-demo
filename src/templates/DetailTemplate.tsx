@@ -7,9 +7,6 @@ import {
   Lock,
   Globe,
   ExternalLink,
-  KeyRound,
-  AlertCircle,
-  Plus,
   BookOpen,
   Plug,
   FolderOpen,
@@ -20,6 +17,8 @@ import type { AccessGrant, DetailPageData, DetailSectionItem } from "../page-dat
 import type { ChannelType } from "../page-data";
 import Breadcrumbs from "../components/Breadcrumbs";
 import StartWorkflowFromChannel from "../components/StartWorkflowFromChannel";
+import SectionHeading from "../components/SectionHeading";
+import SystemEnvironments from "../components/SystemEnvironments";
 import { connectedSystems } from "../mock-data/connected-systems";
 
 interface Props {
@@ -97,47 +96,6 @@ function ChannelCard({ item }: { item: DetailSectionItem }) {
   );
 }
 
-function CredentialRow({
-  label,
-  credentialName,
-}: {
-  label: string;
-  credentialName?: string;
-}) {
-  if (credentialName) {
-    return (
-      <div className="flex items-center justify-between py-2.5">
-        <div className="flex items-center gap-2.5">
-          <KeyRound size={14} className="text-gray-400" />
-          <span className="text-sm text-gray-600">{label}</span>
-          <span className="font-mono text-sm text-gray-900">{credentialName}</span>
-        </div>
-        <button className="text-xs text-blue-600 hover:text-blue-700 font-medium">
-          Edit
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex items-start gap-2.5 py-2.5">
-      <AlertCircle size={14} className="text-amber-400 mt-0.5 flex-shrink-0" />
-      <div className="flex-1">
-        <span className="text-sm text-gray-500">
-          No {label.toLowerCase()} credential —{" "}
-          <span className="text-gray-700">
-            add one to safely test changes in a non-production environment.
-          </span>
-        </span>
-      </div>
-      <button className="flex-shrink-0 inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700">
-        <Plus size={12} />
-        Add
-      </button>
-    </div>
-  );
-}
-
 function AccessGrantRow({ grant }: { grant: AccessGrant }) {
   return (
     <tr className="hover:bg-gray-50">
@@ -177,17 +135,18 @@ export default function DetailTemplate({ node, ancestors, data }: Props) {
   const system = data.systemId
     ? connectedSystems.find((s) => s.id === data.systemId)
     : undefined;
+  const productionUrl = system?.environments.production.url;
 
   // Build channel items, prepending a default HTTP channel if the system has a URL
   const channelsSection = data.sections.find((s) => s.id === "channels");
   const otherSections = data.sections.filter((s) => s.id !== "channels");
 
   const allChannelItems: DetailSectionItem[] = [];
-  if (system?.url && channelsSection) {
+  if (productionUrl && channelsSection) {
     allChannelItems.push({
       id: "default-http",
       name: "HTTP",
-      description: `Default channel created when the URL was added. Sends requests directly to ${system.url}.`,
+      description: `Default channel created when the URL was added. Sends requests directly to ${productionUrl}.`,
       metadata: { channelType: "default", isDefault: "true" },
     });
   }
@@ -236,21 +195,6 @@ export default function DetailTemplate({ node, ancestors, data }: Props) {
       {/* Metadata panel */}
       {system && (
         <div className="mt-6 rounded-lg border border-gray-200 divide-y divide-gray-100">
-          {system.url && (
-            <div className="flex items-center gap-3 px-4 py-3">
-              <Globe size={14} className="text-gray-400 flex-shrink-0" />
-              <span className="text-sm text-gray-500 w-24 flex-shrink-0">URL</span>
-              <a
-                href={system.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-blue-600 hover:text-blue-700 hover:underline inline-flex items-center gap-1 min-w-0 truncate"
-              >
-                {system.url}
-                <ExternalLink size={12} className="flex-shrink-0" />
-              </a>
-            </div>
-          )}
           <div className="flex items-center gap-3 px-4 py-3">
             {system.ownerType === "org" ? (
               <Users size={14} className="text-gray-400 flex-shrink-0" />
@@ -280,26 +224,14 @@ export default function DetailTemplate({ node, ancestors, data }: Props) {
         </div>
       )}
 
-      {/* Credentials */}
+      {/* Environments */}
       {system && (
-        <div className="mt-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-1">
-            Credentials
-          </h2>
-          <p className="text-xs text-gray-400 mb-3">
-            Add both production and staging credentials to safely test changes
-            before they go live.
-          </p>
-          <div className="rounded-lg border border-gray-200 px-4 divide-y divide-gray-100">
-            <CredentialRow
-              label="Production"
-              credentialName={system.productionCredential}
-            />
-            <CredentialRow
-              label="Staging"
-              credentialName={system.stagingCredential}
-            />
-          </div>
+        <div className="mt-8">
+          <SectionHeading
+            title="Environments"
+            description="Each credential belongs to one environment. Add staging and mock credentials to build and test changes before they reach production."
+          />
+          <SystemEnvironments environments={system.environments} />
         </div>
       )}
 

@@ -28,15 +28,15 @@ export const userCredentials: UserCredential[] = [
     name: "DHIS2 Play (personal)",
     type: "DHIS2",
     projects: ["Project A"],
-    production: false,
+    environment: "staging",
     createdAt: "2 Apr 2024",
   },
   {
     id: "ucred-commcare",
-    name: "CommCare test account",
+    name: "CommCare mock server",
     type: "CommCare",
     projects: ["Project B"],
-    production: false,
+    environment: "mock",
     createdAt: "18 Jun 2024",
   },
   {
@@ -44,7 +44,7 @@ export const userCredentials: UserCredential[] = [
     name: "Google Sheets reporting",
     type: "Google Sheets",
     projects: ["Project A", "Project B"],
-    production: true,
+    environment: "production",
     createdAt: "9 Jan 2025",
   },
 ];

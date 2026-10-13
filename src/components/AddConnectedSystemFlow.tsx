@@ -10,6 +10,7 @@ import {
   Check,
 } from "lucide-react";
 import { adaptors, type Adaptor } from "../mock-data/adaptors";
+import { ENVIRONMENTS, type Environment } from "../page-data";
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -147,9 +148,7 @@ function ConfigForm({
   const [apiToken, setApiToken] = useState("");
   const [secret, setSecret] = useState("");
   const [showSecret, setShowSecret] = useState(false);
-  const [environment, setEnvironment] = useState<"production" | "staging">(
-    "production"
-  );
+  const [environment, setEnvironment] = useState<Environment>("production");
   const [sharing, setSharing] = useState<"org" | "private">("org");
   const [submitted, setSubmitted] = useState(false);
 
@@ -285,29 +284,23 @@ function ConfigForm({
                 Environment
               </label>
               <div className="flex gap-4">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="environment"
-                    value="production"
-                    checked={environment === "production"}
-                    onChange={() => setEnvironment("production")}
-                    className="text-blue-600"
-                  />
-                  <span className="text-sm text-gray-700">Production</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="environment"
-                    value="staging"
-                    checked={environment === "staging"}
-                    onChange={() => setEnvironment("staging")}
-                    className="text-blue-600"
-                  />
-                  <span className="text-sm text-gray-700">Staging</span>
-                </label>
+                {ENVIRONMENTS.map((env) => (
+                  <label key={env} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="environment"
+                      value={env}
+                      checked={environment === env}
+                      onChange={() => setEnvironment(env)}
+                      className="text-blue-600"
+                    />
+                    <span className="text-sm text-gray-700 capitalize">{env}</span>
+                  </label>
+                ))}
               </div>
+              <p className="mt-1 text-xs text-gray-400">
+                Each credential belongs to one environment. Add the others from the system's page.
+              </p>
             </div>
           </div>
         </fieldset>

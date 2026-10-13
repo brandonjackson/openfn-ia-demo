@@ -25,6 +25,7 @@ import SectionHeading from "../components/SectionHeading";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import Badge from "../components/Badge";
+import EnvironmentBadge from "../components/EnvironmentBadge";
 import Callout from "../components/Callout";
 import EmptyState from "../components/EmptyState";
 import FormField from "../components/FormField";
@@ -165,7 +166,7 @@ const credentialColumns: DataTableColumn<UserCredential>[] = [
   {
     key: "env",
     header: "Environment",
-    render: (c) => <Badge label={c.production ? "Production" : "Sandbox"} tone={c.production ? "green" : "gray"} />,
+    render: (c) => <EnvironmentBadge environment={c.environment} />,
   },
   { key: "created", header: "Created", render: (c) => c.createdAt },
   {

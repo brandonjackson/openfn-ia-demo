@@ -178,6 +178,7 @@ export interface ConnectedSystemSummary {
   id: string;
   name: string;
   credentialType: "user" | "org";
+  hasAccess: boolean;
   color: string;
 }
 

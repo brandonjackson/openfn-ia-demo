@@ -214,5 +214,6 @@ export const connectedSystemSummaries: ConnectedSystemSummary[] = connectedSyste
   id: s.id,
   name: s.name,
   credentialType: s.credentialType,
+  hasAccess: s.hasAccess,
   color: s.color,
 }));

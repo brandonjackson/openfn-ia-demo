@@ -1,13 +1,14 @@
 import { Link } from "react-router-dom";
 import {
+  Check,
   Lock,
-  Users,
   Plus,
   Zap,
   CheckCircle2,
   ChevronRight,
 } from "lucide-react";
 import type { ConnectedSystemSummary } from "../../page-data";
+import Badge from "../../components/Badge";
 import SuggestedSystemsToAdd from "../../components/SuggestedSystemsToAdd";
 
 interface Props {
@@ -24,8 +25,9 @@ export default function ConnectedSystemsSetupSection({
   onAddSystem,
 }: Props) {
   const total = systems.length;
-  const sharedCount = systems.filter((s) => s.credentialType === "org").length;
-  const privateCount = systems.filter((s) => s.credentialType === "user").length;
+  // Same typology as the Access filter on the Connected Systems page
+  const withAccessCount = systems.filter((s) => s.hasAccess).length;
+  const noAccessCount = total - withAccessCount;
 
   return (
     <section className="rounded-xl border border-gray-200 overflow-hidden">
@@ -79,16 +81,10 @@ export default function ConnectedSystemsSetupSection({
               >
                 <CheckCircle2 size={14} className="text-green-500 flex-shrink-0" />
                 <span className="text-sm text-gray-800 flex-1">{system.name}</span>
-                {system.credentialType === "user" ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
-                    <Lock size={9} />
-                    Private
-                  </span>
+                {system.hasAccess ? (
+                  <Badge label="You have access" tone="green" icon={Check} />
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-600">
-                    <Users size={9} />
-                    Shared
-                  </span>
+                  <Badge label="No access" tone="gray" icon={Lock} />
                 )}
               </li>
             ))}
@@ -134,7 +130,7 @@ export default function ConnectedSystemsSetupSection({
 
       <div className="px-5 pb-4 flex items-center gap-2">
         <span className="text-xs text-gray-400">
-          {sharedCount} shared · {privateCount} private
+          {withAccessCount} with access · {noAccessCount} without
         </span>
         <Link
           to="/connected-systems"

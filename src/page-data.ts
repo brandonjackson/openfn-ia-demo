@@ -113,6 +113,9 @@ export interface ChannelCatalogEntry {
   section: string;
 }
 
+/** Ways a published service can be used: as a step in another workflow, or as an agent tool over MCP. */
+export type ServiceConsumer = "workflow" | "mcp";
+
 export interface WorkflowCatalogEntry {
   kind: "workflow";
   id: string;
@@ -122,6 +125,10 @@ export interface WorkflowCatalogEntry {
   projectPath: string;
   badges?: string[];
   section: string;
+  /** How the service can be called. Scheduled services run on their own and have none. */
+  callableAs?: ServiceConsumer[];
+  /** Tool name agents see on the organization's MCP server. */
+  mcpToolName?: string;
 }
 
 export type CatalogEntry = ChannelCatalogEntry | WorkflowCatalogEntry;
@@ -129,6 +136,8 @@ export type CatalogEntry = ChannelCatalogEntry | WorkflowCatalogEntry;
 export interface CatalogPageData {
   pageType: "catalog";
   entries: CatalogEntry[];
+  /** The organization's MCP server, which exposes callable services as agent tools. */
+  mcpServerUrl?: string;
 }
 
 /* ------------------------------------------------------------------ */

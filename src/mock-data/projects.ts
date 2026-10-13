@@ -227,6 +227,27 @@ export const projects: Project[] = [
         description: "Matches incoming patients against the national client registry.",
         status: "Live",
         workflowId: "client-dedup-workflow",
+        api: {
+          trigger: "webhook",
+          invocation: "POST https://app.openfn.org/i/malawi-chw-referrals/client-registry-lookup",
+          auth: "API key in the x-api-key header",
+          inputFields: [
+            { name: "givenName", type: "string", required: true, description: "Patient's given name." },
+            { name: "familyName", type: "string", required: true, description: "Patient's family name." },
+            { name: "dateOfBirth", type: "string", required: true, description: "Date of birth, YYYY-MM-DD." },
+            { name: "district", type: "string", required: false, description: "Home district, to narrow the match." },
+          ],
+          requestExample: `curl -X POST https://app.openfn.org/i/malawi-chw-referrals/client-registry-lookup \\
+  -H "x-api-key: $OPENFN_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{ "givenName": "Chikondi", "familyName": "Banda", "dateOfBirth": "2019-03-02", "district": "Lilongwe" }'`,
+          outputDescription: "Returns the best match from the national client registry, with a confidence score.",
+          outputExample: `{
+  "match": true,
+  "nationalId": "MW-0042-7781",
+  "confidence": 0.94
+}`,
+        },
       },
       {
         id: "district-monthly-report",

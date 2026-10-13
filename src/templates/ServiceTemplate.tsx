@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ClipboardList, Clock, Folder, KeyRound, Webhook, Workflow } from "lucide-react";
+import { Bot, ClipboardList, Clock, Folder, KeyRound, Webhook, Workflow } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { ServiceApiField, ServicePageData } from "../page-data";
 import Badge from "../components/Badge";
@@ -13,6 +13,8 @@ import PropertyList from "../components/PropertyList";
 import type { Property } from "../components/PropertyList";
 import SectionHeading from "../components/SectionHeading";
 import TextLink from "../components/TextLink";
+import UsageModeCard from "../components/UsageModeCard";
+import { mcpToolSnippet, workflowCallSnippet } from "../service-usage";
 
 interface Props {
   node: IANode;
@@ -110,6 +112,32 @@ export default function ServiceTemplate({ ancestors, data }: Props) {
           </div>
         )}
       </div>
+
+      {isWebhook && (
+        <section>
+          <SectionHeading
+            title="Use this service"
+            description="Call it from another workflow, or let an AI agent call it as a tool."
+          />
+          <div className="-mt-3 grid items-start gap-3 lg:grid-cols-2">
+            <UsageModeCard
+              icon={Workflow}
+              title="From a workflow"
+              description="Add a step to any workflow in your organization. The response lands on state for the next step."
+            >
+              <CodeBlock label="Job code" code={workflowCallSnippet(data.projectId, service, api)} />
+            </UsageModeCard>
+            <UsageModeCard
+              icon={Bot}
+              title="As an agent tool (MCP)"
+              description="Agents connected to your organization's MCP server see this service as a tool and can call it directly."
+              badge="Preview"
+            >
+              <CodeBlock label="Tool definition" code={mcpToolSnippet(service, api)} />
+            </UsageModeCard>
+          </div>
+        </section>
+      )}
 
       {isWebhook && (
         <section>

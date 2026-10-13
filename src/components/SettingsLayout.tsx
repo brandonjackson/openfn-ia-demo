@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import Breadcrumbs from "./Breadcrumbs";
+import PageHeader from "./PageHeader";
 import SettingsNav from "./SettingsNav";
 import type { SettingsNavItem } from "./SettingsNav";
 
@@ -28,14 +28,9 @@ export default function SettingsLayout({
 }: Props) {
   return (
     <div>
-      <Breadcrumbs ancestors={breadcrumbs.ancestors} current={breadcrumbs.current} />
+      <PageHeader breadcrumbs={breadcrumbs} title={title} description={description} />
 
-      <div className="mt-6 mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
-        {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
-      </div>
-
-      <div className="flex gap-8">
+      <div className="mt-8 flex gap-8">
         <SettingsNav items={navItems} activeId={activeId} onSelect={onSelect} />
         <div className="flex-1 min-w-0">{children}</div>
       </div>

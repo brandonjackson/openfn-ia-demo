@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Pencil } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { HandbookFile, HandbookFileKind, HandbookPageData } from "../page-data";
-import Breadcrumbs from "../components/Breadcrumbs";
+import PageHeader from "../components/PageHeader";
 import Button from "../components/Button";
 import FilesPanel from "../components/FilesPanel";
 import WikiArticle from "../components/WikiArticle";
@@ -51,24 +51,20 @@ export default function HandbookTemplate({ node, ancestors, data }: Props) {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <Breadcrumbs
-          ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))}
-          current={node.label}
-        />
-        <div className="mt-6 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">{node.label}</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Last edited {data.updatedAt} by {data.updatedBy}
-            </p>
-          </div>
+    <div className="space-y-8">
+      <PageHeader
+        breadcrumbs={{
+        ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
+        current: node.label,
+      }}
+        title={node.label}
+        description={`Last edited ${data.updatedAt} by ${data.updatedBy}`}
+        actions={
           <Button variant="secondary" size="sm" icon={Pencil}>
             Edit
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="max-w-3xl">

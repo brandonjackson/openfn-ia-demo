@@ -224,7 +224,7 @@ function ContextSection({ initialLayers }: { initialLayers: ContextLayer[] }) {
             </FormField>
           </div>
           <Button type="submit" icon={Plus} disabled={!url.trim()}>
-            Request Access
+            Request access
           </Button>
         </form>
       </Card>

@@ -41,19 +41,19 @@ export const historyData: TablePageData = {
     {
       key: "type",
       label: "Type",
-      colorMap: {
-        "Work Order": "bg-blue-50 text-blue-700",
-        "Channel Request": "bg-purple-50 text-purple-700",
+      toneMap: {
+        "Work Order": "blue",
+        "Channel Request": "purple",
       },
     },
     { key: "project", label: "Project" },
     {
       key: "status",
       label: "Status",
-      colorMap: {
-        Success: "bg-green-100 text-green-700",
-        Failed: "bg-red-100 text-red-700",
-        Pending: "bg-yellow-100 text-yellow-700",
+      toneMap: {
+        Success: "green",
+        Failed: "red",
+        Pending: "yellow",
       },
     },
     { key: "timestamp", label: "Timestamp" },

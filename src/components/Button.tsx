@@ -7,6 +7,8 @@ export type ButtonVariant =
   | "danger"
   | "dark"
   | "outline-primary"
+  | "outline-danger"
+  | "ghost"
   | "link-danger";
 
 export type ButtonSize = "xs" | "sm" | "md";
@@ -17,6 +19,8 @@ const variantClasses: Record<ButtonVariant, string> = {
   danger: "bg-red-600 text-white hover:bg-red-700",
   dark: "bg-gray-900 text-white hover:bg-gray-800",
   "outline-primary": "border border-blue-300 text-blue-600 hover:bg-blue-50",
+  "outline-danger": "border border-red-200 text-red-600 hover:bg-red-50",
+  ghost: "text-gray-500 hover:bg-gray-100 hover:text-gray-700",
   "link-danger": "text-red-500 hover:text-red-700",
 };
 

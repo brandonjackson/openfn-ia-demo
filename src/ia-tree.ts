@@ -79,7 +79,7 @@ export const projectTemplateTree: IANode[] = [
         description:
           "Isolated copies of this project for trying out changes before merging them back.",
         pageType: "project-sandboxes",
-        actions: ["New Sandbox"],
+        actions: ["New sandbox"],
       },
       // Maintain
       {
@@ -150,7 +150,7 @@ export const mainNavTree: IANode[] = [
     label: "Systems",
     description: "Browse and manage all connected external systems.",
     pageType: "list",
-    filters: [{ label: "Access", options: ["All", "I have access", "No access"] }],
+    filters: [{ label: "Access", options: ["All", "You have access", "No access"] }],
     children: [
       {
         id: "connected-system",

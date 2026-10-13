@@ -10,6 +10,8 @@ import {
   Check,
 } from "lucide-react";
 import { adaptors, type Adaptor } from "../mock-data/adaptors";
+import Button from "./Button";
+import EmptyState from "./EmptyState";
 import { ENVIRONMENTS, type Environment } from "../page-data";
 
 /* ------------------------------------------------------------------ */
@@ -83,9 +85,7 @@ function AdaptorSearchList({
       {/* Results */}
       <div className="flex-1 overflow-y-auto px-5 pb-4">
         {grouped.length === 0 && (
-          <div className="rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 p-8 text-center text-gray-400 text-sm">
-            No systems match "{query}"
-          </div>
+          <EmptyState title={`No systems match "${query}"`} />
         )}
 
         {grouped.map(([category, items]) => (
@@ -164,13 +164,7 @@ function ConfigForm({
         <p className="text-sm text-gray-500 mb-6">
           Your new connected system has been added successfully.
         </p>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-        >
-          Done
-        </button>
+        <Button onClick={onClose}>Done</Button>
       </div>
     );
   }
@@ -364,20 +358,10 @@ function ConfigForm({
 
         {/* Submit */}
         <div className="flex items-center justify-end gap-3 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-          >
+          <Button variant="secondary" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => setSubmitted(true)}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-          >
-            Add Connected System
-          </button>
+          </Button>
+          <Button onClick={() => setSubmitted(true)}>Add connected system</Button>
         </div>
       </div>
     </div>

@@ -29,10 +29,10 @@ export const Default: Story = {
     currentPath: "/connected-systems",
     data: {
       pageType: "list",
-      filters: [{ label: "Access", options: ["All", "I have access", "No access"] }],
+      filters: [{ label: "Access", options: ["All", "You have access", "No access"] }],
       items: connectedSystemListItems,
       filterKey: "access",
-      filterMap: { "I have access": "yes", "No access": "no" },
+      filterMap: { "You have access": "yes", "No access": "no" },
       showSuggestions: true,
     },
   },
@@ -45,7 +45,7 @@ export const EmptyList: Story = {
     currentPath: "/connected-systems",
     data: {
       pageType: "list",
-      filters: [{ label: "Access", options: ["All", "I have access", "No access"] }],
+      filters: [{ label: "Access", options: ["All", "You have access", "No access"] }],
       items: [],
       showSuggestions: false,
     },

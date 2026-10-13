@@ -3,7 +3,7 @@ import { ClipboardList, Clock, Folder, KeyRound, Webhook, Workflow } from "lucid
 import type { IANode } from "../ia-tree";
 import type { ServiceApiField, ServicePageData } from "../page-data";
 import Badge from "../components/Badge";
-import Breadcrumbs from "../components/Breadcrumbs";
+import PageHeader from "../components/PageHeader";
 import Button from "../components/Button";
 import Callout from "../components/Callout";
 import CodeBlock from "../components/CodeBlock";
@@ -65,37 +65,30 @@ export default function ServiceTemplate({ ancestors, data }: Props) {
   if (api.auth) properties.push({ icon: KeyRound, label: "Auth", value: api.auth });
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       <div>
-        <Breadcrumbs
-          ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))}
-          current={service.name}
-        />
-
-        <div className="mt-6 flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-start gap-4">
-            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-gray-100">
-              <ClipboardList size={22} className="text-gray-400" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-2xl font-semibold text-gray-900">{service.name}</h1>
-                <Badge label={service.status} />
-              </div>
-              <p className="mt-1 text-sm text-gray-500">{service.description}</p>
-            </div>
-          </div>
-          <div className="flex flex-shrink-0 gap-2">
-            <Button variant="secondary" size="sm" onClick={() => navigate(projectPath)}>
-              View project
-            </Button>
-            {workflow && (
-              <Button icon={Workflow} size="sm" onClick={() => navigate(`/workflow-editor/${workflow.id}`)}>
-                Open workflow
+        <PageHeader
+          breadcrumbs={{
+            ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
+            current: service.name,
+          }}
+          icon={ClipboardList}
+          title={service.name}
+          badges={<Badge label={service.status} />}
+          description={service.description}
+          actions={
+            <>
+              <Button variant="secondary" size="sm" onClick={() => navigate(projectPath)}>
+                View project
               </Button>
-            )}
-          </div>
-        </div>
+              {workflow && (
+                <Button icon={Workflow} size="sm" onClick={() => navigate(`/workflow-editor/${workflow.id}`)}>
+                  Open workflow
+                </Button>
+              )}
+            </>
+          }
+        />
 
         <div className="mt-6">
           <PropertyList properties={properties} />

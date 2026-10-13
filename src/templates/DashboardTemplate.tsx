@@ -3,6 +3,7 @@ import type { DashboardPageData } from "../page-data";
 import ConnectedSystemsSetupSection from "./dashboard-sections/ConnectedSystemsSetupSection";
 import SuggestedServicesSection from "./dashboard-sections/SuggestedServicesSection";
 import AddConnectedSystemFlow from "../components/AddConnectedSystemFlow";
+import PageHeader from "../components/PageHeader";
 import StatTile from "../components/StatTile";
 import ActivityList from "../components/ActivityList";
 import SectionHeading from "../components/SectionHeading";
@@ -27,12 +28,10 @@ export default function DashboardTemplate({ data }: Props) {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Overview</h1>
-        <p className="mt-1 text-gray-500 text-sm">
-          What needs your attention, and what's happened recently.
-        </p>
-      </div>
+      <PageHeader
+        title="Overview"
+        description="What needs your attention, and what's happened recently."
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {data.tiles.map((tile) => (

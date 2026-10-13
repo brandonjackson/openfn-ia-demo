@@ -17,7 +17,7 @@ export const Default: Story = {
     icon: Download,
     title: "No exports yet.",
     description: "Export your work order history to download it as a file.",
-    action: <Button>Create Export</Button>,
+    action: <Button>Create export</Button>,
   },
 };
 

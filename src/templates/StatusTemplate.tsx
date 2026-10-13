@@ -1,6 +1,6 @@
 import type { IANode } from "../ia-tree";
 import type { HealthState, StatusPageData, SystemStatus, WorkflowStatus } from "../page-data";
-import Breadcrumbs from "../components/Breadcrumbs";
+import PageHeader from "../components/PageHeader";
 import Callout from "../components/Callout";
 import SectionHeading from "../components/SectionHeading";
 import DataTable from "../components/DataTable";
@@ -54,18 +54,14 @@ export default function StatusTemplate({ node, ancestors, data }: Props) {
 
   return (
     <div className="space-y-8">
-      <div>
-        <Breadcrumbs
-          ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))}
-          current={node.label}
-        />
-        <div className="mt-6">
-          <h1 className="text-2xl font-semibold text-gray-900">{node.label}</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            {node.description} Checked {data.checkedAt}.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={{
+        ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
+        current: node.label,
+      }}
+        title={node.label}
+        description={`${node.description ?? ""} Checked ${data.checkedAt}.`.trim()}
+      />
 
       {issues.length === 0 ? (
         <Callout variant="success" title="Everything is operational">

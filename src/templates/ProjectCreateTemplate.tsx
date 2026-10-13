@@ -56,7 +56,7 @@ export default function ProjectCreateTemplate({ node, ancestors, data }: Props) 
   const [submitted, setSubmitted] = useState<string | null>(initialPrompt || null);
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8">
       <Breadcrumbs
         ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))}
         current={node.label}

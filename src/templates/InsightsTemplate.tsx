@@ -1,6 +1,6 @@
 import type { IANode } from "../ia-tree";
 import type { InsightsPageData, ProjectInsight } from "../page-data";
-import Breadcrumbs from "../components/Breadcrumbs";
+import PageHeader from "../components/PageHeader";
 import Badge from "../components/Badge";
 import Card from "../components/Card";
 import StatTile from "../components/StatTile";
@@ -47,19 +47,15 @@ const projectColumns: DataTableColumn<ProjectInsight>[] = [
 export default function InsightsTemplate({ node, ancestors, data }: Props) {
   return (
     <div className="space-y-8">
-      <div>
-        <Breadcrumbs
-          ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))}
-          current={node.label}
-        />
-        <div className="mt-6 flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">{node.label}</h1>
-            <p className="mt-1 text-sm text-gray-500">{node.description}</p>
-          </div>
-          <Badge label={data.range} />
-        </div>
-      </div>
+      <PageHeader
+        breadcrumbs={{
+        ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
+        current: node.label,
+      }}
+        title={node.label}
+        description={node.description}
+        actions={<Badge label={data.range} />}
+      />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {data.tiles.map((tile) => (

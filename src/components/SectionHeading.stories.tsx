@@ -29,7 +29,7 @@ export const WithAction: Story = {
     description: "Personal access tokens let you use the OpenFn CLI and API as yourself.",
     action: (
       <Button size="sm" icon={Plus}>
-        Generate New Token
+        Generate new token
       </Button>
     ),
   },

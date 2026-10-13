@@ -3,7 +3,7 @@ import type { IANode } from "../ia-tree";
 import type { ProjectSandboxesPageData, SandboxItem } from "../page-data";
 import { useSandbox } from "../sandbox-state";
 import Badge from "../components/Badge";
-import Breadcrumbs from "../components/Breadcrumbs";
+import PageHeader from "../components/PageHeader";
 import Button from "../components/Button";
 import EmptyState from "../components/EmptyState";
 import ListRow from "../components/ListRow";
@@ -66,24 +66,23 @@ export default function ProjectSandboxesTemplate({ node, ancestors, data }: Prop
   const others = data.sandboxes.filter((s) => s !== selected);
 
   return (
-    <div>
-      <Breadcrumbs
-        ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))}
-        current={node.label}
+    <div className="space-y-8">
+      <PageHeader
+        breadcrumbs={{
+          ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
+          current: node.label,
+        }}
+        title={node.label}
+        description={node.description}
+        actions={
+          <Button icon={Plus} size="sm">
+            New sandbox
+          </Button>
+        }
       />
 
-      <div className="mt-6 mb-8 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{node.label}</h1>
-          {node.description && <p className="mt-1 text-sm text-gray-500">{node.description}</p>}
-        </div>
-        <Button icon={Plus} size="sm">
-          New Sandbox
-        </Button>
-      </div>
-
       {selected && (
-        <section className="mb-8">
+        <section>
           <SectionHeading title="Selected" variant="label" />
           <SandboxRow sandbox={selected} selected />
         </section>

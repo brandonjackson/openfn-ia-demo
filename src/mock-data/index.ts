@@ -20,10 +20,10 @@ pageDataRegistry.set("projects", { pageType: "projects", projects: projectSummar
 
 pageDataRegistry.set("connected-systems", {
   pageType: "list",
-  filters: [{ label: "Access", options: ["All", "I have access", "No access"] }],
+  filters: [{ label: "Access", options: ["All", "You have access", "No access"] }],
   items: connectedSystemListItems,
   filterKey: "access",
-  filterMap: { "I have access": "yes", "No access": "no" },
+  filterMap: { "You have access": "yes", "No access": "no" },
   showSuggestions: true,
 });
 

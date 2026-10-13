@@ -148,7 +148,7 @@ const credentialColumns: DataTableColumn<OrgCredential>[] = [
     render: (c) =>
       !c.hasAccess && (
         <Button variant="outline-primary" size="xs">
-          Request Access
+          Request access
         </Button>
       ),
   },
@@ -216,7 +216,7 @@ const collaboratorColumns: DataTableColumn<Collaborator>[] = [
     key: "actions",
     header: "",
     align: "right",
-    render: () => <Button variant="link-danger">Remove Collaborator</Button>,
+    render: () => <Button variant="link-danger">Remove collaborator</Button>,
   },
 ];
 
@@ -226,7 +226,7 @@ function CollaborationSection({ data }: { data: ProjectSettingsPageData }) {
       <SectionHeading
         title="Project collaboration"
         description="View collaborators and manage alert settings for this project."
-        action={<Button size="sm">Add Collaborator(s)</Button>}
+        action={<Button size="sm">Add collaborator(s)</Button>}
       />
 
       <DataTable columns={collaboratorColumns} rows={data.collaborators} getRowKey={(c) => c.email} />
@@ -279,7 +279,7 @@ function SyncToGithubSection({ data }: { data: ProjectSettingsPageData }) {
           description="To create a new GitHub version control connection you must first connect your OpenFn account to GitHub. Please click the button below to get started."
         >
           <Button variant="dark" icon={GitBranch}>
-            Connect your GitHub Account
+            Connect your GitHub account
           </Button>
           <p className="mt-3 text-xs text-gray-400">
             Need to learn more about GitHub Sync? See portability docs for full documentation on
@@ -369,7 +369,7 @@ function HistoryExportsSection() {
         icon={Download}
         title="No exports yet."
         description="Export your work order history to download it as a file."
-        action={<Button>Create Export</Button>}
+        action={<Button>Create export</Button>}
       />
     </div>
   );

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FolderKanban, Plus } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { ProjectsPageData } from "../page-data";
-import Breadcrumbs from "../components/Breadcrumbs";
+import PageHeader from "../components/PageHeader";
 import Button from "../components/Button";
 import EmptyState from "../components/EmptyState";
 import { TextInput } from "../components/FormControls";
@@ -37,44 +37,43 @@ export default function ProjectsTemplate({ node, ancestors, data }: Props) {
   };
 
   return (
-    <div>
-      <Breadcrumbs
-        ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))}
-        current={node.label}
+    <div className="space-y-8">
+      <PageHeader
+        breadcrumbs={{
+          ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
+          current: node.label,
+        }}
+        title={node.label}
+        description={node.description}
+        actions={
+          <>
+            <TextInput
+              type="search"
+              placeholder="Search projects…"
+              aria-label="Search projects"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="w-56"
+            />
+            <Button icon={Plus} onClick={() => setCreateOpen(true)}>
+              New project
+            </Button>
+          </>
+        }
       />
 
-      <div className="mt-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{node.label}</h1>
-          {node.description && <p className="mt-1 text-sm text-gray-500">{node.description}</p>}
-        </div>
-        <div className="flex flex-shrink-0 items-center gap-2">
-          <TextInput
-            type="search"
-            placeholder="Search projects…"
-            aria-label="Search projects"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-56"
-          />
-          <Button icon={Plus} size="md" onClick={() => setCreateOpen(true)}>
-            New
-          </Button>
-        </div>
-      </div>
+      <div className="space-y-3">
+        <p className="text-xs text-gray-400">
+          {filtered.length} project{filtered.length !== 1 ? "s" : ""}
+        </p>
 
-      <p className="mt-4 text-xs text-gray-400">
-        {filtered.length} project{filtered.length !== 1 ? "s" : ""}
-      </p>
-
-      {filtered.length > 0 ? (
-        <div className="mt-3 space-y-2">
-          {filtered.map((project) => (
-            <ProjectCard key={project.id} project={project} />
-          ))}
-        </div>
-      ) : (
-        <div className="mt-3">
+        {filtered.length > 0 ? (
+          <div className="space-y-2">
+            {filtered.map((project) => (
+              <ProjectCard key={project.id} project={project} />
+            ))}
+          </div>
+        ) : (
           <EmptyState
             icon={FolderKanban}
             title={needle ? `No projects match "${query}"` : "No projects yet"}
@@ -87,8 +86,8 @@ export default function ProjectsTemplate({ node, ancestors, data }: Props) {
               )
             }
           />
-        </div>
-      )}
+        )}
+      </div>
 
       <CreateProjectFlow
         open={createOpen}

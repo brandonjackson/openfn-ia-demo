@@ -2,7 +2,11 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { IANode } from "../ia-tree";
 import type { TablePageData } from "../page-data";
-import Breadcrumbs from "../components/Breadcrumbs";
+import Badge from "../components/Badge";
+import DataTable from "../components/DataTable";
+import type { DataTableColumn } from "../components/DataTable";
+import PageHeader from "../components/PageHeader";
+import SegmentedControl from "../components/SegmentedControl";
 
 interface Props {
   node: IANode;
@@ -10,6 +14,8 @@ interface Props {
   currentPath: string;
   data: TablePageData;
 }
+
+type Row = TablePageData["rows"][number];
 
 export default function TableTemplate({ node, ancestors, data }: Props) {
   const [searchParams] = useSearchParams();
@@ -37,122 +43,54 @@ export default function TableTemplate({ node, ancestors, data }: Props) {
     return true;
   });
 
+  const columns: DataTableColumn<Row>[] = data.columns.map((col) => ({
+    key: col.key,
+    header: col.label,
+    render: (row) => {
+      const value = String(row[col.key] ?? "");
+      if (col.toneMap?.[value]) return <Badge label={value} tone={col.toneMap[value]} />;
+      if (col.key === "name") return <span className="whitespace-nowrap font-medium text-gray-900">{value}</span>;
+      return (
+        <span className="block max-w-40 truncate whitespace-nowrap" title={value}>
+          {value}
+        </span>
+      );
+    },
+  }));
+
   return (
-    <div>
-      <Breadcrumbs
-        ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))}
-        current={node.label}
+    <div className="space-y-8">
+      <PageHeader
+        breadcrumbs={{
+          ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
+          current: node.label,
+        }}
+        title={node.label}
+        description={node.description}
       />
 
-      <div className="mt-6">
-        <h1 className="text-2xl font-semibold text-gray-900">{node.label}</h1>
-        {node.description && (
-          <p className="mt-1 text-gray-500 text-sm">{node.description}</p>
-        )}
-      </div>
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-4">
+          {data.filters.map((f) => (
+            <SegmentedControl
+              key={f.label}
+              label={f.label}
+              options={f.options}
+              value={filterState[f.label]}
+              onChange={(v) => setFilterState((prev) => ({ ...prev, [f.label]: v }))}
+            />
+          ))}
+          <span className="text-xs text-gray-400">
+            {filtered.length} result{filtered.length !== 1 ? "s" : ""}
+          </span>
+        </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-4">
-        {data.filters.map((f) => (
-          <FilterGroup
-            key={f.label}
-            label={f.label}
-            options={f.options}
-            selected={filterState[f.label]}
-            onSelect={(v) =>
-              setFilterState((prev) => ({ ...prev, [f.label]: v }))
-            }
-          />
-        ))}
-        <span className="text-xs text-gray-400">
-          {filtered.length} result{filtered.length !== 1 ? "s" : ""}
-        </span>
-      </div>
-
-      <div className="mt-6 overflow-hidden rounded-lg border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              {data.columns.map((col) => (
-                <th
-                  key={col.key}
-                  className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                >
-                  {col.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filtered.map((row, i) => (
-              <tr key={i} className="hover:bg-gray-50 transition-colors">
-                {data.columns.map((col) => {
-                  const value = String(row[col.key] ?? "");
-                  const colorClass = col.colorMap?.[value];
-                  return (
-                    <td key={col.key} className="px-4 py-3 whitespace-nowrap">
-                      {colorClass ? (
-                        <span
-                          className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${colorClass}`}
-                        >
-                          {value}
-                        </span>
-                      ) : col.key === "name" ? (
-                        <span className="text-sm font-medium text-gray-900">
-                          {value}
-                        </span>
-                      ) : (
-                        <span className="text-sm text-gray-500">{value}</span>
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-            {filtered.length === 0 && (
-              <tr>
-                <td
-                  colSpan={data.columns.length}
-                  className="px-4 py-8 text-center text-sm text-gray-400"
-                >
-                  No entries match the selected filters.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function FilterGroup({
-  label,
-  options,
-  selected,
-  onSelect,
-}: {
-  label: string;
-  options: string[];
-  selected: string;
-  onSelect: (v: string) => void;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs font-medium text-gray-500">{label}:</span>
-      <div className="flex rounded-md border border-gray-200 overflow-hidden">
-        {options.map((opt) => (
-          <button
-            key={opt}
-            onClick={() => onSelect(opt)}
-            className={`px-3 py-1 text-xs font-medium transition-colors ${
-              selected === opt
-                ? "bg-blue-50 text-blue-700 border-blue-200"
-                : "text-gray-500 hover:bg-gray-50"
-            }`}
-          >
-            {opt}
-          </button>
-        ))}
+        <DataTable
+          columns={columns}
+          rows={filtered}
+          getRowKey={(row) => String(row.id ?? JSON.stringify(row))}
+          emptyMessage="No entries match the selected filters."
+        />
       </div>
     </div>
   );

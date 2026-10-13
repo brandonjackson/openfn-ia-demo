@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Plus, Workflow } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { ProjectComponentItem, ProjectWorkflowsPageData } from "../page-data";
-import Breadcrumbs from "../components/Breadcrumbs";
+import PageHeader from "../components/PageHeader";
 import Button from "../components/Button";
 import DataTable from "../components/DataTable";
 import type { DataTableColumn } from "../components/DataTable";
@@ -35,25 +35,24 @@ const columns: DataTableColumn<ProjectComponentItem>[] = [
 export default function ProjectWorkflowsTemplate({ node, ancestors, data }: Props) {
   const navigate = useNavigate();
   return (
-    <div>
-      <Breadcrumbs
-        ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))}
-        current={node.label}
+    <div className="space-y-8">
+      <PageHeader
+        breadcrumbs={{
+          ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
+          current: node.label,
+        }}
+        title={node.label}
+        description={node.description}
+        actions={
+          <Button
+            icon={Plus}
+            size="sm"
+            onClick={() => navigate(`/workflow-editor/new?project=${data.projectId}`)}
+          >
+            New workflow
+          </Button>
+        }
       />
-
-      <div className="mt-6 mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{node.label}</h1>
-          {node.description && <p className="mt-1 text-sm text-gray-500">{node.description}</p>}
-        </div>
-        <Button
-          icon={Plus}
-          size="sm"
-          onClick={() => navigate(`/workflow-editor/new?project=${data.projectId}`)}
-        >
-          New Workflow
-        </Button>
-      </div>
 
       {data.workflows.length > 0 ? (
         <DataTable columns={columns} rows={data.workflows} getRowKey={(w) => w.id} />

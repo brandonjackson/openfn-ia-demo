@@ -291,7 +291,7 @@ function ApiTokensSection({ data }: { data: UserSettingsPageData }) {
         description="Personal access tokens let the OpenFn CLI and API act as you."
         action={
           <Button size="sm" icon={Plus} onClick={generate}>
-            Generate New Token
+            Generate new token
           </Button>
         }
       />
@@ -316,7 +316,7 @@ function ApiTokensSection({ data }: { data: UserSettingsPageData }) {
           description="Get started by creating a new access token."
           action={
             <Button icon={Plus} onClick={generate}>
-              Generate New Token
+              Generate new token
             </Button>
           }
         />

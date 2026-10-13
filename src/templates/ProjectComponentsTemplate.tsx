@@ -3,7 +3,7 @@ import { Boxes } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { ProjectComponentsPageData } from "../page-data";
 import AddComponentPanel from "../components/AddComponentPanel";
-import Breadcrumbs from "../components/Breadcrumbs";
+import PageHeader from "../components/PageHeader";
 import Card from "../components/Card";
 import ComponentRow from "../components/ComponentRow";
 import { componentTypes } from "../component-types";
@@ -31,18 +31,17 @@ export default function ProjectComponentsTemplate({ node, ancestors, data }: Pro
     .filter((g) => g.items.length > 0);
 
   return (
-    <div>
-      <Breadcrumbs
-        ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))}
-        current={node.label}
+    <div className="space-y-8">
+      <PageHeader
+        breadcrumbs={{
+          ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
+          current: node.label,
+        }}
+        title={node.label}
+        description={node.description}
       />
 
-      <div className="mt-6 mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">{node.label}</h1>
-        {node.description && <p className="mt-1 text-sm text-gray-500">{node.description}</p>}
-      </div>
-
-      <div className="mb-8">
+      <div>
         <AddComponentPanel
           options={types}
           // Components are drafted from a plain-words description on Create.

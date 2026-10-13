@@ -1,22 +1,15 @@
-import {
-  Eye,
-  PenLine,
-  Zap,
-  Users,
-  User,
-  Lock,
-  Globe,
-  ExternalLink,
-  BookOpen,
-  Plug,
-  FolderOpen,
-  ShieldX,
-} from "lucide-react";
+import { BookOpen, ExternalLink, FolderOpen, Globe, Lock, ShieldX, User, Users } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { AccessGrant, DetailPageData, DetailSectionItem } from "../page-data";
-import type { ChannelType } from "../page-data";
-import Breadcrumbs from "../components/Breadcrumbs";
-import StartWorkflowFromChannel from "../components/StartWorkflowFromChannel";
+import Badge from "../components/Badge";
+import Button from "../components/Button";
+import ChannelRow from "../components/ChannelRow";
+import type { ChannelRowType } from "../components/ChannelRow";
+import DataTable from "../components/DataTable";
+import type { DataTableColumn } from "../components/DataTable";
+import PageHeader from "../components/PageHeader";
+import PropertyList from "../components/PropertyList";
+import type { Property } from "../components/PropertyList";
 import SectionHeading from "../components/SectionHeading";
 import SystemEnvironments from "../components/SystemEnvironments";
 import { connectedSystems } from "../mock-data/connected-systems";
@@ -28,113 +21,63 @@ interface Props {
   data: DetailPageData;
 }
 
-const channelTypeConfig: Record<
-  string,
-  { label: string; icon: React.ElementType; badge: string; iconColor: string }
-> = {
-  write: {
-    label: "Write",
-    icon: PenLine,
-    badge: "bg-green-50 text-green-700 border-green-200",
-    iconColor: "text-green-500",
-  },
-  read: {
-    label: "Read",
-    icon: Eye,
-    badge: "bg-gray-100 text-gray-600 border-gray-200",
-    iconColor: "text-gray-400",
-  },
-  event: {
-    label: "Event",
-    icon: Zap,
-    badge: "bg-purple-50 text-purple-700 border-purple-200",
-    iconColor: "text-purple-500",
-  },
-  default: {
-    label: "Default",
-    icon: Plug,
-    badge: "bg-blue-50 text-blue-600 border-blue-200",
-    iconColor: "text-blue-500",
-  },
-};
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-function ChannelCard({ item }: { item: DetailSectionItem }) {
-  const channelType = item.metadata?.channelType as ChannelType | undefined;
-  const config = channelType ? channelTypeConfig[channelType] : null;
-  const Icon = config?.icon ?? Globe;
-  const isDefault = item.metadata?.isDefault === "true";
+const grantColumns: DataTableColumn<AccessGrant>[] = [
+  {
+    key: "grantedTo",
+    header: "Granted to",
+    render: (g) => {
+      const isProject = g.grantedToType === "project";
+      const Icon = isProject ? FolderOpen : User;
+      return (
+        <span className="flex items-center gap-2">
+          <Icon size={14} className="flex-shrink-0 text-gray-400" />
+          <span className="font-medium text-gray-900">{g.grantedTo}</span>
+          <Badge label={isProject ? "Project" : "User"} tone={isProject ? "purple" : "blue"} />
+        </span>
+      );
+    },
+  },
+  {
+    key: "lastAccessed",
+    header: "Last accessed",
+    render: (g) => g.lastAccessed ?? <span className="text-gray-300">Never</span>,
+  },
+  {
+    key: "actions",
+    header: "",
+    align: "right",
+    render: () => (
+      <Button variant="outline-danger" size="xs" icon={ShieldX}>
+        Revoke
+      </Button>
+    ),
+  },
+];
 
+function ChannelSection({ title, items }: { title: string; items: DetailSectionItem[] }) {
   return (
-    <div className="flex items-start gap-4 rounded-lg border border-gray-200 p-4 hover:border-gray-300 hover:shadow-sm transition-all">
-      <div className="w-9 h-9 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center flex-shrink-0 mt-0.5">
-        <Icon size={16} className={config?.iconColor ?? "text-gray-400"} />
+    <section>
+      <SectionHeading title={title} description={plural(items.length, title.toLowerCase().replace(/s$/, ""))} />
+      <div className="space-y-2">
+        {items.map((item) => (
+          <ChannelRow
+            key={item.id}
+            id={item.id}
+            name={item.name}
+            description={item.description}
+            channelType={item.metadata?.channelType as ChannelRowType | undefined}
+            autoCreated={item.metadata?.isDefault === "true"}
+          />
+        ))}
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-medium text-gray-900 text-sm">{item.name}</span>
-          {config && (
-            <span
-              className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${config.badge}`}
-            >
-              {config.label}
-            </span>
-          )}
-          {isDefault && (
-            <span className="inline-flex items-center rounded-full bg-gray-50 border border-gray-200 px-2 py-0.5 text-xs text-gray-400">
-              auto-created
-            </span>
-          )}
-        </div>
-        <p className="mt-0.5 text-sm text-gray-500">{item.description}</p>
-        {channelType === "event" && (
-          <div className="mt-2">
-            <StartWorkflowFromChannel channelId={item.id} />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function AccessGrantRow({ grant }: { grant: AccessGrant }) {
-  return (
-    <tr className="hover:bg-gray-50">
-      <td className="px-4 py-3">
-        <div className="flex items-center gap-2">
-          {grant.grantedToType === "project" ? (
-            <FolderOpen size={14} className="text-gray-400 flex-shrink-0" />
-          ) : (
-            <User size={14} className="text-gray-400 flex-shrink-0" />
-          )}
-          <span className="text-sm font-medium text-gray-900">{grant.grantedTo}</span>
-          <span
-            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium ${
-              grant.grantedToType === "project"
-                ? "bg-purple-50 text-purple-700 border-purple-200"
-                : "bg-blue-50 text-blue-600 border-blue-200"
-            }`}
-          >
-            {grant.grantedToType === "project" ? "Project" : "User"}
-          </span>
-        </div>
-      </td>
-      <td className="px-4 py-3 text-sm text-gray-500">
-        {grant.lastAccessed ?? <span className="text-gray-300">Never</span>}
-      </td>
-      <td className="px-4 py-3 text-right">
-        <button className="inline-flex items-center gap-1 rounded-md border border-red-200 px-2.5 py-1 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
-          <ShieldX size={12} />
-          Revoke
-        </button>
-      </td>
-    </tr>
+    </section>
   );
 }
 
 export default function DetailTemplate({ node, ancestors, data }: Props) {
-  const system = data.systemId
-    ? connectedSystems.find((s) => s.id === data.systemId)
-    : undefined;
+  const system = data.systemId ? connectedSystems.find((s) => s.id === data.systemId) : undefined;
   const productionUrl = system?.environments.production.url;
 
   // Build channel items, prepending a default HTTP channel if the system has a URL
@@ -154,155 +97,79 @@ export default function DetailTemplate({ node, ancestors, data }: Props) {
     allChannelItems.push(...channelsSection.items);
   }
 
-  return (
-    <div>
-      <Breadcrumbs
-        ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))}
-        current={node.label}
-      />
+  const properties: Property[] = [];
+  if (system) {
+    properties.push({ icon: system.ownerType === "org" ? Users : User, label: "Owner", value: system.owner });
+    if (system.apiDocsUrl) {
+      properties.push({
+        icon: BookOpen,
+        label: "API Docs",
+        value: (
+          <a
+            href={system.apiDocsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-w-0 items-center gap-1 text-blue-600 hover:text-blue-700 hover:underline"
+          >
+            {system.apiDocsUrl}
+            <ExternalLink size={12} className="flex-shrink-0" />
+          </a>
+        ),
+      });
+    }
+  }
 
-      {/* Header */}
-      <div className="mt-6 flex items-start gap-4">
-        <div className="w-12 h-12 rounded-xl bg-gray-100 border border-gray-200 flex items-center justify-center flex-shrink-0">
-          <Globe size={22} className="text-gray-400" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-2xl font-semibold text-gray-900">{node.label}</h1>
-            {data.headerBadge && (
-              <span
-                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium ${
-                  data.headerBadge.variant === "shared"
-                    ? "bg-blue-50 border-blue-200 text-blue-600"
-                    : "bg-gray-100 border-gray-200 text-gray-500"
-                }`}
-              >
-                {data.headerBadge.variant === "shared" ? (
-                  <Users size={10} />
-                ) : (
-                  <Lock size={10} />
-                )}
-                {data.headerBadge.label}
-              </span>
-            )}
+  const headerBadge = data.headerBadge;
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <PageHeader
+          breadcrumbs={{
+            ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
+            current: node.label,
+          }}
+          icon={Globe}
+          title={node.label}
+          badges={
+            headerBadge && (
+              <Badge
+                label={headerBadge.label}
+                tone={headerBadge.variant === "shared" ? "blue" : "gray"}
+                icon={headerBadge.variant === "shared" ? Users : Lock}
+              />
+            )
+          }
+          description={system?.description ?? node.description}
+        />
+        {properties.length > 0 && (
+          <div className="mt-6">
+            <PropertyList properties={properties} />
           </div>
-          <p className="mt-1 text-sm text-gray-500">
-            {system?.description ?? node.description}
-          </p>
-        </div>
+        )}
       </div>
 
-      {/* Metadata panel */}
       {system && (
-        <div className="mt-6 rounded-lg border border-gray-200 divide-y divide-gray-100">
-          <div className="flex items-center gap-3 px-4 py-3">
-            {system.ownerType === "org" ? (
-              <Users size={14} className="text-gray-400 flex-shrink-0" />
-            ) : (
-              <User size={14} className="text-gray-400 flex-shrink-0" />
-            )}
-            <span className="text-sm text-gray-500 w-24 flex-shrink-0">Owner</span>
-            <span className="text-sm text-gray-900">{system.owner}</span>
-          </div>
-          {system.apiDocsUrl && (
-            <div className="flex items-center gap-3 px-4 py-3">
-              <BookOpen size={14} className="text-gray-400 flex-shrink-0" />
-              <span className="text-sm text-gray-500 w-24 flex-shrink-0">
-                API Docs
-              </span>
-              <a
-                href={system.apiDocsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-blue-600 hover:text-blue-700 hover:underline inline-flex items-center gap-1 min-w-0 truncate"
-              >
-                {system.apiDocsUrl}
-                <ExternalLink size={12} className="flex-shrink-0" />
-              </a>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Environments */}
-      {system && (
-        <div className="mt-8">
+        <section>
           <SectionHeading
             title="Environments"
             description="Each credential belongs to one environment. Add staging and mock credentials to build and test changes before they reach production."
           />
           <SystemEnvironments environments={system.environments} />
-        </div>
+        </section>
       )}
 
-      {/* Channels section */}
-      {channelsSection && (
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-gray-900">
-              {channelsSection.title}
-            </h2>
-            <span className="text-xs text-gray-400">
-              {allChannelItems.length} {channelsSection.title.toLowerCase()}
-            </span>
-          </div>
-          <div className="space-y-2">
-            {allChannelItems.map((item) => (
-              <ChannelCard key={item.id} item={item} />
-            ))}
-          </div>
-        </div>
-      )}
+      {channelsSection && <ChannelSection title={channelsSection.title} items={allChannelItems} />}
 
-      {/* Access List */}
       {data.accessGrants && data.accessGrants.length > 0 && (
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-gray-900">Access</h2>
-            <span className="text-xs text-gray-400">
-              {data.accessGrants.length} grant{data.accessGrants.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-          <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Granted To
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Last Accessed
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {data.accessGrants.map((grant) => (
-                  <AccessGrantRow key={grant.id} grant={grant} />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <section>
+          <SectionHeading title="Access" description={plural(data.accessGrants.length, "grant")} />
+          <DataTable columns={grantColumns} rows={data.accessGrants} getRowKey={(g) => g.id} />
+        </section>
       )}
 
-      {/* Other sections */}
       {otherSections.map((section) => (
-        <div key={section.id} className="mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-base font-semibold text-gray-900">
-              {section.title}
-            </h2>
-            <span className="text-xs text-gray-400">
-              {section.items.length} {section.title.toLowerCase()}
-            </span>
-          </div>
-          <div className="space-y-2">
-            {section.items.map((item) => (
-              <ChannelCard key={item.id} item={item} />
-            ))}
-          </div>
-        </div>
+        <ChannelSection key={section.id} title={section.title} items={section.items} />
       ))}
     </div>
   );

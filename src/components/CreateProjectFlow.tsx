@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { X, FolderPlus } from "lucide-react";
+import Button from "./Button";
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -146,20 +147,12 @@ function CreateProjectModal({
 
             {/* Actions */}
             <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
+              <Button variant="secondary" onClick={onClose}>
                 Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={!canCreate}
-                className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
+              </Button>
+              <Button type="submit" disabled={!canCreate}>
                 Create project
-              </button>
+              </Button>
             </div>
           </div>
         </form>

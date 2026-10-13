@@ -12,7 +12,7 @@ const meta: Meta<typeof Badge> = {
     },
     tone: {
       control: "select",
-      options: [undefined, "green", "yellow", "red", "blue", "gray"],
+      options: [undefined, "green", "yellow", "red", "blue", "purple", "gray"],
       description: "Explicit color; overrides the label map.",
     },
   },
@@ -50,6 +50,9 @@ export const AllVariants: Story = {
       <Badge label="Archived" />
       <Badge label="Granted" tone="green" />
       <Badge label="Expired" tone="red" />
+      <Badge label="Event" tone="purple" />
+      <Badge label="Success" />
+      <Badge label="Failed" />
       <Badge label="Locked" icon={Lock} />
     </div>
   ),

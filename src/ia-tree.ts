@@ -274,42 +274,6 @@ export const supportTree: IANode[] = [
 export const openfnDocsUrl = "https://docs.openfn.org";
 
 /**
- * Service builder is accessed from within a project context
- */
-export const serviceBuilderTree: IANode = {
-  id: "service-builder",
-  label: "Service Builder",
-  description:
-    "Design and configure services with specs, inputs, workflows, and outputs.",
-  children: [
-    {
-      id: "spec",
-      label: "Spec",
-      description: "Define the service specification.",
-      children: [
-        {
-          id: "input",
-          label: "Input",
-          description:
-            "Configure the input schema and sources for the service.",
-        },
-        {
-          id: "workflow-modules",
-          label: "Workflow / Modules",
-          description:
-            "Design the workflow steps and modules that process data.",
-        },
-        {
-          id: "output",
-          label: "Output",
-          description: "Define the output format and destinations.",
-        },
-      ],
-    },
-  ],
-};
-
-/**
  * Settings pages (accessed from sidebar footer)
  */
 export const settingsTree: IANode[] = [
@@ -373,6 +337,5 @@ export const settingsTree: IANode[] = [
 export const iaTree: IANode[] = [
   ...mainNavTree,
   ...supportTree,
-  serviceBuilderTree,
   ...settingsTree,
 ];

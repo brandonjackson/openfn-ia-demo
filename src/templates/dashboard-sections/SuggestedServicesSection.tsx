@@ -126,7 +126,8 @@ export default function SuggestedServicesSection({ services, systems }: Props) {
 
             <div className="mt-3.5 pt-3 border-t border-gray-100 flex items-center justify-between">
               <Link
-                to="/service-builder"
+                to="/projects/project-a/create"
+                state={{ prompt: service.description }}
                 className="inline-flex items-center gap-1.5 rounded-md bg-blue-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors"
               >
                 Start building

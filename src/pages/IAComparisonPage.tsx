@@ -274,22 +274,6 @@ const proposedTree: TreeNode[] = [
     note: "External link to the OpenFn documentation",
   },
   {
-    label: "Service Builder",
-    path: "/service-builder",
-    note: "Design & configure services",
-    children: [
-      {
-        label: "Spec",
-        note: "Service specification",
-        children: [
-          { label: "Input", note: "Input schema & sources" },
-          { label: "Workflow / Modules", note: "Processing steps" },
-          { label: "Output", note: "Output format & destinations" },
-        ],
-      },
-    ],
-  },
-  {
     label: "User Settings",
     path: "/user-settings",
     note: "Personal account settings",
@@ -319,7 +303,7 @@ const proposedGroups: { label?: string; items: string[] }[] = [
   { items: ["Overview"] },
   { label: "Context", items: ["Handbook", "Systems", "Services"] },
   { label: "Monitoring", items: ["Status", "Insights", "History"] },
-  { label: "Projects", items: ["Projects", "Workflow Editor", "Service Builder"] },
+  { label: "Projects", items: ["Projects", "Workflow Editor"] },
   { label: "Support", items: ["Get Help Now", "OpenFn Docs"] },
   { label: "Account menu", items: ["User Settings", "Instance Settings"] },
 ];
@@ -360,7 +344,6 @@ const mappings: MappingEntry[] = [
   { oldPath: "—", newPath: "/projects/:id/create", status: "new", note: "AI prompt for new public service ideas, showcasing available systems, channels & services" },
   { oldPath: "—", newPath: "/projects/:id/insights", status: "new", note: "Per-project runs, errors & run times" },
   { oldPath: "—", newPath: "/projects/:id/deployments", status: "new", note: "What's deployed, when, and from which sandbox" },
-  { oldPath: "—", newPath: "/service-builder", status: "new", note: "New dedicated service design tool" },
   { oldPath: "—", newPath: "/get-help", status: "new", note: "Support, pinned to the bottom of the sidebar" },
 ];
 

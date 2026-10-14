@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Button from "../Button";
+import Card from "../Card";
 import { FieldError } from "../Inputs";
 import Modal from "../Modal";
 import CodeEditor from "./CodeEditor";
@@ -49,7 +50,7 @@ export default function YAMLImportModal({ isOpen, onClose, onCreate }: Props) {
       </div>
       <div className="h-80">
         {mode === "upload" ? (
-          <div className="relative flex h-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 transition-colors hover:border-gray-300">
+          <Card dashed padding="none" className="relative h-full hover:border-gray-400">
             <input
               id="workflow-file"
               aria-label="Upload a file"
@@ -65,16 +66,16 @@ export default function YAMLImportModal({ isOpen, onClose, onCreate }: Props) {
                   });
               }}
             />
-            <label htmlFor="workflow-file" className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center">
-              <span className="mb-3 rounded-xl bg-gray-100 p-3">
+            <label htmlFor="workflow-file" className="absolute inset-0 flex cursor-pointer flex-col items-center justify-center gap-2 text-xs text-gray-500">
+              <span className="mb-1 rounded-xl bg-gray-100 p-3">
                 <span className="hero-arrow-up-tray block size-6 text-gray-800" />
               </span>
-              <p className="mb-2 text-sm text-gray-600">Upload or drop a YAML file.</p>
-              <p className="text-xs text-gray-500">
-                <span className="font-medium text-primary-500">YML</span> or <span className="font-medium text-primary-500">YAML</span>, up to 8MB
+              <p className="text-sm text-gray-600">Upload or drop a YAML file.</p>
+              <p className="*:font-medium *:text-primary-500">
+                <span>YML</span> or <span>YAML</span>, up to 8MB
               </p>
             </label>
-          </div>
+          </Card>
         ) : (
           <div className="h-full overflow-hidden rounded-lg">
             <CodeEditor value={yaml} onChange={setYaml} ariaLabel="Workflow YAML" />

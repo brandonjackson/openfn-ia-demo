@@ -29,7 +29,7 @@ export default function VersionDropdown({ snapshots, pinnedVersion, onVersionSel
           <button
             type="button"
             className={cn(
-              "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium transition-colors",
+              "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium",
               isLatest ? "bg-primary-100 text-primary-800 hover:bg-primary-200" : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
             )}
           >

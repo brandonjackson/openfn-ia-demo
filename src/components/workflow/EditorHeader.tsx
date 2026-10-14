@@ -64,44 +64,39 @@ export default function EditorHeader({
   children,
 }: Props) {
   return (
-    <div className="relative z-50 flex-none border-b border-gray-200 bg-white shadow-xs">
-      <div className="mx-auto flex h-20 items-center gap-2 py-6 text-sm sm:px-4">
-        <div className="flex min-w-0 items-center">
-          <ProjectBreadcrumbs
-            project={project}
-            items={[["Workflows", `/projects/${project.id}/w`]]}
-            current={
-              <span className="flex items-center gap-2">
-                <button type="button" onClick={onTitleClick} title={workflowName} className="block max-w-[16rem] truncate hover:text-gray-700">
-                  {workflowName}
-                </button>
-                <VersionDropdown snapshots={snapshots} pinnedVersion={pinnedVersion} onVersionSelect={onVersionSelect} />
-              </span>
-            }
-          />
-        </div>
-        {children}
-        <div className="ml-2 grow" />
-
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center" title={enabled ? "Disable workflow" : "Enable workflow"}>
-            <Toggle checked={enabled} onChange={onEnabledChange} />
-          </span>
-          <IconButton icon="hero-adjustments-vertical" label="Workflow settings" active={settingsOpen} aria-pressed={settingsOpen} onClick={onSettingsClick} />
-          {canRun && <NewRunButton onClick={onRun} onRunWithCustomInputClick={onRunWithCustomInput} disabled={runDisabled} />}
-          <SaveButton onClick={onSave} hasChanges={hasChanges} label={saveLabel} />
-        </div>
-
-        <IconButton
-          icon="hero-chat-bubble-left-right"
-          label={aiOpen ? "Close AI Assistant" : "Open AI Assistant"}
-          title={`${aiOpen ? "Close AI Assistant" : "Open AI Assistant"} (⌘ K)`}
-          active={aiOpen}
-          size="lg"
-          className="ml-2 rounded-full"
-          onClick={onAIClick}
+    <div className="relative z-50 flex h-20 flex-none items-center gap-2 border-b border-gray-200 bg-white text-sm shadow-xs sm:px-4">
+      <div className="flex min-w-0 items-center">
+        <ProjectBreadcrumbs
+          project={project}
+          items={[["Workflows", `/projects/${project.id}/w`]]}
+          current={
+            <span className="flex items-center gap-2">
+              <button type="button" onClick={onTitleClick} title={workflowName} className="max-w-64 truncate hover:text-gray-700">
+                {workflowName}
+              </button>
+              <VersionDropdown snapshots={snapshots} pinnedVersion={pinnedVersion} onVersionSelect={onVersionSelect} />
+            </span>
+          }
         />
       </div>
+      {children}
+
+      <div className="ml-auto flex items-center gap-2">
+        <Toggle checked={enabled} onChange={onEnabledChange} tooltip={enabled ? "Disable workflow" : "Enable workflow"} />
+        <IconButton icon="hero-adjustments-vertical" label="Workflow settings" active={settingsOpen} aria-pressed={settingsOpen} onClick={onSettingsClick} />
+        {canRun && <NewRunButton onClick={onRun} onRunWithCustomInputClick={onRunWithCustomInput} disabled={runDisabled} />}
+        <SaveButton onClick={onSave} hasChanges={hasChanges} label={saveLabel} />
+      </div>
+
+      <IconButton
+        icon="hero-chat-bubble-left-right"
+        label={aiOpen ? "Close AI Assistant" : "Open AI Assistant"}
+        title={`${aiOpen ? "Close AI Assistant" : "Open AI Assistant"} (⌘ K)`}
+        active={aiOpen}
+        size="lg"
+        className="ml-2 rounded-full"
+        onClick={onAIClick}
+      />
     </div>
   );
 }

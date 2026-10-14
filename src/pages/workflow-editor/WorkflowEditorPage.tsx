@@ -338,13 +338,13 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
               </WorkflowDiagram>
 
               {inspector && (
-                <div className="absolute top-0 right-0 z-[45]" id="inspector">
+                <div className="absolute top-0 right-0 z-45" id="inspector">
                   {inspector}
                 </div>
               )}
 
               {isRunPanelOpen && (
-                <div className="absolute inset-y-0 right-0 z-[46] flex pointer-events-none">
+                <div className="absolute inset-y-0 right-0 z-46 flex pointer-events-none">
                   <ManualRunPanel
                     key={`${params.job ?? params.trigger ?? params.edge}-${params.runMode ?? ""}`}
                     title={runPanelTitle}

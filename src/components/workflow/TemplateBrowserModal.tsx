@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { templateGraph, workflowTemplates, type WorkflowTemplate } from "../../mock-data/workflow";
-import { cn } from "../../utils/cn";
 import Button from "../Button";
+import Card from "../Card";
+import Heading from "../Heading";
 import Modal from "../Modal";
 import SearchInput from "../SearchInput";
 import WorkflowDiagram from "./WorkflowDiagram";
@@ -11,6 +12,18 @@ interface Props {
   onClose: () => void;
   projectId: string;
   onCreate: (template: WorkflowTemplate) => void;
+}
+
+/** A template's name over its clamped description. */
+function TemplateSummary({ template, lines }: { template: WorkflowTemplate; lines: string }) {
+  return (
+    <div className="min-w-0">
+      <Heading size="sm" as="p" className="truncate">
+        {template.name}
+      </Heading>
+      <p className={`mt-0.5 text-gray-500 ${lines}`}>{template.description}</p>
+    </div>
+  );
 }
 
 /**
@@ -26,52 +39,39 @@ export default function TemplateBrowserModal({ isOpen, onClose, projectId, onCre
 
   return (
     <Modal open={isOpen} onClose={onClose} size="2xl" title="Templates">
-      <div className="flex h-[70vh] max-h-160 min-h-0 gap-6">
-        <div className="relative flex w-76 shrink-0 flex-col min-h-0">
-          <div className="flex-1 min-h-0 overflow-y-auto">
-            <div className="sticky top-0 z-10 bg-white pb-2">
-              <SearchInput value={query} onChange={setQuery} placeholder="Search templates" size="sm" />
-            </div>
-            <div className="flex flex-col gap-2">
-              {visible.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setPreviewedId(t.id)}
-                  aria-pressed={t.id === previewedId}
-                  className={cn(
-                    "w-full text-left rounded-lg border bg-white p-4 transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-primary-600",
-                    t.id === previewedId ? "border-gray-500" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                  )}
-                >
-                  <p className="text-sm font-medium text-gray-900">{t.name}</p>
-                  <p className="mt-0.5 text-sm text-gray-500 line-clamp-3">{t.description}</p>
-                </button>
-              ))}
-              {visible.length === 0 && <p className="py-2 text-sm text-gray-500">No saved templates match your search.</p>}
-            </div>
+      <div className="flex h-[70vh] max-h-160 gap-6 text-sm">
+        <div className="w-76 shrink-0 overflow-y-auto">
+          <div className="sticky top-0 z-10 bg-white pb-2">
+            <SearchInput value={query} onChange={setQuery} placeholder="Search templates" size="sm" />
+          </div>
+          <div className="flex flex-col gap-2">
+            {visible.map((t) => (
+              <button key={t.id} type="button" onClick={() => setPreviewedId(t.id)} aria-pressed={t.id === previewedId} className="rounded-lg text-left">
+                <Card className={t.id === previewedId ? "border-gray-500" : "hover:bg-gray-50"}>
+                  <TemplateSummary template={t} lines="line-clamp-3" />
+                </Card>
+              </button>
+            ))}
+            {visible.length === 0 && <p className="py-2 text-gray-500">No saved templates match your search.</p>}
           </div>
         </div>
-        <div className="flex flex-1 min-w-0 flex-col rounded-lg border border-gray-200 bg-gray-50 overflow-clip">
-          <div className="flex-1 min-h-0">
+        <Card muted padding="none" className="flex min-w-0 flex-1 flex-col overflow-clip">
+          <div className="min-h-0 flex-1">
             {previewed ? (
               <WorkflowDiagram key={previewed.id} graph={templateGraph(previewed, projectId)} selection={null} onSelect={() => {}} preview />
             ) : (
-              <div className="flex h-full items-center justify-center text-sm text-gray-500">Select a template to preview it.</div>
+              <p className="flex h-full items-center justify-center text-gray-500">Select a template to preview it.</p>
             )}
           </div>
           {previewed && (
-            <div className="flex items-center justify-between bg-white gap-14 p-4">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-gray-900">{previewed.name}</p>
-                <p className="mt-0.5 line-clamp-2 min-h-[2lh] text-sm text-gray-500">{previewed.description}</p>
-              </div>
-              <span className="shrink-0">
-                <Button onClick={() => onCreate(previewed)}>Create</Button>
-              </span>
+            <div className="flex items-center justify-between gap-14 bg-white p-4">
+              <TemplateSummary template={previewed} lines="line-clamp-2" />
+              <Button className="shrink-0" onClick={() => onCreate(previewed)}>
+                Create
+              </Button>
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </Modal>
   );

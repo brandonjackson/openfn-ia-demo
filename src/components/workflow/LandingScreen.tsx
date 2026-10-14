@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { cn } from "../../utils/cn";
 import Button from "../Button";
+import Card from "../Card";
+import Heading from "../Heading";
+import { Label } from "../Inputs";
 import Pill from "../Pill";
 import TextLink from "../TextLink";
 import AIDisclaimerFooter from "./AIDisclaimerFooter";
@@ -15,17 +18,16 @@ interface Props {
 
 function OptionCard({ icon, title, description, onClick, testId }: { icon: string; title: string; description: string; onClick: () => void; testId: string }) {
   return (
-    <button
-      data-testid={testId}
-      type="button"
-      onClick={onClick}
-      className="rounded-xl flex flex-col border border-gray-200 bg-white p-5 text-left hover:shadow-card transition-[color,background-color,border-color,box-shadow] focus:outline-none focus-visible:ring focus-visible:ring-gray-300"
-    >
-      <span className="w-fit inline-flex items-center justify-center rounded-lg bg-gray-100 p-2 mb-3">
-        <span className={cn("h-5 w-5 text-gray-700", icon)} />
-      </span>
-      <p className="text-sm font-medium text-gray-900">{title}</p>
-      <p className="mt-1 text-sm text-gray-600">{description}</p>
+    <button data-testid={testId} type="button" onClick={onClick} className="rounded-lg text-left">
+      <Card padding="lg" className="h-full text-sm text-gray-600 hover:shadow-card">
+        <div className="mb-3 w-fit rounded-lg bg-gray-100 p-2">
+          <span className={cn("block h-5 w-5 text-gray-700", icon)} />
+        </div>
+        <Heading size="sm" as="p">
+          {title}
+        </Heading>
+        <p className="mt-1">{description}</p>
+      </Card>
     </button>
   );
 }
@@ -45,22 +47,20 @@ export default function LandingScreen({ aiAssistantEnabled = true, onBuildWithAI
       data-testid="landing-screen"
       data-annotation="workflow-editor-new"
     >
-      <div className="w-full md:max-w-xl flex flex-col gap-6 px-6 lg:px-2">
-        <h1 id="landing-screen-heading" className="text-3xl font-semibold text-gray-900">
+      <div className="flex w-full flex-col gap-6 px-6 md:max-w-xl lg:px-2">
+        <Heading size="xl" as="h1" id="landing-screen-heading">
           Where would you like to start today?
-        </h1>
+        </Heading>
         {aiAssistantEnabled && (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-              <label htmlFor="build-with-ai-input" className="text-sm font-semibold text-gray-900">
-                Build with AI
-              </label>
-              <Pill color="green" className="gap-1">
+              <Label htmlFor="build-with-ai-input">Build with AI</Label>
+              <Pill color="green">
                 <span className="hero-sparkles-micro h-3 w-3" />
                 Recommended
               </Pill>
             </div>
-            <div className="rounded-lg border border-gray-200 bg-white focus-within:shadow-card transition-shadow">
+            <Card padding="none" className="focus-within:shadow-card">
               <textarea
                 id="build-with-ai-input"
                 value={prompt}
@@ -73,7 +73,7 @@ export default function LandingScreen({ aiAssistantEnabled = true, onBuildWithAI
                 }}
                 placeholder="e.g. Sync new KoboToolbox submissions into Postgres"
                 rows={4}
-                className="w-full rounded-t-lg border-none px-3 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-0 resize-none bg-transparent"
+                className="block w-full resize-none border-none bg-transparent p-3 text-sm text-gray-900 placeholder:text-gray-400 focus:ring-0 focus:outline-none"
               />
               <div className="flex items-center justify-between px-3 py-2">
                 <AIDisclaimerFooter muted />
@@ -82,10 +82,10 @@ export default function LandingScreen({ aiAssistantEnabled = true, onBuildWithAI
                   <span className="hero-arrow-right h-4 w-4" />
                 </Button>
               </div>
-            </div>
+            </Card>
           </div>
         )}
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid gap-4 md:grid-cols-2">
           <OptionCard
             testId="build-from-scratch-card"
             icon="hero-plus-circle"
@@ -101,7 +101,7 @@ export default function LandingScreen({ aiAssistantEnabled = true, onBuildWithAI
             onClick={onBrowseTemplates}
           />
         </div>
-        <p className="text-sm text-center text-gray-500">
+        <p className="text-center text-sm text-gray-500">
           or{" "}
           <TextLink onClick={onImportYAML}>import a YAML file manually</TextLink>
         </p>

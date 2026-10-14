@@ -2,37 +2,41 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { Run, WorkOrder } from "../../mock-data/history";
 import { cn } from "../../utils/cn";
+import Card from "../Card";
+import Heading from "../Heading";
 import IconButton from "../IconButton";
+import Pill, { type PillColor } from "../Pill";
 import RunBadge from "./RunBadge";
 import { shortId } from "./shortId";
 import { formatDuration, formatRelative } from "../../utils/format";
 
-const CHIP_STYLES: Record<string, string> = {
-  rejected: "bg-red-300 text-gray-800",
-  pending: "bg-gray-200 text-gray-800",
-  running: "bg-blue-200 text-blue-800",
-  available: "bg-gray-200 text-gray-800",
-  claimed: "bg-blue-200 text-blue-800",
-  started: "bg-blue-200 text-blue-800",
-  success: "bg-green-200 text-green-800",
-  failed: "bg-red-200 text-red-800",
-  crashed: "bg-orange-200 text-orange-800",
-  cancelled: "bg-gray-500 text-gray-800",
-  killed: "bg-yellow-200 text-yellow-800",
-  exception: "bg-gray-800 text-white",
-  lost: "bg-gray-800 text-white",
+// run_live/components.ex `state_pill` chip_styles, mapped onto Pill colours.
+const CHIP_COLORS: Record<string, PillColor> = {
+  rejected: "red",
+  running: "blue",
+  claimed: "blue",
+  started: "blue",
+  success: "green",
+  failed: "red",
+  crashed: "orange",
+  killed: "yellow",
+  exception: "dark",
+  lost: "dark",
 };
 
+/** MiniHistory's own state chip: the raw state, capitalised. */
 function MiniStatePill({ state }: { state: string }) {
+  return <Pill color={CHIP_COLORS[state] ?? "gray"}>{state.charAt(0).toUpperCase() + state.slice(1)}</Pill>;
+}
+
+const Dot = () => <span className="text-gray-800">&bull;</span>;
+
+/** The stack icon linking to the workflow's full history. */
+function FullHistoryLink({ to, id }: { to: string; id?: string }) {
   return (
-    <span
-      className={cn(
-        "my-auto whitespace-nowrap rounded-full text-center align-baseline font-medium leading-none py-1 px-2 text-[10px]",
-        CHIP_STYLES[state] ?? CHIP_STYLES.pending
-      )}
-    >
-      {state.charAt(0).toUpperCase() + state.slice(1)}
-    </span>
+    <Link id={id} to={to} onClick={(e) => e.stopPropagation()} className="flex text-gray-400 hover:text-gray-600" aria-label="View full history for this workflow">
+      <span className="hero-rectangle-stack h-4 w-4" />
+    </Link>
   );
 }
 
@@ -79,13 +83,13 @@ export default function MiniHistory({
 
   const list =
     history.length === 0 ? (
-      <div className="flex flex-col items-center justify-center p-8 text-gray-500">
-        <span className="hero-rectangle-stack w-8 h-8 mb-2 opacity-50" />
+      <div className="flex flex-col items-center p-8 text-center text-gray-500">
+        <span className="hero-rectangle-stack mb-2 h-8 w-8 opacity-50" />
         <p className="text-sm font-medium">No related history</p>
-        <p className="text-xs text-gray-400 mt-1">Why not run it a few times to see some history?</p>
+        <p className="mt-1 text-xs text-gray-400">Why not run it a few times to see some history?</p>
       </div>
     ) : (
-      <div className="divide-y divide-gray-100">
+      <div className="divide-y divide-gray-100 text-xs">
         {history.map(({ workOrder, runs }) => {
           const selected = runs.some((r) => r.id === selectedRunId);
           const isExpanded = expanded === workOrder.id;
@@ -95,36 +99,34 @@ export default function MiniHistory({
           };
           return (
             <div key={workOrder.id}>
-              <div className="px-3 py-2 hover:bg-gray-50 transition-colors">
-                <div
-                  className="flex items-center justify-between cursor-pointer w-full text-left"
-                  data-testid={`work-order-${workOrder.id}`}
-                  onClick={expand}
-                >
-                  <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
-                    <IconButton
-                      icon={selected || isExpanded ? "hero-chevron-down" : "hero-chevron-right"}
-                      label={`${isExpanded ? "Collapse" : "Expand"} work order details`}
-                      size="sm"
-                      className={cn(selected && "text-primary-600")}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        expand();
-                      }}
-                    />
-                    <Link
-                      to={`/projects/${projectId}/history?filters[workorder_id]=${workOrder.id}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="link-uuid"
-                      title={workOrder.id}
-                    >
-                      {shortId(workOrder.id)}
-                    </Link>
-                    <span className="text-xs text-gray-800">&bull;</span>
-                    <span className="text-xs text-gray-500">{formatRelative(workOrder.lastActivity, now)}</span>
-                  </div>
-                  <MiniStatePill state={workOrder.state} />
+              <div
+                className="flex cursor-pointer items-center justify-between gap-2 px-3 py-2 hover:bg-gray-50"
+                data-testid={`work-order-${workOrder.id}`}
+                onClick={expand}
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <IconButton
+                    icon={selected || isExpanded ? "hero-chevron-down" : "hero-chevron-right"}
+                    label={`${isExpanded ? "Collapse" : "Expand"} work order details`}
+                    size="sm"
+                    className={cn(selected && "text-primary-600")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      expand();
+                    }}
+                  />
+                  <Link
+                    to={`/projects/${projectId}/history?filters[workorder_id]=${workOrder.id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="link-uuid"
+                    title={workOrder.id}
+                  >
+                    {shortId(workOrder.id)}
+                  </Link>
+                  <Dot />
+                  <span className="text-gray-500">{formatRelative(workOrder.lastActivity, now)}</span>
                 </div>
+                <MiniStatePill state={workOrder.state} />
               </div>
               {(isExpanded || selected) &&
                 runs.map((run) => {
@@ -133,8 +135,8 @@ export default function MiniHistory({
                     <div
                       key={run.id}
                       className={cn(
-                        "px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors cursor-pointer border-l-2 w-full text-left",
-                        runSelected ? "bg-primary-50 border-l-primary-500" : "border-l-transparent"
+                        "flex cursor-pointer items-center justify-between gap-2 border-l-2 px-3 py-1.5 hover:bg-gray-50",
+                        runSelected ? "border-l-primary-500 bg-primary-50" : "border-l-transparent"
                       )}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -142,46 +144,37 @@ export default function MiniHistory({
                         else onSelectRun(run.id);
                       }}
                     >
-                      <div className="flex items-center justify-between w-full mr-2">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          {runSelected ? (
-                            <IconButton
-                              icon="hero-x-mark"
-                              label="Deselect run"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onDeselectRun();
-                              }}
-                            />
-                          ) : (
-                            <span className="invisible h-5 w-5" />
-                          )}
-                          <Link
-                            to={`/projects/${projectId}/runs/${run.id}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="link-uuid"
-                            title={run.id}
-                          >
-                            {shortId(run.id)}
-                          </Link>
-                          {(run.startedAt || run.finishedAt) && (
-                            <>
-                              <span className="text-xs text-gray-800">&bull;</span>
-                              {formatRelative((run.startedAt || run.finishedAt) as string, now)}
-                            </>
-                          )}
-                          {run.startedAt && run.finishedAt && (
-                            <>
-                              <span className="text-xs text-gray-800">&bull;</span>
-                              <span className="text-gray-400 text-xs">{formatDuration(run.startedAt, run.finishedAt)}</span>
-                            </>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <MiniStatePill state={run.state} />
-                        </div>
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
+                        {runSelected ? (
+                          <IconButton
+                            icon="hero-x-mark"
+                            label="Deselect run"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeselectRun();
+                            }}
+                          />
+                        ) : (
+                          <span className="invisible h-5 w-5" />
+                        )}
+                        <Link to={`/projects/${projectId}/runs/${run.id}`} onClick={(e) => e.stopPropagation()} className="link-uuid" title={run.id}>
+                          {shortId(run.id)}
+                        </Link>
+                        {(run.startedAt || run.finishedAt) && (
+                          <>
+                            <Dot />
+                            {formatRelative((run.startedAt || run.finishedAt) as string, now)}
+                          </>
+                        )}
+                        {run.startedAt && run.finishedAt && (
+                          <>
+                            <Dot />
+                            <span className="text-gray-400">{formatDuration(run.startedAt, run.finishedAt)}</span>
+                          </>
+                        )}
                       </div>
+                      <MiniStatePill state={run.state} />
                     </div>
                   );
                 })}
@@ -193,14 +186,11 @@ export default function MiniHistory({
 
   if (variant === "panel") {
     return (
-      <div className="flex flex-col h-full bg-white" data-annotation="workflow-editor-versions-and-promote">
-        <div className="flex items-center px-3 py-2 border-b border-gray-200 bg-gray-50">
-          <h3 className="text-sm font-medium text-gray-700 mr-1">Run History</h3>
-          <Link to={historyHref} className="text-gray-400 hover:text-gray-600 transition-colors" aria-label="View full history for this workflow">
-            <span className="hero-rectangle-stack w-4 h-4" />
-          </Link>
-          <div className="flex-1" />
-          <IconButton icon="hero-x-mark" label="Back to landing" size="sm" className="mr-2" onClick={onBack} />
+      <div className="flex h-full flex-col bg-white" data-annotation="workflow-editor-versions-and-promote">
+        <div className="flex items-center gap-1 border-b border-gray-200 bg-gray-50 px-3 py-2">
+          <Heading size="sm">Run History</Heading>
+          <FullHistoryLink to={historyHref} />
+          <IconButton icon="hero-x-mark" label="Back to landing" size="sm" className="ml-auto mr-2" onClick={onBack} />
         </div>
         <div className="flex-1 overflow-y-auto">{list}</div>
       </div>
@@ -210,42 +200,29 @@ export default function MiniHistory({
   const selectedRun = history.flatMap((h) => h.runs).find((r) => r.id === selectedRunId);
 
   return (
-    <div
-      className="absolute left-4 top-6 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden z-40 transition-all duration-300 ease-in-out"
-      data-annotation="workflow-editor-versions-and-promote"
-      onPointerDown={(e) => e.stopPropagation()}
-    >
-      <div
-        title="⌘ H"
-        className={cn(
-          "flex items-center cursor-pointer justify-between px-3 py-2 border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors w-full text-left",
-          collapsed ? "border-b-0" : "border-b"
+    <div className="absolute left-4 top-6 z-40" data-annotation="workflow-editor-versions-and-promote" onPointerDown={(e) => e.stopPropagation()}>
+      <Card padding="none" className="overflow-hidden">
+        <div
+          title="⌘ H"
+          className={cn(
+            "flex cursor-pointer items-center justify-between gap-3 border-gray-200 bg-gray-50 px-3 py-2 text-gray-400 hover:bg-gray-100",
+            !collapsed && "border-b"
+          )}
+          onClick={onToggle}
+        >
+          <div className="flex items-center gap-2">
+            <Heading size="sm">{collapsed ? "View History" : "Recent History"}</Heading>
+            <FullHistoryLink id="view-history" to={historyHref} />
+          </div>
+          <span className={cn("h-4 w-4", collapsed ? "hero-chevron-right" : "hero-chevron-left")} />
+        </div>
+        {collapsed && selectedRun && (
+          <div className="border-t border-gray-200 px-3 py-2">
+            <RunBadge runId={selectedRun.id} onClose={onDeselectRun} />
+          </div>
         )}
-        onClick={onToggle}
-      >
-        <div className="flex items-center gap-2">
-          <h3 className="text-sm font-medium text-gray-700">{collapsed ? "View History" : "Recent History"}</h3>
-          <Link
-            id="view-history"
-            to={historyHref}
-            onClick={(e) => e.stopPropagation()}
-            className="text-gray-400 hover:text-gray-600 transition-colors flex items-center"
-            aria-label="View full history for this workflow"
-          >
-            <span className="hero-rectangle-stack w-4 h-4" />
-          </Link>
-        </div>
-        <div className="text-gray-400 hover:text-gray-600 transition-colors cursor-pointer ml-3">
-          <span className={cn("w-4 h-4", collapsed ? "hero-chevron-right" : "hero-chevron-left")} />
-        </div>
-      </div>
-      {collapsed && selectedRun && (
-        <div className="px-3 py-2 border-t border-gray-200">
-          <RunBadge runId={selectedRun.id} onClose={onDeselectRun} />
-        </div>
-      )}
-      {!collapsed && <div className="overflow-y-auto no-scrollbar max-h-82">{list}</div>}
+        {!collapsed && <div className="no-scrollbar max-h-82 overflow-y-auto">{list}</div>}
+      </Card>
     </div>
   );
 }
-

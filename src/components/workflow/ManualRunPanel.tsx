@@ -3,7 +3,10 @@ import type { Dataclip } from "../../mock-data/history";
 import { cn } from "../../utils/cn";
 import DataclipTypePill from "../history/DataclipTypePill";
 import Button from "../Button";
+import Card from "../Card";
+import Heading from "../Heading";
 import IconButton from "../IconButton";
+import { FieldError } from "../Inputs";
 import CodeEditor from "./CodeEditor";
 import Tabs from "../Tabs";
 import InspectorLayout, { InspectorFooter } from "./InspectorLayout";
@@ -85,48 +88,39 @@ export default function ManualRunPanel({
 
   const tabContent = (
     <>
-      {tab === "empty" && (
-        <div className="px-6 pt-4 pb-6">
-          <div className="text-gray-500 pb-2 justify-center flex gap-1">Use an empty JSON object as the input for this run.</div>
-        </div>
-      )}
+      {tab === "empty" && <p className="px-6 pt-4 pb-8 text-center text-gray-500">Use an empty JSON object as the input for this run.</p>}
       {tab === "custom" && (
-        <div className={cn("h-full flex flex-col", embedded ? "pt-2" : "pt-3")}>
-          <div className="px-3 shrink-0">
-            <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-4">
-              <div className="flex flex-col items-center">
-                <span className="hero-cloud-arrow-up mx-auto size-8 text-gray-300" />
-                <div className="mt-2 flex flex-wrap justify-center text-sm/6 text-gray-600">
-                  <label className="link relative font-semibold">
-                    <input
-                      type="file"
-                      accept=".json"
-                      className="opacity-0 hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) void file.text().then(setBody);
-                      }}
-                    />
-                    <span>Upload a file</span>
-                  </label>
-                  <p className="pl-1">or drag and drop</p>
-                </div>
-                <p className="text-xs/5 text-gray-600">JSON, up to 8MB</p>
-              </div>
-            </div>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center">
-                <span className="bg-white px-2 text-sm text-gray-500 py-2">OR</span>
-              </div>
+        <div className={cn("flex h-full flex-col", embedded ? "pt-2" : "pt-3")}>
+          <div className="shrink-0 px-3">
+            <Card dashed padding="sm" className="mt-2 flex flex-col items-center text-sm/6 text-gray-600">
+              <span className="hero-cloud-arrow-up size-8 text-gray-300" />
+              <p className="mt-2">
+                <label className="link font-semibold">
+                  <input
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) void file.text().then(setBody);
+                    }}
+                  />
+                  Upload a file
+                </label>{" "}
+                or drag and drop
+              </p>
+              <p className="text-xs/5">JSON, up to 8MB</p>
+            </Card>
+            <div className="flex items-center gap-2 py-2 text-sm text-gray-500 *:h-px *:flex-1 *:bg-gray-300" aria-hidden="true">
+              <span />
+              OR
+              <span />
             </div>
           </div>
-          <div className="relative flex-1 min-h-[12rem] flex flex-col overflow-hidden">
+          <div className="flex min-h-48 flex-1 flex-col overflow-hidden">
             {parseError && (
-              <div className="text-red-700 text-sm flex gap-1 mb-1 items-center px-3">
-                <span className="hero-information-circle size-4" /> {parseError}
+              <div className="px-3">
+                <FieldError>{parseError}</FieldError>
               </div>
             )}
             <CodeEditor value={body} onChange={setBody} ariaLabel="Custom input" />
@@ -134,15 +128,13 @@ export default function ManualRunPanel({
         </div>
       )}
       {tab === "existing" && (
-        <div className="flex flex-col gap-3 pt-4 pb-6 px-3">
+        <div className="flex flex-col gap-3 px-3 pt-4 pb-6 text-sm">
           <div className="flex items-center gap-2">
             <SearchInput value={query} onChange={setQuery} placeholder="Search names or UUID prefixes" size="sm" className="flex-1" />
             <Button>Search</Button>
-            <div className="flex gap-1">
-              <IconButton icon="hero-calendar-days" label="Filter by date created" />
-              <IconButton icon="hero-rectangle-group" label="Filter by type" />
-              <IconButton icon="hero-tag" label="Named only" active={namedOnly} aria-pressed={namedOnly} onClick={() => setNamedOnly((n) => !n)} />
-            </div>
+            <IconButton icon="hero-calendar-days" label="Filter by date created" />
+            <IconButton icon="hero-rectangle-group" label="Filter by type" />
+            <IconButton icon="hero-tag" label="Named only" active={namedOnly} aria-pressed={namedOnly} onClick={() => setNamedOnly((n) => !n)} />
           </div>
           <div className="flex flex-col gap-3 overflow-auto">
             {visible.length ? (
@@ -150,30 +142,24 @@ export default function ManualRunPanel({
                 <div
                   key={clip.id}
                   onClick={() => setSelected(clip)}
-                  className="flex items-center justify-between border border-gray-200 rounded-md px-3 py-2 cursor-pointer hover:bg-gray-100 hover:border-primary-600 group"
+                  className="group flex cursor-pointer items-center justify-between gap-2 rounded-md border border-gray-200 px-3 py-2 hover:border-primary-600 hover:bg-gray-100"
                 >
-                  <div className="flex gap-2 items-center text-sm max-w-9/10">
-                    <span className="flex items-center">
-                      {i === 0 ? (
-                        <span className="hero-star-solid size-4 text-primary-400 group-hover:text-primary-600" title="Current dataclip for this step" />
-                      ) : (
-                        <span className="hero-document-text size-4 group-hover:text-primary-600" />
-                      )}
-                    </span>
-                    <span className="font-mono leading-none align-middle truncate">{clip.name || shortId(clip.id)}</span>
-                    <span className="align-middle">
-                      <DataclipTypePill type={clip.type} />
-                    </span>
+                  <div className="flex min-w-0 items-center gap-2">
+                    {i === 0 ? (
+                      <span className="hero-star-solid size-4 shrink-0 text-primary-400 group-hover:text-primary-600" title="Current dataclip for this step" />
+                    ) : (
+                      <span className="hero-document-text size-4 shrink-0 group-hover:text-primary-600" />
+                    )}
+                    <span className="truncate font-mono">{clip.name || shortId(clip.id)}</span>
+                    <DataclipTypePill type={clip.type} />
                   </div>
-                  <div className="text-xs truncate ml-2">{formatDate(clip.insertedAt)}</div>
+                  <span className="truncate text-xs">{formatDate(clip.insertedAt)}</span>
                 </div>
               ))
             ) : (
-              <div className="text-center text-sm">No dataclips match the filter.</div>
+              <p className="text-center">No dataclips match the filter.</p>
             )}
-            {visible.length > 0 && (
-              <div className="text-center text-sm text-gray-600">Search results are limited to the 10 most recent matches for this step.</div>
-            )}
+            {visible.length > 0 && <p className="text-center text-gray-600">Search results are limited to the 10 most recent matches for this step.</p>}
           </div>
         </div>
       )}
@@ -181,53 +167,46 @@ export default function ManualRunPanel({
   );
 
   const selectedView = selected && (
-    <div className="flex flex-col h-full">
-      <div className={cn("flex items-center justify-between pb-4", embedded ? "px-3 pt-3" : "px-6 pt-4")}>
-        <div className="flex-1">
+    <div className="flex h-full flex-col">
+      <div className={cn("flex items-center justify-between gap-4 pb-4", embedded ? "px-3 pt-3" : "px-6 pt-4")}>
+        <div>
           <div className="flex items-center gap-2">
-            <h3 className="font-medium text-gray-900">{selected.name || "Unnamed"}</h3>
+            <Heading>{selected.name || "Unnamed"}</Heading>
             <IconButton icon="hero-pencil" label="Rename" size="sm" />
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+          <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
             <span className="capitalize">{selected.type.replace("_", " ")}</span>
             <span>•</span>
             <span>{new Date(selected.insertedAt).toLocaleDateString()}</span>
           </div>
         </div>
-        <IconButton icon="hero-x-mark" label="Unselect dataclip" className="ml-4" onClick={() => setSelected(null)} />
+        <IconButton icon="hero-x-mark" label="Unselect dataclip" onClick={() => setSelected(null)} />
       </div>
-      <div className="flex-1 min-h-[16rem]">
+      <div className="min-h-64 flex-1">
         <CodeEditor value={JSON.stringify(selected.body, null, 2)} readOnly ariaLabel="Dataclip body" />
       </div>
     </div>
   );
 
-  const edgeMessage = (
-    <div className="flex justify-center flex-col items-center self-center h-full">
-      <div className="text-gray-600">Select a Step or Trigger to start a Run from</div>
-    </div>
-  );
+  const edgeMessage = <p className="flex h-full items-center justify-center text-gray-600">Select a Step or Trigger to start a Run from</p>;
 
   const run = () => onRun(selected ? { kind: "existing", dataclipId: selected.id } : { kind: tab, body });
 
   if (embedded) {
     return (
-      <div className="flex flex-col h-full" data-annotation="workflow-editor-manual-run">
+      <div className="flex h-full flex-col" data-annotation="workflow-editor-manual-run">
         {!selected && !fromEdge && (
-          <div className="shrink-0">
-            <div className="flex items-center justify-between px-3 pt-2 pb-1">
-              <div className="flex-1">
-                <Tabs variant="pill" fill tabs={tabOptions} active={tab} onChange={setTab} />
-              </div>
-              {onClosePanel && (
-                <div className="flex items-center pl-2">
-                  <IconButton icon="hero-x-mark" label="Close panel" size="sm" onClick={onClosePanel} />
-                </div>
-              )}
-            </div>
-          </div>
+          <Tabs
+            variant="pill"
+            fill
+            className="shrink-0 px-3 pt-2 pb-1"
+            tabs={tabOptions}
+            active={tab}
+            onChange={setTab}
+            after={onClosePanel && <IconButton icon="hero-x-mark" label="Close panel" size="sm" onClick={onClosePanel} />}
+          />
         )}
-        <div className="flex-1 overflow-auto">{fromEdge ? edgeMessage : selected ? selectedView : <div className="flex flex-col h-full min-h-0">{tabContent}</div>}</div>
+        <div className="flex-1 overflow-auto">{fromEdge ? edgeMessage : selected ? selectedView : <div className="flex h-full min-h-0 flex-col">{tabContent}</div>}</div>
       </div>
     );
   }
@@ -237,6 +216,7 @@ export default function ManualRunPanel({
       title={title}
       onClose={onClose}
       fixedHeight
+      bare
       showBackButton
       annotation="workflow-editor-manual-run"
       footer={<InspectorFooter rightButtons={<NewRunButton onClick={run} text="Run From Here" disabled={fromEdge || !!parseError} />} />}
@@ -246,7 +226,7 @@ export default function ManualRunPanel({
       ) : selected ? (
         selectedView
       ) : (
-        <div className="flex flex-col h-full min-h-0 flex-1 mt-4">
+        <div className="mt-4 flex h-full min-h-0 flex-col">
           <Tabs variant="pill" fill className="mx-3" tabs={tabOptions} active={tab} onChange={setTab} />
           {tabContent}
         </div>

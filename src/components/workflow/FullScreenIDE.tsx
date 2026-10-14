@@ -81,84 +81,71 @@ export default function FullScreenIDE({
   const adaptor = job?.adaptor ?? "@openfn/language-common@latest";
 
   return (
-    <div className="absolute inset-0 z-[49] bg-white flex flex-col" data-annotation="workflow-editor-ide">
-      <div className="flex-none bg-white border-b border-gray-200">
-        <div className="flex items-center justify-between px-4 py-2">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="shrink-0">
-              <JobSelector currentJob={job} jobs={jobs} onChange={onSelectJob} />
+    <div className="absolute inset-0 z-49 flex flex-col bg-white" data-annotation="workflow-editor-ide">
+      <div className="flex flex-none items-center justify-between gap-2 border-b border-gray-200 px-4 py-2">
+        <div className="flex min-w-0 flex-1 items-center gap-3 *:shrink-0">
+          <JobSelector currentJob={job} jobs={jobs} onChange={onSelectJob} />
+          {job && (
+            <div>
+              <AdaptorDisplay adaptor={job.adaptor} credentialName={job.credentialName} onEdit={onEditAdaptor} onChangeAdaptor={onChangeAdaptor} />
             </div>
-            {job && (
-              <div className="flex items-center gap-3 shrink-0">
-                <AdaptorDisplay adaptor={job.adaptor} credentialName={job.credentialName} onEdit={onEditAdaptor} onChangeAdaptor={onChangeAdaptor} />
-              </div>
-            )}
-            <div className="flex items-center gap-1 shrink-0">
-              <IconButton
-                icon="hero-document-text"
-                label="Docs"
-                title="Show adaptor documentation"
-                size="sm"
-                active={docsTab === "docs" && !docsCollapsed}
-                onClick={() => showDocs("docs")}
-              />
-              <IconButton
-                icon="hero-sparkles"
-                label="Metadata"
-                title="Show metadata explorer"
-                size="sm"
-                active={docsTab === "metadata" && !docsCollapsed}
-                onClick={() => showDocs("metadata")}
-              />
-            </div>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <Button tooltip="⌘ H" onClick={onShowHistory}>
-              <span className={cn("h-4 w-4", panelState === "history" ? "hero-clock-solid" : "hero-clock")} />
-              History
-            </Button>
-            {(panelState === undefined || panelState === "history") && <NewRunButton onClick={onShowCreateRun} />}
-            {(panelState === "run-viewer" || panelState === "create-run") && (
-              <RunRetryButton isRetryable={panelState === "run-viewer" && isRetryable} onRun={onRun} onRetry={onRetry} />
-            )}
-            <IconButton icon="hero-x-mark" label="Close IDE" title="Close IDE (Esc)" onClick={onClose} />
-          </div>
+          )}
+          <IconButton
+            icon="hero-document-text"
+            label="Docs"
+            title="Show adaptor documentation"
+            size="sm"
+            active={docsTab === "docs" && !docsCollapsed}
+            onClick={() => showDocs("docs")}
+          />
+          <IconButton
+            icon="hero-sparkles"
+            label="Metadata"
+            title="Show metadata explorer"
+            size="sm"
+            active={docsTab === "metadata" && !docsCollapsed}
+            onClick={() => showDocs("metadata")}
+          />
         </div>
+        <Button tooltip="⌘ H" onClick={onShowHistory}>
+          <span className={cn("h-4 w-4", panelState === "history" ? "hero-clock-solid" : "hero-clock")} />
+          History
+        </Button>
+        {(panelState === undefined || panelState === "history") && <NewRunButton onClick={onShowCreateRun} />}
+        {(panelState === "run-viewer" || panelState === "create-run") && (
+          <RunRetryButton isRetryable={panelState === "run-viewer" && isRetryable} onRun={onRun} onRetry={onRetry} />
+        )}
+        <IconButton icon="hero-x-mark" label="Close IDE" title="Close IDE (Esc)" onClick={onClose} />
       </div>
 
-      <div className="flex-1 overflow-hidden flex">
-        <div className={cn("h-full bg-gray-100 min-w-0 flex", vertical ? "flex-col" : "flex-row", panelState ? "w-[70%]" : "w-full")}>
-          <div className={cn("overflow-hidden", docsCollapsed ? "flex-1" : vertical ? "h-[60%]" : "w-[60%]")}>
+      <div className="flex flex-1 overflow-hidden">
+        <div className={cn("flex h-full min-w-0 bg-gray-100", vertical && "flex-col", panelState ? "w-7/10" : "w-full")}>
+          <div className={cn("overflow-hidden", docsCollapsed ? "flex-1" : vertical ? "h-3/5" : "w-3/5")}>
             {job ? (
               <CodeEditor key={job.id} value={job.body} onChange={onBodyChange} />
             ) : (
-              <div className="p-8">
-                <div className="text-center max-w-md mx-auto">
-                  <p className="text-gray-600 text-sm">The job you're trying to view didn't exist in this version of the workflow.</p>
-                  <p className="text-gray-500 text-sm mt-2">You can change versions or select another job.</p>
-                </div>
+              <div className="mx-auto max-w-md p-8 text-center text-sm text-gray-600">
+                <p>The job you're trying to view didn't exist in this version of the workflow.</p>
+                <p className="mt-2 text-gray-500">You can change versions or select another job.</p>
               </div>
             )}
           </div>
           {!docsCollapsed && (
             <>
-              <div className={cn("bg-gray-200 shrink-0", vertical ? "h-1 w-full" : "w-1 h-full")} />
-              <div className="flex-1 min-w-0 min-h-0 bg-white flex flex-col">
-                <div className="shrink-0">
-                  <div className="flex items-center justify-between px-3 pt-2 pb-1">
-                    <div className="flex-1">
-                      <Tabs
-                        variant="pill"
-                        fill
-                        active={docsTab}
-                        onChange={setDocsTab}
-                        tabs={[
-                          { id: "docs", label: "Docs", icon: "hero-document-text" },
-                          { id: "metadata", label: "Metadata", icon: "hero-sparkles" },
-                        ]}
-                      />
-                    </div>
-                    <div className="flex items-center gap-1 pl-2">
+              <div className={cn("shrink-0 bg-gray-200", vertical ? "h-1" : "w-1")} />
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-white">
+                <Tabs
+                  variant="pill"
+                  fill
+                  className="shrink-0 px-3 pt-2 pb-1"
+                  active={docsTab}
+                  onChange={setDocsTab}
+                  tabs={[
+                    { id: "docs", label: "Docs", icon: "hero-document-text" },
+                    { id: "metadata", label: "Metadata", icon: "hero-sparkles" },
+                  ]}
+                  after={
+                    <>
                       <IconButton
                         icon="hero-view-columns"
                         label="Toggle panel orientation"
@@ -167,9 +154,9 @@ export default function FullScreenIDE({
                         onClick={() => setVertical((v) => !v)}
                       />
                       <IconButton icon="hero-x-mark" label="Close docs panel" size="sm" onClick={() => setDocsCollapsed(true)} />
-                    </div>
-                  </div>
-                </div>
+                    </>
+                  }
+                />
                 <div className="flex-1 overflow-auto p-2">
                   {docsTab === "docs" ? <AdaptorDocs adaptor={adaptor} /> : <AdaptorMetadata adaptor={adaptor} />}
                 </div>
@@ -180,10 +167,10 @@ export default function FullScreenIDE({
 
         {panelState && (
           <>
-            <div className="w-1 bg-gray-200 shrink-0" />
-            <div className={cn("h-full bg-gray-50 border-l border-gray-200 min-w-0", runCollapsed && panelState === "run-viewer" ? "w-10" : "flex-1")}>
+            <div className="w-1 shrink-0 bg-gray-200" />
+            <div className={cn("h-full min-w-0 border-l border-gray-200 bg-gray-50", runCollapsed && panelState === "run-viewer" ? "w-10" : "flex-1")}>
               {panelState === "run-viewer" && runCollapsed && followRunId ? (
-                <div className="h-full flex flex-col items-center pt-3 bg-gray-50 overflow-hidden">
+                <div className="flex h-full flex-col items-center gap-3 overflow-hidden pt-3">
                   <button
                     type="button"
                     style={{ writingMode: "vertical-rl" }}
@@ -193,7 +180,7 @@ export default function FullScreenIDE({
                   >
                     <RunBadge runId={followRunId} />
                   </button>
-                  <div className="flex flex-col items-center gap-1 mt-3">
+                  <div className="flex flex-col items-center gap-1">
                     {(["log", "input", "output"] as const).map((t) => (
                       <button
                         key={t}
@@ -204,7 +191,7 @@ export default function FullScreenIDE({
                           setRunCollapsed(false);
                         }}
                         className={cn(
-                          "text-xs px-1 py-1 rounded whitespace-nowrap hover:bg-gray-200 transition-colors",
+                          "whitespace-nowrap rounded p-1 text-xs hover:bg-gray-200",
                           runTab === t ? "text-primary-600 font-medium" : "text-gray-500"
                         )}
                       >
@@ -214,26 +201,22 @@ export default function FullScreenIDE({
                   </div>
                 </div>
               ) : (
-                <div className="h-full flex flex-col">
+                <div className="flex h-full flex-col">
                   {panelState === "run-viewer" && followRunId && (
-                    <div className="shrink-0">
-                      <div className="flex items-center justify-between px-3 py-1">
-                        <RunBadge runId={followRunId} onClose={onClearRun} className="mr-3" />
-                        <div className="flex-1">
-                          <Tabs
-                            label="Run output"
-                            className="border-b-0"
-                            active={runTab}
-                            onChange={onRunTabChange}
-                            tabs={[
-                              { id: "log", label: "Logs" },
-                              { id: "input", label: "Input" },
-                              { id: "output", label: "Output" },
-                            ]}
-                          />
-                        </div>
-                        <IconButton icon="hero-chevron-right" label="Collapse panel" size="sm" className="ml-2" onClick={() => setRunCollapsed(true)} />
-                      </div>
+                    <div className="flex shrink-0 items-center gap-3 px-3 py-1">
+                      <RunBadge runId={followRunId} onClose={onClearRun} />
+                      <Tabs
+                        label="Run output"
+                        className="flex-1 border-b-0"
+                        active={runTab}
+                        onChange={onRunTabChange}
+                        tabs={[
+                          { id: "log", label: "Logs" },
+                          { id: "input", label: "Input" },
+                          { id: "output", label: "Output" },
+                        ]}
+                      />
+                      <IconButton icon="hero-chevron-right" label="Collapse panel" size="sm" onClick={() => setRunCollapsed(true)} />
                     </div>
                   )}
                   <div className="flex-1 overflow-hidden bg-white">{rightPanel}</div>

@@ -1,4 +1,5 @@
 import { adaptorIconUrl, adaptorShortName } from "../../mock-data/adaptors";
+import { cn } from "../../utils/cn";
 
 const sizeClasses = {
   sm: "h-5 w-5",
@@ -15,10 +16,10 @@ export default function AdaptorIcon({ name, size = "md" }: { name: string; size?
   const url = adaptorIconUrl(name);
   if (!url) {
     return (
-      <div className={`${sizeClasses[size]} rounded-md bg-gray-200 flex items-center justify-center`}>
-        <span className="text-xs font-semibold text-gray-500">{short[0]?.toUpperCase() || "?"}</span>
+      <div className={cn(sizeClasses[size], "flex items-center justify-center rounded-md bg-gray-200 text-xs font-semibold text-gray-500")}>
+        {short[0]?.toUpperCase() || "?"}
       </div>
     );
   }
-  return <img src={url} alt={short} className={`${sizeClasses[size]} object-cover`} />;
+  return <img src={url} alt={short} className={cn(sizeClasses[size], "object-cover")} />;
 }

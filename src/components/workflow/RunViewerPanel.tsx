@@ -4,6 +4,8 @@ import type { Dataclip, LogLine, Run, Step } from "../../mock-data/history";
 import { cn } from "../../utils/cn";
 import CodeEditor from "./CodeEditor";
 import StatePill from "../history/StatePill";
+import { DetailItem, DetailList } from "../DetailList";
+import Heading from "../Heading";
 import InfoTooltip from "../InfoTooltip";
 import Menu, { MenuItem } from "../Menu";
 
@@ -49,66 +51,47 @@ export default function RunViewerPanel({ projectId, run, steps, logs, dataclips,
   const clip = (id: string | null | undefined) => dataclips.find((d) => d.id === id);
   const visibleLogs = logs.filter((l) => LEVELS.indexOf(l.level) >= LEVELS.indexOf(level));
 
+  const empty = (text: string) => <p className="flex h-full items-center justify-center p-12 text-center text-gray-500">{text}</p>;
   const dataView = (id: string | null | undefined, emptyFinished: string) => {
-    if (!step) return <div className="flex items-center justify-center h-full text-gray-500">Select a step to view {activeTab} data</div>;
+    if (!step) return empty(`Select a step to view ${activeTab} data`);
     const d = clip(id);
-    if (!id || !d) return <div className="text-center p-12 text-gray-500">{emptyFinished}</div>;
-    if (d.wiped) return <div className="text-center p-12 text-gray-500">This dataclip has been wiped by the project's data retention policy.</div>;
+    if (!id || !d) return empty(emptyFinished);
+    if (d.wiped) return empty("This dataclip has been wiped by the project's data retention policy.");
     return <CodeEditor value={JSON.stringify(d.body, null, 2)} readOnly ariaLabel={`${activeTab} dataclip`} />;
   };
 
   return (
-    <div className={cn("flex flex-col h-full", mismatch && "opacity-50")} data-annotation="workflow-editor-run-viewer">
-      <div className="flex h-[40%] min-h-[10rem] max-h-72 border-b-4 border-gray-200">
-        <div className="w-1/2 h-full overflow-auto border-r border-gray-200 p-4">
-          <dl className="space-y-3">
-            <div className="flex items-center justify-between gap-4 text-sm">
-              <dt className="font-medium text-gray-600">Work Order</dt>
-              <dd>
-                <Link to={`/projects/${projectId}/history?filters[workorder_id]=${run.workOrderId}`} className="link-uuid" title={`View work order ${run.workOrderId}`}>
-                  {run.workOrderId.slice(0, 8)}
-                </Link>
-              </dd>
-            </div>
-            <div className="flex items-center justify-between gap-4 text-sm">
-              <dt className="font-medium text-gray-600">Run</dt>
-              <dd>
-                <Link to={`/projects/${projectId}/runs/${run.id}`} className="link-uuid" title={`View run ${run.id}`}>
-                  {run.id.slice(0, 8)}
-                </Link>
-              </dd>
-            </div>
-            <div className="flex items-center justify-between gap-4 text-sm">
-              <dt className="font-medium text-gray-600">Status</dt>
-              <dd>
-                <StatePill state={run.state} />
-              </dd>
-            </div>
-            <div className="flex items-center justify-between gap-4 text-sm">
-              <dt className="font-medium text-gray-600">Duration</dt>
-              <dd className="text-gray-900">{elapsed(run.startedAt, run.finishedAt)}</dd>
-            </div>
-            {run.startedAt && (
-              <div className="flex items-center justify-between gap-4 text-sm">
-                <dt className="font-medium text-gray-600">Started</dt>
-                <dd className="text-gray-900">{new Date(run.startedAt).toLocaleString()}</dd>
-              </div>
-            )}
+    <div className={cn("flex h-full flex-col", mismatch && "opacity-50")} data-annotation="workflow-editor-run-viewer">
+      <div className="flex h-2/5 max-h-72 min-h-40 border-b-4 border-gray-200 *:w-1/2 *:overflow-auto *:p-4">
+        <div className="border-r border-gray-200">
+          <DetailList>
+            <DetailItem label="Work Order">
+              <Link to={`/projects/${projectId}/history?filters[workorder_id]=${run.workOrderId}`} className="link-uuid" title={`View work order ${run.workOrderId}`}>
+                {run.workOrderId.slice(0, 8)}
+              </Link>
+            </DetailItem>
+            <DetailItem label="Run">
+              <Link to={`/projects/${projectId}/runs/${run.id}`} className="link-uuid" title={`View run ${run.id}`}>
+                {run.id.slice(0, 8)}
+              </Link>
+            </DetailItem>
+            <DetailItem label="Status">
+              <StatePill state={run.state} />
+            </DetailItem>
+            <DetailItem label="Duration">{elapsed(run.startedAt, run.finishedAt)}</DetailItem>
+            {run.startedAt && <DetailItem label="Started">{new Date(run.startedAt).toLocaleString()}</DetailItem>}
             {(run.createdBy || run.startingTrigger) && (
-              <div className="flex items-center justify-between gap-4 text-sm">
-                <dt className="font-medium text-gray-600">Started by</dt>
-                <dd className="text-right text-gray-900">{run.createdBy ? "editor@openfn.org" : `${run.startingTrigger?.toLowerCase()} trigger`}</dd>
-              </div>
+              <DetailItem label="Started by">{run.createdBy ? "editor@openfn.org" : `${run.startingTrigger?.toLowerCase()} trigger`}</DetailItem>
             )}
-          </dl>
+          </DetailList>
         </div>
-        <div className="w-1/2 h-full overflow-auto p-4">
-          <p className="mb-3 flex items-center gap-1 text-sm font-medium text-gray-600">
+        <div>
+          <Heading size="sm" as="p" className="mb-3 flex items-center gap-1">
             Run Steps
             <InfoTooltip title="This run may not have executed all steps in the workflow. Only the steps that were executed in this specific run are shown here." />
-          </p>
+          </Heading>
           {steps.length === 0 ? (
-            <div className="text-center text-gray-500 py-4">No steps yet</div>
+            <p className="py-4 text-center text-gray-500">No steps yet</p>
           ) : (
             <ul aria-label="Execution steps" className="space-y-2">
               {steps.map((s) => {
@@ -120,15 +103,13 @@ export default function RunViewerPanel({ projectId, run, steps, logs, dataclips,
                       type="button"
                       onClick={() => onSelectStep(s)}
                       className={cn(
-                        "relative flex items-center space-x-3 p-2 rounded w-full text-left cursor-pointer border-r-4 transition-colors",
+                        "flex w-full items-center gap-3 rounded border-r-4 p-2 text-left text-sm",
                         selected ? "border-primary-500 bg-primary-50 font-semibold" : "border-transparent hover:border-gray-300 hover:bg-gray-50"
                       )}
                     >
-                      <span className={`${icon} h-5 w-5 flex-shrink-0 ${color}`} />
-                      <div className="flex-1 min-w-0 flex items-center space-x-2">
-                        <span className="text-sm truncate">{s.jobName}</span>
-                      </div>
-                      <div className="flex-shrink-0 text-xs text-gray-500">{elapsed(s.startedAt, s.finishedAt)}</div>
+                      <span className={cn(icon, color, "h-5 w-5 shrink-0")} />
+                      <span className="min-w-0 flex-1 truncate">{s.jobName}</span>
+                      <span className="shrink-0 text-xs text-gray-500">{elapsed(s.startedAt, s.finishedAt)}</span>
                     </button>
                   </li>
                 );
@@ -137,32 +118,28 @@ export default function RunViewerPanel({ projectId, run, steps, logs, dataclips,
           )}
         </div>
       </div>
-      <div className="flex-1 min-h-0">
+      <div className="min-h-0 flex-1">
         {activeTab === "log" && (
-          <div className="grid h-full grid-rows-[auto_1fr] bg-gray-700 font-mono text-gray-200">
-            <div className="border-b border-gray-500">
-              <div className="mx-auto px-2">
-                <div className="flex h-6 flex-row-reverse items-center">
-                  <Menu
-                    className="w-32"
-                    trigger={
-                      <button type="button" className="flex items-center gap-1 text-xs opacity-75 hover:opacity-100">
-                        <span className="hero-adjustments-vertical size-4" />
-                        {level}
-                        <span className="hero-chevron-down size-4" />
-                      </button>
-                    }
-                  >
-                    {LEVELS.map((l) => (
-                      <MenuItem key={l} selected={l === level} onClick={() => setLevel(l)}>
-                        {l}
-                      </MenuItem>
-                    ))}
-                  </Menu>
-                </div>
-              </div>
+          <div className="flex h-full flex-col bg-gray-700 font-mono text-gray-200">
+            <div className="flex h-6 items-center justify-end border-b border-gray-500 px-2">
+              <Menu
+                className="w-32"
+                trigger={
+                  <button type="button" className="flex items-center gap-1 text-xs opacity-75 hover:opacity-100">
+                    <span className="hero-adjustments-vertical size-4" />
+                    {level}
+                    <span className="hero-chevron-down size-4" />
+                  </button>
+                }
+              >
+                {LEVELS.map((l) => (
+                  <MenuItem key={l} selected={l === level} onClick={() => setLevel(l)}>
+                    {l}
+                  </MenuItem>
+                ))}
+              </Menu>
             </div>
-            <div className="relative min-h-0 overflow-auto p-2 text-sm leading-[19px]">
+            <div className="min-h-0 flex-1 overflow-auto p-2 text-sm">
               {visibleLogs.length === 0 ? (
                 <div className="p-2 text-gray-400">No logs were received for this run.</div>
               ) : (

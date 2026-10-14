@@ -1,6 +1,7 @@
 import { credentials, ownerEmail } from "../../mock-data/credentials";
 import { ADAPTORS_WITHOUT_CREDENTIALS, adaptorDisplayName, adaptorShortName, resolveAdaptor, resolvedAdaptorVersion } from "../../mock-data/adaptors";
 import Button from "../Button";
+import Card from "../Card";
 import InfoTooltip from "../InfoTooltip";
 import { Field, Label, Radio, Select } from "../Inputs";
 import Modal from "../Modal";
@@ -54,15 +55,13 @@ export default function ConfigureAdaptorModal({
       <div className="space-y-6">
         <div className="grid grid-cols-3 items-end gap-4">
           <Field className="col-span-2" label={<>Adaptor<InfoTooltip title={ADAPTOR_HELP} /></>}>
-            <div className="flex items-center justify-between rounded-md border border-gray-200 bg-white p-3">
-              <div className="flex min-w-0 flex-1 items-center gap-2">
-                <AdaptorIcon name={adaptor} size="md" />
-                <span className="truncate font-medium text-gray-900">{adaptorDisplayName(adaptor)}</span>
-              </div>
+            <Card padding="sm" className="flex items-center gap-2">
+              <AdaptorIcon name={adaptor} size="md" />
+              <span className="flex-1 truncate font-medium text-gray-900">{adaptorDisplayName(adaptor)}</span>
               <Button theme="secondary" size="sm" onClick={onChangeAdaptor} aria-label="Change adaptor">
                 Change
               </Button>
-            </div>
+            </Card>
           </Field>
           <Select
             id="adaptor-version"
@@ -70,7 +69,6 @@ export default function ConfigureAdaptorModal({
             options={versions}
             value={version}
             onChange={(e) => onVersionChange(e.target.value)}
-            className="py-3"
           />
         </div>
 
@@ -80,16 +78,16 @@ export default function ConfigureAdaptorModal({
             {needsCredentials && <TextLink className="text-sm font-medium">New Credential</TextLink>}
           </div>
           {!needsCredentials ? (
-            <div className="rounded-md border border-gray-200 bg-gray-50 p-6 text-center">
-              <p className="text-sm text-gray-600">This adaptor does not require credentials.</p>
-            </div>
+            <Card muted padding="lg" className="text-center text-sm text-gray-600">
+              This adaptor does not require credentials.
+            </Card>
           ) : shown.length === 0 ? (
-            <div className="rounded-md border border-gray-200 p-6 text-center">
+            <Card padding="lg" className="text-center">
               <p className="mb-3 text-gray-500">No credentials found in this project</p>
               <TextLink className="text-sm font-medium">Create a new credential</TextLink>
-            </div>
+            </Card>
           ) : (
-            <div className="max-h-48 divide-y divide-gray-200 overflow-y-auto rounded-md border border-gray-200">
+            <Card padding="none" className="max-h-48 divide-y divide-gray-200 overflow-y-auto">
               {shown.map((c) => {
                 const selected = c.name === credentialName;
                 return (
@@ -114,7 +112,7 @@ export default function ConfigureAdaptorModal({
                   </div>
                 );
               })}
-            </div>
+            </Card>
           )}
         </div>
       </div>

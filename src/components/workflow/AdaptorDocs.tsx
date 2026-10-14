@@ -1,4 +1,5 @@
 import { adaptorFunctions, adaptorShortName, resolveAdaptor, resolvedAdaptorVersion } from "../../mock-data/adaptors";
+import Heading from "../Heading";
 import TextLink from "../TextLink";
 
 /**
@@ -12,64 +13,64 @@ export default function AdaptorDocs({ adaptor }: { adaptor: string }) {
   const version = resolvedAdaptorVersion(adaptor);
   const fns = adaptorFunctions(adaptor);
   return (
-    <div className="block w-full overflow-auto ml-1">
-      <h1 className="text-lg font-bold text-gray-700 mb-2 flex justify-between items-center">
-        <span>
+    <div className="ml-1 space-y-4 overflow-auto text-sm">
+      <div>
+        <Heading size="lg" as="h1" className="mb-2 text-gray-700">
           {pkg} ({version})
-        </span>
-      </h1>
-      <div className="mb-2 text-sm">
-        <div>
+        </Heading>
+        <p>
           External docs:
           <TextLink className="ml-2" to={`https://docs.openfn.org/adaptors/packages/${short}-docs`} external>
             docs.openfn.org
           </TextLink>
-        </div>
-        <div>
+        </p>
+        <p>
           Source code:
           <TextLink className="ml-2" to={`https://github.com/OpenFn/adaptors/tree/%40openfn/language-${short}%40${version}/packages/${short}/src`} external>
             github.com/OpenFn/adaptors
           </TextLink>
-        </div>
+        </p>
       </div>
-      <details className="mb-4">
-        <summary className="text-sm cursor-pointer">
+      <details>
+        <summary className="cursor-pointer">
           <h3 className="inline">Editor tips & shortcuts</h3>
         </summary>
-        <div className="text-sm border-solid border-gray-300 border-l-4 pl-2 mt-2">
+        <div className="mt-2 border-l-4 border-gray-300 pl-2">
           <p className="mb-2">
             Most adaptors provide intelligent code suggestions to the editor. Start typing and press TAB or ENTER to accept a
             suggestion, or ESC to cancel
           </p>
-          <ul className="list-disc ml-4">
+          <ul className="ml-4 list-disc">
             <li>Press CTRL+SPACE to show suggestions</li>
             <li>Press CTRL+SPACE again to toggle suggestion details (recommended!)</li>
             <li>Press F1 to show the command menu (not all commands will work!)</li>
           </ul>
         </div>
       </details>
-      <h3>Adaptor API</h3>
-      <div className="text-sm mb-4">These are the operations available for this adaptor:</div>
-      {fns.map((fn) => (
-        <details key={fn.name} className="ml-4">
-          <summary className="text-sm text-gray-700 mb-1 cursor-pointer marker:text-gray-600 marker:text-sm whitespace-nowrap hover:bg-sky-50/50">
-            {fn.name}({fn.params.join(", ")})
-          </summary>
-          <div className="block mb-4 pl-4">
-            <div className="block text-sm">
+      <div>
+        <Heading size="sm">Adaptor API</Heading>
+        <p>These are the operations available for this adaptor:</p>
+      </div>
+      <div>
+        {fns.map((fn) => (
+          <details key={fn.name} className="ml-4">
+            <summary className="mb-1 cursor-pointer whitespace-nowrap text-gray-700 marker:text-gray-600 hover:bg-gray-50">
+              {fn.name}({fn.params.join(", ")})
+            </summary>
+            <div className="mb-4 pl-4">
               <p>{fn.description}</p>
+              {fn.example && (
+                <>
+                  <p className="mt-2 text-gray-700">Example</p>
+                  <pre className="mx-4 mt-1 overflow-x-auto rounded-md border-2 border-gray-200 bg-gray-100 py-2 pr-8 pl-4 font-mono text-xs text-gray-800">
+                    {fn.example}
+                  </pre>
+                </>
+              )}
             </div>
-            {fn.example && (
-              <section>
-                <label className="block text-sm text-gray-700 mt-2">Example</label>
-                <pre className="rounded-md pl-4 pr-8 py-2 mx-4 mt-1 font-mono bg-gray-100 border-2 border-gray-200 text-gray-800 text-xs overflow-x-auto">
-                  {fn.example}
-                </pre>
-              </section>
-            )}
-          </div>
-        </details>
-      ))}
+          </details>
+        ))}
+      </div>
     </div>
   );
 }
@@ -78,8 +79,8 @@ export default function AdaptorDocs({ adaptor }: { adaptor: string }) {
 export function AdaptorMetadata({ adaptor }: { adaptor: string }) {
   return (
     <div>
-      <p className="block m-2">{`No metadata found for ${resolveAdaptor(adaptor).package}`}</p>
-      <p className="block m-2">This adaptor does not support magic functions yet.</p>
+      <p className="m-2">{`No metadata found for ${resolveAdaptor(adaptor).package}`}</p>
+      <p className="m-2">This adaptor does not support magic functions yet.</p>
     </div>
   );
 }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { WorkflowGraph } from "../../mock-data/workflow";
 import Button from "../Button";
 import CodeEditor from "./CodeEditor";
-import InspectorLayout from "./InspectorLayout";
+import InspectorLayout, { InspectorFooter } from "./InspectorLayout";
 import { workflowToYaml } from "./workflowYaml";
 
 function download(filename: string, text: string) {
@@ -25,29 +25,31 @@ export default function WorkflowCodePanel({ graph, onClose }: { graph: WorkflowG
       title="Workflow as Code"
       onClose={onClose}
       footer={
-        <div className="flex justify-end gap-2">
-          <Button id="download-workflow-code-btn" theme="secondary" onClick={() => download(`${graph.name}.yaml`, yaml)}>
-            Download
-          </Button>
-          <Button
-            id="copy-workflow-code-btn"
-            theme="secondary"
-            className="min-w-24"
-            onClick={() => {
-              void navigator.clipboard?.writeText(yaml).catch(() => {});
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
-            }}
-          >
-            {copied ? "Copied!" : "Copy Code"}
-          </Button>
-        </div>
+        <InspectorFooter
+          rightButtons={
+            <>
+              <Button id="download-workflow-code-btn" theme="secondary" onClick={() => download(`${graph.name}.yaml`, yaml)}>
+                Download
+              </Button>
+              <Button
+                id="copy-workflow-code-btn"
+                theme="secondary"
+                className="min-w-24"
+                onClick={() => {
+                  void navigator.clipboard?.writeText(yaml).catch(() => {});
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+              >
+                {copied ? "Copied!" : "Copy Code"}
+              </Button>
+            </>
+          }
+        />
       }
     >
-      <div className="h-[28rem] p-6">
-        <div className="h-full overflow-hidden rounded-md">
-          <CodeEditor value={yaml} readOnly ariaLabel="Workflow YAML code" />
-        </div>
+      <div className="h-100 overflow-hidden rounded-md">
+        <CodeEditor value={yaml} readOnly ariaLabel="Workflow YAML code" />
       </div>
     </InspectorLayout>
   );

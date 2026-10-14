@@ -70,24 +70,22 @@ export default function JobInspector({
   return (
     <>
       <InspectorLayout title={job.name} onClose={onClose} footer={footer} data-testid="job-inspector">
-        <div className="space-y-4 p-6">
-          <TextInput id="name" label="Job Name" value={job.name} onChange={(e) => onChange({ name: e.target.value })} />
-          <Field
-            label={
-              <>
-                Adaptor
-                <InfoTooltip title={ADAPTOR_HELP} />
-              </>
-            }
-          >
-            <AdaptorDisplay
-              adaptor={job.adaptor}
-              credentialName={job.credentialName}
-              onEdit={() => setConfigureOpen(true)}
-              onChangeAdaptor={() => setPickerOpen(true)}
-            />
-          </Field>
-        </div>
+        <TextInput id="name" label="Job Name" value={job.name} onChange={(e) => onChange({ name: e.target.value })} />
+        <Field
+          label={
+            <>
+              Adaptor
+              <InfoTooltip title={ADAPTOR_HELP} />
+            </>
+          }
+        >
+          <AdaptorDisplay
+            adaptor={job.adaptor}
+            credentialName={job.credentialName}
+            onEdit={() => setConfigureOpen(true)}
+            onChangeAdaptor={() => setPickerOpen(true)}
+          />
+        </Field>
       </InspectorLayout>
 
       <ConfigureAdaptorModal

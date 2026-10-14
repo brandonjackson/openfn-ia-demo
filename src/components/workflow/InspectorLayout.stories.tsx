@@ -9,7 +9,7 @@ const meta: Meta<typeof InspectorLayout> = {
   args: {
     title: "Path",
     onClose: () => {},
-    children: <p className="p-6 text-sm text-gray-600">Panel body</p>,
+    children: <p>Panel body</p>,
   },
 };
 export default meta;
@@ -26,4 +26,4 @@ export const WithFooter: Story = {
     ),
   },
 };
-export const BackButtonFixedHeight: Story = { args: { title: "Run from Transform data", showBackButton: true, fixedHeight: true } };
+export const BackButtonFixedHeight: Story = { args: { title: "Run from Transform data", showBackButton: true, fixedHeight: true, bare: true } };

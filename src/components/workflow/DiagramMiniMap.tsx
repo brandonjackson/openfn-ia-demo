@@ -52,7 +52,7 @@ export default function DiagramMiniMap({ graph, viewport, canvasSize, onCenter }
 
   return (
     <div
-      className="absolute right-[15px] bottom-[15px] z-[5] bg-white border-2 border-gray-200"
+      className="absolute right-4 bottom-4 z-5 border-2 border-gray-200 bg-white"
       onPointerDown={(e) => e.stopPropagation()}
     >
       <svg

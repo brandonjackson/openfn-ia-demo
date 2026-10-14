@@ -7,8 +7,6 @@ interface Props {
   id: string;
   annotation: Annotation | null;
   inventory?: InventoryRow;
-  loading?: boolean;
-  error?: string | null;
   /** Called with an id from the annotation's `inherits` / `flows` lists. */
   onOpenId?: (id: string) => void;
   inventoryHref?: string;
@@ -52,7 +50,7 @@ function IdList({ label, ids, onOpenId }: { label: string; ids: string[]; onOpen
  * belongs to, the shared annotations it inherits, then the markdown body.
  * Shows where things stand when the file hasn't been written yet.
  */
-export default function AnnotationCard({ id, annotation, inventory, loading, error, onOpenId, inventoryHref }: Props) {
+export default function AnnotationCard({ id, annotation, inventory, onOpenId, inventoryHref }: Props) {
   const fm = annotation?.frontMatter ?? {};
   const title = typeof fm.title === "string" ? fm.title : id;
   const status = typeof fm.status === "string" ? fm.status : null;
@@ -94,11 +92,7 @@ export default function AnnotationCard({ id, annotation, inventory, loading, err
         <IdList label="Flows" ids={list("flows")} onOpenId={onOpenId} />
       </div>
 
-      {loading && <p className="text-sm text-gray-500">Loading…</p>}
-      {error && (
-        <p className="rounded-md bg-red-50 p-3 text-sm text-red-700">Couldn't load the annotation: {error}</p>
-      )}
-      {!loading && !error && !annotation && (
+      {!annotation && (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-4 text-center">
           <span className="hero-document-magnifying-glass mx-auto h-10 w-10 text-gray-400" />
           <p className="mt-2 text-sm font-medium text-gray-700">Not annotated yet</p>

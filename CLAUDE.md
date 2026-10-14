@@ -33,7 +33,15 @@ inline literals scattered through the markup.
   with `Tr`/`Th`/`Td`/`EmptyState`, `PillTabs`, `Modal`, `Toggle`, `Inputs`).
 - `src/mock-data/` — fixtures modelled on Lightning's demo seed
   (`lib/lightning/setup_utils.ex`): users, projects, workflows, history.
-- `src/theme/` — the Style Picker. Lightning v2 is the default theme.
+- `src/theme/` — themes, chosen from the settings button (bottom right).
+  Lightning v2 is the default.
+- `annotations/` — a copy of the behaviour audit from OpenFn/lightning
+  (`annotations/SOURCE.md` says which commit). The annotations panel, opened
+  from the settings button, shows the annotation for the element under the
+  mouse: the nearest `data-annotation="<id>"`, else the page's view id
+  (`src/annotations/viewIds.ts`). Put `data-annotation` on any sub-panel that
+  has its own inventory or shared id. To update, replace the folder with the
+  branch's current `annotations/` and update SOURCE.md.
 
 ## Matching Lightning
 

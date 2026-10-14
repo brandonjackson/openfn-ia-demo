@@ -11,7 +11,6 @@ function OpenPanel() {
   return <AnnotationsPanel />;
 }
 
-/** Fetches live from GitHub, so it needs a network connection. */
 const meta: Meta<typeof AnnotationsPanel> = {
   title: "Devtools/AnnotationsPanel",
   component: AnnotationsPanel,
@@ -21,10 +20,10 @@ const meta: Meta<typeof AnnotationsPanel> = {
         <Story />
       </AnnotationsProvider>
     ),
-    withRouterAt("/projects/4adf2644-ed4e-4f97-a24c-ab35b3cb1efa/settings#credentials"),
+    withRouterAt("/projects/4adf2644-ed4e-4f97-a24c-ab35b3cb1efa/settings#collaboration"),
   ],
   parameters: { layout: "fullscreen" },
 };
 export default meta;
 
-export const ProjectSettingsCredentials: StoryObj = { render: () => <OpenPanel /> };
+export const ProjectSettingsCollaborators: StoryObj = { render: () => <OpenPanel /> };

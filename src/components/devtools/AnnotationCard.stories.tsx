@@ -38,5 +38,3 @@ export const NotWrittenYet: Story = {
     inventoryHref: "#",
   },
 };
-export const Loading: Story = { args: { annotation: null, loading: true } };
-export const Failed: Story = { args: { annotation: null, error: "GitHub returned 503" } };

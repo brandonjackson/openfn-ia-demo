@@ -1,34 +1,16 @@
-import { useState, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { useState } from "react";
 import Button from "../Button";
+import ConfirmModal from "../ConfirmModal";
 import { TextInput } from "../Inputs";
+import Modal from "../Modal";
+import TextLink from "../TextLink";
 import PlainSwitch from "../project-settings/PlainSwitch";
 import ProfileCard, { ProfileCardHeading } from "./ProfileCard";
-import { buttonClasses } from "../buttonClasses";
 import { fakeTotpSecret } from "../../mock-data/profile";
 
 interface Props {
   mfaEnabled: boolean;
   onChange?: (enabled: boolean) => void;
-}
-
-/** Tailwind UI alert dialog used by the MFA card's two modals. */
-function AlertDialog({ onClose, children }: { onClose: () => void; children: ReactNode }) {
-  return (
-    <div className="relative z-10" role="dialog" aria-modal="true">
-      <div className="fixed inset-0 bg-gray-500/75 transition-opacity" />
-      <div className="fixed inset-0 z-10 overflow-y-auto" onClick={onClose}>
-        <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6"
-          >
-            {children}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 /** A stand-in for the TOTP QR code (Lightning renders a real one with EQRCode). */
@@ -88,9 +70,9 @@ export default function MfaCard({ mfaEnabled, onChange }: Props) {
       {mfaEnabled && !editing && (
         <div className="py-5 text-sm">
           You have configured an authentication app to get two-factor authentication codes.{" "}
-          <a id="setup_another_totp_device" href="#" onClick={(e) => (e.preventDefault(), setEditing(true))} className="link font-medium">
+          <TextLink onClick={() => setEditing(true)} className="font-medium">
             Setup another device instead
-          </a>
+          </TextLink>
         </div>
       )}
 
@@ -109,9 +91,7 @@ export default function MfaCard({ mfaEnabled, onChange }: Props) {
             <FakeQrCode />
             <p className="mt-2 max-w-4xl text-sm text-gray-500">
               Unable to scan? You can use{" "}
-              <a href="#" className="link" onClick={(e) => (e.preventDefault(), setShowSecret(true))}>
-                this secret key
-              </a>{" "}
+              <TextLink onClick={() => setShowSecret(true)}>this secret key</TextLink>{" "}
               to manually configure your authenticator app.
             </p>
             <form
@@ -135,15 +115,11 @@ export default function MfaCard({ mfaEnabled, onChange }: Props) {
                     onChange={(e) => setCode(e.target.value)}
                   />
                 </div>
-                <div className="col-span-6 space-x-1">
-                  <span>
-                    <Button theme="secondary" onClick={() => setEditing(false)}>
-                      Cancel
-                    </Button>
-                  </span>
-                  <span>
-                    <Button type="submit">Save</Button>
-                  </span>
+                <div className="col-span-6 flex gap-1">
+                  <Button theme="secondary" onClick={() => setEditing(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">Save</Button>
                 </div>
               </div>
             </form>
@@ -160,67 +136,32 @@ export default function MfaCard({ mfaEnabled, onChange }: Props) {
               receive two-factor authentication codes.
             </p>
           </div>
-          <Link to="/profile/auth/backup_codes" className={buttonClasses("secondary", "md", false, "ml-5")}>
+          <Button theme="secondary" to="/profile/auth/backup_codes" className="ml-5">
             View
-          </Link>
+          </Button>
         </div>
       )}
 
-      {confirmDisable && (
-        <AlertDialog onClose={() => setConfirmDisable(false)}>
-          <div className="sm:flex sm:items-start">
-            <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-              <span className="hero-exclamation-triangle h-6 w-6 text-red-600" />
-            </div>
-            <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-              <h3 className="text-base font-semibold leading-6 text-gray-900">Disable MFA</h3>
-              <div className="mt-2">
-                <p className="text-sm text-gray-500">
-                  Are you sure you want to disable MFA from your account? This will make your account less secure.
-                  Should an attacker get hold of your password, there will be nothing preventing them from accessing
-                  your account
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
-            <Button
-              id="disable_mfa_button"
-              theme="danger"
-              onClick={() => {
-                setConfirmDisable(false);
-                onChange?.(false);
-              }}
-            >
-              Disable
-            </Button>
-            <Button theme="secondary" onClick={() => setConfirmDisable(false)}>
-              Cancel
-            </Button>
-          </div>
-        </AlertDialog>
-      )}
+      <ConfirmModal
+        open={confirmDisable}
+        onClose={() => setConfirmDisable(false)}
+        title="Disable MFA"
+        tone="danger"
+        confirmLabel="Disable"
+        onConfirm={() => {
+          setConfirmDisable(false);
+          onChange?.(false);
+        }}
+      >
+        <p>
+          Are you sure you want to disable MFA from your account? This will make your account less secure. Should an
+          attacker get hold of your password, there will be nothing preventing them from accessing your account
+        </p>
+      </ConfirmModal>
 
-      {showSecret && (
-        <AlertDialog onClose={() => setShowSecret(false)}>
-          <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
-            <button type="button" onClick={() => setShowSecret(false)} className="rounded-md bg-white text-gray-400 hover:text-gray-500">
-              <span className="sr-only">Close</span>
-              <span className="hero-x-mark h-6 w-6" />
-            </button>
-          </div>
-          <div className="sm:flex sm:items-start">
-            <div className="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
-              <h3 className="text-base font-semibold leading-6 text-gray-900">Your two-factor secret</h3>
-              <div className="mt-2">
-                <p className="text-sm text-gray-500">
-                  <code>{fakeTotpSecret}</code>
-                </p>
-              </div>
-            </div>
-          </div>
-        </AlertDialog>
-      )}
+      <Modal open={showSecret} onClose={() => setShowSecret(false)} title="Your two-factor secret" size="sm">
+        <code className="text-sm text-gray-600">{fakeTotpSecret}</code>
+      </Modal>
     </ProfileCard>
   );
 }

@@ -1,4 +1,3 @@
-import { GlobeAltIcon } from "@heroicons/react/24/outline";
 import type { Meta, StoryObj } from "@storybook/react";
 import { adaptorIconUrl } from "../../mock-data/adaptors";
 import DiagramNode from "./DiagramNode";
@@ -30,7 +29,7 @@ export const Trigger: Story = {
     shape: "circle",
     label: "Webhook trigger",
     sublabel: "On each request received",
-    icon: <GlobeAltIcon />,
+    icon: <span className="hero-globe-alt block h-full w-full" />,
   },
 };
 export const DisabledTrigger: Story = { args: { ...Trigger.args, disabled: true } };

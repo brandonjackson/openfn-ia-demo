@@ -1,37 +1,24 @@
-import Modal from "../Modal";
-import Button from "../Button";
+import ConfirmModal from "../ConfirmModal";
 
 /** Lightning's TokenDeletionModal (live/components/token_deletion_modal.ex). */
-export default function TokenDeletionModal({ id, onClose, onDelete }: { id: string; onClose: () => void; onDelete?: () => void }) {
+export default function TokenDeletionModal({ onClose, onDelete }: { onClose: () => void; onDelete?: () => void }) {
   return (
-    <Modal
+    <ConfirmModal
       open
       onClose={onClose}
-      width="max-w-md"
-      title={<span className="font-bold">Delete API Access Token</span>}
-      footer={
-        <>
-          <Button
-            id={`delete-token-${id}_confirm_button`}
-            theme="danger"
-            onClick={() => {
-              onDelete?.();
-              onClose();
-            }}
-          >
-            Yes
-          </Button>
-          <Button theme="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-        </>
-      }
+      title="Delete API Access Token"
+      tone="danger"
+      confirmLabel="Yes"
+      onConfirm={() => {
+        onDelete?.();
+        onClose();
+      }}
     >
-      <p className="text-sm text-gray-500">
+      <p>
         Any applications or scripts using this token will no longer be able to access the API. You cannot undo this
-        action. <br />
-        Are you sure you want to delete this token?
+        action.
       </p>
-    </Modal>
+      <p>Are you sure you want to delete this token?</p>
+    </ConfirmModal>
   );
 }

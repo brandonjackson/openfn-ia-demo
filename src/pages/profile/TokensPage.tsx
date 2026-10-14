@@ -41,7 +41,6 @@ export default function TokensPage() {
       <Centered>
         {tokenId && tokens.some((t) => t.id === tokenId) && (
           <TokenDeletionModal
-            id={tokenId}
             onClose={() => navigate("/profile/tokens")}
             onDelete={() => setTokens((list) => list.filter((t) => t.id !== tokenId))}
           />

@@ -1,8 +1,11 @@
 import { useState, type ReactNode } from "react";
 import { webhookUrl, type EditorTrigger } from "../../mock-data/workflow";
 import { cn } from "../../utils/cn";
-import { linkClasses } from "./editorClasses";
-import EditorButton from "./EditorButton";
+import Button from "../Button";
+import IconButton from "../IconButton";
+import { Radio, TextInput } from "../Inputs";
+import Pill from "../Pill";
+import TextLink from "../TextLink";
 import InspectorLayout, { InspectorFooter } from "./InspectorLayout";
 
 const TITLES = { webhook: "On webhook call", cron: "On a schedule" } as const;
@@ -24,20 +27,15 @@ const ON_COMPLETE = {
 export function TriggerTypeBadge({ type = "webhook" }: { type?: "webhook" | "cron" }) {
   const [icon, label] = type === "cron" ? ["hero-clock-mini", "Schedule / Cron"] : ["hero-globe-alt-mini", "Webhook"];
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-      <span className={`${icon} h-4 w-4`} />
+    <Pill color="green" className="gap-1.5 px-2.5 py-1">
+      <span className={cn(icon, "h-4 w-4")} />
       {label}
-    </span>
+    </Pill>
   );
 }
 
-function ReadOnlyField({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="space-y-2">
-      <span className="block text-sm font-medium text-slate-900">{label}</span>
-      <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-slate-500">{children}</div>
-    </div>
-  );
+function ReadOnlyField({ id, label, value }: { id: string; label: string; value: string }) {
+  return <TextInput id={id} label={label} value={value} readOnly className="text-slate-500" />;
 }
 
 function Collapsible({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
@@ -62,11 +60,9 @@ function EditFooter({ onEdit }: { onEdit: () => void }) {
   return (
     <InspectorFooter
       leftButtons={
-        <span className="inline-block" title="Edit trigger">
-          <EditorButton variant="secondary" onClick={onEdit} aria-label="Edit trigger">
-            Edit
-          </EditorButton>
-        </span>
+        <Button theme="secondary" onClick={onEdit} tooltip="Edit trigger">
+          Edit
+        </Button>
       }
     />
   );
@@ -76,9 +72,9 @@ function WizardBreadcrumb({ step, onChoose }: { step: "choose" | "configure"; on
   return (
     <nav aria-label="Wizard steps" className="flex items-center gap-1.5 text-xs">
       {step === "configure" && onChoose ? (
-        <button type="button" onClick={onChoose} className="text-slate-400 hover:text-slate-600 focus:outline-none">
+        <TextLink onClick={onChoose} className="text-slate-400 hover:text-slate-600">
           Choose
-        </button>
+        </TextLink>
       ) : (
         <span className={step === "choose" ? "font-semibold text-slate-900 underline" : "text-slate-400"}>Choose</span>
       )}
@@ -92,19 +88,17 @@ function WizardBreadcrumb({ step, onChoose }: { step: "choose" | "configure"; on
 
 function WizardFooter({ label, onPrimary, onCancel }: { label: string; onPrimary: () => void; onCancel?: () => void }) {
   const primary = (
-    <EditorButton onClick={onPrimary} className={onCancel ? "" : "w-full"}>
-      <span className="inline-flex items-center gap-1.5">
-        {label}
-        <span className="hero-arrow-right-micro h-4 w-4" />
-      </span>
-    </EditorButton>
+    <Button onClick={onPrimary} className={onCancel ? undefined : "w-full"}>
+      {label}
+      <span className="hero-arrow-right-micro h-4 w-4" />
+    </Button>
   );
   return onCancel ? (
     <InspectorFooter
       leftButtons={
-        <EditorButton variant="ghost" onClick={onCancel}>
+        <Button theme="secondary" onClick={onCancel}>
           Cancel
-        </EditorButton>
+        </Button>
       }
       rightButtons={primary}
     />
@@ -150,8 +144,8 @@ export default function TriggerInspector({ trigger, onChange, onClose }: Props) 
           <WizardBreadcrumb step="choose" />
           <div className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2">
             <TriggerTypeBadge type={draft.type} />
-            <button
-              type="button"
+            <TextLink
+              className="text-sm font-semibold"
               onClick={() =>
                 setDraft((d) =>
                   d.type === "webhook"
@@ -159,10 +153,9 @@ export default function TriggerInspector({ trigger, onChange, onClose }: Props) 
                     : { ...d, type: "webhook" }
                 )
               }
-              className={cn(linkClasses, "text-sm font-semibold no-underline")}
             >
               Change
-            </button>
+            </TextLink>
           </div>
         </div>
       </InspectorLayout>
@@ -200,36 +193,27 @@ export default function TriggerInspector({ trigger, onChange, onClose }: Props) 
               <div className="space-y-2">
                 <span className="block text-sm font-medium text-slate-800">Response</span>
                 {[IMMEDIATELY, ON_COMPLETE].map((o) => (
-                  <label key={o.value} className="flex items-start gap-2 rounded-lg border border-gray-200 px-3 py-2 cursor-pointer hover:bg-gray-50">
-                    <input
-                      type="radio"
+                  <div key={o.value} className="rounded-lg border border-gray-200 px-3 py-2 hover:bg-gray-50">
+                    <Radio
                       name="webhook-reply"
-                      className="mt-0.5 h-4 w-4 text-primary-600 border-gray-300"
+                      label={o.label}
+                      hint={o.description}
                       checked={draft.webhookReply === o.value}
                       onChange={() => setDraft((d) => ({ ...d, webhookReply: o.value }))}
                     />
-                    <span>
-                      <span className="block text-sm font-medium text-slate-800">{o.label}</span>
-                      <span className="block text-xs text-slate-500">{o.description}</span>
-                    </span>
-                  </label>
+                  </div>
                 ))}
               </div>
             </>
           ) : (
-            <div className="space-y-2">
-              <label htmlFor="cron-expression" className="block text-sm font-medium text-slate-900">
-                Cron Expression
-              </label>
-              <input
-                id="cron-expression"
-                type="text"
-                value={draft.cronExpression ?? ""}
-                onChange={(e) => setDraft((d) => ({ ...d, cronExpression: e.target.value, cronDescription: e.target.value }))}
-                className="block w-full rounded-lg border-slate-300 font-mono text-sm text-slate-900 focus:border-slate-400 focus:ring-0"
-              />
-              <p className="text-xs text-slate-500">Minute, hour, day of month, month, day of week (UTC).</p>
-            </div>
+            <TextInput
+              id="cron-expression"
+              label="Cron Expression"
+              hint="Minute, hour, day of month, month, day of week (UTC)."
+              value={draft.cronExpression ?? ""}
+              onChange={(e) => setDraft((d) => ({ ...d, cronExpression: e.target.value, cronDescription: e.target.value }))}
+              className="font-mono"
+            />
           )}
         </div>
       </InspectorLayout>
@@ -243,8 +227,8 @@ export default function TriggerInspector({ trigger, onChange, onClose }: Props) 
           <div className="rounded-lg border border-gray-200 bg-white px-3 py-2">
             <TriggerTypeBadge type="cron" />
           </div>
-          <ReadOnlyField label="Frequency">{trigger.cronDescription ?? trigger.cronExpression ?? "Invalid schedule"}</ReadOnlyField>
-          <ReadOnlyField label="Cron Input Source">Final run state (default)</ReadOnlyField>
+          <ReadOnlyField id="frequency" label="Frequency" value={trigger.cronDescription ?? trigger.cronExpression ?? "Invalid schedule"} />
+          <ReadOnlyField id="cron-input-source" label="Cron Input Source" value="Final run state (default)" />
         </div>
       </InspectorLayout>
     );
@@ -264,22 +248,18 @@ export default function TriggerInspector({ trigger, onChange, onClose }: Props) 
           <ul className="mt-2 divide-y divide-gray-200 overflow-hidden rounded-lg border border-gray-200">
             <li className="px-2 py-2">
               <div className="flex items-center justify-between gap-2">
-                <span className="shrink-0 rounded-full bg-gray-50 px-2 py-0.5 text-[11px] font-medium leading-4 text-gray-600 ring-1 ring-inset ring-gray-200">
-                  Default
-                </span>
-                <button
-                  type="button"
+                <Pill>Default</Pill>
+                <IconButton
+                  icon={copied ? "hero-check-micro" : "hero-square-2-stack-micro"}
+                  label={copied ? "Copied!" : "Copy Default URL"}
+                  size="sm"
+                  className={cn(copied && "text-green-600 hover:text-green-600")}
                   onClick={() => {
                     void navigator.clipboard?.writeText(url).catch(() => {});
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   }}
-                  title={copied ? "Copied!" : "Copy Default URL"}
-                  aria-label={copied ? "Copied!" : "Copy Default URL"}
-                  className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-                >
-                  <span className={`block h-4 w-4 ${copied ? "hero-check-micro text-green-600" : "hero-square-2-stack-micro"}`} />
-                </button>
+                />
               </div>
               <div className="mt-0.5 break-all font-mono text-xs leading-5 text-slate-600">{url}</div>
             </li>
@@ -295,18 +275,18 @@ export default function TriggerInspector({ trigger, onChange, onClose }: Props) 
           ) : (
             <p className="text-xs text-slate-500">
               No authentication configured.{" "}
-              <button type="button" onClick={startEdit} className={cn(linkClasses, "text-xs font-medium no-underline")}>
+              <TextLink onClick={startEdit} className="text-xs font-medium">
                 Add authentication
-              </button>
+              </TextLink>
             </p>
           )}
         </Collapsible>
         <Collapsible title="Response">
           <p className="text-xs leading-5 text-slate-500">
             {response.shortDescription}{" "}
-            <a href="https://docs.openfn.org/documentation/build/triggers#webhook-responses" target="_blank" rel="noreferrer" className={cn(linkClasses, "text-xs")}>
+            <TextLink to="https://docs.openfn.org/documentation/build/triggers#webhook-responses" external className="text-xs">
               learn more
-            </a>
+            </TextLink>
           </p>
         </Collapsible>
       </div>

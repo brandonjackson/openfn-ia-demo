@@ -19,6 +19,11 @@ const meta: Meta<typeof UserMenu> = {
 export default meta;
 type Story = StoryObj<typeof UserMenu>;
 
+/** Opens the menu by clicking its trigger. */
+const openMenu: Story["play"] = async ({ canvasElement }) => {
+  canvasElement.querySelector<HTMLButtonElement>('[data-ui="account-trigger"]')?.click();
+};
+
 export const Closed: Story = {};
-export const Open: Story = { args: { defaultOpen: true } };
-export const ExperimentalFeaturesOn: Story = { args: { defaultOpen: true, user: users[3] } };
+export const Open: Story = { play: openMenu };
+export const ExperimentalFeaturesOn: Story = { args: { user: users[3] }, play: openMenu };

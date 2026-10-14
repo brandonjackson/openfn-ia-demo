@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { adaptors, resolvedAdaptorVersion } from "../../mock-data/adaptors";
+import Modal from "../Modal";
 import AdaptorIcon from "./AdaptorIcon";
-import EditorDialog from "./EditorDialog";
+import SearchInput from "./SearchInput";
 
 interface Props {
   isOpen: boolean;
@@ -53,26 +54,9 @@ export default function AdaptorSelectionModal({ isOpen, onClose, onSelect, adapt
   };
 
   return (
-    <EditorDialog open={isOpen} onClose={onClose} className="px-4 pb-4 pt-5 sm:max-w-lg sm:p-6">
+    <Modal open={isOpen} onClose={onClose} size="md">
       <div className="flex flex-col gap-3">
-        <div className="relative">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search for an adaptor to connect..."
-            autoComplete="off"
-            className="block w-full rounded-md border-secondary-300 pl-10 pr-10 shadow-xs sm:text-sm focus:border-primary-300 focus:ring focus:ring-primary-200/50"
-          />
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <span className="hero-magnifying-glass h-5 w-5 text-gray-400" />
-          </div>
-          {query && (
-            <button type="button" onClick={() => setQuery("")} className="absolute inset-y-0 right-0 flex items-center pr-3">
-              <span className="hero-x-mark h-5 w-5 text-gray-400 hover:text-gray-600" />
-            </button>
-          )}
-        </div>
+        <SearchInput value={query} onChange={setQuery} placeholder="Search for an adaptor to connect..." autoFocus />
         <div role="listbox" aria-label="Adaptor options" className="max-h-96 overflow-y-auto">
           {fallback && (
             <>
@@ -107,6 +91,6 @@ export default function AdaptorSelectionModal({ isOpen, onClose, onSelect, adapt
           )}
         </div>
       </div>
-    </EditorDialog>
+    </Modal>
   );
 }

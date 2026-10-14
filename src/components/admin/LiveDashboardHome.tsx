@@ -49,12 +49,13 @@ function Limit({ label, used, limit }: { label: string; used: number; limit: num
 /**
  * A static stand-in for Phoenix LiveDashboard's home page (/dashboard).
  * LiveDashboard is a third-party library with its own full-page layout, so
- * this covers the app shell and is labelled as an approximation.
+ * the route sits outside the app shell and the page is labelled as an
+ * approximation.
  */
 export default function LiveDashboardHome({ data = liveDashboard }: { data?: Data }) {
   const totalMemory = data.memory.reduce((s, m) => s + m.value, 0);
   return (
-    <div className="fixed inset-0 z-[100] overflow-y-auto bg-[#e9edf5] text-[#3d4352] font-[Nunito,ui-sans-serif,system-ui,sans-serif]">
+    <div className="min-h-screen bg-[#e9edf5] text-[#3d4352] font-[Nunito,ui-sans-serif,system-ui,sans-serif]">
       <div className="bg-amber-100 border-b border-amber-300 px-4 py-2 text-sm text-amber-900 flex items-center gap-2">
         <span className="hero-information-circle-solid h-5 w-5 text-amber-500" />
         <span>

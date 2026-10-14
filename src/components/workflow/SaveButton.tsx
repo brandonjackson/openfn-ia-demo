@@ -1,4 +1,4 @@
-import EditorButton from "./EditorButton";
+import Button from "../Button";
 
 interface Props {
   onClick: () => void;
@@ -18,14 +18,10 @@ interface Props {
 export default function SaveButton({ onClick, canSave = true, hasChanges = false, label = "Save", tooltip = "⌘ S" }: Props) {
   return (
     <div className="relative">
-      <div className="inline-flex rounded-md shadow-xs z-5">
-        <span className="inline-block" title={tooltip}>
-          <EditorButton className="cursor-pointer focus:ring-transparent" onClick={onClick} disabled={!canSave}>
-            {label}
-          </EditorButton>
-        </span>
-      </div>
-      {hasChanges && <div className="absolute -m-1 top-0 right-0 z-10 size-3 bg-danger-500 rounded-full" data-is-dirty />}
+      <Button onClick={onClick} disabled={!canSave} tooltip={tooltip}>
+        {label}
+      </Button>
+      {hasChanges && <div className="absolute top-0 right-0 -m-1 size-3 rounded-full bg-danger-500" data-is-dirty />}
     </div>
   );
 }

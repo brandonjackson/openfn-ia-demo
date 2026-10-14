@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import EditorButton from "./EditorButton";
+import Button from "../Button";
 import InspectorLayout, { InspectorFooter } from "./InspectorLayout";
 
 const meta: Meta<typeof InspectorLayout> = {
@@ -20,8 +20,8 @@ export const WithFooter: Story = {
   args: {
     footer: (
       <InspectorFooter
-        leftButtons={<EditorButton variant="secondary">Edit</EditorButton>}
-        rightButtons={<EditorButton variant="danger">Delete</EditorButton>}
+        leftButtons={<Button theme="secondary">Edit</Button>}
+        rightButtons={<Button theme="danger">Delete</Button>}
       />
     ),
   },

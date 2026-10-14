@@ -1,8 +1,7 @@
 import { useState } from "react";
 import Button from "../Button";
-import Modal from "../Modal";
+import ConfirmModal from "../ConfirmModal";
 import ProfileCard, { ProfileCardHeading } from "./ProfileCard";
-import { buttonClasses } from "../buttonClasses";
 
 interface Props {
   /** VersionControl.github_enabled?(): is a GitHub app configured on the instance? */
@@ -31,39 +30,26 @@ export default function GithubCard({ oauthEnabled, connected, onDisconnect }: Pr
             Disconnect from GitHub
           </Button>
         ) : (
-          <a id="connect-github-link" href="#" onClick={(e) => e.preventDefault()} className={buttonClasses("primary")}>
-            Connect your GitHub Account
-          </a>
+          // Lightning links to the GitHub app's OAuth URL; the demo has none.
+          <Button id="connect-github-link">Connect your GitHub Account</Button>
         )}
       </div>
-      <Modal
+      <ConfirmModal
         open={confirming}
         onClose={() => setConfirming(false)}
-        width="max-w-md"
-        title={<span className="font-bold">Disconnect from GitHub?</span>}
-        footer={
-          <>
-            <Button
-              id="disconnect_github_modal_confirm_button"
-              theme="danger"
-              onClick={() => {
-                setConfirming(false);
-                onDisconnect?.();
-              }}
-            >
-              Disconnect
-            </Button>
-            <Button theme="secondary" onClick={() => setConfirming(false)}>
-              Cancel
-            </Button>
-          </>
-        }
+        title="Disconnect from GitHub?"
+        tone="danger"
+        confirmLabel="Disconnect"
+        onConfirm={() => {
+          setConfirming(false);
+          onDisconnect?.();
+        }}
       >
-        <p className="text-sm text-gray-500">
+        <p>
           You are about to disconnect your OpenFn account from GitHub. Until you reconnect, you will not be able to set
           up or modify version control for your projects.
         </p>
-      </Modal>
+      </ConfirmModal>
     </ProfileCard>
   );
 }

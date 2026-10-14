@@ -1,8 +1,12 @@
-import { useCallback, useRef, useState } from "react";
+import { useState } from "react";
 import type { AIMessage, AISession } from "../../mock-data/ai-assistant";
 import { cn } from "../../utils/cn";
+import Button from "../Button";
+import IconButton from "../IconButton";
+import Menu, { MenuDivider, MenuItem } from "../Menu";
+import Modal from "../Modal";
 import AIDisclaimerFooter from "./AIDisclaimerFooter";
-import { useDismiss } from "./useDismiss";
+import SearchInput from "./SearchInput";
 
 function relative(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -34,11 +38,7 @@ export default function AIAssistantPanel({ sessions, onClose }: Props) {
   const [input, setInput] = useState("");
   const [query, setQuery] = useState("");
   const [desc, setDesc] = useState(true);
-  const [menuOpen, setMenuOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const closeMenu = useCallback(() => setMenuOpen(false), []);
-  useDismiss(menuRef, menuOpen, closeMenu);
 
   const session = sessions.find((s) => s.id === sessionId);
   const key = sessionId ?? "new";
@@ -63,8 +63,6 @@ export default function AIAssistantPanel({ sessions, onClose }: Props) {
     .filter((s) => !query || s.title.toLowerCase().includes(query.toLowerCase()))
     .sort((a, b) => (desc ? b.updatedAt.localeCompare(a.updatedAt) : a.updatedAt.localeCompare(b.updatedAt)));
 
-  const menuItem = "group flex items-center w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150";
-
   return (
     <aside
       data-testid="ai-assistant-panel"
@@ -78,72 +76,39 @@ export default function AIAssistantPanel({ sessions, onClose }: Props) {
             <img src={`${import.meta.env.BASE_URL}images/logo.svg`} alt="OpenFn" className="size-6" />
             <h2 className="text-base font-semibold text-gray-900">Assistant</h2>
           </div>
-          <div className="flex items-center gap-2">
-            <div ref={menuRef} className="relative">
-              <button
-                type="button"
-                onClick={() => setMenuOpen((o) => !o)}
-                className={cn(
-                  "inline-flex items-center justify-center h-8 w-8 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-150",
-                  menuOpen && "bg-gray-100 text-gray-700"
-                )}
-                aria-label="More options"
-                aria-expanded={menuOpen}
+          <div className="flex items-center gap-1">
+            <Menu className="w-64" trigger={<IconButton icon="hero-ellipsis-vertical" label="More options" />}>
+              <MenuItem
+                icon="hero-chat-bubble-left-right"
+                selected={view === "sessions"}
+                onClick={() => {
+                  setView("sessions");
+                  setSessionId(null);
+                }}
               >
-                <span className="hero-ellipsis-vertical h-5 w-5" />
-              </button>
-              {menuOpen && (
-                <div className="absolute right-0 mt-2 w-64 origin-top-right rounded-lg shadow-xl bg-white ring-1 ring-gray-900/10 divide-y divide-gray-100 z-50">
-                  <div className="py-1.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setView("sessions");
-                        setSessionId(null);
-                        closeMenu();
-                      }}
-                      className={cn(menuItem, "font-medium", view === "sessions" && "bg-primary-50 text-primary-700")}
-                    >
-                      <span className={cn("hero-chat-bubble-left-right h-5 w-5 mr-3", view === "sessions" ? "text-primary-600" : "text-gray-400")} />
-                      <span className="flex-1 text-left">Conversations</span>
-                      {view === "sessions" && <span className="hero-check h-4 w-4 text-primary-600 ml-2" />}
-                    </button>
-                  </div>
-                  <div className="py-1.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAboutOpen(true);
-                        closeMenu();
-                      }}
-                      className={menuItem}
-                    >
-                      <span className="hero-information-circle h-5 w-5 mr-3 text-gray-400" />
-                      <span>About the AI Assistant</span>
-                    </button>
-                    <a href="https://www.openfn.org/ai" target="_blank" rel="noopener noreferrer" className={menuItem}>
-                      <span className="hero-document-text h-5 w-5 mr-3 text-gray-400" />
-                      <span className="flex-1">Responsible AI Policy</span>
-                      <span className="hero-arrow-top-right-on-square h-4 w-4 ml-2 text-gray-400" />
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
-            <button
-              type="button"
+                Conversations
+              </MenuItem>
+              <MenuDivider />
+              <MenuItem icon="hero-information-circle" onClick={() => setAboutOpen(true)}>
+                About the AI Assistant
+              </MenuItem>
+              <MenuItem icon="hero-document-text" href="https://www.openfn.org/ai">
+                <span className="inline-flex items-center gap-2">
+                  Responsible AI Policy
+                  <span className="hero-arrow-top-right-on-square h-4 w-4 text-gray-400" />
+                </span>
+              </MenuItem>
+            </Menu>
+            <IconButton
+              icon="hero-x-mark"
+              label={view === "chat" ? "Close current session" : "Close assistant"}
               onClick={() => {
                 if (view === "chat") {
                   setView("sessions");
                   setSessionId(null);
                 } else onClose();
               }}
-              title={view === "chat" ? "Close current session" : "Close assistant"}
-              className="inline-flex items-center justify-center h-8 w-8 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-150 shrink-0"
-              aria-label={view === "chat" ? "Close current session" : "Close assistant"}
-            >
-              <span className="hero-x-mark h-5 w-5" />
-            </button>
+            />
           </div>
         </div>
       </div>
@@ -164,12 +129,12 @@ export default function AIAssistantPanel({ sessions, onClose }: Props) {
                       <div className="flex items-center justify-between bg-gray-50 px-3 py-1.5 border-b border-gray-200">
                         <span className="text-xs font-medium text-gray-600">Job code</span>
                         <div className="flex gap-2">
-                          <button type="button" className="text-xs font-medium text-gray-600 hover:text-gray-900">
+                          <Button theme="secondary" size="sm" className="px-2 py-0.5 text-xs">
                             Copy
-                          </button>
-                          <button type="button" className="text-xs font-medium text-primary-600 hover:text-primary-700">
+                          </Button>
+                          <Button size="sm" className="px-2 py-0.5 text-xs">
                             Add
-                          </button>
+                          </Button>
                         </div>
                       </div>
                       <pre className="bg-slate-700 text-slate-200 text-xs font-mono p-3 overflow-x-auto">{m.code}</pre>
@@ -191,25 +156,11 @@ export default function AIAssistantPanel({ sessions, onClose }: Props) {
           <div className="flex flex-col h-full overflow-hidden bg-white">
             <div className="flex-none px-6 pt-3 pb-2">
               <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 hero-magnifying-glass h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search conversations..."
-                    autoComplete="off"
-                    className="w-full h-[34px] pl-9 pr-3 text-sm bg-gray-50 border border-gray-200 rounded-lg placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setDesc((d) => !d)}
-                  className="flex-shrink-0 flex items-center gap-2 h-9 px-3 rounded-lg text-xs font-medium bg-gray-50 text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                >
+                <SearchInput value={query} onChange={setQuery} placeholder="Search conversations..." className="flex-1" />
+                <Button theme="secondary" size="sm" className="shrink-0" onClick={() => setDesc((d) => !d)}>
                   <span className={cn("hero-arrow-down h-3.5 w-3.5 transition-transform", !desc && "rotate-180")} />
                   {desc ? "Latest" : "Oldest"}
-                </button>
+                </Button>
               </div>
             </div>
             <div className="flex-1 overflow-y-auto">
@@ -266,63 +217,42 @@ export default function AIAssistantPanel({ sessions, onClose }: Props) {
               />
               <div className="flex items-center justify-between gap-3 px-3 pb-2">
                 <AIDisclaimerFooter />
-                <button
+                <IconButton
                   type="submit"
                   data-testid="send-message-button"
+                  icon="hero-paper-airplane-solid"
+                  label="Send message"
+                  active={!!input.trim()}
                   disabled={!input.trim()}
-                  className={cn(
-                    "inline-flex items-center justify-center h-7 w-7 rounded-lg transition-all duration-200",
-                    input.trim() ? "bg-primary-600 hover:bg-primary-700 text-white" : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  )}
-                  aria-label="Send message"
-                >
-                  <span className="hero-paper-airplane-solid h-4 w-4" />
-                </button>
+                />
               </div>
             </div>
           </form>
         </div>
       </div>
 
-      {aboutOpen && (
-        <div className="absolute inset-0 z-50 bg-white flex flex-col" role="dialog" aria-modal="true" aria-labelledby="about-modal-title">
-          <div className="flex-none bg-white shadow-xs border-b border-gray-200">
-            <div className="mx-auto px-6 py-6 flex items-center justify-between h-20 text-sm">
-              <h3 id="about-modal-title" className="text-base font-semibold text-gray-900">
-                About the AI Assistant
-              </h3>
-              <button
-                type="button"
-                onClick={() => setAboutOpen(false)}
-                className="inline-flex items-center justify-center h-8 w-8 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-                aria-label="Close"
-              >
-                <span className="hero-x-mark h-5 w-5" />
-              </button>
-            </div>
-          </div>
-          <div className="flex-1 overflow-y-auto px-6 py-4 text-sm space-y-4">
-            <p>The OpenFn AI Assistant helps you build workflows and write job code. It can:</p>
-            <ul className="list-disc list-inside pl-4 space-y-1">
-              <li>Generate complete workflow templates</li>
-              <li>Write and explain job code for any adaptor</li>
-              <li>Debug errors and explain what went wrong</li>
-              <li>Answer questions about OpenFn and adaptors</li>
-              <li>Suggest improvements to your code</li>
-            </ul>
-            <p className="text-gray-600">Messages are saved unencrypted to the OpenFn database and may be monitored for quality control.</p>
-            <h4 className="font-semibold text-gray-900 pt-2">Using The Assistant Safely</h4>
-            <p>
-              Although we continuously monitor and improve the model, the Assistant can sometimes provide incorrect or misleading
-              responses. Always review and verify the output.
-            </p>
-            <p>
-              <strong>Important:</strong> Do not deploy auto-generated code in production without thorough testing. Do not include
-              real user data, personally identifiable information, or sensitive business data in your queries.
-            </p>
-          </div>
+      <Modal open={aboutOpen} onClose={() => setAboutOpen(false)} title="About the AI Assistant" size="md">
+        <div className="space-y-4 text-sm">
+          <p>The OpenFn AI Assistant helps you build workflows and write job code. It can:</p>
+          <ul className="list-inside list-disc space-y-1 pl-4">
+            <li>Generate complete workflow templates</li>
+            <li>Write and explain job code for any adaptor</li>
+            <li>Debug errors and explain what went wrong</li>
+            <li>Answer questions about OpenFn and adaptors</li>
+            <li>Suggest improvements to your code</li>
+          </ul>
+          <p className="text-gray-600">Messages are saved unencrypted to the OpenFn database and may be monitored for quality control.</p>
+          <h4 className="pt-2 font-semibold text-gray-900">Using The Assistant Safely</h4>
+          <p>
+            Although we continuously monitor and improve the model, the Assistant can sometimes provide incorrect or misleading responses.
+            Always review and verify the output.
+          </p>
+          <p>
+            <strong>Important:</strong> Do not deploy auto-generated code in production without thorough testing. Do not include real user
+            data, personally identifiable information, or sensitive business data in your queries.
+          </p>
         </div>
-      )}
+      </Modal>
     </aside>
   );
 }

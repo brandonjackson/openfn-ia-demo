@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { templateGraph, workflowTemplates, type WorkflowTemplate } from "../../mock-data/workflow";
 import { cn } from "../../utils/cn";
-import ActionButton from "./ActionButton";
-import EditorDialog from "./EditorDialog";
+import Button from "../Button";
+import Modal from "../Modal";
+import SearchInput from "./SearchInput";
 import WorkflowDiagram from "./WorkflowDiagram";
 
 interface Props {
@@ -24,30 +25,12 @@ export default function TemplateBrowserModal({ isOpen, onClose, projectId, onCre
   const previewed = workflowTemplates.find((t) => t.id === previewedId) ?? null;
 
   return (
-    <EditorDialog open={isOpen} onClose={onClose} className="rounded-2xl shadow-2xl flex flex-col h-[90vh] max-h-180 sm:max-w-5xl">
-      <div className="flex items-center justify-between px-6 py-5">
-        <h2 className="text-xl font-medium text-gray-900">Templates</h2>
-        <button type="button" onClick={onClose} className="rounded-md p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors" aria-label="Close">
-          <span className="hero-x-mark h-5 w-5 block" />
-        </button>
-      </div>
-      <div className="flex flex-1 min-h-0 px-6 pb-6">
-        <div className="relative w-76 shrink-0 flex flex-col min-h-0">
+    <Modal open={isOpen} onClose={onClose} size="2xl" title="Templates">
+      <div className="flex h-[70vh] max-h-160 min-h-0 gap-6">
+        <div className="relative flex w-76 shrink-0 flex-col min-h-0">
           <div className="flex-1 min-h-0 overflow-y-auto">
             <div className="sticky top-0 z-10 bg-white pb-2">
-              <div className="relative">
-                <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center">
-                  <span className="hero-magnifying-glass h-4 w-4 text-gray-400" />
-                </span>
-                <input
-                  type="text"
-                  aria-label="Search templates"
-                  placeholder="Search templates"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  className="w-full rounded-md border border-gray-200 py-2 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus-visible:ring-0 focus-visible:border-gray-500"
-                />
-              </div>
+              <SearchInput value={query} onChange={setQuery} placeholder="Search templates" />
             </div>
             <div className="flex flex-col gap-2">
               {visible.map((t) => (
@@ -69,7 +52,6 @@ export default function TemplateBrowserModal({ isOpen, onClose, projectId, onCre
             </div>
           </div>
         </div>
-        <div className="relative w-6 shrink-0" />
         <div className="flex flex-1 min-w-0 flex-col rounded-lg border border-gray-200 bg-gray-50 overflow-clip">
           <div className="flex-1 min-h-0">
             {previewed ? (
@@ -85,12 +67,12 @@ export default function TemplateBrowserModal({ isOpen, onClose, projectId, onCre
                 <p className="mt-0.5 line-clamp-2 min-h-[2lh] text-sm text-gray-500">{previewed.description}</p>
               </div>
               <span className="shrink-0">
-                <ActionButton onClick={() => onCreate(previewed)}>Create</ActionButton>
+                <Button onClick={() => onCreate(previewed)}>Create</Button>
               </span>
             </div>
           )}
         </div>
       </div>
-    </EditorDialog>
+    </Modal>
   );
 }

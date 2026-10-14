@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import type { Project, ProjectRole } from "../../mock-data/projects";
 import { fullName, type User } from "../../mock-data/users";
 import { urlSafeName } from "../../utils/urlSafeName";
 import { cn } from "../../utils/cn";
 import FilterInput from "../FilterInput";
-import { TextInput } from "../Inputs";
+import Alert from "../Alert";
+import Button from "../Button";
+import { Radio, TextInput } from "../Inputs";
 import NameBadge from "../NameBadge";
 import { Table, Td, Th, Tr } from "../Table";
 import { useTableSort, type SortValue } from "./tableSort";
@@ -31,8 +32,6 @@ const sortMap: Record<SortKey, (r: Row) => SortValue> = {
 };
 
 const searchFields: ((r: Row) => string)[] = [(r) => fullName(r.user), (r) => r.user.email];
-
-const radioClass = "h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600";
 
 interface Props {
   /** The project being edited; omit for /settings/projects/new. */
@@ -85,18 +84,7 @@ export default function AdminProjectForm({ project, users, onSave }: Props) {
           </div>
         </div>
 
-        {owners > 1 && (
-          <div className="border-red-400 bg-red-50 p-4">
-            <div className="flex">
-              <div className="shrink-0">
-                <span className="hero-exclamation-triangle h-5 w-5 text-red-400" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm text-red-700">A project can have only one owner.</p>
-              </div>
-            </div>
-          </div>
-        )}
+        {owners > 1 && <Alert type="danger">A project can have only one owner.</Alert>}
 
         <FilterInput value={sort.filter} onChange={sort.setFilter} placeholder="Filter users..." />
 
@@ -121,38 +109,28 @@ export default function AdminProjectForm({ project, users, onSave }: Props) {
                 <Td>{user.email}</Td>
                 {(["", ...ROLES] as Role[]).map((r) => (
                   <Td key={r || "no_access"} className="text-center">
-                    <input
-                      type="radio"
-                      name={`project_users[${user.id}][role]`}
-                      id={`project_users_${user.id}_role_${r || "no_access"}`}
-                      className={radioClass}
-                      checked={role === r}
-                      onChange={() => setRoles((prev) => ({ ...prev, [user.id]: r }))}
-                    />
+                    <span className="inline-flex justify-center">
+                      <Radio
+                        name={`project_users[${user.id}][role]`}
+                        id={`project_users_${user.id}_role_${r || "no_access"}`}
+                        label={<span className="sr-only">{`${fullName(user)}: ${r || "no access"}`}</span>}
+                        checked={role === r}
+                        onChange={() => setRoles((prev) => ({ ...prev, [user.id]: r }))}
+                      />
+                    </span>
                   </Td>
                 ))}
               </Tr>
             ))}
           </Table>
         </div>
-        <div className="mt-4">
-          <span>
-            <Link
-              to="/settings/projects"
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-secondary-700 hover:bg-secondary-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary-500"
-            >
-              Cancel
-            </Link>
-          </span>
-          <div className="inline-block ml-1">
-            <button
-              type="submit"
-              disabled={!valid}
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-xs text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 enabled:bg-primary-600 enabled:hover:bg-primary-700 disabled:bg-primary-300"
-            >
-              Save
-            </button>
-          </div>
+        <div className="mt-4 flex gap-1">
+          <Button theme="secondary" to="/settings/projects">
+            Cancel
+          </Button>
+          <Button type="submit" disabled={!valid}>
+            Save
+          </Button>
         </div>
       </form>
     </div>

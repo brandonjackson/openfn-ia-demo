@@ -1,8 +1,8 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { authRedirectUri, type AuthProvider } from "../../mock-data/admin";
 import Button from "../Button";
-import { Checkbox } from "../Inputs";
-import LegacyField from "./LegacyField";
+import { Checkbox, TextInput } from "../Inputs";
+import TextLink from "../TextLink";
 
 type TestState = "unknown" | "success" | "failed";
 
@@ -12,10 +12,6 @@ interface Props {
   onRemove?: () => void;
   /** Result of the (mock) Test button; starts "unknown". */
   initialTestState?: TestState;
-}
-
-function Hint({ children }: { children: ReactNode }) {
-  return <span className="text-xs text-secondary-500">{children}</span>;
 }
 
 function TestButton({ state, onTest }: { state: TestState; onTest: () => void }) {
@@ -42,9 +38,9 @@ function TestButton({ state, onTest }: { state: TestState; onTest: () => void })
 }
 
 const docsLink = (href: string) => (
-  <a href={href} className="text-blue-500" target="_blank" rel="noreferrer">
+  <TextLink to={href} external>
     here &raquo;
-  </a>
+  </TextLink>
 );
 
 /**
@@ -76,63 +72,53 @@ export default function AuthProviderForm({ provider, onSave, onRemove, initialTe
         <div className="grid grid-cols-6 gap-6">
           <div className="col-span-3">
             <div className="grid grid-flow-row auto-rows-max gap-4">
-              <div>
-                <LegacyField
-                  id="auth_provider_name"
-                  label="Name"
-                  hint={<Hint>The name of the provider, used in the redirect URI.</Hint>}
-                  value={values.name}
-                  onChange={(e) => set("name", e.target.value)}
-                />
-              </div>
-              <div>
-                <LegacyField
-                  id="auth_provider_discovery_url"
-                  label="Discovery URL"
-                  hint={
-                    <Hint>
-                      The URL to the <code>.well-known</code> endpoint.
-                    </Hint>
-                  }
-                  value={values.discoveryUrl}
-                  onChange={(e) => set("discoveryUrl", e.target.value)}
-                />
-              </div>
-              <div>
-                <LegacyField
-                  id="auth_provider_client_id"
-                  label="Client ID"
-                  value={values.clientId}
-                  onChange={(e) => set("clientId", e.target.value)}
-                />
-              </div>
-              <div>
-                <LegacyField
-                  type="password"
-                  id="client_secret"
-                  label="Client Secret"
-                  value={values.clientSecret}
-                  onChange={(e) => set("clientSecret", e.target.value)}
-                />
-              </div>
-              <div>
-                <LegacyField
-                  id="auth_provider_redirect_host"
-                  label="Redirect Host"
-                  value={values.redirectHost}
-                  onChange={(e) => set("redirectHost", e.target.value)}
-                />
-              </div>
-              <div>
-                <Checkbox
-                  label="Trust unverified emails from this provider"
-                  checked={values.allowUnverifiedEmail}
-                  onChange={(e) => set("allowUnverifiedEmail", e.target.checked)}
-                />
-                <Hint>
-                  Only enable for a provider you trust that doesn't assert <code>email_verified</code>. Off by default.
-                </Hint>
-              </div>
+              <TextInput
+                id="auth_provider_name"
+                label="Name"
+                hint="The name of the provider, used in the redirect URI."
+                value={values.name}
+                onChange={(e) => set("name", e.target.value)}
+              />
+              <TextInput
+                id="auth_provider_discovery_url"
+                label="Discovery URL"
+                hint={
+                  <>
+                    The URL to the <code>.well-known</code> endpoint.
+                  </>
+                }
+                value={values.discoveryUrl}
+                onChange={(e) => set("discoveryUrl", e.target.value)}
+              />
+              <TextInput
+                id="auth_provider_client_id"
+                label="Client ID"
+                value={values.clientId}
+                onChange={(e) => set("clientId", e.target.value)}
+              />
+              <TextInput
+                type="password"
+                id="client_secret"
+                label="Client Secret"
+                value={values.clientSecret}
+                onChange={(e) => set("clientSecret", e.target.value)}
+              />
+              <TextInput
+                id="auth_provider_redirect_host"
+                label="Redirect Host"
+                value={values.redirectHost}
+                onChange={(e) => set("redirectHost", e.target.value)}
+              />
+              <Checkbox
+                label="Trust unverified emails from this provider"
+                hint={
+                  <>
+                    Only enable for a provider you trust that doesn't assert <code>email_verified</code>. Off by default.
+                  </>
+                }
+                checked={values.allowUnverifiedEmail}
+                onChange={(e) => set("allowUnverifiedEmail", e.target.checked)}
+              />
             </div>
             <div className="hidden sm:block mt-4" aria-hidden="true">
               <div className="border-t border-secondary-200" />

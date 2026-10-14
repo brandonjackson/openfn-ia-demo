@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { cn } from "../utils/cn";
+import Modal from "./Modal";
 
 /**
  * Generic command-palette picker. Content-agnostic: the server ships a
@@ -75,7 +76,6 @@ export default function Picker(props: PickerProps) {
   const [isOpen, setIsOpen] = useState(props.defaultOpen ?? false);
   const [searchTerm, setSearchTerm] = useState("");
   const [rawHighlightedIndex, setHighlightedIndex] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
   const isMac = useMemo(
@@ -134,12 +134,6 @@ export default function Picker(props: PickerProps) {
     setHighlightedIndex(items.length > 0 ? 1 : 0);
   }, [items.length]);
 
-  useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  }, [isOpen]);
-
   const closePicker = useCallback(() => {
     setIsOpen(false);
   }, []);
@@ -160,23 +154,6 @@ export default function Picker(props: PickerProps) {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, openPicker, closePicker]);
-
-  // Escape to close (capture phase so we beat nested handlers).
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        closePicker();
-      }
-    };
-
-    document.addEventListener("keydown", handleGlobalKeyDown, true);
-    return () => document.removeEventListener("keydown", handleGlobalKeyDown, true);
-  }, [isOpen, closePicker]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -223,125 +200,116 @@ export default function Picker(props: PickerProps) {
     }
   };
 
-  if (!isOpen) return null;
-
+  // Modal brings the backdrop, Escape, click-outside and the focus trap;
+  // the panel sits high on the page, like a command palette.
   return (
-    <div className={cn("picker-root fixed inset-0 z-[9999]", theme)}>
-      <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-xs transition-opacity" />
+    <Modal open={isOpen} onClose={closePicker} bare className={cn("picker-root mt-[15vh] self-start overflow-hidden", theme)}>
+      <div className="flex items-center px-4 border-b border-gray-200">
+        <span className="hero-magnifying-glass h-5 w-5 text-gray-400 shrink-0" />
+        <input
+          autoFocus
+          type="text"
+          spellCheck="false"
+          placeholder={placeholder}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onKeyDown={handleInputKeyDown}
+          className="w-full border-0 py-4 pl-3 pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 text-base"
+          role="combobox"
+          aria-controls="picker-options"
+          aria-expanded="true"
+          autoComplete="off"
+        />
+        <kbd className="hidden sm:inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-gray-400 ring-1 ring-gray-300">
+          <span>{isMac ? "⌘" : "Ctrl"}</span>
+          <span>P</span>
+        </kbd>
+      </div>
 
-      <div className="fixed inset-0 flex items-start justify-center pt-[15vh]" onClick={closePicker}>
-        <div
-          className="w-full max-w-xl bg-white rounded-xl shadow-2xl ring-1 ring-black/10 overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
+      <ul ref={listRef} className="max-h-80 overflow-y-auto py-2" id="picker-options" role="listbox">
+        <li
+          data-index={0}
+          className={cn(
+            "group relative cursor-pointer select-none px-4 py-3 flex items-center",
+            highlightedIndex === 0
+              ? "bg-primary-600 text-white"
+              : "text-gray-900 hover:bg-primary-600 hover:text-white",
+          )}
+          role="option"
+          onClick={() => go(viewAllHref)}
+          onMouseEnter={() => setHighlightedIndex(0)}
         >
-          <div className="flex items-center px-4 border-b border-gray-200">
-            <span className="hero-magnifying-glass h-5 w-5 text-gray-400 shrink-0" />
-            <input
-              ref={inputRef}
-              type="text"
-              spellCheck="false"
-              placeholder={placeholder}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={handleInputKeyDown}
-              className="w-full border-0 py-4 pl-3 pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 text-base"
-              role="combobox"
-              aria-controls="picker-options"
-              aria-expanded="true"
-              autoComplete="off"
-            />
-            <kbd className="hidden sm:inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-gray-400 ring-1 ring-gray-300">
-              <span>{isMac ? "⌘" : "Ctrl"}</span>
-              <span>P</span>
-            </kbd>
-          </div>
+          <span
+            className={cn(
+              "hero-rectangle-stack h-5 w-5 mr-2 shrink-0",
+              highlightedIndex === 0 ? "text-white/70" : "text-gray-400 group-hover:text-white/70",
+            )}
+          />
+          <span className="flex-grow">{viewAllLabel}</span>
+          <span
+            className={cn(
+              "hero-arrow-right h-4 w-4 shrink-0",
+              highlightedIndex === 0 ? "text-white/70" : "text-gray-400 group-hover:text-white/70",
+            )}
+          />
+        </li>
 
-          <ul ref={listRef} className="max-h-80 overflow-y-auto py-2" id="picker-options" role="listbox">
+        {items.length > 0 && <li className="border-t border-gray-200 my-2" role="separator" />}
+
+        {items.map((item, index) => {
+          const itemIndex = index + 1;
+          const isHighlighted = itemIndex === highlightedIndex;
+          const isSelected = item.id === currentId;
+          const isNested = item.depth > 0;
+          const indentPx = item.depth * 10;
+          const itemIcon = item.icon ?? (item.isSandbox ? "hero-beaker" : "hero-folder");
+
+          return (
             <li
-              data-index={0}
+              key={item.id}
+              data-index={itemIndex}
               className={cn(
-                "group relative cursor-pointer select-none px-4 py-3 flex items-center",
-                highlightedIndex === 0
+                "group relative cursor-pointer select-none py-3 pr-4 flex items-center",
+                isHighlighted
                   ? "bg-primary-600 text-white"
                   : "text-gray-900 hover:bg-primary-600 hover:text-white",
               )}
+              style={{ paddingLeft: `${16 + indentPx}px` }}
               role="option"
-              onClick={() => go(viewAllHref)}
-              onMouseEnter={() => setHighlightedIndex(0)}
+              aria-selected={isSelected}
+              onClick={() => go(item.href, item.sameSection)}
+              onMouseEnter={() => setHighlightedIndex(itemIndex)}
             >
-              <span
-                className={cn(
-                  "hero-rectangle-stack h-5 w-5 mr-2 shrink-0",
-                  highlightedIndex === 0 ? "text-white/70" : "text-gray-400 group-hover:text-white/70",
-                )}
-              />
-              <span className="flex-grow">{viewAllLabel}</span>
-              <span
-                className={cn(
-                  "hero-arrow-right h-4 w-4 shrink-0",
-                  highlightedIndex === 0 ? "text-white/70" : "text-gray-400 group-hover:text-white/70",
-                )}
-              />
-            </li>
-
-            {items.length > 0 && <li className="border-t border-gray-200 my-2" role="separator" />}
-
-            {items.map((item, index) => {
-              const itemIndex = index + 1;
-              const isHighlighted = itemIndex === highlightedIndex;
-              const isSelected = item.id === currentId;
-              const isNested = item.depth > 0;
-              const indentPx = item.depth * 10;
-              const itemIcon = item.icon ?? (item.isSandbox ? "hero-beaker" : "hero-folder");
-
-              return (
-                <li
-                  key={item.id}
-                  data-index={itemIndex}
+              {isNested && (
+                <span
                   className={cn(
-                    "group relative cursor-pointer select-none py-3 pr-4 flex items-center",
-                    isHighlighted
-                      ? "bg-primary-600 text-white"
-                      : "text-gray-900 hover:bg-primary-600 hover:text-white",
+                    "hero-arrow-turn-down-right h-4 w-4 mr-2 shrink-0",
+                    isHighlighted ? "text-white/50" : "text-gray-300 group-hover:text-white/50",
                   )}
-                  style={{ paddingLeft: `${16 + indentPx}px` }}
-                  role="option"
-                  aria-selected={isSelected}
-                  onClick={() => go(item.href, item.sameSection)}
-                  onMouseEnter={() => setHighlightedIndex(itemIndex)}
-                >
-                  {isNested && (
-                    <span
-                      className={cn(
-                        "hero-arrow-turn-down-right h-4 w-4 mr-2 shrink-0",
-                        isHighlighted ? "text-white/50" : "text-gray-300 group-hover:text-white/50",
-                      )}
-                    />
+                />
+              )}
+              <span
+                className={cn(
+                  `${itemIcon} h-5 w-5 mr-2 shrink-0`,
+                  isHighlighted ? "text-white/70" : "text-gray-400 group-hover:text-white/70",
+                )}
+              />
+              <span className={cn("truncate flex-grow", isSelected && "font-semibold")}>
+                {item.label}
+              </span>
+              {isSelected && (
+                <span
+                  className={cn(
+                    "hero-check shrink-0 ml-3 w-5 h-5",
+                    isHighlighted ? "text-white" : "text-primary-600 group-hover:text-white",
                   )}
-                  <span
-                    className={cn(
-                      `${itemIcon} h-5 w-5 mr-2 shrink-0`,
-                      isHighlighted ? "text-white/70" : "text-gray-400 group-hover:text-white/70",
-                    )}
-                  />
-                  <span className={cn("truncate flex-grow", isSelected && "font-semibold")}>
-                    {item.label}
-                  </span>
-                  {isSelected && (
-                    <span
-                      className={cn(
-                        "hero-check shrink-0 ml-3 w-5 h-5",
-                        isHighlighted ? "text-white" : "text-primary-600 group-hover:text-white",
-                      )}
-                    />
-                  )}
-                </li>
-              );
-            })}
-            {items.length === 0 && <li className="px-4 py-8 text-center text-gray-500">{emptyMessage}</li>}
-          </ul>
-        </div>
-      </div>
-    </div>
+                />
+              )}
+            </li>
+          );
+        })}
+        {items.length === 0 && <li className="px-4 py-8 text-center text-gray-500">{emptyMessage}</li>}
+      </ul>
+    </Modal>
   );
 }

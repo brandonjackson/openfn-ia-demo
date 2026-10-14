@@ -3,10 +3,9 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthLayout from "../../components/auth/AuthLayout";
 import AuthCard, { AuthFooterLinks, AuthFormStack, FormDivider } from "../../components/auth/AuthCard";
 import PasswordInput from "../../components/auth/PasswordInput";
-import CheckBoxField from "../../components/auth/CheckBoxField";
 import SsoLogin from "../../components/auth/SsoLogin";
 import Button from "../../components/Button";
-import { TextInput } from "../../components/Inputs";
+import { Checkbox, TextInput } from "../../components/Inputs";
 import { authFlags, authMessages } from "../../mock-data/auth";
 
 /**
@@ -34,10 +33,7 @@ export default function AuthLoginPage() {
             <AuthFormStack>
               <TextInput id="user_email" name="email" type="email" label="Email" required autoComplete="email" />
               <PasswordInput id="user_password" name="password" label="Password" autoComplete="current-password" />
-              <CheckBoxField id="user_remember_me" name="remember_me" label="Remember me">
-                <br />
-                <span className="text-xs text-secondary-500">Keep me logged in for 60 days</span>
-              </CheckBoxField>
+              <Checkbox id="user_remember_me" name="remember_me" label="Remember me" hint="Keep me logged in for 60 days" />
               <Button type="submit" theme="primary">
                 Log in
               </Button>

@@ -1,6 +1,12 @@
 import { adaptorDisplayName, ADAPTORS_WITHOUT_CREDENTIALS, adaptorShortName, resolveAdaptor } from "../../mock-data/adaptors";
 import { cn } from "../../utils/cn";
+import Button from "../Button";
+import Pill from "../Pill";
 import AdaptorIcon from "./AdaptorIcon";
+
+/** The help text on the Adaptor field label. */
+export const ADAPTOR_HELP =
+  "Choose an adaptor to perform operations (via helper functions) in a specific application. Pick 'http' for generic REST APIs or the 'common' adaptor if this job only performs data manipulation.";
 
 interface Props {
   adaptor: string;
@@ -19,19 +25,15 @@ export default function AdaptorDisplay({ adaptor, credentialName = null, onEdit,
   const { version } = resolveAdaptor(adaptor);
   const needsCredential = !ADAPTORS_WITHOUT_CREDENTIALS.includes(adaptorShortName(adaptor));
   const hasCredential = !!credentialName;
+  const canEdit = hasCredential || !needsCredential;
   return (
     <div className="flex items-center justify-between gap-2 w-full rounded-lg border border-slate-300 sm:text-sm sm:leading-6 p-2">
       <div className="flex items-center gap-2 min-w-0 flex-1">
         {onChangeAdaptor && !isReadOnly ? (
-          <button
-            type="button"
-            onClick={onChangeAdaptor}
-            className="flex items-center gap-2 pl-1.5 pr-2 py-1 h-7 border border-gray-300 bg-white rounded-md font-medium text-gray-700 hover:bg-gray-50 focus:outline-none transition-colors"
-            aria-label="Change adaptor"
-          >
+          <Button theme="secondary" size="sm" onClick={onChangeAdaptor} aria-label="Change adaptor" className="min-w-0 py-1 pl-1.5">
             <AdaptorIcon name={adaptor} size="sm" />
-            <span className="font-medium text-gray-900 truncate text-sm">{adaptorDisplayName(adaptor)}</span>
-          </button>
+            <span className="truncate">{adaptorDisplayName(adaptor)}</span>
+          </Button>
         ) : (
           <div className="flex items-center gap-2 opacity-50">
             <AdaptorIcon name={adaptor} size="sm" />
@@ -42,30 +44,24 @@ export default function AdaptorDisplay({ adaptor, credentialName = null, onEdit,
           {version === "latest" ? "latest" : `v${version}`}
         </span>
         {hasCredential && (
-          <span
-            title={credentialName}
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-800 flex-shrink-0 max-w-[150px]"
-            aria-label={`Credential connected: ${credentialName}`}
-          >
-            <span className="hero-key h-3 w-3 flex-shrink-0" />
-            <span className="text-xs font-medium truncate">{credentialName}</span>
+          <span title={credentialName} aria-label={`Credential connected: ${credentialName}`} className="min-w-0">
+            <Pill color="green" className="max-w-[150px] gap-1">
+              <span className="hero-key h-3 w-3 shrink-0" />
+              <span className="truncate">{credentialName}</span>
+            </Pill>
           </span>
         )}
       </div>
       {onEdit && !isReadOnly && (
-        <button
-          type="button"
+        <Button
+          theme={canEdit ? "secondary" : "primary"}
+          size="sm"
           onClick={onEdit}
-          className={cn(
-            "px-2.5 py-1 h-7 rounded-md font-medium focus:outline-none flex-shrink-0 transition-colors relative text-sm",
-            hasCredential || !needsCredential
-              ? "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-              : "bg-primary-600 hover:bg-primary-500 text-white shadow-xs"
-          )}
-          aria-label={hasCredential || !needsCredential ? "Edit adaptor" : "Connect credential"}
+          aria-label={canEdit ? "Edit adaptor" : "Connect credential"}
+          className="shrink-0 py-1"
         >
-          {hasCredential || !needsCredential ? "Edit" : "Connect"}
-        </button>
+          {canEdit ? "Edit" : "Connect"}
+        </Button>
       )}
     </div>
   );

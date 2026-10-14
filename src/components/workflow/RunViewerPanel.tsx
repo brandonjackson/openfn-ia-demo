@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import type { Dataclip, LogLine, Run, Step } from "../../mock-data/history";
 import { cn } from "../../utils/cn";
 import CodeEditor from "./CodeEditor";
-import { linkUuidClasses } from "./editorClasses";
 import StatePill from "../history/StatePill";
+import InfoTooltip from "../InfoTooltip";
+import Menu, { MenuItem } from "../Menu";
 
 export type RunViewerTab = "log" | "input" | "output";
 
@@ -44,7 +45,6 @@ interface Props {
  */
 export default function RunViewerPanel({ projectId, run, steps, logs, dataclips, selectedStepId, onSelectStep, activeTab, mismatch = false }: Props) {
   const [level, setLevel] = useState<(typeof LEVELS)[number]>("info");
-  const [levelOpen, setLevelOpen] = useState(false);
   const step = steps.find((s) => s.id === selectedStepId) ?? null;
   const clip = (id: string | null | undefined) => dataclips.find((d) => d.id === id);
   const visibleLogs = logs.filter((l) => LEVELS.indexOf(l.level) >= LEVELS.indexOf(level));
@@ -65,7 +65,7 @@ export default function RunViewerPanel({ projectId, run, steps, logs, dataclips,
             <div className="flex items-center justify-between gap-4 text-sm">
               <dt className="font-medium text-gray-600">Work Order</dt>
               <dd>
-                <Link to={`/projects/${projectId}/history?filters[workorder_id]=${run.workOrderId}`} className={linkUuidClasses} title={`View work order ${run.workOrderId}`}>
+                <Link to={`/projects/${projectId}/history?filters[workorder_id]=${run.workOrderId}`} className="link-uuid" title={`View work order ${run.workOrderId}`}>
                   {run.workOrderId.slice(0, 8)}
                 </Link>
               </dd>
@@ -73,7 +73,7 @@ export default function RunViewerPanel({ projectId, run, steps, logs, dataclips,
             <div className="flex items-center justify-between gap-4 text-sm">
               <dt className="font-medium text-gray-600">Run</dt>
               <dd>
-                <Link to={`/projects/${projectId}/runs/${run.id}`} className={linkUuidClasses} title={`View run ${run.id}`}>
+                <Link to={`/projects/${projectId}/runs/${run.id}`} className="link-uuid" title={`View run ${run.id}`}>
                   {run.id.slice(0, 8)}
                 </Link>
               </dd>
@@ -105,10 +105,7 @@ export default function RunViewerPanel({ projectId, run, steps, logs, dataclips,
         <div className="w-1/2 h-full overflow-auto p-4">
           <p className="mb-3 flex items-center gap-1 text-sm font-medium text-gray-600">
             Run Steps
-            <span
-              className="hero-information-circle h-4 w-4 text-gray-400"
-              title="This run may not have executed all steps in the workflow. Only the steps that were executed in this specific run are shown here."
-            />
+            <InfoTooltip title="This run may not have executed all steps in the workflow. Only the steps that were executed in this specific run are shown here." />
           </p>
           {steps.length === 0 ? (
             <div className="text-center text-gray-500 py-4">No steps yet</div>
@@ -146,41 +143,22 @@ export default function RunViewerPanel({ projectId, run, steps, logs, dataclips,
             <div className="border-b border-slate-500">
               <div className="mx-auto px-2">
                 <div className="flex h-6 flex-row-reverse items-center">
-                  <div className="relative z-50">
-                    <button
-                      type="button"
-                      onClick={() => setLevelOpen((o) => !o)}
-                      className="grid w-full cursor-pointer grid-cols-1 bg-inherit text-left text-xs text-inherit opacity-75 hover:opacity-100"
-                    >
-                      <span className="col-start-1 row-start-1 truncate pr-6 flex items-center gap-1">
+                  <Menu
+                    className="w-32"
+                    trigger={
+                      <button type="button" className="flex items-center gap-1 text-xs opacity-75 hover:opacity-100">
                         <span className="hero-adjustments-vertical size-4" />
                         {level}
-                      </span>
-                      <span className="hero-chevron-down col-start-1 row-start-1 size-4 self-center justify-self-end" />
-                    </button>
-                    {levelOpen && (
-                      <div className="absolute right-0 z-10 mt-1 max-h-60 min-w-full w-max overflow-auto rounded-md bg-slate-600 py-1 shadow-lg ring-1 ring-black/5 text-sm">
-                        {LEVELS.map((l) => (
-                          <button
-                            key={l}
-                            type="button"
-                            onClick={() => {
-                              setLevel(l);
-                              setLevelOpen(false);
-                            }}
-                            className="relative block w-full text-left cursor-default select-none py-2 pl-8 pr-4 hover:bg-slate-500"
-                          >
-                            <span className={l === level ? "font-semibold" : "font-normal"}>{l}</span>
-                            {l === level && (
-                              <span className="absolute inset-y-0 left-0 flex items-center pl-1.5">
-                                <span className="hero-check size-5" />
-                              </span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                        <span className="hero-chevron-down size-4" />
+                      </button>
+                    }
+                  >
+                    {LEVELS.map((l) => (
+                      <MenuItem key={l} selected={l === level} onClick={() => setLevel(l)}>
+                        {l}
+                      </MenuItem>
+                    ))}
+                  </Menu>
                 </div>
               </div>
             </div>

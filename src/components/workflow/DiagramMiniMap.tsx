@@ -1,4 +1,3 @@
-import { ClockIcon, GlobeAltIcon } from "@heroicons/react/24/outline";
 import { adaptorIconUrl } from "../../mock-data/adaptors";
 import type { WorkflowGraph } from "../../mock-data/workflow";
 import { NODE_BOX, type Rect, type Viewport } from "./diagramGeometry";
@@ -70,12 +69,11 @@ export default function DiagramMiniMap({ graph, viewport, canvasSize, onCenter }
         {graph.triggers.map((t) => {
           const p = graph.positions[t.id];
           if (!p) return null;
-          const Icon = t.type === "cron" ? ClockIcon : GlobeAltIcon;
           return (
             <g key={t.id}>
               <circle cx={p.x + 60} cy={p.y + 60} r={60} fill="white" stroke="#ccc" strokeWidth={8} />
               <foreignObject x={p.x + 30} y={p.y + 30} width={60} height={60}>
-                <Icon className="w-full h-full text-gray-500" />
+                <span className={`${t.type === "cron" ? "hero-clock" : "hero-globe-alt"} block h-full w-full text-gray-500`} />
               </foreignObject>
             </g>
           );

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import Modal from "../Modal";
+import Alert from "../Alert";
 import Button from "../Button";
+import Pill from "../Pill";
 import { Checkbox, TextInput } from "../Inputs";
 import PasswordInput from "../auth/PasswordInput";
 import ProjectsPicker from "./ProjectsPicker";
@@ -78,8 +80,8 @@ export default function OauthClientFormModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={<span className="font-bold">{client ? "Edit OAuth Client" : "Add an OAuth Client"}</span>}
-      width="max-w-[32rem] lg:max-w-[44rem]"
+      title={client ? "Edit OAuth Client" : "Add an OAuth Client"}
+      size="xl"
       footer={
         <>
           <Button disabled={!valid} onClick={save}>
@@ -91,8 +93,8 @@ export default function OauthClientFormModal({
         </>
       }
     >
-      <form id={`oauth-client-form-${client?.id ?? "new"}`} className="text-left" onSubmit={(e) => e.preventDefault()}>
-        <div className="space-y-6 bg-white">
+      <form id={`oauth-client-form-${client?.id ?? "new"}`} onSubmit={(e) => e.preventDefault()}>
+        <div className="space-y-6">
           <TextInput id="oauth-client-name" label="Name" required value={values.name} onChange={set("name")} />
           <TextInput label="Authorization Endpoint" required value={values.authorizationEndpoint} onChange={set("authorizationEndpoint")} />
           <TextInput label="Token Endpoint" required value={values.tokenEndpoint} onChange={set("tokenEndpoint")} />
@@ -118,15 +120,13 @@ export default function OauthClientFormModal({
               <p className="text-sm text-gray-500 pt-2">Control which projects have access to this OAuth client</p>
               <div className="mt-4">
                 {allowGlobal && (
-                  <div className="rounded-md bg-yellow-200 p-4 mb-4 border-2 border-slate-300">
-                    <h3 className="text-sm font-medium text-yellow-800">
-                      <Checkbox
-                        label="Make client global (allow any project in this instance to use this client)"
-                        checked={global}
-                        onChange={(e) => setGlobal(e.target.checked)}
-                      />
-                    </h3>
-                  </div>
+                  <Alert type="warning" className="mb-4">
+                    <Checkbox
+                      label="Make client global (allow any project in this instance to use this client)"
+                      checked={global}
+                      onChange={(e) => setGlobal(e.target.checked)}
+                    />
+                  </Alert>
                 )}
                 {!global && (
                   <ProjectsPicker
@@ -182,27 +182,15 @@ function ScopesInput({
         }}
         onBlur={() => draft && commit(draft)}
       />
-      <div>
-        {scopes.map((scope) => (
-          <span
-            key={scope}
-            className="inline-flex items-center rounded-md bg-blue-50 p-2 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10 mr-1 my-1"
-          >
-            {scope}
-            <button
-              type="button"
-              onClick={() => onChange(scopes.filter((s) => s !== scope))}
-              className="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-gray-500/20"
-            >
-              <span className="sr-only">Remove</span>
-              <svg viewBox="0 0 14 14" className="h-3.5 w-3.5 stroke-gray-600/50 group-hover:stroke-gray-600/75">
-                <path d="M4 4l6 6m0-6l-6 6" />
-              </svg>
-              <span className="absolute -inset-1" />
-            </button>
-          </span>
-        ))}
-      </div>
+      {scopes.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {scopes.map((scope) => (
+            <Pill key={scope} color="blue" removeLabel={`Remove ${scope}`} onRemove={() => onChange(scopes.filter((s) => s !== scope))}>
+              {scope}
+            </Pill>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

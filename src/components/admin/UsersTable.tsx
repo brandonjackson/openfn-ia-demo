@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom";
 import type { User } from "../../mock-data/users";
 import { isSupportUser } from "../../mock-data/admin";
 import FilterInput from "../FilterInput";
-import SimpleDropdown from "../SimpleDropdown";
+import ButtonMenu from "../ButtonMenu";
+import { MenuItem } from "../Menu";
 import { Table, Td, Th, Tr } from "../Table";
 import { formatShortDateTime, useTableSort, type SortValue } from "./tableSort";
 
@@ -21,38 +21,6 @@ const sortMap: Record<SortKey, (u: User) => SortValue> = {
 const searchFields: ((u: User) => string)[] = [(u) => u.firstName, (u) => u.lastName, (u) => u.email, (u) => u.role];
 
 const checkIcon = <span className="hero-check-circle-solid w-6 h-6 text-gray-500" />;
-
-/** Superusers can't be deleted from here: the entry is inert (cursor-not-allowed). */
-function DeleteAction({ user, onCancelDeletion }: { user: User; onCancelDeletion?: (user: User) => void }) {
-  const cancel = user.scheduledDeletion && (
-    <a
-      id={`cancel-deletion-${user.id}`}
-      href="#"
-      onClick={(e) => {
-        e.preventDefault();
-        onCancelDeletion?.(user);
-      }}
-    >
-      Cancel deletion
-    </a>
-  );
-  const label = user.scheduledDeletion ? "Delete now" : "Delete";
-  const id = user.scheduledDeletion ? `delete-now-${user.id}` : `delete-${user.id}`;
-  return (
-    <>
-      {cancel}
-      {user.role === "superuser" ? (
-        <span id={id} className="cursor-not-allowed">
-          {label}
-        </span>
-      ) : (
-        <Link id={id} to={`/settings/users/${user.id}/delete`}>
-          {label}
-        </Link>
-      )}
-    </>
-  );
-}
 
 /**
  * The admin users table (user_live/components.ex `users_table`): a filter
@@ -101,10 +69,14 @@ export default function UsersTable({
             <Td>{isSupportUser(user) && checkIcon}</Td>
             <Td>{user.scheduledDeletion && formatShortDateTime(user.scheduledDeletion)}</Td>
             <Td className="py-0.5">
-              <SimpleDropdown id={`user-actions-${user.id}-dropdown`} buttonTheme="secondary" label="Actions">
-                <Link to={`/settings/users/${user.id}`}>Edit</Link>
-                <DeleteAction user={user} onCancelDeletion={onCancelDeletion} />
-              </SimpleDropdown>
+              <ButtonMenu label="Actions">
+                <MenuItem to={`/settings/users/${user.id}`}>Edit</MenuItem>
+                {user.scheduledDeletion && <MenuItem onClick={() => onCancelDeletion?.(user)}>Cancel deletion</MenuItem>}
+                {/* Superusers can't be deleted from here. */}
+                <MenuItem to={`/settings/users/${user.id}/delete`} disabled={user.role === "superuser"}>
+                  {user.scheduledDeletion ? "Delete now" : "Delete"}
+                </MenuItem>
+              </ButtonMenu>
             </Td>
           </Tr>
         ))}

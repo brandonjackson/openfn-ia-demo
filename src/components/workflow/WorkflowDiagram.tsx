@@ -1,5 +1,5 @@
-import { ClockIcon, GlobeAltIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { cn } from "../../utils/cn";
 import { adaptorIconUrl, adaptorShortName } from "../../mock-data/adaptors";
 import type { WorkflowGraph } from "../../mock-data/workflow";
 import DiagramControls from "./DiagramControls";
@@ -203,8 +203,8 @@ export default function WorkflowDiagram({
                 shape="circle"
                 label={t.type === "cron" ? "Cron trigger" : "Webhook trigger"}
                 sublabel={t.type === "cron" ? (t.cronDescription ?? "Not configured") : "On each request received"}
-                icon={t.type === "cron" ? <ClockIcon /> : <GlobeAltIcon />}
-                secondaryIcon={t.hasAuthMethod ? <LockClosedIcon /> : undefined}
+                icon={<span className={cn("block h-full w-full", t.type === "cron" ? "hero-clock" : "hero-globe-alt")} />}
+                secondaryIcon={t.hasAuthMethod ? <span className="hero-lock-closed block h-full w-full" /> : undefined}
                 selected={selectedId === t.id}
                 disabled={!t.enabled}
                 didRun={!isRun || started}

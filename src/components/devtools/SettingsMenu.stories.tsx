@@ -38,7 +38,10 @@ export const Default: Story = {
 export const Open: Story = {
   render: () => (
     <div className="h-screen w-full bg-gray-50 p-8">
-      <SettingsMenu defaultOpen />
+      <SettingsMenu />
     </div>
   ),
+  play: async ({ canvasElement }) => {
+    canvasElement.querySelector<HTMLButtonElement>('[data-ui="settings-trigger"]')?.click();
+  },
 };

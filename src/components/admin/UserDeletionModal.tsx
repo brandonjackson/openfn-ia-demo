@@ -30,7 +30,7 @@ export default function UserDeletionModal({
   blocked = false,
 }: Props) {
   const [email, setEmail] = useState("");
-  const title = <span className="font-bold">Delete user</span>;
+  const title = "Delete user";
 
   if (blocked) {
     return (
@@ -38,28 +38,44 @@ export default function UserDeletionModal({
         open={open}
         onClose={onClose}
         title={title}
-        width="max-w-md"
+        size="sm"
         footer={
-          <Button theme="secondary" size="lg" onClick={onClose}>
+          <Button theme="secondary" onClick={onClose}>
             Cancel
           </Button>
         }
       >
-        <p className="text-sm text-gray-500">
-          {isCurrentUser ? "Your account" : "This user"} cannot be deleted until their auditable activities have also
-          been purged.
-          <br />
-          <br />
-          Audit trails are removed on a project-basis and may be controlled by the project owner or a superuser.
-        </p>
+        <div className="space-y-3 text-sm text-gray-600">
+          <p>
+            {isCurrentUser ? "Your account" : "This user"} cannot be deleted until their auditable activities have
+            also been purged.
+          </p>
+          <p>Audit trails are removed on a project-basis and may be controlled by the project owner or a superuser.</p>
+        </div>
       </Modal>
     );
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={title} width="max-w-md">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={title}
+      size="sm"
+      footer={
+        <>
+          <Button type="submit" form="scheduled_deletion_form" theme="danger">
+            Delete account
+          </Button>
+          <Button theme="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+        </>
+      }
+    >
       <form
         id="scheduled_deletion_form"
+        className="space-y-3 text-sm text-gray-600"
         onSubmit={(e) => {
           e.preventDefault();
           onDelete?.(email);
@@ -70,27 +86,17 @@ export default function UserDeletionModal({
           of these credentials are used in production workflows.
         </p>
         {hasActivityInProjects && (
-          <p className="mt-2">
+          <p>
             *Note that {isCurrentUser ? "you still have" : "this user still has"} activity related to active projects.
             We may not be able to delete them entirely from the app until those projects are deleted.
           </p>
         )}
-        <br />
         <TextInput
           id="scheduled_deletion_email"
           label="User email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <div className="flex-grow bg-gray-100 h-0.5 my-[16px]" />
-        <div className="flex flex-row-reverse gap-4">
-          <Button type="submit" theme="danger">
-            Delete account
-          </Button>
-          <Button theme="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-        </div>
       </form>
     </Modal>
   );

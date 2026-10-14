@@ -1,6 +1,6 @@
 import { cn } from "../../utils/cn";
 import IconButton from "../IconButton";
-import { controlClasses } from "../Inputs";
+import { controlClasses } from "../controlClasses";
 
 /**
  * The magnifier search box (WorkflowLive `search_workflows_input`, and

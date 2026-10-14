@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { cn } from "../../utils/cn";
+import Button from "../Button";
+import Pill from "../Pill";
+import TextLink from "../TextLink";
 import AIDisclaimerFooter from "./AIDisclaimerFooter";
 
 interface Props {
@@ -52,12 +55,10 @@ export default function LandingScreen({ aiAssistantEnabled = true, onBuildWithAI
               <label htmlFor="build-with-ai-input" className="text-sm font-semibold text-gray-900">
                 Build with AI
               </label>
-              <span className="text-[#006840] flex gap-2 items-center px-3 py-1 bg-[#ebf5f2] rounded-lg text-xs font-medium">
-                <svg aria-hidden="true" width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
-                  <path d="M5 0 C5 0 5.5 4 10 5 C5.5 6 5 10 5 10 C5 10 4.5 6 0 5 C4.5 4 5 0 5 0 Z" />
-                </svg>
-                <span>Recommended</span>
-              </span>
+              <Pill color="green" className="gap-1">
+                <span className="hero-sparkles-micro h-3 w-3" />
+                Recommended
+              </Pill>
             </div>
             <div className="rounded-lg border border-gray-200 bg-white focus-within:shadow-card transition-shadow">
               <textarea
@@ -76,15 +77,10 @@ export default function LandingScreen({ aiAssistantEnabled = true, onBuildWithAI
               />
               <div className="flex items-center justify-between px-3 py-2">
                 <AIDisclaimerFooter muted />
-                <button
-                  type="button"
-                  onClick={() => valid && onBuildWithAI(prompt)}
-                  disabled={!valid}
-                  className="text-sm flex items-center gap-2 text-black hover:text-gray-700 disabled:hover:text-black disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none rounded"
-                >
+                <Button size="sm" onClick={() => valid && onBuildWithAI(prompt)} disabled={!valid}>
                   Build it
                   <span className="hero-arrow-right h-4 w-4" />
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -107,9 +103,7 @@ export default function LandingScreen({ aiAssistantEnabled = true, onBuildWithAI
         </div>
         <p className="text-sm text-center text-gray-500">
           or{" "}
-          <button type="button" onClick={onImportYAML} className="underline hover:text-gray-700 transition-colors focus:outline-none rounded">
-            import a YAML file manually
-          </button>
+          <TextLink onClick={onImportYAML}>import a YAML file manually</TextLink>
         </p>
       </div>
     </div>

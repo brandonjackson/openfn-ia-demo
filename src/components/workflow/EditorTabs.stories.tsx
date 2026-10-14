@@ -10,7 +10,6 @@ function PillsDemo() {
   return (
     <div className="w-96 p-4">
       <EditorTabs
-        variant="pills"
         value={v}
         onChange={setV}
         options={[
@@ -22,22 +21,22 @@ function PillsDemo() {
   );
 }
 
-function UnderlineDemo() {
-  const [v, setV] = useState<"log" | "input" | "output">("log");
+export const Pills: StoryObj = { render: () => <PillsDemo /> };
+
+function ThreeTabsDemo() {
+  const [v, setV] = useState<"empty" | "custom" | "existing">("empty");
   return (
-    <div className="p-4">
+    <div className="w-96 p-4">
       <EditorTabs
         value={v}
         onChange={setV}
         options={[
-          { value: "log", label: "Logs" },
-          { value: "input", label: "Input" },
-          { value: "output", label: "Output" },
+          { value: "empty", label: "Empty", icon: "hero-document" },
+          { value: "custom", label: "New", icon: "hero-pencil-square" },
+          { value: "existing", label: "Existing", icon: "hero-queue-list" },
         ]}
       />
     </div>
   );
 }
-
-export const Pills: StoryObj = { render: () => <PillsDemo /> };
-export const Underline: StoryObj = { render: () => <UnderlineDemo /> };
+export const ThreeTabs: StoryObj = { render: () => <ThreeTabsDemo /> };

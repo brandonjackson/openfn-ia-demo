@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Checkbox, Field, Radio, Select, TextArea, TextInput, controlClasses } from "./Inputs";
+import { Checkbox, Field, Radio, Select, TextArea, TextInput } from "./Inputs";
+import { controlClasses } from "./controlClasses";
 
 const meta: Meta = { title: "Shared/Inputs" };
 export default meta;

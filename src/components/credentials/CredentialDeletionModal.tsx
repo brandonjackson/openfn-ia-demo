@@ -1,5 +1,6 @@
 import Modal from "../Modal";
 import Button from "../Button";
+import ConfirmModal from "../ConfirmModal";
 import type { Credential } from "../../mock-data/credentials";
 
 interface Props {
@@ -24,45 +25,39 @@ export default function CredentialDeletionModal({ open, onClose, credential, has
       <Modal
         open={open}
         onClose={onClose}
-        title={<span className="font-bold">Credential marked for deletion</span>}
+        title="Credential marked for deletion"
+        size="sm"
         footer={
           <Button theme="secondary" onClick={onClose}>
             Ok, understood
           </Button>
         }
       >
-        <div className="text-sm text-gray-500">
+        <div className="space-y-3 text-sm text-gray-600">
           <p>{activityNote}</p>
-          <p className="py-2">Contact your instance administrator for more details.</p>
+          <p>Contact your instance administrator for more details.</p>
         </div>
       </Modal>
     );
   }
   return (
-    <Modal
+    <ConfirmModal
       open={open}
       onClose={onClose}
-      title={<span className="font-bold">Delete credential</span>}
-      width="max-w-md"
-      footer={
-        <>
-          <Button id={`delete-credential-${credential.id}-modal_confirm_button`} theme="danger" onClick={() => { onDelete?.(); onClose(); }}>
-            Delete credential
-          </Button>
-          <Button theme="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-        </>
-      }
+      title="Delete credential"
+      tone="danger"
+      confirmLabel="Delete credential"
+      onConfirm={() => {
+        onDelete?.();
+        onClose();
+      }}
     >
-      <div className="text-sm text-gray-500">
-        <p>
-          Deleting this credential will immediately remove it from all jobs and projects. If you later restore it, you
-          will need to re-share it with projects and re-associate it with jobs. Are you sure you'd like to delete the
-          credential?
-        </p>
-        {hasActivityInProjects && <p className="mt-2 italic text-slate-500">*{activityNote}</p>}
-      </div>
-    </Modal>
+      <p>
+        Deleting this credential will immediately remove it from all jobs and projects. If you later restore it, you
+        will need to re-share it with projects and re-associate it with jobs. Are you sure you'd like to delete the
+        credential?
+      </p>
+      {hasActivityInProjects && <p className="italic">*{activityNote}</p>}
+    </ConfirmModal>
   );
 }

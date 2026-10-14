@@ -1,6 +1,6 @@
 import { useAnnotations } from "../../annotations/annotations-context";
 import { ANNOTATIONS_BRANCH, getAnnotation, inventory, inventoryUrl } from "../../annotations/source";
-import { cn } from "../../utils/cn";
+import IconButton from "../IconButton";
 import AnnotationCard from "./AnnotationCard";
 
 export const ANNOTATIONS_PANEL_WIDTH = 440;
@@ -28,25 +28,13 @@ export default function AnnotationsPanel() {
           </p>
         </div>
         <div className="flex items-center gap-1">
-          <button
-            type="button"
+          <IconButton
+            icon={pinnedId ? "hero-lock-closed" : "hero-lock-open"}
+            label={pinnedId ? "Unpin and follow the mouse" : "Pin this annotation"}
+            active={!!pinnedId}
             onClick={() => pin(pinnedId ? null : currentId)}
-            title={pinnedId ? "Unpin and follow the mouse" : "Pin this annotation"}
-            className={cn(
-              "rounded-md p-1.5 hover:bg-gray-100",
-              pinnedId ? "text-primary-600" : "text-gray-400 hover:text-gray-600"
-            )}
-          >
-            <span className={cn(pinnedId ? "hero-lock-closed" : "hero-lock-open", "h-5 w-5")} />
-          </button>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            title="Close"
-            className="rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-          >
-            <span className="hero-x-mark h-5 w-5" />
-          </button>
+          />
+          <IconButton icon="hero-x-mark" label="Close" onClick={() => setOpen(false)} />
         </div>
       </div>
 

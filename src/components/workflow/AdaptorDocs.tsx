@@ -1,5 +1,5 @@
 import { adaptorFunctions, adaptorShortName, resolveAdaptor, resolvedAdaptorVersion } from "../../mock-data/adaptors";
-import { linkClasses } from "./editorClasses";
+import TextLink from "../TextLink";
 
 /**
  * The IDE's Docs panel (assets/js/adaptor-docs/components/DocsPanel.tsx):
@@ -21,20 +21,15 @@ export default function AdaptorDocs({ adaptor }: { adaptor: string }) {
       <div className="mb-2 text-sm">
         <div>
           External docs:
-          <a className={`${linkClasses} ml-2`} href={`https://docs.openfn.org/adaptors/packages/${short}-docs`} target="_blank" rel="noreferrer">
+          <TextLink className="ml-2" to={`https://docs.openfn.org/adaptors/packages/${short}-docs`} external>
             docs.openfn.org
-          </a>
+          </TextLink>
         </div>
         <div>
           Source code:
-          <a
-            className={`${linkClasses} ml-2`}
-            href={`https://github.com/OpenFn/adaptors/tree/%40openfn/language-${short}%40${version}/packages/${short}/src`}
-            target="_blank"
-            rel="noreferrer"
-          >
+          <TextLink className="ml-2" to={`https://github.com/OpenFn/adaptors/tree/%40openfn/language-${short}%40${version}/packages/${short}/src`} external>
             github.com/OpenFn/adaptors
-          </a>
+          </TextLink>
         </div>
       </div>
       <details className="mb-4">

@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Modal from "../Modal";
 import Button from "../Button";
 import Alert from "../Alert";
+import IconButton from "../IconButton";
 import InfoTooltip from "../InfoTooltip";
-import { Checkbox, TextArea, TextInput } from "../Inputs";
+import { Checkbox, Radio, TextArea, TextInput } from "../Inputs";
+import Tabs from "../Tabs";
+import TextLink from "../TextLink";
 import PasswordInput from "../auth/PasswordInput";
 import ProjectsPicker from "./ProjectsPicker";
-import { cn } from "../../utils/cn";
 import { projects as allProjects, type Project } from "../../mock-data/projects";
 import { currentUser } from "../../mock-data/users";
 import {
@@ -119,45 +121,39 @@ export default function CredentialFormModal({
       <Modal
         open={open}
         onClose={onClose}
-        title={<span className="font-bold">Add a credential</span>}
-        width="max-w-[50rem]"
+        title="Add a credential"
+        size="xl"
         footer={
           <>
+            <Button disabled={!selected} onClick={() => setPage("second")}>
+              Configure credential
+            </Button>
             <Button theme="secondary" id="cancel-credential-type-picker" onClick={onClose}>
               Cancel
-            </Button>
-            <Button theme="primary" disabled={!selected} onClick={() => setPage("second")}>
-              Configure credential
             </Button>
           </>
         }
       >
-        <div className="text-xs text-left container mx-auto">
-          <form id="credential-schema-picker" onSubmit={(e) => e.preventDefault()}>
-            <div className="grid grid-cols-2 md:grid-cols-4 sm:grid-cols-3 gap-4 overflow-auto max-h-99">
-              {typeOptions.map((o) => {
-                const inputId = `credential-schema-picker_selected_${o.key}`;
-                return (
-                  <div key={o.key} className="flex items-center p-2">
-                    <input
-                      type="radio"
-                      id={inputId}
-                      name="selected"
-                      value={o.key}
-                      checked={selected === o.key}
-                      onChange={() => pickType(o.key)}
-                      className="h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-600 cursor-pointer"
-                    />
-                    <label htmlFor={inputId} className="ml-3 block text-sm font-medium text-gray-700 cursor-pointer">
-                      {o.name}
-                      {o.type === "oauth" && <span className="hero-key-mini ml-1 h-4 w-4 text-gray-400" />}
-                    </label>
-                  </div>
-                );
-              })}
-            </div>
-          </form>
-        </div>
+        <form id="credential-schema-picker" onSubmit={(e) => e.preventDefault()}>
+          <div className="grid max-h-99 grid-cols-2 gap-4 overflow-auto p-1 sm:grid-cols-3 md:grid-cols-4">
+            {typeOptions.map((o) => (
+              <Radio
+                key={o.key}
+                id={`credential-schema-picker_selected_${o.key}`}
+                name="selected"
+                value={o.key}
+                checked={selected === o.key}
+                onChange={() => pickType(o.key)}
+                label={
+                  <span className="font-medium">
+                    {o.name}
+                    {o.type === "oauth" && <span className="hero-key-mini ml-1 h-4 w-4 text-gray-400" />}
+                  </span>
+                }
+              />
+            ))}
+          </div>
+        </form>
       </Modal>
     );
   }
@@ -166,92 +162,59 @@ export default function CredentialFormModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={
-        <span className="font-bold">
-          {editing ? `Edit ${credential.name || "credential"}` : `Create ${formatSchemaName(schema ?? "raw")} credential`}
-        </span>
-      }
-      width="max-w-[600px]"
+      title={editing ? `Edit ${credential.name || "credential"}` : `Create ${formatSchemaName(schema ?? "raw")} credential`}
+      size="lg"
       footer={
-        <div className="flex w-full items-center justify-between gap-3">
-          <div />
-          <div className="flex gap-2">
-            <Button theme="secondary" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button id={`save-credential-button-${credential?.id ?? "new"}`} disabled={!valid} onClick={save}>
-              Save Credential
-            </Button>
-          </div>
-        </div>
+        <>
+          <Button id={`save-credential-button-${credential?.id ?? "new"}`} disabled={!valid} onClick={save}>
+            Save Credential
+          </Button>
+          <Button theme="secondary" onClick={onClose}>
+            Cancel
+          </Button>
+        </>
       }
     >
-      <div className="text-left">
+      <div>
         {schema === "oauth" && !client && (
           <Alert type="danger" header="OAuth client not found" className="mb-4">
             <p>The associated Oauth client for this credential cannot be found. Create a new client or contact your administrator.</p>
           </Alert>
         )}
         <form id={`credential-form-${credential?.id ?? "new"}`} className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-          <div className="space-y-2 border border-gray-200 rounded-md p-4">
-            <div>
-              <h3 className="text-normal font-semibold text-gray-900">Credential identity</h3>
-              <p className="text-xs text-gray-500 mt-1">Basic information that applies to all environments</p>
-            </div>
-            <div className="grid grid-cols-1 gap-4">
-              <TextInput id="credential-name" label="Credential Name" required value={name} onChange={(e) => setName(e.target.value)} />
-              <div>
-                <TextInput id="credential-external-id" label="External ID" value={externalId} onChange={(e) => setExternalId(e.target.value)} />
-                <p className="text-xs text-gray-500 mt-1">Optional identifier for external systems</p>
-              </div>
-            </div>
-          </div>
+          <FormSection title="Credential identity" description="Basic information that applies to all environments">
+            <TextInput id="credential-name" label="Credential Name" required value={name} onChange={(e) => setName(e.target.value)} />
+            <TextInput
+              id="credential-external-id"
+              label="External ID"
+              hint="Optional identifier for external systems"
+              value={externalId}
+              onChange={(e) => setExternalId(e.target.value)}
+            />
+          </FormSection>
 
-          <div className="space-y-2 border border-gray-200 rounded-md p-4">
-            <div>
-              <h3 className="text-normal font-semibold text-gray-900">Credential environments</h3>
-              <p className="text-xs text-gray-500 mt-1">
-                Different credential values for each environment (dev, staging, production, etc.)
-              </p>
-            </div>
-            <div className="border-b border-gray-200">
-              <div className="flex space-x-4">
-                {envs.map((e, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setTab(i)}
-                    className={cn(
-                      "pb-4 px-1 border-b-2 font-medium text-sm transition-all whitespace-nowrap",
-                      i === tab
-                        ? "border-indigo-500 text-indigo-600"
-                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    )}
-                  >
-                    {e.name}
-                  </button>
-                ))}
-                <span title={envs.length >= MAX_ENVIRONMENTS ? "Maximum of 5 environments reached" : "Add new environment"}>
-                  <button
-                    id="add-environment-button"
-                    type="button"
-                    disabled={envs.length >= MAX_ENVIRONMENTS}
-                    onClick={() => {
-                      setEnvs((list) => [...list, { name: `env${list.length + 1}`, body: {} }]);
-                      setTab(envs.length);
-                    }}
-                    className={cn(
-                      "pb-4 px-1 transition-colors",
-                      envs.length >= MAX_ENVIRONMENTS
-                        ? "text-gray-300 cursor-not-allowed"
-                        : "text-gray-400 hover:text-gray-600 cursor-pointer"
-                    )}
-                  >
-                    <span className="hero-plus h-5 w-5" />
-                  </button>
-                </span>
-              </div>
-            </div>
+          <FormSection
+            title="Credential environments"
+            description="Different credential values for each environment (dev, staging, production, etc.)"
+          >
+            <Tabs
+              label="Environments"
+              tabs={envs.map((e, i) => ({ id: String(i), label: e.name }))}
+              active={String(tab)}
+              onChange={(id) => setTab(Number(id))}
+              after={
+                <IconButton
+                  id="add-environment-button"
+                  icon="hero-plus"
+                  label={envs.length >= MAX_ENVIRONMENTS ? "Maximum of 5 environments reached" : "Add new environment"}
+                  disabled={envs.length >= MAX_ENVIRONMENTS}
+                  onClick={() => {
+                    setEnvs((list) => [...list, { name: `env${list.length + 1}`, body: {} }]);
+                    setTab(envs.length);
+                  }}
+                />
+              }
+            />
             <div>
               <div className="mb-6">
                 <TextInput
@@ -311,29 +274,24 @@ export default function CredentialFormModal({
               )}
             </div>
             {envs.length > 1 && (
-              <div className="space-y-4">
-                <div className="border-t border-gray-200" />
-                <button
-                  type="button"
+              <div className="border-t border-gray-200 pt-4">
+                <Button
+                  theme="secondary"
+                  size="sm"
                   onClick={() => {
                     if (!window.confirm(`Are you sure you want to delete the ${env.name} environment?`)) return;
                     setEnvs((list) => list.filter((_, i) => i !== tab));
                     setTab(0);
                   }}
-                  className="inline-flex items-center text-sm text-gray-500 hover:text-red-600 transition-colors"
                 >
-                  <span className="hero-trash h-4 w-4 mr-1.5" />
+                  <span className="hero-trash h-4 w-4" />
                   Delete environment
-                </button>
+                </Button>
               </div>
             )}
-          </div>
+          </FormSection>
 
-          <div className="space-y-2 border border-gray-200 rounded-md p-4">
-            <div>
-              <h3 className="text-normal font-semibold text-gray-900">Projects access</h3>
-              <p className="text-xs text-gray-500 mt-1">Select projects that can use this credential</p>
-            </div>
+          <FormSection title="Projects access" description="Select projects that can use this credential">
             <ProjectsPicker
               id={credential?.id ?? "new"}
               type="credential"
@@ -341,10 +299,23 @@ export default function CredentialFormModal({
               selectedIds={projectIds}
               onChange={setProjectIds}
             />
-          </div>
+          </FormSection>
         </form>
       </div>
     </Modal>
+  );
+}
+
+/** A bordered group of fields with a heading and a line of explanation. */
+function FormSection({ title, description, children }: { title: string; description: string; children: ReactNode }) {
+  return (
+    <section className="space-y-4 rounded-md border border-gray-200 p-4">
+      <div>
+        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+        <p className="mt-1 text-xs text-gray-500">{description}</p>
+      </div>
+      {children}
+    </section>
   );
 }
 
@@ -371,9 +342,10 @@ function OauthFields({
             {client?.scopesDocUrl && (
               <div className="flex flex-row text-xs mt-1">
                 Learn more about {client.name} permissions
-                <a target="_blank" rel="noreferrer" href={client.scopesDocUrl} className="whitespace-nowrap font-medium text-blue-700 hover:text-blue-600">
-                  &nbsp;here
-                </a>
+                &nbsp;
+                <TextLink to={client.scopesDocUrl} external>
+                  here
+                </TextLink>
               </div>
             )}
           </h3>
@@ -399,9 +371,7 @@ function OauthFields({
             </Alert>
             <div className="text-sm text-gray-600">
               If your credential isn't working as expected, you can{" "}
-              <button type="button" className="font-medium text-blue-600 hover:text-blue-500">
-                reauthenticate with {client?.name}
-              </button>
+              <TextLink>reauthenticate with {client?.name}</TextLink>
             </div>
           </>
         ) : (

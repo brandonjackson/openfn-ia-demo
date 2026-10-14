@@ -1,7 +1,8 @@
 import { useId, type ReactNode } from "react";
 import { cn } from "../../utils/cn";
 import IconButton from "../IconButton";
-import { Checkbox, Field, controlClasses } from "../Inputs";
+import { Checkbox, Field } from "../Inputs";
+import { controlClasses } from "../controlClasses";
 import Popover from "../Popover";
 
 /**

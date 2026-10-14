@@ -1,7 +1,12 @@
 import { credentials, ownerEmail } from "../../mock-data/credentials";
 import { ADAPTORS_WITHOUT_CREDENTIALS, adaptorDisplayName, adaptorShortName, resolveAdaptor, resolvedAdaptorVersion } from "../../mock-data/adaptors";
+import Button from "../Button";
+import InfoTooltip from "../InfoTooltip";
+import { Field, Label, Radio, Select } from "../Inputs";
+import Modal from "../Modal";
+import TextLink from "../TextLink";
+import { ADAPTOR_HELP } from "./AdaptorDisplay";
 import AdaptorIcon from "./AdaptorIcon";
-import EditorDialog from "./EditorDialog";
 
 interface Props {
   isOpen: boolean;
@@ -39,127 +44,80 @@ export default function ConfigureAdaptorModal({
   const versions = ["latest", latest, "6.5.1", "6.4.0", "5.0.0"].filter((v, i, a) => a.indexOf(v) === i);
 
   return (
-    <EditorDialog open={isOpen} onClose={onClose} className="sm:max-w-2xl">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-bold leading-5 text-zinc-800">Configure connection</h2>
-        <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-500 focus:outline-none" aria-label="Close">
-          <span className="hero-x-mark h-6 w-6" aria-hidden="true" />
-        </button>
-      </div>
-      <div className="px-6 py-6 space-y-6">
-        <div className="grid grid-cols-3 gap-4 items-end">
-          <div className="col-span-2">
-            <span className="flex items-center gap-1 text-sm font-medium text-gray-700 mb-2">
-              Adaptor
-              <span
-                className="hero-information-circle h-4 w-4 text-gray-400"
-                title="Choose an adaptor to perform operations (via helper functions) in a specific application. Pick 'http' for generic REST APIs or the 'common' adaptor if this job only performs data manipulation."
-              />
-            </span>
-            <div className="flex items-center justify-between p-3 border border-gray-200 rounded-md bg-white">
-              <div className="flex items-center gap-2 min-w-0 flex-1">
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      size="xl"
+      title="Configure connection"
+      footer={<Button onClick={onClose}>Close</Button>}
+    >
+      <div className="space-y-6">
+        <div className="grid grid-cols-3 items-end gap-4">
+          <Field className="col-span-2" label={<>Adaptor<InfoTooltip title={ADAPTOR_HELP} /></>}>
+            <div className="flex items-center justify-between rounded-md border border-gray-200 bg-white p-3">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
                 <AdaptorIcon name={adaptor} size="md" />
-                <span className="font-medium text-gray-900 truncate">{adaptorDisplayName(adaptor)}</span>
+                <span className="truncate font-medium text-gray-900">{adaptorDisplayName(adaptor)}</span>
               </div>
-              <button
-                type="button"
-                onClick={onChangeAdaptor}
-                aria-label="Change adaptor"
-                className="px-3 py-1.5 border border-gray-300 bg-white rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 flex-shrink-0"
-              >
+              <Button theme="secondary" size="sm" onClick={onChangeAdaptor} aria-label="Change adaptor">
                 Change
-              </button>
+              </Button>
             </div>
-          </div>
-          <div className="col-span-1">
-            <span className="block text-sm font-medium text-gray-700 mb-2">Version</span>
-            <select
-              value={version}
-              onChange={(e) => onVersionChange(e.target.value)}
-              className="block w-full rounded-md border-secondary-300 shadow-xs sm:text-sm focus:border-primary-300 focus:ring focus:ring-primary-200/50 py-3"
-            >
-              {versions.map((v) => (
-                <option key={v} value={v}>
-                  {v}
-                </option>
-              ))}
-            </select>
-          </div>
+          </Field>
+          <Select
+            id="adaptor-version"
+            label="Version"
+            options={versions}
+            value={version}
+            onChange={(e) => onVersionChange(e.target.value)}
+            className="py-3"
+          />
         </div>
 
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="flex items-center gap-1 text-sm font-medium text-gray-700">
-              Credentials
-              <span className="hero-information-circle h-4 w-4 text-gray-400" />
-            </span>
-            {needsCredentials && (
-              <button type="button" className="text-primary-600 hover:text-primary-700 text-sm font-medium underline focus:outline-none">
-                New Credential
-              </button>
-            )}
+          <div className="mb-2 flex items-center justify-between">
+            <Label>Credentials</Label>
+            {needsCredentials && <TextLink className="text-sm font-medium">New Credential</TextLink>}
           </div>
           {!needsCredentials ? (
-            <div className="border border-gray-200 rounded-md p-6 text-center bg-gray-50">
-              <p className="text-gray-600 text-sm">This adaptor does not require credentials.</p>
+            <div className="rounded-md border border-gray-200 bg-gray-50 p-6 text-center">
+              <p className="text-sm text-gray-600">This adaptor does not require credentials.</p>
             </div>
           ) : shown.length === 0 ? (
-            <div className="border border-gray-200 rounded-md p-6 text-center">
-              <p className="text-gray-500 mb-3">No credentials found in this project</p>
-              <button type="button" className="text-primary-600 hover:text-primary-700 text-sm font-medium underline focus:outline-none">
-                Create a new credential
-              </button>
+            <div className="rounded-md border border-gray-200 p-6 text-center">
+              <p className="mb-3 text-gray-500">No credentials found in this project</p>
+              <TextLink className="text-sm font-medium">Create a new credential</TextLink>
             </div>
           ) : (
-            <div className="border border-gray-200 rounded-md divide-y divide-gray-200 max-h-48 overflow-y-auto">
+            <div className="max-h-48 divide-y divide-gray-200 overflow-y-auto rounded-md border border-gray-200">
               {shown.map((c) => {
                 const selected = c.name === credentialName;
                 return (
-                  <label key={c.id} className="flex items-start gap-3 p-4 hover:bg-gray-50 cursor-pointer">
-                    <input
-                      type="radio"
+                  <div key={c.id} className="flex items-start justify-between gap-3 p-4 hover:bg-gray-50">
+                    <Radio
                       name="credential"
                       checked={selected}
                       onChange={() => onCredentialChange(c.name)}
-                      className="mt-1 h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+                      label={<span className="font-medium text-gray-900">{c.name}</span>}
+                      hint={
+                        <span className="flex items-center gap-1 text-sm">
+                          <span className="hero-user-solid h-4 w-4" />
+                          {ownerEmail(c.ownerId)}
+                        </span>
+                      }
                     />
-                    <div className="flex-1 min-w-0">
-                      <div className="mb-1">
-                        <span className="font-medium text-gray-900 truncate">{c.name}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <span className="hero-user-solid h-4 w-4" />
-                        {ownerEmail(c.ownerId)}
-                      </div>
-                    </div>
                     {selected && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          onCredentialChange(null);
-                        }}
-                        className="text-sm text-gray-500 hover:text-gray-700 underline"
-                      >
+                      <TextLink className="text-sm" onClick={() => onCredentialChange(null)}>
                         Clear
-                      </button>
+                      </TextLink>
                     )}
-                  </label>
+                  </div>
                 );
               })}
             </div>
           )}
         </div>
       </div>
-      <div className="flex justify-end px-6 py-4 border-t border-gray-200">
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-md text-sm font-semibold shadow-xs px-3 py-2 bg-primary-600 hover:bg-primary-500 text-white"
-        >
-          Close
-        </button>
-      </div>
-    </EditorDialog>
+    </Modal>
   );
 }

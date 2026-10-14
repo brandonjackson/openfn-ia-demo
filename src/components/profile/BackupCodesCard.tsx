@@ -1,9 +1,7 @@
 import { useState } from "react";
+import Alert from "../Alert";
 import Button from "../Button";
 import type { BackupCode } from "../../mock-data/tokens";
-
-const plainButton =
-  "inline-flex items-center gap-x-2 rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto";
 
 /**
  * The recovery codes card (backup_codes_live/index.html.heex): the codes
@@ -23,19 +21,10 @@ export default function BackupCodesCard({ codes, onRegenerate }: { codes: Backup
           Keep your backup codes as safe as your password. We recommend saving them with a password manager.
         </p>
       </div>
-      <div className="rounded-md bg-yellow-50 p-4">
-        <div className="flex">
-          <div className="shrink-0">
-            <span className="hero-exclamation-triangle-mini h-5 w-5 text-yellow-400" />
-          </div>
-          <div className="ml-3">
-            <p className="text-sm text-yellow-700">
-              Keep your recovery codes in a safe spot. These codes are the last resort for accessing your account in
-              case you lose your authenticator device.
-            </p>
-          </div>
-        </div>
-      </div>
+      <Alert type="warning">
+        Keep your recovery codes in a safe spot. These codes are the last resort for accessing your account in case
+        you lose your authenticator device.
+      </Alert>
       <div className="grid md:grid-cols-2 gap-4 px-4 sm:px-6 py-4 border-t border-gray-300">
         {codes.map((c) => (
           <div key={c.code} className="text-center tracking-widest">
@@ -53,26 +42,19 @@ export default function BackupCodesCard({ codes, onRegenerate }: { codes: Backup
         ))}
       </div>
       <div className="flex justify-center items-center gap-4 px-4 py-5 sm:px-6 border-t border-gray-300">
-        <div>
-          <button type="button" onClick={() => window.print()} className={plainButton}>
-            <span className="hero-printer -ml-0.5 h-5 w-5" />
-            Print Codes
-          </button>
-        </div>
+        <Button theme="secondary" size="lg" onClick={() => window.print()}>
+          <span className="hero-printer -ml-0.5 h-5 w-5" />
+          Print Codes
+        </Button>
         <div className="flex justify-center items-center gap-x-2">
-          <Button id="copy-codes-button" theme="secondary" onClick={copy} className="inline-flex items-center gap-x-2">
+          <Button id="copy-codes-button" theme="secondary" size="lg" onClick={copy}>
             <span className="hero-document-duplicate -ml-0.5 h-5 w-5" />
             Copy Codes
           </Button>
           {copied && (
-            <div id="codes-copied-alert" className="rounded-md bg-green-50 p-2 cursor-pointer" onClick={() => setCopied(false)}>
-              <div className="flex">
-                <div className="shrink-0">
-                  <span className="hero-check-circle-mini h-5 w-5 text-green-400" />
-                </div>
-                <span className="ml-1 p-1 text-xs font-semibold text-green-800">Copied!</span>
-              </div>
-            </div>
+            <Alert id="codes-copied-alert" type="success" className="p-2">
+              Copied!
+            </Alert>
           )}
         </div>
       </div>
@@ -82,9 +64,9 @@ export default function BackupCodesCard({ codes, onRegenerate }: { codes: Backup
           When you generate new backup codes, you must copy or print the new codes. Your old codes won't work anymore.
         </p>
         <div className="mt-2">
-          <button type="button" onClick={onRegenerate} className={`${plainButton} rounded-b-md`}>
+          <Button theme="secondary" size="lg" onClick={onRegenerate}>
             Generate new backup codes
-          </button>
+          </Button>
         </div>
       </div>
     </div>

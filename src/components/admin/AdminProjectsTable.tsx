@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom";
 import type { Project } from "../../mock-data/projects";
 import { projectOwnerName, projectScheduledDeletions } from "../../mock-data/admin";
 import FilterInput from "../FilterInput";
-import SimpleDropdown from "../SimpleDropdown";
+import ButtonMenu from "../ButtonMenu";
+import { MenuItem } from "../Menu";
 import { Table, Td, Th, Tr } from "../Table";
 import { formatShortDateTime, useTableSort, type SortValue } from "./tableSort";
 
@@ -66,34 +66,11 @@ export default function AdminProjectsTable({
               <Td>{deletion && formatShortDateTime(deletion)}</Td>
               <Td className="py-0.5">
                 <div className="flex justify-end">
-                  <SimpleDropdown
-                    id={`project-actions-${project.id}-dropdown`}
-                    buttonTheme="secondary"
-                    label="Actions"
-                  >
-                    <Link to={`/settings/projects/${project.id}`}>Edit</Link>
-                    {deletion ? (
-                      <>
-                        <a
-                          id={`cancel-deletion-${project.id}`}
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            onCancelDeletion?.(project);
-                          }}
-                        >
-                          Cancel deletion
-                        </a>
-                        <Link id={`delete-now-${project.id}`} to={`/settings/projects/${project.id}/delete`}>
-                          Delete now
-                        </Link>
-                      </>
-                    ) : (
-                      <Link id={`delete-${project.id}`} to={`/settings/projects/${project.id}/delete`}>
-                        Delete
-                      </Link>
-                    )}
-                  </SimpleDropdown>
+                  <ButtonMenu label="Actions">
+                    <MenuItem to={`/settings/projects/${project.id}`}>Edit</MenuItem>
+                    {deletion && <MenuItem onClick={() => onCancelDeletion?.(project)}>Cancel deletion</MenuItem>}
+                    <MenuItem to={`/settings/projects/${project.id}/delete`}>{deletion ? "Delete now" : "Delete"}</MenuItem>
+                  </ButtonMenu>
                 </div>
               </Td>
             </Tr>

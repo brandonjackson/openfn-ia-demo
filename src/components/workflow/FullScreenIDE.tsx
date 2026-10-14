@@ -1,8 +1,9 @@
-import { DocumentTextIcon, SparklesIcon, ViewColumnsIcon, XMarkIcon, ClockIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import { ClockIcon as ClockIconSolid } from "@heroicons/react/24/solid";
 import { useState, type ReactNode } from "react";
 import type { EditorJob } from "../../mock-data/workflow";
 import { cn } from "../../utils/cn";
+import Button from "../Button";
+import IconButton from "../IconButton";
+import Tabs from "../Tabs";
 import AdaptorDisplay from "./AdaptorDisplay";
 import AdaptorDocs, { AdaptorMetadata } from "./AdaptorDocs";
 import CodeEditor from "./CodeEditor";
@@ -94,43 +95,34 @@ export default function FullScreenIDE({
               </div>
             )}
             <div className="flex items-center gap-1 shrink-0">
-              {(["docs", "metadata"] as const).map((tab) => {
-                const Icon = tab === "docs" ? DocumentTextIcon : SparklesIcon;
-                return (
-                  <button
-                    key={tab}
-                    type="button"
-                    onClick={() => showDocs(tab)}
-                    className={cn(
-                      "flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors",
-                      docsTab === tab && !docsCollapsed ? "bg-primary-100 text-primary-800" : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-                    )}
-                    title={tab === "docs" ? "Show adaptor documentation" : "Show metadata explorer"}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                    {tab === "docs" ? "Docs" : "Metadata"}
-                  </button>
-                );
-              })}
+              <IconButton
+                icon="hero-document-text"
+                label="Docs"
+                title="Show adaptor documentation"
+                size="sm"
+                active={docsTab === "docs" && !docsCollapsed}
+                onClick={() => showDocs("docs")}
+              />
+              <IconButton
+                icon="hero-sparkles"
+                label="Metadata"
+                title="Show metadata explorer"
+                size="sm"
+                active={docsTab === "metadata" && !docsCollapsed}
+                onClick={() => showDocs("metadata")}
+              />
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              title="⌘ H"
-              onClick={onShowHistory}
-              className="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-semibold shadow-xs transition-colors bg-primary-600 text-white hover:bg-primary-500"
-            >
-              {panelState === "history" ? <ClockIconSolid className="h-4 w-4" /> : <ClockIcon className="h-4 w-4" />}
+            <Button tooltip="⌘ H" onClick={onShowHistory}>
+              <span className={cn("h-4 w-4", panelState === "history" ? "hero-clock-solid" : "hero-clock")} />
               History
-            </button>
+            </Button>
             {(panelState === undefined || panelState === "history") && <NewRunButton onClick={onShowCreateRun} />}
             {(panelState === "run-viewer" || panelState === "create-run") && (
               <RunRetryButton isRetryable={panelState === "run-viewer" && isRetryable} onRun={onRun} onRetry={onRetry} />
             )}
-            <button type="button" onClick={onClose} title="Esc" className="p-1 hover:bg-gray-100 rounded transition-colors" aria-label="Close IDE">
-              <XMarkIcon className="h-5 w-5 text-gray-500" />
-            </button>
+            <IconButton icon="hero-x-mark" label="Close IDE" title="Close IDE (Esc)" onClick={onClose} />
           </div>
         </div>
       </div>
@@ -157,7 +149,6 @@ export default function FullScreenIDE({
                   <div className="flex items-center justify-between px-3 pt-2 pb-1">
                     <div className="flex-1">
                       <EditorTabs
-                        variant="pills"
                         value={docsTab}
                         onChange={setDocsTab}
                         options={[
@@ -167,18 +158,14 @@ export default function FullScreenIDE({
                       />
                     </div>
                     <div className="flex items-center gap-1 pl-2">
-                      <button type="button" onClick={() => setVertical((v) => !v)} className="p-1 hover:bg-gray-100 rounded transition-colors" title="Toggle panel orientation">
-                        <ViewColumnsIcon className={cn("h-4 w-4 text-gray-500", vertical && "rotate-90")} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDocsCollapsed(true)}
-                        className="p-1 hover:bg-gray-100 rounded transition-colors"
-                        aria-label="Close docs panel"
-                        title="Close docs panel"
-                      >
-                        <XMarkIcon className="h-4 w-4 text-gray-500" />
-                      </button>
+                      <IconButton
+                        icon="hero-view-columns"
+                        label="Toggle panel orientation"
+                        size="sm"
+                        className={cn(vertical && "rotate-90")}
+                        onClick={() => setVertical((v) => !v)}
+                      />
+                      <IconButton icon="hero-x-mark" label="Close docs panel" size="sm" onClick={() => setDocsCollapsed(true)} />
                     </div>
                   </div>
                 </div>
@@ -232,25 +219,19 @@ export default function FullScreenIDE({
                       <div className="flex items-center justify-between px-3 py-1">
                         <RunBadge runId={followRunId} onClose={onClearRun} className="mr-3" />
                         <div className="flex-1">
-                          <EditorTabs
-                            value={runTab}
+                          <Tabs
+                            label="Run output"
+                            className="border-b-0"
+                            active={runTab}
                             onChange={onRunTabChange}
-                            options={[
-                              { value: "log", label: "Logs" },
-                              { value: "input", label: "Input" },
-                              { value: "output", label: "Output" },
+                            tabs={[
+                              { id: "log", label: "Logs" },
+                              { id: "input", label: "Input" },
+                              { id: "output", label: "Output" },
                             ]}
                           />
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => setRunCollapsed(true)}
-                          className="p-1 hover:bg-gray-100 rounded transition-colors ml-2"
-                          aria-label="Collapse panel"
-                          title="Collapse panel"
-                        >
-                          <ChevronRightIcon className="h-4 w-4 text-gray-500" />
-                        </button>
+                        <IconButton icon="hero-chevron-right" label="Collapse panel" size="sm" className="ml-2" onClick={() => setRunCollapsed(true)} />
                       </div>
                     </div>
                   )}

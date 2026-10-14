@@ -1,4 +1,6 @@
 import type { Project } from "../../mock-data/projects";
+import { Select } from "../Inputs";
+import Pill from "../Pill";
 
 interface Props {
   id: string;
@@ -11,7 +13,7 @@ interface Props {
 
 /**
  * Lightning's `Components.Credentials.projects_picker`: a select that adds a
- * project, then the granted projects as removable blue chips.
+ * project, then the granted projects as removable chips.
  */
 export default function ProjectsPicker({ id, type, projects, selectedIds, onChange }: Props) {
   const available = projects.filter((p) => !selectedIds.includes(p.id));
@@ -21,43 +23,28 @@ export default function ProjectsPicker({ id, type, projects, selectedIds, onChan
   const selectId = type === "credential" ? `project-credentials-list-${id}` : `project-oauth-clients-list-${id}`;
 
   return (
-    <div className="col-span-3">
-      <div>
-        <div className="mt-1 pb-3">
-          <select
-            id={selectId}
-            value=""
-            onChange={(e) => e.target.value && onChange([...selectedIds, e.target.value])}
-            className="block w-full rounded-lg border border-secondary-300 bg-white sm:text-sm shadow-xs focus:border-primary-300 focus:ring focus:ring-primary-200/50 disabled:cursor-not-allowed"
-          >
-            <option value="">{prompt}</option>
-            {available.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="overflow-auto max-h-32">
+    <div className="space-y-3">
+      <Select
+        id={selectId}
+        value=""
+        prompt={prompt}
+        options={available.map((p) => ({ label: p.name, value: p.id }))}
+        onChange={(e) => e.target.value && onChange([...selectedIds, e.target.value])}
+      />
+      {selected.length > 0 && (
+        <div className="flex max-h-32 flex-wrap gap-1.5 overflow-auto">
           {selected.map((p) => (
-            <span
+            <Pill
               key={p.id}
-              className="inline-flex items-center gap-1 rounded-md bg-blue-100 px-4 mr-1 py-2 mb-2 text-gray-600"
+              color="blue"
+              removeLabel={`Remove ${p.name}`}
+              onRemove={() => onChange(selectedIds.filter((x) => x !== p.id))}
             >
               {p.name}
-              <button
-                type="button"
-                onClick={() => onChange(selectedIds.filter((x) => x !== p.id))}
-                className="group relative -mr-1 h-3.5 w-3.5 rounded-sm hover:bg-gray-500/20"
-              >
-                <span className="sr-only">Remove</span>
-                <span className="hero-x-mark-solid w-4 h-4 block" />
-                <span className="absolute -inset-1" />
-              </button>
-            </span>
+            </Pill>
           ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }

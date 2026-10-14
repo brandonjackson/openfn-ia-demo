@@ -4,7 +4,7 @@ import { isSupportUser, userRoleOptions } from "../../mock-data/admin";
 import Alert from "../Alert";
 import PasswordInput from "../auth/PasswordInput";
 import Button from "../Button";
-import { Select, TextInput } from "../Inputs";
+import { Checkbox, Select, TextInput } from "../Inputs";
 import Toggle from "../Toggle";
 
 interface Props {
@@ -134,20 +134,12 @@ export default function UserForm({ user, onSave, cancelTo = "/settings/users" }:
                 />
               </Row>
             )}
-            <div className="flex items-start">
-              <div className="flex items-center h-5">
-                <input
-                  id="user_disabled"
-                  type="checkbox"
-                  checked={values.disabled}
-                  onChange={(e) => set("disabled", e.target.checked)}
-                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-600 transition duration-200 cursor-pointer"
-                />
-              </div>
-              <div className="ml-3 text-sm">
-                <p className="text-secondary-500">A disabled user will not be allowed to login.</p>
-              </div>
-            </div>
+            <Checkbox
+              id="user_disabled"
+              label="A disabled user will not be allowed to login."
+              checked={values.disabled}
+              onChange={(e) => set("disabled", e.target.checked)}
+            />
           </>
         )}
 

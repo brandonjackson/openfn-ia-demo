@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { Run, WorkOrder } from "../../mock-data/history";
 import { cn } from "../../utils/cn";
+import IconButton from "../IconButton";
 import RunBadge from "./RunBadge";
-import { linkUuidClasses, shortId } from "./editorClasses";
+import { shortId } from "./shortId";
 import { duration, formatRelative } from "./formatTime";
 
 const CHIP_STYLES: Record<string, string> = {
@@ -101,30 +102,20 @@ export default function MiniHistory({
                   onClick={expand}
                 >
                   <div className="flex items-center gap-2 min-w-0 flex-1 mr-2">
-                    <button
-                      type="button"
+                    <IconButton
+                      icon={selected || isExpanded ? "hero-chevron-down" : "hero-chevron-right"}
+                      label={`${isExpanded ? "Collapse" : "Expand"} work order details`}
+                      size="sm"
+                      className={cn(selected && "text-primary-600")}
                       onClick={(e) => {
                         e.stopPropagation();
                         expand();
                       }}
-                      className="flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                      aria-label={`${isExpanded ? "Collapse" : "Expand"} work order details`}
-                    >
-                      <span
-                        className={cn(
-                          "w-4 h-4",
-                          selected
-                            ? "hero-chevron-down font-bold text-indigo-600"
-                            : isExpanded
-                              ? "hero-chevron-down"
-                              : "hero-chevron-right"
-                        )}
-                      />
-                    </button>
+                    />
                     <Link
                       to={`/projects/${projectId}/history?filters[workorder_id]=${workOrder.id}`}
                       onClick={(e) => e.stopPropagation()}
-                      className={linkUuidClasses}
+                      className="link-uuid"
                       title={workOrder.id}
                     >
                       {shortId(workOrder.id)}
@@ -154,24 +145,22 @@ export default function MiniHistory({
                       <div className="flex items-center justify-between w-full mr-2">
                         <div className="flex items-center gap-2 min-w-0 flex-1">
                           {runSelected ? (
-                            <button
-                              type="button"
+                            <IconButton
+                              icon="hero-x-mark"
+                              label="Deselect run"
+                              size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onDeselectRun();
                               }}
-                              className="flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                              aria-label="Deselect run"
-                            >
-                              <span className="hero-x-mark w-4 h-4" />
-                            </button>
+                            />
                           ) : (
-                            <span className="w-4 h-4 invisible" />
+                            <span className="invisible h-5 w-5" />
                           )}
                           <Link
                             to={`/projects/${projectId}/runs/${run.id}`}
                             onClick={(e) => e.stopPropagation()}
-                            className={linkUuidClasses}
+                            className="link-uuid"
                             title={run.id}
                           >
                             {shortId(run.id)}
@@ -211,14 +200,7 @@ export default function MiniHistory({
             <span className="hero-rectangle-stack w-4 h-4" />
           </Link>
           <div className="flex-1" />
-          <button
-            type="button"
-            onClick={onBack}
-            className="p-1 mr-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors"
-            aria-label="Back to landing"
-          >
-            <span className="hero-x-mark w-4 h-4" />
-          </button>
+          <IconButton icon="hero-x-mark" label="Back to landing" size="sm" className="mr-2" onClick={onBack} />
         </div>
         <div className="flex-1 overflow-y-auto">{list}</div>
       </div>

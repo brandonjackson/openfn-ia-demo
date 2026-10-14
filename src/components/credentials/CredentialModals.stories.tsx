@@ -4,7 +4,7 @@ import OauthClientFormModal from "./OauthClientFormModal";
 import KeychainCredentialFormModal from "./KeychainCredentialFormModal";
 import TransferCredentialModal from "./TransferCredentialModal";
 import CredentialDeletionModal from "./CredentialDeletionModal";
-import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import ConfirmModal from "../ConfirmModal";
 import { deleteKeychainMessage, deleteOauthClientMessage } from "./messages";
 import { credentials, keychainCredentials, oauthClients } from "../../mock-data/credentials";
 import { projects } from "../../mock-data/projects";
@@ -52,15 +52,17 @@ export const CredentialMarkedForDeletion: Story = {
 };
 export const DeleteOauthClient: Story = {
   render: () => (
-    <ConfirmDeleteModal open onClose={noop} onConfirm={noop} title="Delete Oauth Client">
-      {deleteOauthClientMessage(oauthClients[0].name)}
-    </ConfirmDeleteModal>
+    <ConfirmModal open onClose={noop} onConfirm={noop} title="Delete Oauth Client" tone="danger" confirmLabel="Delete">
+      <p>{deleteOauthClientMessage(oauthClients[0].name)}</p>
+      <p>Do you want to proceed with this action?</p>
+    </ConfirmModal>
   ),
 };
 export const DeleteKeychainCredential: Story = {
   render: () => (
-    <ConfirmDeleteModal open onClose={noop} onConfirm={noop} title="Delete Keychain Credential">
-      {deleteKeychainMessage(keychainCredentials[0].name)}
-    </ConfirmDeleteModal>
+    <ConfirmModal open onClose={noop} onConfirm={noop} title="Delete Keychain Credential" tone="danger" confirmLabel="Delete">
+      <p>{deleteKeychainMessage(keychainCredentials[0].name)}</p>
+      <p>Do you want to proceed with this action?</p>
+    </ConfirmModal>
   ),
 };

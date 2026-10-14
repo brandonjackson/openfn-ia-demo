@@ -49,8 +49,8 @@ export default function KeychainCredentialFormModal({
     <Modal
       open={open}
       onClose={onClose}
-      title={<span className="font-bold">{kc ? `Edit ${kc.name || "keychain credential"}` : "Create keychain credential"}</span>}
-      width="max-w-[50rem]"
+      title={kc ? `Edit ${kc.name || "keychain credential"}` : "Create keychain credential"}
+      size="xl"
       footer={
         <>
           <Button id={`save-keychain-credential-button-${kc?.id ?? "new"}`} disabled={!valid} onClick={save}>
@@ -62,30 +62,28 @@ export default function KeychainCredentialFormModal({
         </>
       }
     >
-      <form id={`keychain-credential-form-${kc?.id ?? "new"}`} className="text-left" onSubmit={(e) => e.preventDefault()}>
-        <div className="space-y-6 bg-white py-5">
-          <fieldset>
-            <div className="space-y-4">
-              <div>
-                <TextInput label="Name" placeholder="Enter keychain credential name" value={name} onChange={(e) => setName(e.target.value)} />
-                <p className="mt-1 text-sm text-gray-500">A descriptive name for this keychain credential</p>
-              </div>
-              <div>
-                <TextInput label="JSONPath Expression" placeholder="$.user_id" value={path} onChange={(e) => setPath(e.target.value)} />
-                <p className="mt-1 text-sm text-gray-500">JSONPath expression to extract credential selector from run data</p>
-              </div>
-              <div>
-                <Select
-                  label="Default Credential"
-                  value={defaultId}
-                  onChange={(e) => setDefaultId(e.target.value)}
-                  options={[["No default credential", ""], ...credentials.map((c): [string, string] => [c.name, c.id])]}
-                />
-                <p className="mt-1 text-sm text-gray-500">Credential to use when JSONPath expression doesn't match</p>
-              </div>
-            </div>
-          </fieldset>
-        </div>
+      <form id={`keychain-credential-form-${kc?.id ?? "new"}`} className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+        <TextInput
+          label="Name"
+          hint="A descriptive name for this keychain credential"
+          placeholder="Enter keychain credential name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <TextInput
+          label="JSONPath Expression"
+          hint="JSONPath expression to extract credential selector from run data"
+          placeholder="$.user_id"
+          value={path}
+          onChange={(e) => setPath(e.target.value)}
+        />
+        <Select
+          label="Default Credential"
+          hint="Credential to use when JSONPath expression doesn't match"
+          value={defaultId}
+          onChange={(e) => setDefaultId(e.target.value)}
+          options={[["No default credential", ""], ...credentials.map((c): [string, string] => [c.name, c.id])]}
+        />
       </form>
     </Modal>
   );

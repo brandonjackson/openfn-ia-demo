@@ -1,5 +1,6 @@
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 import { cn } from "../utils/cn";
+import { controlClasses } from "./controlClasses";
 
 /**
  * Form controls. Every control shares one look (`controlClasses`) and sits
@@ -21,19 +22,6 @@ export function FieldError({ children }: { children: ReactNode }) {
       <span className="hero-exclamation-circle h-4 w-4" />
       {children}
     </p>
-  );
-}
-
-/** The shared look of text inputs, textareas and selects. */
-export function controlClasses(hasErrors = false, className?: string) {
-  return cn(
-    "block w-full rounded-lg bg-white text-slate-900 sm:text-sm sm:leading-6",
-    "focus:ring-0 focus:outline-2 focus:outline-offset-1",
-    "disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500",
-    hasErrors
-      ? "border-danger-400 focus:border-danger-400 focus:outline-danger-400"
-      : "border-slate-300 focus:border-slate-400 focus:outline-primary-600",
-    className
   );
 }
 

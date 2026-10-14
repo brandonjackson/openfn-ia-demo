@@ -1,5 +1,7 @@
-import { useCallback, useState, type ReactNode } from "react";
-import SimpleDropdown from "../SimpleDropdown";
+import { useCallback, useState } from "react";
+import ConfirmModal from "../ConfirmModal";
+import ButtonMenu from "../ButtonMenu";
+import { MenuItem } from "../Menu";
 import { EmptyState } from "../Table";
 import { CredentialsTable, KeychainCredentialsTable, OauthClientsTable } from "./CredentialTables";
 import CredentialFormModal from "./CredentialFormModal";
@@ -7,7 +9,6 @@ import OauthClientFormModal from "./OauthClientFormModal";
 import KeychainCredentialFormModal from "./KeychainCredentialFormModal";
 import TransferCredentialModal from "./TransferCredentialModal";
 import CredentialDeletionModal from "./CredentialDeletionModal";
-import ConfirmDeleteModal from "./ConfirmDeleteModal";
 import { deleteKeychainMessage, deleteOauthClientMessage } from "./messages";
 import { useCredentialModalRequests, type NewCredentialTarget } from "./credentialModalEvents";
 import type { Project } from "../../mock-data/projects";
@@ -47,14 +48,6 @@ type ActiveModal =
       id: string;
     }
   | null;
-
-function MenuLink({ id, onClick, children }: { id: string; onClick: () => void; children: ReactNode }) {
-  return (
-    <a id={id} className="cursor-pointer" onClick={onClick}>
-      {children}
-    </a>
-  );
-}
 
 /**
  * The shared credential index (annotations/shared/shared-credential-index-component.md,
@@ -118,14 +111,14 @@ export default function CredentialIndex({
           }
           actions={(client) =>
             canEditCredential(client.ownerId) && (
-              <SimpleDropdown id={`oauth-client-actions-${client.id}-dropdown`} label="Actions" buttonTheme="secondary">
-                <MenuLink id={`oauth-client-actions-${client.id}-edit`} onClick={() => setActive({ kind: "edit_oauth_client", id: client.id })}>
+              <ButtonMenu label="Actions">
+                <MenuItem onClick={() => setActive({ kind: "edit_oauth_client", id: client.id })}>
                   Edit
-                </MenuLink>
-                <MenuLink id={`oauth-client-actions-${client.id}-delete`} onClick={() => setActive({ kind: "delete_oauth_client", id: client.id })}>
+                </MenuItem>
+                <MenuItem onClick={() => setActive({ kind: "delete_oauth_client", id: client.id })}>
                   Delete
-                </MenuLink>
-              </SimpleDropdown>
+                </MenuItem>
+              </ButtonMenu>
             )
           }
         />
@@ -137,28 +130,22 @@ export default function CredentialIndex({
           }
           actions={(credential) =>
             canEditCredential(credential.ownerId) && (
-              <SimpleDropdown id={`credential-actions-${credential.id}-dropdown`} label="Actions" buttonTheme="secondary">
-                <MenuLink id={`credential-actions-${credential.id}-transfer`} onClick={() => setActive({ kind: "transfer_credential", id: credential.id })}>
+              <ButtonMenu label="Actions">
+                <MenuItem onClick={() => setActive({ kind: "transfer_credential", id: credential.id })}>
                   {credential.transferStatus === "pending" ? "Revoke Transfer" : "Transfer"}
-                </MenuLink>
-                <MenuLink id={`credential-actions-${credential.id}-edit`} onClick={() => setActive({ kind: "edit_credential", id: credential.id })}>
+                </MenuItem>
+                <MenuItem onClick={() => setActive({ kind: "edit_credential", id: credential.id })}>
                   Edit
-                </MenuLink>
-                {credential.scheduledDeletion ? (
-                  <MenuLink
-                    id={`credential-actions-${credential.id}-cancel-deletion`}
-                    onClick={() => patchCredential(credential.id, { scheduledDeletion: null })}
-                  >
+                </MenuItem>
+                {credential.scheduledDeletion && (
+                  <MenuItem onClick={() => patchCredential(credential.id, { scheduledDeletion: null })}>
                     Cancel deletion
-                  </MenuLink>
-                ) : null}
-                <MenuLink
-                  id={`credential-actions-${credential.id}-${credential.scheduledDeletion ? "delete-now" : "delete"}`}
-                  onClick={() => setActive({ kind: "delete_credential", id: credential.id })}
-                >
+                  </MenuItem>
+                )}
+                <MenuItem onClick={() => setActive({ kind: "delete_credential", id: credential.id })}>
                   {credential.scheduledDeletion ? "Delete now" : "Delete"}
-                </MenuLink>
-              </SimpleDropdown>
+                </MenuItem>
+              </ButtonMenu>
             )
           }
         />
@@ -175,14 +162,14 @@ export default function CredentialIndex({
             }
             actions={(kc) =>
               canKeychain && (
-                <SimpleDropdown id={`keychain-credential-actions-${kc.id}-dropdown`} label="Actions" buttonTheme="secondary">
-                  <MenuLink id={`keychain-credential-actions-${kc.id}-edit`} onClick={() => setActive({ kind: "edit_keychain_credential", id: kc.id })}>
+                <ButtonMenu label="Actions">
+                  <MenuItem onClick={() => setActive({ kind: "edit_keychain_credential", id: kc.id })}>
                     Edit
-                  </MenuLink>
-                  <MenuLink id={`keychain-credential-actions-${kc.id}-delete`} onClick={() => setActive({ kind: "delete_keychain_credential", id: kc.id })}>
+                  </MenuItem>
+                  <MenuItem onClick={() => setActive({ kind: "delete_keychain_credential", id: kc.id })}>
                     Delete
-                  </MenuLink>
-                </SimpleDropdown>
+                  </MenuItem>
+                </ButtonMenu>
               )
             }
           />
@@ -235,15 +222,20 @@ export default function CredentialIndex({
         />
       )}
       {active?.kind === "delete_oauth_client" && activeClient && (
-        <ConfirmDeleteModal
+        <ConfirmModal
           open
-          id={`delete_oauth_client_${activeClient.id}_modal`}
           title="Delete Oauth Client"
+          tone="danger"
+          confirmLabel="Delete"
           onClose={close}
-          onConfirm={() => setClients((list) => list.filter((c) => c.id !== activeClient.id))}
+          onConfirm={() => {
+            setClients((list) => list.filter((c) => c.id !== activeClient.id));
+            close();
+          }}
         >
-          {deleteOauthClientMessage(activeClient.name)}
-        </ConfirmDeleteModal>
+          <p>{deleteOauthClientMessage(activeClient.name)}</p>
+          <p>Do you want to proceed with this action?</p>
+        </ConfirmModal>
       )}
       {project &&
         (active?.kind === "new_keychain_credential" || (active?.kind === "edit_keychain_credential" && activeKeychain)) && (
@@ -257,15 +249,20 @@ export default function CredentialIndex({
           />
         )}
       {active?.kind === "delete_keychain_credential" && activeKeychain && (
-        <ConfirmDeleteModal
+        <ConfirmModal
           open
-          id={`delete-keychain-credential-${activeKeychain.id}-modal`}
           title="Delete Keychain Credential"
+          tone="danger"
+          confirmLabel="Delete"
           onClose={close}
-          onConfirm={() => setKeychains((list) => list.filter((k) => k.id !== activeKeychain.id))}
+          onConfirm={() => {
+            setKeychains((list) => list.filter((k) => k.id !== activeKeychain.id));
+            close();
+          }}
         >
-          {deleteKeychainMessage(activeKeychain.name)}
-        </ConfirmDeleteModal>
+          <p>{deleteKeychainMessage(activeKeychain.name)}</p>
+          <p>Do you want to proceed with this action?</p>
+        </ConfirmModal>
       )}
     </div>
   );

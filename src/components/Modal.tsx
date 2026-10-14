@@ -38,7 +38,7 @@ interface Props {
  */
 export default function Modal({ open, onClose, title, description, children, footer, size = "lg", bare = false, className }: Props) {
   return (
-    <Dialog open={open} onClose={onClose} className="relative z-50" data-ui="modal">
+    <Dialog open={open} onClose={onClose} className="relative z-[200]" data-ui="modal">
       <DialogBackdrop
         transition
         className="fixed inset-0 bg-gray-900/60 backdrop-blur-xs transition-opacity duration-200 ease-out data-closed:opacity-0"

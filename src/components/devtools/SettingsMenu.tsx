@@ -1,127 +1,67 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Settings, Check, X, PanelRight } from "lucide-react";
+import { useState, type CSSProperties } from "react";
+import { CloseButton, Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import { useTheme } from "../../theme/theme-context";
 import type { ThemeMeta } from "../../theme/themes";
 import { useAnnotations } from "../../annotations/annotations-context";
 import { ANNOTATIONS_PANEL_WIDTH } from "./AnnotationsPanel";
 
 /**
- * Floating settings button in the bottom-right corner. Its menu opens and
+ * Floating settings button in the bottom-right corner. Its panel opens and
  * closes the annotations panel and swaps the app's theme (by changing the
  * `data-theme` attribute on <html>). It slides left of the annotations
  * panel when that's open.
  *
- * The control's own chrome is styled with explicit (theme-independent)
- * colors so it stays legible no matter which theme is active; only the
- * preview swatches reflect each theme's real palette.
+ * Demo tooling, not Lightning UI: its chrome uses explicit inline colours
+ * rather than the shared primitives, so it stays legible whichever theme is
+ * active (the primitives' Tailwind tokens are re-skinned by each theme).
+ * Headless UI's Popover handles opening, Escape and clicking away.
  */
-export default function SettingsMenu({
-  defaultOpen = false,
-}: {
-  /** Start with the panel open. Used by stories/tests; the app omits it. */
-  defaultOpen?: boolean;
-}) {
+export default function SettingsMenu() {
   const { themeId, setTheme, themes } = useTheme();
   const annotations = useAnnotations();
-  const [open, setOpen] = useState(defaultOpen);
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  // Close on outside click or Escape.
-  useEffect(() => {
-    if (!open) return;
-    function onPointerDown(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
 
   return (
-    <div
-      ref={rootRef}
-      data-devtools
-      style={{ ...styles.root, right: annotations.open ? ANNOTATIONS_PANEL_WIDTH + 20 : 20 }}
-    >
-      {open && (
-        <div role="dialog" aria-label="Settings" style={styles.panel}>
-          <div style={styles.header}>
-            <span style={styles.headerTitle}>Settings</span>
-            <button
-              type="button"
-              aria-label="Close settings"
-              onClick={() => setOpen(false)}
-              style={styles.closeBtn}
-            >
-              <X size={15} />
-            </button>
-          </div>
-          <button
-            type="button"
-            role="switch"
-            aria-checked={annotations.open}
-            onClick={() => annotations.setOpen(!annotations.open)}
-            style={{ ...styles.row, marginTop: 10 }}
-          >
-            <span style={styles.iconTile} aria-hidden="true">
-              <PanelRight size={16} />
-            </span>
-            <span style={styles.rowText}>
-              <span style={styles.rowName}>Annotations panel</span>
-              <span style={styles.rowDesc}>
-                Show the behaviour annotation for whatever you hover over.
-              </span>
-            </span>
-            <span
-              style={{
-                ...styles.switch,
-                background: annotations.open ? "#0d9488" : "#d4d4d8",
-              }}
-            >
-              <span
-                style={{
-                  ...styles.knob,
-                  transform: annotations.open ? "translateX(14px)" : "none",
-                }}
-              />
-            </span>
-          </button>
-          <div style={styles.divider} />
-          <span style={styles.sectionTitle}>Theme</span>
-          <ul style={styles.list}>
-            {themes.map((theme) => (
-              <li key={theme.id}>
-                <ThemeRow
-                  theme={theme}
-                  active={theme.id === themeId}
-                  onSelect={() => setTheme(theme.id)}
-                />
-              </li>
-            ))}
-          </ul>
+    <Popover data-devtools style={{ ...styles.root, right: annotations.open ? ANNOTATIONS_PANEL_WIDTH + 20 : 20 }}>
+      <PopoverPanel aria-label="Settings" style={styles.panel}>
+        <div style={styles.header}>
+          <span style={styles.headerTitle}>Settings</span>
+          <CloseButton aria-label="Close settings" title="Close" style={styles.closeBtn}>
+            <span className="hero-x-mark h-4 w-4" aria-hidden="true" />
+          </CloseButton>
         </div>
-      )}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={annotations.open}
+          onClick={() => annotations.setOpen(!annotations.open)}
+          style={{ ...styles.row, marginTop: 10 }}
+        >
+          <span style={styles.iconTile} aria-hidden="true">
+            <span className="hero-view-columns h-4 w-4" />
+          </span>
+          <span style={styles.rowText}>
+            <span style={styles.rowName}>Annotations panel</span>
+            <span style={styles.rowDesc}>Show the behaviour annotation for whatever you hover over.</span>
+          </span>
+          <span style={{ ...styles.switch, background: annotations.open ? "#0d9488" : "#d4d4d8" }}>
+            <span style={{ ...styles.knob, transform: annotations.open ? "translateX(14px)" : "none" }} />
+          </span>
+        </button>
+        <div style={styles.divider} />
+        <span style={styles.sectionTitle}>Theme</span>
+        <ul style={styles.list}>
+          {themes.map((theme) => (
+            <li key={theme.id}>
+              <ThemeRow theme={theme} active={theme.id === themeId} onSelect={() => setTheme(theme.id)} />
+            </li>
+          ))}
+        </ul>
+      </PopoverPanel>
 
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-label="Open settings"
-        title="Settings"
-        onClick={() => setOpen((v) => !v)}
-        style={styles.trigger}
-      >
-        <Settings size={20} />
-      </button>
-    </div>
+      <PopoverButton data-ui="settings-trigger" aria-label="Open settings" title="Settings" style={styles.trigger}>
+        <span className="hero-cog-6-tooth h-5 w-5" aria-hidden="true" />
+      </PopoverButton>
+    </Popover>
   );
 }
 
@@ -170,7 +110,7 @@ function ThemeRow({
         </span>
         <span style={styles.rowDesc}>{theme.description}</span>
       </span>
-      <span style={styles.check}>{active && <Check size={16} />}</span>
+      <span style={styles.check}>{active && <span className="hero-check h-4 w-4" aria-hidden="true" />}</span>
     </button>
   );
 }

@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import Button from "../Button";
-import { Field, TextInput, controlClasses } from "../Inputs";
+import { Field, TextInput } from "../Inputs";
+import { controlClasses } from "../controlClasses";
 import Modal from "../Modal";
 import type { WebhookAuthMethod, WebhookAuthType } from "../../mock-data/project-settings";
 import { cn } from "../../utils/cn";

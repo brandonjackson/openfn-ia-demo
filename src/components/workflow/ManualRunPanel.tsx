@@ -1,13 +1,15 @@
-import { CloudArrowUpIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import type { Dataclip } from "../../mock-data/history";
 import { cn } from "../../utils/cn";
-import CodeEditor from "./CodeEditor";
 import DataclipTypePill from "../history/DataclipTypePill";
+import Button from "../Button";
+import IconButton from "../IconButton";
+import CodeEditor from "./CodeEditor";
 import EditorTabs from "./EditorTabs";
 import InspectorLayout, { InspectorFooter } from "./InspectorLayout";
 import NewRunButton from "./NewRunButton";
-import { shortId } from "./editorClasses";
+import SearchInput from "./SearchInput";
+import { shortId } from "./shortId";
 
 type Tab = "empty" | "custom" | "existing";
 
@@ -93,9 +95,9 @@ export default function ManualRunPanel({
           <div className="px-3 shrink-0">
             <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-900/25 px-6 py-4">
               <div className="flex flex-col items-center">
-                <CloudArrowUpIcon className="mx-auto size-8 text-gray-300" />
+                <span className="hero-cloud-arrow-up mx-auto size-8 text-gray-300" />
                 <div className="mt-2 flex flex-wrap justify-center text-sm/6 text-gray-600">
-                  <label className="relative cursor-pointer rounded-md font-semibold text-indigo-600 hover:text-indigo-500">
+                  <label className="link relative font-semibold">
                     <input
                       type="file"
                       accept=".json"
@@ -134,45 +136,12 @@ export default function ManualRunPanel({
       {tab === "existing" && (
         <div className="flex flex-col gap-3 pt-4 pb-6 px-3">
           <div className="flex items-center gap-2">
-            <div className="flex flex-1">
-              <div className="relative flex-1">
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  type="text"
-                  autoComplete="off"
-                  className="focus:ring-0 border-slate-300 block w-full rounded-l-md border-0 py-1.5 pl-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-                  placeholder="Search names or UUID prefixes"
-                />
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <span className="hero-magnifying-glass h-5 w-5 text-gray-400" />
-                </div>
-              </div>
-              <button
-                type="button"
-                className="rounded-r-md text-sm font-semibold shadow-xs bg-primary-600 hover:bg-primary-500 text-white px-3 py-2"
-              >
-                Search
-              </button>
-            </div>
-            <div className="flex gap-2">
-              <button type="button" className="border border-gray-200 rounded-md px-1 py-1 h-full flex justify-center items-center hover:bg-slate-100 hover:border-slate-300" title="Filter by date created">
-                <span className="hero-calendar-days w-6 h-6 text-slate-700" />
-              </button>
-              <button type="button" className="border border-gray-200 rounded-md px-1 py-1 h-full flex justify-center items-center hover:bg-slate-100 hover:border-slate-300" title="Filter by type">
-                <span className="hero-rectangle-group w-6 h-6 text-slate-700" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setNamedOnly((n) => !n)}
-                title="Named only"
-                className={cn(
-                  "border rounded-md px-1 py-1 h-full flex justify-center items-center hover:bg-slate-100 hover:border-slate-300",
-                  namedOnly ? "bg-primary-100 border-primary-300" : "border-gray-200"
-                )}
-              >
-                <span className="hero-tag h-5 w-5 text-slate-700" />
-              </button>
+            <SearchInput value={query} onChange={setQuery} placeholder="Search names or UUID prefixes" className="flex-1" />
+            <Button>Search</Button>
+            <div className="flex gap-1">
+              <IconButton icon="hero-calendar-days" label="Filter by date created" />
+              <IconButton icon="hero-rectangle-group" label="Filter by type" />
+              <IconButton icon="hero-tag" label="Named only" active={namedOnly} aria-pressed={namedOnly} onClick={() => setNamedOnly((n) => !n)} />
             </div>
           </div>
           <div className="flex flex-col gap-3 overflow-auto">
@@ -217,9 +186,7 @@ export default function ManualRunPanel({
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h3 className="font-medium text-gray-900">{selected.name || "Unnamed"}</h3>
-            <button type="button" className="text-gray-400 hover:text-gray-600" title="Rename">
-              <span className="hero-pencil h-4 w-4 block" />
-            </button>
+            <IconButton icon="hero-pencil" label="Rename" size="sm" />
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
             <span className="capitalize">{selected.type.replace("_", " ")}</span>
@@ -227,9 +194,7 @@ export default function ManualRunPanel({
             <span>{new Date(selected.insertedAt).toLocaleDateString()}</span>
           </div>
         </div>
-        <button type="button" onClick={() => setSelected(null)} className="ml-4 text-gray-400 hover:text-gray-600" aria-label="Unselect dataclip">
-          <span className="hero-x-mark h-5 w-5 block" />
-        </button>
+        <IconButton icon="hero-x-mark" label="Unselect dataclip" className="ml-4" onClick={() => setSelected(null)} />
       </div>
       <div className="flex-1 min-h-[16rem]">
         <CodeEditor value={JSON.stringify(selected.body, null, 2)} readOnly ariaLabel="Dataclip body" />
@@ -252,13 +217,11 @@ export default function ManualRunPanel({
           <div className="shrink-0">
             <div className="flex items-center justify-between px-3 pt-2 pb-1">
               <div className="flex-1">
-                <EditorTabs variant="pills" value={tab} onChange={setTab} options={tabOptions} />
+                <EditorTabs value={tab} onChange={setTab} options={tabOptions} />
               </div>
               {onClosePanel && (
                 <div className="flex items-center pl-2">
-                  <button type="button" onClick={onClosePanel} className="p-1 hover:bg-gray-100 rounded transition-colors" aria-label="Close panel" title="Close panel">
-                    <span className="hero-x-mark h-4 w-4 text-gray-500 block" />
-                  </button>
+                  <IconButton icon="hero-x-mark" label="Close panel" size="sm" onClick={onClosePanel} />
                 </div>
               )}
             </div>
@@ -284,7 +247,7 @@ export default function ManualRunPanel({
         selectedView
       ) : (
         <div className="flex flex-col h-full min-h-0 flex-1 mt-4">
-          <EditorTabs className="mx-3" variant="pills" value={tab} onChange={setTab} options={tabOptions} />
+          <EditorTabs className="mx-3" value={tab} onChange={setTab} options={tabOptions} />
           {tabContent}
         </div>
       )}

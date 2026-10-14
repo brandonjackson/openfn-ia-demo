@@ -1,4 +1,6 @@
 import { cn } from "../utils/cn";
+import IconButton from "./IconButton";
+import { controlClasses } from "./controlClasses";
 
 interface Props {
   value: string;
@@ -25,21 +27,13 @@ export default function FilterInput({ value, onChange, placeholder, className }:
           placeholder={placeholder}
           autoComplete="off"
           onChange={(e) => onChange(e.target.value)}
-          className={cn(
-            "focus:outline focus:outline-2 focus:outline-offset-1 block w-full rounded-md border-slate-300 focus:border-slate-400 focus:outline-primary-600",
-            "py-1.5 pl-10 pr-10 text-gray-900 placeholder:text-gray-400 focus:ring-inset sm:text-sm sm:leading-6"
-          )}
+          className={controlClasses(false, "rounded-md py-1.5 pl-10 pr-10 placeholder:text-gray-400")}
         />
-        <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-          <button
-            type="button"
-            aria-label="Clear filter"
-            className={cn("flex cursor-pointer", value === "" && "hidden")}
-            onClick={() => onChange("")}
-          >
-            <span className="hero-x-mark h-5 w-5 text-gray-400" />
-          </button>
-        </div>
+        {value !== "" && (
+          <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+            <IconButton icon="hero-x-mark" label="Clear filter" onClick={() => onChange("")} />
+          </div>
+        )}
       </div>
     </div>
   );

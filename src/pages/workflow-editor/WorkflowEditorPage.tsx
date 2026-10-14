@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Navigate, useParams, useSearchParams } from "react-router-dom";
+import Pill from "../../components/Pill";
 import AdaptorSelectionModal from "../../components/workflow/AdaptorSelectionModal";
 import AIAssistantPanel from "../../components/workflow/AIAssistantPanel";
 import ConfigureAdaptorModal from "../../components/workflow/ConfigureAdaptorModal";
@@ -128,7 +129,8 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
   // Escape closes the open panel or the inspector (Lightning's keyboard provider).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "Escape" || document.querySelector('[role="dialog"]')) return;
+      // Menus and dialogs handle their own Escape.
+      if (e.key !== "Escape" || e.defaultPrevented || document.querySelector('[role="dialog"]')) return;
       if ((e.target as HTMLElement).closest("input, textarea, select")) return;
       if (panel === "code") update({ panel: "settings" });
       else if (panel) update({ panel: null, runMode: null });
@@ -297,11 +299,8 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
             onAIClick={() => update({ chat: aiOpen ? null : "true" })}
           >
             {pinnedVersion !== null && (
-              <span
-                className="ml-3 inline-flex items-center rounded-md bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800"
-                data-annotation="workflow-editor-versions-and-promote"
-              >
-                Read-only
+              <span className="ml-3" data-annotation="workflow-editor-versions-and-promote">
+                <Pill color="yellow">Read-only</Pill>
               </span>
             )}
           </EditorHeader>

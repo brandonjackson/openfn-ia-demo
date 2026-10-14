@@ -1,11 +1,9 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
 import type { Project } from "../../mock-data/projects";
 import type { WorkflowSnapshot } from "../../mock-data/workflow";
-import PickerButton from "../PickerButton";
-import { projectLabel } from "../projectPickerItems";
+import IconButton from "../IconButton";
+import ProjectBreadcrumbs from "../ProjectBreadcrumbs";
 import Toggle from "../Toggle";
-import AIButton from "./AIButton";
 import NewRunButton from "./NewRunButton";
 import SaveButton from "./SaveButton";
 import VersionDropdown from "./VersionDropdown";
@@ -34,10 +32,6 @@ interface Props {
   onAIClick: () => void;
   /** Extra content after the breadcrumbs (e.g. a "Read-only" pill). */
   children?: ReactNode;
-}
-
-function Chevron() {
-  return <span className="hero-chevron-right-mini w-5 h-5 text-secondary-500" />;
 }
 
 /**
@@ -69,76 +63,44 @@ export default function EditorHeader({
   onAIClick,
   children,
 }: Props) {
-  const isSandbox = project.parentId !== null;
   return (
-    <div className="flex-none bg-white shadow-xs border-b border-gray-200 relative z-50">
-      <div className="mx-auto sm:px-4 lg:px-4 py-6 flex items-center h-20 text-sm gap-2">
+    <div className="relative z-50 flex-none border-b border-gray-200 bg-white shadow-xs">
+      <div className="mx-auto flex h-20 items-center gap-2 py-6 text-sm sm:px-4">
         <div className="flex min-w-0 items-center">
-          <nav className="flex" aria-label="Breadcrumb">
-            <ol className="flex items-center space-x-2">
-              <li className="flex items-center mr-3 shrink-0 whitespace-nowrap">
-                <PickerButton label={projectLabel(project)} isSandbox={isSandbox} color={project.color} />
-              </li>
-              <li className="flex items-center">
-                <Link
-                  to={`/projects/${project.id}/w`}
-                  className="text-gray-400 hover:text-gray-500 flex items-center cursor-pointer whitespace-nowrap"
-                >
-                  <span className="font-medium text-gray-500">Workflows</span>
-                </Link>
-              </li>
-              <Chevron />
-              <li className="flex items-center">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={onTitleClick}
-                    className="text-gray-400 hover:text-gray-500 flex items-center cursor-pointer min-w-0"
-                    title={workflowName}
-                  >
-                    <span className="font-medium text-gray-500 block max-w-[16rem] truncate">{workflowName}</span>
-                  </button>
-                  <div className="flex items-center gap-1.5">
-                    <VersionDropdown
-                      snapshots={snapshots}
-                      pinnedVersion={pinnedVersion}
-                      onVersionSelect={onVersionSelect}
-                    />
-                  </div>
-                </div>
-              </li>
-            </ol>
-          </nav>
+          <ProjectBreadcrumbs
+            project={project}
+            items={[["Workflows", `/projects/${project.id}/w`]]}
+            current={
+              <span className="flex items-center gap-2">
+                <button type="button" onClick={onTitleClick} title={workflowName} className="block max-w-[16rem] truncate hover:text-gray-700">
+                  {workflowName}
+                </button>
+                <VersionDropdown snapshots={snapshots} pinnedVersion={pinnedVersion} onVersionSelect={onVersionSelect} />
+              </span>
+            }
+          />
         </div>
         {children}
-        <div className="grow ml-2" />
+        <div className="ml-2 grow" />
 
-        <div className="flex flex-row gap-2 items-center">
-          <div className="flex flex-row gap-2 items-center">
-            <span className="inline-flex items-center" title={enabled ? "Disable workflow" : "Enable workflow"}>
-              <Toggle checked={enabled} onChange={onEnabledChange} />
-            </span>
-            <div>
-              <button
-                type="button"
-                onClick={onSettingsClick}
-                aria-pressed={settingsOpen}
-                aria-label="Workflow settings"
-                className="w-6 h-6 place-self-center text-slate-500 hover:text-slate-400 cursor-pointer"
-              >
-                <span className="hero-adjustments-vertical" />
-              </button>
-            </div>
-          </div>
-          <div className="relative flex gap-2">
-            {canRun && (
-              <NewRunButton onClick={onRun} onRunWithCustomInputClick={onRunWithCustomInput} disabled={runDisabled} />
-            )}
-            <SaveButton onClick={onSave} hasChanges={hasChanges} label={saveLabel} />
-          </div>
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center" title={enabled ? "Disable workflow" : "Enable workflow"}>
+            <Toggle checked={enabled} onChange={onEnabledChange} />
+          </span>
+          <IconButton icon="hero-adjustments-vertical" label="Workflow settings" active={settingsOpen} aria-pressed={settingsOpen} onClick={onSettingsClick} />
+          {canRun && <NewRunButton onClick={onRun} onRunWithCustomInputClick={onRunWithCustomInput} disabled={runDisabled} />}
+          <SaveButton onClick={onSave} hasChanges={hasChanges} label={saveLabel} />
         </div>
 
-        <AIButton className="ml-2" isOpen={aiOpen} onClick={onAIClick} />
+        <IconButton
+          icon="hero-chat-bubble-left-right"
+          label={aiOpen ? "Close AI Assistant" : "Open AI Assistant"}
+          title={`${aiOpen ? "Close AI Assistant" : "Open AI Assistant"} (⌘ K)`}
+          active={aiOpen}
+          size="lg"
+          className="ml-2 rounded-full"
+          onClick={onAIClick}
+        />
       </div>
     </div>
   );

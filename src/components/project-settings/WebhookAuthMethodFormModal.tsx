@@ -1,0 +1,231 @@
+import { useState, type ReactNode } from "react";
+import Button from "../Button";
+import { Label, TextInput } from "../Inputs";
+import Modal from "../Modal";
+import type { WebhookAuthMethod, WebhookAuthType } from "../../mock-data/project-settings";
+import { cn } from "../../utils/cn";
+
+interface Props {
+  /** Omit to create a new method (starts at the "choose a type" step). */
+  authMethod?: WebhookAuthMethod;
+  onCancel: () => void;
+  onSave: (method: Omit<WebhookAuthMethod, "id" | "projectId" | "triggers" | "channels">) => void;
+}
+
+function generateApiKey(): string {
+  const bytes = new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => b.toString(36).padStart(2, "0"))
+    .join("")
+    .slice(0, 32);
+}
+
+const mask = (v = "") => "*".repeat(v.length);
+const maskApiKey = (v = "") => "*".repeat(Math.min(15, Math.max(0, v.length - 5))) + v.slice(-5);
+
+/** Masked secret with a Show / Copy button (maybe_mask_password_field / maybe_mask_api_key_field). */
+function SecretField({ id, value, type, revealed, onShow }: { id: string; value: string; type: "password" | "text"; revealed: boolean; onShow: () => void }) {
+  return (
+    <div className="mt-2 flex rounded-md shadow-xs">
+      <input
+        id={id}
+        type={type}
+        value={value}
+        disabled
+        autoComplete="off"
+        className="block w-full flex-1 rounded-l-lg text-slate-900 disabled:bg-gray-50 disabled:text-gray-500 border border-r-0 border-secondary-300 sm:text-sm sm:leading-6"
+      />
+      <button
+        id={`${id}_action_button`}
+        type="button"
+        onClick={revealed ? () => navigator.clipboard?.writeText(value) : onShow}
+        className="w-[100px] inline-block relative rounded-r-lg px-3 text-sm font-normal text-gray-900 border border-secondary-300 hover:bg-gray-50"
+      >
+        {revealed ? "Copy" : "Show"}
+      </button>
+    </div>
+  );
+}
+
+function TypeOption({ selected, icon, children, onSelect }: { selected: boolean; icon: string; children: ReactNode; onSelect: () => void }) {
+  return (
+    <label className="relative block cursor-pointer rounded-lg border bg-white px-[8px] py-2 text-sm shadow-xs">
+      <input type="radio" name="auth_type" className="sr-only" checked={selected} onChange={onSelect} />
+      <span className="flex items-center gap-x-2.5">
+        <span className={cn(icon, "h-10 w-10")} />
+        {children}
+      </span>
+      <span
+        aria-hidden="true"
+        className={cn(
+          "pointer-events-none absolute -inset-px rounded-lg",
+          selected ? "outline outline-indigo-600 outline-2 outline-offset-2" : "border-transparent"
+        )}
+      />
+    </label>
+  );
+}
+
+const Spacer = () => (
+  <div className="hidden sm:block" aria-hidden="true">
+    <div className="py-1" />
+  </div>
+);
+
+/**
+ * WebhookAuthMethodFormComponent (workflow_live/webhook_auth_method_form_component.ex):
+ * pick Basic or API key, then name it. Viewing an existing method masks the
+ * secret; "Show" asks you to re-authenticate first (any input is accepted here).
+ */
+export default function WebhookAuthMethodFormModal({ authMethod, onCancel, onSave }: Props) {
+  const isNew = !authMethod;
+  const [choice, setChoice] = useState<WebhookAuthType | null>(authMethod?.authType ?? null);
+  const [authType, setAuthType] = useState<WebhookAuthType | null>(authMethod?.authType ?? null);
+  const [name, setName] = useState(authMethod?.name ?? "");
+  const [username, setUsername] = useState(authMethod?.username ?? "");
+  const [password, setPassword] = useState("");
+  const [apiKey] = useState(authMethod?.apiKey ?? generateApiKey());
+  const [reauth, setReauth] = useState(false);
+  const [sudo, setSudo] = useState(false);
+
+  const title = isNew
+    ? authType === null
+      ? "Add an authentication method"
+      : authType === "basic"
+        ? 'Create a "basic auth" method'
+        : 'Create an "API token" method'
+    : "Webhook Authentication Method";
+
+  const valid = name.trim() !== "" && (authType === "api" || !isNew || (username.trim() !== "" && password !== ""));
+
+  let body: ReactNode;
+  let footer: ReactNode;
+  if (reauth) {
+    body = (
+      <form id="reauthentication-form" className="mt-2" onSubmit={(e) => (e.preventDefault(), setSudo(true), setReauth(false))}>
+        <div className="space-y-4">
+          <p className="text-sm">
+            You're required to reauthenticate yourself before viewing the webhook{" "}
+            {authType === "basic" ? "Password" : "API Key"}
+          </p>
+          <TextInput id="user_password" type="password" label="Password" autoComplete="new-password" />
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center" aria-hidden="true">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center">
+              <span className="bg-white px-2 text-sm text-gray-500">OR</span>
+            </div>
+          </div>
+          <TextInput id="user_code" label="2FA Code" inputMode="numeric" />
+        </div>
+      </form>
+    );
+    footer = (
+      <>
+        <Button type="submit" form="reauthentication-form">
+          Done
+        </Button>
+        <Button theme="secondary" onClick={() => setReauth(false)}>
+          Back
+        </Button>
+      </>
+    );
+  } else if (authType === null) {
+    body = (
+      <div className="space-y-4">
+        <TypeOption selected={choice === "basic"} icon="hero-globe-alt" onSelect={() => setChoice("basic")}>
+          Basic HTTP Authentication (username &amp; password)
+        </TypeOption>
+        <TypeOption selected={choice === "api"} icon="hero-code-bracket-square" onSelect={() => setChoice("api")}>
+          API Key Authentication (‘x-api-key’ header)
+        </TypeOption>
+      </div>
+    );
+    footer = (
+      <Button disabled={choice === null} onClick={() => setAuthType(choice)}>
+        Next
+      </Button>
+    );
+  } else {
+    body = (
+      <form
+        id="webhook-auth-method-form"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!valid) return;
+          onSave(authType === "basic" ? { name, authType, username, password } : { name, authType, apiKey });
+        }}
+      >
+        <Label htmlFor="webhook_auth_method_name">Auth method name</Label>
+        <TextInput id="webhook_auth_method_name" required value={name} onChange={(e) => setName(e.target.value)} />
+        <Spacer />
+        {authType === "basic" ? (
+          <>
+            <Label htmlFor="webhook_auth_method_username">Username</Label>
+            <TextInput
+              id="webhook_auth_method_username"
+              required
+              value={username}
+              disabled={!isNew}
+              onChange={(e) => setUsername(e.target.value)}
+            />
+            <Spacer />
+            {isNew ? (
+              <>
+                <Label htmlFor="webhook_auth_method_password">Password</Label>
+                <TextInput
+                  id="webhook_auth_method_password"
+                  type="password"
+                  required
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <Spacer />
+              </>
+            ) : (
+              <div className="mb-3">
+                <label className="block text-sm font-semibold leading-6 text-slate-800">Password</label>
+                <SecretField
+                  id="webhook_auth_method_password"
+                  type="password"
+                  value={sudo ? (authMethod?.password ?? "") : mask(authMethod?.password)}
+                  revealed={sudo}
+                  onShow={() => setReauth(true)}
+                />
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <Label htmlFor="webhook_auth_method_api_key">API Key</Label>
+            <SecretField
+              id="webhook_auth_method_api_key"
+              type="text"
+              value={isNew || sudo ? apiKey : maskApiKey(apiKey)}
+              revealed={isNew || sudo}
+              onShow={() => setReauth(true)}
+            />
+          </>
+        )}
+      </form>
+    );
+    footer = (
+      <>
+        <Button type="submit" form="webhook-auth-method-form" disabled={!valid}>
+          {isNew ? "Create auth method" : "Save changes"}
+        </Button>
+        <Button theme="secondary" onClick={onCancel}>
+          Cancel
+        </Button>
+      </>
+    );
+  }
+
+  return (
+    <Modal open onClose={onCancel} width="min-w-1/3 max-w-xl" title={title} footer={footer}>
+      {body}
+    </Modal>
+  );
+}

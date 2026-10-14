@@ -1,13 +1,9 @@
-import Header from "../../components/Header";
-import { Centered, PageContent } from "../../components/PageContent";
+import LiveDashboardHome from "../../components/admin/LiveDashboardHome";
 
-/** Inventory view `admin-live-dashboard`. Placeholder until the page is built. */
+/**
+ * Inventory view `admin-live-dashboard` (Phoenix.LiveDashboard at /dashboard).
+ * Third party: a static, labelled approximation of its home page.
+ */
 export default function AdminLiveDashboardPage() {
-  return (
-    <PageContent header={<Header title="Sys Info" />}>
-      <Centered>
-        <p className="text-sm text-gray-500">Not built yet: admin-live-dashboard</p>
-      </Centered>
-    </PageContent>
-  );
+  return <LiveDashboardHome />;
 }

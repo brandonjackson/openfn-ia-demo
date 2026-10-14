@@ -1,0 +1,165 @@
+import { useState, type ReactNode } from "react";
+import type { User, UserRole } from "../../mock-data/users";
+import { isSupportUser, userRoleOptions } from "../../mock-data/admin";
+import Alert from "../Alert";
+import PasswordInput from "../auth/PasswordInput";
+import Button from "../Button";
+import { Select, TextInput } from "../Inputs";
+import Toggle from "../Toggle";
+
+interface Props {
+  /** The user being edited; omit for /settings/users/new. */
+  user?: User;
+  onSave?: (values: UserFormValues) => void;
+  /** Where Cancel goes. */
+  cancelTo?: string;
+}
+
+export interface UserFormValues {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  role: UserRole;
+  supportUser: boolean;
+  scheduledDeletion: string;
+  disabled: boolean;
+}
+
+function Row({ children }: { children: ReactNode }) {
+  return (
+    <div className="grid grid-cols-6 gap-6">
+      <div className="col-span-3">{children}</div>
+    </div>
+  );
+}
+
+/**
+ * Lightning's admin user form (user_live/form_component.html.heex): name,
+ * email, password, role, the Support User toggle (with its heads-up), and on
+ * edit the scheduled deletion and disabled fields. Save stays disabled until
+ * the required fields are filled.
+ */
+export default function UserForm({ user, onSave, cancelTo = "/settings/users" }: Props) {
+  const isEdit = !!user;
+  const [values, setValues] = useState<UserFormValues>({
+    firstName: user?.firstName ?? "",
+    lastName: user?.lastName ?? "",
+    email: user?.email ?? "",
+    password: "",
+    role: user?.role ?? "user",
+    supportUser: user ? isSupportUser(user) : false,
+    scheduledDeletion: user?.scheduledDeletion ?? "",
+    disabled: user?.disabled ?? false,
+  });
+  const set = <K extends keyof UserFormValues>(key: K, value: UserFormValues[K]) =>
+    setValues((v) => ({ ...v, [key]: value }));
+
+  const valid =
+    values.firstName.trim() !== "" &&
+    values.lastName.trim() !== "" &&
+    values.email.trim() !== "" &&
+    (isEdit || values.password.length >= 12);
+
+  return (
+    <div id={`user-${user?.id ?? "new"}`}>
+      <form
+        id="user-form"
+        className="space-y-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSave?.(values);
+        }}
+      >
+        <Row>
+          <TextInput
+            id="user_first_name"
+            label="First Name"
+            value={values.firstName}
+            onChange={(e) => set("firstName", e.target.value)}
+          />
+        </Row>
+        <Row>
+          <TextInput
+            id="user_last_name"
+            label="Last Name"
+            value={values.lastName}
+            onChange={(e) => set("lastName", e.target.value)}
+          />
+        </Row>
+        <Row>
+          <TextInput
+            id="user_email"
+            label="Email"
+            value={values.email}
+            onChange={(e) => set("email", e.target.value)}
+          />
+        </Row>
+        <Row>
+          <PasswordInput
+            id="user_password"
+            label="Password"
+            autoComplete="new-password"
+            value={values.password}
+            onChange={(e) => set("password", e.target.value)}
+          />
+        </Row>
+        <Row>
+          <Select
+            id="user_role"
+            label="Role"
+            options={userRoleOptions}
+            value={values.role}
+            onChange={(e) => set("role", e.target.value as UserRole)}
+          />
+        </Row>
+        <Row>
+          <Toggle checked={values.supportUser} onChange={(v) => set("supportUser", v)} label="Support User" />
+          {values.supportUser && (
+            <Alert id="heads-up-description" type="warning" header="Heads Up!" className="mt-2">
+              <p>This user will be able to access ALL projects that have support access enabled</p>
+            </Alert>
+          )}
+        </Row>
+
+        {isEdit && (
+          <>
+            {values.role === "user" && (
+              <Row>
+                <TextInput
+                  id="user_scheduled_deletion"
+                  label="Scheduled Deletion"
+                  value={values.scheduledDeletion}
+                  onChange={(e) => set("scheduledDeletion", e.target.value)}
+                />
+              </Row>
+            )}
+            <div className="flex items-start">
+              <div className="flex items-center h-5">
+                <input
+                  id="user_disabled"
+                  type="checkbox"
+                  checked={values.disabled}
+                  onChange={(e) => set("disabled", e.target.checked)}
+                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-600 transition duration-200 cursor-pointer"
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <p className="text-secondary-500">A disabled user will not be allowed to login.</p>
+              </div>
+            </div>
+          </>
+        )}
+
+        <div className="flex gap-1">
+          <Button id="save-user" type="submit" disabled={!valid} tooltip="All fields are required">
+            Save
+          </Button>
+          <Button theme="secondary" to={cancelTo}>
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}

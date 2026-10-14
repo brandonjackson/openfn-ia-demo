@@ -1,0 +1,140 @@
+import { Select } from "../Inputs";
+import { EmptyState, Table, Td, Th, Tr } from "../Table";
+import type { ProjectMember } from "../../mock-data/projects";
+import { digestOptions } from "../../mock-data/project-settings";
+import { findUser, fullName } from "../../mock-data/users";
+
+interface Props {
+  members: ProjectMember[];
+  currentUserId: string;
+  canRemoveProjectUser: boolean;
+  /** Whether the instance can send failure alerts at all. */
+  canReceiveFailureAlerts?: boolean;
+  onChange: (member: ProjectMember) => void;
+  onRemove: (member: ProjectMember) => void;
+  onAdd: () => void;
+  canAdd: boolean;
+}
+
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/** settings.ex `remove_user_tooltip/5` (sandbox parent-admin rule omitted). */
+function removeTooltip(member: ProjectMember, currentUserId: string, canRemove: boolean): string {
+  if (!canRemove) return "You do not have permission to remove a user";
+  if (member.userId === currentUserId) return "You cannot remove yourself";
+  if (member.role === "owner") return "You cannot remove an owner";
+  return "";
+}
+
+/**
+ * Lightning's `DataTables.collaborators_table` (live/components/data_tables.ex):
+ * Collaborator, Role, Failure Alert, Digest and a Remove Collaborator
+ * button. Alert settings are only editable on your own row.
+ */
+export default function CollaboratorsTable({
+  members,
+  currentUserId,
+  canRemoveProjectUser,
+  canReceiveFailureAlerts = true,
+  onChange,
+  onRemove,
+  onAdd,
+  canAdd,
+}: Props) {
+  if (members.length === 0) {
+    return (
+      <EmptyState
+        icon="hero-plus-circle"
+        message="No collaborators found."
+        buttonText="Add a collaborator"
+        onClick={onAdd}
+        disabled={!canAdd}
+      />
+    );
+  }
+  return (
+    <Table
+      id="collaborators-table"
+      header={
+        <Tr>
+          <Th>Collaborator</Th>
+          <Th>Role</Th>
+          <Th>Failure Alert</Th>
+          <Th>Digest</Th>
+          <Th>
+            <span className="sr-only">Actions</span>
+          </Th>
+        </Tr>
+      }
+    >
+      {members.map((m) => {
+        const user = findUser(m.userId);
+        const self = m.userId === currentUserId;
+        const tooltip = removeTooltip(m, currentUserId, canRemoveProjectUser);
+        return (
+          <Tr key={m.userId} id={`project_user-${m.userId}`}>
+            <Td>
+              <div>{user ? fullName(user) : m.userId}</div>
+              <span className="text-xs">{user?.email}</span>
+              {self && (
+                <div>
+                  <small className="text-gray-400">
+                    <em>Well hello, you!</em>
+                  </small>
+                </div>
+              )}
+            </Td>
+            <Td>{capitalize(m.role)}</Td>
+            <Td>
+              {!canReceiveFailureAlerts ? (
+                "Unavailable"
+              ) : self ? (
+                <Select
+                  id={`failure-alert-${m.userId}`}
+                  aria-label="Failure Alert"
+                  value={String(m.failureAlert)}
+                  options={[
+                    ["Disabled", "false"],
+                    ["Enabled", "true"],
+                  ]}
+                  onChange={(e) => onChange({ ...m, failureAlert: e.target.value === "true" })}
+                />
+              ) : m.failureAlert ? (
+                "Enabled"
+              ) : (
+                "Disabled"
+              )}
+            </Td>
+            <Td>
+              {self ? (
+                <Select
+                  id={`digest-${m.userId}`}
+                  aria-label="Digest"
+                  value={m.digest}
+                  options={digestOptions.map((d) => [capitalize(d), d] as [string, string])}
+                  onChange={(e) => onChange({ ...m, digest: e.target.value as ProjectMember["digest"] })}
+                />
+              ) : (
+                capitalize(m.digest)
+              )}
+            </Td>
+            <Td className="flex justify-end py-0.5">
+              <div className="text-right">
+                <button
+                  id={`remove_project_user_${m.userId}_button`}
+                  type="button"
+                  title={tooltip || undefined}
+                  disabled={tooltip !== ""}
+                  onClick={() => onRemove(m)}
+                  className="cursor-pointer gap-x-2 rounded-md px-3.5 py-2.5 text-sm shadow-xs ring-1 ring-inset ring-gray-300 disabled:cursor-not-allowed"
+                >
+                  <span className="hero-minus-circle w-5 h-5" /> Remove Collaborator
+                </button>
+              </div>
+            </Td>
+          </Tr>
+        );
+      })}
+    </Table>
+  );
+}

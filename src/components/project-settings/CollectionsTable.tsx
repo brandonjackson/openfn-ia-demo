@@ -1,0 +1,97 @@
+import { useState } from "react";
+import { EmptyState, Table, Td, Th, Tr } from "../Table";
+import { tableActionClass } from "./classes";
+import type { Collection } from "../../mock-data/project-settings";
+import { bytesToHuman } from "../../utils/bytesToHuman";
+
+interface Props {
+  collections: Collection[];
+  canCreateCollection: boolean;
+  onCreate: () => void;
+  onPreview: (c: Collection) => void;
+  onEdit: (c: Collection) => void;
+  onDelete: (c: Collection) => void;
+}
+
+type SortKey = "name" | "byteSizeSum";
+
+/**
+ * Lightning's `DataTables.collections_table` (live/components/data_tables.ex)
+ * with the actions from collections_component.ex: preview, Download, Edit,
+ * Delete. Name and Used storage sort client-side.
+ */
+export default function CollectionsTable({ collections, canCreateCollection, onCreate, onPreview, onEdit, onDelete }: Props) {
+  const [sortBy, setSortBy] = useState<SortKey>("name");
+  const [dir, setDir] = useState<"asc" | "desc">("asc");
+
+  if (collections.length === 0) {
+    return (
+      <EmptyState
+        icon="hero-plus-circle"
+        message="No collections found."
+        buttonText="Create a new collection"
+        onClick={onCreate}
+        disabled={!canCreateCollection}
+      />
+    );
+  }
+
+  const sorted = [...collections].sort((a, b) => {
+    const cmp = sortBy === "name" ? a.name.localeCompare(b.name) : a.byteSizeSum - b.byteSizeSum;
+    return dir === "asc" ? cmp : -cmp;
+  });
+  const sort = (key: SortKey) => {
+    if (key === sortBy) setDir(dir === "asc" ? "desc" : "asc");
+    else {
+      setSortBy(key);
+      setDir("asc");
+    }
+  };
+
+  return (
+    <Table
+      id="collections-table"
+      header={
+        <Tr>
+          <Th sortDirection={sortBy === "name" ? dir : null} onSort={() => sort("name")}>
+            Name
+          </Th>
+          <Th sortDirection={sortBy === "byteSizeSum" ? dir : null} onSort={() => sort("byteSizeSum")}>
+            Used storage
+          </Th>
+          <Th>
+            <span className="sr-only">Actions</span>
+          </Th>
+        </Tr>
+      }
+    >
+      {sorted.map((c) => (
+        <Tr key={c.id} id={`collection-row-${c.id}`}>
+          <Td>{c.name}</Td>
+          <Td>{bytesToHuman(c.byteSizeSum)}</Td>
+          <Td className="flex justify-end py-0.5">
+            <div className="text-right flex">
+              <button type="button" className={tableActionClass} title="Preview collection" onClick={() => onPreview(c)}>
+                <span className="hero-eye h-4 w-4" />
+              </button>
+              <a href="#collections" className={tableActionClass} onClick={(e) => e.preventDefault()}>
+                Download
+              </a>
+              <button type="button" className={tableActionClass} disabled={!canCreateCollection} onClick={() => onEdit(c)}>
+                Edit
+              </button>
+              <button
+                type="button"
+                className={tableActionClass}
+                disabled={!canCreateCollection}
+                onClick={() => onDelete(c)}
+              >
+                Delete
+              </button>
+            </div>
+          </Td>
+        </Tr>
+      ))}
+    </Table>
+  );
+}

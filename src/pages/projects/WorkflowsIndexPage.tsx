@@ -1,12 +1,57 @@
+import { useState } from "react";
+import { Navigate, useParams } from "react-router-dom";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
+import ProjectBreadcrumbs from "../../components/ProjectBreadcrumbs";
+import ProjectMetrics from "../../components/projects/ProjectMetrics";
+import WorkflowsHeader from "../../components/projects/WorkflowsHeader";
+import WorkflowsTable from "../../components/projects/WorkflowsTable";
+import { projectMetricsFor, workflowStatsFor } from "../../mock-data/dashboard-stats";
+import { findProject, roleIn } from "../../mock-data/projects";
+import { currentUser } from "../../mock-data/users";
 
-/** Inventory view `workflows-index`. Placeholder until the page is built. */
+/**
+ * Inventory view `workflows-index` (WorkflowLive.Index): search, the four
+ * metric cards, and the workflows table. Toggle and delete only change local
+ * state.
+ */
 export default function WorkflowsIndexPage() {
+  const { projectId } = useParams();
+  const project = findProject(projectId);
+  const [search, setSearch] = useState("");
+  const [enabled, setEnabled] = useState<Record<string, boolean>>({});
+  const [deleted, setDeleted] = useState<string[]>([]);
+
+  if (!project) return <Navigate to="/projects" replace />;
+
+  const canEdit = roleIn(project, currentUser.id) !== "viewer";
+  const term = search.trim().toLowerCase();
+  const stats = workflowStatsFor(project.id)
+    .filter((s) => !deleted.includes(s.workflow.id))
+    .filter((s) => term === "" || s.workflow.name.toLowerCase().includes(term))
+    .map((s) => ({ ...s, workflow: { ...s.workflow, enabled: enabled[s.workflow.id] ?? s.workflow.enabled } }));
+
   return (
-    <PageContent header={<Header title="Workflows" />}>
+    <PageContent header={<Header breadcrumbs={<ProjectBreadcrumbs project={project} />} />}>
       <Centered>
-        <p className="text-sm text-gray-500">Not built yet: workflows-index</p>
+        <WorkflowsHeader
+          count={stats.length}
+          projectId={project.id}
+          canCreate={canEdit}
+          searchTerm={search}
+          onSearch={setSearch}
+        />
+        <ProjectMetrics metrics={projectMetricsFor(stats)} projectId={project.id} />
+        <div className="w-full mt-8">
+          <WorkflowsTable
+            stats={stats}
+            projectId={project.id}
+            searchTerm={search}
+            canDelete={canEdit}
+            onToggle={(id, v) => setEnabled((m) => ({ ...m, [id]: v }))}
+            onDelete={(id) => setDeleted((d) => [...d, id])}
+          />
+        </div>
       </Centered>
     </PageContent>
   );

@@ -65,6 +65,9 @@ export default function App() {
       <Route path="/auth/confirm_access" element={<AuthConfirmAccessPage />} /> {/* auth-confirm-access */}
       <Route path="/first_setup" element={<FirstSetupPage />} /> {/* first-setup */}
 
+      {/* Phoenix LiveDashboard is a full page of its own, outside Lightning's layout. */}
+      <Route path="/dashboard" element={<AdminLiveDashboardPage />} /> {/* admin-live-dashboard */}
+
       <Route element={<AppShell />}>
         <Route path="/" element={<Navigate to="/projects" replace />} />
         <Route path="/projects" element={<ProjectsDashboardPage />} /> {/* projects-dashboard */}
@@ -115,7 +118,6 @@ export default function App() {
         <Route path="/settings/authentication" element={<AdminAuthProvidersPage />} /> {/* admin-auth-providers */}
         <Route path="/settings/authentication/new" element={<AdminAuthProvidersPage />} />
         <Route path="/settings/collections" element={<AdminCollectionsPage />} /> {/* admin-collections */}
-        <Route path="/dashboard" element={<AdminLiveDashboardPage />} /> {/* admin-live-dashboard */}
 
         <Route path="*" element={<Navigate to="/projects" replace />} />
       </Route>

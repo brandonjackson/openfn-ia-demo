@@ -1,0 +1,120 @@
+import { Link } from "react-router-dom";
+import type { User } from "../../mock-data/users";
+import { isSupportUser } from "../../mock-data/admin";
+import FilterInput from "../FilterInput";
+import SimpleDropdown from "../SimpleDropdown";
+import { Table, Td, Th, Tr } from "../Table";
+import { formatShortDateTime, useTableSort, type SortValue } from "./tableSort";
+
+type SortKey = "first_name" | "last_name" | "email" | "role" | "enabled" | "support_user" | "scheduled_deletion";
+
+const sortMap: Record<SortKey, (u: User) => SortValue> = {
+  first_name: (u) => u.firstName,
+  last_name: (u) => u.lastName,
+  email: (u) => u.email,
+  role: (u) => u.role,
+  enabled: (u) => !u.disabled,
+  support_user: (u) => isSupportUser(u),
+  scheduled_deletion: (u) => u.scheduledDeletion ?? "9999-12-31T23:59:59Z",
+};
+
+const searchFields: ((u: User) => string)[] = [(u) => u.firstName, (u) => u.lastName, (u) => u.email, (u) => u.role];
+
+const checkIcon = <span className="hero-check-circle-solid w-6 h-6 text-gray-500" />;
+
+/** Superusers can't be deleted from here: the entry is inert (cursor-not-allowed). */
+function DeleteAction({ user, onCancelDeletion }: { user: User; onCancelDeletion?: (user: User) => void }) {
+  const cancel = user.scheduledDeletion && (
+    <a
+      id={`cancel-deletion-${user.id}`}
+      href="#"
+      onClick={(e) => {
+        e.preventDefault();
+        onCancelDeletion?.(user);
+      }}
+    >
+      Cancel deletion
+    </a>
+  );
+  const label = user.scheduledDeletion ? "Delete now" : "Delete";
+  const id = user.scheduledDeletion ? `delete-now-${user.id}` : `delete-${user.id}`;
+  return (
+    <>
+      {cancel}
+      {user.role === "superuser" ? (
+        <span id={id} className="cursor-not-allowed">
+          {label}
+        </span>
+      ) : (
+        <Link id={id} to={`/settings/users/${user.id}/delete`}>
+          {label}
+        </Link>
+      )}
+    </>
+  );
+}
+
+/**
+ * The admin users table (user_live/components.ex `users_table`): a filter
+ * box, sortable columns, an Actions dropdown per row (Edit / Delete), and the
+ * superuser footnote.
+ */
+export default function UsersTable({
+  users,
+  onCancelDeletion,
+}: {
+  users: User[];
+  onCancelDeletion?: (user: User) => void;
+}) {
+  const { rows, filter, setFilter, thProps } = useTableSort({ rows: users, initialKey: "email", sortMap, searchFields });
+
+  return (
+    <>
+      <FilterInput value={filter} onChange={setFilter} placeholder="Filter users..." />
+      <Table
+        header={
+          <Tr>
+            <Th {...thProps("first_name")}>First name</Th>
+            <Th {...thProps("last_name")}>Last name</Th>
+            <Th {...thProps("email")}>Email</Th>
+            <Th {...thProps("role")}>Role*</Th>
+            <Th {...thProps("enabled")}>Enabled?</Th>
+            <Th {...thProps("support_user")}>Support?</Th>
+            <Th {...thProps("scheduled_deletion")}>Scheduled Deletion</Th>
+            <Th>Actions</Th>
+          </Tr>
+        }
+      >
+        {rows.map((user) => (
+          <Tr key={user.id} id={`user-${user.id}`}>
+            <Td className="max-w-40 wrap-break-word" title={user.firstName}>
+              {user.firstName}
+            </Td>
+            <Td className="max-w-40 wrap-break-word" title={user.lastName}>
+              {user.lastName}
+            </Td>
+            <Td className="max-w-48 wrap-break-word" title={user.email}>
+              {user.email}
+            </Td>
+            <Td>{user.role}</Td>
+            <Td>{!user.disabled && checkIcon}</Td>
+            <Td>{isSupportUser(user) && checkIcon}</Td>
+            <Td>{user.scheduledDeletion && formatShortDateTime(user.scheduledDeletion)}</Td>
+            <Td className="py-0.5">
+              <SimpleDropdown id={`user-actions-${user.id}-dropdown`} buttonTheme="secondary" label="Actions">
+                <Link to={`/settings/users/${user.id}`}>Edit</Link>
+                <DeleteAction user={user} onCancelDeletion={onCancelDeletion} />
+              </SimpleDropdown>
+            </Td>
+          </Tr>
+        ))}
+      </Table>
+      <br />
+      <p className="mb-2 leading-5 text-gray-700">
+        *Note that a <code>superuser</code> can access <em>everything</em> in a Lightning installation across all
+        projects, including this page. Most day-to-day user management (adding and removing collaborators) will be
+        done by project "admins" via the project settings page.
+      </p>
+    </>
+  );
+}

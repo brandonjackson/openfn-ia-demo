@@ -1,24 +1,28 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Palette, Check, X } from "lucide-react";
-import { useTheme } from "../theme/theme-context";
-import type { ThemeMeta } from "../theme/themes";
+import { Settings, Check, X, PanelRight } from "lucide-react";
+import { useTheme } from "../../theme/theme-context";
+import type { ThemeMeta } from "../../theme/themes";
+import { useAnnotations } from "../../annotations/annotations-context";
+import { ANNOTATIONS_PANEL_WIDTH } from "./AnnotationsPanel";
 
 /**
- * Floating control that swaps the whole app's look and feel by changing
- * the `data-theme` attribute on <html>. It re-skins every component
- * without touching their markup — functionality is never altered.
+ * Floating settings button in the bottom-right corner. Its menu opens and
+ * closes the annotations panel and swaps the app's theme (by changing the
+ * `data-theme` attribute on <html>). It slides left of the annotations
+ * panel when that's open.
  *
  * The control's own chrome is styled with explicit (theme-independent)
  * colors so it stays legible no matter which theme is active; only the
  * preview swatches reflect each theme's real palette.
  */
-export default function StylePicker({
+export default function SettingsMenu({
   defaultOpen = false,
 }: {
   /** Start with the panel open. Used by stories/tests; the app omits it. */
   defaultOpen?: boolean;
 }) {
   const { themeId, setTheme, themes } = useTheme();
+  const annotations = useAnnotations();
   const [open, setOpen] = useState(defaultOpen);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -42,23 +46,56 @@ export default function StylePicker({
   }, [open]);
 
   return (
-    <div ref={rootRef} style={styles.root}>
+    <div
+      ref={rootRef}
+      data-devtools
+      style={{ ...styles.root, right: annotations.open ? ANNOTATIONS_PANEL_WIDTH + 20 : 20 }}
+    >
       {open && (
-        <div role="dialog" aria-label="Choose a theme" style={styles.panel}>
+        <div role="dialog" aria-label="Settings" style={styles.panel}>
           <div style={styles.header}>
-            <span style={styles.headerTitle}>Theme</span>
+            <span style={styles.headerTitle}>Settings</span>
             <button
               type="button"
-              aria-label="Close theme picker"
+              aria-label="Close settings"
               onClick={() => setOpen(false)}
               style={styles.closeBtn}
             >
               <X size={15} />
             </button>
           </div>
-          <p style={styles.subtitle}>
-            Same components, totally different look &amp; feel.
-          </p>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={annotations.open}
+            onClick={() => annotations.setOpen(!annotations.open)}
+            style={{ ...styles.row, marginTop: 10 }}
+          >
+            <span style={styles.iconTile} aria-hidden="true">
+              <PanelRight size={16} />
+            </span>
+            <span style={styles.rowText}>
+              <span style={styles.rowName}>Annotations panel</span>
+              <span style={styles.rowDesc}>
+                Show the behaviour annotation for whatever you hover over.
+              </span>
+            </span>
+            <span
+              style={{
+                ...styles.switch,
+                background: annotations.open ? "#0d9488" : "#d4d4d8",
+              }}
+            >
+              <span
+                style={{
+                  ...styles.knob,
+                  transform: annotations.open ? "translateX(14px)" : "none",
+                }}
+              />
+            </span>
+          </button>
+          <div style={styles.divider} />
+          <span style={styles.sectionTitle}>Theme</span>
           <ul style={styles.list}>
             {themes.map((theme) => (
               <li key={theme.id}>
@@ -77,12 +114,12 @@ export default function StylePicker({
         type="button"
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label="Open theme picker"
-        title="Change theme"
+        aria-label="Open settings"
+        title="Settings"
         onClick={() => setOpen((v) => !v)}
         style={styles.trigger}
       >
-        <Palette size={20} />
+        <Settings size={20} />
       </button>
     </div>
   );
@@ -191,7 +228,44 @@ const styles: Record<string, CSSProperties> = {
     borderRadius: 8,
     display: "flex",
   },
-  subtitle: { margin: "2px 0 12px", fontSize: 12, color: "#6b7280" },
+  sectionTitle: {
+    display: "block",
+    margin: "0 0 6px 10px",
+    fontSize: 11,
+    fontWeight: 600,
+    color: "#6b7280",
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
+  },
+  divider: { height: 1, background: "#e5e7eb", margin: "10px 0 12px" },
+  iconTile: {
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    background: "#f3f4f6",
+    border: "1px solid #e5e7eb",
+    color: "#374151",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  switch: {
+    width: 32,
+    height: 18,
+    borderRadius: 9999,
+    padding: 2,
+    flexShrink: 0,
+    transition: "background 0.15s ease",
+  },
+  knob: {
+    display: "block",
+    width: 14,
+    height: 14,
+    borderRadius: 9999,
+    background: "#ffffff",
+    transition: "transform 0.15s ease",
+  },
   list: {
     listStyle: "none",
     margin: 0,

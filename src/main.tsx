@@ -4,16 +4,24 @@ import { HashRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.tsx";
 import { ThemeProvider } from "./theme/ThemeProvider";
-import StylePicker from "./components/StylePicker";
+import { AnnotationsProvider } from "./annotations/AnnotationsContext";
+import SettingsMenu from "./components/devtools/SettingsMenu";
+import AnnotationsPanel from "./components/devtools/AnnotationsPanel";
+import AnnotationsFrame from "./components/devtools/AnnotationsFrame";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
       <HashRouter>
-        <App />
+        <AnnotationsProvider>
+          <AnnotationsFrame>
+            <App />
+          </AnnotationsFrame>
+          {/* Demo tooling, outside the Lightning UI: annotations and themes. */}
+          <AnnotationsPanel />
+          <SettingsMenu />
+        </AnnotationsProvider>
       </HashRouter>
-      {/* Global control — re-skins the whole app on every route. */}
-      <StylePicker />
     </ThemeProvider>
   </StrictMode>
 );

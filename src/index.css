@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/forms";
+@plugin "@tailwindcss/typography";
 @plugin "../tailwind/heroicons.js";
 
 /* Lightning's palette names (assets/css/app.css in OpenFn/lightning):
@@ -86,3 +87,9 @@
    Imported AFTER tailwindcss so its variable redefinitions win. */
 @import "./theme/lightning-shell.css";
 @import "./theme/theme.css";
+
+/* Annotations panel: outline the annotated element under the mouse. */
+[data-annotation-active] {
+  outline: 2px dashed var(--color-amber-500);
+  outline-offset: 2px;
+}

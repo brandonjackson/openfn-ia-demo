@@ -76,14 +76,8 @@ export default function CollaboratorsTable({
           <Tr key={m.userId} id={`project_user-${m.userId}`}>
             <Td>
               <div>{user ? fullName(user) : m.userId}</div>
-              <span className="text-xs">{user?.email}</span>
-              {self && (
-                <div>
-                  <small className="text-gray-400">
-                    <em>Well hello, you!</em>
-                  </small>
-                </div>
-              )}
+              <div className="text-xs">{user?.email}</div>
+              {self && <em className="text-xs text-gray-400">Well hello, you!</em>}
             </Td>
             <Td>{capitalize(m.role)}</Td>
             <Td>
@@ -119,19 +113,17 @@ export default function CollaboratorsTable({
                 capitalize(m.digest)
               )}
             </Td>
-            <Td className="flex justify-end py-0.5">
-              <div className="text-right">
-                <Button
-                  id={`remove_project_user_${m.userId}_button`}
-                  theme="secondary"
-                  size="lg"
-                  tooltip={tooltip || undefined}
-                  disabled={tooltip !== ""}
-                  onClick={() => onRemove(m)}
-                >
-                  <span className="hero-minus-circle w-5 h-5" /> Remove Collaborator
-                </Button>
-              </div>
+            <Td className="text-right">
+              <Button
+                id={`remove_project_user_${m.userId}_button`}
+                theme="secondary"
+                size="lg"
+                tooltip={tooltip || undefined}
+                disabled={tooltip !== ""}
+                onClick={() => onRemove(m)}
+              >
+                <span className="hero-minus-circle h-5 w-5" /> Remove Collaborator
+              </Button>
             </Td>
           </Tr>
         );

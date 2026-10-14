@@ -46,7 +46,7 @@ export default function HistoryExportsTable({ files }: Props) {
             <Td>{f.path ? f.path.split("/").pop() : <em>Pending</em>}</Td>
             <Td>{user ? fullName(user) : ""}</Td>
             <Td>{formatStatus(f.status)}</Td>
-            <Td className="flex justify-end py-0.5">
+            <Td className="text-right">
               {f.status === "completed" ? (
                 <Button theme="secondary" size="xs">Download</Button>
               ) : (

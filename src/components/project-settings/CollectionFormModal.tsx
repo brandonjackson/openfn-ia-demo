@@ -43,9 +43,9 @@ export default function CollectionFormModal({ title, initialName = "", onCancel,
             value={rawName}
             onChange={(e) => setRawName(e.target.value)}
           />
-          <small className="block text-xs text-gray-600">
+          <p className="text-xs text-gray-600">
             <NameBadge name={name}>Your collection will be named</NameBadge>
-          </small>
+          </p>
         </div>
       </form>
     </Modal>

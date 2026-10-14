@@ -69,8 +69,8 @@ export default function CollectionsTable({ collections, canCreateCollection, onC
         <Tr key={c.id} id={`collection-row-${c.id}`}>
           <Td>{c.name}</Td>
           <Td>{formatBytes(c.byteSizeSum)}</Td>
-          <Td className="flex justify-end py-0.5">
-            <div className="text-right flex">
+          <Td className="text-right">
+            <div className="inline-flex gap-1">
               <Button theme="secondary" size="xs" onClick={() => onPreview(c)}>
                 <span className="hero-eye h-4 w-4" aria-hidden="true" />
                 <span className="sr-only">Preview collection</span>

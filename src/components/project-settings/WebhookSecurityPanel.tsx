@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import Button from "../Button";
-import SectionHeader from "../SectionHeader";
-import LinkedUsageModal from "./LinkedUsageModal";
 import Card from "../Card";
+import SectionHeader from "../SectionHeader";
+import TextLink from "../TextLink";
+import LinkedUsageModal from "./LinkedUsageModal";
 import WebhookAuthMethodDeleteModal from "./WebhookAuthMethodDeleteModal";
 import WebhookAuthMethodFormModal from "./WebhookAuthMethodFormModal";
 import WebhookAuthMethodsTable from "./WebhookAuthMethodsTable";
@@ -40,16 +40,12 @@ export default function WebhookSecurityPanel({ projectId, initialAuthMethods, ca
         <SectionHeader title={title} subtitle={subtitle} />
         <Card
           id="webhook-security-sandbox-notice"
-          className="space-y-0"
           title="Webhook authentication is managed in the parent project"
           description="Methods are shared with this sandbox and enforced on its webhook triggers, but can only be created, edited, or deleted from the parent."
         >
-          <Link
-            to={`/projects/${parentProject.id}/settings#webhook_security`}
-            className="mt-2 inline-block text-xs font-medium text-primary-600 hover:text-primary-900"
-          >
+          <TextLink to={`/projects/${parentProject.id}/settings#webhook_security`}>
             Manage them in the parent project ({parentProject.name})
-          </Link>
+          </TextLink>
         </Card>
       </>
     );

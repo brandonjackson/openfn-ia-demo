@@ -1,4 +1,5 @@
 import Modal from "../Modal";
+import TextLink from "../TextLink";
 import type { Collection } from "../../mock-data/project-settings";
 
 interface Props {
@@ -20,27 +21,18 @@ export default function CollectionPreviewModal({ collection, onClose }: Props) {
       description={
         <>
           Showing first record. We recommend{" "}
-          <a
-            href="https://docs.openfn.org/documentation/collections-cli"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="link"
-          >
+          <TextLink href="https://docs.openfn.org/documentation/collections-cli" external>
             using the CLI
-          </a>{" "}
+          </TextLink>{" "}
           to manage collections.
         </>
       }
     >
-      <div className="h-96 rounded-md overflow-hidden">
-        {collection.previewJson ? (
-          <pre className="h-full overflow-auto bg-gray-700 p-4 font-mono text-xs text-gray-200">
-            {collection.previewJson}
-          </pre>
-        ) : (
-          <div className="flex items-center justify-center h-full text-gray-400 text-sm">This collection is empty.</div>
-        )}
-      </div>
+      {collection.previewJson ? (
+        <pre className="h-96 overflow-auto rounded-md bg-gray-700 p-4 text-xs text-gray-200">{collection.previewJson}</pre>
+      ) : (
+        <p className="flex h-96 items-center justify-center text-sm text-gray-400">This collection is empty.</p>
+      )}
     </Modal>
   );
 }

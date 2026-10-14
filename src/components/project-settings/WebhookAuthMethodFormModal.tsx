@@ -32,7 +32,7 @@ function SecretField({ id, value, type, revealed, onShow }: { id: string; value:
       <Button
         id={`${id}_action_button`}
         theme="secondary"
-        className="-ml-px w-[100px] rounded-l-none rounded-r-lg"
+        className="-ml-px w-24 rounded-l-none rounded-r-lg"
         onClick={revealed ? () => navigator.clipboard?.writeText(value) : onShow}
       >
         {revealed ? "Copy" : "Show"}
@@ -43,19 +43,15 @@ function SecretField({ id, value, type, revealed, onShow }: { id: string; value:
 
 function TypeOption({ selected, icon, children, onSelect }: { selected: boolean; icon: string; children: ReactNode; onSelect: () => void }) {
   return (
-    <label className="relative block cursor-pointer rounded-lg border bg-white px-[8px] py-2 text-sm shadow-xs">
+    <label
+      className={cn(
+        "flex cursor-pointer items-center gap-x-2.5 rounded-lg border border-gray-200 bg-white p-2 text-sm shadow-xs",
+        selected && "outline-2 outline-offset-2 outline-primary-600"
+      )}
+    >
       <input type="radio" name="auth_type" className="sr-only" checked={selected} onChange={onSelect} />
-      <span className="flex items-center gap-x-2.5">
-        <span className={cn(icon, "h-10 w-10")} />
-        {children}
-      </span>
-      <span
-        aria-hidden="true"
-        className={cn(
-          "pointer-events-none absolute -inset-px rounded-lg",
-          selected ? "outline outline-primary-600 outline-2 outline-offset-2" : "border-transparent"
-        )}
-      />
+      <span className={cn(icon, "h-10 w-10")} />
+      {children}
     </label>
   );
 }
@@ -90,23 +86,18 @@ export default function WebhookAuthMethodFormModal({ authMethod, onCancel, onSav
   let footer: ReactNode;
   if (reauth) {
     body = (
-      <form id="reauthentication-form" className="mt-2" onSubmit={(e) => (e.preventDefault(), setSudo(true), setReauth(false))}>
-        <div className="space-y-4">
-          <p className="text-sm">
-            You're required to reauthenticate yourself before viewing the webhook{" "}
-            {authType === "basic" ? "Password" : "API Key"}
-          </p>
-          <TextInput id="user_password" type="password" label="Password" autoComplete="new-password" />
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-white px-2 text-sm text-gray-500">OR</span>
-            </div>
-          </div>
-          <TextInput id="user_code" label="2FA Code" inputMode="numeric" />
+      <form id="reauthentication-form" className="space-y-4 text-sm" onSubmit={(e) => (e.preventDefault(), setSudo(true), setReauth(false))}>
+        <p>
+          You're required to reauthenticate yourself before viewing the webhook{" "}
+          {authType === "basic" ? "Password" : "API Key"}
+        </p>
+        <TextInput id="user_password" type="password" label="Password" autoComplete="new-password" />
+        <div className="flex items-center gap-2 text-gray-500">
+          <hr className="flex-1 border-gray-300" />
+          OR
+          <hr className="flex-1 border-gray-300" />
         </div>
+        <TextInput id="user_code" label="2FA Code" inputMode="numeric" />
       </form>
     );
     footer = (

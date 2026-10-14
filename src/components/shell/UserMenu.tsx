@@ -16,24 +16,22 @@ const items = [
  */
 export default function UserMenu({ user }: { user: User }) {
   return (
-    <div className="h-10 mx-3 flex-1 min-w-0">
+    <div className="mx-3 min-w-0 flex-1">
       <Menu
         align="start"
         trigger={
           <button
             type="button"
             data-ui="account-trigger"
-            className="user-menu-trigger menu-item menu-item-inactive h-10 w-full bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium flex items-center transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+            className="user-menu-trigger flex h-10 w-full items-center rounded-lg bg-white/10 text-sm font-medium text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
           >
-            <div className="user-menu-content flex items-center w-full min-w-0">
+            <div className="user-menu-content flex w-full min-w-0 items-center">
               <UserAvatar firstName={user.firstName} lastName={user.lastName} className="shrink-0" />
-              <div className="min-w-0 overflow-hidden flex-1 user-menu-text">
-                <div className="text-sm font-medium text-white truncate">
-                  {user.firstName}
-                  {user.lastName ? " " + user.lastName : ""}
-                </div>
-              </div>
-              <span className="hero-chevron-down w-4 h-4 text-white/70 shrink-0 user-menu-chevron" />
+              <span className="user-menu-text min-w-0 flex-1 truncate text-left">
+                {user.firstName}
+                {user.lastName ? " " + user.lastName : ""}
+              </span>
+              <span className="user-menu-chevron hero-chevron-down h-4 w-4 shrink-0 text-white/70" />
             </div>
           </button>
         }

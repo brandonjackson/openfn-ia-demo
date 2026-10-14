@@ -1,9 +1,12 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Button from "../Button";
-import SectionHeader from "../SectionHeader";
-import RemoveIntegrationModal from "./RemoveIntegrationModal";
-import SandboxSettingsBanner from "./SandboxSettingsBanner";
 import Card from "../Card";
+import ConfirmModal from "../ConfirmModal";
+import { DetailItem, DetailList } from "../DetailList";
+import Pill from "../Pill";
+import SectionHeader from "../SectionHeader";
+import TextLink from "../TextLink";
+import SandboxSettingsBanner from "./SandboxSettingsBanner";
 import type { VcsFixture } from "../../mock-data/project-settings";
 
 interface Props {
@@ -14,8 +17,6 @@ interface Props {
   userGithubConnected: boolean;
   sandbox?: boolean;
 }
-
-const chip = "text-xs font-mono bg-gray-200 rounded-md p-1";
 
 /**
  * The Sync to GitHub tab (`#vcs`, settings.html.heex:758-860 and
@@ -28,74 +29,70 @@ export default function GithubSyncPanel({ vcs, canInstallGithub, canInitiateGith
   const [connection, setConnection] = useState(vcs.connection);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
-  let body;
+  let body: ReactNode = null;
   if (!vcs.githubEnabled) {
     body = (
-      <div className="bg-white p-4 rounded-md">
-        <h6 className="font-medium text-black">Sync to GitHub</h6>
-        <small className="block mt-1 text-xs text-gray-600">
-          Version Control is not configured for this Lightning instance. Contact the superuser for more information.
-        </small>
-      </div>
+      <Card
+        title="Sync to GitHub"
+        description="Version Control is not configured for this Lightning instance. Contact the superuser for more information."
+      />
     );
   } else if (connection) {
     body = (
-      <div id="github-sync-component">
-        <div className="bg-white p-4 rounded-md">
-          <div className="flex flex-col gap-2 text-black">
-            <span>
-              Repository:{" "}
-              <a href={`https://www.github.com/${connection.repo}`} target="_blank" rel="noreferrer" className="link">
+      <div id="github-sync-component" className="space-y-2">
+        <Card className="space-y-4">
+          <DetailList>
+            <DetailItem label="Repository:">
+              <TextLink href={`https://www.github.com/${connection.repo}`} external>
                 {connection.repo}
-              </a>
-            </span>
-            <span>
-              Branch: <span className={chip}>{connection.branch}</span>
-            </span>
-            <span>
-              GitHub Installation ID: <span className={chip}>{connection.githubInstallationId}</span>
-            </span>
-            <span>
-              Path to config: <span className={chip}>{connection.configPath}</span>
-            </span>
-            <span>
-              Sync version: <span className={chip}>{connection.syncVersion ? "v2 (new)" : "v1 (legacy)"}</span>
-            </span>
-            <div className="pt-2">
-              <Button
-                id="initiate-sync-button"
-                disabled={!canInitiateGithubSync}
-                tooltip={canInitiateGithubSync ? undefined : "Contact an editor or admin to sync."}
-              >
-                Initiate Sync to Branch
-              </Button>
-            </div>
-          </div>
-        </div>
+              </TextLink>
+            </DetailItem>
+            <DetailItem label="Branch:">
+              <Pill square mono>{connection.branch}</Pill>
+            </DetailItem>
+            <DetailItem label="GitHub Installation ID:">
+              <Pill square mono>{connection.githubInstallationId}</Pill>
+            </DetailItem>
+            <DetailItem label="Path to config:">
+              <Pill square mono>{connection.configPath}</Pill>
+            </DetailItem>
+            <DetailItem label="Sync version:">
+              <Pill square mono>{connection.syncVersion ? "v2 (new)" : "v1 (legacy)"}</Pill>
+            </DetailItem>
+          </DetailList>
+          <Button
+            id="initiate-sync-button"
+            disabled={!canInitiateGithubSync}
+            tooltip={canInitiateGithubSync ? undefined : "Contact an editor or admin to sync."}
+          >
+            Initiate Sync to Branch
+          </Button>
+        </Card>
         {canInstallGithub && (
-          <div className="mt-2">
+          <p>
             No longer need to sync this project?{" "}
-            <a
-              href="#vcs"
-              className="link link-danger"
-              onClick={(e) => {
-                e.preventDefault();
-                setConfirmRemove(true);
-              }}
-            >
+            <TextLink variant="danger" onClick={() => setConfirmRemove(true)}>
               Remove Integration.
-            </a>
-          </div>
+            </TextLink>
+          </p>
         )}
-        {confirmRemove && (
-          <RemoveIntegrationModal
-            onCancel={() => setConfirmRemove(false)}
-            onConfirm={() => {
-              setConnection(null);
-              setConfirmRemove(false);
-            }}
-          />
-        )}
+        {/* github_sync_component.ex `confirm_connection_removal_modal` */}
+        <ConfirmModal
+          open={confirmRemove}
+          onClose={() => setConfirmRemove(false)}
+          onConfirm={() => {
+            setConnection(null);
+            setConfirmRemove(false);
+          }}
+          title="Remove Integration?"
+          confirmLabel="Disconnect"
+          tone="danger"
+        >
+          <p>
+            You are about to disconnect this project from GitHub. Until you reconnect, you will not be able to sync
+            this project to GitHub.
+          </p>
+        </ConfirmModal>
       </div>
     );
   } else if (canInstallGithub && !userGithubConnected) {
@@ -103,11 +100,8 @@ export default function GithubSyncPanel({ vcs, canInstallGithub, canInitiateGith
       <Card
         title="Connect your OpenFn account to GitHub"
         description="To create a new GitHub version control connection you must first connect your OpenFn account to GitHub. Please click the button below to get started."
-        className="space-y-0"
       >
-        <div className="mt-6">
-          <Button id="connect-github-link">Connect your GitHub Account</Button>
-        </div>
+        <Button id="connect-github-link">Connect your GitHub Account</Button>
       </Card>
     );
   } else if (canInstallGithub) {
@@ -117,8 +111,6 @@ export default function GithubSyncPanel({ vcs, canInstallGithub, canInitiateGith
         description="Choose a GitHub installation, repository and branch to start syncing. (The connection form needs the GitHub API and isn't reproduced in this demo.)"
       />
     );
-  } else {
-    body = null;
   }
 
   return (
@@ -134,18 +126,16 @@ export default function GithubSyncPanel({ vcs, canInstallGithub, canInitiateGith
       />
       {sandbox && <SandboxSettingsBanner variant="local" />}
       {body}
-      <div className="mt-2">
+      <p>
         Need to learn more about GitHub Sync? See{" "}
-        <a
-          target="_blank"
-          rel="noreferrer"
+        <TextLink
           href="https://docs.openfn.org/documentation/deploy/portability#automated-version-control-with-github-and-lightning"
-          className="link"
+          external
         >
           portability docs
-        </a>{" "}
+        </TextLink>{" "}
         for full documentation on associated GitHub actions and automated workflows.
-      </div>
+      </p>
     </>
   );
 }

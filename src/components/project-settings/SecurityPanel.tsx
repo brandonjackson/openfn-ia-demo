@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Card from "../Card";
 import SectionHeader from "../SectionHeader";
 import Toggle from "../Toggle";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
@@ -24,37 +25,30 @@ export default function SecurityPanel({ initialRequiresMfa, canEditProject, canR
         permissionsSection={canEditProject || sandbox ? undefined : "multi-factor authentication settings."}
       />
       {sandbox && <SandboxSettingsBanner variant="inherited" parentProject={parentProject} />}
-      <div className="bg-white p-4 rounded-md space-y-4">
-        <div className="flex items-center justify-between">
-          <span className="flex flex-grow flex-col">
-            <span className="text-sm font-medium leading-6 text-gray-900" id="mfa-label">
-              Multi-Factor Authentication
-            </span>
-            <span className="text-sm text-gray-500" id="mfa-description">
-              Requiring multi-factor authentication (MFA) adds an additional layer of security by requiring users to
-              enable MFA on their accounts before they are allowed access this project.
-            </span>
+      <Card
+        title={<span id="mfa-label">Multi-Factor Authentication</span>}
+        description={
+          <span id="mfa-description">
+            Requiring multi-factor authentication (MFA) adds an additional layer of security by requiring users to
+            enable MFA on their accounts before they are allowed access this project.
+          </span>
+        }
+      >
+        <div className="flex items-center gap-3">
+          <Toggle
+            id="toggle-mfa-switch"
+            checked={requiresMfa}
+            onChange={setRequiresMfa}
+            disabled={!canRequireMfa || sandbox}
+            tooltip={canEditProject ? undefined : "You do not have permission to perform this action"}
+            labelledBy="require-mfa-label"
+          />
+          <span className="text-sm text-gray-500" id="require-mfa-label">
+            <span className="font-medium text-gray-900">Require MFA?</span>{" "}
+            {requiresMfa ? "(currently required for this project)" : "(currently optional for this project)"}
           </span>
         </div>
-        <div>
-          <div className="flex items-center">
-            <Toggle
-              id="toggle-mfa-switch"
-              checked={requiresMfa}
-              onChange={setRequiresMfa}
-              disabled={!canRequireMfa || sandbox}
-              tooltip={canEditProject ? undefined : "You do not have permission to perform this action"}
-              labelledBy="require-mfa-label"
-            />
-            <span className="ml-3 text-sm" id="require-mfa-label">
-              <span className="font-medium text-gray-900">Require MFA?</span>{" "}
-              <span className="text-gray-500">
-                {requiresMfa ? "(currently required for this project)" : "(currently optional for this project)"}
-              </span>
-            </span>
-          </div>
-        </div>
-      </div>
+      </Card>
     </>
   );
 }

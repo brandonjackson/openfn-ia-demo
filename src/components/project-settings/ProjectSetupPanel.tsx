@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import Alert from "../Alert";
 import Button from "../Button";
-import { Label, TextArea, TextInput } from "../Inputs";
+import { TextArea, TextInput } from "../Inputs";
 import SectionHeader from "../SectionHeader";
 import NameBadge from "../NameBadge";
+import TextLink from "../TextLink";
 import Toggle from "../Toggle";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
 import Card from "../Card";
@@ -47,145 +47,124 @@ export default function ProjectSetupPanel({ project, env, parentProject, canEdit
         permissionsSection={canEditProject ? undefined : "basic settings, but you can export a copy."}
       />
       {sandbox && <SandboxSettingsBanner variant="local" />}
-      <div className="space-y-4">
-        <Card
-          title={sandbox ? "Sandbox Identity" : "Project Identity"}
-          description={
-            sandbox ? (
-              <>
-                Identifies this sandbox within its parent:{" "}
-                {parentProject && (
-                  <Link
-                    to={`/projects/${parentProject.id}/settings`}
-                    className="font-medium text-primary-600 hover:text-primary-900"
-                  >
-                    {parentProject.name}
-                  </Link>
-                )}
-              </>
-            ) : (
-              "This metadata helps you identify the types of workflows managed in this project and the people that have access."
-            )
-          }
-        >
-          <form id="project-settings-form" className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-            <div>
-              <Label htmlFor="project-settings-form_raw_name">Project name</Label>
-              <TextInput
-                id="project-settings-form_raw_name"
-                value={rawName}
-                disabled={!canEditProject}
-                onChange={(e) => setRawName(e.target.value)}
-                errors={name ? [] : ["can't be blank"]}
-              />
-              <small className="mt-2 block text-xs text-gray-600">
-                <NameBadge name={name}>Your project will be named</NameBadge>
-              </small>
-            </div>
-            <div>
-              <Label htmlFor="project-settings-form_env">Project environment</Label>
-              <TextInput id="project-settings-form_env" value={env} disabled readOnly />
-              <small className="mt-2 block text-xs text-gray-600">
-                Credentials will be loaded with values from this environment.
-              </small>
-            </div>
-            <div>
-              <TextArea
-                id="project-settings-form_description"
-                label="Project description"
-                value={description}
-                disabled={!canEditProject}
-                maxLength={240}
-                onChange={(e) => setDescription(e.target.value)}
-                className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-xs sm:text-sm border-gray-300 rounded-md"
-              />
-              <small className="mt-2 block text-xs text-gray-600">
-                A short description of a project (max 240 characters)
-              </small>
-            </div>
-            <div>
-              <Button id="project-identity-submit-btn" type="submit" disabled={!(name && canEditProject)}>
-                Save
-              </Button>
-            </div>
-          </form>
-        </Card>
-
-        <Card
-          title="Concurrency Override"
-          description={
-            <span className="block @container">
-              <span className="block @sm:max-w-xl">
-                <span className="block text-xs text-gray-600">
-                  By default, runs are executed concurrently in accordance to limits set on individual workflows. In
-                  some situations, you may want to prevent concurrent execution across all workflows in a project.
-                </span>
-                <span className="block mt-2 text-xs text-gray-600">
-                  Disabling parallel run execution ensures that only one run is executed at a time, regardless of
-                  workflow, for this entire project.
-                </span>
-              </span>
-            </span>
-          }
-        >
-          <form
-            id="project-concurrency-form"
-            className="space-y-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setSavedSerial(serial);
-            }}
-          >
-            <div>
-              <div className="flex items-center">
-                <Toggle
-                  id="project-concurrency-switch"
-                  checked={serial}
-                  onChange={setSerial}
-                  disabled={!canEditProject}
-                  labelledBy="concurrency-description"
-                />
-                <span className="ml-3 text-sm" id="concurrency-description">
-                  <span className="font-medium text-gray-900">Disable parallel execution</span>{" "}
-                  <span className="text-gray-500">(No more than one run at a time)</span>
-                </span>
-              </div>
-              {serial && concurrencyChanged && (
-                <Alert type="warning" header="Heads Up!" className="mt-2">
-                  <p>Disabling parallel run execution may significantly reduce the overall throughput of your project.</p>
-                </Alert>
+      <Card
+        title={sandbox ? "Sandbox Identity" : "Project Identity"}
+        description={
+          sandbox ? (
+            <>
+              Identifies this sandbox within its parent:{" "}
+              {parentProject && (
+                <TextLink to={`/projects/${parentProject.id}/settings`}>{parentProject.name}</TextLink>
               )}
-            </div>
-            <div>
-              <Button id="project-concurrency-submit-btn" type="submit" disabled={!(concurrencyChanged && canEditProject)}>
-                Save
-              </Button>
-            </div>
-          </form>
-        </Card>
+            </>
+          ) : (
+            "This metadata helps you identify the types of workflows managed in this project and the people that have access."
+          )
+        }
+      >
+        <form id="project-settings-form" className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <div>
+            <TextInput
+              id="project-settings-form_raw_name"
+              label="Project name"
+              value={rawName}
+              disabled={!canEditProject}
+              onChange={(e) => setRawName(e.target.value)}
+              errors={name ? [] : ["can't be blank"]}
+            />
+            <p className="mt-2 text-xs text-gray-600">
+              <NameBadge name={name}>Your project will be named</NameBadge>
+            </p>
+          </div>
+          <TextInput
+            id="project-settings-form_env"
+            label="Project environment"
+            hint="Credentials will be loaded with values from this environment."
+            value={env}
+            disabled
+            readOnly
+          />
+          <TextArea
+            id="project-settings-form_description"
+            label="Project description"
+            hint="A short description of a project (max 240 characters)"
+            value={description}
+            disabled={!canEditProject}
+            maxLength={240}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <Button id="project-identity-submit-btn" type="submit" disabled={!(name && canEditProject)}>
+            Save
+          </Button>
+        </form>
+      </Card>
 
-        <Card
-          title="Export your Project"
-          description="Export your project as code, to save this version or edit your project locally."
+      <Card
+        title="Concurrency Override"
+        description={
+          <>
+            By default, runs are executed concurrently in accordance to limits set on individual workflows. In some
+            situations, you may want to prevent concurrent execution across all workflows in a project.
+            <span className="mt-2 block">
+              Disabling parallel run execution ensures that only one run is executed at a time, regardless of
+              workflow, for this entire project.
+            </span>
+          </>
+        }
+      >
+        <form
+          id="project-concurrency-form"
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            setSavedSerial(serial);
+          }}
         >
-          <Button>Export project</Button>
-        </Card>
+          <div className="flex items-center gap-3">
+            <Toggle
+              id="project-concurrency-switch"
+              checked={serial}
+              onChange={setSerial}
+              disabled={!canEditProject}
+              labelledBy="concurrency-description"
+            />
+            <span className="text-sm text-gray-500" id="concurrency-description">
+              <span className="font-medium text-gray-900">Disable parallel execution</span> (No more than one run at
+              a time)
+            </span>
+          </div>
+          {serial && concurrencyChanged && (
+            <Alert type="warning" header="Heads Up!">
+              <p>Disabling parallel run execution may significantly reduce the overall throughput of your project.</p>
+            </Alert>
+          )}
+          <Button id="project-concurrency-submit-btn" type="submit" disabled={!(concurrencyChanged && canEditProject)}>
+            Save
+          </Button>
+        </form>
+      </Card>
 
-        {canDeleteProject && (
-          <Card
-            title="The danger zone"
-            description={
-              sandbox
-                ? "Deleting this sandbox is irreversible. It removes every workflow, trigger, version, keychain clone, and dataclip that lives only inside it."
-                : "Deleting your project is irreversible"
-            }
-          >
-            <Button theme="danger" to={`/projects/${project.id}/settings/delete`}>
-              {sandbox ? "Delete sandbox" : "Delete project"}
-            </Button>
-          </Card>
-        )}
-      </div>
+      <Card
+        title="Export your Project"
+        description="Export your project as code, to save this version or edit your project locally."
+      >
+        <Button>Export project</Button>
+      </Card>
+
+      {canDeleteProject && (
+        <Card
+          title="The danger zone"
+          description={
+            sandbox
+              ? "Deleting this sandbox is irreversible. It removes every workflow, trigger, version, keychain clone, and dataclip that lives only inside it."
+              : "Deleting your project is irreversible"
+          }
+        >
+          <Button theme="danger" to={`/projects/${project.id}/settings/delete`}>
+            {sandbox ? "Delete sandbox" : "Delete project"}
+          </Button>
+        </Card>
+      )}
     </>
   );
 }

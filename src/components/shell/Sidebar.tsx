@@ -135,89 +135,67 @@ export default function Sidebar({ variant, project, collapsed, onToggle }: Props
     return () => window.removeEventListener("keydown", onKey);
   }, [onToggle]);
 
-  const theme = variant === "admin" ? "sudo-variant" : "primary-theme";
-
   return (
     <>
       {/* Placeholder keeps the content column from sliding under the fixed panel. */}
-      <div className={cn("flex-shrink-0 transition-[width] duration-200", collapsed ? "w-16" : "w-48")} />
+      <div className={cn("shrink-0 transition-all duration-200", collapsed ? "w-16" : "w-48")} />
       <div
         id="sidebar-panel"
         data-ui="sidebar"
         data-collapsed={String(collapsed)}
-        className={cn("flex flex-col h-full z-[100] transition-[width] duration-200 fixed", theme)}
+        className={cn("fixed z-[100] flex h-full flex-col transition-all duration-200", variant === "admin" && "sudo-variant")}
       >
-        <div className={cn("app-logo-container h-20 flex items-center", theme)}>
+        <div className="app-logo-container flex h-20 items-center">
           <UserMenu user={currentUser} />
         </div>
-        <nav id="side-menu" className={cn("flex-1 overflow-hidden", theme)}>
-          <div className="flex flex-col h-full">
-            <div className={cn("flex-1 overflow-y-auto min-h-0 flex flex-col", variant !== "admin" && "py-4")}>
-              {variant === "admin" ? (
-                <AdminItems />
-              ) : (
-                <>
-                  {variant === "project" && project ? <ProjectItems project={project} /> : <ProfileItems />}
-                  <div className="grow" />
-                  <FooterItems />
-                </>
-              )}
-            </div>
-            {currentUser.experimentalFeatures && (
-              <div className="flex-shrink-0 border-t border-white/10 mt-3 pt-3">
-                <div className="mx-3">
-                  <div
-                    title="You're using features that are still being built. Things may work differently for you than for your teammates."
-                    className="menu-item h-8 rounded-lg text-sm font-medium inline-flex items-center text-amber-300"
-                  >
-                    <span className="hero-wrench-screwdriver h-5 w-5 shrink-0" />
-                    <span className="menu-item-text truncate">Experimental</span>
-                  </div>
-                </div>
-              </div>
+        <nav id="side-menu" className="flex min-h-0 flex-1 flex-col">
+          <div className={cn("flex min-h-0 flex-1 flex-col overflow-y-auto", variant !== "admin" && "py-4")}>
+            {variant === "admin" ? (
+              <AdminItems />
+            ) : (
+              <>
+                {variant === "project" && project ? <ProjectItems project={project} /> : <ProfileItems />}
+                <div className="grow" />
+                <FooterItems />
+              </>
             )}
-            <div className="flex-shrink-0 flex flex-col border-t border-white/10 pt-3 mt-3">
-              <div className="h-14 text-center">
-                <div className="pt-2">
-                  {collapsed ? (
-                    <OpenFnLogoCollapsed className="h-6 primary-light mx-auto" />
-                  ) : (
-                    <OpenFnLogo className="h-6 primary-light mx-auto" />
-                  )}
-                </div>
-                <div className="text-[8px] primary-light opacity-50 flex justify-center">
-                  <code className="py-1 rounded-md break-keep primary-light inline-block align-middle text-center">
-                    {releaseLabel}
-                  </code>
-                </div>
-              </div>
-              <div className="border-t border-white/10 mt-2">
-                <button
-                  type="button"
-                  onClick={onToggle}
-                  className="sidebar-toggle-btn w-full py-1.5 focus:outline-none cursor-pointer hover:bg-white/5 transition-colors"
-                  title="Toggle sidebar"
-                  aria-label="Toggle sidebar"
-                >
-                  <div className="mx-3 flex items-center h-5 pl-3">
-                    <svg className="w-5 h-5 text-white/70" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true">
-                      {collapsed ? (
-                        <path
-                          fillRule="evenodd"
-                          d="M12.54 9.154l-3.444 3.442 1.058 1.058 4.5-4.5-4.5-4.5-1.058 1.057 3.444 3.443zm-7.194-4.5v9h1.5v-9h-1.5z"
-                        />
-                      ) : (
-                        <path
-                          fillRule="evenodd"
-                          d="M5.46 8.846l3.444-3.442-1.058-1.058-4.5 4.5 4.5 4.5 1.058-1.057L5.46 8.84zm7.194 4.5v-9h-1.5v9h1.5z"
-                        />
-                      )}
-                    </svg>
-                  </div>
-                </button>
+          </div>
+          {currentUser.experimentalFeatures && (
+            <div className="mt-3 border-t border-white/10 pt-3">
+              <div
+                title="You're using features that are still being built. Things may work differently for you than for your teammates."
+                className="menu-item mx-3 flex h-8 items-center rounded-lg text-sm font-medium text-amber-300"
+              >
+                <span className="hero-wrench-screwdriver h-5 w-5" />
+                <span className="menu-item-text truncate">Experimental</span>
               </div>
             </div>
+          )}
+          <div className="primary-light mt-3 border-t border-white/10 pt-5 text-center">
+            {collapsed ? <OpenFnLogoCollapsed className="mx-auto h-6" /> : <OpenFnLogo className="mx-auto h-6" />}
+            <code className="block py-1 text-[8px] opacity-50">{releaseLabel}</code>
           </div>
+          <button
+            type="button"
+            onClick={onToggle}
+            className="sidebar-toggle-btn mt-2 flex border-t border-white/10 py-1.5 pl-6 transition-colors hover:bg-white/5 focus:outline-none"
+            title="Toggle sidebar"
+            aria-label="Toggle sidebar"
+          >
+            <svg className="h-5 w-5 text-white/70" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true">
+              {collapsed ? (
+                <path
+                  fillRule="evenodd"
+                  d="M12.54 9.154l-3.444 3.442 1.058 1.058 4.5-4.5-4.5-4.5-1.058 1.057 3.444 3.443zm-7.194-4.5v9h1.5v-9h-1.5z"
+                />
+              ) : (
+                <path
+                  fillRule="evenodd"
+                  d="M5.46 8.846l3.444-3.442-1.058-1.058-4.5 4.5 4.5 4.5 1.058-1.057L5.46 8.84zm7.194 4.5v-9h-1.5v9h1.5z"
+                />
+              )}
+            </svg>
+          </button>
         </nav>
       </div>
     </>

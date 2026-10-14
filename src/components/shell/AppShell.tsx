@@ -24,12 +24,10 @@ export default function AppShell() {
       : "profile";
 
   return (
-    <main className="h-screen">
-      <div className="flex flex-row h-full">
-        <Sidebar variant={variant} project={project} collapsed={collapsed} onToggle={toggle} />
-        <div className="flex-auto min-w-0">
-          <Outlet />
-        </div>
+    <main className="flex h-screen">
+      <Sidebar variant={variant} project={project} collapsed={collapsed} onToggle={toggle} />
+      <div className="min-w-0 flex-auto">
+        <Outlet />
       </div>
       <Picker
         items={buildProjectPickerItems(pathname)}

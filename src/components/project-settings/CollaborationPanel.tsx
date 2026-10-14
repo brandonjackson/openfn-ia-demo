@@ -1,12 +1,13 @@
 import { useState } from "react";
 import Button from "../Button";
+import InfoTooltip from "../InfoTooltip";
 import SectionHeader from "../SectionHeader";
+import Toggle from "../Toggle";
 import AddCollaboratorsModal, { type CollaboratorDraft } from "./AddCollaboratorsModal";
 import CollaboratorsTable from "./CollaboratorsTable";
 import InviteCollaboratorsModal from "./InviteCollaboratorsModal";
 import RemoveCollaboratorModal from "./RemoveCollaboratorModal";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
-import SupportAccessToggle from "./SupportAccessToggle";
 import type { ProjectMember, ProjectRole } from "../../mock-data/projects";
 import { findUser, users } from "../../mock-data/users";
 
@@ -81,7 +82,13 @@ export default function CollaborationPanel({
         }
       />
       {sandbox && <SandboxSettingsBanner variant="local" />}
-      <SupportAccessToggle checked={supportAccess} onChange={setSupportAccess} canEditProject={canEditProject} />
+      {/* settings.ex `support_access_toggle`: only people who can edit the project see it. */}
+      {canEditProject && (
+        <div className="flex items-center">
+          <Toggle checked={supportAccess} onChange={setSupportAccess} label="Grant support access" />
+          <InfoTooltip title="Granting support access will allow all designated support users for this Lightning instance to access this project with editor permissions." />
+        </div>
+      )}
 
       {modal?.kind === "add" && (
         <AddCollaboratorsModal existingEmails={memberEmails} onCancel={close} onSave={addCollaborators} />

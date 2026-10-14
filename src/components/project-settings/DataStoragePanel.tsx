@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Alert from "../Alert";
 import Button from "../Button";
+import Card from "../Card";
+import Heading from "../Heading";
 import { Radio, Select } from "../Inputs";
 import SectionHeader from "../SectionHeader";
+import TextLink from "../TextLink";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
 import type { RetentionPolicy } from "../../mock-data/projects";
 import { cn } from "../../utils/cn";
@@ -26,11 +29,20 @@ const policies: [RetentionPolicy, string][] = [
   ["erase_all", "Never retain input/output data (zero-persistence)"],
 ];
 
-const Divider = () => (
-  <div className="inset-0 flex items-center" aria-hidden="true">
-    <div className="w-full border-t border-gray-300" />
-  </div>
-);
+/** One setting: its name, an explanation, then the control. `dimmed` fades the text when it doesn't apply. */
+function Setting({ title, dimmed = false, description, children }: { title: string; dimmed?: boolean; description: ReactNode; children: ReactNode }) {
+  return (
+    <div className={cn("space-y-3 text-sm", dimmed && "text-gray-300")}>
+      <div>
+        <Heading as="h4" size="sm" className={cn(dimmed && "text-gray-300")}>
+          {title}
+        </Heading>
+        <p className="mt-1">{description}</p>
+      </div>
+      {children}
+    </div>
+  );
+}
 
 /**
  * The Data Storage tab (`#data-storage`, settings.html.heex:862-1053):
@@ -60,9 +72,10 @@ export default function DataStoragePanel({ initial, periods, canEditDataRetentio
         permissionsSection={canEditDataRetention ? undefined : "data storage settings."}
       />
       {sandbox && <SandboxSettingsBanner variant="local" />}
-      <div className="bg-white p-4 rounded-md">
+      <Card>
         <form
           id="retention-settings-form"
+          className="space-y-6"
           onSubmit={(e) => {
             e.preventDefault();
             const next = eraseAll ? { ...form, dataclipRetentionPeriod: null } : form;
@@ -70,122 +83,97 @@ export default function DataStoragePanel({ initial, periods, canEditDataRetentio
             setForm(next);
           }}
         >
-          <div className="space-y-6">
-            <div>
-              <div className="text-black text-sm">
-                <div className="font-medium">History Retention Period</div>
-                <div className="block mt-1 mb-3">
-                  Select how long your run history is stored in OpenFn before being removed from the servers.
-                  <a
-                    target="_blank"
-                    rel="noreferrer"
-                    href="https://docs.openfn.org/documentation/manage-projects/retention-periods"
-                    className={"link ml-1"}
-                  >
-                    Learn more
-                  </a>
-                  <br /> This includes all Work Orders, Runs, and Logs.
-                </div>
-              </div>
-              <div className="flex gap-4 items-center">
-                <Select
-                  id="project_history_retention_period"
-                  aria-label="History Retention Period"
-                  prompt="Select Period"
-                  options={options}
-                  disabled={!canEditDataRetention || periods.length === 1}
-                  value={form.historyRetentionPeriod === null ? "" : String(form.historyRetentionPeriod)}
-                  onChange={(e) => setForm({ ...form, historyRetentionPeriod: toNum(e.target.value) })}
-                  className="w-auto"
+          <Setting
+            title="History Retention Period"
+            description={
+              <>
+                Select how long your run history is stored in OpenFn before being removed from the servers.
+                <TextLink href="https://docs.openfn.org/documentation/manage-projects/retention-periods" external className="ml-1">
+                  Learn more
+                </TextLink>
+                <br /> This includes all Work Orders, Runs, and Logs.
+              </>
+            }
+          >
+            <Select
+              id="project_history_retention_period"
+              aria-label="History Retention Period"
+              prompt="Select Period"
+              options={options}
+              disabled={!canEditDataRetention || periods.length === 1}
+              value={form.historyRetentionPeriod === null ? "" : String(form.historyRetentionPeriod)}
+              onChange={(e) => setForm({ ...form, historyRetentionPeriod: toNum(e.target.value) })}
+              className="w-auto"
+            />
+          </Setting>
+          <hr className="border-gray-300" />
+          <Setting
+            title="Input/Output Data Storage Policy"
+            description={
+              <>
+                The input and output data associated with workflow runs and channel requests is useful for debugging.
+                However it can contain sensitive PII. Should OpenFn store this data?
+                <TextLink href="https://docs.openfn.org/documentation/manage-projects/io-data-storage" external className="ml-1">
+                  Learn more
+                </TextLink>
+              </>
+            }
+          >
+            <div className="space-y-2">
+              {policies.map(([value, text]) => (
+                <Radio
+                  key={value}
+                  id={value}
+                  name="retention_policy"
+                  value={value}
+                  label={text}
+                  disabled={!canEditDataRetention}
+                  checked={form.retentionPolicy === value}
+                  onChange={() => setForm({ ...form, retentionPolicy: value })}
                 />
-                <div className="text-xs">
-                  <span />
-                </div>
-              </div>
+              ))}
             </div>
-            <Divider />
-            <div>
-              <div className="text-black text-sm">
-                <div className="font-medium">Input/Output Data Storage Policy</div>
-                <div className="block mt-1 mb-3">
-                  The input and output data associated with workflow runs and channel requests is useful for debugging.
-                  However it can contain sensitive PII. Should OpenFn store this data?
-                  <a
-                    target="_blank"
-                    rel="noreferrer"
-                    href="https://docs.openfn.org/documentation/manage-projects/io-data-storage"
-                    className={"link ml-1"}
-                  >
-                    Learn more
-                  </a>
-                </div>
-              </div>
-              <div className="space-y-2">
-                {policies.map(([value, text]) => (
-                  <Radio
-                    key={value}
-                    id={value}
-                    name="retention_policy"
-                    value={value}
-                    label={text}
-                    disabled={!canEditDataRetention}
-                    checked={form.retentionPolicy === value}
-                    onChange={() => setForm({ ...form, retentionPolicy: value })}
-                  />
-                ))}
-              </div>
-              {form.retentionPolicy !== "retain_all" && (
-                <Alert type="warning" header="Heads Up!" className="mt-2">
-                  <p>
-                    When enabled, you will no longer be able to retry workflow runs, and channel request/response
-                    payloads will not be stored.
-                  </p>
-                </Alert>
-              )}
-            </div>
-            <Divider />
-            <div>
-              <div className={cn("text-black text-sm", (noHistory || eraseAll) && "text-black/30")}>
-                <div className="font-medium">Input/Output Data Retention Period</div>
-                <div className="block mt-1 mb-3">
-                  Select how long input/output data is stored. Once input/output data is removed for a given run, you
-                  will no longer be able to retry that run.
-                </div>
-              </div>
-              <div className="flex space-y-2">
-                <Select
-                  id="project_dataclip_retention_period"
-                  aria-label="Input/Output Data Retention Period"
-                  prompt="Select Period"
-                  options={options}
-                  disabled={dataclipDisabled}
-                  value={form.dataclipRetentionPeriod === null ? "" : String(form.dataclipRetentionPeriod)}
-                  onChange={(e) => setForm({ ...form, dataclipRetentionPeriod: toNum(e.target.value) })}
-                  errors={dataclipError ? [dataclipError] : []}
-                  className="w-auto"
-                />
-              </div>
-            </div>
-            <div className="mt-4">
-              <Button
-                theme="secondary"
-                className="mr-1"
-                disabled={!canEditDataRetention}
-                onClick={() => setForm(saved)}
-              >
-                Cancel
-              </Button>
-              <Button
-                id="input-output-retention-period-submit-btn"
-                type="submit"
-                disabled={!!dataclipError || !canEditDataRetention}
-              >
-                Save
-              </Button>
-            </div>
+            {form.retentionPolicy !== "retain_all" && (
+              <Alert type="warning" header="Heads Up!">
+                <p>
+                  When enabled, you will no longer be able to retry workflow runs, and channel request/response
+                  payloads will not be stored.
+                </p>
+              </Alert>
+            )}
+          </Setting>
+          <hr className="border-gray-300" />
+          <Setting
+            title="Input/Output Data Retention Period"
+            dimmed={noHistory || eraseAll}
+            description="Select how long input/output data is stored. Once input/output data is removed for a given run, you will no longer be able to retry that run."
+          >
+            <Select
+              id="project_dataclip_retention_period"
+              aria-label="Input/Output Data Retention Period"
+              prompt="Select Period"
+              options={options}
+              disabled={dataclipDisabled}
+              value={form.dataclipRetentionPeriod === null ? "" : String(form.dataclipRetentionPeriod)}
+              onChange={(e) => setForm({ ...form, dataclipRetentionPeriod: toNum(e.target.value) })}
+              errors={dataclipError ? [dataclipError] : []}
+              className="w-auto"
+            />
+          </Setting>
+          <div className="flex gap-1">
+            <Button theme="secondary" disabled={!canEditDataRetention} onClick={() => setForm(saved)}>
+              Cancel
+            </Button>
+            <Button
+              id="input-output-retention-period-submit-btn"
+              type="submit"
+              disabled={!!dataclipError || !canEditDataRetention}
+            >
+              Save
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </>
   );
 }

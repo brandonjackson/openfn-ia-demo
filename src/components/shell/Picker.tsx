@@ -66,6 +66,11 @@ interface PickerProps {
   defaultOpen?: boolean;
 }
 
+// A row turns primary while it's hovered or highlighted with the arrow keys.
+const rowClasses =
+  "group flex cursor-pointer select-none items-center py-3 text-gray-900 hover:bg-primary-600 hover:text-white data-highlighted:bg-primary-600 data-highlighted:text-white";
+const iconClasses = "shrink-0 text-gray-400 group-hover:text-white/70 group-data-highlighted:text-white/70";
+
 /**
  * Lightning's command-palette picker (assets/js/picker/Picker.tsx), used as
  * the project picker. Opens on Cmd/Ctrl+P or when its trigger button
@@ -204,8 +209,8 @@ export default function Picker(props: PickerProps) {
   // the panel sits high on the page, like a command palette.
   return (
     <Modal open={isOpen} onClose={closePicker} bare className={cn("picker-root mt-[15vh] self-start overflow-hidden", theme)}>
-      <div className="flex items-center px-4 border-b border-gray-200">
-        <span className="hero-magnifying-glass h-5 w-5 text-gray-400 shrink-0" />
+      <div className="flex items-center border-b border-gray-200 px-4">
+        <span className="hero-magnifying-glass h-5 w-5 shrink-0 text-gray-400" />
         <input
           autoFocus
           type="text"
@@ -214,13 +219,13 @@ export default function Picker(props: PickerProps) {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           onKeyDown={handleInputKeyDown}
-          className="w-full border-0 py-4 pl-3 pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 text-base"
+          className="w-full border-0 py-4 pl-3 pr-4 text-base text-gray-900 placeholder:text-gray-400 focus:ring-0"
           role="combobox"
           aria-controls="picker-options"
           aria-expanded="true"
           autoComplete="off"
         />
-        <kbd className="hidden sm:inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-gray-400 ring-1 ring-gray-300">
+        <kbd className="hidden items-center gap-1 rounded px-2 py-1 text-xs text-gray-400 ring-1 ring-gray-300 sm:inline-flex">
           <span>{isMac ? "⌘" : "Ctrl"}</span>
           <span>P</span>
         </kbd>
@@ -229,81 +234,43 @@ export default function Picker(props: PickerProps) {
       <ul ref={listRef} className="max-h-80 overflow-y-auto py-2" id="picker-options" role="listbox">
         <li
           data-index={0}
-          className={cn(
-            "group relative cursor-pointer select-none px-4 py-3 flex items-center",
-            highlightedIndex === 0
-              ? "bg-primary-600 text-white"
-              : "text-gray-900 hover:bg-primary-600 hover:text-white",
-          )}
+          data-highlighted={highlightedIndex === 0 || undefined}
+          className={cn(rowClasses, "px-4")}
           role="option"
           onClick={() => go(viewAllHref)}
           onMouseEnter={() => setHighlightedIndex(0)}
         >
-          <span
-            className={cn(
-              "hero-rectangle-stack h-5 w-5 mr-2 shrink-0",
-              highlightedIndex === 0 ? "text-white/70" : "text-gray-400 group-hover:text-white/70",
-            )}
-          />
-          <span className="flex-grow">{viewAllLabel}</span>
-          <span
-            className={cn(
-              "hero-arrow-right h-4 w-4 shrink-0",
-              highlightedIndex === 0 ? "text-white/70" : "text-gray-400 group-hover:text-white/70",
-            )}
-          />
+          <span className={cn("hero-rectangle-stack mr-2 h-5 w-5", iconClasses)} />
+          <span className="grow">{viewAllLabel}</span>
+          <span className={cn("hero-arrow-right h-4 w-4", iconClasses)} />
         </li>
 
-        {items.length > 0 && <li className="border-t border-gray-200 my-2" role="separator" />}
+        {items.length > 0 && <li className="my-2 border-t border-gray-200" role="separator" />}
 
         {items.map((item, index) => {
           const itemIndex = index + 1;
-          const isHighlighted = itemIndex === highlightedIndex;
           const isSelected = item.id === currentId;
-          const isNested = item.depth > 0;
-          const indentPx = item.depth * 10;
           const itemIcon = item.icon ?? (item.isSandbox ? "hero-beaker" : "hero-folder");
 
           return (
             <li
               key={item.id}
               data-index={itemIndex}
-              className={cn(
-                "group relative cursor-pointer select-none py-3 pr-4 flex items-center",
-                isHighlighted
-                  ? "bg-primary-600 text-white"
-                  : "text-gray-900 hover:bg-primary-600 hover:text-white",
-              )}
-              style={{ paddingLeft: `${16 + indentPx}px` }}
+              data-highlighted={itemIndex === highlightedIndex || undefined}
+              className={cn(rowClasses, "pr-4")}
+              style={{ paddingLeft: `${16 + item.depth * 10}px` }}
               role="option"
               aria-selected={isSelected}
               onClick={() => go(item.href, item.sameSection)}
               onMouseEnter={() => setHighlightedIndex(itemIndex)}
             >
-              {isNested && (
-                <span
-                  className={cn(
-                    "hero-arrow-turn-down-right h-4 w-4 mr-2 shrink-0",
-                    isHighlighted ? "text-white/50" : "text-gray-300 group-hover:text-white/50",
-                  )}
-                />
+              {item.depth > 0 && (
+                <span className="hero-arrow-turn-down-right mr-2 h-4 w-4 shrink-0 text-gray-300 group-hover:text-white/50 group-data-highlighted:text-white/50" />
               )}
-              <span
-                className={cn(
-                  `${itemIcon} h-5 w-5 mr-2 shrink-0`,
-                  isHighlighted ? "text-white/70" : "text-gray-400 group-hover:text-white/70",
-                )}
-              />
-              <span className={cn("truncate flex-grow", isSelected && "font-semibold")}>
-                {item.label}
-              </span>
+              <span className={cn(itemIcon, "mr-2 h-5 w-5", iconClasses)} />
+              <span className={cn("grow truncate", isSelected && "font-semibold")}>{item.label}</span>
               {isSelected && (
-                <span
-                  className={cn(
-                    "hero-check shrink-0 ml-3 w-5 h-5",
-                    isHighlighted ? "text-white" : "text-primary-600 group-hover:text-white",
-                  )}
-                />
+                <span className="hero-check ml-3 h-5 w-5 shrink-0 text-primary-600 group-hover:text-white group-data-highlighted:text-white" />
               )}
             </li>
           );

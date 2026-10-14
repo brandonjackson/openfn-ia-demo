@@ -3,8 +3,8 @@ import Button from "../Button";
 import { FieldError, Select, TextInput } from "../Inputs";
 import IconButton from "../IconButton";
 import Modal from "../Modal";
+import { roleOptions } from "./roleOptions";
 import type { ProjectRole } from "../../mock-data/projects";
-import { collaboratorRoles } from "../../mock-data/project-settings";
 
 export interface CollaboratorDraft {
   email: string;
@@ -18,7 +18,6 @@ interface Props {
   onSave: (collaborators: CollaboratorDraft[]) => void;
 }
 
-const roleOptions = collaboratorRoles.map((r) => [r.charAt(0).toUpperCase() + r.slice(1), r] as [string, string]);
 const emailPattern = /^[^\s@]+@[^\s@]+$/;
 
 /**
@@ -54,51 +53,45 @@ export default function AddCollaboratorsModal({ existingEmails, onCancel, onSave
         </>
       }
     >
-      <form id="add_collaborators_modal_form" onSubmit={(e) => (e.preventDefault(), valid && onSave(rows))}>
-        <div className="space-y-5">
-          {rows.map((r, i) => {
-            const error = errorFor(r);
-            return (
-              <div key={i} className="relative">
-                <div className="flex items-center space-x-4">
-                  <div className="flex-1">
-                    <TextInput
-                      aria-label="Email"
-                      placeholder="email@example.com"
-                      required
-                      value={r.email}
-                      onChange={(e) => update(i, { email: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Select
-                      aria-label="Role"
-                      prompt="Select Role"
-                      required
-                      options={roleOptions}
-                      value={r.role}
-                      onChange={(e) => update(i, { role: e.target.value as ProjectRole })}
-                    />
-                  </div>
-                  {rows.length > 1 && (
-                    <IconButton icon="hero-minus-circle" label="Remove row" onClick={() => setRows(rows.filter((_, j) => j !== i))} />
-                  )}
+      <form
+        id="add_collaborators_modal_form"
+        className="space-y-5"
+        onSubmit={(e) => (e.preventDefault(), valid && onSave(rows))}
+      >
+        {rows.map((r, i) => {
+          const error = errorFor(r);
+          return (
+            <div key={i}>
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <TextInput
+                    aria-label="Email"
+                    placeholder="email@example.com"
+                    required
+                    value={r.email}
+                    onChange={(e) => update(i, { email: e.target.value })}
+                  />
                 </div>
-                {error && (
-                  <div className="absolute top-full left-0">
-                    <FieldError>{error}</FieldError>
-                  </div>
+                <Select
+                  aria-label="Role"
+                  prompt="Select Role"
+                  required
+                  options={roleOptions}
+                  value={r.role}
+                  onChange={(e) => update(i, { role: e.target.value as ProjectRole })}
+                />
+                {rows.length > 1 && (
+                  <IconButton icon="hero-minus-circle" label="Remove row" onClick={() => setRows(rows.filter((_, j) => j !== i))} />
                 )}
               </div>
-            );
-          })}
-          <div className="mt-6 flex justify-start">
-            <Button theme="secondary" className="gap-x-2" onClick={() => setRows([...rows, { email: "", role: "" }])}>
-              <span className="hero-plus-circle w-5 h-5" />
-              Add Additional Collaborator
-            </Button>
-          </div>
-        </div>
+              {error && <FieldError>{error}</FieldError>}
+            </div>
+          );
+        })}
+        <Button theme="secondary" onClick={() => setRows([...rows, { email: "", role: "" }])}>
+          <span className="hero-plus-circle h-5 w-5" />
+          Add Additional Collaborator
+        </Button>
       </form>
     </Modal>
   );

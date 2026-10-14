@@ -3,8 +3,8 @@ import Button from "../Button";
 import { Select, TextInput } from "../Inputs";
 import IconButton from "../IconButton";
 import Modal from "../Modal";
+import { roleOptions } from "./roleOptions";
 import type { ProjectRole } from "../../mock-data/projects";
-import { collaboratorRoles } from "../../mock-data/project-settings";
 
 export interface InviteDraft {
   firstName: string;
@@ -20,7 +20,6 @@ interface Props {
   onInvite: (invites: InviteDraft[]) => void;
 }
 
-const roleOptions = collaboratorRoles.map((r) => [r.charAt(0).toUpperCase() + r.slice(1), r] as [string, string]);
 
 /** InviteCollaboratorComponent (project_live/invite_collaborator_component.html.heex). */
 export default function InviteCollaboratorsModal({ initial, onCancel, onInvite }: Props) {
@@ -49,55 +48,53 @@ export default function InviteCollaboratorsModal({ initial, onCancel, onInvite }
         </>
       }
     >
-      <form id="invite_collaborators_modal_form" onSubmit={(e) => (e.preventDefault(), valid && onInvite(rows))}>
-        <div className="space-y-5">
-          {rows.map((r, i) => (
-            <div key={i} className="relative">
-              <div className="flex flex-wrap space-x-4">
-                <div className="flex-1">
-                  <TextInput
-                    aria-label="First Name"
-                    placeholder="First Name"
-                    required
-                    value={r.firstName}
-                    onChange={(e) => update(i, { firstName: e.target.value })}
-                  />
-                </div>
-                <div className="flex-1">
-                  <TextInput
-                    aria-label="Last Name"
-                    placeholder="Last Name"
-                    required
-                    value={r.lastName}
-                    onChange={(e) => update(i, { lastName: e.target.value })}
-                  />
-                </div>
-                <div className="flex-1">
-                  <TextInput
-                    type="email"
-                    aria-label="Email"
-                    required
-                    value={r.email}
-                    onChange={(e) => update(i, { email: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Select
-                    aria-label="Role"
-                    prompt="Select Role"
-                    required
-                    options={roleOptions}
-                    value={r.role}
-                    onChange={(e) => update(i, { role: e.target.value as ProjectRole })}
-                  />
-                </div>
-                {rows.length > 1 && (
-                  <IconButton icon="hero-minus-circle" label="Remove row" onClick={() => setRows(rows.filter((_, j) => j !== i))} />
-                )}
-              </div>
+      <form
+        id="invite_collaborators_modal_form"
+        className="space-y-5"
+        onSubmit={(e) => (e.preventDefault(), valid && onInvite(rows))}
+      >
+        {rows.map((r, i) => (
+          <div key={i} className="flex items-center gap-4">
+            <div className="flex-1">
+              <TextInput
+                aria-label="First Name"
+                placeholder="First Name"
+                required
+                value={r.firstName}
+                onChange={(e) => update(i, { firstName: e.target.value })}
+              />
             </div>
-          ))}
-        </div>
+            <div className="flex-1">
+              <TextInput
+                aria-label="Last Name"
+                placeholder="Last Name"
+                required
+                value={r.lastName}
+                onChange={(e) => update(i, { lastName: e.target.value })}
+              />
+            </div>
+            <div className="flex-1">
+              <TextInput
+                type="email"
+                aria-label="Email"
+                required
+                value={r.email}
+                onChange={(e) => update(i, { email: e.target.value })}
+              />
+            </div>
+            <Select
+              aria-label="Role"
+              prompt="Select Role"
+              required
+              options={roleOptions}
+              value={r.role}
+              onChange={(e) => update(i, { role: e.target.value as ProjectRole })}
+            />
+            {rows.length > 1 && (
+              <IconButton icon="hero-minus-circle" label="Remove row" onClick={() => setRows(rows.filter((_, j) => j !== i))} />
+            )}
+          </div>
+        ))}
       </form>
     </Modal>
   );

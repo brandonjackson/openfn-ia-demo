@@ -39,9 +39,10 @@ export default function PickerButton({
       }}
       title={truncated ? parts.join(" > ") : undefined}
       className={cn(
-        "flex items-center gap-2 px-2.5 py-1.5 text-sm font-medium rounded-md cursor-pointer transition-colors",
-        !isSandbox && "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400",
-        isSandbox && "text-white border border-transparent hover:opacity-90"
+        "flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-sm font-medium transition-colors",
+        isSandbox
+          ? "border-transparent text-white hover:opacity-90"
+          : "border-gray-300 bg-white text-gray-700 hover:border-gray-400 hover:bg-gray-50"
       )}
       style={isSandbox ? { backgroundColor: color ?? "var(--color-primary-600)" } : undefined}
     >

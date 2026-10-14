@@ -2,13 +2,51 @@ import { useMemo } from "react";
 import { Marked } from "marked";
 import { cn } from "../../utils/cn";
 
+const escape = (text: string) =>
+  text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+const GHERKIN_KEYWORD = /^(\s*)(Feature:|Background:|Scenario Outline:|Scenario:|Examples:|Given|When|Then|And|But)(?=\s|$)/;
+
+// Gherkin scenarios are read as prose, so lines wrap and each kind of line
+// gets its own weight: keywords bold, tags small and coloured, the "# Value"
+// and code-reference comments muted.
+function gherkin(text: string) {
+  return text
+    .split("\n")
+    .map((line) => {
+      const trimmed = line.trim();
+      if (trimmed === "") return '<span class="block h-2"></span>';
+      const indent = line.length - line.trimStart().length;
+      const pad = `style="padding-left:${indent}ch"`;
+      if (trimmed.startsWith("@"))
+        return `<span class="block mt-3 text-[11px] font-medium text-primary-600" ${pad}>${escape(trimmed)}</span>`;
+      if (trimmed.startsWith("# Value:"))
+        return `<span class="block italic text-gray-600" ${pad}>${escape(trimmed.slice(2))}</span>`;
+      if (trimmed.startsWith("#"))
+        return `<span class="block text-[11px] text-gray-400 break-all" ${pad}>${escape(trimmed)}</span>`;
+      const match = trimmed.match(GHERKIN_KEYWORD);
+      if (match) {
+        const rest = trimmed.slice(match[2].length);
+        const heading = /:$/.test(match[2]);
+        return `<span class="block ${heading ? "text-gray-900" : "text-gray-800"}" ${pad}><strong class="${heading ? "text-gray-900" : "text-primary-700"}">${match[2]}</strong>${escape(rest)}</span>`;
+      }
+      return `<span class="block text-gray-700" ${pad}>${escape(trimmed)}</span>`;
+    })
+    .join("");
+}
+
 // Annotation files are plain markdown. Raw HTML in them is shown as text
 // rather than injected, and links open in a new tab.
 const marked = new Marked({
   gfm: true,
   renderer: {
     html({ text }) {
-      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      return escape(text);
+    },
+    code({ text, lang }) {
+      if (lang === "gherkin")
+        return `<div class="not-prose my-4 rounded-md border border-gray-200 bg-gray-50 px-3 py-3 text-xs leading-relaxed whitespace-pre-wrap">${gherkin(text)}</div>`;
+      return `<pre><code>${escape(text)}</code></pre>`;
     },
     link({ href, tokens }) {
       const label = this.parser.parseInline(tokens);
@@ -26,7 +64,7 @@ export default function Markdown({ source, className }: { source: string; classN
       className={cn(
         "prose prose-sm max-w-none prose-headings:font-semibold prose-h2:text-base prose-h2:mt-6 prose-h3:text-sm",
         "prose-code:before:content-none prose-code:after:content-none prose-code:bg-gray-100 prose-code:rounded prose-code:px-1 prose-code:font-normal",
-        "prose-pre:bg-slate-800 prose-pre:text-xs prose-table:text-xs prose-a:text-primary-600",
+        "prose-pre:bg-slate-800 prose-pre:text-xs [&_pre_code]:bg-transparent [&_pre_code]:p-0 prose-table:text-xs prose-a:text-primary-600",
         className
       )}
       dangerouslySetInnerHTML={{ __html: html }}

@@ -4,8 +4,8 @@ import { cn } from "../../utils/cn";
 import { Table, Td, Th, Tr } from "../Table";
 import Toggle from "../Toggle";
 import RelativeTime from "./RelativeTime";
-import TableAction from "./TableAction";
-import TextLink from "./TextLink";
+import TableAction from "../TableAction";
+import TextLink from "../TextLink";
 import WorkOrderStatus from "./WorkOrderStatus";
 import { compareBy, useSort } from "./useSort";
 

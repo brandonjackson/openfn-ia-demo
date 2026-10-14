@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "../Button";
 import { TextArea, TextInput } from "../Inputs";
 import Modal from "../Modal";
-import NameBadge from "./NameBadge";
+import NameBadge from "../NameBadge";
 import { slugify } from "./format";
 
 /**

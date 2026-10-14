@@ -6,7 +6,7 @@ import { urlSafeName } from "../../utils/urlSafeName";
 import { cn } from "../../utils/cn";
 import FilterInput from "../FilterInput";
 import { TextInput } from "../Inputs";
-import NameBadge from "../projects/NameBadge";
+import NameBadge from "../NameBadge";
 import { Table, Td, Th, Tr } from "../Table";
 import { useTableSort, type SortValue } from "./tableSort";
 

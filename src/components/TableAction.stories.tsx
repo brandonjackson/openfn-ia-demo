@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import TableAction from "./TableAction";
-import { withRouter } from "../../stories/decorators";
+import { withRouter } from "../stories/decorators";
 
 const meta: Meta<typeof TableAction> = {
-  title: "Projects/TableAction",
+  title: "Shared/TableAction",
   component: TableAction,
   decorators: [withRouter],
   args: { to: "/projects", children: "History" },

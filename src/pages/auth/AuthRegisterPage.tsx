@@ -4,7 +4,7 @@ import AuthLayout from "../../components/auth/AuthLayout";
 import AuthCard, { AuthFooterLinks, AuthFormStack, FormDivider } from "../../components/auth/AuthCard";
 import PasswordInput from "../../components/auth/PasswordInput";
 import PlainTextResponse from "../../components/auth/PlainTextResponse";
-import TextLink from "../../components/auth/TextLink";
+import TextLink from "../../components/TextLink";
 import Button from "../../components/Button";
 import { Checkbox, Label, TextInput } from "../../components/Inputs";
 import { authFlags, signupDisabledMessage } from "../../mock-data/auth";

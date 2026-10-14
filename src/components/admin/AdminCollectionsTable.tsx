@@ -2,7 +2,7 @@ import { useState } from "react";
 import { collectionProjectName, type Collection } from "../../mock-data/admin";
 import { bytesToHuman } from "../../utils/bytesToHuman";
 import Button from "../Button";
-import TableAction from "../projects/TableAction";
+import TableAction from "../TableAction";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 
 type SortKey = "name" | "byte_size_sum";

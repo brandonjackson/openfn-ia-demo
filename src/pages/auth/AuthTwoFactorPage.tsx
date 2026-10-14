@@ -7,7 +7,7 @@ import AuthPanelLayout, {
   HavingProblems,
 } from "../../components/auth/AuthPanelLayout";
 import FlashAlert from "../../components/auth/FlashAlert";
-import TextLink from "../../components/auth/TextLink";
+import TextLink from "../../components/TextLink";
 import Button from "../../components/Button";
 import { TextInput } from "../../components/Inputs";
 import { authMessages, type TwoFactorMethod } from "../../mock-data/auth";
@@ -59,7 +59,7 @@ export default function AuthTwoFactorPage() {
       </AuthPanel>
       <HavingProblems>
         <li>
-          <TextLink to={`/users/two-factor?authentication_type=${other}`}>
+          <TextLink className="font-medium" to={`/users/two-factor?authentication_type=${other}`}>
             {method === "totp" ? "Use your backup code" : "Use your authenticator app"}
           </TextLink>
         </li>

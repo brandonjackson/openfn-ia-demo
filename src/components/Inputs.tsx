@@ -35,11 +35,11 @@ function FieldLabel({ id, label, required, sublabel }: FieldProps & { id?: strin
   if (!label) return null;
   return (
     <>
-      <Label htmlFor={id}>
+      <Label htmlFor={id} className="mb-2">
         {label}
         {required && <span className="text-red-500"> *</span>}
       </Label>
-      {sublabel && <p className="text-xs text-gray-500 mb-1">{sublabel}</p>}
+      {sublabel && <small className="mb-2 block text-xs text-gray-600">{sublabel}</small>}
     </>
   );
 }
@@ -56,7 +56,7 @@ export function TextInput({
   return (
     <div>
       <FieldLabel id={id} label={label} required={required} sublabel={sublabel} />
-      <div className={cn(label && "mt-2")}>
+      <div>
         <input
           id={id}
           type="text"
@@ -97,7 +97,6 @@ export function TextArea({
         required={required}
         className={cn(
           "focus:outline focus:outline-2 focus:outline-offset-1 rounded-md shadow-xs text-sm block w-full focus:ring-0 sm:text-sm sm:leading-6 overflow-y-auto",
-          label && "mt-2",
           errors.length === 0
             ? "border-slate-300 focus:border-slate-400 focus:outline-primary-600"
             : "border-danger-400 focus:border-danger-400 focus:outline-danger-400",
@@ -130,12 +129,12 @@ export function Select({
   return (
     <div>
       {label && (
-        <Label htmlFor={id} className="mb-2 block">
+        <Label htmlFor={id} className="mb-2">
           {label}
           {required && <span className="text-red-500"> *</span>}
         </Label>
       )}
-      {sublabel && <p className="text-xs text-gray-500 mb-1">{sublabel}</p>}
+      {sublabel && <small className="mb-2 block text-xs text-gray-600">{sublabel}</small>}
       <select
         id={id}
         required={required}

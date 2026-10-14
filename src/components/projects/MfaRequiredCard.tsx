@@ -1,5 +1,5 @@
 import Button from "../Button";
-import TextLink from "./TextLink";
+import TextLink from "../TextLink";
 
 /**
  * The "MFA Required for Project" card (project_live/mfa_required.html.heex):

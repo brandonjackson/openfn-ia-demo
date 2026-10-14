@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import type { ProjectMetrics as Metrics } from "../../mock-data/dashboard-stats";
 import MetricCard from "./MetricCard";
-import TextLink from "./TextLink";
+import TextLink from "../TextLink";
 
 /**
  * The four stat cards on the workflows index (DashboardComponents

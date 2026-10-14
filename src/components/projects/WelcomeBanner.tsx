@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import TextLink from "./TextLink";
+import TextLink from "../TextLink";
 import { greetingFor } from "./format";
 
 const PARAGRAPH =

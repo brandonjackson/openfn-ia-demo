@@ -4,8 +4,8 @@ import type { ProjectOverview } from "../../mock-data/dashboard-stats";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 import CountTitle from "./CountTitle";
 import RelativeTime from "./RelativeTime";
-import TableAction from "./TableAction";
-import TextLink from "./TextLink";
+import TableAction from "../TableAction";
+import TextLink from "../TextLink";
 import { compareBy, useSort } from "./useSort";
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);

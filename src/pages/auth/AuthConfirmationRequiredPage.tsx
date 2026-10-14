@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import AuthPanelLayout from "../../components/auth/AuthPanelLayout";
 import Alert from "../../components/auth/Alert";
 import PasswordInput from "../../components/auth/PasswordInput";
-import TextLink from "../../components/auth/TextLink";
+import TextLink from "../../components/TextLink";
 import Button from "../../components/Button";
 import { TextInput } from "../../components/Inputs";
 import { unconfirmedUser } from "../../mock-data/auth";
@@ -77,7 +77,7 @@ export default function AuthConfirmationRequiredPage() {
         </form>
 
         <p className="text-sm text-gray-500 text-center">
-          <TextLink to="/users/log_in">Log out</TextLink>
+          <TextLink className="font-medium" to="/users/log_in">Log out</TextLink>
         </p>
       </div>
     </AuthPanelLayout>

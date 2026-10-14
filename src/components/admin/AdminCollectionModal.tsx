@@ -4,7 +4,7 @@ import { urlSafeName } from "../../utils/urlSafeName";
 import Button from "../Button";
 import { Select, TextInput } from "../Inputs";
 import Modal from "../Modal";
-import NameBadge from "../projects/NameBadge";
+import NameBadge from "../NameBadge";
 
 interface Props {
   /** The collection being edited; omit to create one. */

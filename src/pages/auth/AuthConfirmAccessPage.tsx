@@ -7,7 +7,7 @@ import AuthPanelLayout, {
   HavingProblems,
 } from "../../components/auth/AuthPanelLayout";
 import PasswordInput from "../../components/auth/PasswordInput";
-import TextLink from "../../components/auth/TextLink";
+import TextLink from "../../components/TextLink";
 import Button from "../../components/Button";
 import UserAvatar from "../../components/UserAvatar";
 import { TextInput } from "../../components/Inputs";
@@ -77,12 +77,12 @@ export default function AuthConfirmAccessPage() {
       <HavingProblems>
         {option === "password" && user.mfaEnabled && (
           <li>
-            <TextLink onClick={() => setOption("totp")}>Use your authenticator app instead</TextLink>
+            <TextLink className="font-medium" onClick={() => setOption("totp")}>Use your authenticator app instead</TextLink>
           </li>
         )}
         {option === "totp" && (
           <li>
-            <TextLink onClick={() => setOption("password")}>Use your password instead</TextLink>
+            <TextLink className="font-medium" onClick={() => setOption("password")}>Use your password instead</TextLink>
           </li>
         )}
       </HavingProblems>

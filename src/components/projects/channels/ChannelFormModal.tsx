@@ -8,7 +8,7 @@ import Button from "../../Button";
 import { Checkbox, TextInput } from "../../Inputs";
 import Modal from "../../Modal";
 import Toggle from "../../Toggle";
-import TextLink from "../TextLink";
+import TextLink from "../../TextLink";
 import ProxyUrlCopy from "./ProxyUrlCopy";
 
 /**

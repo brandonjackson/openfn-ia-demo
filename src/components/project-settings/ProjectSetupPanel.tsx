@@ -4,7 +4,7 @@ import Alert from "../Alert";
 import Button from "../Button";
 import { Label, TextArea, TextInput } from "../Inputs";
 import SectionHeader from "../SectionHeader";
-import NameBadge from "./NameBadge";
+import NameBadge from "../NameBadge";
 import PlainSwitch from "./PlainSwitch";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
 import SettingsCard from "./SettingsCard";

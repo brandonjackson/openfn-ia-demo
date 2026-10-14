@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "../Button";
 import { Label, TextInput } from "../Inputs";
 import Modal from "../Modal";
-import NameBadge from "./NameBadge";
+import NameBadge from "../NameBadge";
 import { urlSafeName } from "../../utils/urlSafeName";
 
 interface Props {

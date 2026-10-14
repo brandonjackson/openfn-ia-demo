@@ -9,6 +9,7 @@ export interface Confirmation {
   /** The value that enables the confirm button. Omit to collect the text without checking it. */
   expected?: string;
   placeholder?: string;
+  required?: boolean;
   /** Shown once the field loses focus holding a wrong, non-empty value. */
   mismatchError?: string;
   /** Hover text on the confirm button while it's disabled. */
@@ -82,6 +83,7 @@ export default function ConfirmModal({
           id={confirmation.id}
           label={confirmation.label}
           placeholder={confirmation.placeholder}
+          required={confirmation.required}
           value={typed}
           onChange={(e) => setTyped(e.target.value)}
           onBlur={() => setTouched(true)}

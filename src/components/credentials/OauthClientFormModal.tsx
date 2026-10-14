@@ -1,7 +1,6 @@
 import { useState } from "react";
-import Modal from "../Modal";
+import FormModal from "../FormModal";
 import Alert from "../Alert";
-import Button from "../Button";
 import Card from "../Card";
 import Pill from "../Pill";
 import { Checkbox, TextInput } from "../Inputs";
@@ -78,60 +77,52 @@ export default function OauthClientFormModal({
   };
 
   return (
-    <Modal
+    <FormModal
       open={open}
       onClose={onClose}
       title={client ? "Edit OAuth Client" : "Add an OAuth Client"}
       size="xl"
-      footer={
-        <>
-          <Button disabled={!valid} onClick={save}>
-            {client ? "Save Changes" : "Add OAuth Client"}
-          </Button>
-          <Button theme="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-        </>
-      }
+      formId={`oauth-client-form-${client?.id ?? "new"}`}
+      onSubmit={save}
+      submitLabel={client ? "Save Changes" : "Add OAuth Client"}
+      submitDisabled={!valid}
     >
-      <form id={`oauth-client-form-${client?.id ?? "new"}`} className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-        <TextInput id="oauth-client-name" label="Name" required value={values.name} onChange={set("name")} />
-        <TextInput label="Authorization Endpoint" required value={values.authorizationEndpoint} onChange={set("authorizationEndpoint")} />
-        <TextInput label="Token Endpoint" required value={values.tokenEndpoint} onChange={set("tokenEndpoint")} />
-        <TextInput label="Revocation Endpoint" value={values.revocationEndpoint} onChange={set("revocationEndpoint")} />
-        <TextInput label="Introspection Endpoint" value={values.introspectionEndpoint} onChange={set("introspectionEndpoint")} />
-        <TextInput label="UserInfo Endpoint" value={values.userinfoEndpoint} onChange={set("userinfoEndpoint")} />
-        <PasswordInput label="Client ID" required value={values.clientId} onChange={set("clientId")} />
-        <PasswordInput label="Client Secret" required autoComplete="new-password" value={values.clientSecret} onChange={set("clientSecret")} />
+      <TextInput id="oauth-client-name" label="Name" required value={values.name} onChange={set("name")} />
+      <TextInput label="Authorization Endpoint" required value={values.authorizationEndpoint} onChange={set("authorizationEndpoint")} />
+      <TextInput label="Token Endpoint" required value={values.tokenEndpoint} onChange={set("tokenEndpoint")} />
+      <TextInput label="Revocation Endpoint" value={values.revocationEndpoint} onChange={set("revocationEndpoint")} />
+      <TextInput label="Introspection Endpoint" value={values.introspectionEndpoint} onChange={set("introspectionEndpoint")} />
+      <TextInput label="UserInfo Endpoint" value={values.userinfoEndpoint} onChange={set("userinfoEndpoint")} />
+      <PasswordInput label="Client ID" required value={values.clientId} onChange={set("clientId")} />
+      <PasswordInput label="Client Secret" required autoComplete="new-password" value={values.clientSecret} onChange={set("clientSecret")} />
 
-        <Card as="section" title="Manage Scopes" description="Type the names of the scopes and separate them using comma">
-          <ScopesInput id={`mandatory-scopes-${client?.id ?? "new"}`} label="Mandatory Scopes" scopes={mandatory} onChange={setMandatory} />
-          <ScopesInput id={`optional-scopes-${client?.id ?? "new"}`} label="Optional Scopes" scopes={optional} onChange={setOptional} />
-          <TextInput label="Scopes Documentation URL" value={values.scopesDocUrl} onChange={set("scopesDocUrl")} />
-        </Card>
+      <Card as="section" title="Manage Scopes" description="Type the names of the scopes and separate them using comma">
+        <ScopesInput id={`mandatory-scopes-${client?.id ?? "new"}`} label="Mandatory Scopes" scopes={mandatory} onChange={setMandatory} />
+        <ScopesInput id={`optional-scopes-${client?.id ?? "new"}`} label="Optional Scopes" scopes={optional} onChange={setOptional} />
+        <TextInput label="Scopes Documentation URL" value={values.scopesDocUrl} onChange={set("scopesDocUrl")} />
+      </Card>
 
-        <Card as="section" title="Manage Project Access" description="Control which projects have access to this OAuth client">
-          {allowGlobal && (
-            <Alert type="warning">
-              <Checkbox
-                label="Make client global (allow any project in this instance to use this client)"
-                checked={global}
-                onChange={(e) => setGlobal(e.target.checked)}
-              />
-            </Alert>
-          )}
-          {!global && (
-            <ProjectsPicker
-              id={client?.id ?? "new"}
-              type="oauth_client"
-              projects={projects}
-              selectedIds={projectIds}
-              onChange={setProjectIds}
+      <Card as="section" title="Manage Project Access" description="Control which projects have access to this OAuth client">
+        {allowGlobal && (
+          <Alert type="warning">
+            <Checkbox
+              label="Make client global (allow any project in this instance to use this client)"
+              checked={global}
+              onChange={(e) => setGlobal(e.target.checked)}
             />
-          )}
-        </Card>
-      </form>
-    </Modal>
+          </Alert>
+        )}
+        {!global && (
+          <ProjectsPicker
+            id={client?.id ?? "new"}
+            type="oauth_client"
+            projects={projects}
+            selectedIds={projectIds}
+            onChange={setProjectIds}
+          />
+        )}
+      </Card>
+    </FormModal>
   );
 }
 

@@ -1,8 +1,6 @@
 import { useState } from "react";
-import Button from "../Button";
-import { TextInput } from "../Inputs";
-import Modal from "../Modal";
-import NameBadge from "../NameBadge";
+import FormModal from "../FormModal";
+import NameField from "../NameField";
 import { urlSafeName } from "../../utils/format";
 
 interface Props {
@@ -18,36 +16,24 @@ export default function CollectionFormModal({ title, initialName = "", onCancel,
   const [rawName, setRawName] = useState(initialName);
   const name = urlSafeName(rawName);
   return (
-    <Modal
+    <FormModal
       open
       onClose={onCancel}
       size="md"
       title={title}
-      footer={
-        <>
-          <Button type="submit" form="collection-form" disabled={!name}>
-            Save
-          </Button>
-          <Button theme="secondary" onClick={onCancel}>
-            Cancel
-          </Button>
-        </>
-      }
+      formId="collection-form"
+      formClassName=""
+      onSubmit={() => onSave(name)}
+      submitLabel="Save"
+      submitDisabled={!name}
     >
-      <form id="collection-form" onSubmit={(e) => (e.preventDefault(), name && onSave(name))}>
-        <div className="space-y-2">
-          <TextInput
-            id="collection_raw_name"
-            label="Name"
-            required
-            value={rawName}
-            onChange={(e) => setRawName(e.target.value)}
-          />
-          <p className="text-xs text-gray-600">
-            <NameBadge name={name}>Your collection will be named</NameBadge>
-          </p>
-        </div>
-      </form>
-    </Modal>
+      <NameField
+        id="collection_raw_name"
+        required
+        value={rawName}
+        onChange={(raw) => setRawName(raw)}
+        badgeLabel="Your collection will be named"
+      />
+    </FormModal>
   );
 }

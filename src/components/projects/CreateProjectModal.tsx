@@ -1,8 +1,7 @@
 import { useState } from "react";
-import Button from "../Button";
-import { TextArea, TextInput } from "../Inputs";
-import Modal from "../Modal";
-import NameBadge from "../NameBadge";
+import FormModal from "../FormModal";
+import { TextArea } from "../Inputs";
+import NameField from "../NameField";
 import { urlSafeName } from "../../utils/format";
 
 /**
@@ -32,58 +31,40 @@ export default function CreateProjectModal({
   };
 
   return (
-    <Modal
+    <FormModal
       open={open}
       onClose={close}
       title="Create a new project"
       size="md"
-      footer={
-        <>
-          <Button type="submit" form="project-form" disabled={!valid}>
-            Create project
-          </Button>
-          <Button id="cancel-project-creation" theme="secondary" onClick={close}>
-            Cancel
-          </Button>
-        </>
-      }
+      formId="project-form"
+      onSubmit={() => {
+        onCreate?.({ name, description });
+        close();
+      }}
+      submitLabel="Create project"
+      submitDisabled={!valid}
+      cancelId="cancel-project-creation"
     >
-      <form
-        id="project-form"
-        className="space-y-6"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!valid) return;
-          onCreate?.({ name, description });
-          close();
-        }}
-      >
-        <div className="space-y-2">
-          <TextInput
-            id="project_raw_name"
-            label="Name"
-            required
-            value={rawName}
-            onChange={(e) => setRawName(e.target.value)}
-            errors={rawName !== "" && name === "" ? ["can't be blank"] : []}
-          />
-          <p className="text-xs text-gray-600">
-            <NameBadge name={name}>Your project will be named</NameBadge>
-          </p>
-        </div>
-        <div className="space-y-2">
-          <TextArea
-            id="project_description"
-            label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            errors={tooLong ? ["should be at most 240 character(s)"] : []}
-          />
-          <p className="text-xs text-gray-600">
-            A short description of a project [max 240 characters]
-          </p>
-        </div>
-      </form>
-    </Modal>
+      <NameField
+        id="project_raw_name"
+        required
+        value={rawName}
+        onChange={(raw) => setRawName(raw)}
+        errors={rawName !== "" && name === "" ? ["can't be blank"] : []}
+        badgeLabel="Your project will be named"
+      />
+      <div className="space-y-2">
+        <TextArea
+          id="project_description"
+          label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          errors={tooLong ? ["should be at most 240 character(s)"] : []}
+        />
+        <p className="text-xs text-gray-600">
+          A short description of a project [max 240 characters]
+        </p>
+      </div>
+    </FormModal>
   );
 }

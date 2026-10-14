@@ -1,6 +1,5 @@
 import { useState } from "react";
-import Modal from "../Modal";
-import Button from "../Button";
+import FormModal from "../FormModal";
 import { Select, TextInput } from "../Inputs";
 import { currentUser } from "../../mock-data/users";
 import type { Credential, KeychainCredential } from "../../mock-data/credentials";
@@ -46,45 +45,39 @@ export default function KeychainCredentialFormModal({
   };
 
   return (
-    <Modal
+    <FormModal
       open={open}
       onClose={onClose}
       title={kc ? `Edit ${kc.name || "keychain credential"}` : "Create keychain credential"}
       size="xl"
-      footer={
-        <>
-          <Button id={`save-keychain-credential-button-${kc?.id ?? "new"}`} disabled={!valid} onClick={save}>
-            {kc ? "Save Changes" : "Create"}
-          </Button>
-          <Button theme="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-        </>
-      }
+      formId={`keychain-credential-form-${kc?.id ?? "new"}`}
+      formClassName="space-y-4"
+      onSubmit={save}
+      submitLabel={kc ? "Save Changes" : "Create"}
+      submitId={`save-keychain-credential-button-${kc?.id ?? "new"}`}
+      submitDisabled={!valid}
     >
-      <form id={`keychain-credential-form-${kc?.id ?? "new"}`} className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-        <TextInput
-          label="Name"
-          hint="A descriptive name for this keychain credential"
-          placeholder="Enter keychain credential name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <TextInput
-          label="JSONPath Expression"
-          hint="JSONPath expression to extract credential selector from run data"
-          placeholder="$.user_id"
-          value={path}
-          onChange={(e) => setPath(e.target.value)}
-        />
-        <Select
-          label="Default Credential"
-          hint="Credential to use when JSONPath expression doesn't match"
-          value={defaultId}
-          onChange={(e) => setDefaultId(e.target.value)}
-          options={[["No default credential", ""], ...credentials.map((c): [string, string] => [c.name, c.id])]}
-        />
-      </form>
-    </Modal>
+      <TextInput
+        label="Name"
+        hint="A descriptive name for this keychain credential"
+        placeholder="Enter keychain credential name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <TextInput
+        label="JSONPath Expression"
+        hint="JSONPath expression to extract credential selector from run data"
+        placeholder="$.user_id"
+        value={path}
+        onChange={(e) => setPath(e.target.value)}
+      />
+      <Select
+        label="Default Credential"
+        hint="Credential to use when JSONPath expression doesn't match"
+        value={defaultId}
+        onChange={(e) => setDefaultId(e.target.value)}
+        options={[["No default credential", ""], ...credentials.map((c): [string, string] => [c.name, c.id])]}
+      />
+    </FormModal>
   );
 }

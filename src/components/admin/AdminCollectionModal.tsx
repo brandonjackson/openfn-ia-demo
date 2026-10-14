@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { collectionProjectOptions, type Collection } from "../../mock-data/admin";
 import { urlSafeName } from "../../utils/format";
-import Button from "../Button";
-import { Select, TextInput } from "../Inputs";
-import Modal from "../Modal";
-import NameBadge from "../NameBadge";
+import FormModal from "../FormModal";
+import { Select } from "../Inputs";
+import NameField from "../NameField";
 
 interface Props {
   /** The collection being edited; omit to create one. */
@@ -22,48 +21,35 @@ export default function AdminCollectionModal({ collection, onCancel, onSave }: P
   const [rawName, setRawName] = useState(collection?.name ?? "");
   const [projectId, setProjectId] = useState(collection?.projectId ?? collectionProjectOptions[0]?.[1] ?? "");
   const name = urlSafeName(rawName);
-  const formId = `collection-form-${collection?.id ?? "new"}`;
 
   return (
-    <Modal
+    <FormModal
       open
       onClose={onCancel}
       size="xl"
       title={collection ? "Edit Collection" : "Create Collection"}
-      footer={
-        <>
-          <Button id={`save-collection-${collection?.id ?? "new"}`} type="submit" form={formId} disabled={!name}>
-            Save
-          </Button>
-          <Button theme="secondary" onClick={onCancel}>
-            Cancel
-          </Button>
-        </>
-      }
+      formId={`collection-form-${collection?.id ?? "new"}`}
+      onSubmit={() => onSave(name, projectId)}
+      submitLabel="Save"
+      submitId={`save-collection-${collection?.id ?? "new"}`}
+      submitDisabled={!name}
     >
-      <form id={formId} className="space-y-6" onSubmit={(e) => (e.preventDefault(), name && onSave(name, projectId))}>
-        <div className="space-y-2">
-          <TextInput
-            id="collection_raw_name"
-            label="Name"
-            hint="Collection names must be unique across all projects within this instance. They are used in URLs and as titles, so duplicates are not allowed."
-            required
-            value={rawName}
-            onChange={(e) => setRawName(e.target.value)}
-          />
-          <p className="text-xs text-gray-600">
-            <NameBadge name={name}>This collection will be named</NameBadge>
-          </p>
-        </div>
-        <Select
-          id="collection_project_id"
-          label="Project"
-          required
-          options={collectionProjectOptions}
-          value={projectId}
-          onChange={(e) => setProjectId(e.target.value)}
-        />
-      </form>
-    </Modal>
+      <NameField
+        id="collection_raw_name"
+        hint="Collection names must be unique across all projects within this instance. They are used in URLs and as titles, so duplicates are not allowed."
+        required
+        value={rawName}
+        onChange={(raw) => setRawName(raw)}
+        badgeLabel="This collection will be named"
+      />
+      <Select
+        id="collection_project_id"
+        label="Project"
+        required
+        options={collectionProjectOptions}
+        value={projectId}
+        onChange={(e) => setProjectId(e.target.value)}
+      />
+    </FormModal>
   );
 }

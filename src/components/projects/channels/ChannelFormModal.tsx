@@ -4,9 +4,8 @@ import {
   webhookAuthMethods,
   type Channel,
 } from "../../../mock-data/channels";
-import Button from "../../Button";
+import FormModal from "../../FormModal";
 import { Checkbox, Field, Select, TextInput } from "../../Inputs";
-import Modal from "../../Modal";
 import Toggle from "../../Toggle";
 import TextLink from "../../TextLink";
 import ProxyUrlCopy from "./ProxyUrlCopy";
@@ -33,77 +32,61 @@ export default function ChannelFormModal({
   const [clients, setClients] = useState<string[]>(channel?.clientAuthMethodIds ?? []);
 
   return (
-    <Modal
+    <FormModal
       open
       onClose={onClose}
       size="md"
       title={channel ? "Edit Channel" : "New Channel"}
-      footer={
-        <>
-          <Button type="submit" form="channel-form" theme="primary">
-            Save
-          </Button>
-          <Button theme="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-        </>
-      }
+      formId="channel-form"
+      onSubmit={onClose}
+      submitLabel="Save"
     >
-      <form
-        id="channel-form"
-        className="space-y-6"
-        onSubmit={(e) => {
-          e.preventDefault();
-          onClose();
-        }}
-      >
-        {channel && (
-          <Field label="Proxy URL">
-            <ProxyUrlCopy channelId={channel.id} />
-          </Field>
-        )}
-        <TextInput id="channel_name" label="Name" value={name} onChange={(e) => setName(e.target.value)} />
-        <Toggle checked={enabled} onChange={setEnabled} label="Enabled" />
-        <TextInput
-          id="channel_destination_url"
-          label="Destination URL"
-          hint="The service OpenFn will forward requests to"
-          placeholder="https://"
-          value={destinationUrl}
-          onChange={(e) => setDestinationUrl(e.target.value)}
-        />
-        <Select
-          id="channel_destination_credential"
-          label={<LabelWithLink to={`/projects/${projectId}/settings#credentials`}>Destination Credential</LabelWithLink>}
-          hint="How OpenFn authenticates with the destination service"
-          options={[["None", ""], ...projectCredentialOptions.map((pc): [string, string] => [pc.name, pc.id])]}
-          value={credentialId}
-          onChange={(e) => setCredentialId(e.target.value)}
-        />
-        <Field
-          label={<LabelWithLink to={`/projects/${projectId}/settings#webhook_security`}>Client Credentials</LabelWithLink>}
-          hint="Credentials that you can use to access this channel"
-        >
-          {webhookAuthMethods.length === 0 ? (
-            <p className="italic text-xs text-gray-400">No webhook auth methods available.</p>
-          ) : (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-              {webhookAuthMethods.map((wam) => (
-                <Checkbox
-                  key={wam.id}
-                  id={`client_auth_${wam.id}`}
-                  label={wam.name}
-                  checked={clients.includes(wam.id)}
-                  onChange={(e) =>
-                    setClients((ids) => (e.target.checked ? [...ids, wam.id] : ids.filter((id) => id !== wam.id)))
-                  }
-                />
-              ))}
-            </div>
-          )}
+      {channel && (
+        <Field label="Proxy URL">
+          <ProxyUrlCopy channelId={channel.id} />
         </Field>
-      </form>
-    </Modal>
+      )}
+      <TextInput id="channel_name" label="Name" value={name} onChange={(e) => setName(e.target.value)} />
+      <Toggle checked={enabled} onChange={setEnabled} label="Enabled" />
+      <TextInput
+        id="channel_destination_url"
+        label="Destination URL"
+        hint="The service OpenFn will forward requests to"
+        placeholder="https://"
+        value={destinationUrl}
+        onChange={(e) => setDestinationUrl(e.target.value)}
+      />
+      <Select
+        id="channel_destination_credential"
+        label={<LabelWithLink to={`/projects/${projectId}/settings#credentials`}>Destination Credential</LabelWithLink>}
+        hint="How OpenFn authenticates with the destination service"
+        options={[["None", ""], ...projectCredentialOptions.map((pc): [string, string] => [pc.name, pc.id])]}
+        value={credentialId}
+        onChange={(e) => setCredentialId(e.target.value)}
+      />
+      <Field
+        label={<LabelWithLink to={`/projects/${projectId}/settings#webhook_security`}>Client Credentials</LabelWithLink>}
+        hint="Credentials that you can use to access this channel"
+      >
+        {webhookAuthMethods.length === 0 ? (
+          <p className="italic text-xs text-gray-400">No webhook auth methods available.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+            {webhookAuthMethods.map((wam) => (
+              <Checkbox
+                key={wam.id}
+                id={`client_auth_${wam.id}`}
+                label={wam.name}
+                checked={clients.includes(wam.id)}
+                onChange={(e) =>
+                  setClients((ids) => (e.target.checked ? [...ids, wam.id] : ids.filter((id) => id !== wam.id)))
+                }
+              />
+            ))}
+          </div>
+        )}
+      </Field>
+    </FormModal>
   );
 }
 

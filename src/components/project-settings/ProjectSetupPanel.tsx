@@ -3,7 +3,7 @@ import Alert from "../Alert";
 import Button from "../Button";
 import { TextArea, TextInput } from "../Inputs";
 import SectionHeader from "../SectionHeader";
-import NameBadge from "../NameBadge";
+import NameField from "../NameField";
 import TextLink from "../TextLink";
 import Toggle from "../Toggle";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
@@ -63,19 +63,15 @@ export default function ProjectSetupPanel({ project, env, parentProject, canEdit
         }
       >
         <form id="project-settings-form" className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-          <div>
-            <TextInput
-              id="project-settings-form_raw_name"
-              label="Project name"
-              value={rawName}
-              disabled={!canEditProject}
-              onChange={(e) => setRawName(e.target.value)}
-              errors={name ? [] : ["can't be blank"]}
-            />
-            <p className="mt-2 text-xs text-gray-600">
-              <NameBadge name={name}>Your project will be named</NameBadge>
-            </p>
-          </div>
+          <NameField
+            id="project-settings-form_raw_name"
+            label="Project name"
+            value={rawName}
+            disabled={!canEditProject}
+            onChange={(raw) => setRawName(raw)}
+            errors={name ? [] : ["can't be blank"]}
+            badgeLabel="Your project will be named"
+          />
           <TextInput
             id="project-settings-form_env"
             label="Project environment"

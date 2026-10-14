@@ -1,8 +1,8 @@
 import { useState } from "react";
 import Button from "../Button";
 import Card from "../Card";
+import FormModal from "../FormModal";
 import { FieldError } from "../Inputs";
-import Modal from "../Modal";
 import CodeEditor from "./CodeEditor";
 
 interface Props {
@@ -23,25 +23,17 @@ export default function YAMLImportModal({ isOpen, onClose, onCreate }: Props) {
   const error = yaml.trim() && !looksValid ? "Workflow YAML needs a top-level name and jobs." : null;
 
   return (
-    <Modal
+    <FormModal
       open={isOpen}
       onClose={onClose}
       size="md"
       title="Import a workflow"
-      footer={
-        <>
-          <Button
-            onClick={() => onCreate(yaml)}
-            disabled={!looksValid}
-            tooltip={!yaml.trim() ? "Enter YAML content to create workflow" : error ? "Fix validation errors to continue" : undefined}
-          >
-            Create
-          </Button>
-          <Button theme="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-        </>
-      }
+      formId="yaml-import-form"
+      formClassName=""
+      onSubmit={() => onCreate(yaml)}
+      submitLabel="Create"
+      submitDisabled={!looksValid}
+      submitTooltip={!yaml.trim() ? "Enter YAML content to create workflow" : error ? "Fix validation errors to continue" : undefined}
     >
       <div className="mb-3 flex justify-end">
         <Button theme="secondary" size="sm" onClick={() => setMode(mode === "upload" ? "paste" : "upload")}>
@@ -83,6 +75,6 @@ export default function YAMLImportModal({ isOpen, onClose, onCreate }: Props) {
         )}
       </div>
       {error && <FieldError>{error}</FieldError>}
-    </Modal>
+    </FormModal>
   );
 }

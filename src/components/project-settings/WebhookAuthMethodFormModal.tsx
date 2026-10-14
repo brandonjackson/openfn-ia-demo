@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import Button from "../Button";
 import { Field, TextInput } from "../Inputs";
-import { controlClasses } from "../controlClasses";
+import FormModal from "../FormModal";
 import Modal from "../Modal";
 import type { WebhookAuthMethod, WebhookAuthType } from "../../mock-data/project-settings";
 import { cn } from "../../utils/cn";
@@ -28,7 +28,7 @@ const maskApiKey = (v = "") => "*".repeat(Math.min(15, Math.max(0, v.length - 5)
 function SecretField({ id, value, type, revealed, onShow }: { id: string; value: string; type: "password" | "text"; revealed: boolean; onShow: () => void }) {
   return (
     <div className="flex">
-      <input id={id} type={type} value={value} disabled autoComplete="off" className={controlClasses(false, "flex-1 rounded-r-none")} />
+      <TextInput id={id} type={type} value={value} disabled fieldClassName="flex-1" className="rounded-r-none" />
       <Button
         id={`${id}_action_button`}
         theme="secondary"
@@ -127,15 +127,18 @@ export default function WebhookAuthMethodFormModal({ authMethod, onCancel, onSav
       </Button>
     );
   } else {
-    body = (
-      <form
-        id="webhook-auth-method-form"
-        className="space-y-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          if (!valid) return;
-          onSave(authType === "basic" ? { name, authType, username, password } : { name, authType, apiKey });
-        }}
+    return (
+      <FormModal
+        open
+        onClose={onCancel}
+        title={title}
+        formId="webhook-auth-method-form"
+        formClassName="space-y-4"
+        onSubmit={() =>
+          onSave(authType === "basic" ? { name, authType, username, password } : { name, authType, apiKey })
+        }
+        submitLabel={isNew ? "Create auth method" : "Save changes"}
+        submitDisabled={!valid}
       >
         <TextInput
           id="webhook_auth_method_name"
@@ -187,17 +190,7 @@ export default function WebhookAuthMethodFormModal({ authMethod, onCancel, onSav
             />
           </Field>
         )}
-      </form>
-    );
-    footer = (
-      <>
-        <Button type="submit" form="webhook-auth-method-form" disabled={!valid}>
-          {isNew ? "Create auth method" : "Save changes"}
-        </Button>
-        <Button theme="secondary" onClick={onCancel}>
-          Cancel
-        </Button>
-      </>
+      </FormModal>
     );
   }
 

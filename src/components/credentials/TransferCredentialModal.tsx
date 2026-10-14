@@ -1,6 +1,5 @@
 import { useState } from "react";
-import Modal from "../Modal";
-import Button from "../Button";
+import FormModal from "../FormModal";
 import { TextInput } from "../Inputs";
 import type { Credential } from "../../mock-data/credentials";
 import { isValidEmail } from "../../utils/validate";
@@ -27,7 +26,7 @@ export default function TransferCredentialModal({ open, onClose, credential, onT
   const modalId = `transfer-credential-${credential.id}-modal`;
 
   return (
-    <Modal
+    <FormModal
       open={open}
       onClose={onClose}
       title={revoke ? "Revoke Credential Transfer" : "Transfer Credential Ownership"}
@@ -37,35 +36,16 @@ export default function TransferCredentialModal({ open, onClose, credential, onT
           : "Enter the email address of the new owner. Note: The user must be a member of all projects where this credential is used."
       }
       size="xl"
-      footer={
-        <>
-          {revoke ? (
-            <Button
-              id={`${modalId}-revoke-button`}
-              onClick={() => {
-                onRevoke?.();
-                onClose();
-              }}
-            >
-              Revoke
-            </Button>
-          ) : (
-            <Button
-              id={`${modalId}-submit-button`}
-              disabled={!valid}
-              onClick={() => {
-                onTransfer?.(email.trim());
-                onClose();
-              }}
-            >
-              Transfer
-            </Button>
-          )}
-          <Button theme="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-        </>
-      }
+      formId={`${modalId}-form`}
+      formClassName=""
+      onSubmit={() => {
+        if (revoke) onRevoke?.();
+        else onTransfer?.(email.trim());
+        onClose();
+      }}
+      submitLabel={revoke ? "Revoke" : "Transfer"}
+      submitId={revoke ? `${modalId}-revoke-button` : `${modalId}-submit-button`}
+      submitDisabled={!revoke && !valid}
     >
       {revoke ? (
         <p className="text-sm text-gray-600">
@@ -73,16 +53,14 @@ export default function TransferCredentialModal({ open, onClose, credential, onT
           You will need to initiate a new transfer request to transfer it in the future.
         </p>
       ) : (
-        <form id={`${modalId}-form`} onSubmit={(e) => e.preventDefault()}>
-          <TextInput
-            id="receiver_email"
-            placeholder="email@example.com"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </form>
+        <TextInput
+          id="receiver_email"
+          placeholder="email@example.com"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
       )}
-    </Modal>
+    </FormModal>
   );
 }

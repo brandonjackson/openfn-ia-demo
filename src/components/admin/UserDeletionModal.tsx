@@ -1,6 +1,5 @@
-import { useState } from "react";
 import Button from "../Button";
-import { TextInput } from "../Inputs";
+import ConfirmModal from "../ConfirmModal";
 import Modal from "../Modal";
 
 interface Props {
@@ -29,7 +28,6 @@ export default function UserDeletionModal({
   hasActivityInProjects = false,
   blocked = false,
 }: Props) {
-  const [email, setEmail] = useState("");
   const title = "Delete user";
 
   if (blocked) {
@@ -57,47 +55,26 @@ export default function UserDeletionModal({
   }
 
   return (
-    <Modal
+    <ConfirmModal
       open={open}
       onClose={onClose}
+      onConfirm={(email) => onDelete?.(email)}
       title={title}
-      size="sm"
-      footer={
-        <>
-          <Button type="submit" form="scheduled_deletion_form" theme="danger">
-            Delete account
-          </Button>
-          <Button theme="secondary" onClick={onClose}>
-            Cancel
-          </Button>
-        </>
-      }
+      confirmLabel="Delete account"
+      tone="danger"
+      formId="scheduled_deletion_form"
+      confirmation={{ id: "scheduled_deletion_email", label: "User email" }}
     >
-      <form
-        id="scheduled_deletion_form"
-        className="space-y-3 text-sm text-gray-600"
-        onSubmit={(e) => {
-          e.preventDefault();
-          onDelete?.(email);
-        }}
-      >
+      <p>
+        {isCurrentUser ? "Your" : "This user's"} account and credential data will be deleted. Please make sure none of
+        these credentials are used in production workflows.
+      </p>
+      {hasActivityInProjects && (
         <p>
-          {isCurrentUser ? "Your" : "This user's"} account and credential data will be deleted. Please make sure none
-          of these credentials are used in production workflows.
+          *Note that {isCurrentUser ? "you still have" : "this user still has"} activity related to active projects. We
+          may not be able to delete them entirely from the app until those projects are deleted.
         </p>
-        {hasActivityInProjects && (
-          <p>
-            *Note that {isCurrentUser ? "you still have" : "this user still has"} activity related to active projects.
-            We may not be able to delete them entirely from the app until those projects are deleted.
-          </p>
-        )}
-        <TextInput
-          id="scheduled_deletion_email"
-          label="User email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </form>
-    </Modal>
+      )}
+    </ConfirmModal>
   );
 }

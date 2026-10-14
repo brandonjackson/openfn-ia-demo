@@ -20,6 +20,9 @@ inline literals scattered through the markup.
 - `npm run lint` — run ESLint
 - `npm run storybook` — start Storybook on port 6006
 - `npm run build-storybook` — build Storybook static site
+- `node scripts/design-system-metrics.mjs` — count styling outside the
+  primitives (className lists, distinct Tailwind tokens, raw elements). Run it
+  before and after design-system work; the numbers should go down.
 
 ## Layout
 
@@ -28,7 +31,10 @@ inline literals scattered through the markup.
 - `src/pages/<area>/` — one file per Lightning view. Named after the
   inventory id (e.g. `history-work-orders` → `HistoryWorkOrdersPage.tsx`).
 - `src/components/` — the component library: primitives at the top level,
-  feature components in area subfolders. See **Components** below.
+  app chrome (sidebar, project picker, user menu) in `shell/`, feature
+  components in area subfolders. See **Components** below.
+- `src/utils/format.ts` — every date, duration, size and name formatter.
+  Add new ones here, not in an area folder.
 - `src/mock-data/` — fixtures modelled on Lightning's demo seed
   (`lib/lightning/setup_utils.ex`): users, projects, workflows, history.
 - `src/theme/` — themes, chosen from the settings button (bottom right).
@@ -55,8 +61,9 @@ not **how** it's built.
   system. Don't port those splits. Build every page from the primitives
   below, and when two Lightning screens style the same thing differently,
   pick one treatment in the primitive rather than copying both.
-- Colour names match Lightning: `primary-*` (indigo), `secondary-*` (gray),
-  `info`, `success`, `danger`, `warning` are defined in `src/index.css`.
+- One neutral scale: `gray-*`. No `slate`, `zinc` or `secondary`. Brand
+  colour is `primary-*` (indigo; don't write `indigo-*`). `info`, `success`,
+  `danger`, `warning` are defined in `src/index.css`.
 - Icons are Heroicons as CSS classes: `<span className="hero-folder h-5 w-5" />`,
   with `-solid`, `-mini` and `-micro` suffixes. No icon packages.
 - Use `cn()` from `src/utils/cn.ts` for conditional classes.
@@ -72,7 +79,7 @@ everywhere. Reach for these first:
 
 | Need | Use |
 |---|---|
-| An action | `Button` (`to` for routes, `href` for plain links) |
+| An action | `Button` (`to` for routes, `href` for plain links; `size="xs" theme="secondary"` for table row actions) |
 | An icon-only action | `IconButton` (always give it a `label`) |
 | A button that opens a menu | `ButtonMenu`; `SplitButton` when the button also has its own action |
 | A form control | `TextInput`, `TextArea`, `Select`, `Checkbox`, `Radio` from `Inputs`; wrap anything else in `Field` with `controlClasses()` |
@@ -81,8 +88,14 @@ everywhere. Reach for these first:
 | A floating panel (filters, details) | `Popover` |
 | Switching views | `Tabs` (`underline` or `pill`, horizontal or vertical, buttons or route links) |
 | Searching or filtering a list | `SearchInput` |
-| A status chip or tag | `Pill` (`onRemove` makes it removable) |
-| Tabular data | `Table` with `Tr`, `Th`, `Td`, `EmptyState` |
+| A status chip, badge or tag | `Pill` (`color`, `square`, `mono`; `onRemove` makes it removable) |
+| Any bordered panel, tile or card | `Card` (`title`/`description`/`action` give it a header; `padding`, `muted`, `dashed`) |
+| A heading inside a page | `Heading` (`size` xl/lg/md/sm/eyebrow, `as` for the level) |
+| Labelled values | `DetailList` + `DetailItem` (`rows` or `grid`) |
+| A timestamp | `DateTime` |
+| An on/off switch | `Toggle` |
+| An inline link | `TextLink` (`variant="danger"` for destructive ones) |
+| Tabular data | `Table` with `Tr`, `Th`, `Td`, `EmptyState` (a clickable `Tr` ignores clicks on links and buttons inside it, so no `stopPropagation`) |
 | A status message | `Alert` |
 | Page frame | `PageContent`, `Header`, `Centered`, `Breadcrumbs` |
 
@@ -103,6 +116,11 @@ menu styling.
   way, add its story first.
 - When a pattern repeats across three or more feature components, it's a
   primitive waiting to happen. Promote it.
+- Before adding a variant to a feature component, check whether a primitive
+  already covers it. Prefer a slightly different look over a second
+  implementation.
+- Use Tailwind's scale, not arbitrary values (`text-[13px]`, `max-w-[15rem]`),
+  except for real geometry such as the workflow diagram.
 - Button labels follow Lightning's own wording, not a house style.
 
 ## Storybook

@@ -1,7 +1,7 @@
 import type { FormEvent } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthLayout from "../../components/auth/AuthLayout";
-import AuthCard, { AuthFooterLinks, AuthFormStack, FormDivider } from "../../components/auth/AuthCard";
+import AuthCard, { AuthFooterLinks } from "../../components/auth/AuthCard";
 import PasswordInput from "../../components/auth/PasswordInput";
 import SsoLogin from "../../components/auth/SsoLogin";
 import Button from "../../components/Button";
@@ -30,17 +30,13 @@ export default function AuthLoginPage() {
       <div id="login">
         <form onSubmit={onSubmit}>
           <AuthCard error={showError ? authMessages.invalidLogin : undefined}>
-            <AuthFormStack>
-              <TextInput id="user_email" name="email" type="email" label="Email" required autoComplete="email" />
-              <PasswordInput id="user_password" name="password" label="Password" autoComplete="current-password" />
-              <Checkbox id="user_remember_me" name="remember_me" label="Remember me" hint="Keep me logged in for 60 days" />
-              <Button type="submit" theme="primary">
-                Log in
-              </Button>
-              {flags.ssoProvider && <SsoLogin provider={flags.ssoProvider} />}
-            </AuthFormStack>
-            <FormDivider />
+            <TextInput id="user_email" name="email" type="email" label="Email" required autoComplete="email" />
+            <PasswordInput id="user_password" name="password" label="Password" autoComplete="current-password" />
+            <Checkbox id="user_remember_me" name="remember_me" label="Remember me" hint="Keep me logged in for 60 days" />
+            <Button type="submit">Log in</Button>
+            {flags.ssoProvider && <SsoLogin provider={flags.ssoProvider} />}
             <AuthFooterLinks
+              divider
               left={flags.allowSignup && <Link to="/users/register">Register</Link>}
               right={<Link to="/users/reset_password">Forgot your password?</Link>}
             />

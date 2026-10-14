@@ -1,46 +1,29 @@
 import type { ReactNode } from "react";
-import { cn } from "../../utils/cn";
+import Card from "../Card";
 
 /**
- * The white rounded card every /profile section sits in
- * (`bg-white shadow-xs ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2 mb-4`).
- * By default it adds Lightning's `px-4 py-6 sm:p-8` body padding.
+ * A /profile section: a padded Card with a title, description and the
+ * section's control on the right, tagged with its INVENTORY.md id.
  */
 export default function ProfileCard({
-  children,
-  padded = true,
-  className,
-  id,
   annotation,
+  title,
+  description,
+  action,
+  children,
 }: {
-  children: ReactNode;
-  padded?: boolean;
-  className?: string;
-  id?: string;
   /** INVENTORY.md id shown by the annotations panel on hover. */
-  annotation?: string;
+  annotation: string;
+  title: ReactNode;
+  description?: ReactNode;
+  action?: ReactNode;
+  children?: ReactNode;
 }) {
   return (
-    <div
-      id={id}
-      data-annotation={annotation}
-      className={cn("bg-white shadow-xs ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2 mb-4", className)}
-    >
-      {padded ? <div className="px-4 py-6 sm:p-8">{children}</div> : children}
+    <div data-annotation={annotation}>
+      <Card padding="lg" title={title} description={description} action={action}>
+        {children}
+      </Card>
     </div>
-  );
-}
-
-/** Title + description pair used on the toggle cards (MFA, GitHub, experimental features). */
-export function ProfileCardHeading({ id, title, description }: { id?: string; title: ReactNode; description: ReactNode }) {
-  return (
-    <span className="flex flex-grow flex-col">
-      <span className="text-xl font-medium leading-6 text-gray-900" id={id && `${id}-label`}>
-        {title}
-      </span>
-      <span className="text-sm text-gray-500" id={id && `${id}-description`}>
-        {description}
-      </span>
-    </span>
   );
 }

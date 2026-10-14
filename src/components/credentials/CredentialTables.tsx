@@ -1,4 +1,6 @@
-import { Fragment, type ReactNode } from "react";
+import type { ReactNode } from "react";
+import Heading from "../Heading";
+import Pill from "../Pill";
 import { Table, Td, Th, Tr } from "../Table";
 import {
   credentialTypeLabel,
@@ -16,33 +18,31 @@ import {
  * a plain title, then either the table or the empty state passed in.
  */
 
-function TableTitle({ children, className = "pb-1" }: { children: ReactNode; className?: string }) {
+function TableTitle({ children }: { children: ReactNode }) {
   return (
-    <div className={`${className} leading-loose`}>
-      <h6 className="font-normal text-black">{children}</h6>
-    </div>
+    <Heading as="h6" className="mb-2">
+      {children}
+    </Heading>
   );
 }
 
 function ProjectBadges({ ids }: { ids: string[] }) {
   return (
-    <>
+    <div className="flex flex-wrap gap-1">
       {projectNames(ids).map((name) => (
-        <Fragment key={name}>
-          <span className="inline-flex items-center rounded-md bg-primary-50 p-1 my-0.5 text-xs font-medium ring-1 ring-inset ring-gray-500/10">
-            {name}
-          </span>{" "}
-        </Fragment>
+        <Pill key={name} color="primary" square>
+          {name}
+        </Pill>
       ))}
-    </>
+    </div>
   );
 }
 
 function Code({ children }: { children: string }) {
   return (
-    <code className="text-xs bg-gray-100 px-1 py-0.5 rounded truncate inline-block max-w-full" title={children}>
+    <Pill mono square title={children}>
       {children}
-    </code>
+    </Pill>
   );
 }
 
@@ -58,7 +58,7 @@ interface TableProps<T> {
 export function OauthClientsTable({ rows, showOwner = false, emptyState, actions }: TableProps<OauthClient>) {
   return (
     <div id="oauth-clients-table-container">
-      <TableTitle className="pb-2">OAuth Clients</TableTitle>
+      <TableTitle>OAuth Clients</TableTitle>
       {rows.length === 0 ? (
         emptyState
       ) : (
@@ -78,17 +78,15 @@ export function OauthClientsTable({ rows, showOwner = false, emptyState, actions
         >
           {rows.map((client) => (
             <Tr key={client.id} id={`oauth-clients-${client.id}`}>
-              <Td className="wrap-break-word max-w-[15rem]">{client.name}</Td>
+              <Td className="wrap-break-word max-w-60">{client.name}</Td>
               {showOwner && (
-                <Td className="wrap-break-word max-w-[15rem]">{client.global ? "GLOBAL" : ownerEmail(client.ownerId)}</Td>
+                <Td className="wrap-break-word max-w-60">{client.global ? "GLOBAL" : ownerEmail(client.ownerId)}</Td>
               )}
-              <Td className="wrap-break-word max-w-[20rem]">
+              <Td className="wrap-break-word max-w-80">
                 <ProjectBadges ids={client.projectIds} />
               </Td>
-              <Td className="wrap-break-word max-w-[18rem]">{client.authorizationEndpoint}</Td>
-              <Td>
-                <div className="flex justify-end items-center">{actions?.(client)}</div>
-              </Td>
+              <Td className="wrap-break-word max-w-72">{client.authorizationEndpoint}</Td>
+              <Td className="text-right">{actions?.(client)}</Td>
             </Tr>
           ))}
         </Table>
@@ -122,36 +120,24 @@ export function CredentialsTable({ rows, showOwner = false, emptyState, actions 
         >
           {rows.map((credential) => (
             <Tr key={credential.id} id={`credentials-${credential.id}`}>
-              <Td className="max-w-[15rem]">
-                <div className="flex items-center">
-                  {credential.name}
-                  {missingOauthClient(credential) && (
-                    <span title="OAuth client not found">
-                      <span className="hero-exclamation-triangle h-5 w-5 ml-2" />
-                    </span>
-                  )}
-                </div>
+              <Td className="wrap-break-word max-w-60">
+                {credential.name}
+                {missingOauthClient(credential) && (
+                  <span title="OAuth client not found" className="hero-exclamation-triangle ml-2 h-5 w-5" />
+                )}
               </Td>
-              <Td className="wrap-break-word max-w-[10rem]">{credentialTypeLabel(credential)}</Td>
+              <Td className="wrap-break-word max-w-40">{credentialTypeLabel(credential)}</Td>
               {showOwner && (
-                <Td className="wrap-break-word max-w-[15rem]">
-                  <div className="flex-auto items-center">{ownerEmail(credential.ownerId)}</div>
-                </Td>
+                <Td className="wrap-break-word max-w-60">{ownerEmail(credential.ownerId)}</Td>
               )}
-              <Td className="wrap-break-word max-w-[25rem]">
+              <Td className="wrap-break-word max-w-100">
                 <ProjectBadges ids={credential.projectIds} />
               </Td>
-              <Td className="wrap-break-word max-w-[12rem]">
-                {credential.externalId ? <Code>{credential.externalId}</Code> : <span className="text-gray-400 text-sm">-</span>}
+              <Td className="wrap-break-word max-w-48">
+                {credential.externalId ? <Code>{credential.externalId}</Code> : <span className="text-gray-400">-</span>}
               </Td>
-              <Td className="text-left">
-                <span className="text-base cursor-default text-gray-700" title={credential.environments.join(", ")}>
-                  {credential.environments.length}
-                </span>
-              </Td>
-              <Td>
-                <div className="flex justify-end items-center">{actions?.(credential)}</div>
-              </Td>
+              <Td title={credential.environments.join(", ")}>{credential.environments.length}</Td>
+              <Td className="text-right">{actions?.(credential)}</Td>
             </Tr>
           ))}
         </Table>
@@ -191,21 +177,17 @@ export function KeychainCredentialsTable({
             const fallback = credentials.find((c) => c.id === kc.defaultCredentialId);
             return (
               <Tr key={kc.id} id={`keychain-credentials-${kc.id}`}>
-                <Td className="max-w-[15rem]">{kc.name}</Td>
-                <Td className="wrap-break-word max-w-[25rem]">
+                <Td className="wrap-break-word max-w-60">{kc.name}</Td>
+                <Td className="wrap-break-word max-w-100">
                   <Code>{kc.path}</Code>
                 </Td>
-                <Td className="wrap-break-word max-w-[15rem]">
-                  {fallback ? fallback.name : <span className="text-gray-400 text-sm">None</span>}
+                <Td className="wrap-break-word max-w-60">
+                  {fallback ? fallback.name : <span className="text-gray-400">None</span>}
                 </Td>
                 {showOwner && (
-                  <Td className="wrap-break-word max-w-[15rem]">
-                    <div className="flex-auto items-center">{ownerEmail(kc.createdById)}</div>
-                  </Td>
+                  <Td className="wrap-break-word max-w-60">{ownerEmail(kc.createdById)}</Td>
                 )}
-                <Td>
-                  <div className="flex justify-end items-center">{actions?.(kc)}</div>
-                </Td>
+                <Td className="text-right">{actions?.(kc)}</Td>
               </Tr>
             );
           })}

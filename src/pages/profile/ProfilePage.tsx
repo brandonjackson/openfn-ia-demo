@@ -28,9 +28,9 @@ export default function ProfilePage() {
   return (
     <PageContent header={<Header title="User Profile" />}>
       <Centered>
-        <div className="grid grid-cols-1 gap-x-8 gap-y-8 md:grid-cols-3">
+        <div className="grid gap-8 md:grid-cols-3">
           <UserInfo user={user} />
-          <div id={`user-${user.id}`} className="md:col-span-2">
+          <div id={`user-${user.id}`} className="space-y-4 md:col-span-2">
             {deleting && (
               <UserDeletionModal
                 isCurrentUser

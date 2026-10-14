@@ -19,7 +19,7 @@ export default function AdminUsersPage() {
         <Header title="Users">
           <Button to="/settings/users/new">
             <span className="hero-plus-solid h-4 w-4" />
-            <span className="align-middle">New User</span>
+            New User
           </Button>
         </Header>
       }

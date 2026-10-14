@@ -8,10 +8,10 @@ import AuditChanges from "./AuditChanges";
 
 function TwoLine({ label, sub }: { label: string; sub: string }) {
   return (
-    <div className="flex flex-col overflow-hidden">
-      <div className="overflow-hidden font-normal text-gray-900 whitespace-nowrap text-ellipsis">{label}</div>
-      <div className="overflow-hidden font-normal text-gray-500 text-xs whitespace-nowrap text-ellipsis">{sub}</div>
-    </div>
+    <>
+      <div className="truncate text-gray-900">{label}</div>
+      <div className="truncate text-xs">{sub}</div>
+    </>
   );
 }
 

@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
-import FlashAlert from "./FlashAlert";
+import Alert from "../Alert";
+import Card from "../Card";
+import { cn } from "../../utils/cn";
 
 /**
  * The white form card on logged-out pages: half the centred column on
@@ -15,41 +17,23 @@ export default function AuthCard({
   children: ReactNode;
 }) {
   return (
-    <div className="grid grid-cols-6 gap-6">
-      <div className="col-span-6 md:col-span-3 sm:col-span-4 border border-gray-200 rounded-md shadow-xs bg-white p-6">
-        {error && <FlashAlert kind="danger">{error}</FlashAlert>}
-        {info && <FlashAlert kind="info">{info}</FlashAlert>}
-        {children}
-      </div>
-    </div>
+    <Card padding="lg" className="space-y-4 sm:w-2/3 md:w-1/2">
+      {error && <Alert type="danger">{error}</Alert>}
+      {info && <Alert type="info">{info}</Alert>}
+      {children}
+    </Card>
   );
 }
 
-/** The card's vertical field stack (`grid grid-flow-row gap-4 auto-rows-max`). */
-export function AuthFormStack({ children }: { children: ReactNode }) {
-  return <div className="grid grid-flow-row gap-4 auto-rows-max">{children}</div>;
-}
-
-/** Lightning's `Form.divider`: a rule with py-5 around it, hidden on mobile. */
-export function FormDivider() {
+/**
+ * The small links row at the bottom of a card: one left, one right.
+ * `divider` puts Lightning's `Form.divider` rule above it (hidden on mobile).
+ */
+export function AuthFooterLinks({ left, right, divider = false }: { left?: ReactNode; right?: ReactNode; divider?: boolean }) {
   return (
-    <div className="hidden sm:block" aria-hidden="true">
-      <div className="py-5">
-        <div className="border-t border-gray-200" />
-      </div>
-    </div>
-  );
-}
-
-/** The small links row at the bottom of a card: one left, one right. */
-export function AuthFooterLinks({ left, right }: { left?: ReactNode; right?: ReactNode }) {
-  return (
-    <div className="text-xs text-gray-700">
-      <div className="flex">
-        <div className="flex-none">{left}</div>
-        <div className="grow" />
-        <div className="flex-none">{right}</div>
-      </div>
+    <div className={cn("flex justify-between text-xs text-gray-700", divider && "sm:border-t sm:border-gray-200 sm:pt-5")}>
+      <div>{left}</div>
+      <div>{right}</div>
     </div>
   );
 }

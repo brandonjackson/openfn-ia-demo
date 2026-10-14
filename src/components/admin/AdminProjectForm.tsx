@@ -6,6 +6,7 @@ import { cn } from "../../utils/cn";
 import SearchInput from "../SearchInput";
 import Alert from "../Alert";
 import Button from "../Button";
+import Heading from "../Heading";
 import { Radio, TextInput } from "../Inputs";
 import NameBadge from "../NameBadge";
 import { Table, Td, Th, Tr } from "../Table";
@@ -72,58 +73,52 @@ export default function AdminProjectForm({ project, users, onSave }: Props) {
           if (valid) onSave?.(name, roles);
         }}
       >
-        <div className="w-3/6">
+        <div className="w-1/2 space-y-2 text-sm text-gray-600">
           <TextInput id="project_raw_name" label="Name" value={rawName} onChange={(e) => setRawName(e.target.value)} />
-          <div className="mt-2 text-sm text-gray-600">
-            <NameBadge name={name}>Note that this project will be named:</NameBadge>
-          </div>
+          <NameBadge name={name}>Note that this project will be named:</NameBadge>
         </div>
-        <div className="sm:flex sm:items-center mt-8 mb-2">
-          <div className="sm:flex-auto">
-            <h1 className="text-base font-semibold leading-6 text-gray-600">Manage project users</h1>
-          </div>
-        </div>
+        <Heading as="h2" className="mb-2 mt-8">
+          Manage project users
+        </Heading>
 
         {owners > 1 && <Alert type="danger">A project can have only one owner.</Alert>}
 
         <SearchInput value={sort.filter} onChange={sort.setFilter} placeholder="Filter users..." className="mb-4 max-w-sm" />
 
-        <div className="mt-2 flow-root">
-          <Table
-            id="project_users_table"
-            header={
-              <Tr>
-                {th("name", "NAME", false)}
-                {th("email", "EMAIL", false)}
-                {th("no_access", "NO ACCESS")}
-                {th("owner", "OWNER")}
-                {th("admin", "ADMIN")}
-                {th("editor", "EDITOR")}
-                {th("viewer", "VIEWER")}
-              </Tr>
-            }
+        <Table
+          id="project_users_table"
+          header={
+            <Tr>
+              {th("name", "NAME", false)}
+              {th("email", "EMAIL", false)}
+              {th("no_access", "NO ACCESS")}
+              {th("owner", "OWNER")}
+              {th("admin", "ADMIN")}
+              {th("editor", "EDITOR")}
+              {th("viewer", "VIEWER")}
+            </Tr>
+          }
           >
-            {sort.rows.map(({ user, role }) => (
-              <Tr key={user.id} className={cn(role === "" && "text-gray-500 opacity-60")}>
-                <Td>{fullName(user)}</Td>
-                <Td>{user.email}</Td>
-                {(["", ...ROLES] as Role[]).map((r) => (
-                  <Td key={r || "no_access"} className="text-center">
-                    <span className="inline-flex justify-center">
-                      <Radio
-                        name={`project_users[${user.id}][role]`}
-                        id={`project_users_${user.id}_role_${r || "no_access"}`}
-                        label={<span className="sr-only">{`${fullName(user)}: ${r || "no access"}`}</span>}
-                        checked={role === r}
-                        onChange={() => setRoles((prev) => ({ ...prev, [user.id]: r }))}
-                      />
-                    </span>
-                  </Td>
-                ))}
-              </Tr>
-            ))}
-          </Table>
-        </div>
+          {sort.rows.map(({ user, role }) => (
+            <Tr key={user.id} className={cn(role === "" && "text-gray-500 opacity-60")}>
+              <Td>{fullName(user)}</Td>
+              <Td>{user.email}</Td>
+              {(["", ...ROLES] as Role[]).map((r) => (
+                <Td key={r || "no_access"} className="text-center">
+                  <span className="inline-flex justify-center">
+                    <Radio
+                      name={`project_users[${user.id}][role]`}
+                      id={`project_users_${user.id}_role_${r || "no_access"}`}
+                      label={<span className="sr-only">{`${fullName(user)}: ${r || "no access"}`}</span>}
+                      checked={role === r}
+                      onChange={() => setRoles((prev) => ({ ...prev, [user.id]: r }))}
+                    />
+                  </span>
+                </Td>
+              ))}
+            </Tr>
+          ))}
+        </Table>
         <div className="mt-4 flex gap-1">
           <Button theme="secondary" to="/settings/projects">
             Cancel

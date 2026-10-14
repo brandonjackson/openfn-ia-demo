@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import AuthLayout from "../../components/auth/AuthLayout";
-import AuthCard, { AuthFooterLinks, AuthFormStack } from "../../components/auth/AuthCard";
+import AuthCard, { AuthFooterLinks } from "../../components/auth/AuthCard";
 import Button from "../../components/Button";
 import { TextInput } from "../../components/Inputs";
 import { authFlags } from "../../mock-data/auth";
@@ -32,21 +32,15 @@ export default function AuthConfirmAccountPage() {
       <div id="reset-password">
         <form onSubmit={onSubmit}>
           <AuthCard>
-            <AuthFormStack>
-              {token ? (
-                <Button type="submit" theme="primary">
-                  Confirm my account
-                </Button>
-              ) : (
-                <>
-                  <TextInput id="user_email" type="email" label="Email" required />
-                  <Button type="submit" theme="primary">
-                    Resend confirmation instructions
-                  </Button>
-                </>
-              )}
-              {footer}
-            </AuthFormStack>
+            {token ? (
+              <Button type="submit">Confirm my account</Button>
+            ) : (
+              <>
+                <TextInput id="user_email" type="email" label="Email" required />
+                <Button type="submit">Resend confirmation instructions</Button>
+              </>
+            )}
+            {footer}
           </AuthCard>
         </form>
       </div>

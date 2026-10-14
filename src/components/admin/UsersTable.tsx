@@ -81,8 +81,7 @@ export default function UsersTable({
           </Tr>
         ))}
       </Table>
-      <br />
-      <p className="mb-2 leading-5 text-gray-700">
+      <p className="mt-6 text-gray-700">
         *Note that a <code>superuser</code> can access <em>everything</em> in a Lightning installation across all
         projects, including this page. Most day-to-day user management (adding and removing collaborators) will be
         done by project "admins" via the project settings page.

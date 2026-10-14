@@ -32,7 +32,7 @@ export default function AdminProjectsPage() {
         <Header title={title}>
           <Button to="/settings/projects/new">
             <span className="hero-plus h-4 w-4" />
-            <span className="align-middle">New Project</span>
+            New Project
           </Button>
         </Header>
       }

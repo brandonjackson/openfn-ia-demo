@@ -1,9 +1,10 @@
 import { useState, type FormEvent } from "react";
-import AuthPanelLayout from "../../components/auth/AuthPanelLayout";
+import AuthPanelLayout, { AuthPanel } from "../../components/auth/AuthPanelLayout";
 import Alert from "../../components/Alert";
 import PasswordInput from "../../components/auth/PasswordInput";
 import TextLink from "../../components/TextLink";
 import Button from "../../components/Button";
+import Heading from "../../components/Heading";
 import { TextInput } from "../../components/Inputs";
 import { unconfirmedUser } from "../../mock-data/auth";
 
@@ -27,34 +28,34 @@ export default function AuthConfirmationRequiredPage() {
 
   return (
     <AuthPanelLayout title="Confirm your email address" align="top">
-      <div className="w-full sm:max-w-md space-y-4">
-        <div className="bg-white rounded-lg shadow p-6 space-y-4 text-sm text-gray-600">
-          <p>
-            Your account is blocked pending email confirmation. We sent a confirmation link to{" "}
-            <span className="font-medium text-gray-900">{unconfirmedUser.email}</span> when you signed up — open it
-            to keep using OpenFn.
-          </p>
-          <p>
-            If that link has expired, request a new one. If the address above is wrong, correct it below and we will
-            send the link there instead.
-          </p>
-          {emailSent && (
-            <Alert type="info" id="confirmation-email-sent">
-              We have sent a new confirmation link to {unconfirmedUser.email}.
-            </Alert>
-          )}
-          {changeRequested && (
-            <Alert type="info" id="email-change-requested">
-              We have sent confirmation instructions to {changeRequested}.
-            </Alert>
-          )}
-          <Button id="resend-confirmation-email-button" theme="primary" onClick={() => setEmailSent(true)}>
-            Resend confirmation email
-          </Button>
-        </div>
+      <AuthPanel className="text-sm text-gray-600">
+        <p>
+          Your account is blocked pending email confirmation. We sent a confirmation link to{" "}
+          <span className="font-medium">{unconfirmedUser.email}</span> when you signed up — open it
+          to keep using OpenFn.
+        </p>
+        <p>
+          If that link has expired, request a new one. If the address above is wrong, correct it below and we will
+          send the link there instead.
+        </p>
+        {emailSent && (
+          <Alert type="info" id="confirmation-email-sent">
+            We have sent a new confirmation link to {unconfirmedUser.email}.
+          </Alert>
+        )}
+        {changeRequested && (
+          <Alert type="info" id="email-change-requested">
+            We have sent confirmation instructions to {changeRequested}.
+          </Alert>
+        )}
+        <Button id="resend-confirmation-email-button" onClick={() => setEmailSent(true)}>
+          Resend confirmation email
+        </Button>
+      </AuthPanel>
 
-        <form id="email-form" onSubmit={onSubmit} className="bg-white rounded-lg shadow p-6 space-y-4">
-          <div className="text-base font-medium text-gray-900">Change email address</div>
+      <AuthPanel>
+        <form id="email-form" onSubmit={onSubmit} className="space-y-4">
+          <Heading as="h2">Change email address</Heading>
           <TextInput
             id="user_email"
             type="email"
@@ -71,15 +72,15 @@ export default function AuthConfirmationRequiredPage() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
-          <Button type="submit" theme="primary" disabled={!valid}>
+          <Button type="submit" disabled={!valid}>
             Update email
           </Button>
         </form>
+      </AuthPanel>
 
-        <p className="text-sm text-gray-500 text-center">
-          <TextLink className="font-medium" to="/users/log_in">Log out</TextLink>
-        </p>
-      </div>
+      <TextLink className="text-sm" to="/users/log_in">
+        Log out
+      </TextLink>
     </AuthPanelLayout>
   );
 }

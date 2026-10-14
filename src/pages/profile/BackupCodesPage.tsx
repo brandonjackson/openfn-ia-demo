@@ -16,15 +16,13 @@ export default function BackupCodesPage() {
   return (
     <PageContent header={<Header title="Two-factor backup codes" />}>
       <Centered>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-8">
-          <div className="md:col-span-2 px-4 sm:px-0">
-            <p className="mb-4">
-              Recovery codes can be used to access your account in the event you lose access to your device and cannot
-              receive two-factor authentication codes.
-            </p>
-            {!currentUser.mfaEnabled && <MfaDisabledNotice />}
-            <BackupCodesCard codes={codes} onRegenerate={() => setCodes(regenerateFakeBackupCodes())} />
-          </div>
+        <div className="space-y-4 md:w-2/3">
+          <p>
+            Recovery codes can be used to access your account in the event you lose access to your device and cannot
+            receive two-factor authentication codes.
+          </p>
+          {!currentUser.mfaEnabled && <MfaDisabledNotice />}
+          <BackupCodesCard codes={codes} onRegenerate={() => setCodes(regenerateFakeBackupCodes())} />
         </div>
       </Centered>
     </PageContent>

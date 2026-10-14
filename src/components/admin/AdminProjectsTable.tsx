@@ -60,18 +60,14 @@ export default function AdminProjectsTable({
               <Td className="max-w-80">{project.name}</Td>
               <Td>{formatShortDateTime(project.insertedAt)}</Td>
               <Td className="max-w-80">{project.description}</Td>
-              <Td className="max-w-64 wrap-break-word">
-                <span>{owner === "" ? "No owner" : owner}</span>
-              </Td>
+              <Td className="max-w-64 wrap-break-word">{owner === "" ? "No owner" : owner}</Td>
               <Td>{deletion && formatShortDateTime(deletion)}</Td>
-              <Td className="py-0.5">
-                <div className="flex justify-end">
-                  <ButtonMenu label="Actions">
-                    <MenuItem to={`/settings/projects/${project.id}`}>Edit</MenuItem>
-                    {deletion && <MenuItem onClick={() => onCancelDeletion?.(project)}>Cancel deletion</MenuItem>}
-                    <MenuItem to={`/settings/projects/${project.id}/delete`}>{deletion ? "Delete now" : "Delete"}</MenuItem>
-                  </ButtonMenu>
-                </div>
+              <Td className="py-0.5 text-right">
+                <ButtonMenu label="Actions">
+                  <MenuItem to={`/settings/projects/${project.id}`}>Edit</MenuItem>
+                  {deletion && <MenuItem onClick={() => onCancelDeletion?.(project)}>Cancel deletion</MenuItem>}
+                  <MenuItem to={`/settings/projects/${project.id}/delete`}>{deletion ? "Delete now" : "Delete"}</MenuItem>
+                </ButtonMenu>
               </Td>
             </Tr>
           );

@@ -1,24 +1,21 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
 import { liveDashboard } from "../../mock-data/admin";
 import { cn } from "../../utils/cn";
+import Alert from "../Alert";
+import Card from "../Card";
+import { DetailItem, DetailList } from "../DetailList";
+import Heading from "../Heading";
+import Pill from "../Pill";
+import TextLink from "../TextLink";
 
 type Data = typeof liveDashboard;
 
-function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn("rounded-md bg-white shadow-sm", className)}>{children}</div>;
-}
+const info = <span className="hero-information-circle h-4 w-4 text-gray-400" />;
 
-function Info() {
-  return <span className="hero-information-circle h-4 w-4 text-[#9aa0ad] align-[-2px]" />;
-}
-
-function Stat({ label, value, info = false, className }: { label: string; value: ReactNode; info?: boolean; className?: string }) {
+function Stat({ label, value, hasInfo = false, className }: { label: string; value: ReactNode; hasInfo?: boolean; className?: string }) {
   return (
-    <Card className={cn("px-4 py-4", className)}>
-      <div className="text-[15px]">
-        {label} {info && <Info />}
-      </div>
+    <Card className={className}>
+      {label} {hasInfo && info}
       <div className="mt-1 text-2xl font-semibold">{value}</div>
     </Card>
   );
@@ -27,20 +24,20 @@ function Stat({ label, value, info = false, className }: { label: string; value:
 function Limit({ label, used, limit }: { label: string; used: number; limit: number }) {
   const pct = (used / limit) * 100;
   return (
-    <Card className="px-5 py-6">
-      <div className="flex items-center justify-between text-[15px]">
+    <Card padding="lg">
+      <div className="flex justify-between">
         <span>
-          {label} <Info />
+          {label} {info}
         </span>
         <span>
-          <span className="text-[13px] text-[#9aa0ad] mr-3">
+          <span className="mr-3 text-gray-400">
             {used} / {limit}
           </span>
           <span className="font-semibold">{pct.toFixed(1)}%</span>
         </span>
       </div>
-      <div className="mt-3 h-4 rounded-sm bg-[#e8ebf1] overflow-hidden">
-        <div className="h-full bg-[#5f8fd2]" style={{ width: `${Math.max(pct, 0.3)}%` }} />
+      <div className="mt-3 h-4 overflow-hidden rounded-sm bg-gray-200">
+        <div className="h-full bg-blue-400" style={{ width: `${Math.max(pct, 0.3)}%` }} />
       </div>
     </Card>
   );
@@ -54,99 +51,95 @@ function Limit({ label, used, limit }: { label: string; used: number; limit: num
  */
 export default function LiveDashboardHome({ data = liveDashboard }: { data?: Data }) {
   const totalMemory = data.memory.reduce((s, m) => s + m.value, 0);
+  const versions = [
+    { label: "Elixir", value: data.versions.elixir, className: "from-purple-600 to-primary-500" },
+    { label: "Phoenix", value: data.versions.phoenix, className: "from-orange-500 to-amber-500" },
+    { label: "Dashboard", value: data.versions.dashboard, className: "from-blue-500 to-blue-600" },
+  ];
   return (
-    <div className="min-h-screen bg-[#e9edf5] text-[#3d4352] font-[Nunito,ui-sans-serif,system-ui,sans-serif]">
-      <div className="bg-amber-100 border-b border-amber-300 px-4 py-2 text-sm text-amber-900 flex items-center gap-2">
-        <span className="hero-information-circle-solid h-5 w-5 text-amber-500" />
-        <span>
-          Static approximation of <strong>Phoenix LiveDashboard</strong>, a third-party page mounted by Lightning at
-          /dashboard. Not interactive.
-        </span>
-        <div className="grow" />
-        <Link to="/settings/projects" className="font-semibold underline">
-          Back to Lightning
-        </Link>
-      </div>
-      <div className="bg-[#4a4776] h-[118px]">
-        <div className="max-w-[1116px] mx-auto pt-3 flex items-start justify-between text-white">
-          <h1 className="mt-8 text-[28px] font-normal">Phoenix LiveDashboard</h1>
-          <div className="flex flex-col items-end gap-2 text-sm text-white/85">
-            <div>
-              Update every{" "}
-              <span className="ml-2 inline-block rounded bg-white/75 px-2 py-1 text-[#3d4352]">15s ⇕</span>
-            </div>
-            <div>
-              Selected node{" "}
-              <span className="ml-2 inline-block rounded bg-white/75 px-2 py-1 text-[#3d4352]">nonode@nohost ⇕</span>
-            </div>
+    <div className="min-h-screen bg-gray-100 text-sm text-gray-700">
+      <Alert type="warning" className="rounded-none">
+        <div className="flex justify-between gap-2">
+          <span>
+            Static approximation of <strong>Phoenix LiveDashboard</strong>, a third-party page mounted by Lightning at
+            /dashboard. Not interactive.
+          </span>
+          <TextLink to="/settings/projects">Back to Lightning</TextLink>
+        </div>
+      </Alert>
+      <div className="h-28 bg-primary-900 text-white">
+        <div className="mx-auto flex max-w-6xl justify-between pt-3">
+          <h1 className="mt-8 text-3xl">Phoenix LiveDashboard</h1>
+          <div className="flex flex-col items-end gap-2">
+            {[
+              ["Update every", "15s ⇕"],
+              ["Selected node", "nonode@nohost ⇕"],
+            ].map(([label, value]) => (
+              <div key={label}>
+                {label} <Pill>{value}</Pill>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-      <div className="max-w-[1116px] mx-auto -mt-6">
-        <Card className="px-6 py-3 flex flex-wrap gap-x-6 gap-y-1 text-[15px]">
+      <div className="mx-auto -mt-6 max-w-6xl">
+        <Card className="flex flex-wrap gap-x-6 gap-y-1">
           {data.tabs.map((tab, i) => (
-            <span key={tab} className={i === 0 ? "text-[#3d4352]" : "text-[#5f8fd2]"}>
+            <span key={tab} className={cn(i > 0 && "text-blue-500")}>
               {tab}
             </span>
           ))}
         </Card>
 
         <div className="mt-8 grid grid-cols-2 gap-6 pb-16">
-          <div>
-            <h2 className="text-xl mb-3">System information</h2>
-            <Card className="px-5 py-5 text-[15px] leading-6">{data.systemInfo}</Card>
-            <div className="mt-6 grid grid-cols-3 gap-6">
-              <div className="rounded-md px-4 py-4 text-white bg-gradient-to-br from-[#6d4ab1] to-[#6b6fd8]">
-                <div className="text-[15px]">Elixir</div>
-                <div className="mt-1 text-2xl font-semibold">{data.versions.elixir}</div>
-              </div>
-              <div className="rounded-md px-4 py-4 text-white bg-gradient-to-br from-[#f1683e] to-[#e9a83b]">
-                <div className="text-[15px]">Phoenix</div>
-                <div className="mt-1 text-2xl font-semibold">{data.versions.phoenix}</div>
-              </div>
-              <div className="rounded-md px-4 py-4 text-white bg-gradient-to-br from-[#3a8fde] to-[#3f6fd6]">
-                <div className="text-[15px]">Dashboard</div>
-                <div className="mt-1 text-2xl font-semibold">{data.versions.dashboard}</div>
-              </div>
+          <div className="space-y-3">
+            <Heading as="h2" size="lg">System information</Heading>
+            <Card padding="lg">{data.systemInfo}</Card>
+            <div className="grid grid-cols-3 gap-6 pt-3">
+              {versions.map((v) => (
+                <Stat key={v.label} {...v} className={cn("bg-gradient-to-br text-white", v.className)} />
+              ))}
               <Stat label="Uptime" value={data.uptime} />
-              <Stat label="Total input" value={data.totalInput} info />
-              <Stat label="Total output" value={data.totalOutput} info />
+              <Stat label="Total input" value={data.totalInput} hasInfo />
+              <Stat label="Total output" value={data.totalOutput} hasInfo />
             </div>
-            <h2 className="text-xl mt-6 mb-3">Run queues</h2>
+            <Heading as="h2" size="lg" className="pt-3">Run queues</Heading>
             <div className="grid grid-cols-3 gap-6">
-              <Stat label="Total" value={data.runQueues.total} info />
+              <Stat label="Total" value={data.runQueues.total} hasInfo />
               <Stat label="CPU" value={data.runQueues.cpu} />
               <Stat label="IO" value={data.runQueues.io} />
             </div>
           </div>
-          <div>
-            <h2 className="text-xl mb-3">System limits</h2>
-            <div className="flex flex-col gap-6">
-              {data.limits.map((l) => (
-                <Limit key={l.label} {...l} />
-              ))}
-            </div>
-            <h2 className="text-xl mt-6 mb-3">Memory</h2>
-            <Card className="px-5 py-5">
+          <div className="space-y-3">
+            <Heading as="h2" size="lg">System limits</Heading>
+            {data.limits.map((l) => (
+              <Limit key={l.label} {...l} />
+            ))}
+            <Heading as="h2" size="lg" className="pt-3">Memory</Heading>
+            <Card padding="lg" className="space-y-5">
               <div className="flex h-6 gap-0.5 overflow-hidden">
                 {data.memory.map((m) => (
                   <div key={m.label} className={m.color} style={{ width: `${(m.value / totalMemory) * 100}%` }} />
                 ))}
               </div>
-              <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-[15px]">
+              <DetailList>
                 {data.memory.map((m) => (
-                  <div key={m.label} className="flex items-center justify-between">
-                    <span className="flex items-center gap-2">
-                      <span className={cn("inline-block h-4 w-4 rounded-sm", m.color)} />
-                      {m.label}
-                    </span>
-                    <span className="text-[#9aa0ad]">{m.value} MB</span>
-                  </div>
+                  <DetailItem
+                    key={m.label}
+                    label={
+                      <span className="flex items-center gap-2">
+                        <span className={cn("h-4 w-4 rounded-sm", m.color)} />
+                        {m.label}
+                      </span>
+                    }
+                  >
+                    {m.value} MB
+                  </DetailItem>
                 ))}
-              </div>
-              <div className="mt-5 bg-[#eef0f5] py-1.5 text-center text-[15px]">
+              </DetailList>
+              <Card muted padding="sm" className="text-center">
                 Total usage: {totalMemory.toFixed(1)} MB
-              </div>
+              </Card>
             </Card>
           </div>
         </div>

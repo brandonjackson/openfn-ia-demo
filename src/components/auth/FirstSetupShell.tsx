@@ -9,32 +9,19 @@ import { releaseLabel } from "../../mock-data/users";
  */
 export default function FirstSetupShell({ children }: { children: ReactNode }) {
   return (
-    <main className="h-screen">
-      <div className="flex flex-row h-full">
-        <div className="flex-shrink-0 w-48" />
-        <div id="sidebar-panel" data-ui="sidebar" className="flex flex-col h-full z-[100] fixed w-48 primary-theme">
-          <div className="app-logo-container h-20 flex items-center primary-theme" />
-          <nav id="side-menu" className="flex-1 overflow-hidden primary-theme">
-            <div className="flex flex-col h-full">
-              <div className="flex-1 py-4 overflow-y-auto min-h-0 flex flex-col" />
-              <div className="flex-shrink-0 flex flex-col border-t border-white/10 pt-3 mt-3">
-                <div className="h-14 text-center">
-                  <div className="pt-2">
-                    <OpenFnLogo className="h-6 primary-light mx-auto" />
-                  </div>
-                  <div className="text-[8px] primary-light opacity-50 flex justify-center">
-                    <code className="py-1 rounded-md break-keep primary-light inline-block align-middle text-center">
-                      {releaseLabel}
-                    </code>
-                  </div>
-                </div>
-                <div className="border-t border-white/10 mt-2 h-8" />
-              </div>
-            </div>
-          </nav>
-        </div>
-        <div className="flex-auto min-w-0">{children}</div>
+    <main className="flex h-screen">
+      <div className="w-48 shrink-0" />
+      <div id="sidebar-panel" data-ui="sidebar" className="primary-theme fixed z-[100] flex h-full w-48 flex-col">
+        <div className="app-logo-container primary-theme h-20" />
+        <nav id="side-menu" className="primary-theme flex flex-1 flex-col justify-end overflow-hidden">
+          <div className="mt-3 border-t border-white/10 pt-5 text-center">
+            <OpenFnLogo className="primary-light mx-auto h-6" />
+            <code className="primary-light block py-1 text-[8px] opacity-50">{releaseLabel}</code>
+          </div>
+          <div className="mt-2 h-8 border-t border-white/10" />
+        </nav>
       </div>
+      <div className="min-w-0 flex-auto">{children}</div>
     </main>
   );
 }

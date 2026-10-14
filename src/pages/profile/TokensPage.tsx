@@ -30,10 +30,8 @@ export default function TokensPage() {
       header={
         <Header title="Personal Access Tokens">
           <Button onClick={generate}>
-            <div className="h-full">
-              <span className="hero-plus h-4 w-4 inline-block" />{" "}
-              <span className="inline-block align-middle">Generate New Token</span>
-            </div>
+            <span className="hero-plus h-4 w-4" />
+            Generate New Token
           </Button>
         </Header>
       }

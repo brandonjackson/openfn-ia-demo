@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import AuthLayout from "../../components/auth/AuthLayout";
-import AuthCard, { AuthFooterLinks, AuthFormStack, FormDivider } from "../../components/auth/AuthCard";
+import AuthCard, { AuthFooterLinks } from "../../components/auth/AuthCard";
 import PasswordInput from "../../components/auth/PasswordInput";
 import Button from "../../components/Button";
-import { Label, TextInput } from "../../components/Inputs";
+import { TextInput } from "../../components/Inputs";
 import { authFlags } from "../../mock-data/auth";
 
 /**
@@ -33,13 +33,9 @@ export default function AuthResetPasswordPage() {
             }}
           >
             <AuthCard>
-              <AuthFormStack>
-                <TextInput id="user_email" type="email" label="Email" required />
-                <Button type="submit" theme="primary">
-                  Send instructions to reset password
-                </Button>
-                <AuthFooterLinks left={<Link to="/users/log_in">Log in</Link>} right={registerLink} />
-              </AuthFormStack>
+              <TextInput id="user_email" type="email" label="Email" required />
+              <Button type="submit">Send instructions to reset password</Button>
+              <AuthFooterLinks left={<Link to="/users/log_in">Log in</Link>} right={registerLink} />
             </AuthCard>
           </form>
         </div>
@@ -62,27 +58,17 @@ export default function AuthResetPasswordPage() {
       <div id="reset-password-edit">
         <form onSubmit={onSubmit}>
           <AuthCard>
-            <AuthFormStack>
-              <div>
-                <Label htmlFor="user_password">New password</Label>
-                <PasswordInput id="user_password" name="password" required autoComplete="new-password" />
-              </div>
-              <div>
-                <Label htmlFor="user_password_confirmation">Confirm new password</Label>
-                <PasswordInput
-                  id="user_password_confirmation"
-                  name="password_confirmation"
-                  required
-                  autoComplete="new-password"
-                  errors={mismatch ? ["does not match password"] : []}
-                />
-              </div>
-              <Button type="submit" theme="primary">
-                Reset password
-              </Button>
-              <FormDivider />
-              <AuthFooterLinks left={<Link to="/users/log_in">Log in</Link>} right={registerLink} />
-            </AuthFormStack>
+            <PasswordInput id="user_password" name="password" label="New password" required autoComplete="new-password" />
+            <PasswordInput
+              id="user_password_confirmation"
+              name="password_confirmation"
+              label="Confirm new password"
+              required
+              autoComplete="new-password"
+              errors={mismatch ? ["does not match password"] : []}
+            />
+            <Button type="submit">Reset password</Button>
+            <AuthFooterLinks divider left={<Link to="/users/log_in">Log in</Link>} right={registerLink} />
           </AuthCard>
         </form>
       </div>

@@ -16,21 +16,19 @@ export default function AdminCollectionsPage() {
   return (
     <PageContent header={<Header title="Collections" />}>
       <Centered>
-        <div className="w-full">
-          <AdminCollectionsTable
-            collections={collections}
-            onCreate={() => setDialog({ kind: "create" })}
-            onEdit={(collection) => setDialog({ kind: "edit", collection })}
-            onDelete={(collection) => setDialog({ kind: "delete", collection })}
-          />
-          {dialog?.kind === "create" && <AdminCollectionModal onCancel={close} onSave={close} />}
-          {dialog?.kind === "edit" && (
-            <AdminCollectionModal collection={dialog.collection} onCancel={close} onSave={close} />
-          )}
-          {dialog?.kind === "delete" && (
-            <CollectionDeleteModal collection={dialog.collection} onCancel={close} onDelete={close} />
-          )}
-        </div>
+        <AdminCollectionsTable
+          collections={collections}
+          onCreate={() => setDialog({ kind: "create" })}
+          onEdit={(collection) => setDialog({ kind: "edit", collection })}
+          onDelete={(collection) => setDialog({ kind: "delete", collection })}
+        />
+        {dialog?.kind === "create" && <AdminCollectionModal onCancel={close} onSave={close} />}
+        {dialog?.kind === "edit" && (
+          <AdminCollectionModal collection={dialog.collection} onCancel={close} onSave={close} />
+        )}
+        {dialog?.kind === "delete" && (
+          <CollectionDeleteModal collection={dialog.collection} onCancel={close} onDelete={close} />
+        )}
       </Centered>
     </PageContent>
   );

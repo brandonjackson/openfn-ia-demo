@@ -97,84 +97,82 @@ export default function CredentialIndex({
     setCredentials((list) => list.map((c) => (c.id === id ? { ...c, ...patch } : c)));
 
   return (
-    <div id="credentials-index-component" data-annotation="shared-credential-index-component">
-      <div className="space-y-4">
-        <OauthClientsTable
-          rows={clients}
-          showOwner={showOwner}
+    <div id="credentials-index-component" data-annotation="shared-credential-index-component" className="space-y-4">
+      <OauthClientsTable
+        rows={clients}
+        showOwner={showOwner}
+        emptyState={
+          <EmptyState
+            message="No OAuth clients found."
+            buttonText="Create a new OAuth client"
+            onClick={() => open("new_oauth_client")}
+          />
+        }
+        actions={(client) =>
+          canEditCredential(client.ownerId) && (
+            <ButtonMenu label="Actions">
+              <MenuItem onClick={() => setActive({ kind: "edit_oauth_client", id: client.id })}>
+                Edit
+              </MenuItem>
+              <MenuItem onClick={() => setActive({ kind: "delete_oauth_client", id: client.id })}>
+                Delete
+              </MenuItem>
+            </ButtonMenu>
+          )
+        }
+      />
+      <CredentialsTable
+        rows={credentials}
+        showOwner={showOwner}
+        emptyState={
+          <EmptyState message="No credentials found." buttonText="Create a new Credential" onClick={() => open("new_credential")} />
+        }
+        actions={(credential) =>
+          canEditCredential(credential.ownerId) && (
+            <ButtonMenu label="Actions">
+              <MenuItem onClick={() => setActive({ kind: "transfer_credential", id: credential.id })}>
+                {credential.transferStatus === "pending" ? "Revoke Transfer" : "Transfer"}
+              </MenuItem>
+              <MenuItem onClick={() => setActive({ kind: "edit_credential", id: credential.id })}>
+                Edit
+              </MenuItem>
+              {credential.scheduledDeletion && (
+                <MenuItem onClick={() => patchCredential(credential.id, { scheduledDeletion: null })}>
+                  Cancel deletion
+                </MenuItem>
+              )}
+              <MenuItem onClick={() => setActive({ kind: "delete_credential", id: credential.id })}>
+                {credential.scheduledDeletion ? "Delete now" : "Delete"}
+              </MenuItem>
+            </ButtonMenu>
+          )
+        }
+      />
+      {project && (
+        <KeychainCredentialsTable
+          rows={keychains}
+          credentials={credentials}
           emptyState={
             <EmptyState
-              message="No OAuth clients found."
-              buttonText="Create a new OAuth client"
-              onClick={() => open("new_oauth_client")}
+              message="No keychain credentials found."
+              buttonText="Create a new keychain credential"
+              onClick={() => open("new_keychain_credential")}
             />
           }
-          actions={(client) =>
-            canEditCredential(client.ownerId) && (
+          actions={(kc) =>
+            canKeychain && (
               <ButtonMenu label="Actions">
-                <MenuItem onClick={() => setActive({ kind: "edit_oauth_client", id: client.id })}>
+                <MenuItem onClick={() => setActive({ kind: "edit_keychain_credential", id: kc.id })}>
                   Edit
                 </MenuItem>
-                <MenuItem onClick={() => setActive({ kind: "delete_oauth_client", id: client.id })}>
+                <MenuItem onClick={() => setActive({ kind: "delete_keychain_credential", id: kc.id })}>
                   Delete
                 </MenuItem>
               </ButtonMenu>
             )
           }
         />
-        <CredentialsTable
-          rows={credentials}
-          showOwner={showOwner}
-          emptyState={
-            <EmptyState message="No credentials found." buttonText="Create a new Credential" onClick={() => open("new_credential")} />
-          }
-          actions={(credential) =>
-            canEditCredential(credential.ownerId) && (
-              <ButtonMenu label="Actions">
-                <MenuItem onClick={() => setActive({ kind: "transfer_credential", id: credential.id })}>
-                  {credential.transferStatus === "pending" ? "Revoke Transfer" : "Transfer"}
-                </MenuItem>
-                <MenuItem onClick={() => setActive({ kind: "edit_credential", id: credential.id })}>
-                  Edit
-                </MenuItem>
-                {credential.scheduledDeletion && (
-                  <MenuItem onClick={() => patchCredential(credential.id, { scheduledDeletion: null })}>
-                    Cancel deletion
-                  </MenuItem>
-                )}
-                <MenuItem onClick={() => setActive({ kind: "delete_credential", id: credential.id })}>
-                  {credential.scheduledDeletion ? "Delete now" : "Delete"}
-                </MenuItem>
-              </ButtonMenu>
-            )
-          }
-        />
-        {project && (
-          <KeychainCredentialsTable
-            rows={keychains}
-            credentials={credentials}
-            emptyState={
-              <EmptyState
-                message="No keychain credentials found."
-                buttonText="Create a new keychain credential"
-                onClick={() => open("new_keychain_credential")}
-              />
-            }
-            actions={(kc) =>
-              canKeychain && (
-                <ButtonMenu label="Actions">
-                  <MenuItem onClick={() => setActive({ kind: "edit_keychain_credential", id: kc.id })}>
-                    Edit
-                  </MenuItem>
-                  <MenuItem onClick={() => setActive({ kind: "delete_keychain_credential", id: kc.id })}>
-                    Delete
-                  </MenuItem>
-                </ButtonMenu>
-              )
-            }
-          />
-        )}
-      </div>
+      )}
 
       {active?.kind === "new_credential" && (
         <CredentialFormModal

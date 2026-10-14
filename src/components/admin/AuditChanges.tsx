@@ -1,4 +1,5 @@
 import type { AuditEvent } from "../../mock-data/admin";
+import Card from "../Card";
 import { Td } from "../Table";
 
 /**
@@ -27,30 +28,29 @@ export default function AuditChanges({ audit }: { audit: AuditEvent }) {
   return (
     <Td colSpan={4} className="p-4! font-mono text-xs break-all">
       {changes.length > 0 && (
-        <ul className="p-2 bg-gray-50 rounded-md ring ring-gray-100 mb-3">
+        <Card muted padding="sm" as="section" className="mb-3 space-y-2">
           {changes.map(({ key, old, next }) => (
-            <li key={key} className="mb-2 last:mb-0">
+            <div key={key}>
               <span className="font-semibold">{key}</span>&nbsp;{" "}
               {old !== null && (
                 <>
                   <span className="text-gray-500 line-through">{old}</span>
-                  <span className="hero-arrow-right h-4 w-4 inline-block mx-2 text-gray-400" />
+                  <span className="hero-arrow-right mx-2 h-4 w-4 text-gray-400" />
                 </>
               )}
               <span className="text-gray-900">{next ?? ""}</span>
-            </li>
+            </div>
           ))}
-        </ul>
+        </Card>
       )}
       {bodies.length > 0 && (
-        <ul className="p-2 bg-gray-50 rounded-md ring ring-gray-100">
+        <Card muted padding="sm" as="section" className="space-y-2">
           {bodies.map(([env, body]) => (
-            <li key={env} className="mb-2 last:mb-0">
-              <span className="font-semibold">body:{env}</span>&nbsp;{" "}
-              <span className="text-gray-700 break-all">{body}</span>
-            </li>
+            <div key={env}>
+              <span className="font-semibold">body:{env}</span>&nbsp; <span className="text-gray-700">{body}</span>
+            </div>
           ))}
-        </ul>
+        </Card>
       )}
     </Td>
   );

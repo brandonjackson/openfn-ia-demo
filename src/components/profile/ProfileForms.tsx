@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import Button from "../Button";
+import Card from "../Card";
 import InfoTooltip from "../InfoTooltip";
 import { Select, TextInput } from "../Inputs";
 import PasswordInput from "../auth/PasswordInput";
@@ -11,21 +12,17 @@ import { contactPreferenceOptions, contactPreferenceTooltip } from "../../mock-d
  * each its own card. Static: submitting only updates local state.
  */
 
-const cardForm = "bg-white shadow-xs ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2 mb-4 px-4 py-6 sm:p-8";
-
 function FormCard({ id, title, onSubmit, children, button }: { id: string; title: string; onSubmit: () => void; children: ReactNode; button: ReactNode }) {
   const submit = (e: FormEvent) => {
     e.preventDefault();
     onSubmit();
   };
   return (
-    <form id={id} onSubmit={submit} className={cardForm} data-annotation="profile-account">
-      <div className="text-xl mb-8">{title}</div>
-      <div className="space-y-6">{children}</div>
-      <div className="hidden sm:block" aria-hidden="true">
-        <div className="py-4" />
-      </div>
-      {button}
+    <form id={id} onSubmit={submit} data-annotation="profile-account">
+      <Card padding="lg" title={title} className="space-y-6">
+        {children}
+        {button}
+      </Card>
     </form>
   );
 }

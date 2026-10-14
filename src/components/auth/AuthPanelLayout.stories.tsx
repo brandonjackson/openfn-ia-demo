@@ -36,9 +36,9 @@ export const Top: Story = {
     title: "Confirm your email address",
     align: "top",
     children: (
-      <div className="w-full sm:max-w-md space-y-4">
-        <div className="bg-white rounded-lg shadow p-6 text-sm text-gray-600">Panel</div>
-      </div>
+      <AuthPanel>
+        <p className="text-sm text-gray-600">Panel</p>
+      </AuthPanel>
     ),
   },
 };

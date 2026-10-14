@@ -13,9 +13,6 @@ import UserAvatar from "../../components/UserAvatar";
 import { TextInput } from "../../components/Inputs";
 import { currentUser } from "../../mock-data/users";
 
-const fieldClasses =
-  "bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5";
-
 /**
  * Inventory view `auth-confirm-access` (re_authenticate_live/new.html.heex):
  * the sudo-mode re-authentication page. Password by default; the
@@ -35,23 +32,22 @@ export default function AuthConfirmAccessPage() {
   return (
     <AuthPanelLayout title="Confirm access">
       <AuthPanel size="sm">
-        <div className="flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
           <UserAvatar firstName={user.firstName} lastName={user.lastName} size="sm" />
+          <p>
+            Signed in as: <span className="font-bold">{`${user.firstName} ${user.lastName}`}</span>
+          </p>
         </div>
-        <p className="text-center">
-          Signed in as: <span className="font-bold">{`${user.firstName} ${user.lastName}`}</span>
-        </p>
       </AuthPanel>
       <AuthPanel>
         <AuthPanelTitle>{option === "password" ? "Password" : "Authentication Code"}</AuthPanelTitle>
-        <form id="reauthentication-form" onSubmit={onSubmit} className="space-y-4 md:space-y-6">
+        <form id="reauthentication-form" onSubmit={onSubmit} className="space-y-4">
           {option === "password" ? (
             <PasswordInput
               id="user_password"
               name="password"
               required
               autoComplete="current-password"
-              className={`${fieldClasses} rounded-lg`}
             />
           ) : (
             <TextInput
@@ -61,10 +57,9 @@ export default function AuthConfirmAccessPage() {
               autoComplete="one-time-code"
               inputMode="numeric"
               placeholder="XXXXXX"
-              className={fieldClasses}
             />
           )}
-          <Button type="submit" theme="primary" className="w-full">
+          <Button type="submit" className="w-full">
             {option === "password" ? "Confirm" : "Verify"}
           </Button>
           <AuthPanelHint>
@@ -77,12 +72,12 @@ export default function AuthConfirmAccessPage() {
       <HavingProblems>
         {option === "password" && user.mfaEnabled && (
           <li>
-            <TextLink className="font-medium" onClick={() => setOption("totp")}>Use your authenticator app instead</TextLink>
+            <TextLink onClick={() => setOption("totp")}>Use your authenticator app instead</TextLink>
           </li>
         )}
         {option === "totp" && (
           <li>
-            <TextLink className="font-medium" onClick={() => setOption("password")}>Use your password instead</TextLink>
+            <TextLink onClick={() => setOption("password")}>Use your password instead</TextLink>
           </li>
         )}
       </HavingProblems>

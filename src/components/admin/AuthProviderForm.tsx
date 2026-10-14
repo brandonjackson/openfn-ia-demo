@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { authRedirectUri, type AuthProvider } from "../../mock-data/admin";
 import Button from "../Button";
+import Card from "../Card";
+import Heading from "../Heading";
 import { Checkbox, TextInput } from "../Inputs";
 import TextLink from "../TextLink";
+import { cn } from "../../utils/cn";
 
 type TestState = "unknown" | "success" | "failed";
 
@@ -18,20 +21,20 @@ function TestButton({ state, onTest }: { state: TestState; onTest: () => void })
   if (state === "failed")
     return (
       <Button theme="danger" id="test-button">
-        <span className="hero-x-mark-solid h-4 w-4 -ml-1" />
+        <span className="hero-x-mark-solid h-4 w-4" />
         Failed
       </Button>
     );
   if (state === "success")
     return (
       <Button theme="success" id="test-button">
-        <span className="hero-check-solid h-4 w-4 -ml-1" />
+        <span className="hero-check-solid h-4 w-4" />
         Success
       </Button>
     );
   return (
     <Button theme="secondary" id="test-button" onClick={onTest}>
-      <span className="hero-beaker-solid h-4 w-4 -ml-1" />
+      <span className="hero-beaker-solid h-4 w-4" />
       Test
     </Button>
   );
@@ -69,129 +72,98 @@ export default function AuthProviderForm({ provider, onSave, onRemove, initialTe
           onSave?.(values);
         }}
       >
-        <div className="grid grid-cols-6 gap-6">
-          <div className="col-span-3">
-            <div className="grid grid-flow-row auto-rows-max gap-4">
-              <TextInput
-                id="auth_provider_name"
-                label="Name"
-                hint="The name of the provider, used in the redirect URI."
-                value={values.name}
-                onChange={(e) => set("name", e.target.value)}
-              />
-              <TextInput
-                id="auth_provider_discovery_url"
-                label="Discovery URL"
-                hint={
-                  <>
-                    The URL to the <code>.well-known</code> endpoint.
-                  </>
-                }
-                value={values.discoveryUrl}
-                onChange={(e) => set("discoveryUrl", e.target.value)}
-              />
-              <TextInput
-                id="auth_provider_client_id"
-                label="Client ID"
-                value={values.clientId}
-                onChange={(e) => set("clientId", e.target.value)}
-              />
-              <TextInput
-                type="password"
-                id="client_secret"
-                label="Client Secret"
-                value={values.clientSecret}
-                onChange={(e) => set("clientSecret", e.target.value)}
-              />
-              <TextInput
-                id="auth_provider_redirect_host"
-                label="Redirect Host"
-                value={values.redirectHost}
-                onChange={(e) => set("redirectHost", e.target.value)}
-              />
-              <Checkbox
-                label="Trust unverified emails from this provider"
-                hint={
-                  <>
-                    Only enable for a provider you trust that doesn't assert <code>email_verified</code>. Off by default.
-                  </>
-                }
-                checked={values.allowUnverifiedEmail}
-                onChange={(e) => set("allowUnverifiedEmail", e.target.checked)}
-              />
-            </div>
-            <div className="hidden sm:block mt-4" aria-hidden="true">
-              <div className="border-t border-gray-200" />
-            </div>
-            <div className="mt-4">
-              <div className="flex">
-                <div className="flex-none">
-                  <Button type="submit" disabled={!valid}>
-                    Save
-                  </Button>
-                </div>
-                <div className="grow" />
-                <div className="flex-none">
-                  {valid && <TestButton state={testState} onTest={() => setTestState("success")} />}
-                </div>
-              </div>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <TextInput
+              id="auth_provider_name"
+              label="Name"
+              hint="The name of the provider, used in the redirect URI."
+              value={values.name}
+              onChange={(e) => set("name", e.target.value)}
+            />
+            <TextInput
+              id="auth_provider_discovery_url"
+              label="Discovery URL"
+              hint={
+                <>
+                  The URL to the <code>.well-known</code> endpoint.
+                </>
+              }
+              value={values.discoveryUrl}
+              onChange={(e) => set("discoveryUrl", e.target.value)}
+            />
+            <TextInput
+              id="auth_provider_client_id"
+              label="Client ID"
+              value={values.clientId}
+              onChange={(e) => set("clientId", e.target.value)}
+            />
+            <TextInput
+              type="password"
+              id="client_secret"
+              label="Client Secret"
+              value={values.clientSecret}
+              onChange={(e) => set("clientSecret", e.target.value)}
+            />
+            <TextInput
+              id="auth_provider_redirect_host"
+              label="Redirect Host"
+              value={values.redirectHost}
+              onChange={(e) => set("redirectHost", e.target.value)}
+            />
+            <Checkbox
+              label="Trust unverified emails from this provider"
+              hint={
+                <>
+                  Only enable for a provider you trust that doesn't assert <code>email_verified</code>. Off by default.
+                </>
+              }
+              checked={values.allowUnverifiedEmail}
+              onChange={(e) => set("allowUnverifiedEmail", e.target.checked)}
+            />
+            <div className="flex justify-between sm:border-t sm:border-gray-200 sm:pt-4">
+              <Button type="submit" disabled={!valid}>
+                Save
+              </Button>
+              {valid && <TestButton state={testState} onTest={() => setTestState("success")} />}
             </div>
           </div>
-          <div className="col-span-3">
-            <div className="flex flex-col h-full">
-              <div className="flex-none text-sm text-gray-700">
-                <p>
-                  Allows users with existing accounts to login with an external OpenID Connect account that matches
-                  their email address.
-                </p>
-                <p className="mt-2">
-                  In order to make things easier we rely on the providers well-known file to determine all the
-                  different endpoints for authentication and retrieving the user information. Documentation on
-                  Google's OpenID Connect support and it's well-known file see{" "}
-                  {docsLink("https://developers.google.com/identity/protocols/oauth2/openid-connect#discovery")}
-                </p>
-              </div>
-              <div className="flex-none hidden sm:block mt-4" aria-hidden="true">
-                <div className="border-t border-gray-200" />
-              </div>
-              <div className="flex-none mt-4">
-                <div className="font-medium text-sm text-gray-700">Redirect URI</div>
-                {valid ? (
-                  <div
-                    id="redirect-uri-preview"
-                    className="font-mono border rounded-md mt-4 p-2 text-gray-700 bg-gray-200 border-gray-300 shadow-xs"
-                  >
-                    {authRedirectUri(values)}
-                  </div>
-                ) : (
-                  <div
-                    id="redirect-uri-preview"
-                    className="font-mono border rounded-md mt-4 p-2 text-gray-400 bg-gray-200 border-gray-300 shadow-xs cursor-not-allowed"
-                  >
-                    {values.redirectHost}&hellip;
-                  </div>
-                )}
-                <p className="mt-2 text-sm text-gray-700">
-                  Ensure your provider has this redirect URI set. For more information see{" "}
-                  {docsLink("https://developers.google.com/identity/protocols/oauth2/openid-connect#setredirecturi")}
-                </p>
-              </div>
-              {provider.id !== null && (
-                <>
-                  <div className="grow" />
-                  <div className="flex-none mt-4">
-                    <div className="font-medium text-sm text-gray-700">Remove</div>
-                    <p className="my-2 text-sm text-gray-700">
-                      Deletes the Authentication Configuration, and disables external authentication for Lightning.
-                    </p>
-                    <Button theme="danger" onClick={onRemove}>
-                      <span className="hero-trash h-4 w-4" />
-                      Remove
-                    </Button>
-                  </div>
-                </>
-              )}
+          <div className="flex flex-col gap-4 text-sm text-gray-700">
+            <p>
+              Allows users with existing accounts to login with an external OpenID Connect account that matches their
+              email address.
+            </p>
+            <p>
+              In order to make things easier we rely on the providers well-known file to determine all the different
+              endpoints for authentication and retrieving the user information. Documentation on Google's OpenID
+              Connect support and it's well-known file see{" "}
+              {docsLink("https://developers.google.com/identity/protocols/oauth2/openid-connect#discovery")}
+            </p>
+            <div className="space-y-2 sm:border-t sm:border-gray-200 sm:pt-4">
+              <Heading size="sm">Redirect URI</Heading>
+              <Card
+                muted
+                padding="sm"
+                id="redirect-uri-preview"
+                className={cn("font-mono", !valid && "cursor-not-allowed text-gray-400")}
+              >
+                {valid ? authRedirectUri(values) : <>{values.redirectHost}&hellip;</>}
+              </Card>
+              <p>
+                Ensure your provider has this redirect URI set. For more information see{" "}
+                {docsLink("https://developers.google.com/identity/protocols/oauth2/openid-connect#setredirecturi")}
+              </p>
             </div>
+            {provider.id !== null && (
+              <div className="mt-auto space-y-2">
+                <Heading size="sm">Remove</Heading>
+                <p>Deletes the Authentication Configuration, and disables external authentication for Lightning.</p>
+                <Button theme="danger" onClick={onRemove}>
+                  <span className="hero-trash h-4 w-4" />
+                  Remove
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </form>

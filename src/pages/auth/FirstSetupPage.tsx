@@ -37,12 +37,6 @@ export default function FirstSetupPage() {
     navigate("/projects");
   };
 
-  const row = (field: React.ReactNode) => (
-    <div className="grid grid-cols-6 gap-6">
-      <div className="col-span-3">{field}</div>
-    </div>
-  );
-
   return (
     <FirstSetupShell>
       <PageContent header={<Header title="Setup" loggedOut />}>
@@ -51,35 +45,29 @@ export default function FirstSetupPage() {
             Looks like this is a fresh install of OpenFn Lightning. Create a superuser account to manage projects and
             users.
           </p>
-          <form id="superuser-registration-form" onSubmit={onSubmit}>
-            {row(<TextInput id="first_name" label="First name" value={f.firstName} onChange={set("firstName")} />)}
-            {row(<TextInput id="last_name" label="Last name" value={f.lastName} onChange={set("lastName")} />)}
-            {row(<TextInput id="email" type="email" label="Email" value={f.email} onChange={set("email")} />)}
-            {row(
-              <PasswordInput
-                id="password"
-                label="Password"
-                autoComplete="new-password"
-                value={f.password}
-                onChange={set("password")}
-                errors={errors.password}
-              />
-            )}
-            {row(
-              <PasswordInput
-                id="password_confirmation"
-                label="Password confirmation"
-                autoComplete="new-password"
-                value={f.passwordConfirmation}
-                onChange={set("passwordConfirmation")}
-                errors={errors.passwordConfirmation}
-              />
-            )}
-            <div className="mt-2">
-              <Button type="submit" theme="primary" disabled={!valid}>
-                Save
-              </Button>
-            </div>
+          <form id="superuser-registration-form" onSubmit={onSubmit} className="mt-4 grid w-1/2 gap-4">
+            <TextInput id="first_name" label="First name" value={f.firstName} onChange={set("firstName")} />
+            <TextInput id="last_name" label="Last name" value={f.lastName} onChange={set("lastName")} />
+            <TextInput id="email" type="email" label="Email" value={f.email} onChange={set("email")} />
+            <PasswordInput
+              id="password"
+              label="Password"
+              autoComplete="new-password"
+              value={f.password}
+              onChange={set("password")}
+              errors={errors.password}
+            />
+            <PasswordInput
+              id="password_confirmation"
+              label="Password confirmation"
+              autoComplete="new-password"
+              value={f.passwordConfirmation}
+              onChange={set("passwordConfirmation")}
+              errors={errors.passwordConfirmation}
+            />
+            <Button type="submit" disabled={!valid} className="justify-self-start">
+              Save
+            </Button>
           </form>
         </Centered>
       </PageContent>

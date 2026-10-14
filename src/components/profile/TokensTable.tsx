@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Table, Td, Th, Tr } from "../Table";
 import Button from "../Button";
 import DateTime from "../DateTime";
+import Heading from "../Heading";
 import { maskToken, type ApiToken } from "../../mock-data/tokens";
 
 /**
@@ -25,45 +26,36 @@ export default function TokensTable({ tokens, onGenerate }: { tokens: ApiToken[]
         {tokens.map((token) => (
           <Tr key={token.id} id={`tokens-${token.id}`}>
             <Td>
-              <code className="my-auto whitespace-nowrap align-baseline leading-none">
-                <span>{maskToken(token)}</span>
-              </code>
+              <code className="whitespace-nowrap">{maskToken(token)}</code>
+            </Td>
+            <Td className="whitespace-nowrap font-medium">
+              <DateTime value={token.insertedAt} />
             </Td>
             <Td>
-              <span className="my-auto whitespace-nowrap text-center align-baseline font-medium leading-none">
-                <DateTime value={token.insertedAt} />
-              </span>
-            </Td>
-            <Td>
-              <div className="flex content-center justify-between">
-                <span className="my-auto whitespace-nowrap text-center align-baseline font-medium leading-none">
-                  {token.lastUsedAt ? <DateTime value={token.lastUsedAt} /> : "Never used"}
-                </span>
-                <Link id={`delete-token-${token.id}`} to={`/profile/tokens/${token.id}/delete`} className="text-red-600">
-                  <span className="hero-trash w-5 h-5" />
-                </Link>
+              <div className="flex justify-between whitespace-nowrap font-medium">
+                {token.lastUsedAt ? <DateTime value={token.lastUsedAt} /> : "Never used"}
+                <Link
+                  id={`delete-token-${token.id}`}
+                  to={`/profile/tokens/${token.id}/delete`}
+                  aria-label="Delete token"
+                  className="hero-trash h-5 w-5 text-red-600"
+                />
               </div>
             </Td>
           </Tr>
         ))}
       </Table>
       {tokens.length === 0 && (
-        <div className="flex justify-between items-center">
-          <div className="flex content-center gap-2">
-            <div>
-              <span className="hero-finger-print h-12 w-12 text-black" />
-            </div>
-            <div>
-              <h3 className="mt-1 text-sm font-semibold text-gray-900">No Personal Access Tokens</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating a new access token.</p>
-            </div>
+        <div className="flex items-center gap-2 p-4">
+          <span className="hero-finger-print h-12 w-12" />
+          <div className="flex-1">
+            <Heading size="sm">No Personal Access Tokens</Heading>
+            <p className="mt-1 text-sm text-gray-500">Get started by creating a new access token.</p>
           </div>
-          <div className="my-auto p-4 text-right">
-            <Button id="generate_new_token" onClick={onGenerate} className="inline-flex items-center gap-x-1.5">
-              <span className="hero-plus -ml-0.5 h-5 w-5" />
-              <span className="inline-block align-middle">Generate New Token</span>
-            </Button>
-          </div>
+          <Button id="generate_new_token" onClick={onGenerate}>
+            <span className="hero-plus h-5 w-5" />
+            Generate New Token
+          </Button>
         </div>
       )}
     </>

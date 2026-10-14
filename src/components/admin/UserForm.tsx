@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import type { User, UserRole } from "../../mock-data/users";
 import { isSupportUser, userRoleOptions } from "../../mock-data/admin";
 import Alert from "../Alert";
@@ -24,14 +24,6 @@ export interface UserFormValues {
   supportUser: boolean;
   scheduledDeletion: string;
   disabled: boolean;
-}
-
-function Row({ children }: { children: ReactNode }) {
-  return (
-    <div className="grid grid-cols-6 gap-6">
-      <div className="col-span-3">{children}</div>
-    </div>
-  );
 }
 
 /**
@@ -65,74 +57,60 @@ export default function UserForm({ user, onSave, cancelTo = "/settings/users" }:
     <div id={`user-${user?.id ?? "new"}`}>
       <form
         id="user-form"
-        className="space-y-2"
+        className="w-1/2 space-y-2"
         onSubmit={(e) => {
           e.preventDefault();
           onSave?.(values);
         }}
       >
-        <Row>
-          <TextInput
-            id="user_first_name"
-            label="First Name"
-            value={values.firstName}
-            onChange={(e) => set("firstName", e.target.value)}
-          />
-        </Row>
-        <Row>
-          <TextInput
-            id="user_last_name"
-            label="Last Name"
-            value={values.lastName}
-            onChange={(e) => set("lastName", e.target.value)}
-          />
-        </Row>
-        <Row>
-          <TextInput
-            id="user_email"
-            label="Email"
-            value={values.email}
-            onChange={(e) => set("email", e.target.value)}
-          />
-        </Row>
-        <Row>
-          <PasswordInput
-            id="user_password"
-            label="Password"
-            autoComplete="new-password"
-            value={values.password}
-            onChange={(e) => set("password", e.target.value)}
-          />
-        </Row>
-        <Row>
-          <Select
-            id="user_role"
-            label="Role"
-            options={userRoleOptions}
-            value={values.role}
-            onChange={(e) => set("role", e.target.value as UserRole)}
-          />
-        </Row>
-        <Row>
-          <Toggle checked={values.supportUser} onChange={(v) => set("supportUser", v)} label="Support User" />
-          {values.supportUser && (
-            <Alert id="heads-up-description" type="warning" header="Heads Up!" className="mt-2">
-              <p>This user will be able to access ALL projects that have support access enabled</p>
-            </Alert>
-          )}
-        </Row>
+        <TextInput
+          id="user_first_name"
+          label="First Name"
+          value={values.firstName}
+          onChange={(e) => set("firstName", e.target.value)}
+        />
+        <TextInput
+          id="user_last_name"
+          label="Last Name"
+          value={values.lastName}
+          onChange={(e) => set("lastName", e.target.value)}
+        />
+        <TextInput
+          id="user_email"
+          label="Email"
+          value={values.email}
+          onChange={(e) => set("email", e.target.value)}
+        />
+        <PasswordInput
+          id="user_password"
+          label="Password"
+          autoComplete="new-password"
+          value={values.password}
+          onChange={(e) => set("password", e.target.value)}
+        />
+        <Select
+          id="user_role"
+          label="Role"
+          options={userRoleOptions}
+          value={values.role}
+          onChange={(e) => set("role", e.target.value as UserRole)}
+        />
+        <Toggle checked={values.supportUser} onChange={(v) => set("supportUser", v)} label="Support User" />
+        {values.supportUser && (
+          <Alert id="heads-up-description" type="warning" header="Heads Up!">
+            <p>This user will be able to access ALL projects that have support access enabled</p>
+          </Alert>
+        )}
 
         {isEdit && (
           <>
             {values.role === "user" && (
-              <Row>
-                <TextInput
-                  id="user_scheduled_deletion"
-                  label="Scheduled Deletion"
-                  value={values.scheduledDeletion}
-                  onChange={(e) => set("scheduledDeletion", e.target.value)}
-                />
-              </Row>
+              <TextInput
+                id="user_scheduled_deletion"
+                label="Scheduled Deletion"
+                value={values.scheduledDeletion}
+                onChange={(e) => set("scheduledDeletion", e.target.value)}
+              />
             )}
             <Checkbox
               id="user_disabled"

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Button from "../Button";
 import ConfirmModal from "../ConfirmModal";
-import ProfileCard, { ProfileCardHeading } from "./ProfileCard";
+import ProfileCard from "./ProfileCard";
 
 interface Props {
   /** VersionControl.github_enabled?(): is a GitHub app configured on the instance? */
@@ -14,14 +14,16 @@ interface Props {
 export default function GithubCard({ oauthEnabled, connected, onDisconnect }: Props) {
   const [confirming, setConfirming] = useState(false);
   return (
-    <ProfileCard annotation="profile-github">
-      <div className="flex items-center justify-between mb-5 gap-5">
-        <ProfileCardHeading
-          id="github_section"
-          title="GitHub Access"
-          description="Linking your OpenFn account to your GitHub account allows you to manage version control across your projects."
-        />
-        {!oauthEnabled ? (
+    <ProfileCard
+      annotation="profile-github"
+      title={<span id="github_section-label">GitHub Access</span>}
+      description={
+        <span id="github_section-description">
+          Linking your OpenFn account to your GitHub account allows you to manage version control across your projects.
+        </span>
+      }
+      action={
+        !oauthEnabled ? (
           <Button id="github-oauth-not-enabled" disabled tooltip="GitHub OAuth has not been enabled for this instance.">
             Connect your GitHub account
           </Button>
@@ -32,8 +34,9 @@ export default function GithubCard({ oauthEnabled, connected, onDisconnect }: Pr
         ) : (
           // Lightning links to the GitHub app's OAuth URL; the demo has none.
           <Button id="connect-github-link">Connect your GitHub Account</Button>
-        )}
-      </div>
+        )
+      }
+    >
       <ConfirmModal
         open={confirming}
         onClose={() => setConfirming(false)}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { collectionProjectName, type Collection } from "../../mock-data/admin";
 import { formatBytes } from "../../utils/format";
 import Button from "../Button";
+import Heading from "../Heading";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 
 type SortKey = "name" | "byte_size_sum";
@@ -46,43 +47,41 @@ export default function AdminCollectionsTable({ collections, onCreate, onEdit, o
 
   return (
     <>
-      <div className="mt-5 flex justify-between mb-3">
-        <h3 className="text-3xl font-bold">
+      <div className="mb-3 mt-5 flex justify-between">
+        <Heading size="xl">
           Collections <span className="text-base font-normal">({collections.length})</span>
-        </h3>
-        <div>
-          <Button id="open-create-collection-modal-button" onClick={onCreate} className="col-span-1 w-full">
-            Create collection
-          </Button>
-        </div>
+        </Heading>
+        <Button id="open-create-collection-modal-button" onClick={onCreate}>
+          Create collection
+        </Button>
       </div>
-      <div>
-        <Table
-          id="collections-table"
-          header={
-            <Tr>
-              <Th {...thSort("name")}>Name</Th>
-              <Th>Project</Th>
-              <Th {...thSort("byte_size_sum")}>Used storage</Th>
-              <Th />
-            </Tr>
-          }
+      <Table
+        id="collections-table"
+        header={
+          <Tr>
+            <Th {...thSort("name")}>Name</Th>
+            <Th>Project</Th>
+            <Th {...thSort("byte_size_sum")}>Used storage</Th>
+            <Th />
+          </Tr>
+        }
         >
-          {sorted.map((collection) => (
-            <Tr key={collection.id} id={`collections-table-row-${collection.id}`}>
-              <Td className="wrap-break-word max-w-[15rem] text-gray-800">{collection.name}</Td>
-              <Td className="wrap-break-word max-w-[25rem]">{collectionProjectName(collection)}</Td>
-              <Td className="wrap-break-word max-w-[25rem]">{formatBytes(collection.byteSizeSum)}</Td>
-              <Td>
-                <div className="text-right">
-                  <Button theme="secondary" size="xs" onClick={() => onEdit(collection)}>Edit</Button>
-                  <Button theme="secondary" size="xs" onClick={() => onDelete(collection)}>Delete</Button>
-                </div>
-              </Td>
-            </Tr>
-          ))}
-        </Table>
-      </div>
+        {sorted.map((collection) => (
+          <Tr key={collection.id} id={`collections-table-row-${collection.id}`}>
+            <Td className="max-w-60 wrap-break-word text-gray-800">{collection.name}</Td>
+            <Td className="max-w-100 wrap-break-word">{collectionProjectName(collection)}</Td>
+            <Td className="max-w-100 wrap-break-word">{formatBytes(collection.byteSizeSum)}</Td>
+            <Td className="text-right">
+              <Button theme="secondary" size="xs" onClick={() => onEdit(collection)}>
+                Edit
+              </Button>
+              <Button theme="secondary" size="xs" onClick={() => onDelete(collection)}>
+                Delete
+              </Button>
+            </Td>
+          </Tr>
+        ))}
+      </Table>
     </>
   );
 }

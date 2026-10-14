@@ -1,7 +1,9 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import Modal from "../Modal";
 import Button from "../Button";
 import Alert from "../Alert";
+import Card from "../Card";
+import Heading from "../Heading";
 import IconButton from "../IconButton";
 import InfoTooltip from "../InfoTooltip";
 import { Checkbox, Radio, TextArea, TextInput } from "../Inputs";
@@ -175,147 +177,119 @@ export default function CredentialFormModal({
         </>
       }
     >
-      <div>
-        {schema === "oauth" && !client && (
-          <Alert type="danger" header="OAuth client not found" className="mb-4">
-            <p>The associated Oauth client for this credential cannot be found. Create a new client or contact your administrator.</p>
-          </Alert>
-        )}
-        <form id={`credential-form-${credential?.id ?? "new"}`} className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-          <FormSection title="Credential identity" description="Basic information that applies to all environments">
-            <TextInput id="credential-name" label="Credential Name" required value={name} onChange={(e) => setName(e.target.value)} />
-            <TextInput
-              id="credential-external-id"
-              label="External ID"
-              hint="Optional identifier for external systems"
-              value={externalId}
-              onChange={(e) => setExternalId(e.target.value)}
-            />
-          </FormSection>
+      {schema === "oauth" && !client && (
+        <Alert type="danger" header="OAuth client not found" className="mb-4">
+          <p>The associated Oauth client for this credential cannot be found. Create a new client or contact your administrator.</p>
+        </Alert>
+      )}
+      <form id={`credential-form-${credential?.id ?? "new"}`} className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+        <Card as="section" title="Credential identity" description="Basic information that applies to all environments">
+          <TextInput id="credential-name" label="Credential Name" required value={name} onChange={(e) => setName(e.target.value)} />
+          <TextInput
+            id="credential-external-id"
+            label="External ID"
+            hint="Optional identifier for external systems"
+            value={externalId}
+            onChange={(e) => setExternalId(e.target.value)}
+          />
+        </Card>
 
-          <FormSection
-            title="Credential environments"
-            description="Different credential values for each environment (dev, staging, production, etc.)"
-          >
-            <Tabs
-              label="Environments"
-              tabs={envs.map((e, i) => ({ id: String(i), label: e.name }))}
-              active={String(tab)}
-              onChange={(id) => setTab(Number(id))}
-              after={
-                <IconButton
-                  id="add-environment-button"
-                  icon="hero-plus"
-                  label={envs.length >= MAX_ENVIRONMENTS ? "Maximum of 5 environments reached" : "Add new environment"}
-                  disabled={envs.length >= MAX_ENVIRONMENTS}
-                  onClick={() => {
-                    setEnvs((list) => [...list, { name: `env${list.length + 1}`, body: {} }]);
-                    setTab(envs.length);
-                  }}
-                />
+        <Card
+          as="section"
+          title="Credential environments"
+          description="Different credential values for each environment (dev, staging, production, etc.)"
+        >
+          <Tabs
+            label="Environments"
+            tabs={envs.map((e, i) => ({ id: String(i), label: e.name }))}
+            active={String(tab)}
+            onChange={(id) => setTab(Number(id))}
+            after={
+              <IconButton
+                id="add-environment-button"
+                icon="hero-plus"
+                label={envs.length >= MAX_ENVIRONMENTS ? "Maximum of 5 environments reached" : "Add new environment"}
+                disabled={envs.length >= MAX_ENVIRONMENTS}
+                onClick={() => {
+                  setEnvs((list) => [...list, { name: `env${list.length + 1}`, body: {} }]);
+                  setTab(envs.length);
+                }}
+              />
+            }
+          />
+          <div className="space-y-6">
+            <TextInput
+              id="environment-name-input"
+              label={
+                <>
+                  Environment name<span className="text-red-500"> *</span>
+                  <InfoTooltip title={environmentTooltip} />
+                </>
+              }
+              placeholder="e.g., production, staging, development, test, qa"
+              value={env.name}
+              errors={env.name.trim() ? [] : ["can't be blank"]}
+              onChange={(e) =>
+                setEnvs((list) => list.map((x, i) => (i === tab ? { ...x, name: e.target.value } : x)))
               }
             />
-            <div>
-              <div className="mb-6">
-                <TextInput
-                  id="environment-name-input"
-                  label={
-                    <>
-                      Environment name<span className="text-red-500"> *</span>
-                      <InfoTooltip title={environmentTooltip} />
-                    </>
-                  }
-                  placeholder="e.g., production, staging, development, test, qa"
-                  value={env.name}
-                  errors={env.name.trim() ? [] : ["can't be blank"]}
-                  onChange={(e) =>
-                    setEnvs((list) => list.map((x, i) => (i === tab ? { ...x, name: e.target.value } : x)))
-                  }
-                />
-              </div>
-              {schema === "oauth" ? (
-                <OauthFields client={client} authorized={authorized} onAuthorize={() => setAuthorized(true)} />
-              ) : schema === "raw" ? (
-                <fieldset>
-                  <TextArea
-                    id="credential-body-raw"
-                    label="Credential Body"
-                    required
-                    rows={8}
-                    className="font-mono"
-                    value={env.body.raw ?? ""}
-                    onChange={(e) => setBody("raw", e.target.value)}
-                  />
-                </fieldset>
-              ) : (
-                <fieldset className="space-y-6">
-                  {fields.map((f) =>
-                    f.secret ? (
-                      <PasswordInput
-                        key={`${tab}-${f.key}`}
-                        id={`credential-body-${f.key}`}
-                        label={f.label}
-                        required={f.required}
-                        value={env.body[f.key] ?? ""}
-                        onChange={(e) => setBody(f.key, e.target.value)}
-                      />
-                    ) : (
-                      <TextInput
-                        key={`${tab}-${f.key}`}
-                        id={`credential-body-${f.key}`}
-                        label={f.label}
-                        required={f.required}
-                        value={env.body[f.key] ?? ""}
-                        onChange={(e) => setBody(f.key, e.target.value)}
-                      />
-                    )
-                  )}
-                </fieldset>
-              )}
-            </div>
-            {envs.length > 1 && (
-              <div className="border-t border-gray-200 pt-4">
-                <Button
-                  theme="secondary"
-                  size="sm"
-                  onClick={() => {
-                    if (!window.confirm(`Are you sure you want to delete the ${env.name} environment?`)) return;
-                    setEnvs((list) => list.filter((_, i) => i !== tab));
-                    setTab(0);
-                  }}
-                >
-                  <span className="hero-trash h-4 w-4" />
-                  Delete environment
-                </Button>
-              </div>
+            {schema === "oauth" ? (
+              <OauthFields client={client} authorized={authorized} onAuthorize={() => setAuthorized(true)} />
+            ) : schema === "raw" ? (
+              <TextArea
+                id="credential-body-raw"
+                label="Credential Body"
+                required
+                rows={8}
+                className="font-mono"
+                value={env.body.raw ?? ""}
+                onChange={(e) => setBody("raw", e.target.value)}
+              />
+            ) : (
+              <fieldset className="space-y-6">
+                {fields.map((f) => {
+                  const Input = f.secret ? PasswordInput : TextInput;
+                  return (
+                    <Input
+                      key={`${tab}-${f.key}`}
+                      id={`credential-body-${f.key}`}
+                      label={f.label}
+                      required={f.required}
+                      value={env.body[f.key] ?? ""}
+                      onChange={(e) => setBody(f.key, e.target.value)}
+                    />
+                  );
+                })}
+              </fieldset>
             )}
-          </FormSection>
+          </div>
+          {envs.length > 1 && (
+            <Button
+              theme="secondary"
+              size="sm"
+              onClick={() => {
+                if (!window.confirm(`Are you sure you want to delete the ${env.name} environment?`)) return;
+                setEnvs((list) => list.filter((_, i) => i !== tab));
+                setTab(0);
+              }}
+            >
+              <span className="hero-trash h-4 w-4" />
+              Delete environment
+            </Button>
+          )}
+        </Card>
 
-          <FormSection title="Projects access" description="Select projects that can use this credential">
-            <ProjectsPicker
-              id={credential?.id ?? "new"}
-              type="credential"
-              projects={projects}
-              selectedIds={projectIds}
-              onChange={setProjectIds}
-            />
-          </FormSection>
-        </form>
-      </div>
+        <Card as="section" title="Projects access" description="Select projects that can use this credential">
+          <ProjectsPicker
+            id={credential?.id ?? "new"}
+            type="credential"
+            projects={projects}
+            selectedIds={projectIds}
+            onChange={setProjectIds}
+          />
+        </Card>
+      </form>
     </Modal>
-  );
-}
-
-/** A bordered group of fields with a heading and a line of explanation. */
-function FormSection({ title, description, children }: { title: string; description: string; children: ReactNode }) {
-  return (
-    <section className="space-y-4 rounded-md border border-gray-200 p-4">
-      <div>
-        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-        <p className="mt-1 text-xs text-gray-500">{description}</p>
-      </div>
-      {children}
-    </section>
   );
 }
 
@@ -333,22 +307,19 @@ function OauthFields({
   return (
     <div className="space-y-4">
       {scopes.length > 0 && (
-        <div className="mt-5">
-          <h3 className="leading-6 text-gray-800 pb-2 mb-2">
-            <div className="flex flex-row text-sm font-semibold">
-              Select permissions
-              <InfoTooltip title="Select permissions associated to your OAuth2 Token" />
-            </div>
-            {client?.scopesDocUrl && (
-              <div className="flex flex-row text-xs mt-1">
-                Learn more about {client.name} permissions
-                &nbsp;
-                <TextLink to={client.scopesDocUrl} external>
-                  here
-                </TextLink>
-              </div>
-            )}
-          </h3>
+        <div className="space-y-2">
+          <Heading size="sm">
+            Select permissions
+            <InfoTooltip title="Select permissions associated to your OAuth2 Token" />
+          </Heading>
+          {client?.scopesDocUrl && (
+            <p className="text-xs text-gray-800">
+              Learn more about {client.name} permissions{" "}
+              <TextLink to={client.scopesDocUrl} external>
+                here
+              </TextLink>
+            </p>
+          )}
           <div className="flex flex-wrap gap-x-6 gap-y-1">
             {scopes.map((s) => (
               <Checkbox
@@ -361,27 +332,25 @@ function OauthFields({
           </div>
         </div>
       )}
-      <div className="mb-6 space-y-4">
-        {authorized ? (
-          <>
-            <Alert type="info">
-              Successfully authenticated with {client?.name}. Your credential seems ready to use, but we couldn't fetch
-              your user info to verify. This app may not provide a user info endpoint, or your admin may not have
-              configured it.
-            </Alert>
-            <div className="text-sm text-gray-600">
-              If your credential isn't working as expected, you can{" "}
-              <TextLink>reauthenticate with {client?.name}</TextLink>
-            </div>
-          </>
-        ) : (
-          client && (
-            <Button id="authorize-button" onClick={onAuthorize}>
-              <span className="text-normal">Sign in with {client.name}</span>
-            </Button>
-          )
-        )}
-      </div>
+      {authorized ? (
+        <>
+          <Alert type="info">
+            Successfully authenticated with {client?.name}. Your credential seems ready to use, but we couldn't fetch
+            your user info to verify. This app may not provide a user info endpoint, or your admin may not have
+            configured it.
+          </Alert>
+          <p className="text-sm text-gray-600">
+            If your credential isn't working as expected, you can{" "}
+            <TextLink>reauthenticate with {client?.name}</TextLink>
+          </p>
+        </>
+      ) : (
+        client && (
+          <Button id="authorize-button" onClick={onAuthorize}>
+            Sign in with {client.name}
+          </Button>
+        )
+      )}
     </div>
   );
 }

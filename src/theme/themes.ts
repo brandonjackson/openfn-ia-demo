@@ -24,7 +24,7 @@ export interface ThemeMeta {
 export const THEMES: ThemeMeta[] = [
   {
     id: "default",
-    name: "Sim DTU",
+    name: "Basic",
     description: "The original product UI — indigo & blue on cool grays.",
     mode: "light",
     swatches: ["#4f46e5", "#2563eb", "#111827", "#f9fafb"],

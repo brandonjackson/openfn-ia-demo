@@ -21,7 +21,7 @@
  */
 
 /* ============================================================== */
-/* Base defaults (theme = "default" / "Sim DTU" — the original UI) */
+/* Base defaults (theme = "default" / "Basic" — the original UI) */
 /* ============================================================== */
 :root {
   /* Font stack used by the original design. Body reads var(--font-sans). */

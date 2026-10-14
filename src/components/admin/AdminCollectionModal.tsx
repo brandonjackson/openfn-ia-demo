@@ -47,7 +47,7 @@ export default function AdminCollectionModal({ collection, onCancel, onSave }: P
             <TextInput
               id="collection_raw_name"
               label="Name"
-              sublabel="Collection names must be unique across all projects within this instance. They are used in URLs and as titles, so duplicates are not allowed."
+              hint="Collection names must be unique across all projects within this instance. They are used in URLs and as titles, so duplicates are not allowed."
               required
               value={rawName}
               onChange={(e) => setRawName(e.target.value)}

@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import MenuItem from "./MenuItem";
+import NavItem from "./NavItem";
 import { withRouter } from "../stories/decorators";
 
-const meta: Meta<typeof MenuItem> = {
-  title: "Shell/MenuItem",
-  component: MenuItem,
+const meta: Meta<typeof NavItem> = {
+  title: "Shell/NavItem",
+  component: NavItem,
   decorators: [
     withRouter,
     (Story) => (
@@ -16,7 +16,7 @@ const meta: Meta<typeof MenuItem> = {
   args: { to: "/projects", icon: "hero-square-3-stack-3d", label: "Workflows" },
 };
 export default meta;
-type Story = StoryObj<typeof MenuItem>;
+type Story = StoryObj<typeof NavItem>;
 
 export const Inactive: Story = {};
 export const Active: Story = { args: { active: true } };

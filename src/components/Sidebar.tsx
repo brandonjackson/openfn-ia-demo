@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { cn } from "../utils/cn";
 import { currentUser, instanceAdminEmail, releaseLabel } from "../mock-data/users";
 import type { Project } from "../mock-data/projects";
-import MenuItem from "./MenuItem";
+import NavItem from "./NavItem";
 import UserMenu from "./UserMenu";
 import { OpenFnLogo, OpenFnLogoCollapsed } from "./OpenFnLogo";
 
@@ -27,23 +27,23 @@ function ProjectItems({ project }: { project: Project }) {
   const base = `/projects/${project.id}`;
   return (
     <>
-      <MenuItem to={`${base}/w`} icon="hero-square-3-stack-3d" label="Workflows" active={isAt(pathname, `${base}/w`)} />
+      <NavItem to={`${base}/w`} icon="hero-square-3-stack-3d" label="Workflows" active={isAt(pathname, `${base}/w`)} />
       {currentUser.experimentalFeatures && (
-        <MenuItem
+        <NavItem
           to={`${base}/channels`}
           icon="hero-arrows-right-left"
           label="Channels"
           active={isAt(pathname, `${base}/channels`)}
         />
       )}
-      <MenuItem to={`${base}/sandboxes`} icon="hero-beaker" label="Sandboxes" active={isAt(pathname, `${base}/sandboxes`)} />
-      <MenuItem
+      <NavItem to={`${base}/sandboxes`} icon="hero-beaker" label="Sandboxes" active={isAt(pathname, `${base}/sandboxes`)} />
+      <NavItem
         to={`${base}/history`}
         icon="hero-rectangle-stack"
         label="History"
         active={["history", "runs", "dataclips"].some((s) => isAt(pathname, `${base}/${s}`))}
       />
-      <MenuItem to={`${base}/settings`} icon="hero-cog-8-tooth" label="Settings" active={isAt(pathname, `${base}/settings`)} />
+      <NavItem to={`${base}/settings`} icon="hero-cog-8-tooth" label="Settings" active={isAt(pathname, `${base}/settings`)} />
     </>
   );
 }
@@ -52,10 +52,10 @@ function ProfileItems() {
   const { pathname } = useLocation();
   return (
     <>
-      <MenuItem to="/projects" icon="hero-folder" label="Projects" active={pathname === "/projects"} />
-      <MenuItem to="/profile" icon="hero-user-circle" label="User Profile" active={pathname === "/profile"} />
-      <MenuItem to="/credentials" icon="hero-key" label="Credentials" active={isAt(pathname, "/credentials")} />
-      <MenuItem to="/profile/tokens" icon="hero-command-line" label="API Tokens" active={isAt(pathname, "/profile/tokens")} />
+      <NavItem to="/projects" icon="hero-folder" label="Projects" active={pathname === "/projects"} />
+      <NavItem to="/profile" icon="hero-user-circle" label="User Profile" active={pathname === "/profile"} />
+      <NavItem to="/credentials" icon="hero-key" label="Credentials" active={isAt(pathname, "/credentials")} />
+      <NavItem to="/profile/tokens" icon="hero-command-line" label="API Tokens" active={isAt(pathname, "/profile/tokens")} />
     </>
   );
 }
@@ -65,29 +65,29 @@ function AdminItems() {
   return (
     <>
       <div className="mt-4" />
-      <MenuItem to="/settings/projects" icon="hero-building-library" label="Projects" active={isAt(pathname, "/settings/projects")} />
-      <MenuItem to="/settings/users" icon="hero-user-group" label="Users" active={isAt(pathname, "/settings/users")} />
-      <MenuItem
+      <NavItem to="/settings/projects" icon="hero-building-library" label="Projects" active={isAt(pathname, "/settings/projects")} />
+      <NavItem to="/settings/users" icon="hero-user-group" label="Users" active={isAt(pathname, "/settings/users")} />
+      <NavItem
         to="/settings/authentication/new"
         icon="hero-key"
         label="Authentication"
         active={isAt(pathname, "/settings/authentication")}
       />
-      <MenuItem to="/settings/audit" icon="hero-archive-box" label="Audit" active={isAt(pathname, "/settings/audit")} />
-      <MenuItem
+      <NavItem to="/settings/audit" icon="hero-archive-box" label="Audit" active={isAt(pathname, "/settings/audit")} />
+      <NavItem
         to="/settings/collections"
         icon="hero-circle-stack"
         label="Collections"
         active={isAt(pathname, "/settings/collections")}
       />
-      <MenuItem
+      <NavItem
         to="/settings/maintenance"
         icon="hero-wrench-screwdriver"
         label="Maintenance"
         active={isAt(pathname, "/settings/maintenance")}
       />
       <div className="grow" />
-      <MenuItem to="/projects" icon="hero-arrow-left" label="Back" />
+      <NavItem to="/projects" icon="hero-arrow-left" label="Back" />
     </>
   );
 }
@@ -97,16 +97,16 @@ function FooterItems() {
   if (currentUser.role === "superuser") {
     return (
       <>
-        <MenuItem to="/settings/projects" icon="hero-cog-6-tooth" label="Admin Menu" />
-        <MenuItem to="/dashboard" icon="hero-exclamation-triangle" label="Sys Info" />
+        <NavItem to="/settings/projects" icon="hero-cog-6-tooth" label="Admin Menu" />
+        <NavItem to="/dashboard" icon="hero-exclamation-triangle" label="Sys Info" />
       </>
     );
   }
   return (
     <>
-      <MenuItem href="https://docs.openfn.org" icon="hero-book-open-mini" label="Documentation" />
-      <MenuItem href="https://community.openfn.org" icon="hero-user-group-mini" label="Community" />
-      <MenuItem
+      <NavItem href="https://docs.openfn.org" icon="hero-book-open-mini" label="Documentation" />
+      <NavItem href="https://community.openfn.org" icon="hero-user-group-mini" label="Community" />
+      <NavItem
         href={`mailto:${instanceAdminEmail}`}
         target="_self"
         icon="hero-lifebuoy-mini"

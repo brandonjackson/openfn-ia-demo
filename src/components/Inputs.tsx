@@ -2,8 +2,9 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTML
 import { cn } from "../utils/cn";
 
 /**
- * Lightning's form inputs (components/new_inputs.ex `input`, `label`,
- * `error`), styled by @tailwindcss/forms plus Lightning's classes.
+ * Form controls. Every control shares one look (`controlClasses`) and sits
+ * in a `Field`, which handles the label, hint and errors. Wrap a custom
+ * control in `Field` to give it the same frame.
  */
 
 export function Label({ htmlFor, className, children }: { htmlFor?: string; className?: string; children: ReactNode }) {
@@ -23,56 +24,39 @@ export function FieldError({ children }: { children: ReactNode }) {
   );
 }
 
+/** The shared look of text inputs, textareas and selects. */
+export function controlClasses(hasErrors = false, className?: string) {
+  return cn(
+    "block w-full rounded-lg bg-white text-slate-900 sm:text-sm sm:leading-6",
+    "focus:ring-0 focus:outline-2 focus:outline-offset-1",
+    "disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500",
+    hasErrors
+      ? "border-danger-400 focus:border-danger-400 focus:outline-danger-400"
+      : "border-slate-300 focus:border-slate-400 focus:outline-primary-600",
+    className
+  );
+}
+
 interface FieldProps {
   label?: ReactNode;
   required?: boolean;
-  /** Helper text under the label. */
-  sublabel?: ReactNode;
+  /** Help text between the label and the control. */
+  hint?: ReactNode;
   errors?: string[];
 }
 
-function FieldLabel({ id, label, required, sublabel }: FieldProps & { id?: string }) {
-  if (!label) return null;
+/** A label, optional hint, a control and its errors. */
+export function Field({ id, label, required, hint, errors = [], className, children }: FieldProps & { id?: string; className?: string; children: ReactNode }) {
   return (
-    <>
-      <Label htmlFor={id} className="mb-2">
-        {label}
-        {required && <span className="text-red-500"> *</span>}
-      </Label>
-      {sublabel && <small className="mb-2 block text-xs text-gray-600">{sublabel}</small>}
-    </>
-  );
-}
-
-export function TextInput({
-  label,
-  required,
-  sublabel,
-  errors = [],
-  className,
-  id,
-  ...rest
-}: FieldProps & InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <div>
-      <FieldLabel id={id} label={label} required={required} sublabel={sublabel} />
-      <div>
-        <input
-          id={id}
-          type="text"
-          autoComplete="off"
-          required={required}
-          className={cn(
-            "focus:outline focus:outline-2 focus:outline-offset-1 block w-full rounded-lg text-slate-900 focus:ring-0 sm:text-sm sm:leading-6",
-            "disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500",
-            errors.length === 0
-              ? "border-slate-300 focus:border-slate-400 focus:outline-primary-600"
-              : "border-danger-400 focus:border-danger-400 focus:outline-danger-400",
-            className
-          )}
-          {...rest}
-        />
-      </div>
+    <div className={className}>
+      {label && (
+        <Label htmlFor={id} className="mb-2 block">
+          {label}
+          {required && <span className="text-red-500"> *</span>}
+        </Label>
+      )}
+      {hint && <small className="mb-2 block text-xs text-gray-600">{hint}</small>}
+      {children}
       {errors.map((e) => (
         <FieldError key={e}>{e}</FieldError>
       ))}
@@ -80,74 +64,48 @@ export function TextInput({
   );
 }
 
-export function TextArea({
-  label,
-  required,
-  sublabel,
-  errors = [],
-  className,
-  id,
-  ...rest
-}: FieldProps & TextareaHTMLAttributes<HTMLTextAreaElement>) {
+export function TextInput({ label, required, hint, errors = [], className, id, ...rest }: FieldProps & InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <div>
-      <FieldLabel id={id} label={label} required={required} sublabel={sublabel} />
-      <textarea
-        id={id}
-        required={required}
-        className={cn(
-          "focus:outline focus:outline-2 focus:outline-offset-1 rounded-md shadow-xs text-sm block w-full focus:ring-0 sm:text-sm sm:leading-6 overflow-y-auto",
-          errors.length === 0
-            ? "border-slate-300 focus:border-slate-400 focus:outline-primary-600"
-            : "border-danger-400 focus:border-danger-400 focus:outline-danger-400",
-          className
-        )}
-        {...rest}
-      />
-      {errors.map((e) => (
-        <FieldError key={e}>{e}</FieldError>
-      ))}
-    </div>
+    <Field id={id} label={label} required={required} hint={hint} errors={errors}>
+      <input id={id} type="text" autoComplete="off" required={required} className={controlClasses(errors.length > 0, className)} {...rest} />
+    </Field>
   );
+}
+
+export function TextArea({ label, required, hint, errors = [], className, id, ...rest }: FieldProps & TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <Field id={id} label={label} required={required} hint={hint} errors={errors}>
+      <textarea id={id} required={required} className={controlClasses(errors.length > 0, cn("overflow-y-auto", className))} {...rest} />
+    </Field>
+  );
+}
+
+/** An option as a plain string, a `[label, value]` pair or an object. */
+export type SelectOption = string | [label: string, value: string] | { label: string; value: string };
+
+function optionParts(o: SelectOption): [string, string] {
+  if (typeof o === "string") return [o, o];
+  if (Array.isArray(o)) return o;
+  return [o.label, o.value];
 }
 
 export function Select({
   label,
   required,
-  sublabel,
+  hint,
   errors = [],
   options,
   prompt,
   className,
   id,
   ...rest
-}: FieldProps &
-  SelectHTMLAttributes<HTMLSelectElement> & {
-    options: (string | [label: string, value: string])[];
-    prompt?: string;
-  }) {
+}: FieldProps & SelectHTMLAttributes<HTMLSelectElement> & { options: SelectOption[]; prompt?: string }) {
   return (
-    <div>
-      {label && (
-        <Label htmlFor={id} className="mb-2">
-          {label}
-          {required && <span className="text-red-500"> *</span>}
-        </Label>
-      )}
-      {sublabel && <small className="mb-2 block text-xs text-gray-600">{sublabel}</small>}
-      <select
-        id={id}
-        required={required}
-        className={cn(
-          "block w-full rounded-lg border border-secondary-300 bg-white sm:text-sm shadow-xs",
-          "focus:border-primary-300 focus:ring focus:ring-primary-200/50 disabled:cursor-not-allowed",
-          className
-        )}
-        {...rest}
-      >
+    <Field id={id} label={label} required={required} hint={hint} errors={errors}>
+      <select id={id} required={required} className={controlClasses(errors.length > 0, className)} {...rest}>
         {prompt && <option value="">{prompt}</option>}
         {options.map((o) => {
-          const [l, v] = typeof o === "string" ? [o, o] : o;
+          const [l, v] = optionParts(o);
           return (
             <option key={v} value={v}>
               {l}
@@ -155,29 +113,30 @@ export function Select({
           );
         })}
       </select>
-      {errors.map((e) => (
-        <FieldError key={e}>{e}</FieldError>
-      ))}
-    </div>
+    </Field>
   );
 }
 
-export function Checkbox({
-  label,
-  className,
-  ...rest
-}: { label: ReactNode } & Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
+const choiceClasses = "h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-600 transition duration-200 cursor-pointer disabled:cursor-not-allowed";
+
+/** A checkbox with its label to the right. */
+export function Checkbox({ label, hint, className, ...rest }: { label: ReactNode; hint?: ReactNode } & Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
+  return <Choice type="checkbox" label={label} hint={hint} className={cn("rounded", className)} {...rest} />;
+}
+
+/** A radio button with its label to the right. Group them with the same `name`. */
+export function Radio({ label, hint, className, ...rest }: { label: ReactNode; hint?: ReactNode } & Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
+  return <Choice type="radio" label={label} hint={hint} className={className} {...rest} />;
+}
+
+function Choice({ label, hint, className, ...rest }: { label: ReactNode; hint?: ReactNode } & InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <label className="flex items-center gap-2 text-sm leading-6 text-slate-600">
-      <input
-        type="checkbox"
-        className={cn(
-          "rounded border-gray-300 text-primary-600 focus:ring-primary-600 transition duration-200 cursor-pointer",
-          className
-        )}
-        {...rest}
-      />
-      {label}
+    <label className={cn("flex gap-2 text-sm leading-6 text-slate-700", hint ? "items-start" : "items-center")}>
+      <input className={cn(choiceClasses, hint && "mt-1", className)} {...rest} />
+      <span>
+        {label}
+        {hint && <span className="block text-xs text-gray-500">{hint}</span>}
+      </span>
     </label>
   );
 }

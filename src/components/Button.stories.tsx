@@ -20,3 +20,4 @@ export const Disabled: Story = { args: { disabled: true, tooltip: "You don't hav
 export const Small: Story = { args: { size: "sm", children: "Run" } };
 export const Large: Story = { args: { size: "lg", children: "Create project" } };
 export const AsLink: Story = { args: { to: "/projects", children: "Projects" } };
+export const AsExternalLink: Story = { args: { href: "https://docs.openfn.org", children: "Docs" } };

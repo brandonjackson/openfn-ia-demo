@@ -1,16 +1,50 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Checkbox, Select, TextArea, TextInput } from "./Inputs";
+import { Checkbox, Field, Radio, Select, TextArea, TextInput, controlClasses } from "./Inputs";
 
 const meta: Meta = { title: "Shared/Inputs" };
 export default meta;
 type Story = StoryObj;
 
 export const Text: Story = { render: () => <TextInput id="email" label="Email" required placeholder="you@example.org" /> };
+export const TextWithHint: Story = {
+  render: () => <TextInput id="name" label="Name" hint="Lowercase letters, numbers and dashes." placeholder="my-project" />,
+};
 export const TextWithError: Story = {
   render: () => <TextInput id="name" label="Name" defaultValue="" errors={["can't be blank"]} />,
 };
+export const Disabled: Story = { render: () => <TextInput id="id" label="Project ID" value="4adf2644" disabled readOnly /> };
 export const Area: Story = { render: () => <TextArea id="desc" label="Description" rows={3} /> };
 export const Dropdown: Story = {
   render: () => <Select id="role" label="Role" options={["viewer", "editor", "admin", "owner"]} prompt="Choose a role" />,
 };
+export const DropdownWithObjects: Story = {
+  render: () => (
+    <Select
+      id="adaptor"
+      label="Adaptor"
+      options={[
+        { label: "HTTP", value: "@openfn/language-http" },
+        { label: "DHIS2", value: "@openfn/language-dhis2" },
+      ]}
+    />
+  ),
+};
 export const Check: Story = { render: () => <Checkbox label="Remember me" defaultChecked /> };
+export const CheckWithHint: Story = {
+  render: () => <Checkbox label="Require MFA" hint="Collaborators must set up two-factor authentication." />,
+};
+export const Radios: Story = {
+  render: () => (
+    <div className="space-y-2">
+      <Radio name="auth" label="Basic" defaultChecked />
+      <Radio name="auth" label="API key" />
+    </div>
+  ),
+};
+export const CustomControlInField: Story = {
+  render: () => (
+    <Field id="when" label="Run after" hint="Pick a date and time.">
+      <input id="when" type="datetime-local" className={controlClasses()} />
+    </Field>
+  ),
+};

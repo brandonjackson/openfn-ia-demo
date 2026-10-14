@@ -1,69 +1,83 @@
-import { useEffect, type ReactNode } from "react";
+import { Description, Dialog, DialogBackdrop, DialogPanel, DialogTitle } from "@headlessui/react";
+import type { ReactNode } from "react";
 import { cn } from "../utils/cn";
+import IconButton from "./IconButton";
+
+export type ModalSize = "sm" | "md" | "lg" | "xl" | "2xl";
+
+const sizes: Record<ModalSize, string> = {
+  sm: "max-w-md",
+  md: "max-w-lg",
+  lg: "max-w-xl",
+  xl: "max-w-3xl",
+  "2xl": "max-w-5xl",
+};
 
 interface Props {
   open: boolean;
   onClose: () => void;
   title?: ReactNode;
-  subtitle?: ReactNode;
+  /** A line under the title. */
+  description?: ReactNode;
   children: ReactNode;
-  /** Buttons, right-aligned (primary first: the row is reversed, as in Lightning). */
+  /** Buttons, right-aligned. The row is reversed, so put the primary action first. */
   footer?: ReactNode;
-  /** Tailwind max-width class for the panel. */
-  width?: string;
+  size?: ModalSize;
+  /**
+   * Render only the panel, with no header, padding or footer, for modals
+   * that lay out their own content (pickers, browsers, wizards).
+   */
+  bare?: boolean;
+  className?: string;
 }
 
 /**
- * Lightning's modal (live/components/modal.ex): blurred backdrop, white
- * rounded-xl panel, title + subtitle, a divider, body, and a footer row.
- * Escape and clicking outside close it.
+ * The modal: a blurred backdrop and a white rounded-xl panel with a title,
+ * optional description, body and footer. Escape and clicking outside close
+ * it; focus is trapped inside while it's open.
  */
-export default function Modal({ open, onClose, title, subtitle, children, footer, width = "max-w-xl" }: Props) {
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  if (!open) return null;
+export default function Modal({ open, onClose, title, description, children, footer, size = "lg", bare = false, className }: Props) {
   return (
-    <div className="fixed inset-0 z-50">
-      <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-xs transition-opacity" aria-hidden="true" />
-      <div className="fixed inset-0 overflow-y-auto sm:py-2" role="dialog" aria-modal="true" onClick={onClose}>
-        <div className="flex flex-col min-h-full items-center justify-center">
-          <div className={cn("w-full", width)} onClick={(e) => e.stopPropagation()}>
-            <div className="relative rounded-xl transition bg-white py-[24px] shadow-lg shadow-zinc-700/10 ring-1 ring-zinc-700/10">
-              {title && (
-                <>
-                  <header className="px-[24px] flex items-start justify-between gap-4">
-                    <div>
-                      <h1 className="text-lg font-semibold leading-5 text-zinc-800">{title}</h1>
-                      {subtitle && <p className="mt-2 text-sm leading-4.5 text-zinc-600">{subtitle}</p>}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={onClose}
-                      aria-label="Close"
-                      className="text-gray-400 hover:text-gray-500 cursor-pointer"
-                    >
-                      <span className="hero-x-mark h-5 w-5" />
-                    </button>
-                  </header>
-                  <div className="flex-grow bg-gray-100 h-0.5 my-[16px]" />
-                </>
-              )}
-              <section className="px-[24px]">{children}</section>
-              {footer && (
-                <>
-                  <div className="mt-[16px]" />
-                  <footer className="px-[24px] sm:flex sm:flex-row-reverse gap-3">{footer}</footer>
-                </>
-              )}
-            </div>
-          </div>
+    <Dialog open={open} onClose={onClose} className="relative z-50" data-ui="modal">
+      <DialogBackdrop
+        transition
+        className="fixed inset-0 bg-gray-900/60 backdrop-blur-xs transition-opacity duration-200 ease-out data-closed:opacity-0"
+      />
+      <div className="fixed inset-0 overflow-y-auto">
+        <div className="flex min-h-full items-center justify-center p-4">
+          <DialogPanel
+            transition
+            className={cn(
+              "relative w-full rounded-xl bg-white text-left shadow-lg shadow-zinc-700/10 ring-1 ring-zinc-700/10",
+              "transition duration-200 ease-out data-closed:translate-y-2 data-closed:opacity-0",
+              !bare && "py-6",
+              sizes[size],
+              className
+            )}
+          >
+            {bare ? (
+              children
+            ) : (
+              <>
+                {title && (
+                  <>
+                    <header className="flex items-start justify-between gap-4 px-6">
+                      <div>
+                        <DialogTitle className="text-lg font-semibold leading-5 text-zinc-800">{title}</DialogTitle>
+                        {description && <Description className="mt-2 text-sm text-zinc-600">{description}</Description>}
+                      </div>
+                      <IconButton icon="hero-x-mark" label="Close" size="sm" className="-m-0.5 p-0.5" onClick={onClose} />
+                    </header>
+                    <div className="my-4 h-0.5 bg-gray-100" />
+                  </>
+                )}
+                <section className="px-6">{children}</section>
+                {footer && <footer className="mt-4 flex flex-col-reverse gap-3 px-6 sm:flex-row-reverse">{footer}</footer>}
+              </>
+            )}
+          </DialogPanel>
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 }

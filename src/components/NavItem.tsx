@@ -16,10 +16,10 @@ interface Props {
 }
 
 /**
- * One row of the side menu (Lightning's `Menu.menu_item`): h-10, rounded-lg,
+ * One link in the sidebar (Lightning's `Menu.menu_item`): h-10, rounded-lg,
  * text-sm font-medium, primary-300 text with primary-900 behind the active row.
  */
-export default function MenuItem({ to, href, target = "_blank", icon, label, active = false, title }: Props) {
+export default function NavItem({ to, href, target = "_blank", icon, label, active = false, title }: Props) {
   const className = cn(
     "menu-item h-10 rounded-lg text-sm font-medium flex items-center transition-colors duration-150",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30",

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import AuthPanelLayout from "../../components/auth/AuthPanelLayout";
-import Alert from "../../components/auth/Alert";
+import Alert from "../../components/Alert";
 import PasswordInput from "../../components/auth/PasswordInput";
 import TextLink from "../../components/TextLink";
 import Button from "../../components/Button";

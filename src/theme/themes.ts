@@ -7,7 +7,7 @@
  * therefore two steps: a token block in `theme.css` and an entry here.
  */
 
-export type ThemeId = "default" | "openfn" | "openfn-dark" | "brutalist";
+export type ThemeId = "default" | "gds";
 
 export interface ThemeMeta {
   id: ThemeId;
@@ -30,25 +30,11 @@ export const THEMES: ThemeMeta[] = [
     swatches: ["#4f46e5", "#2563eb", "#111827", "#f9fafb"],
   },
   {
-    id: "openfn",
-    name: "OpenFn",
-    description: "Electric Teal on warm neutrals. The OpenFn design system.",
+    id: "gds",
+    name: "GDS",
+    description: "GOV.UK design system: blue links, green buttons, square and flat.",
     mode: "light",
-    swatches: ["#00c9a7", "#0d9488", "#121212", "#f4faf9"],
-  },
-  {
-    id: "openfn-dark",
-    name: "OpenFn Dark",
-    description: "Teal-tinted neutral blacks with an electric teal accent.",
-    mode: "dark",
-    swatches: ["#00c9a7", "#80edd8", "#101a18", "#080e0d"],
-  },
-  {
-    id: "brutalist",
-    name: "Brutalist",
-    description: "Stark monospace, sharp corners, hard offset shadows.",
-    mode: "light",
-    swatches: ["#111111", "#d4001f", "#f5c518", "#ffffff"],
+    swatches: ["#1d70b8", "#00703c", "#0b0c0c", "#ffdd00"],
   },
 ];
 

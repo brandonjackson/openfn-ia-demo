@@ -33,9 +33,7 @@ const preview: Preview = {
         icon: "paintbrush",
         items: [
           { value: "default", title: "Basic (default)" },
-          { value: "openfn", title: "OpenFn" },
-          { value: "openfn-dark", title: "OpenFn Dark" },
-          { value: "brutalist", title: "Brutalist" },
+          { value: "gds", title: "GDS" },
         ],
         dynamicTitle: true,
       },

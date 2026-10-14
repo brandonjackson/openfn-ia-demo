@@ -1,213 +1,225 @@
-import { Link, useLocation } from "react-router-dom";
-import {
-  ChevronLeft,
-  LayoutDashboard,
-  Globe,
-  LibraryBig,
-  BookOpen,
-  Activity,
-  ChartColumn,
-  Clock,
-  Folder,
-  FolderKanban,
-  Layers,
-  Boxes,
-  Sparkles,
-  Rocket,
-  FlaskConical,
-  Archive,
-  Settings,
-  BookMarked,
-  LifeBuoy,
-} from "lucide-react";
-import { mainNavGroups, mainNavTree, openfnDocsUrl, supportTree } from "../ia-tree";
-import { projects, recentProjects } from "../mock-data/projects";
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { cn } from "../utils/cn";
+import { currentUser, instanceAdminEmail, releaseLabel } from "../mock-data/users";
 import type { Project } from "../mock-data/projects";
-import { currentInstance, currentUser } from "../mock-data/user";
-import SidebarLink from "./SidebarLink";
-import SidebarSection from "./SidebarSection";
-import AccountMenu from "./AccountMenu";
-import type { LucideIcon } from "lucide-react";
+import MenuItem from "./MenuItem";
+import UserMenu from "./UserMenu";
+import { OpenFnLogo, OpenFnLogoCollapsed } from "./OpenFnLogo";
 
-const navIcons: Record<string, LucideIcon> = {
-  overview: LayoutDashboard,
-  handbook: BookOpen,
-  "connected-systems": Globe,
-  "service-catalog": LibraryBig,
-  status: Activity,
-  insights: ChartColumn,
-  history: Clock,
-  projects: FolderKanban,
-};
+/** Which menu the side bar shows: the project's, your own pages, or the admin menu. */
+export type SidebarVariant = "project" | "profile" | "admin";
 
-interface ProjectSection {
-  id: string;
-  label: string;
-  icon: LucideIcon;
+interface Props {
+  variant: SidebarVariant;
+  /** Required for the project variant. */
+  project?: Project;
+  collapsed: boolean;
+  onToggle: () => void;
 }
 
-/**
- * The in-project nav, grouped like the instance-level sidebar: Overview on its
- * own, then Build (making things) and Maintain (keeping them running).
- */
-const projectNavGroups: { label?: string; sections: ProjectSection[] }[] = [
-  { sections: [{ id: "", label: "Overview", icon: LayoutDashboard }] },
-  {
-    label: "Build",
-    sections: [
-      { id: "create", label: "Create", icon: Sparkles },
-      { id: "workflows", label: "Workflows", icon: Layers },
-      { id: "components", label: "Components", icon: Boxes },
-      { id: "sandboxes", label: "Sandboxes", icon: FlaskConical },
-    ],
-  },
-  {
-    label: "Maintain",
-    sections: [
-      { id: "history", label: "History", icon: Archive },
-      { id: "insights", label: "Insights", icon: ChartColumn },
-      { id: "deployments", label: "Deployments", icon: Rocket },
-      { id: "settings", label: "Settings", icon: Settings },
-    ],
-  },
-];
-
-/** True when the URL is at `path` or anywhere beneath it. */
 function isAt(pathname: string, path: string) {
   return pathname === path || pathname.startsWith(path + "/");
 }
 
-function ProjectNav({ project }: { project: Project }) {
-  const location = useLocation();
-  const base = "/projects/" + project.id;
-  const sectionIds = projectNavGroups
-    .flatMap((g) => g.sections.map((s) => s.id))
-    .filter(Boolean);
-  // Anything under the project that isn't its own nav section (services)
-  // is reached from the Overview, so Overview stays lit.
-  const activeSection =
-    sectionIds.find((id) => isAt(location.pathname, `${base}/${id}`)) ?? "";
-
+function ProjectItems({ project }: { project: Project }) {
+  const { pathname } = useLocation();
+  const base = `/projects/${project.id}`;
   return (
     <>
-      <div className="px-4 py-3 border-b border-gray-200">
-        <Link
-          to="/projects"
-          data-ui="sidebar-back"
-          className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 transition-colors"
-        >
-          <ChevronLeft size={12} />
-          All projects
-        </Link>
-      </div>
-      <nav className="p-3 flex-1 overflow-y-auto space-y-5">
-        {projectNavGroups.map((group) => (
-          <SidebarSection key={group.label ?? "top"} label={group.label}>
-            {group.sections.map((section) => (
-              <SidebarLink
-                key={section.label}
-                to={section.id ? `${base}/${section.id}` : base}
-                icon={section.icon}
-                label={section.label}
-                active={activeSection === section.id}
-              />
-            ))}
-          </SidebarSection>
-        ))}
-      </nav>
+      <MenuItem to={`${base}/w`} icon="hero-square-3-stack-3d" label="Workflows" active={isAt(pathname, `${base}/w`)} />
+      {currentUser.experimentalFeatures && (
+        <MenuItem
+          to={`${base}/channels`}
+          icon="hero-arrows-right-left"
+          label="Channels"
+          active={isAt(pathname, `${base}/channels`)}
+        />
+      )}
+      <MenuItem to={`${base}/sandboxes`} icon="hero-beaker" label="Sandboxes" active={isAt(pathname, `${base}/sandboxes`)} />
+      <MenuItem
+        to={`${base}/history`}
+        icon="hero-rectangle-stack"
+        label="History"
+        active={["history", "runs", "dataclips"].some((s) => isAt(pathname, `${base}/${s}`))}
+      />
+      <MenuItem to={`${base}/settings`} icon="hero-cog-8-tooth" label="Settings" active={isAt(pathname, `${base}/settings`)} />
     </>
   );
 }
 
-function OrgNav() {
+function ProfileItems() {
   const { pathname } = useLocation();
-
   return (
-    <nav className="p-3 flex-1 overflow-y-auto space-y-5">
-      {mainNavGroups.map((group) => (
-        <SidebarSection key={group.label ?? "top"} label={group.label}>
-          {group.items.map((id) => {
-            const node = mainNavTree.find((n) => n.id === id);
-            if (!node) return null;
-            return (
-              <SidebarLink
-                key={id}
-                to={"/" + id}
-                icon={navIcons[id] ?? LayoutDashboard}
-                label={node.label}
-                active={isAt(pathname, "/" + id) || (id === "overview" && pathname === "/")}
-              />
-            );
-          })}
-        </SidebarSection>
-      ))}
-
-      <SidebarSection label="Projects">
-        {recentProjects.slice(0, 4).map((project) => (
-          <SidebarLink
-            key={project.id}
-            to={"/projects/" + project.id}
-            icon={Folder}
-            label={project.name}
-          />
-        ))}
-        <SidebarLink
-          to="/projects"
-          icon={FolderKanban}
-          label="View all"
-          active={pathname === "/projects"}
-        />
-      </SidebarSection>
-    </nav>
+    <>
+      <MenuItem to="/projects" icon="hero-folder" label="Projects" active={pathname === "/projects"} />
+      <MenuItem to="/profile" icon="hero-user-circle" label="User Profile" active={pathname === "/profile"} />
+      <MenuItem to="/credentials" icon="hero-key" label="Credentials" active={isAt(pathname, "/credentials")} />
+      <MenuItem to="/profile/tokens" icon="hero-command-line" label="API Tokens" active={isAt(pathname, "/profile/tokens")} />
+    </>
   );
 }
 
-/** The project the current URL is inside, if any. */
-function useCurrentProject(): Project | undefined {
-  const location = useLocation();
-  const match = location.pathname.match(/^\/projects\/([^/]+)/);
-  return match ? projects.find((p) => p.id === match[1]) : undefined;
+function AdminItems() {
+  const { pathname } = useLocation();
+  return (
+    <>
+      <div className="mt-4" />
+      <MenuItem to="/settings/projects" icon="hero-building-library" label="Projects" active={isAt(pathname, "/settings/projects")} />
+      <MenuItem to="/settings/users" icon="hero-user-group" label="Users" active={isAt(pathname, "/settings/users")} />
+      <MenuItem
+        to="/settings/authentication/new"
+        icon="hero-key"
+        label="Authentication"
+        active={isAt(pathname, "/settings/authentication")}
+      />
+      <MenuItem to="/settings/audit" icon="hero-archive-box" label="Audit" active={isAt(pathname, "/settings/audit")} />
+      <MenuItem
+        to="/settings/collections"
+        icon="hero-circle-stack"
+        label="Collections"
+        active={isAt(pathname, "/settings/collections")}
+      />
+      <MenuItem
+        to="/settings/maintenance"
+        icon="hero-wrench-screwdriver"
+        label="Maintenance"
+        active={isAt(pathname, "/settings/maintenance")}
+      />
+      <div className="grow" />
+      <MenuItem to="/projects" icon="hero-arrow-left" label="Back" />
+    </>
+  );
+}
+
+/** Support links for regular users; superusers get the Admin menu instead. */
+function FooterItems() {
+  if (currentUser.role === "superuser") {
+    return (
+      <>
+        <MenuItem to="/settings/projects" icon="hero-cog-6-tooth" label="Admin Menu" />
+        <MenuItem to="/dashboard" icon="hero-exclamation-triangle" label="Sys Info" />
+      </>
+    );
+  }
+  return (
+    <>
+      <MenuItem href="https://docs.openfn.org" icon="hero-book-open-mini" label="Documentation" />
+      <MenuItem href="https://community.openfn.org" icon="hero-user-group-mini" label="Community" />
+      <MenuItem
+        href={`mailto:${instanceAdminEmail}`}
+        target="_self"
+        icon="hero-lifebuoy-mini"
+        label="Support"
+        title={instanceAdminEmail}
+      />
+    </>
+  );
 }
 
 /**
- * App sidebar. At the instance level it shows the grouped top-level IA
- * (Overview; Context; Monitoring; recent Projects). Once you open a project
- * it swaps to that project's own menu (Overview; Build; Maintain). The logo always returns to Overview,
- * Support stays pinned near the bottom, and the account menu sits below it.
+ * Lightning's side menu (layouts/live.html.heex and settings.html.heex): the
+ * user menu in a dark h-20 bar, the menu items for where you are, support or
+ * admin links pinned low, then the OpenFn logo, version and collapse toggle.
+ * Ctrl+M collapses it, as in Lightning.
  */
-export default function Sidebar() {
-  const project = useCurrentProject();
-  const { pathname } = useLocation();
-  const getHelp = supportTree.find((n) => n.id === "get-help")!;
+export default function Sidebar({ variant, project, collapsed, onToggle }: Props) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key.toLowerCase() === "m") {
+        e.preventDefault();
+        onToggle();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onToggle]);
+
+  const theme = variant === "admin" ? "sudo-variant" : "primary-theme";
 
   return (
-    <aside data-ui="sidebar" className="w-72 border-r border-gray-200 bg-white flex-shrink-0 flex flex-col h-full">
-      {/* Logo: always a clear way back to the root. */}
-      <div data-ui="sidebar-logo" className="px-4 py-4">
-        <Link to="/" className="flex items-center gap-2" title="Back to Overview">
-          <div className="w-7 h-7 bg-indigo-600 rounded-md flex items-center justify-center">
-            <span className="text-white text-xs font-bold">{currentInstance.initials}</span>
-          </div>
-          <span className="text-lg font-semibold text-gray-900">{currentInstance.name}</span>
-        </Link>
-      </div>
-
-      {project ? <ProjectNav project={project} /> : <OrgNav />}
-
-      <div className="p-3 space-y-3">
-        <SidebarSection label="Support">
-          <SidebarLink href={openfnDocsUrl} icon={BookMarked} label="OpenFn Docs" />
-          <SidebarLink
-            to={"/" + getHelp.id}
-            icon={LifeBuoy}
-            label={getHelp.label}
-            active={isAt(pathname, "/" + getHelp.id)}
-          />
-        </SidebarSection>
-        <div className="border-t border-gray-200 pt-3">
-          <AccountMenu user={currentUser} instance={currentInstance} />
+    <>
+      {/* Placeholder keeps the content column from sliding under the fixed panel. */}
+      <div className={cn("flex-shrink-0 transition-[width] duration-200", collapsed ? "w-16" : "w-48")} />
+      <div
+        id="sidebar-panel"
+        data-ui="sidebar"
+        data-collapsed={String(collapsed)}
+        className={cn("flex flex-col h-full z-[100] transition-[width] duration-200 fixed", theme)}
+      >
+        <div className={cn("app-logo-container h-20 flex items-center", theme)}>
+          <UserMenu user={currentUser} />
         </div>
+        <nav id="side-menu" className={cn("flex-1 overflow-hidden", theme)}>
+          <div className="flex flex-col h-full">
+            <div className={cn("flex-1 overflow-y-auto min-h-0 flex flex-col", variant !== "admin" && "py-4")}>
+              {variant === "admin" ? (
+                <AdminItems />
+              ) : (
+                <>
+                  {variant === "project" && project ? <ProjectItems project={project} /> : <ProfileItems />}
+                  <div className="grow" />
+                  <FooterItems />
+                </>
+              )}
+            </div>
+            {currentUser.experimentalFeatures && (
+              <div className="flex-shrink-0 border-t border-white/10 mt-3 pt-3">
+                <div className="mx-3">
+                  <div
+                    title="You're using features that are still being built. Things may work differently for you than for your teammates."
+                    className="menu-item h-8 rounded-lg text-sm font-medium inline-flex items-center text-amber-300"
+                  >
+                    <span className="hero-wrench-screwdriver h-5 w-5 shrink-0" />
+                    <span className="menu-item-text truncate">Experimental</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="flex-shrink-0 flex flex-col border-t border-white/10 pt-3 mt-3">
+              <div className="h-14 text-center">
+                <div className="pt-2">
+                  {collapsed ? (
+                    <OpenFnLogoCollapsed className="h-6 primary-light mx-auto" />
+                  ) : (
+                    <OpenFnLogo className="h-6 primary-light mx-auto" />
+                  )}
+                </div>
+                <div className="text-[8px] primary-light opacity-50 flex justify-center">
+                  <code className="py-1 rounded-md break-keep primary-light inline-block align-middle text-center">
+                    {releaseLabel}
+                  </code>
+                </div>
+              </div>
+              <div className="border-t border-white/10 mt-2">
+                <button
+                  type="button"
+                  onClick={onToggle}
+                  className="sidebar-toggle-btn w-full py-1.5 focus:outline-none cursor-pointer hover:bg-white/5 transition-colors"
+                  title="Toggle sidebar"
+                  aria-label="Toggle sidebar"
+                >
+                  <div className="mx-3 flex items-center h-5 pl-3">
+                    <svg className="w-5 h-5 text-white/70" viewBox="0 0 18 18" fill="currentColor" aria-hidden="true">
+                      {collapsed ? (
+                        <path
+                          fillRule="evenodd"
+                          d="M12.54 9.154l-3.444 3.442 1.058 1.058 4.5-4.5-4.5-4.5-1.058 1.057 3.444 3.443zm-7.194-4.5v9h1.5v-9h-1.5z"
+                        />
+                      ) : (
+                        <path
+                          fillRule="evenodd"
+                          d="M5.46 8.846l3.444-3.442-1.058-1.058-4.5 4.5 4.5 4.5 1.058-1.057L5.46 8.84zm7.194 4.5v-9h-1.5v9h1.5z"
+                        />
+                      )}
+                    </svg>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </nav>
       </div>
-    </aside>
+    </>
   );
 }

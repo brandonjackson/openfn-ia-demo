@@ -1,128 +1,391 @@
-import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-export interface PickerOption {
+import { useNavigate } from 'react-router-dom';
+
+import { cn } from '../utils/cn';
+
+/**
+ * Generic command-palette picker. Content-agnostic: the server ships a
+ * pre-flattened list of items plus display strings, and this component
+ * renders the modal, handles search, keyboard navigation, and navigation.
+ *
+ * Used by the project picker today. The same component will back a billing
+ * account picker (and any future context-scoped picker) — the only thing
+ * that changes is which data the layout feeds in.
+ */
+
+export interface PickerItem {
   id: string;
+  /** The leaf label shown on the row (e.g. project name). */
   label: string;
+  /** Full path used for search matching (e.g. "parent/child/leaf"). */
+  searchLabel: string;
+  /** Indent level; 0 for top-level items. */
+  depth: number;
+  /** Optional accent color (sandboxes, account tiers). */
+  color?: string | null;
+  /** Where to navigate when selected. Pre-computed server-side. */
+  href: string;
+  /**
+   * True when `href` targets the same section as the current URL. The
+   * picker uses this to decide whether to preserve the current URL's hash
+   * when navigating — it's only meaningful on same-section switches.
+   */
+  sameSection?: boolean;
+  /**
+   * Optional hero icon class for the row (e.g. `hero-credit-card`).
+   * When absent, falls back to the project-style default:
+   * `hero-folder` for root projects and `hero-beaker` for sandboxes.
+   */
+  icon?: string;
+  /**
+   * Whether the underlying project is structurally a sandbox (has a
+   * real `parent_id` in the database). Drives the default icon
+   * independently of the row's display depth, so a sandbox surfaced as
+   * a user's access root still renders with the sandbox icon.
+   */
+  isSandbox?: boolean;
 }
 
-interface Props {
-  /** Icon shown before the selected label, e.g. a folder for projects. */
-  icon?: LucideIcon;
-  options: PickerOption[];
-  /** ID of the selected option. */
-  value: string;
-  onChange?: (id: string) => void;
-  /** Accessible name for the trigger and menu, e.g. "Switch project". */
-  ariaLabel: string;
-  /** Optional link-style action pinned below the options, e.g. "View all". */
-  footerAction?: { label: string; icon?: LucideIcon; onClick: () => void };
-  /** Caps the trigger width so long labels truncate. */
-  maxWidthClass?: string;
-  /** Start with the menu open (useful for stories and screenshots). */
+interface PickerProps {
+  items: PickerItem[];
+  currentId?: string;
+  placeholder: string;
+  emptyMessage: string;
+  viewAllLabel: string;
+  viewAllHref: string;
+  /**
+   * Event name the picker listens for on `document.body` to open.
+   * The matching trigger button dispatches this event.
+   */
+  openEvent: string;
+  /** Side menu theme class, so the accent follows the menu (e.g. `sudo-variant`). */
+  theme?: string;
+  /** Start open (stories and screenshots). */
   defaultOpen?: boolean;
 }
 
 /**
- * Select-style chip that opens a dropdown on click. Used for the project and
- * sandbox switchers in the project top bar and the workflow editor.
+ * Lightning's command-palette picker (assets/js/picker/Picker.tsx), used as
+ * the project picker. Opens on Cmd/Ctrl+P or when its trigger button
+ * dispatches `openEvent`; search, arrow keys and Enter navigate.
  */
-export default function Picker({
-  icon: Icon,
-  options,
-  value,
-  onChange,
-  ariaLabel,
-  footerAction,
-  maxWidthClass = "max-w-xs",
-  defaultOpen = false,
-}: Props) {
-  const [open, setOpen] = useState(defaultOpen);
-  const ref = useRef<HTMLDivElement>(null);
-  const selected = options.find((o) => o.id === value);
+export default function Picker(props: PickerProps) {
+  const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(props.defaultOpen ?? false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  const isMac = useMemo(
+    () =>
+      typeof navigator !== 'undefined' &&
+      /Mac|iPod|iPhone|iPad/.test(navigator.platform),
+    []
+  );
+
+  const allItems = props.items;
+
+  const currentId = props.currentId;
+  const placeholder = props.placeholder;
+  const emptyMessage = props.emptyMessage;
+  const viewAllLabel = props.viewAllLabel;
+  const viewAllHref = props.viewAllHref;
+  const openEvent = props.openEvent;
+  const theme = props.theme ?? '';
+
+  // Filter items by search term. Items are already tree-flattened server-side;
+  // we only need to include matches *and* the ancestors that lead to them so
+  // the indentation still reads correctly.
+  const items = useMemo<PickerItem[]>(() => {
+    if (!searchTerm) return allItems;
+    const lower = searchTerm.toLowerCase();
+
+    // Mark matches and include ancestor chain for each match.
+    const selfMatch = allItems.map(i =>
+      i.searchLabel.toLowerCase().includes(lower)
+    );
+    const include = new Array<boolean>(allItems.length).fill(false);
+
+    for (let i = 0; i < allItems.length; i++) {
+      if (!selfMatch[i]) continue;
+      include[i] = true;
+      // Walk backwards from this item, marking each shallower ancestor as
+      // needed. Server gives us items in pre-order, so the parent is the
+      // most recent item with a strictly smaller depth.
+      let depth = allItems[i]!.depth;
+      for (let j = i - 1; j >= 0 && depth > 0; j--) {
+        const candidate = allItems[j]!;
+        if (candidate.depth < depth) {
+          include[j] = true;
+          depth = candidate.depth;
+        }
+      }
+    }
+
+    return allItems.filter((_, i) => include[i]);
+  }, [allItems, searchTerm]);
+
+  // "View all" is always index 0; items start at index 1.
+  const totalItems = items.length + 1;
+
+  const openPicker = useCallback(() => {
+    setIsOpen(true);
+    setSearchTerm('');
+    setHighlightedIndex(items.length > 0 ? 1 : 0);
+  }, [items.length]);
 
   useEffect(() => {
-    if (!open) return;
-    const onPointer = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("mousedown", onPointer);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onPointer);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+    if (isOpen) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+    }
+  }, [isOpen]);
 
-  const FooterIcon = footerAction?.icon;
+  const closePicker = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
+  // Cmd/Ctrl+P to toggle.
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
+        e.preventDefault();
+        if (isOpen) {
+          closePicker();
+        } else {
+          openPicker();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, openPicker, closePicker]);
+
+  // Escape to close (capture phase so we beat nested handlers).
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        closePicker();
+      }
+    };
+
+    document.addEventListener('keydown', handleGlobalKeyDown, true);
+    return () =>
+      document.removeEventListener('keydown', handleGlobalKeyDown, true);
+  }, [isOpen, closePicker]);
+
+  useEffect(() => {
+    if (highlightedIndex >= totalItems) {
+      setHighlightedIndex(Math.max(0, totalItems - 1));
+    }
+  }, [totalItems, highlightedIndex]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const list = listRef.current;
+    if (!list) return;
+    const highlighted = list.querySelector(
+      `[data-index="${highlightedIndex}"]`
+    ) as HTMLElement;
+    if (highlighted) {
+      highlighted.scrollIntoView({ block: 'nearest' });
+    }
+  }, [isOpen, highlightedIndex]);
+
+  // Listen for the configured open event (dispatched by the trigger button).
+  useEffect(() => {
+    const handleOpen = () => openPicker();
+    document.body.addEventListener(openEvent, handleOpen);
+    return () => document.body.removeEventListener(openEvent, handleOpen);
+  }, [openPicker, openEvent]);
+
+  const go = (href: string, sameSection = false) => {
+    setIsOpen(false);
+    navigate(href + (sameSection ? window.location.hash : ''));
+  };
+
+  const handleInputKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          setHighlightedIndex(i => (i < totalItems - 1 ? i + 1 : 0));
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setHighlightedIndex(i => (i > 0 ? i - 1 : totalItems - 1));
+          break;
+        case 'Enter': {
+          e.preventDefault();
+          if (highlightedIndex === 0) {
+            go(viewAllHref);
+          } else {
+            const item = items[highlightedIndex - 1];
+            if (item) go(item.href, item.sameSection);
+          }
+          break;
+        }
+      }
+    },
+    [items, highlightedIndex, totalItems, viewAllHref]
+  );
+
+  if (!isOpen) return null;
 
   return (
-    <div ref={ref} className="relative inline-block">
-      <button
-        type="button"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-label={ariaLabel}
-        title={selected?.label}
-        onClick={() => setOpen((o) => !o)}
-        className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-sm text-gray-700 transition-colors ${maxWidthClass} ${
-          open ? "border-gray-300 bg-gray-50" : "border-gray-200 bg-white hover:bg-gray-50"
-        }`}
-      >
-        {Icon && <Icon size={14} className="flex-shrink-0 text-gray-500" />}
-        <span className="truncate font-medium">{selected?.label ?? value}</span>
-        <ChevronDown size={14} className="flex-shrink-0 text-gray-400" />
-      </button>
+    <div className={cn('picker-root fixed inset-0 z-[9999]', theme)}>
+      <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-xs transition-opacity" />
 
-      {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-72 rounded-lg border border-gray-200 bg-white p-1.5 shadow-lg">
-          <ul role="listbox" aria-label={ariaLabel} className="max-h-72 overflow-y-auto">
-            {options.map((option) => {
-              const isSelected = option.id === value;
+      <div
+        className="fixed inset-0 flex items-start justify-center pt-[15vh]"
+        onClick={closePicker}
+      >
+        <div
+          className="w-full max-w-xl bg-white rounded-xl shadow-2xl ring-1 ring-black/10 overflow-hidden"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center px-4 border-b border-gray-200">
+            <span className="hero-magnifying-glass h-5 w-5 text-gray-400 shrink-0" />
+            <input
+              ref={inputRef}
+              type="text"
+              spellCheck="false"
+              placeholder={placeholder}
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              onKeyDown={handleInputKeyDown}
+              className="w-full border-0 py-4 pl-3 pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 text-base"
+              role="combobox"
+              aria-controls="picker-options"
+              aria-expanded="true"
+              autoComplete="off"
+            />
+            <kbd className="hidden sm:inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-gray-400 ring-1 ring-gray-300">
+              <span>{isMac ? '⌘' : 'Ctrl'}</span>
+              <span>P</span>
+            </kbd>
+          </div>
+
+          <ul
+            ref={listRef}
+            className="max-h-80 overflow-y-auto py-2"
+            id="picker-options"
+            role="listbox"
+          >
+            <li
+              data-index={0}
+              className={cn(
+                'group relative cursor-pointer select-none px-4 py-3 flex items-center',
+                highlightedIndex === 0
+                  ? 'bg-primary-600 text-white'
+                  : 'text-gray-900 hover:bg-primary-600 hover:text-white'
+              )}
+              role="option"
+              onClick={() => go(viewAllHref)}
+              onMouseEnter={() => setHighlightedIndex(0)}
+            >
+              <span
+                className={cn(
+                  'hero-rectangle-stack h-5 w-5 mr-2 shrink-0',
+                  highlightedIndex === 0
+                    ? 'text-white/70'
+                    : 'text-gray-400 group-hover:text-white/70'
+                )}
+              />
+              <span className="flex-grow">{viewAllLabel}</span>
+              <span
+                className={cn(
+                  'hero-arrow-right h-4 w-4 shrink-0',
+                  highlightedIndex === 0
+                    ? 'text-white/70'
+                    : 'text-gray-400 group-hover:text-white/70'
+                )}
+              />
+            </li>
+
+            {items.length > 0 && (
+              <li className="border-t border-gray-200 my-2" role="separator" />
+            )}
+
+            {items.map((item, index) => {
+              const itemIndex = index + 1;
+              const isHighlighted = itemIndex === highlightedIndex;
+              const isSelected = item.id === currentId;
+              const isNested = item.depth > 0;
+              const indentPx = item.depth * 10;
+              const itemIcon =
+                item.icon ?? (item.isSandbox ? 'hero-beaker' : 'hero-folder');
+
               return (
-                <li key={option.id} role="option" aria-selected={isSelected}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setOpen(false);
-                      onChange?.(option.id);
-                    }}
-                    className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-gray-100 ${
-                      isSelected ? "font-medium text-gray-900" : "text-gray-700"
-                    }`}
+                <li
+                  key={item.id}
+                  data-index={itemIndex}
+                  className={cn(
+                    'group relative cursor-pointer select-none py-3 pr-4 flex items-center',
+                    isHighlighted
+                      ? 'bg-primary-600 text-white'
+                      : 'text-gray-900 hover:bg-primary-600 hover:text-white'
+                  )}
+                  style={{ paddingLeft: `${16 + indentPx}px` }}
+                  role="option"
+                  aria-selected={isSelected}
+                  onClick={() => go(item.href, item.sameSection)}
+                  onMouseEnter={() => setHighlightedIndex(itemIndex)}
+                >
+                  {isNested && (
+                    <span
+                      className={cn(
+                        'hero-arrow-turn-down-right h-4 w-4 mr-2 shrink-0',
+                        isHighlighted
+                          ? 'text-white/50'
+                          : 'text-gray-300 group-hover:text-white/50'
+                      )}
+                    />
+                  )}
+                  <span
+                    className={cn(
+                      `${itemIcon} h-5 w-5 mr-2 shrink-0`,
+                      isHighlighted
+                        ? 'text-white/70'
+                        : 'text-gray-400 group-hover:text-white/70'
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      'truncate flex-grow',
+                      isSelected && 'font-semibold'
+                    )}
                   >
-                    {Icon && <Icon size={14} className="flex-shrink-0 text-gray-400" />}
-                    <span className="min-w-0 flex-1 truncate" title={option.label}>
-                      {option.label}
-                    </span>
-                    {isSelected && <Check size={14} className="flex-shrink-0 text-blue-600" />}
-                  </button>
+                    {item.label}
+                  </span>
+                  {isSelected && (
+                    <span
+                      className={cn(
+                        'hero-check shrink-0 ml-3 w-5 h-5',
+                        isHighlighted
+                          ? 'text-white'
+                          : 'text-primary-600 group-hover:text-white'
+                      )}
+                    />
+                  )}
                 </li>
               );
             })}
+            {items.length === 0 && (
+              <li className="px-4 py-8 text-center text-gray-500">
+                {emptyMessage}
+              </li>
+            )}
           </ul>
-          {footerAction && (
-            <>
-              <div className="my-1.5 border-t border-gray-200" />
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  footerAction.onClick();
-                }}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100"
-              >
-                {FooterIcon && <FooterIcon size={14} className="flex-shrink-0 text-gray-400" />}
-                {footerAction.label}
-              </button>
-            </>
-          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

@@ -26,7 +26,7 @@
  */
 
 /* ============================================================== */
-/* Base defaults (theme = "default" / "Basic" — the original UI) */
+/* Base defaults (shared by every theme) */
 /* ============================================================== */
 :root {
   /* Font stack used by the original design. Body reads var(--font-sans). */
@@ -44,215 +44,25 @@ body {
 }
 
 /* ============================================================== */
-/* Lightning v2 — today's Lightning app (github.com/OpenFn/       */
-/* lightning, assets/css/app.css). Lightning is stock Tailwind v4 */
-/* too, so the palette mostly carries over; what changes is type  */
-/* (Inter + Fira Code), indigo as the one primary colour, the     */
-/* light gray canvas, the deep indigo side menu, the white page   */
-/* header bar and Lightning's button, field and table styles.     */
+/* Lightning v2 (the default) — today's Lightning app            */
+/* (github.com/OpenFn/lightning, assets/css/app.css). The         */
+/* components are built with Lightning's own markup and classes, */
+/* so this theme only sets the type: Inter and Fira Code.         */
+/* Colours come from the primary/secondary tokens in index.css.   */
 /* ============================================================== */
 html[data-theme="lightning-v2"] {
-  --app-bg: var(--color-gray-100); /* bg-secondary-100 on <html> */
+  --app-bg: var(--color-gray-100);
   --app-fg: var(--color-gray-900);
 
   --font-sans: "Inter var", "Inter", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-mono: "Fira Code VF", "Fira Code", ui-monospace, SFMono-Regular, Menlo,
     Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-
-  /* Lightning's primary is indigo (--color-primary-* = indigo). The
-     demo's primary actions, links and focus rings are blue, so blue
-     steps onto indigo. Sky stays sky for info, as in Lightning. */
-  --color-blue-50: var(--color-indigo-50);
-  --color-blue-100: var(--color-indigo-100);
-  --color-blue-200: var(--color-indigo-200);
-  --color-blue-300: var(--color-indigo-300);
-  --color-blue-400: var(--color-indigo-400);
-  --color-blue-500: var(--color-indigo-500);
-  --color-blue-600: var(--color-indigo-600);
-  --color-blue-700: var(--color-indigo-700);
-  --color-blue-800: var(--color-indigo-800);
-  --color-blue-900: var(--color-indigo-900);
-  --color-blue-950: var(--color-indigo-950);
-
-  /* Lightning's card shadow (tailwind.config.ts boxShadow.card). */
-  --shadow-card: 0 4px 16px 0 rgba(0, 0, 0, 0.06);
-
-  /* Side menu (#side-menu in app.css): primary-800 surface, primary-900
-     for the logo bar and the active/hover item, primary-300/200 text. */
-  --lv2-menu-bg: var(--color-indigo-800);
-  --lv2-menu-bg-dark: var(--color-indigo-900);
-  --lv2-menu-text: var(--color-indigo-300);
-  --lv2-menu-text-active: var(--color-indigo-200);
 }
 
 html[data-theme="lightning-v2"] body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-/* Lightning v2 component layer. */
-html[data-theme="lightning-v2"] {
-  /* --- Side menu ------------------------------------------------ */
-  [data-ui="sidebar"] {
-    background-color: var(--lv2-menu-bg);
-    border-right-color: transparent;
-    color: #ffffff;
-
-    /* Dividers inside the menu (not inside the account popover). */
-    :is(.border-b, .border-t):not([data-ui="popover"], [data-ui="popover"] *) {
-      border-color: rgb(255 255 255 / 0.1);
-    }
-  }
-
-  /* Logo bar lines up with the white page header bar (h-20). */
-  [data-ui="sidebar-logo"] {
-    display: flex;
-    align-items: center;
-    min-height: 5rem;
-    background-color: var(--lv2-menu-bg-dark);
-    span { color: #ffffff; }
-  }
-
-  [data-ui="sidebar-heading"] {
-    color: var(--lv2-menu-text);
-    opacity: 0.7;
-  }
-
-  [data-ui="sidebar-back"] {
-    color: var(--lv2-menu-text);
-    &:hover { color: var(--lv2-menu-text-active); }
-  }
-
-  /* Menu items: h-10 rounded-lg text-sm font-medium, primary-300 text,
-     primary-900 behind the active item and on hover. */
-  [data-ui="sidebar"] [data-ui="nav-link"] {
-    border-radius: var(--radius-lg);
-    padding-block: 0.5rem;
-    font-weight: 500;
-    color: var(--lv2-menu-text);
-    svg { color: currentColor; }
-    &:hover,
-    &[aria-current="page"] {
-      background-color: var(--lv2-menu-bg-dark);
-      color: var(--lv2-menu-text-active);
-    }
-  }
-
-  /* User menu trigger: bg-white/10 hover:bg-white/20 rounded-lg. */
-  [data-ui="account-trigger"] {
-    border-radius: var(--radius-lg);
-    background-color: rgb(255 255 255 / 0.1);
-    &:hover,
-    &[aria-expanded="true"] { background-color: rgb(255 255 255 / 0.2); }
-    span, svg { color: rgb(255 255 255 / 0.7); }
-    .font-medium { color: #ffffff; }
-    > span:first-child {
-      background-color: var(--lv2-menu-bg-dark);
-      color: #ffffff;
-    }
-  }
-
-  /* --- Page header: a white bar across the top of the page -------- */
-  /* (flex-none bg-white shadow-xs border-b border-gray-200, h-20,
-     text-xl font-semibold title). Only the page's own top header; a
-     header nested further down keeps the default look. Layout's
-     <main> has p-8, so the bar bleeds out by the same amount. */
-  main > * > [data-ui="page-header"]:first-child {
-    margin-top: -2rem;
-    margin-inline: -2rem;
-    padding: 1rem 2rem;
-    min-height: 5rem;
-    background-color: #ffffff;
-    border-bottom: 1px solid var(--color-gray-200);
-    box-shadow: var(--shadow-xs);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  [data-ui="page-header"] h1 {
-    font-size: var(--text-xl);
-    line-height: var(--text-xl--line-height);
-    font-weight: 600;
-  }
-
-  /* --- Buttons (new_inputs.ex button_theme_classes) --------------- */
-  /* Base: rounded-md text-sm font-semibold shadow-xs. Filled themes
-     lighten on hover (600 -> 500); secondary is white with a gray ring. */
-  [data-ui="button"] {
-    font-weight: 600;
-    border-radius: var(--radius-md);
-
-    &:is([data-variant="primary"], [data-variant="danger"], [data-variant="dark"],
-         [data-variant="secondary"], [data-variant="outline-primary"], [data-variant="outline-danger"]) {
-      box-shadow: var(--shadow-xs);
-    }
-    &[data-variant="primary"] {
-      background-color: var(--color-indigo-600);
-      &:hover:not(:disabled) { background-color: var(--color-indigo-500); }
-    }
-    &[data-variant="danger"] {
-      background-color: var(--color-red-600);
-      &:hover:not(:disabled) { background-color: var(--color-red-500); }
-    }
-    &:is([data-variant="secondary"], [data-variant="outline-primary"]) {
-      border-color: transparent;
-      background-color: #ffffff;
-      color: var(--color-gray-900);
-      box-shadow: var(--shadow-xs), inset 0 0 0 1px var(--color-gray-300);
-      &:hover:not(:disabled) { background-color: var(--color-gray-50); }
-    }
-    &:disabled { opacity: 1; }
-    &[data-variant="primary"]:disabled { background-color: var(--color-indigo-300); }
-    &[data-variant="danger"]:disabled { background-color: var(--color-red-300); }
-    &:is([data-variant="secondary"], [data-variant="outline-primary"]):disabled {
-      background-color: var(--color-gray-50);
-      color: var(--color-gray-400);
-      box-shadow: inset 0 0 0 1px var(--color-gray-200);
-    }
-    &:focus-visible {
-      outline: 2px solid var(--color-indigo-600);
-      outline-offset: 2px;
-    }
-  }
-
-  /* --- Form fields: rounded-lg, gray-300 border, soft indigo ring -- */
-  :is(input:not([type="radio"], [type="checkbox"], [type="range"]), textarea, select) {
-    border-radius: var(--radius-lg);
-    border-color: var(--color-gray-300);
-    &:focus {
-      border-color: var(--color-indigo-300);
-      outline: none;
-      --tw-ring-color: transparent;
-      box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-indigo-200) 50%, transparent);
-    }
-  }
-  input:is([type="radio"], [type="checkbox"]) { accent-color: var(--color-indigo-600); }
-
-  /* --- Tables (table.ex): ringed card, sentence-case bold headers -- */
-  [data-ui="table"] {
-    border-color: transparent;
-    box-shadow: var(--shadow-sm), 0 0 0 1px rgb(0 0 0 / 0.05);
-    thead tr { background-color: var(--color-gray-50); }
-    th {
-      font-size: var(--text-sm);
-      line-height: var(--text-sm--line-height);
-      font-weight: 600;
-      color: var(--color-gray-900);
-      text-transform: none;
-      letter-spacing: normal;
-      padding-block: 0.875rem;
-    }
-    td { padding-block: 1rem; }
-    tbody { background-color: #ffffff; }
-  }
-
-  /* --- Links (the `link` utility: primary-400, underline on hover) */
-  [data-ui="link"]:not([data-variant="default"]) {
-    color: var(--color-indigo-400);
-    text-underline-offset: 2px;
-    &:hover { color: var(--color-indigo-500); text-decoration: underline; }
-  }
 }
 
 /* ============================================================== */

@@ -7,7 +7,7 @@
  * therefore two steps: a token block in `theme.css` and an entry here.
  */
 
-export type ThemeId = "default" | "lightning-v2" | "gds";
+export type ThemeId = "lightning-v2" | "gds";
 
 export interface ThemeMeta {
   id: ThemeId;
@@ -22,13 +22,6 @@ export interface ThemeMeta {
 }
 
 export const THEMES: ThemeMeta[] = [
-  {
-    id: "default",
-    name: "Basic",
-    description: "The original product UI — indigo & blue on cool grays.",
-    mode: "light",
-    swatches: ["#4f46e5", "#2563eb", "#111827", "#f9fafb"],
-  },
   {
     id: "lightning-v2",
     name: "Lightning v2",
@@ -45,11 +38,11 @@ export const THEMES: ThemeMeta[] = [
   },
 ];
 
-/** The theme applied when nothing is stored — the original look. */
-export const DEFAULT_THEME_ID: ThemeId = "default";
+/** The theme applied when nothing is stored: today's Lightning. */
+export const DEFAULT_THEME_ID: ThemeId = "lightning-v2";
 
 /** localStorage key the chosen theme is persisted under. */
-export const THEME_STORAGE_KEY = "openfn-ia-theme";
+export const THEME_STORAGE_KEY = "openfn-lightning-theme";
 
 export const THEME_IDS = THEMES.map((t) => t.id);
 

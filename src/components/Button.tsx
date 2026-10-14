@@ -1,66 +1,98 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
-import type { LucideIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+import { cn } from "../utils/cn";
 
-export type ButtonVariant =
-  | "primary"
-  | "secondary"
-  | "danger"
-  | "dark"
-  | "outline-primary"
-  | "outline-danger"
-  | "ghost"
-  | "link-danger";
-
-export type ButtonSize = "xs" | "sm" | "md";
-
-const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-blue-600 text-white hover:bg-blue-700",
-  secondary: "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50",
-  danger: "bg-red-600 text-white hover:bg-red-700",
-  dark: "bg-gray-900 text-white hover:bg-gray-800",
-  "outline-primary": "border border-blue-300 text-blue-600 hover:bg-blue-50",
-  "outline-danger": "border border-red-200 text-red-600 hover:bg-red-50",
-  ghost: "text-gray-500 hover:bg-gray-100 hover:text-gray-700",
-  "link-danger": "text-red-500 hover:text-red-700",
-};
+export type ButtonTheme = "primary" | "secondary" | "danger" | "success" | "warning";
+export type ButtonSize = "sm" | "md" | "lg";
 
 const sizeClasses: Record<ButtonSize, string> = {
-  xs: "px-3 py-1 text-xs",
-  sm: "px-3 py-1.5 text-sm",
-  md: "px-4 py-2 text-sm",
+  sm: "px-2.5 py-1.5",
+  md: "px-3 py-2",
+  lg: "px-3.5 py-2.5",
 };
 
+// Lightning's new_inputs.ex button_theme_classes, enabled vs disabled.
+const themeClasses: Record<ButtonTheme, { enabled: string; disabled: string }> = {
+  primary: {
+    enabled:
+      "bg-primary-600 hover:bg-primary-500 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
+    disabled: "bg-primary-300 text-white",
+  },
+  secondary: {
+    enabled: "bg-white hover:bg-gray-50 text-gray-900 ring-1 ring-gray-300 ring-inset",
+    disabled: "bg-gray-50 text-gray-400 ring-1 ring-gray-200 ring-inset",
+  },
+  danger: {
+    enabled:
+      "bg-red-600 hover:bg-red-500 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600",
+    disabled: "bg-red-300 text-white",
+  },
+  success: {
+    enabled:
+      "bg-green-600 hover:bg-green-500 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600",
+    disabled: "bg-green-300 text-white",
+  },
+  warning: {
+    enabled:
+      "bg-yellow-600 hover:bg-yellow-500 text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-600",
+    disabled: "bg-yellow-300 text-white",
+  },
+};
+
+export function buttonClasses(theme: ButtonTheme, size: ButtonSize = "md", disabled = false, className?: string) {
+  return cn(
+    "rounded-md text-sm font-semibold shadow-xs phx-submit-loading:opacity-75 inline-flex items-center justify-center gap-x-1.5",
+    sizeClasses[size],
+    themeClasses[theme][disabled ? "disabled" : "enabled"],
+    disabled && "cursor-not-allowed",
+    className
+  );
+}
+
 interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant;
+  theme?: ButtonTheme;
   size?: ButtonSize;
-  icon?: LucideIcon;
+  /** Render as a router link instead of a <button>. */
+  to?: string;
+  /** Shown on hover (Lightning shows a tooltip, often why it's disabled). */
+  tooltip?: string;
   children: ReactNode;
 }
 
 /**
- * The one button used across the app. Pick a variant for intent and a size
- * for context (`sm` for section header actions, `md` for form submits).
+ * Lightning's `<.button>` (new_inputs.ex): rounded-md, text-sm
+ * font-semibold, shadow-xs, with primary / secondary / danger / success /
+ * warning themes and sm / md / lg padding.
  */
 export default function Button({
-  variant = "primary",
+  theme = "primary",
   size = "md",
-  icon: Icon,
-  className = "",
+  to,
+  tooltip,
+  disabled = false,
+  className,
   type = "button",
   children,
   ...rest
 }: Props) {
-  // Link-style buttons sit inline with text, so they skip padding.
-  const sizing = variant === "link-danger" ? "text-xs" : sizeClasses[size];
+  const classes = buttonClasses(theme, size, disabled, className);
+  if (to && !disabled) {
+    return (
+      <Link to={to} className={classes} title={tooltip} data-ui="button" data-variant={theme}>
+        {children}
+      </Link>
+    );
+  }
   return (
     <button
       type={type}
+      disabled={disabled}
+      title={tooltip}
+      className={classes}
       data-ui="button"
-      data-variant={variant}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]} ${sizing} ${className}`}
+      data-variant={theme}
       {...rest}
     >
-      {Icon && <Icon size={14} />}
       {children}
     </button>
   );

@@ -9,7 +9,7 @@ const withTheme: Decorator = (Story, context) => {
   if (typeof document !== "undefined") {
     document.documentElement.setAttribute(
       "data-theme",
-      (context.globals.theme as string) || "default"
+      (context.globals.theme as string) || "lightning-v2"
     );
   }
   return <Story />;
@@ -27,13 +27,12 @@ const preview: Preview = {
   globalTypes: {
     theme: {
       description: "OpenFn Style Picker theme",
-      defaultValue: "default",
+      defaultValue: "lightning-v2",
       toolbar: {
         title: "Theme",
         icon: "paintbrush",
         items: [
-          { value: "default", title: "Basic (default)" },
-          { value: "lightning-v2", title: "Lightning v2" },
+          { value: "lightning-v2", title: "Lightning v2 (default)" },
           { value: "gds", title: "GDS" },
         ],
         dynamicTitle: true,

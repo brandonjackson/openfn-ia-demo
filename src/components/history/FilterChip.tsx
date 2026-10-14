@@ -1,8 +1,8 @@
 import { useId, type ReactNode } from "react";
 import { cn } from "../../utils/cn";
 import IconButton from "../IconButton";
-import { Checkbox, Field } from "../Inputs";
-import { controlClasses } from "../controlClasses";
+import { Checkbox, TextInput } from "../Inputs";
+import Menu, { MenuItem } from "../Menu";
 import Popover from "../Popover";
 
 /**
@@ -14,6 +14,7 @@ export default function FilterChip({
   id,
   active = false,
   onClear,
+  menu,
   dropdown,
   dropdownClassName = "w-60",
   children,
@@ -21,6 +22,8 @@ export default function FilterChip({
   id?: string;
   active?: boolean;
   onClear?: () => void;
+  /** Choices shown in a menu under the chip (FilterMenu); the menu closes on select. */
+  menu?: ReactNode;
   /** Panel shown under the chip when it's clicked. Receives a close callback. */
   dropdown?: (close: () => void) => ReactNode;
   /** Width (and padding) classes for the dropdown panel. */
@@ -28,8 +31,9 @@ export default function FilterChip({
   children: ReactNode;
 }) {
   const clearable = active && onClear;
+  // The chip's label is its own trigger surface, so it stays a bare button.
   const label = (
-    <button type="button" className={cn("cursor-pointer py-1.5 pl-3", clearable ? "pr-0" : "pr-3")}>
+    <button type="button" className={cn("py-1.5 pl-3", clearable ? "pr-0" : "pr-3")}>
       {children}
     </button>
   );
@@ -43,7 +47,11 @@ export default function FilterChip({
         clearable && "pr-1.5"
       )}
     >
-      {dropdown ? (
+      {menu ? (
+        <Menu trigger={label} align="start" className={dropdownClassName}>
+          {menu}
+        </Menu>
+      ) : dropdown ? (
         <Popover trigger={label} className={dropdownClassName}>
           {(close) => dropdown(close)}
         </Popover>
@@ -55,7 +63,7 @@ export default function FilterChip({
           icon="hero-x-mark-solid"
           label="Clear filter"
           size="sm"
-          className="h-5 w-5 rounded-full text-primary-400 hover:bg-primary-200 hover:text-primary-600 [&>span]:h-3 [&>span]:w-3"
+          className="rounded-full text-primary-400 hover:bg-primary-200 hover:text-primary-600"
           onClick={onClear}
         />
       )}
@@ -63,7 +71,7 @@ export default function FilterChip({
   );
 }
 
-/** A plain list of options for a filter chip's dropdown (workflow / channel). */
+/** The options of a filter chip's menu (workflow / channel). */
 export function FilterMenu<T extends string | null>({
   options,
   selected,
@@ -73,23 +81,11 @@ export function FilterMenu<T extends string | null>({
   selected: T;
   onSelect: (value: T) => void;
 }) {
-  return (
-    <div className="py-1">
-      {options.map((o) => (
-        <button
-          key={o.value ?? "any"}
-          type="button"
-          onClick={() => onSelect(o.value)}
-          className={cn(
-            "block w-full cursor-pointer px-4 py-2 text-left text-sm hover:bg-gray-100",
-            o.value === selected ? "bg-gray-100 text-gray-900" : "text-gray-700"
-          )}
-        >
-          {o.label}
-        </button>
-      ))}
-    </div>
-  );
+  return options.map((o) => (
+    <MenuItem key={o.value ?? "any"} selected={o.value === selected} onClick={() => onSelect(o.value)}>
+      {o.label}
+    </MenuItem>
+  ));
 }
 
 /** Checkbox list for the status chip's dropdown. */
@@ -131,24 +127,20 @@ export function FilterDateRange({
   return (
     <div className="space-y-3 px-4 py-3">
       <div className="text-sm text-gray-500">{title}</div>
-      <Field id={`${id}-after`} label={afterLabel}>
-        <input
-          id={`${id}-after`}
-          type="datetime-local"
-          className={controlClasses()}
-          value={after}
-          onChange={(e) => onChange(e.target.value, before)}
-        />
-      </Field>
-      <Field id={`${id}-before`} label={beforeLabel}>
-        <input
-          id={`${id}-before`}
-          type="datetime-local"
-          className={controlClasses()}
-          value={before}
-          onChange={(e) => onChange(after, e.target.value)}
-        />
-      </Field>
+      <TextInput
+        id={`${id}-after`}
+        type="datetime-local"
+        label={afterLabel}
+        value={after}
+        onChange={(e) => onChange(e.target.value, before)}
+      />
+      <TextInput
+        id={`${id}-before`}
+        type="datetime-local"
+        label={beforeLabel}
+        value={before}
+        onChange={(e) => onChange(after, e.target.value)}
+      />
     </div>
   );
 }

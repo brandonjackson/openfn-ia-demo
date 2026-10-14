@@ -1,6 +1,6 @@
 import { Navigate, useParams } from "react-router-dom";
 import Header from "../../components/Header";
-import { PageContent } from "../../components/PageContent";
+import { Centered, PageContent } from "../../components/PageContent";
 import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import DataclipDetailsCard, { DataclipBodyCard } from "../../components/history/DataclipDetailsCard";
 import JsonViewer from "../../components/history/JsonViewer";
@@ -37,12 +37,12 @@ export default function DataclipShowPage() {
         />
       }
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <Centered>
         <DataclipDetailsCard dataclip={dataclip} updatedAt={dataclipUpdatedAt(dataclip.id)} />
         <DataclipBodyCard dataclip={dataclip}>
           <JsonViewer value={dataclip.body} />
         </DataclipBodyCard>
-      </div>
+      </Centered>
     </PageContent>
   );
 }

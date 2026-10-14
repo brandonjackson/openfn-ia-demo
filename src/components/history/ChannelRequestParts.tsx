@@ -1,8 +1,11 @@
 import { useState, type ReactNode } from "react";
-import type { ChannelEvent, ChannelRequestState } from "../../mock-data/channel-requests";
+import type { ChannelEvent } from "../../mock-data/channel-requests";
 import { cn } from "../../utils/cn";
+import Card from "../Card";
+import { DetailItem, DetailList } from "../DetailList";
+import Heading from "../Heading";
 import IconButton from "../IconButton";
-import { ChannelStatePill } from "./StatePill";
+import Pill, { type PillColor } from "../Pill";
 import { formatBytes } from "../../utils/format";
 
 /*
@@ -28,22 +31,14 @@ export function DisclosureSection({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div id={id} className="bg-white rounded-lg shadow-sm border border-gray-200">
-      <button
-        type="button"
-        className="w-full flex items-center justify-between p-4 text-left cursor-pointer"
-        onClick={() => setOpen((o) => !o)}
-      >
-        <div className="flex items-center gap-3">
-          <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-          {titleRight}
-        </div>
-        <span
-          className={cn("hero-chevron-down-mini h-5 w-5 text-gray-400 transition-transform", !open && "rotate-180")}
-        />
+    <Card id={id} padding="none">
+      <button type="button" className="flex w-full items-center gap-3 p-4" onClick={() => setOpen((o) => !o)}>
+        <Heading size="sm">{title}</Heading>
+        {titleRight}
+        <span className={cn("hero-chevron-down-mini ml-auto h-5 w-5 text-gray-400 transition-transform", !open && "rotate-180")} />
       </button>
       {open && <div className={cn(padded && "px-4 pb-4")}>{children}</div>}
-    </div>
+    </Card>
   );
 }
 
@@ -60,129 +55,85 @@ export function SubSection({
   const [open, setOpen] = useState(true);
   return (
     <div className="border-t border-gray-100">
-      <button
-        type="button"
-        className="w-full px-4 py-2.5 flex items-center justify-between cursor-pointer"
-        onClick={() => setOpen((o) => !o)}
-      >
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">{title}</span>
-          {titleRight}
-        </div>
-        <span
-          className={cn("hero-chevron-down-mini h-4 w-4 text-gray-400 transition-transform", !open && "rotate-180")}
-        />
+      <button type="button" className="flex w-full items-center gap-2 px-4 py-2.5" onClick={() => setOpen((o) => !o)}>
+        <Heading size="eyebrow" as="p">
+          {title}
+        </Heading>
+        {titleRight}
+        <span className={cn("hero-chevron-down-mini ml-auto h-4 w-4 text-gray-400 transition-transform", !open && "rotate-180")} />
       </button>
       {open && <div className="px-4 pb-3">{children}</div>}
     </div>
   );
 }
 
-const methodColors: Record<string, string> = {
-  GET: "bg-blue-100 text-blue-800",
-  POST: "bg-green-100 text-green-800",
-  PUT: "bg-amber-100 text-amber-800",
-  PATCH: "bg-amber-100 text-amber-800",
-  DELETE: "bg-red-100 text-red-800",
+const methodColors: Record<string, PillColor> = {
+  GET: "blue",
+  POST: "green",
+  PUT: "yellow",
+  PATCH: "yellow",
+  DELETE: "red",
 };
 
 export function MethodBadge({ method }: { method: string | null | undefined }) {
   return (
-    <span
-      className={cn(
-        "inline-flex items-center px-2.5 py-0.5 rounded text-sm font-bold font-mono uppercase",
-        (method && methodColors[method]) ?? "bg-gray-100 text-gray-800"
-      )}
-    >
+    <Pill square mono color={(method && methodColors[method]) || "gray"} className="font-bold uppercase">
       {method || "—"}
-    </span>
+    </Pill>
   );
 }
 
 export function RequestPathDisplay({ event }: { event: ChannelEvent | undefined }) {
   return (
-    <span className="font-mono text-sm break-all">
-      <span className="text-gray-900">{event?.requestPath}</span>
+    <span className="break-all font-mono text-sm text-gray-900">
+      {event?.requestPath}
       {event?.requestQueryString && <span className="text-gray-400">?{event.requestQueryString}</span>}
     </span>
   );
 }
 
-/** The status code next to the path in the summary (`status_code_display`). */
-export function StatusCodeDisplay({ status }: { status: number | null | undefined }) {
-  const color =
-    status == null
-      ? "text-gray-400"
-      : status >= 500
-        ? "text-red-700 bg-red-50"
-        : status >= 400
-          ? "text-amber-700 bg-amber-50"
-          : status >= 300
-            ? "text-blue-700 bg-blue-50"
-            : status >= 200
-              ? "text-green-700 bg-green-50"
-              : "text-gray-400";
-  return <span className={cn("font-mono text-sm font-bold px-1.5 py-0.5 rounded", color)}>{status ?? "—"}</span>;
+function statusColor(status: number | null | undefined): PillColor {
+  if (status == null || status < 200) return "gray";
+  if (status >= 500) return "red";
+  if (status >= 400) return "yellow";
+  if (status >= 300) return "blue";
+  return "green";
 }
 
-/** The status code chip in the Response header (`status_code_badge`). */
-export function StatusCodeBadge({ status }: { status: number }) {
-  const color =
-    status >= 500
-      ? "bg-red-100 text-red-700"
-      : status >= 400
-        ? "bg-amber-100 text-amber-700"
-        : status >= 300
-          ? "bg-blue-100 text-blue-700"
-          : status >= 200
-            ? "bg-green-100 text-green-700"
-            : "bg-gray-100 text-gray-700";
-  return <span className={cn("inline-flex items-center rounded px-1.5 py-0.5 text-xs font-mono font-bold", color)}>{status}</span>;
-}
-
-export function StatePillWithTooltip({ state, tooltip }: { state: ChannelRequestState; tooltip?: string }) {
+/** An HTTP status code chip, coloured by class (`status_code_display`, `status_code_badge`). */
+export function StatusCodeBadge({ status }: { status: number | null | undefined }) {
   return (
-    <span title={state === "timeout" ? tooltip : undefined}>
-      <ChannelStatePill state={state} />
-    </span>
+    <Pill square mono color={statusColor(status)} className="font-bold">
+      {status ?? "—"}
+    </Pill>
   );
 }
 
-export function CopyIconButton({ value, title = "Copy", size = 4, className }: { value: string; title?: string; size?: 3 | 4; className?: string }) {
+export function CopyIconButton({ value, title = "Copy", className }: { value: string; title?: string; className?: string }) {
   return (
     <IconButton
       icon="hero-clipboard"
       label={title}
       size="sm"
       onClick={() => void navigator.clipboard?.writeText(value)}
-      className={cn("copy-btn text-gray-400 hover:text-gray-600", size === 3 && "[&>span]:h-3 [&>span]:w-3", className)}
+      className={cn("text-gray-400", className)}
     />
   );
 }
 
 export function SectionSizeBadge({ size }: { size: number }) {
-  return <span className="text-xs text-gray-400 font-mono">{formatBytes(size)}</span>;
+  return <span className="font-mono text-xs text-gray-400">{formatBytes(size)}</span>;
 }
 
 export function HeadersTable({ headers }: { headers: [string, string][] }) {
   return (
-    <table className="w-full text-xs">
-      <tbody className="divide-y divide-gray-50">
-        {headers.map(([name, value]) => (
-          <tr key={name}>
-            <td className="py-1.5 pr-3 text-gray-500 font-medium whitespace-nowrap align-top w-1/3">{name}</td>
-            <td
-              className={cn(
-                "py-1.5 font-mono break-all",
-                value === "[REDACTED]" ? "italic text-gray-400" : "text-gray-700"
-              )}
-            >
-              {value}
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <DetailList className="text-xs">
+      {headers.map(([name, value]) => (
+        <DetailItem key={name} label={name} mono>
+          <span className={cn("break-all", value === "[REDACTED]" && "italic text-gray-400")}>{value}</span>
+        </DetailItem>
+      ))}
+    </DetailList>
   );
 }
 
@@ -215,18 +166,20 @@ export function BodyViewer({
   const ct = contentTypeOf(headers);
   if (size === 0 && !preview) {
     return (
-      <div className="py-6 flex flex-col items-center text-gray-400">
-        <span className="hero-document h-6 w-6 mb-1 text-gray-300" />
-        <span className="text-xs">No body</span>
+      <div className="flex flex-col items-center py-6 text-xs text-gray-400">
+        <span className="hero-document mb-1 h-6 w-6 text-gray-300" />
+        No body
       </div>
     );
   }
   if (ct && !isText(ct)) {
     return (
-      <div className="py-4 text-sm text-gray-500">
-        <span className="text-xs font-mono bg-gray-100 px-1.5 py-0.5 rounded">{contentTypeLabel(ct)}</span>
-        {size != null && <span className="ml-2">{formatBytes(size)}</span>}
-        {hash && <span className="ml-2 font-mono text-xs text-gray-400">SHA256: {hash}</span>}
+      <div className="flex items-center gap-2 py-4 text-sm text-gray-500">
+        <Pill square mono>
+          {contentTypeLabel(ct)}
+        </Pill>
+        {size != null && <span>{formatBytes(size)}</span>}
+        {hash && <span className="font-mono text-xs text-gray-400">SHA256: {hash}</span>}
       </div>
     );
   }
@@ -234,33 +187,31 @@ export function BodyViewer({
     return (
       <div className="py-4 text-sm text-gray-500">
         Body not captured
-        {size != null && <span className="text-xs text-gray-400 ml-1">({formatBytes(size)})</span>}
+        {size != null && <span className="ml-1 text-xs text-gray-400">({formatBytes(size)})</span>}
       </div>
     );
   }
   return (
-    <div>
-      <div className="relative rounded-md bg-gray-50 border border-gray-200">
-        <div className="absolute top-2 right-2 flex items-center gap-1.5">
+    <div className="space-y-1 text-xs text-gray-400">
+      <Card muted padding="none" className="relative">
+        <div className="absolute right-2 top-2 flex items-center gap-1.5">
           {ct && (
-            <span className="text-[10px] font-mono text-gray-400 bg-white/80 rounded px-1.5 py-0.5">
+            <Pill square mono>
               {contentTypeLabel(ct)}
-            </span>
+            </Pill>
           )}
-          <CopyIconButton value={preview} title="Copy body" size={3} className="p-1 bg-white/80 rounded" />
+          <CopyIconButton value={preview} title="Copy body" className="bg-white/80" />
         </div>
-        <pre className="text-xs font-mono p-3 pr-20 max-h-80 overflow-auto text-gray-700 whitespace-pre-wrap break-all">
-          {preview}
-        </pre>
-      </div>
+        <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-all p-3 pr-20 font-mono text-gray-700">{preview}</pre>
+      </Card>
       {hash && (
-        <div className="mt-2 flex items-center gap-2 text-[11px] text-gray-400">
+        <div className="flex items-center gap-2 pt-1">
           <span className="font-mono">SHA256: {hash.slice(0, 16)}...</span>
-          <CopyIconButton value={hash} title="Copy hash" size={3} />
+          <CopyIconButton value={hash} title="Copy hash" />
         </div>
       )}
       {size != null && size > preview.length && (
-        <div className="mt-1 text-[11px] text-gray-400">
+        <div>
           Preview: {formatBytes(preview.length)} of {formatBytes(size)}
         </div>
       )}
@@ -283,13 +234,13 @@ export function ResponseEmpty({
       ? ["hero-exclamation-triangle", "No response received"]
       : ["hero-lock-closed", "Request not sent — credential error"];
   return (
-    <div className="border-t border-gray-100">
-      <div className="flex flex-col items-center justify-center px-4 py-8 text-gray-500">
-        <span className={cn(icon, "h-8 w-8 mb-3 text-gray-400")} />
-        <p className="font-medium mb-1">{label}</p>
-        <p className="text-sm mb-2">{humanMessage}</p>
-        <code className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">{errorCode}</code>
-      </div>
+    <div className="flex flex-col items-center gap-1 border-t border-gray-100 px-4 py-8 text-sm text-gray-500">
+      <span className={cn(icon, "mb-2 h-8 w-8 text-gray-400")} />
+      <p className="text-base font-medium">{label}</p>
+      <p className="mb-1">{humanMessage}</p>
+      <Pill square mono>
+        {errorCode}
+      </Pill>
     </div>
   );
 }

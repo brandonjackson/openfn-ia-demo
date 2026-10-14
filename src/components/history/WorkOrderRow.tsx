@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import IconButton from "../IconButton";
 import { Checkbox } from "../Inputs";
+import Pill from "../Pill";
 import { Td, Tr } from "../Table";
 import type { WorkOrder } from "../../mock-data/history";
 import {
@@ -14,6 +15,7 @@ import DateTime from "../DateTime";
 import StatePill from "./StatePill";
 import UuidChip from "./UuidChip";
 import { RunCard } from "./RunDetails";
+import { cn } from "../../utils/cn";
 import { formatElapsed } from "../../utils/format";
 
 const zeroPersistence =
@@ -53,7 +55,7 @@ export default function WorkOrderRow({
         onClick={runs.length ? () => setExpanded((e) => !e) : undefined}
       >
         <Td className="!pr-1">
-          <span onClick={(e) => e.stopPropagation()} title={available ? undefined : zeroPersistence}>
+          <span title={available ? undefined : zeroPersistence}>
             <Checkbox
               label={<span className="sr-only">Select work order</span>}
               className="disabled:bg-gray-100"
@@ -64,29 +66,19 @@ export default function WorkOrderRow({
           </span>
         </Td>
         <Td>
-          <span className="mt-2 text-gray-700">
-            <UuidChip id={wo.id} to={`/projects/${projectId}/history?filters[workorder_id]=${wo.id}`} />
-          </span>
+          <UuidChip id={wo.id} to={`/projects/${projectId}/history?filters[workorder_id]=${wo.id}`} />
         </Td>
         <Td>
           {lastRun ? (
             <Link
               to={`/projects/${projectId}/w/${wo.workflowId}?run=${lastRun.id}`}
-              className="inline-block"
-              onClick={(e) => e.stopPropagation()}
+              className="workflow-name block max-w-50 truncate text-gray-900 hover:text-primary-600"
               title={`${wo.workflowName}\nClick to view`}
             >
-              <span
-                className="truncate text-gray-900 workflow-name hover:text-primary-600 cursor-pointer block max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap"
-              >
-                {wo.workflowName}
-              </span>
+              {wo.workflowName}
             </Link>
           ) : (
-            <span
-              title={wo.workflowName}
-              className="truncate text-gray-900 workflow-name block max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap"
-            >
+            <span title={wo.workflowName} className="workflow-name block max-w-50 truncate text-gray-900">
               {wo.workflowName}
             </span>
           )}
@@ -106,10 +98,8 @@ export default function WorkOrderRow({
           <DateTime value={wo.lastActivity} />
         </Td>
         <Td className="text-right w-28">{lastRun && formatElapsed(lastRun.startedAt, lastRun.finishedAt)}</Td>
-        <Td className="text-right w-32">
-          <div className="flex items-center justify-end gap-2">
-            <StatePill state={wo.state} />
-          </div>
+        <Td className="w-32 text-right">
+          <StatePill state={wo.state} />
         </Td>
         <Td className="text-right w-20">
           {runs.length > 0 && (
@@ -119,8 +109,7 @@ export default function WorkOrderRow({
                   icon="hero-x-mark-mini"
                   label="Cancel pending run"
                   size="sm"
-                  className="text-gray-600 hover:text-red-500"
-                  onClick={(e) => e.stopPropagation()}
+                  className="hover:text-red-500"
                 />
               )}
               {!activeStates.includes(wo.state) &&
@@ -129,8 +118,7 @@ export default function WorkOrderRow({
                     icon="hero-arrow-path-mini"
                     label="Retry (run from the start)"
                     size="sm"
-                    className="text-gray-600 hover:text-primary-400"
-                    onClick={(e) => e.stopPropagation()}
+                    className="hover:text-primary-400"
                   />
                 ) : (
                   <IconButton
@@ -140,10 +128,8 @@ export default function WorkOrderRow({
                     disabled
                   />
                 ))}
-              <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
-                {runs.length}
-              </span>
-              <span className={`${expanded ? "hero-chevron-up" : "hero-chevron-down"} size-4 text-gray-400`} />
+              <Pill>{runs.length}</Pill>
+              <span className={cn(expanded ? "hero-chevron-up" : "hero-chevron-down", "size-4 text-gray-400")} />
             </div>
           )}
         </Td>
@@ -151,7 +137,7 @@ export default function WorkOrderRow({
       {expanded && (
         <Tr>
           <Td colSpan={9} className="!p-0">
-            <div className="bg-gray-100 p-3 flex flex-col gap-3">
+            <div className="flex flex-col gap-3 bg-gray-100 p-3">
               {runs.map((run, i) => {
                 const index = runs.length - i;
                 if (index !== runs.length && !showPrevious) return null;

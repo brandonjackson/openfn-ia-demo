@@ -46,26 +46,21 @@ export default function HistoryChannelLogsPage() {
       }
     >
       <Centered>
-        <div className="top-0 self-start mb-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <FilterChip
-              id="channel-filter-chip"
-              active={selected !== undefined}
-              onClear={() => setChannel(null)}
-              dropdown={(close) => (
-                <FilterMenu
-                  options={[{ value: null, label: "All Channels" }, ...channels.map((c) => ({ value: c.id, label: c.name }))]}
-                  selected={selected?.id ?? null}
-                  onSelect={(v) => {
-                    setChannel(v);
-                    close();
-                  }}
-                />
-              )}
-            >
-              Channel is {selected ? selected.name : "any"}
-            </FilterChip>
-          </div>
+        <div className="mb-4">
+          <FilterChip
+            id="channel-filter-chip"
+            active={selected !== undefined}
+            onClear={() => setChannel(null)}
+            menu={
+              <FilterMenu
+                options={[{ value: null, label: "All Channels" }, ...channels.map((c) => ({ value: c.id, label: c.name }))]}
+                selected={selected?.id ?? null}
+                onSelect={setChannel}
+              />
+            }
+          >
+            Channel is {selected ? selected.name : "any"}
+          </FilterChip>
         </div>
         <ChannelRequestsTable requests={requests} projectId={projectId} />
       </Centered>

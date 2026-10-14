@@ -1,6 +1,8 @@
 import { useParams } from "react-router-dom";
+import { DetailItem, DetailList } from "../../components/DetailList";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
+import Pill from "../../components/Pill";
 import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import {
   BodyViewer,
@@ -15,13 +17,11 @@ import ChannelRequestSummary from "../../components/history/ChannelRequestSummar
 import ChannelTiming from "../../components/history/ChannelTiming";
 import WipedDataViewer from "../../components/history/WipedDataViewer";
 import { errorCategory, humanizeError } from "../../components/history/channelHelpers";
-import { formatBytes } from "../../utils/format";
 import { findChannel, findChannelRequest, primaryEvent } from "../../mock-data/channel-requests";
 import { historyPermissions } from "../../mock-data/history-extra";
 import { findProject } from "../../mock-data/projects";
 
-const sizeNote = (size: number | null) =>
-  size != null && size > 0 ? <span className="text-[11px] text-gray-400 font-mono">{formatBytes(size)}</span> : null;
+const sizeNote = (size: number | null) => (size ? <SectionSizeBadge size={size} /> : null);
 
 /** Inventory view `channel-request-show` (ChannelRequestLive.Show, channel_request_live/show.ex). */
 export default function ChannelRequestShowPage() {
@@ -84,7 +84,7 @@ export default function ChannelRequestShowPage() {
               canEditDataRetention={historyPermissions.canEditDataRetention}
             />
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+            <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
               <DisclosureSection
                 id="request-section"
                 title="Request"
@@ -149,27 +149,20 @@ export default function ChannelRequestShowPage() {
           )}
 
           <DisclosureSection id="context-section" title="Context" defaultOpen={false}>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-              <div>
-                <dt className="text-gray-500 text-xs uppercase tracking-wide mb-1">Destination URL</dt>
-                <dd className="text-gray-900 break-all font-mono text-xs">{request.snapshot.destinationUrl}</dd>
-              </div>
-              <div>
-                <dt className="text-gray-500 text-xs uppercase tracking-wide mb-1">Channel Name</dt>
-                <dd className="text-gray-900">{request.snapshot.name}</dd>
-              </div>
-              <div>
-                <dt className="text-gray-500 text-xs uppercase tracking-wide mb-1">Config Version</dt>
-                <dd className="flex items-center gap-2">
-                  <span className="text-gray-900">{request.snapshot.lockVersion}</span>
-                  {configChanged && (
-                    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-800">
-                      Config changed
-                    </span>
-                  )}
-                </dd>
-              </div>
-            </div>
+            <DetailList layout="grid" className="md:grid-cols-3">
+              <DetailItem label="Destination URL" mono>
+                {request.snapshot.destinationUrl}
+              </DetailItem>
+              <DetailItem label="Channel Name">{request.snapshot.name}</DetailItem>
+              <DetailItem label="Config Version">
+                {request.snapshot.lockVersion}
+                {configChanged && (
+                  <Pill color="yellow" className="ml-2">
+                    Config changed
+                  </Pill>
+                )}
+              </DetailItem>
+            </DetailList>
           </DisclosureSection>
         </div>
       </Centered>

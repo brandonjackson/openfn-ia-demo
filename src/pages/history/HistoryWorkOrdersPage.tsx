@@ -135,108 +135,101 @@ export default function HistoryWorkOrdersPage() {
       }
     >
       <Centered>
-        <div>
-          <div className="top-0 self-start mb-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <FilterChip
-                id="workflow-filter-chip"
-                active={workflowId !== null}
-                onClear={() => setWorkflowId(null)}
-                dropdown={(close) => (
-                  <FilterMenu
-                    options={[{ value: null, label: "Any" }, ...workflows.map((w) => ({ value: w.id, label: w.name }))]}
-                    selected={workflowId}
-                    onSelect={(v) => {
-                      setWorkflowId(v);
-                      close();
-                    }}
-                  />
-                )}
-              >
-                Workflow is {workflowId ? workflows.find((w) => w.id === workflowId)?.name : "any"}
-              </FilterChip>
+        <div className="mb-2 flex flex-wrap items-center gap-2">
+          <FilterChip
+            id="workflow-filter-chip"
+            active={workflowId !== null}
+            onClear={() => setWorkflowId(null)}
+            menu={
+              <FilterMenu
+                options={[{ value: null, label: "Any" }, ...workflows.map((w) => ({ value: w.id, label: w.name }))]}
+                selected={workflowId}
+                onSelect={setWorkflowId}
+              />
+            }
+          >
+            Workflow is {workflowId ? workflows.find((w) => w.id === workflowId)?.name : "any"}
+          </FilterChip>
 
-              <FilterChip
-                id="status-filter-chip"
-                active={statuses.length > 0}
-                onClear={() => setStatuses([])}
-                dropdownClassName="w-44"
-                dropdown={() => (
-                  <FilterCheckboxes
-                    options={historyStatuses}
-                    checked={statuses}
-                    onToggle={(id) => setStatuses((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]))}
-                  />
-                )}
-              >
-                Status {selectedStatuses.length > 1 ? "in" : "is"}{" "}
-                {selectedStatuses.length ? selectedStatuses.map((s) => s.label).join(", ") : "any"}
-              </FilterChip>
+          <FilterChip
+            id="status-filter-chip"
+            active={statuses.length > 0}
+            onClear={() => setStatuses([])}
+            dropdownClassName="w-44"
+            dropdown={() => (
+              <FilterCheckboxes
+                options={historyStatuses}
+                checked={statuses}
+                onToggle={(id) => setStatuses((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]))}
+              />
+            )}
+          >
+            Status {selectedStatuses.length > 1 ? "in" : "is"}{" "}
+            {selectedStatuses.length ? selectedStatuses.map((s) => s.label).join(", ") : "any"}
+          </FilterChip>
 
-              <FilterChip
-                id="received-filter-chip"
-                active={hasReceived}
-                onClear={() => setReceived({ after: "", before: "" })}
-                dropdownClassName=""
-                dropdown={() => (
-                  <FilterDateRange
-                    title="Filter by Date Received"
-                    afterLabel="Received After"
-                    beforeLabel="Received Before"
-                    after={received.after}
-                    before={received.before}
-                    onChange={(after, before) => setReceived({ after, before })}
-                  />
-                )}
-              >
-                Received {dateRange(received.after, received.before)}
-              </FilterChip>
+          <FilterChip
+            id="received-filter-chip"
+            active={hasReceived}
+            onClear={() => setReceived({ after: "", before: "" })}
+            dropdownClassName=""
+            dropdown={() => (
+              <FilterDateRange
+                title="Filter by Date Received"
+                afterLabel="Received After"
+                beforeLabel="Received Before"
+                after={received.after}
+                before={received.before}
+                onChange={(after, before) => setReceived({ after, before })}
+              />
+            )}
+          >
+            Received {dateRange(received.after, received.before)}
+          </FilterChip>
 
-              <FilterChip
-                id="activity-filter-chip"
-                active={hasActivity}
-                onClear={() => setActivity({ after: "", before: "" })}
-                dropdownClassName=""
-                dropdown={() => (
-                  <FilterDateRange
-                    title="Filter by Last Activity"
-                    afterLabel="Activity After"
-                    beforeLabel="Activity Before"
-                    after={activity.after}
-                    before={activity.before}
-                    onChange={(after, before) => setActivity({ after, before })}
-                  />
-                )}
-              >
-                Last activity {dateRange(activity.after, activity.before)}
-              </FilterChip>
+          <FilterChip
+            id="activity-filter-chip"
+            active={hasActivity}
+            onClear={() => setActivity({ after: "", before: "" })}
+            dropdownClassName=""
+            dropdown={() => (
+              <FilterDateRange
+                title="Filter by Last Activity"
+                afterLabel="Activity After"
+                beforeLabel="Activity Before"
+                after={activity.after}
+                before={activity.before}
+                onChange={(after, before) => setActivity({ after, before })}
+              />
+            )}
+          >
+            Last activity {dateRange(activity.after, activity.before)}
+          </FilterChip>
 
-              {workorderId && (
-                <FilterChip
-                  id="workorder-id-filter-chip"
-                  active
-                  onClear={() => {
-                    searchParams.delete("filters[workorder_id]");
-                    setSearchParams(searchParams);
-                  }}
-                >
-                  Work order: {shortId(workorderId)}
-                </FilterChip>
-              )}
-            </div>
-          </div>
-
-          <HistorySearchBar
-            fields={historySearchFields}
-            selected={searchFields}
-            onToggle={(id) => setSearchFields((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]))}
-            term={searchTerm}
-            onSearch={setSearchTerm}
-          />
+          {workorderId && (
+            <FilterChip
+              id="workorder-id-filter-chip"
+              active
+              onClear={() => {
+                searchParams.delete("filters[workorder_id]");
+                setSearchParams(searchParams);
+              }}
+            >
+              Work order: {shortId(workorderId)}
+            </FilterChip>
+          )}
         </div>
 
+        <HistorySearchBar
+          fields={historySearchFields}
+          selected={searchFields}
+          onToggle={(id) => setSearchFields((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]))}
+          term={searchTerm}
+          onSearch={setSearchTerm}
+        />
+
         {searchTerm && (
-          <div className="text-sm text-gray-500 truncate m-2">
+          <div className="m-2 truncate text-sm text-gray-500">
             {entries.length} work orders with runs matching "{searchTerm}"
           </div>
         )}

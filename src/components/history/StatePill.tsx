@@ -39,7 +39,6 @@ function stateLabel(state: State): string {
   }
 }
 
-
 /** A work order or run state pill (run_live/components.ex `state_pill`). */
 export default function StatePill({ state }: { state: State }) {
   return <Pill color={chipColors[state]}>{stateLabel(state)}</Pill>;
@@ -53,8 +52,12 @@ const channelConfig: Record<ChannelRequestState, { text: string; color: PillColo
   error: { text: "Error", color: "red" },
 };
 
-/** A channel request state pill (`channel_state_pill`). */
-export function ChannelStatePill({ state }: { state: ChannelRequestState }) {
+/** A channel request state pill (`channel_state_pill`). `title` is its hover text. */
+export function ChannelStatePill({ state, title }: { state: ChannelRequestState; title?: string }) {
   const { text, color } = channelConfig[state];
-  return <Pill color={color}>{text}</Pill>;
+  return (
+    <Pill color={color} title={title}>
+      {text}
+    </Pill>
+  );
 }

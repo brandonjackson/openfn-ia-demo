@@ -24,54 +24,43 @@ export default function RunStepList({
 }) {
   const navigate = useNavigate();
   return (
-    <ul role="list" className="-mb-8 flex-1 items-center">
+    <ul role="list" className="-mb-8 flex-1">
       {steps.map((step) => {
         const selected = step.id === selectedStepId;
         const isClone = step.startedAt < run.insertedAt;
         return (
-          <li key={step.id} data-step-id={step.id} className="group p-2">
-            <Link to={`?step=${step.id}`}>
-              <div
-                className={cn(
-                  "relative flex space-x-3 border-r-4 items-center",
-                  selected ? "border-primary-500 font-semibold" : "border-transparent hover:border-gray-300"
+          <li key={step.id} data-step-id={step.id} className="p-2">
+            <Link
+              to={`?step=${step.id}`}
+              className={cn(
+                "flex items-center gap-3 border-r-4 text-sm",
+                selected ? "border-primary-500 font-semibold" : "border-transparent hover:border-gray-300"
+              )}
+            >
+              <StepIcon reason={step.exitReason} />
+              <span className={cn("flex min-w-0 flex-1 items-center gap-1 pr-1.5", isClone && "opacity-50")}>
+                {isClone && (
+                  <span
+                    className="hero-paper-clip-mini mr-1 h-3 w-3"
+                    title="This step was originally executed in a previous run. It was skipped in this run; the original output has been used as the starting point for downstream jobs."
+                  />
                 )}
-              >
-                <div className="flex items-center">
-                  <StepIcon reason={step.exitReason} />
-                </div>
-                <div className={cn("flex min-w-0 flex-1 space-x-1 pr-1.5 items-center", isClone && "opacity-50")}>
-                  {isClone && (
-                    <div className="flex">
-                      <span
-                        className="cursor-pointer"
-                        title="This step was originally executed in a previous run. It was skipped in this run; the original output has been used as the starting point for downstream jobs."
-                      >
-                        <span className="hero-paper-clip-mini mr-1 mt-1 h-3 w-3 flex-shrink-0 text-gray-500" />
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex text-sm space-x-1 items-center">
-                    <span>{step.jobName}</span>
-                    {/* A link inside the step's link in Lightning; a span here so the DOM stays valid. */}
-                    <span
-                      role="link"
-                      className="pl-1 cursor-pointer"
-                      title="Inspect Step"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        navigate(`/projects/${projectId}/w/${workflowId}?run=${run.id}&panel=editor&job=${step.jobId}`);
-                      }}
-                    >
-                      <span className="hero-document-magnifying-glass-mini h-5 w-5" />
-                    </span>
-                  </div>
-                  <div className="flex-grow whitespace-nowrap text-right text-sm text-gray-500">
-                    {formatElapsed(step.startedAt, step.finishedAt)}
-                  </div>
-                </div>
-              </div>
+                {step.jobName}
+                {/* A link inside the step's link in Lightning; a span here so the DOM stays valid. */}
+                <span
+                  role="link"
+                  className="hero-document-magnifying-glass-mini ml-1 h-5 w-5 cursor-pointer"
+                  title="Inspect Step"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate(`/projects/${projectId}/w/${workflowId}?run=${run.id}&panel=editor&job=${step.jobId}`);
+                  }}
+                />
+                <span className="grow whitespace-nowrap text-right text-gray-500">
+                  {formatElapsed(step.startedAt, step.finishedAt)}
+                </span>
+              </span>
             </Link>
           </li>
         );

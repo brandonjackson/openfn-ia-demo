@@ -51,18 +51,11 @@ export default function WorkOrdersTable({
   const canRetry = selected.length > 0 && selected.every((w) => !activeStates.includes(w.state));
   const oneWorkflow = new Set(selected.map((w) => w.workflowId)).size === 1;
 
-  const bulkButton = (label: string, enabled: boolean, onClick: (() => void) | undefined, disabledMsg: string) =>
-    enabled ? (
-      <Button size="sm" theme="secondary" className="!py-1" onClick={onClick}>
-        {label}
-      </Button>
-    ) : (
-      <span title={disabledMsg}>
-        <Button size="sm" theme="secondary" className="!py-1" disabled>
-          {label}
-        </Button>
-      </span>
-    );
+  const bulkButton = (label: string, enabled: boolean, onClick: (() => void) | undefined, disabledMsg: string) => (
+    <Button size="xs" theme="secondary" disabled={!enabled} tooltip={enabled ? undefined : disabledMsg} onClick={onClick}>
+      {label}
+    </Button>
+  );
 
   return (
     <Table
@@ -81,7 +74,7 @@ export default function WorkOrdersTable({
                 className="disabled:opacity-50"
               />
               {selected.length > 0 && (
-                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-3 flex items-center gap-1 bg-gray-50 whitespace-nowrap">
+                <div className="absolute left-full top-1/2 ml-3 flex -translate-y-1/2 gap-1 whitespace-nowrap bg-gray-50">
                   {bulkButton(
                     "Cancel",
                     canCancel,
@@ -140,7 +133,7 @@ export default function WorkOrdersTable({
                 icon="hero-cloud-arrow-down"
                 label={`Export all ${workOrders.length} results matching your query`}
                 onClick={onExport}
-                className="text-gray-600 hover:bg-transparent hover:text-primary-500 hover:rotate-[-6deg] transition"
+                className="transition hover:-rotate-6 hover:bg-transparent hover:text-primary-500"
               />
             )
           }

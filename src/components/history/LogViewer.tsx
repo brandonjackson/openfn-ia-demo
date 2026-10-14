@@ -31,7 +31,7 @@ export function LogLevelFilter({ selected, onChange }: { selected: LogLevel; onC
         <button
           type="button"
           aria-label="Log level"
-          className="inline-flex cursor-pointer items-center gap-1 text-xs/4 @md:text-sm/6 text-inherit opacity-75 hover:opacity-100"
+          className="inline-flex items-center gap-1 text-xs/4 opacity-75 hover:opacity-100 @md:text-sm/6"
         >
           <span className="hero-adjustments-vertical size-4 @md:size-6" />
           <span>{selected}</span>
@@ -75,11 +75,7 @@ export default function LogViewer({
 
   if (finished && logs.length === 0) {
     return (
-      <div className="m-2 relative p-12 text-center col-span-full">
-        <span className="relative inline-flex">
-          <div className="inline-flex">No logs were received for this run.</div>
-        </span>
-      </div>
+      <div className="m-2 p-12 text-center">No logs were received for this run.</div>
     );
   }
 
@@ -95,21 +91,17 @@ export default function LogViewer({
 
   return (
     <div className="flex flex-col grow rounded-md bg-gray-700 font-mono text-gray-200 @container overflow-hidden">
-      <div className="border-b border-gray-500">
-        <div className="mx-auto px-2">
-          <div className="flex h-6 @md:h-8 flex-row-reverse items-center">
-            <LogLevelFilter selected={level} onChange={setLevel} />
-          </div>
-        </div>
+      <div className="flex h-6 flex-row-reverse items-center border-b border-gray-500 px-2 @md:h-8">
+        <LogLevelFilter selected={level} onChange={setLevel} />
       </div>
       <div className={cn("flex grow", className)}>
         <div className="relative grow">
           {lines.length === 0 ? (
-            <div className="relative text-xs @md:text-base p-12 text-center bg-gray-700 font-mono text-gray-200">
+            <div className="p-12 text-center text-xs @md:text-base">
               <TextPingLoader>{waitingMessage}</TextPingLoader>
             </div>
           ) : (
-            <div className="absolute inset-0 rounded-md">
+            <div className="absolute inset-0">
               <CodeLines
                 highlighted={highlighted}
                 lines={lines.map((line, i) => {
@@ -117,8 +109,8 @@ export default function LogViewer({
                   if (!m) return <span key={i}>{line}</span>;
                   return (
                     <span key={i}>
-                      {/* Monaco theme's `logSource` token: #868686 italic. */}
-                      <span className="italic text-[#868686]">{m[1]}</span>
+                      {/* Monaco theme's `logSource` token: gray italic. */}
+                      <span className="italic text-gray-400">{m[1]}</span>
                       {m[2]}
                     </span>
                   );

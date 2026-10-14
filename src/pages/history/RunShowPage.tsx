@@ -1,17 +1,18 @@
 import { useState } from "react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
 import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import DateTime from "../../components/DateTime";
-import { DetailItem, DetailList } from "../../components/history/DetailList";
+import { DetailItem, DetailList } from "../../components/DetailList";
 import LogViewer from "../../components/history/LogViewer";
 import RunStepList from "../../components/history/RunStepList";
 import SnapshotVersionChip from "../../components/history/SnapshotVersionChip";
 import StatePill from "../../components/history/StatePill";
 import StepDataclipViewer from "../../components/history/StepDataclipViewer";
 import Tabs from "../../components/Tabs";
+import TextLink from "../../components/TextLink";
 import { formatElapsed } from "../../utils/format";
 import { findDataclip, findRun, findWorkOrder, stepsOf } from "../../mock-data/history";
 import {
@@ -77,7 +78,6 @@ export default function RunShowPage() {
   const startedBy = run.createdBy
     ? findUser(run.createdBy)?.email
     : run.startingTrigger && `${run.startingTrigger.charAt(0).toUpperCase()}${run.startingTrigger.slice(1).toLowerCase()} trigger`;
-  const linkClass = "cursor-pointer underline-offset-2 hover:underline whitespace-nowrap inline-block text-primary-400 hover:text-primary-500";
 
   return (
     <PageContent header={header}>
@@ -86,27 +86,23 @@ export default function RunShowPage() {
           <div className="@5xl/main:basis-1/3 flex gap-y-6 @5xl/main:flex-col flex-row">
             <DetailList id={`run-detail-${run.id}`} className="flex-1 @5xl/main:flex-none">
               <DetailItem label="Workflow">
-                <Link to={`/projects/${projectId}/w/${workOrder.workflowId}?run=${run.id}`} className={`${linkClass} text-ellipsis`}>
+                <TextLink to={`/projects/${projectId}/w/${workOrder.workflowId}?run=${run.id}`} className="text-ellipsis">
                   {workOrder.workflowName}
-                </Link>
+                </TextLink>
               </DetailItem>
-              <DetailItem label="Work Order">
-                <Link
-                  to={`/projects/${projectId}/history?filters[workorder_id]=${workOrder.id}`}
-                  className={`${linkClass} font-mono`}
-                  title={uuidOf(workOrder.id)}
-                >
-                  {shortId(workOrder.id)}
-                </Link>
+              <DetailItem label="Work Order" mono>
+                <span title={uuidOf(workOrder.id)}>
+                  <TextLink to={`/projects/${projectId}/history?filters[workorder_id]=${workOrder.id}`}>
+                    {shortId(workOrder.id)}
+                  </TextLink>
+                </span>
               </DetailItem>
               {startedBy && <DetailItem label="Started by">{startedBy}</DetailItem>}
               <DetailItem label="Started">{run.startedAt && <DateTime value={run.startedAt} />}</DetailItem>
               <DetailItem label="Finished">{run.finishedAt && <DateTime value={run.finishedAt} />}</DetailItem>
-              <DetailItem label="Final Output">
+              <DetailItem label="Final Output" mono>
                 {finalDataclipId && (
-                  <Link to={`/projects/${projectId}/dataclips/${finalDataclipId}/show`} className={`${linkClass} font-mono`}>
-                    {shortId(finalDataclipId)}
-                  </Link>
+                  <TextLink to={`/projects/${projectId}/dataclips/${finalDataclipId}/show`}>{shortId(finalDataclipId)}</TextLink>
                 )}
               </DetailItem>
               <DetailItem label="Duration">{formatElapsed(run.startedAt, run.finishedAt)}</DetailItem>

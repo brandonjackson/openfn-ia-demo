@@ -16,7 +16,7 @@ function tokenise(line: string, depth: { n: number }): ReactNode {
   const indent = line.match(/^ */)![0].length;
   for (let i = 0; i < indent / 2; i++) {
     // Indent guides.
-    out.push(<span key={`g${i}`} className="inline-block w-[2ch] border-l border-[#65737F]/60 h-[19px] align-top" />);
+    out.push(<span key={`g${i}`} className="inline-block w-[2ch] h-5 border-l border-gray-500 align-top" />);
   }
   const re = /("(?:[^"\\]|\\.)*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|(true|false|null)|([{}[\]])|([,:])|(\s+)/g;
   let m: RegExpExecArray | null;

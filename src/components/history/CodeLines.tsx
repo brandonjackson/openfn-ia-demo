@@ -20,7 +20,7 @@ export default function CodeLines({
 }) {
   return (
     <div
-      className={cn("h-full overflow-auto bg-gray-700 text-gray-200 text-[14px] leading-[19px] py-0", className)}
+      className={cn("h-full overflow-auto bg-gray-700 text-sm/5 text-gray-200", className)}
       style={{ fontFamily: "'Fira Code', 'Fira Code VF', ui-monospace, monospace", fontVariantLigatures: "normal" }}
     >
       <div className="min-w-full w-max">
@@ -30,7 +30,7 @@ export default function CodeLines({
             <span
               className={cn(
                 "w-[3ch] shrink-0 text-right select-none ml-[0.6ch]",
-                i === 0 ? "text-[#c6c6c6]" : "text-[#858585]"
+                i === 0 ? "text-gray-300" : "text-gray-400"
               )}
             >
               {i + 1}

@@ -30,19 +30,15 @@ export default function StepDataclipViewer({
   }
   if (!dataclip) {
     return runFinished ? (
-      <div className="m-2 relative rounded-md p-12 text-center col-span-full">
-        <span className="relative inline-flex">
-          <div className="inline-flex">No {inputOrOutput} state could be saved for this run.</div>
-        </span>
-      </div>
+      <div className="m-2 p-12 text-center">No {inputOrOutput} state could be saved for this run.</div>
     ) : (
-      <div className="relative rounded-md text-xs @md:text-base p-12 text-center bg-gray-700 font-mono text-gray-200">
+      <div className="rounded-md bg-gray-700 p-12 text-center font-mono text-xs text-gray-200 @md:text-base">
         <TextPingLoader>Nothing yet</TextPingLoader>
       </div>
     );
   }
   return (
-    <div className="flex-grow h-full min-h-96">
+    <div className="h-full min-h-96 grow">
       <JsonViewer value={dataclip.body} />
     </div>
   );

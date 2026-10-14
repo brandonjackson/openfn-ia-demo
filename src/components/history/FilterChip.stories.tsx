@@ -16,7 +16,7 @@ function MenuDemo() {
       <FilterChip
         active={sel !== null}
         onClear={() => setSel(null)}
-        dropdown={(close) => (
+        menu={
           <FilterMenu
             options={[
               { value: null, label: "Any" },
@@ -24,12 +24,9 @@ function MenuDemo() {
               { value: "b", label: "Referral follow-ups" },
             ]}
             selected={sel}
-            onSelect={(v) => {
-              setSel(v);
-              close();
-            }}
+            onSelect={setSel}
           />
-        )}
+        }
       >
         Workflow is {sel ?? "any"}
       </FilterChip>

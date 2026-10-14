@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom";
 import Pagination from "../Pagination";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 import { findChannel, type ChannelRequest } from "../../mock-data/channel-requests";
 import DateTime from "../DateTime";
+import TextLink from "../TextLink";
 import { ChannelStatePill } from "./StatePill";
 
 /** History's Channel Logs table (run_live/channel_logs_component.ex). */
@@ -41,31 +41,24 @@ export default function ChannelRequestsTable({
           const error = r.events.find((e) => e.type === "error")?.errorMessage;
           return (
             <Tr key={r.id} id={`request-${r.id}`}>
-              <Td>
-                <Link
-                  to={`/projects/${projectId}/history/channels/${r.id}`}
-                  className="cursor-pointer underline-offset-2 hover:underline whitespace-nowrap inline-block text-primary-400 hover:text-primary-500 font-mono"
-                  title={r.requestId}
-                >
+              <Td title={r.requestId}>
+                <TextLink to={`/projects/${projectId}/history/channels/${r.id}`} className="font-mono">
                   {r.requestId.slice(0, 8)}
-                </Link>
+                </TextLink>
               </Td>
-              <Td className="text-sm text-gray-700">{path || "—"}</Td>
-              <Td className="text-sm text-gray-700">
-                <Link
-                  to={`/projects/${projectId}/history/channels?filters[channel_id]=${r.channelId}`}
-                  className="text-primary-600 hover:text-primary-800"
-                >
+              <Td className="text-gray-700">{path || "—"}</Td>
+              <Td>
+                <TextLink to={`/projects/${projectId}/history/channels?filters[channel_id]=${r.channelId}`}>
                   {channel?.name}
-                </Link>
+                </TextLink>
               </Td>
-              <Td className="text-sm text-gray-500">
+              <Td>
                 <DateTime value={r.startedAt} />
               </Td>
               <Td>
                 <ChannelStatePill state={r.state} />
               </Td>
-              <Td className="text-sm text-gray-500 max-w-xs truncate">{error}</Td>
+              <Td className="max-w-xs truncate">{error}</Td>
             </Tr>
           );
         })

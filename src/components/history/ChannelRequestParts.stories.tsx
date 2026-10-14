@@ -7,8 +7,8 @@ import {
   MethodBadge,
   RequestPathDisplay,
   ResponseEmpty,
+  SectionSizeBadge,
   StatusCodeBadge,
-  StatusCodeDisplay,
   SubSection,
 } from "./ChannelRequestParts";
 
@@ -27,7 +27,7 @@ export const RequestSection: Story = {
       <SubSection title="Headers">
         <HeadersTable headers={event.requestHeaders!} />
       </SubSection>
-      <SubSection title="Body" titleRight={<span className="text-[11px] text-gray-400 font-mono">152 B</span>}>
+      <SubSection title="Body" titleRight={<SectionSizeBadge size={152} />}>
         <BodyViewer
           preview={event.requestBodyPreview}
           hash={event.requestBodyHash}
@@ -51,11 +51,11 @@ export const Badges: Story = {
       <MethodBadge method="GET" />
       <MethodBadge method="DELETE" />
       <RequestPathDisplay event={channelRequests[1].events[0]} />
-      <StatusCodeDisplay status={201} />
-      <StatusCodeDisplay status={404} />
-      <StatusCodeDisplay status={null} />
       <StatusCodeBadge status={201} />
+      <StatusCodeBadge status={302} />
+      <StatusCodeBadge status={404} />
       <StatusCodeBadge status={502} />
+      <StatusCodeBadge status={null} />
     </div>
   ),
 };

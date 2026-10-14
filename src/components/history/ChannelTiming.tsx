@@ -1,5 +1,6 @@
 import type { ChannelEvent } from "../../mock-data/channel-requests";
 import { cn } from "../../utils/cn";
+import Pill from "../Pill";
 import { DisclosureSection } from "./ChannelRequestParts";
 import { formatUs } from "../../utils/format";
 
@@ -82,84 +83,64 @@ export default function ChannelTiming({ event }: { event: ChannelEvent | undefin
   const showOverhead = data.tier === "full";
 
   return (
-    <div id="timing-section">
-      <DisclosureSection title="Timing">
-        <div className="space-y-3">
-          <div className="mt-1">
-            <div className="relative">
-              <div
-                className="w-full h-10 rounded-lg relative overflow-hidden flex items-center justify-center p-1.5"
-                style={{ background: showOverhead ? hatch : "var(--color-gray-100)" }}
-              >
-                <div className="flex h-7 min-w-0 w-full">
-                  {segs.map((s, i) => (
-                    <div
-                      key={s.label}
-                      className={cn(
-                        "flex items-center justify-center relative",
-                        s.color,
-                        i === 0 && "rounded-l",
-                        i === segs.length - 1 && "rounded-r"
-                      )}
-                      style={{ width: `${s.pct}%`, minWidth: 20 }}
-                      title={`${s.label}: ${formatUs(s.us)} ms`}
-                    >
-                      {s.badge && (
-                        <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[9px] font-medium text-orange-600 bg-orange-50 border border-orange-200 rounded px-1 py-0 whitespace-nowrap">
-                          {s.badge}
-                        </span>
-                      )}
-                      <span className={cn("text-[10px] font-medium truncate px-0.5", s.textColor)}>{segmentLabel(s)}</span>
-                    </div>
-                  ))}
+    <DisclosureSection id="timing-section" title="Timing">
+      <div className="space-y-3 pt-1 text-xs">
+        <div className="relative">
+          <div
+            className="relative flex h-10 w-full items-center overflow-hidden rounded-lg p-1.5"
+            style={{ background: showOverhead ? hatch : "var(--color-gray-100)" }}
+          >
+            <div className="flex h-7 w-full min-w-0">
+              {segs.map((s) => (
+                <div
+                  key={s.label}
+                  className={cn("relative flex items-center justify-center first:rounded-l last:rounded-r", s.color)}
+                  style={{ width: `${s.pct}%`, minWidth: 20 }}
+                  title={`${s.label}: ${formatUs(s.us)} ms`}
+                >
+                  {s.badge && (
+                    <Pill color="orange" square className="absolute -top-5 left-1/2 -translate-x-1/2 px-1 py-0">
+                      {s.badge}
+                    </Pill>
+                  )}
+                  <span className={cn("truncate px-0.5 font-medium", s.textColor)}>{segmentLabel(s)}</span>
                 </div>
-                {ttfbPct && (
-                  <div className="absolute top-0 bottom-0 w-0.5 bg-gray-700 z-10" style={{ left: `${ttfbPct}%` }} />
-                )}
-              </div>
-              {ttfbPct && (
-                <div className="relative mt-1.5 h-4">
-                  <div
-                    className="absolute flex items-center gap-1 whitespace-nowrap"
-                    style={{ left: `clamp(0px, calc(${ttfbPct}% - 36px), calc(100% - 110px))` }}
-                  >
-                    <span className="hero-arrow-up-mini h-3 w-3 text-gray-500" />
-                    <span className="text-[11px] font-mono font-medium text-gray-600">
-                      TTFB: {formatUs(data.ttfbUs)} ms
-                    </span>
-                  </div>
-                </div>
-              )}
+              ))}
             </div>
-            <div className="flex items-center justify-between mt-1">
-              <span className="text-[11px] text-gray-500 font-mono">0 ms</span>
-              <span className="text-[11px] text-gray-500 font-mono">{formatUs(data.totalUs)} ms</span>
-            </div>
+            {ttfbPct && <div className="absolute inset-y-0 z-10 w-0.5 bg-gray-700" style={{ left: `${ttfbPct}%` }} />}
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500">
-            {data.segments.map((s) => (
-              <span key={s.label} className="inline-flex items-center gap-1.5">
-                <span className={cn("inline-block w-2.5 h-2.5 rounded-sm shrink-0", s.color)} />
-                <span className="leading-none">{s.label}</span>
-              </span>
-            ))}
-            {showOverhead && (
-              <span className="inline-flex items-center gap-1.5">
-                <span
-                  className="inline-block w-3 h-2.5 rounded-sm shrink-0 bg-gray-100 border border-gray-200"
-                  style={{ background: hatch }}
-                />
-                <span className="leading-none">Proxy overhead</span>
-              </span>
-            )}
-            {data.ttfbUs && (
-              <span className="ml-auto inline-flex items-center font-mono text-gray-400 leading-none">
+          {ttfbPct && (
+            <div className="relative mt-1.5 h-4">
+              <div
+                className="absolute flex items-center gap-1 whitespace-nowrap font-mono font-medium text-gray-600"
+                style={{ left: `clamp(0px, calc(${ttfbPct}% - 36px), calc(100% - 110px))` }}
+              >
+                <span className="hero-arrow-up-mini h-3 w-3 text-gray-500" />
                 TTFB: {formatUs(data.ttfbUs)} ms
-              </span>
-            )}
+              </div>
+            </div>
+          )}
+          <div className="mt-1 flex justify-between font-mono text-gray-500">
+            <span>0 ms</span>
+            <span>{formatUs(data.totalUs)} ms</span>
           </div>
         </div>
-      </DisclosureSection>
-    </div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-gray-500">
+          {data.segments.map((s) => (
+            <span key={s.label} className="inline-flex items-center gap-1.5">
+              <span className={cn("h-2.5 w-2.5 rounded-sm", s.color)} />
+              {s.label}
+            </span>
+          ))}
+          {showOverhead && (
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2.5 w-3 rounded-sm border border-gray-200" style={{ background: hatch }} />
+              Proxy overhead
+            </span>
+          )}
+          {data.ttfbUs && <span className="ml-auto font-mono text-gray-400">TTFB: {formatUs(data.ttfbUs)} ms</span>}
+        </div>
+      </div>
+    </DisclosureSection>
   );
 }

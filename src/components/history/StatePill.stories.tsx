@@ -46,3 +46,8 @@ export const ChannelStates: Story = {
     </div>
   ),
 };
+
+export const ChannelTimeoutWithTooltip: Story = {
+  args: { state: "success" },
+  render: () => <ChannelStatePill state="timeout" title="Request timed out" />,
+};

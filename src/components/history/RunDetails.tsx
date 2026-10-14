@@ -2,9 +2,12 @@ import { Link } from "react-router-dom";
 import { stepsOf, type Run, type Step } from "../../mock-data/history";
 import { findDataclip } from "../../mock-data/history";
 import { shortId, uuidOf } from "../../mock-data/history-extra";
+import Card from "../Card";
 import IconButton from "../IconButton";
 import DateTime from "../DateTime";
+import TextLink from "../TextLink";
 import StepIcon from "./StepIcon";
+import { cn } from "../../utils/cn";
 import { formatElapsed } from "../../utils/format";
 
 /**
@@ -28,58 +31,40 @@ export function StepListItem({
   const isClone = step.startedAt < run.insertedAt;
   const inputAvailable = !findDataclip(step.inputDataclipId)?.wiped;
   return (
-    <div id={`step-${step.id}`} role="row" className={isClone ? "flex items-center w-full opacity-50 group" : "flex items-center w-full group"}>
-      <div role="cell" className="flex-1 py-2 text-xs font-normal text-gray-500 text-left group-hover:bg-white">
-        <div className="flex items-center pl-4">
-          <StepIcon reason={step.exitReason} />
-          <div className="text-gray-800 flex items-center gap-2 text-xs">
-            <Link
-              to={`/projects/${projectId}/runs/${run.id}?step=${step.id}`}
-              className="cursor-pointer whitespace-nowrap inline-block text-gray-800 font-normal no-underline hover:text-primary-500"
-            >
-              <span>{step.jobName}</span>
-            </Link>
-            {isClone && (
-              <span
-                className="cursor-pointer"
-                title="This step was originally executed in a previous run. It was skipped in this run; the original output has been used as the starting point for downstream jobs."
-              >
-                <span className="hero-paper-clip-mini h-3 w-3 flex-shrink-0 text-gray-500" />
-              </span>
-            )}
-            &bull;
-            <span className="text-xs text-gray-500">
-              started <DateTime value={step.startedAt} format="time_only" />
-            </span>
-          </div>
-        </div>
+    <div id={`step-${step.id}`} role="row" className={cn("flex items-center text-xs text-gray-500 hover:bg-white", isClone && "opacity-50")}>
+      <div role="cell" className="flex flex-1 items-center gap-2 py-2 pl-4">
+        <StepIcon reason={step.exitReason} />
+        <Link to={`/projects/${projectId}/runs/${run.id}?step=${step.id}`} className="whitespace-nowrap text-gray-800 hover:text-primary-500">
+          {step.jobName}
+        </Link>
+        {isClone && (
+          <span
+            className="hero-paper-clip-mini h-3 w-3"
+            title="This step was originally executed in a previous run. It was skipped in this run; the original output has been used as the starting point for downstream jobs."
+          />
+        )}
+        &bull;
+        <span>
+          started <DateTime value={step.startedAt} format="time_only" />
+        </span>
       </div>
-      <div role="cell" className="flex-shrink-0 py-2 px-4 text-right group-hover:bg-white min-w-[240px]">
-        <div className="flex items-center justify-end gap-3 text-xs text-gray-500">
-          {canRunWorkflow &&
-            step.exitReason &&
-            (inputAvailable ? (
-              <span title="Run this step with the latest version of this workflow">
-                <span className="hero-play-circle-mini h-5 w-5 hover:text-primary-400 cursor-pointer" />
-              </span>
-            ) : (
-              <span
-                className="cursor-pointer"
-                title="This work order cannot be rerun since no input data has been stored due to the data retention policy set in the project."
-              >
-                <span className="hero-play-circle-mini h-5 w-5 cursor-not-allowed text-gray-400" />
-              </span>
-            ))}
-          <Link
-            title="Inspect this step"
-            className="cursor-pointer"
-            to={`/projects/${projectId}/w/${workflowId}?run=${run.id}&panel=editor&job=${step.jobId}`}
-          >
-            <span className="hero-document-magnifying-glass-mini h-5 w-5" />
-          </Link>
-          <div className="w-16 text-right">{formatElapsed(step.startedAt, step.finishedAt)}</div>
-          <span className="font-mono w-24 text-right">{step.exitReason}</span>
-        </div>
+      <div role="cell" className="flex min-w-60 shrink-0 items-center justify-end gap-3 px-4 py-2">
+        {canRunWorkflow &&
+          step.exitReason &&
+          (inputAvailable ? (
+            <IconButton icon="hero-play-circle-mini" label="Run this step with the latest version of this workflow" />
+          ) : (
+            <IconButton
+              icon="hero-play-circle-mini"
+              label="This work order cannot be rerun since no input data has been stored due to the data retention policy set in the project."
+              disabled
+            />
+          ))}
+        <Link title="Inspect this step" to={`/projects/${projectId}/w/${workflowId}?run=${run.id}&panel=editor&job=${step.jobId}`}>
+          <span className="hero-document-magnifying-glass-mini h-5 w-5" />
+        </Link>
+        <span className="w-16 text-right">{formatElapsed(step.startedAt, step.finishedAt)}</span>
+        <span className="w-24 text-right font-mono">{step.exitReason}</span>
       </div>
     </div>
   );
@@ -128,56 +113,41 @@ export function RunCard({
   const [label, at] = runStatusText(run);
   const steps = stepsOf(run);
   return (
-    <div id={`run_${run.id}`} className="w-full bg-white border border-gray-300 rounded-lg overflow-hidden">
-      <div className="bg-gray-200 text-xs flex items-center w-full">
-        <div className="flex-1 py-2 text-left">
-          <div className="pl-4 flex items-center gap-1">
-            Run
-            <Link to={`/projects/${projectId}/runs/${run.id}`}>
-              <span title={uuidOf(run.id)} className="cursor-pointer underline-offset-2 hover:underline whitespace-nowrap inline-block text-primary-400 hover:text-primary-500 font-mono">
-                {shortId(run.id)}
-              </span>
-            </Link>
-            {total > 1 && (
-              <>
-                ({index}/{total}
-                {index !== total && ")"}
-                {index === total && (
-                  <span>
-                    &bull;{" "}
-                    <a
-                      href="#"
-                      className="cursor-pointer underline-offset-2 hover:underline whitespace-nowrap inline-block text-primary-400 hover:text-primary-500"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        onTogglePrevious();
-                      }}
-                    >
-                      {showPrevious ? "hide" : "show"} previous
-                    </a>
-                    )
-                  </span>
-                )}
-              </>
-            )}
-            <span>
-              &bull; {label} <DateTime value={at} format="relative_detailed" />
-            </span>
-          </div>
+    <Card id={`run_${run.id}`} padding="none" className="overflow-hidden">
+      <div className="flex items-center bg-gray-200 text-xs">
+        <div className="flex flex-1 items-center gap-1 py-2 pl-4">
+          Run
+          <span title={uuidOf(run.id)}>
+            <TextLink to={`/projects/${projectId}/runs/${run.id}`} className="font-mono">
+              {shortId(run.id)}
+            </TextLink>
+          </span>
+          {total > 1 && (
+            <>
+              ({index}/{total}
+              {index !== total && ")"}
+              {index === total && (
+                <span>
+                  &bull; <TextLink onClick={onTogglePrevious}>{showPrevious ? "hide" : "show"} previous</TextLink>)
+                </span>
+              )}
+            </>
+          )}
+          <span>
+            &bull; {label} <DateTime value={at} format="relative_detailed" />
+          </span>
         </div>
-        <div className="shrink-0 py-2 px-4 text-right min-w-[240px]">
-          <div className="flex items-center justify-end gap-3">
-            <div className="w-16 text-right">
-              {run.state !== "available" && run.state !== "cancelled" && formatElapsed(run.startedAt, run.finishedAt)}
-            </div>
-            <span className="font-mono w-24 text-right">{run.state}</span>
-            {run.state === "available" && canRunWorkflow && (
-              <IconButton icon="hero-x-mark-mini" label="Cancel this run" size="sm" className="text-gray-600 hover:text-red-500" />
-            )}
-          </div>
+        <div className="flex min-w-60 shrink-0 items-center justify-end gap-3 px-4 py-2">
+          <span className="w-16 text-right">
+            {run.state !== "available" && run.state !== "cancelled" && formatElapsed(run.startedAt, run.finishedAt)}
+          </span>
+          <span className="w-24 text-right font-mono">{run.state}</span>
+          {run.state === "available" && canRunWorkflow && (
+            <IconButton icon="hero-x-mark-mini" label="Cancel this run" size="sm" className="hover:text-red-500" />
+          )}
         </div>
       </div>
-      <div role="rowgroup" id={`run-${run.id}`} className={steps.length ? "bg-gray-100 border-t border-gray-300" : "bg-gray-100"}>
+      <div role="rowgroup" id={`run-${run.id}`} className={cn("bg-gray-100", steps.length && "border-t border-gray-300")}>
         {steps.map((step) => (
           <StepListItem
             key={step.id}
@@ -189,6 +159,6 @@ export function RunCard({
           />
         ))}
       </div>
-    </div>
+    </Card>
   );
 }

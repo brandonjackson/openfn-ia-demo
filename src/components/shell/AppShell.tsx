@@ -8,7 +8,7 @@ import { buildProjectPickerItems } from "./projectPickerItems";
 /**
  * Lightning's logged-in layout (layouts/live.html.heex, settings.html.heex):
  * the side menu, the page, and the global project picker. Admin routes
- * (/settings/*) get the slate admin menu; project routes the project menu.
+ * (/settings/*) get the gray admin menu; project routes the project menu.
  */
 export default function AppShell() {
   const { pathname } = useLocation();
@@ -37,7 +37,6 @@ export default function AppShell() {
         viewAllLabel="View all projects"
         viewAllHref="/projects"
         openEvent="open-project-picker"
-        theme={variant === "admin" ? "sudo-variant" : "primary-theme"}
       />
     </main>
   );

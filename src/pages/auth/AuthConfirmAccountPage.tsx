@@ -1,9 +1,10 @@
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AuthLayout from "../../components/auth/AuthLayout";
 import AuthCard, { AuthFooterLinks } from "../../components/auth/AuthCard";
 import Button from "../../components/Button";
 import { TextInput } from "../../components/Inputs";
 import { authFlags } from "../../mock-data/auth";
+import TextLink from "../../components/TextLink";
 
 /**
  * Inventory view `auth-confirm-account`.
@@ -18,8 +19,8 @@ export default function AuthConfirmAccountPage() {
   const flags = authFlags(search);
   const footer = (
     <AuthFooterLinks
-      left={<Link to="/users/log_in">Log in</Link>}
-      right={flags.allowSignup && <Link to="/users/register">Register</Link>}
+      left={<TextLink variant="plain" to="/users/log_in">Log in</TextLink>}
+      right={flags.allowSignup && <TextLink variant="plain" to="/users/register">Register</TextLink>}
     />
   );
   const onSubmit = (e: React.FormEvent) => {

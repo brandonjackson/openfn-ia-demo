@@ -21,9 +21,13 @@ export const MAX_ZOOM = 1;
 export const EDGE_COLOR = "#b1b1b7";
 export const EDGE_COLOR_DISABLED = "#E1E1E1";
 export const EDGE_COLOR_DIDNT_RUN = "#dfe0e3";
-export const EDGE_COLOR_SELECTED = "#4f46e5";
-export const EDGE_COLOR_NEIGHBOUR = "#807CCE";
-export const EDGE_COLOR_SELECTED_DISABLED = "#bdbaf3";
+// The primary-tinted colours are theme variables (src/theme/theme.css holds
+// Lightning's hex values), so a theme can recolour the canvas. Use them in
+// `style`, not SVG presentation attributes.
+export const EDGE_COLOR_SELECTED = "var(--ui-diagram-selected)";
+export const EDGE_COLOR_NEIGHBOUR = "var(--ui-diagram-neighbour)";
+export const EDGE_COLOR_NEIGHBOUR_DIDNT_RUN = "var(--ui-diagram-neighbour-faded)";
+export const EDGE_COLOR_SELECTED_DISABLED = "var(--ui-diagram-selected-disabled)";
 export const ERROR_COLOR = "#ef4444";
 
 export type NodeRunState = "success" | "fail" | "crash" | "running" | null;
@@ -107,7 +111,7 @@ export function edgeColor({
   didntRun?: boolean;
 }): string {
   if (enabled) {
-    if (neighbour) return didntRun ? "#d0d0ea" : EDGE_COLOR_NEIGHBOUR;
+    if (neighbour) return didntRun ? EDGE_COLOR_NEIGHBOUR_DIDNT_RUN : EDGE_COLOR_NEIGHBOUR;
     if (selected) return EDGE_COLOR_SELECTED;
     if (didntRun) return EDGE_COLOR_DIDNT_RUN;
     return EDGE_COLOR;

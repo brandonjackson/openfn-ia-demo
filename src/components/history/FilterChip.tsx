@@ -39,8 +39,12 @@ export default function FilterChip({
   );
 
   return (
+    // Not a Pill: the chip is text-sm with a border, its label is the menu
+    // trigger and its x is styled to the chip, so it only shares the hook.
     <div
       id={id}
+      data-ui="tag"
+      data-variant={active ? "active" : "default"}
       className={cn(
         "inline-flex items-center gap-x-1 rounded-full border text-sm font-medium transition-colors",
         active ? "border-primary-200 bg-primary-50 text-primary-700" : "border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200",

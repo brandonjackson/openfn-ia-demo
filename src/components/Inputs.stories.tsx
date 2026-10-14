@@ -45,7 +45,7 @@ export const Radios: Story = {
 export const CustomControlInField: Story = {
   render: () => (
     <Field id="when" label="Run after" hint="Pick a date and time.">
-      <input id="when" type="datetime-local" className={controlClasses()} />
+      <input id="when" type="datetime-local" data-ui="field" className={controlClasses()} />
     </Field>
   ),
 };

@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AuthLayout from "../../components/auth/AuthLayout";
 import AuthCard, { AuthFooterLinks } from "../../components/auth/AuthCard";
 import PasswordInput from "../../components/auth/PasswordInput";
@@ -54,8 +54,8 @@ export default function AuthRegisterPage() {
             <Button type="submit">Register</Button>
             <AuthFooterLinks
               divider
-              left={<Link to="/users/log_in">Log in</Link>}
-              right={<Link to="/users/reset_password">Forgot your password?</Link>}
+              left={<TextLink variant="plain" to="/users/log_in">Log in</TextLink>}
+              right={<TextLink variant="plain" to="/users/reset_password">Forgot your password?</TextLink>}
             />
           </AuthCard>
         </form>

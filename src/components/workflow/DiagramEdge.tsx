@@ -1,5 +1,13 @@
 import type { EdgeConditionType, Position } from "../../mock-data/workflow";
-import { bezierPath, conditionGlyph, edgeColor, edgeEndpoints } from "./diagramGeometry";
+import {
+  EDGE_COLOR,
+  EDGE_COLOR_NEIGHBOUR,
+  EDGE_COLOR_SELECTED,
+  bezierPath,
+  conditionGlyph,
+  edgeColor,
+  edgeEndpoints,
+} from "./diagramGeometry";
 
 interface Props {
   id: string;
@@ -37,7 +45,7 @@ export default function DiagramEdge({
   const { sx, sy, tx, ty } = edgeEndpoints(source, target);
   const path = bezierPath(sx, sy, tx, ty);
   const color = edgeColor({ selected, neighbour, enabled, didntRun });
-  const stroke = selected ? "#4f46e5" : neighbour ? "#807CCE" : "#b1b1b7";
+  const stroke = selected ? EDGE_COLOR_SELECTED : neighbour ? EDGE_COLOR_NEIGHBOUR : EDGE_COLOR;
   const markerId = `arrow-${id}`;
   const label =
     conditionLabel && conditionLabel.length > 22 ? conditionLabel.slice(0, 22) + "..." : conditionLabel;
@@ -73,7 +81,7 @@ export default function DiagramEdge({
         <path
           d={path}
           fill="none"
-          stroke={stroke}
+          style={{ stroke }}
           strokeWidth={2}
           strokeDasharray={enabled ? undefined : "6, 6"}
           opacity={enabled ? (didntRun ? 0.3 : 1) : 0.5}

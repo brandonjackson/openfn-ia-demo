@@ -101,10 +101,10 @@ export default function DiagramNode({
                 rx={NODE_SIZE / 2}
                 ry={NODE_SIZE / 2}
                 strokeWidth={STROKE}
-                {...style}
+                style={style}
               />
             ) : (
-              <rect x={STROKE} y={STROKE} rx={16} width={NODE_SIZE} height={NODE_SIZE} strokeWidth={STROKE} {...style} />
+              <rect x={STROKE} y={STROKE} rx={16} width={NODE_SIZE} height={NODE_SIZE} strokeWidth={STROKE} style={style} />
             )}
           </svg>
           <div

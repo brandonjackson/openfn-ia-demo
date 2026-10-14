@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import { cn } from "../../utils/cn";
 import Modal from "../Modal";
+import SearchList from "../SearchList";
+import { filterPickerItems } from "./projectPickerItems";
 
 /**
  * Generic command-palette picker. Content-agnostic: the server ships a
@@ -60,223 +60,117 @@ interface PickerProps {
    * The matching trigger button dispatches this event.
    */
   openEvent: string;
-  /** Side menu theme class, so the accent follows the menu (e.g. `sudo-variant`). */
-  theme?: string;
   /** Start open (stories and screenshots). */
   defaultOpen?: boolean;
 }
 
-// A row turns primary while it's hovered or highlighted with the arrow keys.
-const rowClasses =
-  "group flex cursor-pointer select-none items-center py-3 text-gray-900 hover:bg-primary-600 hover:text-white data-highlighted:bg-primary-600 data-highlighted:text-white";
-const iconClasses = "shrink-0 text-gray-400 group-hover:text-white/70 group-data-highlighted:text-white/70";
+/** The "View all" row, always first. */
+const VIEW_ALL = { id: "__view_all__" } as const;
+type Row = PickerItem | typeof VIEW_ALL;
+const isViewAll = (row: Row): row is typeof VIEW_ALL => row === VIEW_ALL;
+
+const iconClasses = (active: boolean) => cn("shrink-0 group-hover:text-white/70", active ? "text-white/70" : "text-gray-400");
 
 /**
  * Lightning's command-palette picker (assets/js/picker/Picker.tsx), used as
  * the project picker. Opens on Cmd/Ctrl+P or when its trigger button
- * dispatches `openEvent`; search, arrow keys and Enter navigate.
+ * dispatches `openEvent`; search, arrow keys (wrapping) and Enter navigate.
  */
-export default function Picker(props: PickerProps) {
+export default function Picker({ items: allItems, currentId, placeholder, emptyMessage, viewAllLabel, viewAllHref, openEvent, defaultOpen = false }: PickerProps) {
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(props.defaultOpen ?? false);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [searchTerm, setSearchTerm] = useState("");
-  const [rawHighlightedIndex, setHighlightedIndex] = useState(0);
-  const listRef = useRef<HTMLUListElement>(null);
 
-  const isMac = useMemo(
-    () => typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.platform),
-    [],
-  );
+  const isMac = useMemo(() => typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.platform), []);
 
-  const allItems = props.items;
-
-  const currentId = props.currentId;
-  const placeholder = props.placeholder;
-  const emptyMessage = props.emptyMessage;
-  const viewAllLabel = props.viewAllLabel;
-  const viewAllHref = props.viewAllHref;
-  const openEvent = props.openEvent;
-  const theme = props.theme ?? "";
-
-  // Filter items by search term. Items are already tree-flattened server-side;
-  // we only need to include matches *and* the ancestors that lead to them so
-  // the indentation still reads correctly.
-  const items = useMemo<PickerItem[]>(() => {
-    if (!searchTerm) return allItems;
-    const lower = searchTerm.toLowerCase();
-
-    // Mark matches and include ancestor chain for each match.
-    const selfMatch = allItems.map((i) => i.searchLabel.toLowerCase().includes(lower));
-    const include = new Array<boolean>(allItems.length).fill(false);
-
-    for (let i = 0; i < allItems.length; i++) {
-      if (!selfMatch[i]) continue;
-      include[i] = true;
-      // Walk backwards from this item, marking each shallower ancestor as
-      // needed. Server gives us items in pre-order, so the parent is the
-      // most recent item with a strictly smaller depth.
-      let depth = allItems[i]!.depth;
-      for (let j = i - 1; j >= 0 && depth > 0; j--) {
-        const candidate = allItems[j]!;
-        if (candidate.depth < depth) {
-          include[j] = true;
-          depth = candidate.depth;
-        }
-      }
-    }
-
-    return allItems.filter((_, i) => include[i]);
-  }, [allItems, searchTerm]);
-
-  // "View all" is always index 0; items start at index 1.
-  const totalItems = items.length + 1;
-  // Clamp when a search shrinks the list.
-  const highlightedIndex = Math.min(rawHighlightedIndex, totalItems - 1);
+  const items = useMemo(() => filterPickerItems(allItems, searchTerm), [allItems, searchTerm]);
 
   const openPicker = useCallback(() => {
     setIsOpen(true);
     setSearchTerm("");
-    setHighlightedIndex(items.length > 0 ? 1 : 0);
-  }, [items.length]);
-
-  const closePicker = useCallback(() => {
-    setIsOpen(false);
   }, []);
+
+  const closePicker = useCallback(() => setIsOpen(false), []);
 
   // Cmd/Ctrl+P to toggle.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "p") {
         e.preventDefault();
-        if (isOpen) {
-          closePicker();
-        } else {
-          openPicker();
-        }
+        if (isOpen) closePicker();
+        else openPicker();
       }
     };
-
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, openPicker, closePicker]);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const list = listRef.current;
-    if (!list) return;
-    const highlighted = list.querySelector(`[data-index="${highlightedIndex}"]`) as HTMLElement;
-    if (highlighted) {
-      highlighted.scrollIntoView({ block: "nearest" });
-    }
-  }, [isOpen, highlightedIndex]);
-
   // Listen for the configured open event (dispatched by the trigger button).
   useEffect(() => {
-    const handleOpen = () => openPicker();
-    document.body.addEventListener(openEvent, handleOpen);
-    return () => document.body.removeEventListener(openEvent, handleOpen);
+    document.body.addEventListener(openEvent, openPicker);
+    return () => document.body.removeEventListener(openEvent, openPicker);
   }, [openPicker, openEvent]);
 
-  const go = (href: string, sameSection = false) => {
+  const go = (row: Row) => {
     setIsOpen(false);
-    navigate(href + (sameSection ? window.location.hash : ""));
-  };
-
-  const handleInputKeyDown = (e: React.KeyboardEvent) => {
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setHighlightedIndex((i) => (i < totalItems - 1 ? i + 1 : 0));
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setHighlightedIndex((i) => (i > 0 ? i - 1 : totalItems - 1));
-        break;
-      case "Enter": {
-        e.preventDefault();
-        if (highlightedIndex === 0) {
-          go(viewAllHref);
-        } else {
-          const item = items[highlightedIndex - 1];
-          if (item) go(item.href, item.sameSection);
-        }
-        break;
-      }
-    }
+    if (isViewAll(row)) navigate(viewAllHref);
+    else navigate(row.href + (row.sameSection ? window.location.hash : ""));
   };
 
   // Modal brings the backdrop, Escape, click-outside and the focus trap;
   // the panel sits high on the page, like a command palette.
   return (
-    <Modal open={isOpen} onClose={closePicker} bare className={cn("picker-root mt-[15vh] self-start overflow-hidden", theme)}>
-      <div className="flex items-center border-b border-gray-200 px-4">
-        <span className="hero-magnifying-glass h-5 w-5 shrink-0 text-gray-400" />
-        <input
-          autoFocus
-          type="text"
-          spellCheck="false"
-          placeholder={placeholder}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          onKeyDown={handleInputKeyDown}
-          className="w-full border-0 py-4 pl-3 pr-4 text-base text-gray-900 placeholder:text-gray-400 focus:ring-0"
-          role="combobox"
-          aria-controls="picker-options"
-          aria-expanded="true"
-          autoComplete="off"
-        />
-        <kbd className="hidden items-center gap-1 rounded px-2 py-1 text-xs text-gray-400 ring-1 ring-gray-300 sm:inline-flex">
-          <span>{isMac ? "⌘" : "Ctrl"}</span>
-          <span>P</span>
-        </kbd>
-      </div>
-
-      <ul ref={listRef} className="max-h-80 overflow-y-auto py-2" id="picker-options" role="listbox">
-        <li
-          data-index={0}
-          data-highlighted={highlightedIndex === 0 || undefined}
-          className={cn(rowClasses, "px-4")}
-          role="option"
-          onClick={() => go(viewAllHref)}
-          onMouseEnter={() => setHighlightedIndex(0)}
-        >
-          <span className={cn("hero-rectangle-stack mr-2 h-5 w-5", iconClasses)} />
-          <span className="grow">{viewAllLabel}</span>
-          <span className={cn("hero-arrow-right h-4 w-4", iconClasses)} />
-        </li>
-
-        {items.length > 0 && <li className="my-2 border-t border-gray-200" role="separator" />}
-
-        {items.map((item, index) => {
-          const itemIndex = index + 1;
-          const isSelected = item.id === currentId;
-          const itemIcon = item.icon ?? (item.isSandbox ? "hero-beaker" : "hero-folder");
-
-          return (
-            <li
-              key={item.id}
-              data-index={itemIndex}
-              data-highlighted={itemIndex === highlightedIndex || undefined}
-              className={cn(rowClasses, "pr-4")}
-              style={{ paddingLeft: `${16 + item.depth * 10}px` }}
-              role="option"
-              aria-selected={isSelected}
-              onClick={() => go(item.href, item.sameSection)}
-              onMouseEnter={() => setHighlightedIndex(itemIndex)}
-            >
-              {item.depth > 0 && (
-                <span className="hero-arrow-turn-down-right mr-2 h-4 w-4 shrink-0 text-gray-300 group-hover:text-white/50 group-data-highlighted:text-white/50" />
+    <Modal open={isOpen} onClose={closePicker} bare className="mt-[15vh] self-start overflow-hidden">
+      <SearchList<Row>
+        size="lg"
+        listId="picker-options"
+        sections={[
+          { key: "all", items: [VIEW_ALL] },
+          { key: "items", items, empty: emptyMessage },
+        ]}
+        // The first project is highlighted on open, as in Lightning.
+        initialActive={allItems[0]}
+        getKey={(row) => row.id}
+        isSelected={(row) => row.id === currentId}
+        query={searchTerm}
+        onQueryChange={setSearchTerm}
+        onSelect={go}
+        placeholder={placeholder}
+        inputAddon={
+          <kbd className="hidden items-center gap-1 rounded px-2 py-1 text-xs text-gray-400 ring-1 ring-gray-300 sm:inline-flex">
+            <span>{isMac ? "⌘" : "Ctrl"}</span>
+            <span>P</span>
+          </kbd>
+        }
+        renderItem={(row, { active, selected }) =>
+          isViewAll(row) ? (
+            <>
+              <span className={cn("hero-rectangle-stack mr-2 h-5 w-5", iconClasses(active))} />
+              <span className="grow">{viewAllLabel}</span>
+              <span className={cn("hero-arrow-right h-4 w-4", iconClasses(active))} />
+            </>
+          ) : (
+            <>
+              {row.depth > 0 && (
+                <>
+                  <span className="shrink-0" style={{ width: row.depth * 10 }} />
+                  <span
+                    className={cn(
+                      "hero-arrow-turn-down-right mr-2 h-4 w-4 shrink-0 group-hover:text-white/50",
+                      active ? "text-white/50" : "text-gray-300"
+                    )}
+                  />
+                </>
               )}
-              <span className={cn(itemIcon, "mr-2 h-5 w-5", iconClasses)} />
-              <span className={cn("grow truncate", isSelected && "font-semibold")}>{item.label}</span>
-              {isSelected && (
-                <span className="hero-check ml-3 h-5 w-5 shrink-0 text-primary-600 group-hover:text-white group-data-highlighted:text-white" />
+              <span className={cn(row.icon ?? (row.isSandbox ? "hero-beaker" : "hero-folder"), "mr-2 h-5 w-5", iconClasses(active))} />
+              <span className={cn("grow truncate", selected && "font-semibold")}>{row.label}</span>
+              {selected && (
+                <span className={cn("hero-check ml-3 h-5 w-5 shrink-0 group-hover:text-white", active ? "text-white" : "text-primary-600")} />
               )}
-            </li>
-          );
-        })}
-        {items.length === 0 && <li className="px-4 py-8 text-center text-gray-500">{emptyMessage}</li>}
-      </ul>
+            </>
+          )
+        }
+      />
     </Modal>
   );
 }

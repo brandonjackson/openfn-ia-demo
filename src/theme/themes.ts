@@ -1,7 +1,8 @@
 /**
- * Theme registry for the Style Picker.
+ * Theme registry for the theme switcher (the settings button, and the
+ * Storybook toolbar).
  *
- * Each entry is pure metadata used to render the picker UI. The actual
+ * Each entry is pure metadata used to render the switcher. The actual
  * visual transformation lives entirely in `theme.css`, keyed by the
  * matching `data-theme` value on the <html> element. Adding a theme is
  * therefore two steps: a token block in `theme.css` and an entry here.
@@ -48,8 +49,4 @@ export const THEME_IDS = THEMES.map((t) => t.id);
 
 export function isThemeId(value: unknown): value is ThemeId {
   return typeof value === "string" && THEME_IDS.includes(value as ThemeId);
-}
-
-export function getTheme(id: ThemeId): ThemeMeta {
-  return THEMES.find((t) => t.id === id) ?? THEMES[0];
 }

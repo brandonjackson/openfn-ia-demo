@@ -23,4 +23,5 @@ export default meta;
 type Story = StoryObj<typeof Picker>;
 
 export const ProjectPicker: Story = {};
-export const AdminTheme: Story = { args: { theme: "sudo-variant" } };
+export const Profile: Story = { args: { currentId: undefined } };
+export const NoProjects: Story = { args: { items: [] } };

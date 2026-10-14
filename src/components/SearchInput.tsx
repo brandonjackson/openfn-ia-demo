@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes } from "react";
+import type { ChangeEvent, ElementType, InputHTMLAttributes } from "react";
 import { cn } from "../utils/cn";
 import IconButton from "./IconButton";
 import { controlClasses } from "./controlClasses";
@@ -12,13 +12,15 @@ interface Props extends Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "o
   label?: string;
   /** `sm` for compact panels and pickers. */
   size?: "sm" | "md";
+  /** Render the text box as another component, e.g. Headless UI's `ComboboxInput` (SearchList). */
+  inputAs?: ElementType;
 }
 
 /**
  * A text field with a magnifying glass and, once it has text, a clear
  * button. Full width: set the width (and any margin) with `className`.
  */
-export default function SearchInput({ value, onChange, onClear, label, placeholder = "Search", size = "md", className, ...rest }: Props) {
+export default function SearchInput({ value, onChange, onClear, label, placeholder = "Search", size = "md", inputAs: Input = "input", className, ...rest }: Props) {
   const sm = size === "sm";
   return (
     <div className={cn("relative", className)}>
@@ -28,13 +30,14 @@ export default function SearchInput({ value, onChange, onClear, label, placehold
           sm ? "left-3 h-4 w-4" : "left-3 h-5 w-5"
         )}
       />
-      <input
+      <Input
         type="text"
         autoComplete="off"
         value={value}
         placeholder={placeholder}
         aria-label={label ?? placeholder}
-        onChange={(e) => onChange(e.target.value)}
+        data-ui="field"
+        onChange={(e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
         className={controlClasses(false, cn("placeholder:text-gray-400", sm ? "py-1.5 pl-9 pr-9" : "py-2 pl-10 pr-10"))}
         {...rest}
       />

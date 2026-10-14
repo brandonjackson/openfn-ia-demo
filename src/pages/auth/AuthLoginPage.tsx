@@ -1,5 +1,5 @@
 import type { FormEvent } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AuthLayout from "../../components/auth/AuthLayout";
 import AuthCard, { AuthFooterLinks } from "../../components/auth/AuthCard";
 import PasswordInput from "../../components/auth/PasswordInput";
@@ -7,6 +7,7 @@ import SsoLogin from "../../components/auth/SsoLogin";
 import Button from "../../components/Button";
 import { Checkbox, TextInput } from "../../components/Inputs";
 import { authFlags, authMessages } from "../../mock-data/auth";
+import TextLink from "../../components/TextLink";
 
 /**
  * Inventory view `auth-login` (user_session_html/new.html.heex).
@@ -37,8 +38,8 @@ export default function AuthLoginPage() {
             {flags.ssoProvider && <SsoLogin provider={flags.ssoProvider} />}
             <AuthFooterLinks
               divider
-              left={flags.allowSignup && <Link to="/users/register">Register</Link>}
-              right={<Link to="/users/reset_password">Forgot your password?</Link>}
+              left={flags.allowSignup && <TextLink variant="plain" to="/users/register">Register</TextLink>}
+              right={<TextLink variant="plain" to="/users/reset_password">Forgot your password?</TextLink>}
             />
           </AuthCard>
         </form>

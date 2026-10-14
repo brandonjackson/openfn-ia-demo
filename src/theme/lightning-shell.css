@@ -1,52 +1,51 @@
 /* Side menu colours, copied from Lightning's assets/css/app.css
    (#side-menu, .app-logo-container). The project and profile pages use
-   the primary (indigo) menu; admin pages use the slate "sudo" variant. */
+   the primary (indigo) menu; admin pages use the gray "sudo" variant.
+   Themes restyle the menu by setting the `--ui-sidebar-*` variables
+   (see theme.css), not by remapping the primary scale. */
 :root {
-  --primary-bg: var(--color-primary-800);
-  --primary-text: white;
-  --primary-bg-lighter: var(--color-primary-600);
-  --primary-bg-dark: var(--color-primary-900);
-  --primary-text-light: var(--color-primary-300);
-  --primary-text-lighter: var(--color-primary-200);
+  --ui-sidebar-bg: var(--color-primary-800);
+  --ui-sidebar-text: white;
+  --ui-sidebar-bg-dark: var(--color-primary-900);
+  --ui-sidebar-text-light: var(--color-primary-300);
+  --ui-sidebar-text-lighter: var(--color-primary-200);
 }
 
 .sudo-variant {
-  --primary-bg: var(--color-slate-700);
-  --primary-bg-lighter: var(--color-slate-600);
-  --primary-bg-dark: var(--color-slate-900);
-  --primary-text-light: var(--color-slate-300);
-  --primary-text-lighter: var(--color-slate-200);
+  --ui-sidebar-bg: var(--color-gray-700);
+  --ui-sidebar-bg-dark: var(--color-gray-900);
+  --ui-sidebar-text-light: var(--color-gray-300);
+  --ui-sidebar-text-lighter: var(--color-gray-200);
 }
 
 #side-menu {
-  background-color: var(--primary-bg);
-  color: var(--primary-text);
+  background-color: var(--ui-sidebar-bg);
+  color: var(--ui-sidebar-text);
   scrollbar-width: none;
 
   .menu-item-active {
-    color: var(--primary-text-lighter);
-    background-color: var(--primary-bg-dark);
+    color: var(--ui-sidebar-text-lighter);
+    background-color: var(--ui-sidebar-bg-dark);
   }
   .menu-item-inactive {
-    color: var(--primary-text-light);
+    color: var(--ui-sidebar-text-light);
   }
   .menu-item-inactive:hover {
-    background-color: var(--primary-bg-dark);
+    background-color: var(--ui-sidebar-bg-dark);
   }
-  .menu-item svg,
   .menu-item [class*="hero-"] {
     flex-shrink: 0;
   }
 }
 
 .primary-light {
-  color: var(--primary-text-light);
+  color: var(--ui-sidebar-text-light);
 }
 
 .app-logo-container,
 .sidebar-toggle-btn {
-  background-color: var(--primary-bg-dark);
-  color: var(--primary-text);
+  background-color: var(--ui-sidebar-bg-dark);
+  color: var(--ui-sidebar-text);
 }
 
 /* Expanded (192px) vs collapsed (64px) menu items. */

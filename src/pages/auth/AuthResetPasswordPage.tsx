@@ -1,11 +1,12 @@
 import { useState, type FormEvent } from "react";
-import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AuthLayout from "../../components/auth/AuthLayout";
 import AuthCard, { AuthFooterLinks } from "../../components/auth/AuthCard";
 import PasswordInput from "../../components/auth/PasswordInput";
 import Button from "../../components/Button";
 import { TextInput } from "../../components/Inputs";
 import { authFlags } from "../../mock-data/auth";
+import TextLink from "../../components/TextLink";
 
 /**
  * Inventory view `auth-reset-password`.
@@ -20,7 +21,7 @@ export default function AuthResetPasswordPage() {
   const navigate = useNavigate();
   const flags = authFlags(search);
   const [mismatch, setMismatch] = useState(false);
-  const registerLink = flags.allowSignup && <Link to="/users/register">Register</Link>;
+  const registerLink = flags.allowSignup && <TextLink variant="plain" to="/users/register">Register</TextLink>;
 
   if (!token) {
     return (
@@ -35,7 +36,7 @@ export default function AuthResetPasswordPage() {
             <AuthCard>
               <TextInput id="user_email" type="email" label="Email" required />
               <Button type="submit">Send instructions to reset password</Button>
-              <AuthFooterLinks left={<Link to="/users/log_in">Log in</Link>} right={registerLink} />
+              <AuthFooterLinks left={<TextLink variant="plain" to="/users/log_in">Log in</TextLink>} right={registerLink} />
             </AuthCard>
           </form>
         </div>
@@ -68,7 +69,7 @@ export default function AuthResetPasswordPage() {
               errors={mismatch ? ["does not match password"] : []}
             />
             <Button type="submit">Reset password</Button>
-            <AuthFooterLinks divider left={<Link to="/users/log_in">Log in</Link>} right={registerLink} />
+            <AuthFooterLinks divider left={<TextLink variant="plain" to="/users/log_in">Log in</TextLink>} right={registerLink} />
           </AuthCard>
         </form>
       </div>

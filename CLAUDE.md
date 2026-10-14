@@ -33,8 +33,10 @@ inline literals scattered through the markup.
 - `src/components/` — the component library: primitives at the top level,
   app chrome (sidebar, project picker, user menu) in `shell/`, feature
   components in area subfolders. See **Components** below.
-- `src/utils/format.ts` — every date, duration, size and name formatter.
-  Add new ones here, not in an area folder.
+- `src/utils/format.ts` — every date, duration, size, id and name formatter
+  (`capitalize`, `shortUuid`, …). Add new ones here, not in an area folder.
+  Other shared helpers sit beside it: `search.ts` (`matchesQuery`),
+  `validate.ts` (`isValidEmail`), `useUrlParams.ts`, `useCopy.ts`.
 - `src/mock-data/` — fixtures modelled on Lightning's demo seed
   (`lib/lightning/setup_utils.ex`): users, projects, workflows, history.
 - `src/theme/` — themes, chosen from the settings button (bottom right).
@@ -80,12 +82,17 @@ everywhere. Reach for these first:
 | Need | Use |
 |---|---|
 | An action | `Button` (`to` for routes, `href` for plain links; `size="xs" theme="secondary"` for table row actions) |
-| An icon-only action | `IconButton` (always give it a `label`) |
+| An icon-only action | `IconButton` (always give it a `label`; `to`/`href` for icon links, `tone="danger"`, or pass an SVG element as `icon`) |
 | A button that opens a menu | `ButtonMenu`; `SplitButton` when the button also has its own action |
-| A form control | `TextInput`, `TextArea`, `Select`, `Checkbox`, `Radio` from `Inputs`; wrap anything else in `Field` with `controlClasses()` |
-| A dialog | `Modal` (`size`, or `bare` for custom layouts); `ConfirmModal` to confirm one action |
+| A form control | `TextInput`, `TextArea`, `Select`, `Checkbox`, `Radio` from `Inputs` (`fieldClassName` styles the wrapper, e.g. `flex-1` in a row); wrap anything else in `Field` with `controlClasses()` and `data-ui="field"` |
+| A name that becomes a URL-safe slug | `NameField` (input plus the "will be named" badge) |
+| A dialog | `Modal` (`size`, or `bare` for custom layouts) |
+| A dialog around one form | `FormModal` (`formId`, `onSubmit`, `submitLabel`; Enter submits, Cancel is built in) |
+| Confirming one action | `ConfirmModal`; `confirmation` adds a type-to-confirm field |
 | A list of actions or choices | `Menu` with `MenuItem`, `MenuSection`, `MenuDivider` |
-| A floating panel (filters, details) | `Popover` |
+| A floating panel (filters, details) | `Popover` (`panelProps` puts `data-annotation` on the portalled panel; Menu takes it too) |
+| A searchable list you pick from with the keyboard | `SearchList` |
+| Show / hide a section | `Disclosure` (`card`, `section` or `inline`) |
 | Switching views | `Tabs` (`underline` or `pill`, horizontal or vertical, buttons or route links) |
 | Searching or filtering a list | `SearchInput` |
 | A status chip, badge or tag | `Pill` (`color`, `square`, `mono`; `onRemove` makes it removable) |
@@ -95,9 +102,16 @@ everywhere. Reach for these first:
 | A timestamp | `DateTime` |
 | An on/off switch | `Toggle` |
 | An inline link | `TextLink` (`variant="danger"` for destructive ones) |
-| Tabular data | `Table` with `Tr`, `Th`, `Td`, `EmptyState` (a clickable `Tr` ignores clicks on links and buttons inside it, so no `stopPropagation`) |
+| Tabular data | `Table` with `Tr`, `Th`, `Td`, `EmptyState` (a clickable `Tr` ignores clicks on links and buttons inside it, so no `stopPropagation`; `<Th actions />` and `<Td actions>` for the row-actions column, `align` for right/centre) |
+| Sorting and filtering a table in the browser | `useTableSort` (or `useSort` for state only, when rows are sorted elsewhere) from `useTableSort.ts` |
+| "Projects (3)" above a table, with its buttons | `TableTitle` |
 | A status message | `Alert` |
 | Page frame | `PageContent`, `Header`, `Centered`, `Breadcrumbs` |
+
+Primitives expose their look to the themes through `data-ui` (and
+`data-variant` for a variant or tone). Theme CSS targets those hooks, never
+element selectors or utility classes, so a new primitive or variant needs its
+hook, and the GDS theme is worth a look after styling changes.
 
 Dialogs, menus and popovers sit on Headless UI (`@headlessui/react`), which
 handles focus, keyboard and positioning. Don't hand-roll `fixed inset-0`
@@ -132,6 +146,9 @@ Every component has a `.stories.tsx` next to it.
 - **Deleted component** → delete its story.
 - **Router-dependent components** → use `withRouter` / `withRouterAt` from
   `src/stories/decorators.tsx`.
+- **Wrappers** (a gray page background, a right-hand side panel, a white
+  card, a diagram canvas) → `withGrayPanel`, `withSidePanel`,
+  `withWhitePanel`, `withCanvas` from the same file, not inline divs.
 - Stories use fixtures from `src/mock-data/`.
 
 Run `npm run build-storybook` to verify stories compile. CI runs it on every PR.

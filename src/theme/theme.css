@@ -1,7 +1,7 @@
 /*
- * OpenFn IA — Theme tokens for the Style Picker
+ * OpenFn IA — theme tokens
  * ------------------------------------------------------------------
- * HOW THIS WORKS (and why it touches zero component markup):
+ * HOW THIS WORKS:
  *
  * Tailwind v4 compiles every color/radius/shadow/font utility to a
  * `var(--token)` reference — e.g. `bg-gray-50` => `background-color:
@@ -11,15 +11,14 @@
  * By redefining the SAME variables under an `html[data-theme="…"]`
  * selector, every utility already in the codebase resolves to the
  * themed value instead. Swapping the `data-theme` attribute on <html>
- * therefore re-skins the entire app — colors, type, radius, shadows —
- * without editing a single component. Functionality is untouched.
+ * re-skins the app without editing a component.
  *
- * `html[data-theme="…"]` (specificity 0,1,1) deliberately outranks the
- * `:root` defaults below, and a handful of scoped utility overrides at
- * each theme's block resolve the few cases a pure token swap can't
- * (buttons, sidebars, form fields, tables and focus states). Those
- * component layers key off `data-ui` hooks the components carry, and
- * are scoped to their own theme. Basic never sees them.
+ * A token swap can't reach everything (button shape, field borders,
+ * focus states), so each theme may add a component layer. That layer
+ * keys off the `data-ui` / `data-variant` hooks the primitives emit
+ * (button, link, field, alert, tag, table, tabs, pagination, sidebar)
+ * plus the `--ui-*` variables, and is scoped to its own `data-theme`.
+ * The default theme has no component layer.
  *
  * ADDING A THEME: add an entry in `themes.ts`, then a token block here
  * and, if needed, a component layer scoped to the same `data-theme`.
@@ -34,6 +33,13 @@
     "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
     "Liberation Mono", monospace;
+
+  /* Workflow canvas accents (Lightning's diagram styles.ts hex values;
+     read by components/workflow/diagramGeometry.ts). */
+  --ui-diagram-selected: #4f46e5;
+  --ui-diagram-selected-disabled: #bdbaf3;
+  --ui-diagram-neighbour: #807cce;
+  --ui-diagram-neighbour-faded: #d0d0ea;
 }
 
 body {
@@ -41,6 +47,8 @@ body {
   background-color: var(--app-bg, #ffffff);
   color: var(--app-fg, inherit);
   transition: background-color 0.25s ease, color 0.25s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ============================================================== */
@@ -48,7 +56,7 @@ body {
 /* (github.com/OpenFn/lightning, assets/css/app.css). The         */
 /* components are built with Lightning's own markup and classes, */
 /* so this theme only sets the type: Inter and Fira Code.         */
-/* Colours come from the primary/secondary tokens in index.css.   */
+/* Colours come from the primary and semantic tokens in index.css.*/
 /* ============================================================== */
 html[data-theme="lightning-v2"] {
   --app-bg: var(--color-gray-100);
@@ -58,11 +66,6 @@ html[data-theme="lightning-v2"] {
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-mono: "Fira Code VF", "Fira Code", ui-monospace, SFMono-Regular, Menlo,
     Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-}
-
-html[data-theme="lightning-v2"] body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ============================================================== */
@@ -108,38 +111,32 @@ html[data-theme="gds"] {
   --color-gray-950: #0b0c0c;
 
   /* Primary — GOV.UK blue: brand #1d70b8, link #1a65a6,
-     link-hover #0f385c, surface #f4f8fb. Drives blue + indigo +
-     violet utilities across the app. */
-  --color-blue-50: #f4f8fb;   --color-indigo-50: #f4f8fb;  --color-violet-50: #f4f8fb;
-  --color-blue-100: #d2e2f1;  --color-indigo-100: #d2e2f1; --color-violet-100: #d2e2f1;
-  --color-blue-200: #8eb8dc;  --color-indigo-200: #8eb8dc; --color-violet-200: #8eb8dc;
-  --color-blue-300: #8eb8dc;  --color-indigo-300: #8eb8dc; --color-violet-300: #8eb8dc;
-  --color-blue-400: #5694ca;  --color-indigo-400: #5694ca; --color-violet-400: #5694ca;
-  --color-blue-500: #1d70b8;  --color-indigo-500: #1d70b8; --color-violet-500: #1d70b8;
-  --color-blue-600: #1a65a6;  --color-indigo-600: #1d70b8; --color-violet-600: #1d70b8;
-  --color-blue-700: #0f385c;  --color-indigo-700: #16548a; --color-violet-700: #16548a;
-  --color-blue-800: #0f385c;  --color-indigo-800: #0f385c; --color-violet-800: #0f385c;
-  --color-blue-900: #0f385c;  --color-indigo-900: #0f385c; --color-violet-900: #0f385c;
-  --color-blue-950: #0f385c;  --color-indigo-950: #0f385c; --color-violet-950: #0f385c;
-
-  /* Teal — GOV.UK teal #158187 */
-  --color-teal-50: #f3f9f9;  --color-teal-100: #d0e6e7; --color-teal-200: #8ac0c3;
-  --color-teal-300: #8ac0c3; --color-teal-400: #50a1a5; --color-teal-500: #158187;
-  --color-teal-600: #158187; --color-teal-700: #106165; --color-teal-800: #0b4144;
-  --color-teal-900: #0b4144; --color-teal-950: #0b4144;
+     link-hover #0f385c, surface #f4f8fb. Drives blue + indigo
+     (and so primary) utilities across the app. */
+  --color-blue-50: #f4f8fb;   --color-indigo-50: #f4f8fb;
+  --color-blue-100: #d2e2f1;  --color-indigo-100: #d2e2f1;
+  --color-blue-200: #8eb8dc;  --color-indigo-200: #8eb8dc;
+  --color-blue-300: #8eb8dc;  --color-indigo-300: #8eb8dc;
+  --color-blue-400: #5694ca;  --color-indigo-400: #5694ca;
+  --color-blue-500: #1d70b8;  --color-indigo-500: #1d70b8;
+  --color-blue-600: #1a65a6;  --color-indigo-600: #1d70b8;
+  --color-blue-700: #0f385c;  --color-indigo-700: #16548a;
+  --color-blue-800: #0f385c;  --color-indigo-800: #0f385c;
+  --color-blue-900: #0f385c;  --color-indigo-900: #0f385c;
+  --color-blue-950: #0f385c;  --color-indigo-950: #0f385c;
 
   /* Success — GOV.UK green #0f7a52 */
-  --color-green-50: #f3f8f6;   --color-emerald-50: #f3f8f6;
-  --color-green-100: #cfe4dc;  --color-emerald-100: #cfe4dc;
-  --color-green-200: #87bca8;  --color-emerald-200: #87bca8;
-  --color-green-300: #87bca8;  --color-emerald-300: #87bca8;
-  --color-green-400: #4b9b7d;  --color-emerald-400: #4b9b7d;
-  --color-green-500: #0f7a52;  --color-emerald-500: #0f7a52;
-  --color-green-600: #0f7a52;  --color-emerald-600: #0f7a52;
-  --color-green-700: #0b5c3e;  --color-emerald-700: #0b5c3e;
-  --color-green-800: #083d29;  --color-emerald-800: #083d29;
-  --color-green-900: #083d29;  --color-emerald-900: #083d29;
-  --color-green-950: #083d29;  --color-emerald-950: #083d29;
+  --color-green-50: #f3f8f6;
+  --color-green-100: #cfe4dc;
+  --color-green-200: #87bca8;
+  --color-green-300: #87bca8;
+  --color-green-400: #4b9b7d;
+  --color-green-500: #0f7a52;
+  --color-green-600: #0f7a52;
+  --color-green-700: #0b5c3e;
+  --color-green-800: #083d29;
+  --color-green-900: #083d29;
+  --color-green-950: #083d29;
 
   /* Warning — GOV.UK yellow #ffdd00 and orange #f47738 */
   --color-amber-50: #fffdf2;   --color-yellow-50: #fffdf2;  --color-orange-50: #fef8f5;
@@ -155,30 +152,30 @@ html[data-theme="gds"] {
   --color-amber-950: #7a3c1c;  --color-yellow-950: #7a3c1c; --color-orange-950: #7a3c1c;
 
   /* Error — GOV.UK red #ca3535 */
-  --color-red-50: #fcf5f5;   --color-rose-50: #fcf5f5;
-  --color-red-100: #f4d7d7;  --color-rose-100: #f4d7d7;
-  --color-red-200: #e59a9a;  --color-rose-200: #e59a9a;
-  --color-red-300: #e59a9a;  --color-rose-300: #e59a9a;
-  --color-red-400: #d76868;  --color-rose-400: #d76868;
-  --color-red-500: #ca3535;  --color-rose-500: #ca3535;
-  --color-red-600: #ca3535;  --color-rose-600: #ca3535;
-  --color-red-700: #982828;  --color-rose-700: #982828;
-  --color-red-800: #651b1b;  --color-rose-800: #651b1b;
-  --color-red-900: #651b1b;  --color-rose-900: #651b1b;
-  --color-red-950: #651b1b;  --color-rose-950: #651b1b;
+  --color-red-50: #fcf5f5;
+  --color-red-100: #f4d7d7;
+  --color-red-200: #e59a9a;
+  --color-red-300: #e59a9a;
+  --color-red-400: #d76868;
+  --color-red-500: #ca3535;
+  --color-red-600: #ca3535;
+  --color-red-700: #982828;
+  --color-red-800: #651b1b;
+  --color-red-900: #651b1b;
+  --color-red-950: #651b1b;
 
-  /* Info — GOV.UK light blue (sky) and teal (cyan) */
-  --color-sky-50: #f4f8fb;   --color-cyan-50: #f3f9f9;
-  --color-sky-100: #d2e2f1;  --color-cyan-100: #d0e6e7;
-  --color-sky-200: #8eb8dc;  --color-cyan-200: #8ac0c3;
-  --color-sky-300: #8eb8dc;  --color-cyan-300: #8ac0c3;
-  --color-sky-400: #5694ca;  --color-cyan-400: #50a1a5;
-  --color-sky-500: #1d70b8;  --color-cyan-500: #158187;
-  --color-sky-600: #1d70b8;  --color-cyan-600: #158187;
-  --color-sky-700: #16548a;  --color-cyan-700: #106165;
-  --color-sky-800: #0f385c;  --color-cyan-800: #0b4144;
-  --color-sky-900: #0f385c;  --color-cyan-900: #0b4144;
-  --color-sky-950: #0f385c;  --color-cyan-950: #0b4144;
+  /* Info — GOV.UK light blue (sky) */
+  --color-sky-50: #f4f8fb;
+  --color-sky-100: #d2e2f1;
+  --color-sky-200: #8eb8dc;
+  --color-sky-300: #8eb8dc;
+  --color-sky-400: #5694ca;
+  --color-sky-500: #1d70b8;
+  --color-sky-600: #1d70b8;
+  --color-sky-700: #16548a;
+  --color-sky-800: #0f385c;
+  --color-sky-900: #0f385c;
+  --color-sky-950: #0f385c;
 
   /* Category accent — GOV.UK purple #54319f (also link-visited) */
   --color-purple-50: #f6f5fa;
@@ -201,14 +198,28 @@ html[data-theme="gds"] {
   --ui-focus: #ffdd00;
   --ui-focus-text: #0b0c0c;
   --ui-field-border: 2px solid #0b0c0c;
-  --ui-nav-marker: #1d70b8;
   --ui-tag-radius: 1px;
-  --ui-callout-border-width: 5px;
+  --ui-alert-border-width: 5px;
   --ui-label-transform: none;
   --ui-button-weight: 400;
   --ui-button-bg: #0f7a52;            --ui-button-hover: #0b5c3e;            --ui-button-edge: #083d29;
   --ui-button-secondary-bg: #f3f3f3;  --ui-button-secondary-hover: #cecece;  --ui-button-secondary-edge: #858686;
   --ui-button-danger-bg: #ca3535;     --ui-button-danger-hover: #982828;     --ui-button-danger-edge: #651b1b;
+  --ui-button-warning-bg: #b7592a;    --ui-button-warning-hover: #7a3c1c;    --ui-button-warning-edge: #4d2611;
+
+  /* Workflow canvas: GOV.UK blue for the selection and its neighbours. */
+  --ui-diagram-selected: #1d70b8;
+  --ui-diagram-selected-disabled: #8eb8dc;
+  --ui-diagram-neighbour: #5694ca;
+  --ui-diagram-neighbour-faded: #d2e2f1;
+
+  /* Side menu (lightning-shell.css). GOV.UK blue for projects, black for
+     admin. The primary scale can't drive it: GDS maps indigo-800 and
+     indigo-900 to the same blue, so the active fill would vanish. */
+  --ui-sidebar-bg: #1d70b8;
+  --ui-sidebar-bg-dark: #0f385c;
+  --ui-sidebar-text-light: #d2e2f1;
+  --ui-sidebar-text-lighter: #ffffff;
 
   /* Radius — GOV.UK components are square */
   --radius-xs: 0px;
@@ -228,18 +239,22 @@ html[data-theme="gds"] {
   --shadow-xl: 0 0 0 1px #cecece;
 }
 
-html[data-theme="gds"] body {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+html[data-theme="gds"] .sudo-variant {
+  --ui-sidebar-bg: #484949;
+  --ui-sidebar-bg-dark: #0b0c0c;
+  --ui-sidebar-text-light: #cecece;
+  --ui-sidebar-text-lighter: #ffffff;
 }
 
 /* ============================================================== */
 /* GDS component layer. Values come only from the `--ui-*` tokens */
 /* above; selectors target the `data-ui` hooks on our components. */
+/* This block is unlayered, so it beats Tailwind utilities: keep  */
+/* colour rules off elements that take per-call colour classes.   */
 /* ============================================================== */
 html[data-theme="gds"] {
   /* Button: solid fill with a "pressable" bottom edge that sinks on press. */
-  [data-ui="button"]:is([data-variant="primary"], [data-variant="secondary"], [data-variant="outline-primary"], [data-variant="danger"], [data-variant="outline-danger"]) {
+  [data-ui="button"]:is([data-variant="primary"], [data-variant="secondary"], [data-variant="danger"], [data-variant="success"], [data-variant="warning"]) {
     --_bg: var(--ui-button-bg);
     --_hover: var(--ui-button-hover);
     --_edge: var(--ui-button-edge);
@@ -252,66 +267,70 @@ html[data-theme="gds"] {
     font-weight: var(--ui-button-weight);
     white-space: nowrap;
 
-    &:is([data-variant="secondary"], [data-variant="outline-primary"]) {
+    &[data-variant="secondary"] {
       --_bg: var(--ui-button-secondary-bg);
       --_hover: var(--ui-button-secondary-hover);
       --_edge: var(--ui-button-secondary-edge);
       --_text: var(--ui-text);
     }
-    &:is([data-variant="danger"], [data-variant="outline-danger"]) {
+    &[data-variant="danger"] {
       --_bg: var(--ui-button-danger-bg);
       --_hover: var(--ui-button-danger-hover);
       --_edge: var(--ui-button-danger-edge);
     }
+    &[data-variant="warning"] {
+      --_bg: var(--ui-button-warning-bg);
+      --_hover: var(--ui-button-warning-hover);
+      --_edge: var(--ui-button-warning-edge);
+    }
     &:hover:not(:disabled) { background-color: var(--_hover); }
     &:active:not(:disabled) { top: 2px; }
+    /* GOV.UK disabled button: same colours at half strength, no edge. */
+    &:disabled {
+      opacity: 0.5;
+      box-shadow: none;
+    }
   }
 
-  /* Tag: the Badge keeps its tone colours; only the shape changes. */
+  /* Tag: the Pill keeps its tone colours; only the shape changes. */
   [data-ui="tag"] { border-radius: var(--ui-tag-radius); }
 
-  /* Links in prose and "view more" actions: always underlined. */
-  [data-ui="link"]:not([data-variant="default"]) {
-    color: var(--ui-link);
+  /* Links: always underlined, in GOV.UK link blue. The colour is set by
+     re-pointing the tokens the `link` utility reads, not the `color`
+     property, so `variant="danger"` (link-danger, red) and per-call
+     colour classes still win. */
+  [data-ui="link"] {
+    --color-primary-400: var(--ui-link);
+    --color-primary-500: var(--ui-link-hover);
     text-decoration: underline;
     text-underline-offset: 0.15em;
-    &:hover {
-      color: var(--ui-link-hover);
-      text-decoration-thickness: 3px;
-    }
+    &:hover { text-decoration-thickness: 3px; }
   }
 
-  /* Side navigation: current page marked with a bar, not a fill. */
-  [data-ui="nav-link"] {
-    border-left: 4px solid transparent;
-    &[aria-current="page"] {
-      border-left-color: var(--ui-nav-marker);
-      background-color: transparent;
-      color: var(--ui-text);
-      font-weight: 700;
-    }
-  }
-
-  /* Form fields. */
-  :is(input:not([type="radio"], [type="checkbox"], [type="range"]), textarea, select) {
+  /* Form fields (TextInput, TextArea, Select, SearchInput, PasswordInput).
+     Borderless controls (the picker search, code editors, AI composer)
+     don't carry the hook and keep their own look. */
+  [data-ui="field"] {
     border: var(--ui-field-border);
   }
 
-  /* Callout: a heavy tone-coloured border on a plain surface. */
-  [data-ui="callout"] {
-    border: var(--ui-callout-border-width) solid var(--color-blue-500);
+  /* Alert: a heavy tone-coloured border on a plain surface. */
+  [data-ui="alert"] {
+    --_tone: var(--color-blue-500);
+    --_icon: var(--color-blue-600);
+    border: var(--ui-alert-border-width) solid var(--_tone);
     background-color: #ffffff;
-    &[data-tone="success"] { border-color: var(--color-green-500); }
-    &[data-tone="warning"] { border-color: var(--color-orange-500); }
-    &[data-tone="danger"]  { border-color: var(--color-red-500); }
+    &[data-variant="success"] { --_tone: var(--color-green-500); --_icon: var(--color-green-600); }
+    &[data-variant="warning"] { --_tone: var(--color-orange-500); --_icon: var(--color-orange-600); }
+    &[data-variant="danger"]  { --_tone: var(--color-red-500); --_icon: var(--color-red-600); }
     :is(h3, div, p) { color: var(--ui-text); }
+    [class*="hero-"] { color: var(--_icon); }
   }
 
-  /* Table: bold headers in body colour, rows divided by the border colour. */
+  /* Table: bold headers in body colour, rows divided by the border colour.
+     Cell text colour is left to the cells (muted and disabled rows). */
   [data-ui="table"] {
-    thead tr { background-color: transparent; }
     th { color: var(--ui-text); font-weight: 700; }
-    td { color: var(--ui-text); }
     tbody tr { border-bottom: 1px solid var(--ui-border); }
   }
 
@@ -335,7 +354,7 @@ html[data-theme="gds"] {
     background-color: var(--ui-focus);
     box-shadow: 0 2px 0 var(--ui-focus-text);
   }
-  :is(input, select, textarea):focus-visible {
+  :is([data-ui="field"], input[type="checkbox"], input[type="radio"]):focus-visible {
     background-color: #ffffff;
     outline: 3px solid var(--ui-focus);
     outline-offset: 0;

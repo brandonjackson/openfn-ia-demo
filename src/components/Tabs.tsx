@@ -68,6 +68,9 @@ export default function Tabs<T extends string>({
       role="tablist"
       aria-label={label}
       aria-orientation={orientation}
+      data-ui="tabs"
+      data-variant={variant}
+      data-orientation={orientation}
       className={cn("flex", vertical ? "flex-col" : "flex-row", s.list, variant === "pill" && after && "flex-1")}
     >
       {tabs.map((tab) => {

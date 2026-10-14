@@ -36,7 +36,7 @@ function readInitialTheme(): ThemeId {
 /**
  * Tracks the active theme, persists the choice, and keeps the
  * `data-theme` attribute on <html> in sync. Wrap the app (and the
- * StylePicker) in this provider.
+ * theme switcher) in this provider.
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [themeId, setThemeId] = useState<ThemeId>(readInitialTheme);

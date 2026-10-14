@@ -5,7 +5,8 @@ import { controlClasses } from "./controlClasses";
 /**
  * Form controls. Every control shares one look (`controlClasses`) and sits
  * in a `Field`, which handles the label, hint and errors. Wrap a custom
- * control in `Field` to give it the same frame.
+ * control in `Field` to give it the same frame, and give the control
+ * `data-ui="field"` so themes style it like the others.
  */
 
 export function Label({ htmlFor, className, children }: { htmlFor?: string; className?: string; children: ReactNode }) {
@@ -57,7 +58,7 @@ export function Field({ id, label, required, hint, errors = [], className, child
 export function TextInput({ label, required, hint, errors = [], fieldClassName, className, id, ...rest }: FieldProps & InputHTMLAttributes<HTMLInputElement>) {
   return (
     <Field id={id} label={label} required={required} hint={hint} errors={errors} className={fieldClassName}>
-      <input id={id} type="text" autoComplete="off" required={required} className={controlClasses(errors.length > 0, className)} {...rest} />
+      <input id={id} type="text" autoComplete="off" required={required} data-ui="field" className={controlClasses(errors.length > 0, className)} {...rest} />
     </Field>
   );
 }
@@ -65,7 +66,7 @@ export function TextInput({ label, required, hint, errors = [], fieldClassName, 
 export function TextArea({ label, required, hint, errors = [], fieldClassName, className, id, ...rest }: FieldProps & TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <Field id={id} label={label} required={required} hint={hint} errors={errors} className={fieldClassName}>
-      <textarea id={id} required={required} className={controlClasses(errors.length > 0, cn("overflow-y-auto", className))} {...rest} />
+      <textarea id={id} required={required} data-ui="field" className={controlClasses(errors.length > 0, cn("overflow-y-auto", className))} {...rest} />
     </Field>
   );
 }
@@ -93,7 +94,7 @@ export function Select({
 }: FieldProps & SelectHTMLAttributes<HTMLSelectElement> & { options: SelectOption[]; prompt?: string }) {
   return (
     <Field id={id} label={label} required={required} hint={hint} errors={errors} className={fieldClassName}>
-      <select id={id} required={required} className={controlClasses(errors.length > 0, className)} {...rest}>
+      <select id={id} required={required} data-ui="field" className={controlClasses(errors.length > 0, className)} {...rest}>
         {prompt && <option value="">{prompt}</option>}
         {options.map((o) => {
           const [l, v] = optionParts(o);

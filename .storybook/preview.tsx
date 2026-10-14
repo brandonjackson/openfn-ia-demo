@@ -1,15 +1,16 @@
 import type { Preview, Decorator } from "@storybook/react";
 import "../src/index.css";
+import { DEFAULT_THEME_ID, THEMES } from "../src/theme/themes";
 
 /**
  * Reflects the toolbar-selected theme onto <html> so every story can be
- * previewed under any Style Picker theme — the same mechanism the app uses.
+ * previewed under any app theme — the same mechanism the app uses.
  */
 const withTheme: Decorator = (Story, context) => {
   if (typeof document !== "undefined") {
     document.documentElement.setAttribute(
       "data-theme",
-      (context.globals.theme as string) || "lightning-v2"
+      (context.globals.theme as string) || DEFAULT_THEME_ID
     );
   }
   return <Story />;
@@ -26,15 +27,15 @@ const preview: Preview = {
   },
   globalTypes: {
     theme: {
-      description: "OpenFn Style Picker theme",
-      defaultValue: "lightning-v2",
+      description: "App theme",
+      defaultValue: DEFAULT_THEME_ID,
       toolbar: {
         title: "Theme",
         icon: "paintbrush",
-        items: [
-          { value: "lightning-v2", title: "Lightning v2 (default)" },
-          { value: "gds", title: "GDS" },
-        ],
+        items: THEMES.map((t) => ({
+          value: t.id,
+          title: t.id === DEFAULT_THEME_ID ? `${t.name} (default)` : t.name,
+        })),
         dynamicTitle: true,
       },
     },

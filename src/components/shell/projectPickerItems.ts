@@ -58,3 +58,26 @@ export function projectLabel(project: Project, all: Project[] = projects): strin
   }
   return names.join("/");
 }
+
+/**
+ * The items whose `searchLabel` contains `term`, plus the ancestors that
+ * lead to each match so the indentation still reads (Lightning's picker
+ * filter). `items` must be in pre-order, as `buildProjectPickerItems` gives.
+ */
+export function filterPickerItems(items: PickerItem[], term: string): PickerItem[] {
+  if (!term) return items;
+  const lower = term.toLowerCase();
+  const include = items.map((i) => i.searchLabel.toLowerCase().includes(lower));
+  items.forEach((item, i) => {
+    if (!item.searchLabel.toLowerCase().includes(lower)) return;
+    // The parent is the most recent item with a strictly smaller depth.
+    let depth = item.depth;
+    for (let j = i - 1; j >= 0 && depth > 0; j--) {
+      if (items[j].depth < depth) {
+        include[j] = true;
+        depth = items[j].depth;
+      }
+    }
+  });
+  return items.filter((_, i) => include[i]);
+}

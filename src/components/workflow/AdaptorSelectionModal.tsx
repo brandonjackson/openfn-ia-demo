@@ -1,10 +1,9 @@
 import { useMemo, useState } from "react";
-import { adaptors, resolvedAdaptorVersion } from "../../mock-data/adaptors";
+import { adaptors, resolvedAdaptorVersion, type Adaptor } from "../../mock-data/adaptors";
 import Alert from "../Alert";
-import Heading from "../Heading";
 import Modal from "../Modal";
 import AdaptorIcon from "./AdaptorIcon";
-import SearchInput from "../SearchInput";
+import SearchList, { type SearchListSection } from "../SearchList";
 import { matchesQuery } from "../../utils/search";
 
 interface Props {
@@ -15,29 +14,27 @@ interface Props {
   adaptorsInUse?: string[];
 }
 
-function Row({ id, title, onClick, size }: { id: string; title: string; onClick: () => void; size: "sm" | "md" }) {
+/** The fallback offered when nothing matches. */
+const HTTP = { id: "http", name: "HTTP" };
+type Row = Pick<Adaptor, "id" | "name">;
+
+function RowContent({ id, title, size }: { id: string; title: string; size: "sm" | "md" }) {
   const pkg = `@openfn/language-${id}`;
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      role="option"
-      aria-label={`Select ${title} adaptor`}
-      className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left hover:bg-gray-100"
-    >
+    <>
       <AdaptorIcon name={pkg} size={size} />
       <div className="text-gray-900">
         {title}
         <div className="text-sm text-gray-500">Latest: {resolvedAdaptorVersion(pkg)}</div>
       </div>
-    </button>
+    </>
   );
 }
 
 /**
  * Searchable adaptor picker (AdaptorSelectionModal.tsx + SearchableList):
  * "Adaptors in this project" first, then all adaptors, with the HTTP hint
- * when nothing matches.
+ * when nothing matches. Arrow keys move through both lists and Enter picks.
  */
 export default function AdaptorSelectionModal({ isOpen, onClose, onSelect, adaptorsInUse = [] }: Props) {
   const [query, setQuery] = useState("");
@@ -45,49 +42,42 @@ export default function AdaptorSelectionModal({ isOpen, onClose, onSelect, adapt
   const inProject = matches.filter((a) => adaptorsInUse.includes(a.id));
   const rest = matches.filter((a) => !adaptorsInUse.includes(a.id));
   const fallback = matches.length === 0;
-  const pick = (id: string) => {
-    onSelect(`@openfn/language-${id}`);
+  const pick = (row: Row) => {
+    onSelect(`@openfn/language-${row.id}`);
     onClose();
   };
 
+  const sections: SearchListSection<Row>[] = fallback
+    ? [{ key: "fallback", items: [HTTP] }]
+    : [
+        { key: "in-project", heading: "Adaptors in this project", items: inProject },
+        { key: "all", heading: inProject.length > 0 ? "All adaptors" : "Available adaptors", items: rest },
+      ];
+
   return (
     <Modal open={isOpen} onClose={onClose} size="md">
-      <div className="flex flex-col gap-3">
-        <SearchInput value={query} onChange={setQuery} placeholder="Search for an adaptor to connect..." size="sm" autoFocus />
-        <div role="listbox" aria-label="Adaptor options" className="max-h-96 space-y-4 overflow-y-auto">
-          {fallback && (
-            <>
-              <Alert type="info">
-                <p className="mb-1">
-                  <span className="font-medium">No adaptor found</span> for "{query}"
-                </p>
-                <p>Try the HTTP adaptor below to connect to any system with a REST API.</p>
-              </Alert>
-              <Row id="http" title="HTTP" size="sm" onClick={() => pick("http")} />
-            </>
-          )}
-          {inProject.length > 0 && (
-            <div className="space-y-1">
-              <Heading size="eyebrow" className="px-3 py-2">
-                Adaptors in this project
-              </Heading>
-              {inProject.map((a) => (
-                <Row key={a.id} id={a.id} title={a.name} size="md" onClick={() => pick(a.id)} />
-              ))}
-            </div>
-          )}
-          {rest.length > 0 && (
-            <div className="space-y-1">
-              <Heading size="eyebrow" className="px-3 py-2">
-                {inProject.length > 0 ? "All adaptors" : "Available adaptors"}
-              </Heading>
-              {rest.map((a) => (
-                <Row key={a.id} id={a.id} title={a.name} size="sm" onClick={() => pick(a.id)} />
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+      <SearchList<Row>
+        size="sm"
+        listLabel="Adaptor options"
+        placeholder="Search for an adaptor to connect..."
+        query={query}
+        onQueryChange={setQuery}
+        sections={sections}
+        getKey={(a) => a.id}
+        getLabel={(a) => `Select ${a.name} adaptor`}
+        onSelect={pick}
+        header={
+          fallback && (
+            <Alert type="info">
+              <p className="mb-1">
+                <span className="font-medium">No adaptor found</span> for "{query}"
+              </p>
+              <p>Try the HTTP adaptor below to connect to any system with a REST API.</p>
+            </Alert>
+          )
+        }
+        renderItem={(a) => <RowContent id={a.id} title={a.name} size={!fallback && adaptorsInUse.includes(a.id) ? "md" : "sm"} />}
+      />
     </Modal>
   );
 }

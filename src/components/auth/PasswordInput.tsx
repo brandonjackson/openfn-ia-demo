@@ -25,6 +25,7 @@ export default function PasswordInput({
           id={id}
           type={revealed ? "text" : "password"}
           required={required}
+          data-ui="field"
           className={controlClasses(errors.length > 0, cn("pr-10", className))}
           {...rest}
         />

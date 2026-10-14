@@ -16,3 +16,11 @@ export const External: Story = { args: { to: "https://docs.openfn.org", external
 export const Action: Story = { args: { to: undefined, onClick: () => {}, children: "Resend confirmation email" } };
 export const Bold: Story = { args: { className: "font-medium", children: "Log in" } };
 export const Danger: Story = { args: { to: undefined, onClick: () => {}, variant: "danger", children: "Remove integration" } };
+export const Plain: Story = {
+  args: { variant: "plain", to: "/users/log_in", children: "Log in" },
+  render: (args) => (
+    <p className="text-xs text-gray-700">
+      <TextLink {...args} />
+    </p>
+  ),
+};

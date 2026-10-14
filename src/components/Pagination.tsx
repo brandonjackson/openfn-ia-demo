@@ -21,7 +21,7 @@ export default function Pagination({ pageNumber, pageSize, totalEntries, onPage,
   const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
   return (
-    <div className="bg-white px-4 py-3 flex items-center justify-between sm:px-6 rounded-b-lg">
+    <div data-ui="pagination" className="bg-white px-4 py-3 flex items-center justify-between sm:px-6 rounded-b-lg">
       <div className="flex items-center space-x-4">
         <p className="text-sm text-gray-700">
           {totalEntries === 0 ? (

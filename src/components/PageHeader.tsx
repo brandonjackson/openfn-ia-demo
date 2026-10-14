@@ -21,7 +21,7 @@ interface Props {
  */
 export default function PageHeader({ breadcrumbs, title, description, icon: Icon, badges, actions }: Props) {
   return (
-    <div>
+    <div data-ui="page-header">
       {breadcrumbs && <Breadcrumbs ancestors={breadcrumbs.ancestors} current={breadcrumbs.current} />}
       <div className={`flex items-start justify-between gap-4 ${breadcrumbs ? "mt-6" : ""}`}>
         <div className="flex min-w-0 items-start gap-4">

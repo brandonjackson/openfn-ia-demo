@@ -68,6 +68,7 @@ export default function AccountMenu({ user, instance, onLogOut, defaultOpen = fa
       {open && (
         <div
           role="menu"
+          data-ui="popover"
           className="absolute bottom-full left-0 right-0 mb-2 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg"
         >
           <p className="truncate px-2 pt-1 pb-1.5 text-xs text-gray-500">{user.email}</p>
@@ -100,6 +101,7 @@ export default function AccountMenu({ user, instance, onLogOut, defaultOpen = fa
         type="button"
         aria-haspopup="menu"
         aria-expanded={open}
+        data-ui="account-trigger"
         onClick={() => setOpen((o) => !o)}
         className={`flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors ${
           open ? "bg-gray-100" : "hover:bg-gray-100"

@@ -93,6 +93,7 @@ function ProjectNav({ project }: { project: Project }) {
       <div className="px-4 py-3 border-b border-gray-200">
         <Link
           to="/projects"
+          data-ui="sidebar-back"
           className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-900 transition-colors"
         >
           <ChevronLeft size={12} />
@@ -180,9 +181,9 @@ export default function Sidebar() {
   const getHelp = supportTree.find((n) => n.id === "get-help")!;
 
   return (
-    <aside className="w-72 border-r border-gray-200 bg-white flex-shrink-0 flex flex-col h-full">
+    <aside data-ui="sidebar" className="w-72 border-r border-gray-200 bg-white flex-shrink-0 flex flex-col h-full">
       {/* Logo: always a clear way back to the root. */}
-      <div className="px-4 py-4">
+      <div data-ui="sidebar-logo" className="px-4 py-4">
         <Link to="/" className="flex items-center gap-2" title="Back to Overview">
           <div className="w-7 h-7 bg-indigo-600 rounded-md flex items-center justify-center">
             <span className="text-white text-xs font-bold">{currentInstance.initials}</span>

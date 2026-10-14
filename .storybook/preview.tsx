@@ -33,6 +33,7 @@ const preview: Preview = {
         icon: "paintbrush",
         items: [
           { value: "default", title: "Basic (default)" },
+          { value: "lightning-v2", title: "Lightning v2" },
           { value: "gds", title: "GDS" },
         ],
         dynamicTitle: true,

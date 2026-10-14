@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import VolumeBars from "./VolumeBars";
 import { healthFor } from "../../../mock-data/workflow-health";
+import { withWhitePanel } from "../../../stories/decorators";
 
 const week = healthFor("wf-openhie", "7");
 const month = healthFor("wf-openhie", "30");
@@ -9,7 +10,7 @@ const day = healthFor("wf-openhie", "1");
 const meta: Meta<typeof VolumeBars> = {
   title: "Projects/Health/VolumeBars",
   component: VolumeBars,
-  decorators: [(Story) => <div className="w-3xl bg-white p-6"><Story /></div>],
+  decorators: [withWhitePanel("w-3xl")],
   args: { buckets: week.buckets, hours: week.bucketHours, timezone: week.timezone, emptyMessage: "No runs in the last 7 days" },
 };
 export default meta;

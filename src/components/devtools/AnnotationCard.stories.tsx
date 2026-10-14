@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import AnnotationCard from "./AnnotationCard";
 import type { Annotation } from "../../annotations/source";
+import { withWhitePanel } from "../../stories/decorators";
 
 const sample: Annotation = {
   id: "project-settings-collaborators",
@@ -22,7 +23,7 @@ const meta: Meta<typeof AnnotationCard> = {
   title: "Devtools/AnnotationCard",
   component: AnnotationCard,
   args: { id: sample.id, annotation: sample },
-  decorators: [(Story) => <div className="w-[400px] p-5 bg-white">{<Story />}</div>],
+  decorators: [withWhitePanel("w-100")],
 };
 export default meta;
 type Story = StoryObj<typeof AnnotationCard>;

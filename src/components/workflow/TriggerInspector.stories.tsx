@@ -1,11 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { findWorkflowGraph } from "../../mock-data/workflow";
 import TriggerInspector, { TriggerTypeBadge } from "./TriggerInspector";
+import { withSidePanel } from "../../stories/decorators";
 
 const meta: Meta<typeof TriggerInspector> = {
   title: "Workflow/TriggerInspector",
   component: TriggerInspector,
-  decorators: [(Story) => <div className="bg-gray-100 h-[600px] flex justify-end"><Story /></div>],
+  decorators: [withSidePanel()],
   args: { trigger: findWorkflowGraph("wf-openhie")!.triggers[0], onChange: () => {}, onClose: () => {} },
 };
 export default meta;

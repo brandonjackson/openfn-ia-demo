@@ -1,11 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { findWorkflowGraph } from "../../mock-data/workflow";
 import DiagramMiniMap from "./DiagramMiniMap";
+import { withCanvas } from "../../stories/decorators";
 
 const meta: Meta<typeof DiagramMiniMap> = {
   title: "Workflow/DiagramMiniMap",
   component: DiagramMiniMap,
-  decorators: [(Story) => <div className="relative h-56 bg-gray-100"><Story /></div>],
+  decorators: [withCanvas("h-56")],
   args: {
     graph: findWorkflowGraph("wf-openhie")!,
     viewport: { x: 600, y: 90, zoom: 0.7 },

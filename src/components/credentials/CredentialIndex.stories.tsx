@@ -3,11 +3,12 @@ import CredentialIndex from "./CredentialIndex";
 import NewCredentialMenuButton from "./NewCredentialMenuButton";
 import { projectCredentialMenuOptions } from "./credentialModalEvents";
 import { projects } from "../../mock-data/projects";
+import { withGrayPanel } from "../../stories/decorators";
 
 const meta: Meta<typeof CredentialIndex> = {
   title: "Credentials/CredentialIndex",
   component: CredentialIndex,
-  decorators: [(Story) => <div className="bg-gray-100 p-6 min-h-[600px]"><Story /></div>],
+  decorators: [withGrayPanel],
 };
 export default meta;
 type Story = StoryObj<typeof CredentialIndex>;

@@ -2,12 +2,12 @@ import type { Meta, StoryObj } from "@storybook/react";
 import GithubSyncPanel from "./GithubSyncPanel";
 import { vcsFor } from "../../mock-data/project-settings";
 import { projects } from "../../mock-data/projects";
-import { withRouter } from "../../stories/decorators";
+import { withRouter, withGrayPanel } from "../../stories/decorators";
 
 const meta: Meta<typeof GithubSyncPanel> = {
   title: "Project settings/GithubSyncPanel",
   component: GithubSyncPanel,
-  decorators: [withRouter, (Story) => <div className="space-y-4 bg-gray-100 p-6"><Story /></div>],
+  decorators: [withRouter, withGrayPanel],
   args: {
     vcs: vcsFor(projects[0].id),
     canInstallGithub: true,

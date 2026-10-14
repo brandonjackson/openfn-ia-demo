@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import Donut from "./Donut";
-import { withRouter } from "../../../stories/decorators";
+import { withRouter, withWhitePanel } from "../../../stories/decorators";
 
 const meta: Meta<typeof Donut> = {
   title: "Projects/Health/Donut",
   component: Donut,
-  decorators: [withRouter, (Story) => <div className="w-96 bg-white p-6"><Story /></div>],
+  decorators: [withRouter, withWhitePanel()],
   args: {
     slices: [
       { key: "a", label: "Success", color: "#0ca30c", value: 80, href: "/" },

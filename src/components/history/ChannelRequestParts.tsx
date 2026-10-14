@@ -1,9 +1,7 @@
-import type { ComponentProps } from "react";
 import type { ChannelEvent } from "../../mock-data/channel-requests";
 import { cn } from "../../utils/cn";
 import Card from "../Card";
 import { DetailItem, DetailList } from "../DetailList";
-import Disclosure from "../Disclosure";
 import Pill, { type PillColor } from "../Pill";
 import { formatBytes } from "../../utils/format";
 import CopyButton from "../CopyButton";
@@ -12,16 +10,6 @@ import CopyButton from "../CopyButton";
  * Building blocks of the channel request page
  * (channel_request_live/components.ex).
  */
-
-/** A white card whose header toggles its body (`disclosure_section`). */
-export function DisclosureSection(props: Omit<ComponentProps<typeof Disclosure>, "variant">) {
-  return <Disclosure {...props} variant="card" />;
-}
-
-/** A collapsible sub-panel inside a section (`sub_section`). */
-export function SubSection(props: Omit<ComponentProps<typeof Disclosure>, "variant" | "padded">) {
-  return <Disclosure {...props} variant="section" />;
-}
 
 const methodColors: Record<string, PillColor> = {
   GET: "blue",

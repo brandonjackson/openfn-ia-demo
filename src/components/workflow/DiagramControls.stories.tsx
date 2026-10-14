@@ -1,11 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import DiagramControls from "./DiagramControls";
+import { withCanvas } from "../../stories/decorators";
 
 const noop = () => {};
 const meta: Meta<typeof DiagramControls> = {
   title: "Workflow/DiagramControls",
   component: DiagramControls,
-  decorators: [(Story) => <div className="relative h-72 bg-gray-100"><Story /></div>],
+  decorators: [withCanvas("h-72")],
   args: {
     onZoomIn: noop,
     onZoomOut: noop,

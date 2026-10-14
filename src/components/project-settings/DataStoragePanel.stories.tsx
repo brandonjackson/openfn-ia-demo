@@ -1,11 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import DataStoragePanel from "./DataStoragePanel";
 import { dataRetentionPeriods } from "../../mock-data/project-settings";
+import { withGrayPanel } from "../../stories/decorators";
 
 const meta: Meta<typeof DataStoragePanel> = {
   title: "Project settings/DataStoragePanel",
   component: DataStoragePanel,
-  decorators: [(Story) => <div className="space-y-4 bg-gray-100 p-6"><Story /></div>],
+  decorators: [withGrayPanel],
   args: {
     initial: { historyRetentionPeriod: null, dataclipRetentionPeriod: null, retentionPolicy: "retain_all" },
     periods: dataRetentionPeriods,

@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import Disclosure from "../../components/Disclosure";
 import { DetailItem, DetailList } from "../../components/DetailList";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
@@ -6,12 +7,10 @@ import Pill from "../../components/Pill";
 import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import {
   BodyViewer,
-  DisclosureSection,
   HeadersTable,
   ResponseEmpty,
   SectionSizeBadge,
   StatusCodeBadge,
-  SubSection,
 } from "../../components/history/ChannelRequestParts";
 import ChannelRequestSummary from "../../components/history/ChannelRequestSummary";
 import ChannelTiming from "../../components/history/ChannelTiming";
@@ -86,30 +85,32 @@ export default function ChannelRequestShowPage() {
             />
           ) : (
             <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
-              <DisclosureSection
+              <Disclosure
+                variant="card"
                 id="request-section"
                 title="Request"
                 padded={false}
                 titleRight={event?.requestBodySize ? <SectionSizeBadge size={event.requestBodySize} /> : undefined}
               >
                 {event?.requestHeaders && (
-                  <SubSection title="Headers">
+                  <Disclosure variant="section" title="Headers">
                     <HeadersTable headers={event.requestHeaders} />
-                  </SubSection>
+                  </Disclosure>
                 )}
                 {event && showRequestBody && (
-                  <SubSection title="Body" titleRight={sizeNote(event.requestBodySize)}>
+                  <Disclosure variant="section" title="Body" titleRight={sizeNote(event.requestBodySize)}>
                     <BodyViewer
                       preview={event.requestBodyPreview}
                       hash={event.requestBodyHash}
                       size={event.requestBodySize}
                       headers={event.requestHeaders}
                     />
-                  </SubSection>
+                  </Disclosure>
                 )}
-              </DisclosureSection>
+              </Disclosure>
 
-              <DisclosureSection
+              <Disclosure
+                variant="card"
                 id="response-section"
                 title="Response"
                 padded={false}
@@ -129,27 +130,27 @@ export default function ChannelRequestShowPage() {
                 ) : (
                   <>
                     {event?.responseHeaders && (
-                      <SubSection title="Headers">
+                      <Disclosure variant="section" title="Headers">
                         <HeadersTable headers={event.responseHeaders} />
-                      </SubSection>
+                      </Disclosure>
                     )}
                     {event && showResponseBody && (
-                      <SubSection title="Body" titleRight={sizeNote(event.responseBodySize)}>
+                      <Disclosure variant="section" title="Body" titleRight={sizeNote(event.responseBodySize)}>
                         <BodyViewer
                           preview={event.responseBodyPreview}
                           hash={event.responseBodyHash}
                           size={event.responseBodySize}
                           headers={event.responseHeaders}
                         />
-                      </SubSection>
+                      </Disclosure>
                     )}
                   </>
                 )}
-              </DisclosureSection>
+              </Disclosure>
             </div>
           )}
 
-          <DisclosureSection id="context-section" title="Context" defaultOpen={false}>
+          <Disclosure variant="card" id="context-section" title="Context" defaultOpen={false}>
             <DetailList layout="grid" className="md:grid-cols-3">
               <DetailItem label="Destination URL" mono>
                 {request.snapshot.destinationUrl}
@@ -164,7 +165,7 @@ export default function ChannelRequestShowPage() {
                 )}
               </DetailItem>
             </DetailList>
-          </DisclosureSection>
+          </Disclosure>
         </div>
       </Centered>
     </PageContent>

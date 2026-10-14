@@ -1,14 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { FailureBreakdownDonut, OutcomesDonut } from "./HealthDonuts";
 import { healthFor } from "../../../mock-data/workflow-health";
-import { withRouter } from "../../../stories/decorators";
+import { withRouter, withWhitePanel } from "../../../stories/decorators";
 
 const data = healthFor("wf-openhie", "7");
 
 const meta: Meta<typeof OutcomesDonut> = {
   title: "Projects/Health/HealthDonuts",
   component: OutcomesDonut,
-  decorators: [withRouter, (Story) => <div className="w-96 bg-white p-6"><Story /></div>],
+  decorators: [withRouter, withWhitePanel()],
   args: { counts: data.counts, emptyMessage: "No finished work orders in the last 7 days", historyHref: "/" },
 };
 export default meta;

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { runs, workOrders } from "../../mock-data/history";
-import { withRouter } from "../../stories/decorators";
+import { withRouter, withCanvas } from "../../stories/decorators";
 import MiniHistory from "./MiniHistory";
 
 const history = workOrders
@@ -10,7 +10,7 @@ const history = workOrders
 const meta: Meta<typeof MiniHistory> = {
   title: "Workflow/MiniHistory",
   component: MiniHistory,
-  decorators: [withRouter, (Story) => <div className="relative h-96 bg-gray-100"><Story /></div>],
+  decorators: [withRouter, withCanvas("h-96")],
   args: {
     projectId: "4adf2644-ed4e-4f97-a24c-ab35b3cb1efa",
     workflowId: "wf-openhie",

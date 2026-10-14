@@ -1,41 +1,42 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import Disclosure from "../Disclosure";
 import { channelRequests } from "../../mock-data/channel-requests";
 import {
   BodyViewer,
-  DisclosureSection,
   HeadersTable,
   MethodBadge,
   RequestPathDisplay,
   ResponseEmpty,
   SectionSizeBadge,
   StatusCodeBadge,
-  SubSection,
 } from "./ChannelRequestParts";
 
 const event = channelRequests[0].events[0];
 
-const meta = { title: "History/ChannelRequestParts", component: DisclosureSection } satisfies Meta<
-  typeof DisclosureSection
->;
+const meta = {
+  title: "History/ChannelRequestParts",
+  component: Disclosure,
+  args: { variant: "card" },
+} satisfies Meta<typeof Disclosure>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const RequestSection: Story = {
   args: { title: "Request", padded: false, children: null },
   render: (args) => (
-    <DisclosureSection {...args}>
-      <SubSection title="Headers">
+    <Disclosure {...args}>
+      <Disclosure variant="section" title="Headers">
         <HeadersTable headers={event.requestHeaders!} />
-      </SubSection>
-      <SubSection title="Body" titleRight={<SectionSizeBadge size={152} />}>
+      </Disclosure>
+      <Disclosure variant="section" title="Body" titleRight={<SectionSizeBadge size={152} />}>
         <BodyViewer
           preview={event.requestBodyPreview}
           hash={event.requestBodyHash}
           size={event.requestBodySize}
           headers={event.requestHeaders}
         />
-      </SubSection>
-    </DisclosureSection>
+      </Disclosure>
+    </Disclosure>
   ),
 };
 
@@ -63,12 +64,12 @@ export const Badges: Story = {
 export const NoResponse: Story = {
   args: { title: "Response", padded: false, children: null },
   render: (args) => (
-    <DisclosureSection {...args}>
+    <Disclosure {...args}>
       <ResponseEmpty
         type="transport"
         errorCode="econnrefused"
         humanMessage="Connection refused — the destination server is not accepting connections on this port"
       />
-    </DisclosureSection>
+    </Disclosure>
   ),
 };

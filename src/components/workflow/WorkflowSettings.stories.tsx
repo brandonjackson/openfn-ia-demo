@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { findWorkflowGraph } from "../../mock-data/workflow";
-import { withRouter } from "../../stories/decorators";
+import { withRouter, withSidePanel } from "../../stories/decorators";
 import WorkflowSettings from "./WorkflowSettings";
 
 const noop = () => {};
 const meta: Meta<typeof WorkflowSettings> = {
   title: "Workflow/WorkflowSettings",
   component: WorkflowSettings,
-  decorators: [withRouter, (Story) => <div className="bg-gray-100 h-[800px] flex justify-end"><Story /></div>],
+  decorators: [withRouter, withSidePanel("h-200")],
   args: {
     graph: findWorkflowGraph("wf-openhie")!,
     projectConcurrency: null,

@@ -1,7 +1,7 @@
 import type { ChannelEvent } from "../../mock-data/channel-requests";
+import Disclosure from "../Disclosure";
 import { cn } from "../../utils/cn";
 import Pill from "../Pill";
-import { DisclosureSection } from "./ChannelRequestParts";
 import { formatUs } from "../../utils/format";
 
 interface Segment {
@@ -83,7 +83,7 @@ export default function ChannelTiming({ event }: { event: ChannelEvent | undefin
   const showOverhead = data.tier === "full";
 
   return (
-    <DisclosureSection id="timing-section" title="Timing">
+    <Disclosure variant="card" id="timing-section" title="Timing">
       <div className="space-y-3 pt-1 text-xs">
         <div className="relative">
           <div
@@ -141,6 +141,6 @@ export default function ChannelTiming({ event }: { event: ChannelEvent | undefin
           {data.ttfbUs && <span className="ml-auto font-mono text-gray-400">TTFB: {formatUs(data.ttfbUs)} ms</span>}
         </div>
       </div>
-    </DisclosureSection>
+    </Disclosure>
   );
 }

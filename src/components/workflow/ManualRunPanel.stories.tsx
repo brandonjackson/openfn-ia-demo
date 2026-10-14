@@ -1,11 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { dataclips } from "../../mock-data/history";
 import ManualRunPanel from "./ManualRunPanel";
+import { withSidePanel } from "../../stories/decorators";
 
 const meta: Meta<typeof ManualRunPanel> = {
   title: "Workflow/ManualRunPanel",
   component: ManualRunPanel,
-  decorators: [(Story) => <div className="bg-gray-100 h-[700px] flex justify-end"><Story /></div>],
+  decorators: [withSidePanel("h-175")],
   args: {
     title: "Run from Transform data to FHIR standard",
     dataclips: dataclips.filter((d) => d.projectId === "4adf2644-ed4e-4f97-a24c-ab35b3cb1efa"),

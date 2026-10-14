@@ -1,11 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import Button from "../Button";
 import InspectorLayout, { InspectorFooter } from "./InspectorLayout";
+import { withSidePanel } from "../../stories/decorators";
 
 const meta: Meta<typeof InspectorLayout> = {
   title: "Workflow/InspectorLayout",
   component: InspectorLayout,
-  decorators: [(Story) => <div className="bg-gray-100 h-[600px] flex justify-end"><Story /></div>],
+  decorators: [withSidePanel()],
   args: {
     title: "Path",
     onClose: () => {},

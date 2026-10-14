@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { withRouter } from "../../stories/decorators";
+import { withRouter, withGrayPanel } from "../../stories/decorators";
 import { findRun, steps } from "../../mock-data/history";
 import { RunCard, StepListItem } from "./RunDetails";
 
 const meta = {
   title: "History/RunCard",
   component: RunCard,
-  decorators: [withRouter, (Story) => <div className="bg-gray-100 p-3">{Story()}</div>],
+  decorators: [withRouter, withGrayPanel],
 } satisfies Meta<typeof RunCard>;
 export default meta;
 type Story = StoryObj<typeof meta>;

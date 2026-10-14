@@ -1,12 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { aiSessionsFor } from "../../mock-data/ai-assistant";
 import AIAssistantPanel from "./AIAssistantPanel";
+import { withSidePanel } from "../../stories/decorators";
 
 const meta: Meta<typeof AIAssistantPanel> = {
   title: "Workflow/AIAssistantPanel",
   component: AIAssistantPanel,
   parameters: { layout: "fullscreen" },
-  decorators: [(Story) => <div className="h-[760px] flex justify-end"><Story /></div>],
+  decorators: [withSidePanel("h-190")],
   args: { sessions: aiSessionsFor("wf-openhie"), onClose: () => {} },
 };
 export default meta;

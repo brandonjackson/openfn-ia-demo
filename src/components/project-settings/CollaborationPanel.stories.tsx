@@ -2,11 +2,12 @@ import type { Meta, StoryObj } from "@storybook/react";
 import CollaborationPanel from "./CollaborationPanel";
 import { projects } from "../../mock-data/projects";
 import { currentUser } from "../../mock-data/users";
+import { withGrayPanel } from "../../stories/decorators";
 
 const meta: Meta<typeof CollaborationPanel> = {
   title: "Project settings/CollaborationPanel",
   component: CollaborationPanel,
-  decorators: [(Story) => <div className="space-y-4 bg-gray-100 p-6"><Story /></div>],
+  decorators: [withGrayPanel],
   args: {
     initialMembers: projects[0].members,
     currentUserId: currentUser.id,

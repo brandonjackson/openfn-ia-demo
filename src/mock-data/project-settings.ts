@@ -120,7 +120,7 @@ export const webhookAuthMethods: WebhookAuthMethod[] = [
     authType: "api",
     apiKey: "fixture0000000000000000000000000000key01",
     triggers: [],
-    channels: [{ id: "ch-fhir-proxy", name: "FHIR proxy" }],
+    channels: [{ id: "5c3e9a1d-7b2f-4e8a-9c6d-1f0e2d3c4b5a", name: "SHR proxy" }],
   },
   {
     id: "wam-unused",

@@ -4,17 +4,12 @@
  * Static fixtures only.
  */
 
+// Channels live in ./channels; re-exported for the history pages.
+export { channels, channelsIn, findChannel, type Channel } from "./channels";
+
 const OPENHIE = "4adf2644-ed4e-4f97-a24c-ab35b3cb1efa";
 
 export type ChannelRequestState = "pending" | "success" | "failed" | "timeout" | "error";
-
-export interface Channel {
-  id: string;
-  projectId: string;
-  name: string;
-  destinationUrl: string;
-  lockVersion: number;
-}
 
 export interface ChannelEvent {
   type: "destination_response" | "error";
@@ -59,23 +54,6 @@ export interface ChannelRequest {
   events: ChannelEvent[];
 }
 
-export const channels: Channel[] = [
-  {
-    id: "ch-shr",
-    projectId: OPENHIE,
-    name: "SHR proxy",
-    destinationUrl: "https://openhim.example.org/fhir",
-    lockVersion: 3,
-  },
-  {
-    id: "ch-commcare",
-    projectId: OPENHIE,
-    name: "CommCare forms",
-    destinationUrl: "https://commcare.example.org/a/openfn/api/v0.5",
-    lockVersion: 1,
-  },
-];
-
 const jsonHeaders: [string, string][] = [
   ["content-type", "application/json"],
   ["user-agent", "CommCareHQ"],
@@ -93,7 +71,7 @@ export const channelRequests: ChannelRequest[] = [
   {
     id: "4f1c9a8e-2b6d-4e1f-9c3a-7d5e8b2a1f60",
     requestId: "c81d3e5a-77f2-4c0b-a1e9-3b6f0d2c9e14",
-    channelId: "ch-shr",
+    channelId: "5c3e9a1d-7b2f-4e8a-9c6d-1f0e2d3c4b5a",
     projectId: OPENHIE,
     state: "success",
     startedAt: "2026-10-14T09:31:12Z",
@@ -136,7 +114,7 @@ export const channelRequests: ChannelRequest[] = [
   {
     id: "7b3e0d2a-91c4-4f6e-8a5d-2c1b9e7f4a30",
     requestId: "e2a94f17-0c3b-4d8e-b6a1-5f9c2e7d3b08",
-    channelId: "ch-shr",
+    channelId: "5c3e9a1d-7b2f-4e8a-9c6d-1f0e2d3c4b5a",
     projectId: OPENHIE,
     state: "failed",
     startedAt: "2026-10-14T08:02:45Z",
@@ -179,7 +157,7 @@ export const channelRequests: ChannelRequest[] = [
   {
     id: "a90c6e14-3f2b-4d7a-9e81-6b5c0f2d8e47",
     requestId: "5d7f2b90-6e1a-4c3d-8f2b-9a0e4c6b1d73",
-    channelId: "ch-commcare",
+    channelId: "b7a6c5d4-3e2f-4a1b-8c9d-0e1f2a3b4c5d",
     projectId: OPENHIE,
     state: "error",
     startedAt: "2026-10-13T16:20:03Z",
@@ -220,14 +198,6 @@ export const channelRequests: ChannelRequest[] = [
     ],
   },
 ];
-
-export function channelsIn(projectId: string): Channel[] {
-  return channels.filter((c) => c.projectId === projectId);
-}
-
-export function findChannel(id: string | undefined): Channel | undefined {
-  return channels.find((c) => c.id === id);
-}
 
 export function channelRequestsIn(projectId: string): ChannelRequest[] {
   return channelRequests.filter((r) => r.projectId === projectId);

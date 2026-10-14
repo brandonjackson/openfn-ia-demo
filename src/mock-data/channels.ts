@@ -4,6 +4,10 @@
  * channels index (`Channels.list_channels_for_project_with_stats/1`).
  */
 
+import { webhookAuthMethodsIn } from "./project-settings";
+
+const OPENHIE = "4adf2644-ed4e-4f97-a24c-ab35b3cb1efa";
+
 export interface Channel {
   id: string;
   projectId: string;
@@ -16,6 +20,8 @@ export interface Channel {
   clientAuthMethodIds: string[];
   requestCount: number;
   lastActivityAt: string | null;
+  /** Bumped on every save; channel requests record the version they ran against. */
+  lockVersion: number;
 }
 
 /** Base URL the proxy URLs hang off (`LightningWeb.Endpoint.url()`). */
@@ -28,18 +34,31 @@ export function channelProxyUrl(channelId: string): string {
 export const channels: Channel[] = [
   {
     id: "5c3e9a1d-7b2f-4e8a-9c6d-1f0e2d3c4b5a",
-    projectId: "4adf2644-ed4e-4f97-a24c-ab35b3cb1efa",
-    name: "OpenHIE FHIR proxy",
+    projectId: OPENHIE,
+    name: "SHR proxy",
     enabled: true,
-    destinationUrl: "https://hapi.openhie.example.org/fhir",
+    destinationUrl: "https://openhim.example.org/fhir",
     destinationCredentialId: "pc-openhie-basic",
-    clientAuthMethodIds: ["wam-commcare"],
+    clientAuthMethodIds: ["wam-partner-api"],
     requestCount: 3421,
     lastActivityAt: "2026-10-14T08:55:00Z",
+    lockVersion: 3,
+  },
+  {
+    id: "b7a6c5d4-3e2f-4a1b-8c9d-0e1f2a3b4c5d",
+    projectId: OPENHIE,
+    name: "CommCare forms",
+    enabled: true,
+    destinationUrl: "https://commcare.example.org/a/openfn/api/v0.5",
+    destinationCredentialId: null,
+    clientAuthMethodIds: [],
+    requestCount: 112,
+    lastActivityAt: "2026-10-13T16:20:00Z",
+    lockVersion: 1,
   },
   {
     id: "9e8d7c6b-5a4f-4e3d-8c2b-1a0f9e8d7c6b",
-    projectId: "4adf2644-ed4e-4f97-a24c-ab35b3cb1efa",
+    projectId: OPENHIE,
     name: "DHIS2 tracker",
     enabled: false,
     destinationUrl: "https://play.dhis2.org/api",
@@ -47,6 +66,7 @@ export const channels: Channel[] = [
     clientAuthMethodIds: [],
     requestCount: 0,
     lastActivityAt: null,
+    lockVersion: 1,
   },
 ];
 
@@ -59,10 +79,7 @@ export function findChannel(id: string | undefined): Channel | undefined {
 }
 
 /** Webhook auth methods in the project (Client Credentials checkboxes). */
-export const webhookAuthMethods = [
-  { id: "wam-commcare", name: "CommCare basic auth" },
-  { id: "wam-api-key", name: "Partner API key" },
-];
+export const webhookAuthMethods = webhookAuthMethodsIn(OPENHIE).map(({ id, name }) => ({ id, name }));
 
 /** Project credentials (Destination Credential select). */
 export const projectCredentialOptions = [

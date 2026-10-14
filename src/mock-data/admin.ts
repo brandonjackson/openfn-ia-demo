@@ -30,8 +30,7 @@ export const userRoleOptions: [label: string, value: string][] = [
 /** Projects scheduled for deletion (project id -> ISO date). */
 export const projectScheduledDeletions: Record<string, string> = {};
 
-/** Lightning.Config.purge_deleted_after_days(), used in the delete modal copy. */
-export const purgeDeletedAfterDays = 7;
+export { purgeDeletedAfterDays } from "./project-settings";
 
 export function projectOwnerName(project: Project): string {
   const owner = project.members.find((m) => m.role === "owner");

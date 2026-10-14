@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import Button from "../Button";
 import IconButton from "../IconButton";
 import { Checkbox } from "../Inputs";
@@ -47,12 +46,6 @@ export default function WorkOrdersTable({
   const selected = workOrders.filter((w) => selectedIds.includes(w.id));
   const allSelected = workOrders.length > 0 && selected.length === workOrders.length;
   const partial = selected.length > 0 && !allSelected;
-  // Checkbox doesn't forward a ref, so reach the input through its wrapper.
-  const selectAll = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const input = selectAll.current?.querySelector("input");
-    if (input) input.indeterminate = partial;
-  }, [partial]);
 
   const canCancel = selected.length > 0 && selected.every((w) => w.state === "pending");
   const canRetry = selected.length > 0 && selected.every((w) => !activeStates.includes(w.state));
@@ -77,11 +70,12 @@ export default function WorkOrdersTable({
       header={
         <Tr>
           <Th className="!pr-1">
-            <div className="relative" ref={selectAll}>
+            <div className="relative">
               <Checkbox
                 id="select_all"
                 label={<span className="sr-only">Select all work orders</span>}
                 checked={allSelected}
+                indeterminate={partial}
                 disabled={workOrders.length === 0}
                 onChange={(e) => onSelectionChange(e.target.checked ? selectable.map((w) => w.id) : [])}
                 className="disabled:opacity-50"

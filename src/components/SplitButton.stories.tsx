@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { MenuItem } from "../Menu";
+import { MenuItem } from "./Menu";
 import SplitButton from "./SplitButton";
 
 const meta: Meta<typeof SplitButton> = {
-  title: "Workflow/SplitButton",
+  title: "Shared/SplitButton",
   component: SplitButton,
   decorators: [(Story) => <div className="h-40 p-4 flex justify-end"><Story /></div>],
   args: {

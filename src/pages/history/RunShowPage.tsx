@@ -11,7 +11,7 @@ import RunStepList from "../../components/history/RunStepList";
 import SnapshotVersionChip from "../../components/history/SnapshotVersionChip";
 import StatePill from "../../components/history/StatePill";
 import StepDataclipViewer from "../../components/history/StepDataclipViewer";
-import Tabbed from "../../components/history/Tabbed";
+import Tabs from "../../components/Tabs";
 import { formatElapsed } from "../../components/history/format";
 import { findDataclip, findRun, findWorkOrder, stepsOf } from "../../mock-data/history";
 import {
@@ -131,43 +131,33 @@ export default function RunShowPage() {
             />
           </div>
           <div className="@5xl/main:basis-2/3 flex flex-col gap-4 h-full min-h-0">
-            <Tabbed
+            <Tabs
+              label="Run details"
               active={activeTab}
               onChange={setTab}
               tabs={[
                 {
                   id: "log",
-                  label: (
-                    <>
-                      <span className="hero-command-line h-5 w-5 inline-block mr-1 align-middle" />
-                      <span className="inline-block align-middle">Log</span>
-                    </>
-                  ),
+                  label: "Log",
+                  icon: "hero-command-line",
                 },
                 {
                   id: "input",
                   disabled: !selectedStep,
-                  disabledMsg: "A valid step must be selected to view its input",
-                  label: (
-                    <>
-                      <span className="hero-arrow-down-on-square h-5 w-5 inline-block mr-1 align-middle" />
-                      <span className="inline-block align-middle">Input</span>
-                    </>
-                  ),
+                  disabledReason: "A valid step must be selected to view its input",
+                  label: "Input",
+                  icon: "hero-arrow-down-on-square",
                 },
                 {
                   id: "output",
                   disabled: !selectedStep,
-                  disabledMsg: "A valid step (with a readable output) must be selected to view its output",
-                  label: (
-                    <>
-                      <span className="hero-arrow-up-on-square h-5 w-5 inline-block mr-1 align-middle rotate-180" />
-                      <span className="inline-block align-middle"> Output </span>
-                    </>
-                  ),
+                  disabledReason: "A valid step (with a readable output) must be selected to view its output",
+                  label: "Output",
+                  icon: "hero-arrow-up-on-square",
                 },
               ]}
-            >
+            />
+            <div className="flex min-h-0 flex-1 flex-col">
               {activeTab === "log" && (
                 <div className="flex h-full min-h-96">
                   <LogViewer
@@ -197,7 +187,7 @@ export default function RunShowPage() {
                   canEditDataRetention={historyPermissions.canEditDataRetention}
                 />
               )}
-            </Tabbed>
+            </div>
           </div>
         </div>
       </Centered>

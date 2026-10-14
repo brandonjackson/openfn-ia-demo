@@ -3,7 +3,7 @@ import { templateGraph, workflowTemplates, type WorkflowTemplate } from "../../m
 import { cn } from "../../utils/cn";
 import Button from "../Button";
 import Modal from "../Modal";
-import SearchInput from "./SearchInput";
+import SearchInput from "../SearchInput";
 import WorkflowDiagram from "./WorkflowDiagram";
 
 interface Props {
@@ -30,7 +30,7 @@ export default function TemplateBrowserModal({ isOpen, onClose, projectId, onCre
         <div className="relative flex w-76 shrink-0 flex-col min-h-0">
           <div className="flex-1 min-h-0 overflow-y-auto">
             <div className="sticky top-0 z-10 bg-white pb-2">
-              <SearchInput value={query} onChange={setQuery} placeholder="Search templates" />
+              <SearchInput value={query} onChange={setQuery} placeholder="Search templates" size="sm" />
             </div>
             <div className="flex flex-col gap-2">
               {visible.map((t) => (

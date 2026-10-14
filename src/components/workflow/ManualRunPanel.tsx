@@ -5,10 +5,10 @@ import DataclipTypePill from "../history/DataclipTypePill";
 import Button from "../Button";
 import IconButton from "../IconButton";
 import CodeEditor from "./CodeEditor";
-import EditorTabs from "./EditorTabs";
+import Tabs from "../Tabs";
 import InspectorLayout, { InspectorFooter } from "./InspectorLayout";
 import NewRunButton from "./NewRunButton";
-import SearchInput from "./SearchInput";
+import SearchInput from "../SearchInput";
 import { shortId } from "./shortId";
 
 type Tab = "empty" | "custom" | "existing";
@@ -62,9 +62,9 @@ export default function ManualRunPanel({
   const embedded = mode === "embedded";
 
   const tabOptions = [
-    { value: "empty" as const, label: "Empty", icon: "hero-document" },
-    { value: "custom" as const, label: embedded ? "Custom" : "New", icon: "hero-pencil-square" },
-    { value: "existing" as const, label: "Existing", icon: "hero-queue-list" },
+    { id: "empty" as const, label: "Empty", icon: "hero-document" },
+    { id: "custom" as const, label: embedded ? "Custom" : "New", icon: "hero-pencil-square" },
+    { id: "existing" as const, label: "Existing", icon: "hero-queue-list" },
   ];
 
   const q = query.trim().toLowerCase();
@@ -136,7 +136,7 @@ export default function ManualRunPanel({
       {tab === "existing" && (
         <div className="flex flex-col gap-3 pt-4 pb-6 px-3">
           <div className="flex items-center gap-2">
-            <SearchInput value={query} onChange={setQuery} placeholder="Search names or UUID prefixes" className="flex-1" />
+            <SearchInput value={query} onChange={setQuery} placeholder="Search names or UUID prefixes" size="sm" className="flex-1" />
             <Button>Search</Button>
             <div className="flex gap-1">
               <IconButton icon="hero-calendar-days" label="Filter by date created" />
@@ -217,7 +217,7 @@ export default function ManualRunPanel({
           <div className="shrink-0">
             <div className="flex items-center justify-between px-3 pt-2 pb-1">
               <div className="flex-1">
-                <EditorTabs value={tab} onChange={setTab} options={tabOptions} />
+                <Tabs variant="pill" fill tabs={tabOptions} active={tab} onChange={setTab} />
               </div>
               {onClosePanel && (
                 <div className="flex items-center pl-2">
@@ -247,7 +247,7 @@ export default function ManualRunPanel({
         selectedView
       ) : (
         <div className="flex flex-col h-full min-h-0 flex-1 mt-4">
-          <EditorTabs className="mx-3" value={tab} onChange={setTab} options={tabOptions} />
+          <Tabs variant="pill" fill className="mx-3" tabs={tabOptions} active={tab} onChange={setTab} />
           {tabContent}
         </div>
       )}

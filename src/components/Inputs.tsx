@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type { InputHTMLAttributes, ReactNode, Ref, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 import { cn } from "../utils/cn";
 import { controlClasses } from "./controlClasses";
 
@@ -105,19 +105,26 @@ export function Select({
   );
 }
 
+type ChoiceProps = { label: ReactNode; hint?: ReactNode; ref?: Ref<HTMLInputElement> } & Omit<InputHTMLAttributes<HTMLInputElement>, "type">;
+
 const choiceClasses = "h-4 w-4 border-gray-300 text-primary-600 focus:ring-primary-600 transition duration-200 cursor-pointer disabled:cursor-not-allowed";
 
-/** A checkbox with its label to the right. */
-export function Checkbox({ label, hint, className, ...rest }: { label: ReactNode; hint?: ReactNode } & Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
-  return <Choice type="checkbox" label={label} hint={hint} className={cn("rounded", className)} {...rest} />;
+/** A checkbox with its label to the right. `indeterminate` shows a dash, e.g. a partly-selected "select all". */
+export function Checkbox({ label, hint, className, indeterminate = false, ref, ...rest }: ChoiceProps & { indeterminate?: boolean }) {
+  const setRef = (el: HTMLInputElement | null) => {
+    if (el) el.indeterminate = indeterminate;
+    if (typeof ref === "function") ref(el);
+    else if (ref) ref.current = el;
+  };
+  return <Choice type="checkbox" label={label} hint={hint} className={cn("rounded", className)} ref={setRef} {...rest} />;
 }
 
 /** A radio button with its label to the right. Group them with the same `name`. */
-export function Radio({ label, hint, className, ...rest }: { label: ReactNode; hint?: ReactNode } & Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
+export function Radio({ label, hint, className, ...rest }: ChoiceProps) {
   return <Choice type="radio" label={label} hint={hint} className={className} {...rest} />;
 }
 
-function Choice({ label, hint, className, ...rest }: { label: ReactNode; hint?: ReactNode } & InputHTMLAttributes<HTMLInputElement>) {
+function Choice({ label, hint, className, ...rest }: ChoiceProps & { type: "checkbox" | "radio" }) {
   return (
     <label className={cn("flex gap-2 text-sm leading-6 text-slate-700", hint ? "items-start" : "items-center")}>
       <input className={cn(choiceClasses, hint && "mt-1", className)} {...rest} />

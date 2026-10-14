@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "../Button";
 import type { SearchFieldId } from "../../mock-data/history-extra";
 import { cn } from "../../utils/cn";
-import SearchInput from "../projects/SearchInput";
+import SearchInput from "../SearchInput";
 
 /**
  * History's search row (run_live/index.html.heex): the search input, "by",

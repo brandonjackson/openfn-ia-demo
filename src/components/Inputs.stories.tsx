@@ -49,3 +49,4 @@ export const CustomControlInField: Story = {
     </Field>
   ),
 };
+export const Indeterminate: Story = { render: () => <Checkbox label="Select all work orders" indeterminate /> };

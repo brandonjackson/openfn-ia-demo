@@ -10,7 +10,7 @@ import { FailureBreakdownDonut, OutcomesDonut } from "./HealthDonuts";
 import RangePicker from "./RangePicker";
 import StepFailureBars from "./StepFailureBars";
 import TriageTable from "./TriageTable";
-import UnderlineTabs from "./UnderlineTabs";
+import Tabs from "../../Tabs";
 import VolumeBars from "./VolumeBars";
 
 type Tab = "Work orders" | "Runs";
@@ -55,7 +55,16 @@ export default function WorkflowHealth({
       </div>
 
       <div className="flex flex-col gap-6">
-        <UnderlineTabs<Tab> tabs={["Work orders", "Runs"]} selected={tab} onSelect={setTab} label="Count by" />
+        <Tabs<Tab>
+          tabs={[
+            { id: "Work orders", label: "Work orders" },
+            { id: "Runs", label: "Runs" },
+          ]}
+          active={tab}
+          onChange={setTab}
+          label="Count by"
+          className="border-b-0"
+        />
         {tab === "Work orders" ? (
           <div className="grid gap-6 lg:grid-cols-3">
             <HealthCard title="Outcomes" meta={workOrders(data.counts)}>

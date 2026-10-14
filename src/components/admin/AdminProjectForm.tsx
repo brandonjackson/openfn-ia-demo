@@ -3,7 +3,7 @@ import type { Project, ProjectRole } from "../../mock-data/projects";
 import { fullName, type User } from "../../mock-data/users";
 import { urlSafeName } from "../../utils/urlSafeName";
 import { cn } from "../../utils/cn";
-import FilterInput from "../FilterInput";
+import SearchInput from "../SearchInput";
 import Alert from "../Alert";
 import Button from "../Button";
 import { Radio, TextInput } from "../Inputs";
@@ -86,7 +86,7 @@ export default function AdminProjectForm({ project, users, onSave }: Props) {
 
         {owners > 1 && <Alert type="danger">A project can have only one owner.</Alert>}
 
-        <FilterInput value={sort.filter} onChange={sort.setFilter} placeholder="Filter users..." />
+        <SearchInput value={sort.filter} onChange={sort.setFilter} placeholder="Filter users..." className="mb-4 max-w-sm" />
 
         <div className="mt-2 flow-root">
           <Table

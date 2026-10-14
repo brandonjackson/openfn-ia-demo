@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import Button from "../Button";
-import Menu from "../Menu";
+import Button from "./Button";
+import Menu from "./Menu";
 
 interface Props {
   /** The main action's label (with any icon). */

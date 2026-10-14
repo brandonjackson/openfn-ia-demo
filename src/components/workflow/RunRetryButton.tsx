@@ -1,6 +1,6 @@
 import Button from "../Button";
 import { MenuItem } from "../Menu";
-import SplitButton from "./SplitButton";
+import SplitButton from "../SplitButton";
 
 interface Props {
   /** A finished run can be retried: "Retry" with a "Run (New Work Order)" menu. */

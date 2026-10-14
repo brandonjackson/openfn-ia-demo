@@ -74,10 +74,14 @@ everywhere. Reach for these first:
 |---|---|
 | An action | `Button` (`to` for routes, `href` for plain links) |
 | An icon-only action | `IconButton` (always give it a `label`) |
+| A button that opens a menu | `ButtonMenu`; `SplitButton` when the button also has its own action |
 | A form control | `TextInput`, `TextArea`, `Select`, `Checkbox`, `Radio` from `Inputs`; wrap anything else in `Field` with `controlClasses()` |
 | A dialog | `Modal` (`size`, or `bare` for custom layouts); `ConfirmModal` to confirm one action |
 | A list of actions or choices | `Menu` with `MenuItem`, `MenuSection`, `MenuDivider` |
 | A floating panel (filters, details) | `Popover` |
+| Switching views | `Tabs` (`underline` or `pill`, horizontal or vertical, buttons or route links) |
+| Searching or filtering a list | `SearchInput` |
+| A status chip or tag | `Pill` (`onRemove` makes it removable) |
 | Tabular data | `Table` with `Tr`, `Th`, `Td`, `EmptyState` |
 | A status message | `Alert` |
 | Page frame | `PageContent`, `Header`, `Centered`, `Breadcrumbs` |

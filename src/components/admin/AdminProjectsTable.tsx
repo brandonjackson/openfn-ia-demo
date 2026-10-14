@@ -1,6 +1,6 @@
 import type { Project } from "../../mock-data/projects";
 import { projectOwnerName, projectScheduledDeletions } from "../../mock-data/admin";
-import FilterInput from "../FilterInput";
+import SearchInput from "../SearchInput";
 import ButtonMenu from "../ButtonMenu";
 import { MenuItem } from "../Menu";
 import { Table, Td, Th, Tr } from "../Table";
@@ -36,7 +36,7 @@ export default function AdminProjectsTable({
 
   return (
     <>
-      <FilterInput value={filter} onChange={setFilter} placeholder="Filter projects..." />
+      <SearchInput value={filter} onChange={setFilter} placeholder="Filter projects..." className="mb-4 max-w-sm" />
       <Table
         id="projects"
         header={

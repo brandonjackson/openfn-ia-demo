@@ -6,7 +6,7 @@ import IconButton from "../IconButton";
 import Menu, { MenuDivider, MenuItem } from "../Menu";
 import Modal from "../Modal";
 import AIDisclaimerFooter from "./AIDisclaimerFooter";
-import SearchInput from "./SearchInput";
+import SearchInput from "../SearchInput";
 
 function relative(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -156,7 +156,7 @@ export default function AIAssistantPanel({ sessions, onClose }: Props) {
           <div className="flex flex-col h-full overflow-hidden bg-white">
             <div className="flex-none px-6 pt-3 pb-2">
               <div className="flex items-center gap-2">
-                <SearchInput value={query} onChange={setQuery} placeholder="Search conversations..." className="flex-1" />
+                <SearchInput value={query} onChange={setQuery} placeholder="Search conversations..." size="sm" className="flex-1" />
                 <Button theme="secondary" size="sm" className="shrink-0" onClick={() => setDesc((d) => !d)}>
                   <span className={cn("hero-arrow-down h-3.5 w-3.5 transition-transform", !desc && "rotate-180")} />
                   {desc ? "Latest" : "Oldest"}

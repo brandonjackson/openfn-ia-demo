@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode, Ref } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "../utils/cn";
 
@@ -56,6 +56,11 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   to?: string;
   /** Render as a plain link (external pages, downloads, SSO handlers). */
   href?: string;
+  /** Link-only: save the target instead of opening it. */
+  download?: AnchorHTMLAttributes<HTMLAnchorElement>["download"];
+  /** Link-only: e.g. `_blank`. */
+  target?: string;
+  rel?: string;
   /** Shown on hover (often why it's disabled). */
   tooltip?: string;
   ref?: Ref<HTMLButtonElement>;
@@ -77,22 +82,27 @@ export default function Button({
   className,
   type = "button",
   id,
+  download,
+  target,
+  rel,
   ref,
   children,
   ...rest
 }: Props) {
   const classes = buttonClasses(theme, size, disabled, className);
   const shared = { id, className: classes, title: tooltip, "data-ui": "button", "data-variant": theme };
+  // Links take the same handlers and aria props as buttons.
+  const link = { ...(rest as AnchorHTMLAttributes<HTMLAnchorElement>), ...shared, target, rel: rel ?? (target === "_blank" ? "noreferrer" : undefined) };
   if (to && !disabled) {
     return (
-      <Link to={to} {...shared}>
+      <Link to={to} {...link}>
         {children}
       </Link>
     );
   }
   if (href && !disabled) {
     return (
-      <a href={href} {...shared}>
+      <a href={href} download={download} {...link}>
         {children}
       </a>
     );

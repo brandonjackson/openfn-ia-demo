@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { adaptors, resolvedAdaptorVersion } from "../../mock-data/adaptors";
 import Modal from "../Modal";
 import AdaptorIcon from "./AdaptorIcon";
-import SearchInput from "./SearchInput";
+import SearchInput from "../SearchInput";
 
 interface Props {
   isOpen: boolean;
@@ -56,7 +56,7 @@ export default function AdaptorSelectionModal({ isOpen, onClose, onSelect, adapt
   return (
     <Modal open={isOpen} onClose={onClose} size="md">
       <div className="flex flex-col gap-3">
-        <SearchInput value={query} onChange={setQuery} placeholder="Search for an adaptor to connect..." autoFocus />
+        <SearchInput value={query} onChange={setQuery} placeholder="Search for an adaptor to connect..." size="sm" autoFocus />
         <div role="listbox" aria-label="Adaptor options" className="max-h-96 overflow-y-auto">
           {fallback && (
             <>

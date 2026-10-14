@@ -1,7 +1,7 @@
 import { useParams, useSearchParams } from "react-router-dom";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
-import PillTabs from "../../components/PillTabs";
+import Tabs from "../../components/Tabs";
 import ProjectBreadcrumbs from "../../components/ProjectBreadcrumbs";
 import ChannelRequestsTable from "../../components/history/ChannelRequestsTable";
 import FilterChip, { FilterMenu } from "../../components/history/FilterChip";
@@ -32,8 +32,9 @@ export default function HistoryChannelLogsPage() {
       header={
         <Header breadcrumbs={project && <ProjectBreadcrumbs project={project} current="History" />}>
           {historyChannelsEnabled && (
-            <PillTabs
-              id="history-tabs"
+            <Tabs
+              variant="pill"
+              label="History"
               active="channel-logs"
               tabs={[
                 { id: "work-orders", label: "Work Orders", to: `/projects/${projectId}/history` },

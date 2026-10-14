@@ -1,6 +1,6 @@
 import type { User } from "../../mock-data/users";
 import { isSupportUser } from "../../mock-data/admin";
-import FilterInput from "../FilterInput";
+import SearchInput from "../SearchInput";
 import ButtonMenu from "../ButtonMenu";
 import { MenuItem } from "../Menu";
 import { Table, Td, Th, Tr } from "../Table";
@@ -38,7 +38,7 @@ export default function UsersTable({
 
   return (
     <>
-      <FilterInput value={filter} onChange={setFilter} placeholder="Filter users..." />
+      <SearchInput value={filter} onChange={setFilter} placeholder="Filter users..." className="mb-4 max-w-sm" />
       <Table
         header={
           <Tr>

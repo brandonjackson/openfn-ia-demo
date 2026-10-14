@@ -15,7 +15,7 @@ import ProjectDeletionModal from "../../components/project-settings/ProjectDelet
 import ProjectSetupPanel from "../../components/project-settings/ProjectSetupPanel";
 import SandboxSettingsBanner from "../../components/project-settings/SandboxSettingsBanner";
 import SecurityPanel from "../../components/project-settings/SecurityPanel";
-import SettingsTabs from "../../components/project-settings/SettingsTabs";
+import Tabs from "../../components/Tabs";
 import WebhookSecurityPanel from "../../components/project-settings/WebhookSecurityPanel";
 import { defaultSettingsHash, projectSettingsTabs } from "../../components/project-settings/tabs";
 import {
@@ -56,7 +56,7 @@ export default function ProjectSettingsPage() {
 
   const deleting = pathname.endsWith("/settings/delete");
   const requested = hash.replace(/^#/, "");
-  const active = projectSettingsTabs.some((t) => t.hash === requested) ? requested : defaultSettingsHash;
+  const active = projectSettingsTabs.some((t) => t.id === requested) ? requested : defaultSettingsHash;
   const settingsPath = `/projects/${project.id}/settings`;
   const parentProject = project.parentId ? findProject(project.parentId) : undefined;
   const sandbox = !!parentProject;
@@ -154,21 +154,23 @@ export default function ProjectSettingsPage() {
       <Centered>
         {/* Keyed by project so panel state resets when the project picker switches projects. */}
         <div key={project.id} id="project-settings-container" className="flex flex-row gap-y-2 h-full">
-          <SettingsTabs
+          <Tabs
+            orientation="vertical"
+            label="Project settings"
+            className="flex-none pr-8"
             tabs={projectSettingsTabs}
             active={active}
-            onSelect={(h) => navigate({ pathname: settingsPath, hash: h })}
+            onChange={(id) => navigate({ pathname: settingsPath, hash: id })}
           />
           <div className="flex-grow min-w-0">
             {projectSettingsTabs.map((t) => (
               <div
-                key={t.hash}
-                id={`${t.hash}-panel`}
+                key={t.id}
+                id={`${t.id}-panel`}
                 role="tabpanel"
-                aria-labelledby={`${t.hash}-tab`}
-                className={cn("space-y-4", t.hash !== active && "hidden")}
+                className={cn("space-y-4", t.id !== active && "hidden")}
               >
-                {panels[t.hash]}
+                {panels[t.id]}
               </div>
             ))}
           </div>

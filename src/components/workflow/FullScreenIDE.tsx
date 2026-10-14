@@ -7,7 +7,6 @@ import Tabs from "../Tabs";
 import AdaptorDisplay from "./AdaptorDisplay";
 import AdaptorDocs, { AdaptorMetadata } from "./AdaptorDocs";
 import CodeEditor from "./CodeEditor";
-import EditorTabs from "./EditorTabs";
 import JobSelector from "./JobSelector";
 import NewRunButton from "./NewRunButton";
 import RunBadge from "./RunBadge";
@@ -148,12 +147,14 @@ export default function FullScreenIDE({
                 <div className="shrink-0">
                   <div className="flex items-center justify-between px-3 pt-2 pb-1">
                     <div className="flex-1">
-                      <EditorTabs
-                        value={docsTab}
+                      <Tabs
+                        variant="pill"
+                        fill
+                        active={docsTab}
                         onChange={setDocsTab}
-                        options={[
-                          { value: "docs", label: "Docs", icon: "hero-document-text" },
-                          { value: "metadata", label: "Metadata", icon: "hero-sparkles" },
+                        tabs={[
+                          { id: "docs", label: "Docs", icon: "hero-document-text" },
+                          { id: "metadata", label: "Metadata", icon: "hero-sparkles" },
                         ]}
                       />
                     </div>

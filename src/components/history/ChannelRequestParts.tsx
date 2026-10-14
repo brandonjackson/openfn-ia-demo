@@ -4,9 +4,9 @@ import { cn } from "../../utils/cn";
 import Card from "../Card";
 import { DetailItem, DetailList } from "../DetailList";
 import Heading from "../Heading";
-import IconButton from "../IconButton";
 import Pill, { type PillColor } from "../Pill";
 import { formatBytes } from "../../utils/format";
+import CopyButton from "../CopyButton";
 
 /*
  * Building blocks of the channel request page
@@ -109,18 +109,6 @@ export function StatusCodeBadge({ status }: { status: number | null | undefined 
   );
 }
 
-export function CopyIconButton({ value, title = "Copy", className }: { value: string; title?: string; className?: string }) {
-  return (
-    <IconButton
-      icon="hero-clipboard"
-      label={title}
-      size="sm"
-      onClick={() => void navigator.clipboard?.writeText(value)}
-      className={cn("text-gray-400", className)}
-    />
-  );
-}
-
 export function SectionSizeBadge({ size }: { size: number }) {
   return <span className="font-mono text-xs text-gray-400">{formatBytes(size)}</span>;
 }
@@ -200,14 +188,14 @@ export function BodyViewer({
               {contentTypeLabel(ct)}
             </Pill>
           )}
-          <CopyIconButton value={preview} title="Copy body" className="bg-white/80" />
+          <CopyButton value={preview} label="Copy body" size="sm" className="bg-white/80" />
         </div>
         <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-all p-3 pr-20 font-mono text-gray-700">{preview}</pre>
       </Card>
       {hash && (
         <div className="flex items-center gap-2 pt-1">
           <span className="font-mono">SHA256: {hash.slice(0, 16)}...</span>
-          <CopyIconButton value={hash} title="Copy hash" />
+          <CopyButton value={hash} label="Copy hash" size="sm" />
         </div>
       )}
       {size != null && size > preview.length && (

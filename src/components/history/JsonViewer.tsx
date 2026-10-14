@@ -1,7 +1,6 @@
-import { useState, type ReactNode } from "react";
-import { cn } from "../../utils/cn";
-import IconButton from "../IconButton";
+import type { ReactNode } from "react";
 import CodeLines from "./CodeLines";
+import CopyButton from "../CopyButton";
 
 // Monaco vs-dark JSON token colours, with bracket-pair colourisation. The
 // values are Monaco's own, which Lightning's dataclip viewer inherits.
@@ -52,7 +51,6 @@ function tokenise(line: string, depth: { n: number }): ReactNode {
  * top-right corner.
  */
 export default function JsonViewer({ value }: { value: unknown }) {
-  const [copied, setCopied] = useState(false);
   const content = typeof value === "string" ? value : JSON.stringify(value, null, 2);
   const depth = { n: 0 };
   const lines = content.split("\n").map((l) => tokenise(l, depth));
@@ -60,19 +58,7 @@ export default function JsonViewer({ value }: { value: unknown }) {
   return (
     <div className="h-full relative">
       {content && (
-        <IconButton
-          icon={copied ? "hero-check" : "hero-clipboard-document"}
-          label={copied ? "Copied!" : "Copy to clipboard"}
-          size="sm"
-          onClick={(e) => {
-            e.currentTarget.blur();
-            void navigator.clipboard?.writeText(content).then(() => {
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
-            });
-          }}
-          className={cn("absolute top-3 right-3 z-10 p-1.5 text-gray-400 hover:bg-gray-100/80 hover:text-gray-600", copied && "text-green-600")}
-        />
+        <CopyButton value={content} size="sm" className="absolute top-3 right-3 z-10" />
       )}
       <CodeLines lines={lines} />
     </div>

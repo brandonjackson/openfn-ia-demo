@@ -5,10 +5,11 @@ import DateTime from "../DateTime";
 import { DetailItem, DetailList } from "../DetailList";
 import Heading from "../Heading";
 import TextLink from "../TextLink";
-import { CopyIconButton, MethodBadge, RequestPathDisplay, StatusCodeBadge } from "./ChannelRequestParts";
+import { MethodBadge, RequestPathDisplay, StatusCodeBadge } from "./ChannelRequestParts";
 import { ChannelStatePill } from "./StatePill";
 import { humanizeError } from "./channelHelpers";
 import { formatUs } from "../../utils/format";
+import CopyButton from "../CopyButton";
 
 function Group({ title, className, children }: { title: string; className?: string; children: ReactNode }) {
   return (
@@ -53,7 +54,7 @@ export default function ChannelRequestSummary({
           <span className="flex items-center gap-1.5">
             <span className="uppercase tracking-wide text-gray-500">Request</span>
             <span className="font-mono text-gray-900">{request.id.slice(0, 8)}</span>
-            <CopyIconButton value={request.id} title="Copy request ID" />
+            <CopyButton value={request.id} label="Copy request ID" size="sm" />
           </span>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCopy } from "../../../utils/useCopy";
 import { channelProxyUrl } from "../../../mock-data/channels";
 import { cn } from "../../../utils/cn";
 
@@ -19,7 +19,7 @@ export default function ProxyUrlCopy({
 }) {
   const url = channelProxyUrl(channelId);
   const [scheme, rest] = url.includes("://") ? [url.split("://")[0] + "://", url.split("://")[1]] : ["", url];
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopy(url);
 
   return (
     <div
@@ -27,11 +27,7 @@ export default function ProxyUrlCopy({
       tabIndex={0}
       aria-label="Copy proxy URL"
       title={copied ? "Copied!" : "Copy proxy URL"}
-      onClick={() => {
-        navigator.clipboard?.writeText(url).catch(() => {});
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-      }}
+      onClick={copy}
       className={cn("group flex min-w-0 cursor-pointer items-center gap-1.5 text-gray-500 hover:text-gray-700", className)}
     >
       {icon && <span className="hero-arrow-right-end-on-rectangle h-4 w-4 shrink-0 text-gray-300" />}

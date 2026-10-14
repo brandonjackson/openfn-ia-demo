@@ -3,11 +3,11 @@ import { webhookUrl, type EditorTrigger } from "../../mock-data/workflow";
 import { cn } from "../../utils/cn";
 import Button from "../Button";
 import Card from "../Card";
-import IconButton from "../IconButton";
 import { Field, Label, Radio, TextInput } from "../Inputs";
 import Pill from "../Pill";
 import TextLink from "../TextLink";
 import InspectorLayout, { InspectorFooter } from "./InspectorLayout";
+import CopyButton from "../CopyButton";
 
 const TITLES = { webhook: "On webhook call", cron: "On a schedule" } as const;
 
@@ -133,7 +133,6 @@ interface Props {
 export default function TriggerInspector({ trigger, onChange, onClose }: Props) {
   const [view, setView] = useState<"show" | "choose" | "configure">("show");
   const [draft, setDraft] = useState(trigger);
-  const [copied, setCopied] = useState(false);
 
   const startEdit = () => {
     setDraft(trigger);
@@ -245,17 +244,7 @@ export default function TriggerInspector({ trigger, onChange, onClose }: Props) 
         <Card padding="sm">
           <div className="flex items-center justify-between gap-2">
             <Pill>Default</Pill>
-            <IconButton
-              icon={copied ? "hero-check-micro" : "hero-square-2-stack-micro"}
-              label={copied ? "Copied!" : "Copy Default URL"}
-              size="sm"
-              className={cn(copied && "text-green-600 hover:text-green-600")}
-              onClick={() => {
-                void navigator.clipboard?.writeText(url).catch(() => {});
-                setCopied(true);
-                setTimeout(() => setCopied(false), 2000);
-              }}
-            />
+            <CopyButton value={url} label="Copy Default URL" size="sm" />
           </div>
           <div className="mt-1 break-all font-mono text-xs text-gray-600">{url}</div>
         </Card>

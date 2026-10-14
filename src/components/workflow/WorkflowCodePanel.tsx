@@ -1,9 +1,9 @@
-import { useState } from "react";
 import type { WorkflowGraph } from "../../mock-data/workflow";
 import Button from "../Button";
 import CodeEditor from "./CodeEditor";
 import InspectorLayout, { InspectorFooter } from "./InspectorLayout";
 import { workflowToYaml } from "./workflowYaml";
+import CopyButton from "../CopyButton";
 
 function download(filename: string, text: string) {
   const a = document.createElement("a");
@@ -18,7 +18,6 @@ function download(filename: string, text: string) {
  * to settings.
  */
 export default function WorkflowCodePanel({ graph, onClose }: { graph: WorkflowGraph; onClose: () => void }) {
-  const [copied, setCopied] = useState(false);
   const yaml = workflowToYaml(graph);
   return (
     <InspectorLayout
@@ -31,18 +30,9 @@ export default function WorkflowCodePanel({ graph, onClose }: { graph: WorkflowG
               <Button id="download-workflow-code-btn" theme="secondary" onClick={() => download(`${graph.name}.yaml`, yaml)}>
                 Download
               </Button>
-              <Button
-                id="copy-workflow-code-btn"
-                theme="secondary"
-                className="min-w-24"
-                onClick={() => {
-                  void navigator.clipboard?.writeText(yaml).catch(() => {});
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 2000);
-                }}
-              >
-                {copied ? "Copied!" : "Copy Code"}
-              </Button>
+              <CopyButton id="copy-workflow-code-btn" value={yaml} className="min-w-24">
+                Copy Code
+              </CopyButton>
             </>
           }
         />

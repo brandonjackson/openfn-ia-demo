@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import { useUrlParams } from "../../utils/useUrlParams";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
 import Tabs from "../../components/Tabs";
@@ -83,10 +84,10 @@ function matchesSearch(wo: WorkOrder, term: string, fields: SearchFieldId[]) {
 /** Inventory view `history-work-orders` (RunLive.Index :index, run_live/index.html.heex). */
 export default function HistoryWorkOrdersPage() {
   const { projectId = "" } = useParams();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { params, update } = useUrlParams();
   const project = findProject(projectId);
   const workflows = workflowsIn(projectId);
-  const workorderId = searchParams.get("filters[workorder_id]");
+  const workorderId = params["filters[workorder_id]"] ?? null;
 
   const [workflowId, setWorkflowId] = useState<string | null>(null);
   const [statuses, setStatuses] = useState<string[]>([]);
@@ -115,6 +116,8 @@ export default function HistoryWorkOrdersPage() {
   const hasReceived = Boolean(received.after || received.before);
   const hasActivity = Boolean(activity.after || activity.before);
   const closeModal = () => setModal(null);
+  // Remounts "Run from a specific step" on each open, so its job choice starts fresh.
+  const [retryFromKey, setRetryFromKey] = useState(0);
 
   return (
     <PageContent
@@ -210,10 +213,7 @@ export default function HistoryWorkOrdersPage() {
             <FilterChip
               id="workorder-id-filter-chip"
               active
-              onClear={() => {
-                searchParams.delete("filters[workorder_id]");
-                setSearchParams(searchParams);
-              }}
+              onClear={() => update({ "filters[workorder_id]": null })}
             >
               Work order: {shortId(workorderId)}
             </FilterChip>
@@ -245,7 +245,10 @@ export default function HistoryWorkOrdersPage() {
             canRunWorkflow={historyPermissions.canRunWorkflow}
             onBulkCancel={() => setModal("cancel")}
             onBulkRetry={() => setModal("retry")}
-            onBulkRetryFrom={() => setModal("retry-from")}
+            onBulkRetryFrom={() => {
+              setRetryFromKey((k) => k + 1);
+              setModal("retry-from");
+            }}
             onExport={() => setModal("export")}
           />
         </div>
@@ -254,6 +257,7 @@ export default function HistoryWorkOrdersPage() {
         <BulkRerunModal open={modal === "retry"} onClose={closeModal} selectedCount={selectedIds.length} />
         {selectedWorkflow && (
           <RerunFromJobModal
+            key={retryFromKey}
             open={modal === "retry-from"}
             onClose={closeModal}
             jobs={workflowJobs(selectedWorkflow)}

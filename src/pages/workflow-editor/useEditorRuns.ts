@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import { dataclips, findRun, runLogs, runs, stepsOf, workOrders } from "../../mock-data/history";
+import { dataclipsIn, findRun, stepsOf, workOrdersOfWorkflow } from "../../mock-data/history";
+import { logsOf, runsOfWorkOrder } from "../../mock-data/history-extra";
 import type { HistoryWorkOrder } from "../../components/workflow/MiniHistory";
 import type { RunOverlay } from "../../components/workflow/WorkflowDiagram";
 import type { WorkflowGraph } from "../../mock-data/workflow";
@@ -15,13 +16,9 @@ const EXIT_STATE = { success: "success", fail: "fail", crash: "crash" } as const
  */
 export function useEditorRuns(graph: WorkflowGraph, runId: string | null) {
   return useMemo(() => {
-    const history: HistoryWorkOrder[] = workOrders
-      .filter((w) => w.workflowId === graph.id)
+    const history: HistoryWorkOrder[] = workOrdersOfWorkflow(graph.id)
       .sort((a, b) => b.lastActivity.localeCompare(a.lastActivity))
-      .map((workOrder) => ({
-        workOrder,
-        runs: runs.filter((r) => workOrder.runIds.includes(r.id)).sort((a, b) => b.insertedAt.localeCompare(a.insertedAt)),
-      }));
+      .map((workOrder) => ({ workOrder, runs: runsOfWorkOrder(workOrder) }));
     const ownRuns = history.flatMap((h) => h.runs);
     const run = runId ? findRun(runId) : undefined;
     const selectedRun = run && ownRuns.some((r) => r.id === run.id) ? run : null;
@@ -50,10 +47,10 @@ export function useEditorRuns(graph: WorkflowGraph, runId: string | null) {
 
     return {
       history,
-      dataclips: dataclips.filter((d) => d.projectId === graph.projectId),
+      dataclips: dataclipsIn(graph.projectId),
       selectedRun,
       selectedSteps,
-      selectedLogs: selectedRun ? (runLogs[selectedRun.id] ?? []) : [],
+      selectedLogs: selectedRun ? logsOf(selectedRun) : [],
       overlay,
       demoRunId,
     };

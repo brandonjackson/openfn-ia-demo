@@ -5,37 +5,23 @@ import { cn } from "../../utils/cn";
 import Card from "../Card";
 import Heading from "../Heading";
 import IconButton from "../IconButton";
-import Pill, { type PillColor } from "../Pill";
+import StatePill from "../history/StatePill";
 import RunBadge from "./RunBadge";
-import { capitalize, formatDuration, formatRelative, shortUuid } from "../../utils/format";
-
-// run_live/components.ex `state_pill` chip_styles, mapped onto Pill colours.
-const CHIP_COLORS: Record<string, PillColor> = {
-  rejected: "red",
-  running: "blue",
-  claimed: "blue",
-  started: "blue",
-  success: "green",
-  failed: "red",
-  crashed: "orange",
-  killed: "yellow",
-  exception: "dark",
-  lost: "dark",
-};
-
-/** MiniHistory's own state chip: the raw state, capitalised. */
-function MiniStatePill({ state }: { state: string }) {
-  return <Pill color={CHIP_COLORS[state] ?? "gray"}>{capitalize(state)}</Pill>;
-}
+import { formatDuration, formatRelative, shortUuid } from "../../utils/format";
 
 const Dot = () => <span className="text-gray-800">&bull;</span>;
 
 /** The stack icon linking to the workflow's full history. */
 function FullHistoryLink({ to, id }: { to: string; id?: string }) {
   return (
-    <Link id={id} to={to} onClick={(e) => e.stopPropagation()} className="flex text-gray-400 hover:text-gray-600" aria-label="View full history for this workflow">
-      <span className="hero-rectangle-stack h-4 w-4" />
-    </Link>
+    <IconButton
+      id={id}
+      to={to}
+      icon="hero-rectangle-stack"
+      label="View full history for this workflow"
+      size="sm"
+      onClick={(e) => e.stopPropagation()}
+    />
   );
 }
 
@@ -125,7 +111,7 @@ export default function MiniHistory({
                   <Dot />
                   <span className="text-gray-500">{formatRelative(workOrder.lastActivity, now)}</span>
                 </div>
-                <MiniStatePill state={workOrder.state} />
+                <StatePill labelMode="raw" state={workOrder.state} />
               </div>
               {(isExpanded || selected) &&
                 runs.map((run) => {
@@ -173,7 +159,7 @@ export default function MiniHistory({
                           </>
                         )}
                       </div>
-                      <MiniStatePill state={run.state} />
+                      <StatePill labelMode="raw" state={run.state} />
                     </div>
                   );
                 })}

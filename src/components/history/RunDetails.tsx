@@ -60,9 +60,11 @@ export function StepListItem({
               disabled
             />
           ))}
-        <Link title="Inspect this step" to={`/projects/${projectId}/w/${workflowId}?run=${run.id}&panel=editor&job=${step.jobId}`}>
-          <span className="hero-document-magnifying-glass-mini h-5 w-5" />
-        </Link>
+        <IconButton
+          icon="hero-document-magnifying-glass-mini"
+          label="Inspect this step"
+          to={`/projects/${projectId}/w/${workflowId}?run=${run.id}&panel=editor&job=${step.jobId}`}
+        />
         <span className="w-16 text-right">{formatElapsed(step.startedAt, step.finishedAt)}</span>
         <span className="w-24 text-right font-mono">{step.exitReason}</span>
       </div>

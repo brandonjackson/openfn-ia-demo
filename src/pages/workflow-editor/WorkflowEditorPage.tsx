@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { Navigate, useParams, useSearchParams } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
 import Pill from "../../components/Pill";
-import AdaptorSelectionModal from "../../components/workflow/AdaptorSelectionModal";
+import AdaptorConfigModals, { type AdaptorModal } from "../../components/workflow/AdaptorConfigModals";
 import AIAssistantPanel from "../../components/workflow/AIAssistantPanel";
-import ConfigureAdaptorModal from "../../components/workflow/ConfigureAdaptorModal";
 import EdgeInspector from "../../components/workflow/EdgeInspector";
 import EditorHeader from "../../components/workflow/EditorHeader";
 import FullScreenIDE, { type IDEPanelState } from "../../components/workflow/FullScreenIDE";
@@ -18,8 +17,9 @@ import WorkflowCodePanel from "../../components/workflow/WorkflowCodePanel";
 import WorkflowDiagram, { type Selection } from "../../components/workflow/WorkflowDiagram";
 import WorkflowSettings from "../../components/workflow/WorkflowSettings";
 import YAMLImportModal from "../../components/workflow/YAMLImportModal";
+import { workflowNameFromYaml } from "../../components/workflow/workflowYaml";
 import { aiSessionsFor } from "../../mock-data/ai-assistant";
-import { adaptorShortName, resolveAdaptor } from "../../mock-data/adaptors";
+import { adaptorShortName } from "../../mock-data/adaptors";
 import { findProject, type Project } from "../../mock-data/projects";
 import {
   blankWorkflowGraph,
@@ -29,6 +29,7 @@ import {
   templateGraph,
   type WorkflowGraph,
 } from "../../mock-data/workflow";
+import { useUrlParams, type ParamPatch } from "../../utils/useUrlParams";
 import { useEditorRuns } from "./useEditorRuns";
 import { useWorkflowEditorState } from "./useWorkflowEditorState";
 
@@ -51,26 +52,6 @@ export default function WorkflowEditorPage() {
   return <WorkflowEditor key={graph.id} project={project} initial={graph} isNew={!workflowId} />;
 }
 
-type ParamPatch = Record<string, string | null>;
-
-function useUrlParams() {
-  const [search, setSearch] = useSearchParams();
-  const params = useMemo(() => Object.fromEntries(search.entries()) as Record<string, string | undefined>, [search]);
-  const update = useCallback(
-    (patch: ParamPatch) =>
-      setSearch((prev) => {
-        const next = new URLSearchParams(prev);
-        for (const [k, v] of Object.entries(patch)) {
-          if (v === null) next.delete(k);
-          else next.set(k, v);
-        }
-        return next;
-      }),
-    [setSearch]
-  );
-  return { params, update };
-}
-
 function WorkflowEditor({ project, initial, isNew }: { project: Project; initial: WorkflowGraph; isNew: boolean }) {
   const editor = useWorkflowEditorState(initial);
   const { graph } = editor;
@@ -78,12 +59,13 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
   const [pinnedVersion, setPinnedVersion] = useState<number | null>(null);
   const [historyCollapsed, setHistoryCollapsed] = useState(true);
   const [created, setCreated] = useState(!isNew);
-  const [templatesOpen, setTemplatesOpen] = useState(false);
-  const [yamlOpen, setYamlOpen] = useState(false);
+  // The landing screen's dialogs. The key remounts them on each open, so they start fresh.
+  const [landingModal, setLandingModal] = useState<{ which: "templates" | "yaml" | null; key: number }>({ which: null, key: 0 });
+  const openLandingModal = (which: "templates" | "yaml") => setLandingModal((m) => ({ which, key: m.key + 1 }));
+  const closeLandingModal = () => setLandingModal((m) => ({ ...m, which: null }));
   const [ideSub, setIdeSub] = useState<"history" | "create-run" | undefined>(undefined);
   const [runTab, setRunTab] = useState<RunViewerTab>("log");
-  const [ideConfigureOpen, setIdeConfigureOpen] = useState(false);
-  const [idePickerOpen, setIdePickerOpen] = useState(false);
+  const [ideAdaptorModal, setIdeAdaptorModal] = useState<AdaptorModal>(null);
 
   const runs = useEditorRuns(graph, params.run ?? null);
 
@@ -144,10 +126,18 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
   const firstTrigger = graph.triggers[0];
 
   // Running: the demo "starts" a run by following the workflow's newest
-  // finished fixture run.
-  const followNewRun = () => {
-    if (runs.demoRunId) update({ run: runs.demoRunId, panel: null, step: null, runMode: null });
-    else update({ panel: null, runMode: null });
+  // finished fixture run. From the canvas, running also closes the run panel;
+  // the IDE stays open.
+  const followDemoRun = (closePanel: boolean) => {
+    const close: ParamPatch = closePanel ? { panel: null, runMode: null } : {};
+    if (runs.demoRunId) update({ run: runs.demoRunId, step: null, ...close });
+    else if (closePanel) update(close);
+  };
+
+  // Replacing the new workflow's blank graph (from the landing screen) creates it.
+  const createFrom = (g: WorkflowGraph) => {
+    editor.replace(g);
+    setCreated(true);
   };
   const runPanelTitle =
     params.runMode === "custom"
@@ -260,11 +250,10 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
         dataclips={runs.dataclips}
         onClose={() => setIdeSub(undefined)}
         onClosePanel={() => setIdeSub(undefined)}
-        onRun={() => runs.demoRunId && update({ run: runs.demoRunId, step: null })}
+        onRun={() => followDemoRun(false)}
       />
     );
   }
-  const runIde = () => runs.demoRunId && update({ run: runs.demoRunId, step: null });
 
   return (
     <div className="collaborative-editor h-full flex relative" data-testid="collaborative-editor" data-annotation="workflow-editor-canvas">
@@ -284,7 +273,7 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
             canRun={!!firstTrigger}
             runDisabled={isRunPanelOpen || isIDEOpen}
             onRun={() =>
-              runs.demoRunId ? followNewRun() : update({ panel: "run", trigger: firstTrigger.id, job: null, edge: null })
+              runs.demoRunId ? followDemoRun(true) : update({ panel: "run", trigger: firstTrigger.id, job: null, edge: null })
             }
             onRunWithCustomInput={() =>
               update({ panel: "run", trigger: firstTrigger.id, job: null, edge: null, runMode: "custom" })
@@ -352,7 +341,7 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
                     fromEdge={!!edge}
                     initialTab={params.runMode === "custom" ? "custom" : "empty"}
                     onClose={() => update({ panel: null, runMode: null })}
-                    onRun={followNewRun}
+                    onRun={() => followDemoRun(true)}
                   />
                 </div>
               )}
@@ -365,8 +354,8 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
                 onSelectJob={(j) => update({ job: j.id })}
                 onBodyChange={(body) => ideJob && editor.updateJob(ideJob.id, { body })}
                 onClose={() => update({ panel: null })}
-                onEditAdaptor={() => setIdeConfigureOpen(true)}
-                onChangeAdaptor={() => setIdePickerOpen(true)}
+                onEditAdaptor={() => setIdeAdaptorModal("configure")}
+                onChangeAdaptor={() => setIdeAdaptorModal("picker")}
                 panelState={idePanelState}
                 onShowHistory={() => {
                   update({ run: null, step: null });
@@ -375,8 +364,8 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
                 onShowCreateRun={() => setIdeSub("create-run")}
                 followRunId={params.run ?? null}
                 isRetryable={!!runs.selectedRun && !["available", "claimed", "started"].includes(runs.selectedRun.state)}
-                onRun={runIde}
-                onRetry={runIde}
+                onRun={() => followDemoRun(false)}
+                onRetry={() => followDemoRun(false)}
                 onClearRun={() => {
                   update({ run: null, step: null });
                   setIdeSub(undefined);
@@ -392,16 +381,12 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
         {showLanding && (
           <LandingScreen
             onBuildWithAI={() => {
-              editor.replace(blankWorkflowGraph(project.id));
-              setCreated(true);
+              createFrom(blankWorkflowGraph(project.id));
               update({ chat: "true" });
             }}
-            onBuildFromScratch={() => {
-              editor.replace(blankWorkflowGraph(project.id));
-              setCreated(true);
-            }}
-            onBrowseTemplates={() => setTemplatesOpen(true)}
-            onImportYAML={() => setYamlOpen(true)}
+            onBuildFromScratch={() => createFrom(blankWorkflowGraph(project.id))}
+            onBrowseTemplates={() => openLandingModal("templates")}
+            onImportYAML={() => openLandingModal("yaml")}
           />
         )}
       </div>
@@ -409,47 +394,33 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
       {aiOpen && <AIAssistantPanel sessions={aiSessionsFor(graph.id)} onClose={() => update({ chat: null })} />}
 
       <TemplateBrowserModal
-        isOpen={templatesOpen}
-        onClose={() => setTemplatesOpen(false)}
+        key={`templates-${landingModal.key}`}
+        isOpen={landingModal.which === "templates"}
+        onClose={closeLandingModal}
         projectId={project.id}
         onCreate={(t) => {
-          editor.replace(templateGraph(t, project.id));
-          setCreated(true);
-          setTemplatesOpen(false);
+          createFrom(templateGraph(t, project.id));
+          closeLandingModal();
         }}
       />
       <YAMLImportModal
-        isOpen={yamlOpen}
-        onClose={() => setYamlOpen(false)}
+        key={`yaml-${landingModal.key}`}
+        isOpen={landingModal.which === "yaml"}
+        onClose={closeLandingModal}
         onCreate={(yaml) => {
-          const name = yaml.match(/^name:\s*(.+)$/m)?.[1]?.trim();
-          editor.replace({ ...blankWorkflowGraph(project.id), name: name || "Imported workflow" });
-          setCreated(true);
-          setYamlOpen(false);
+          createFrom({ ...blankWorkflowGraph(project.id), name: workflowNameFromYaml(yaml) || "Imported workflow" });
+          closeLandingModal();
         }}
       />
       {ideJob && (
-        <>
-          <ConfigureAdaptorModal
-            isOpen={ideConfigureOpen}
-            onClose={() => setIdeConfigureOpen(false)}
-            projectId={project.id}
-            adaptor={ideJob.adaptor}
-            credentialName={ideJob.credentialName}
-            onChangeAdaptor={() => {
-              setIdeConfigureOpen(false);
-              setIdePickerOpen(true);
-            }}
-            onVersionChange={(v) => editor.updateJob(ideJob.id, { adaptor: `${resolveAdaptor(ideJob.adaptor).package}@${v}` })}
-            onCredentialChange={(name) => editor.updateJob(ideJob.id, { credentialName: name })}
-          />
-          <AdaptorSelectionModal
-            isOpen={idePickerOpen}
-            onClose={() => setIdePickerOpen(false)}
-            adaptorsInUse={adaptorsInUse}
-            onSelect={(pkg) => editor.updateJob(ideJob.id, { adaptor: `${pkg}@latest`, credentialName: null })}
-          />
-        </>
+        <AdaptorConfigModals
+          open={ideAdaptorModal}
+          onOpenChange={setIdeAdaptorModal}
+          projectId={project.id}
+          job={ideJob}
+          adaptorsInUse={adaptorsInUse}
+          onChange={(patch) => editor.updateJob(ideJob.id, patch)}
+        />
       )}
     </div>
   );

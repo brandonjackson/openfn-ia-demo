@@ -9,6 +9,8 @@ export const Success: Story = { args: { state: "success" } };
 export const Failed: Story = { args: { state: "failed" } };
 export const Running: Story = { args: { state: "started" } };
 export const Rejected: Story = { args: { state: "rejected" } };
+/** MiniHistory's raw label: "Pending" rather than "Enqueued". */
+export const RawLabel: Story = { args: { state: "pending", labelMode: "raw" } };
 
 export const AllStates: Story = {
   args: { state: "success" },

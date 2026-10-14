@@ -31,3 +31,8 @@ export function workflowToYaml(g: WorkflowGraph): string {
   }
   return lines.join("\n") + "\n";
 }
+
+/** The workflow's top-level `name:` in an imported YAML document, if it has one. */
+export function workflowNameFromYaml(yaml: string): string | undefined {
+  return yaml.match(/^name:\s*(.+)$/m)?.[1]?.trim() || undefined;
+}

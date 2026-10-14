@@ -24,6 +24,7 @@ export default function VersionDropdown({ snapshots, pinnedVersion, onVersionSel
       <Menu
         align="start"
         className="w-56 max-h-80 overflow-y-auto"
+        panelProps={{ "data-annotation": "workflow-editor-versions-and-promote" }}
         trigger={
           <button
             type="button"

@@ -38,17 +38,14 @@ export default function SandboxActions({
   const mergeLabel = sandbox.canMerge ? "Merge this sandbox" : "You are not authorized to merge this sandbox";
   return (
     <div className="flex gap-1">
-      {/* IconButton only takes a hero class, and Merge uses Lightning's own branches icon. */}
+      {/* The wrapper carries the tooltip, since a disabled button shows none. */}
       <span id={`branch-rewire-sandbox-${sandbox.id}`} title={mergeLabel}>
-        <button
-          type="button"
-          aria-label={mergeLabel}
+        <IconButton
+          icon={<BranchesIcon className="h-5 w-5" />}
+          label={mergeLabel}
           disabled={!sandbox.canMerge}
           onClick={onMerge}
-          className="rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <BranchesIcon className="h-5 w-5" />
-        </button>
+        />
       </span>
       <span id={`edit-sandbox-${sandbox.id}`}>
         <IconButton

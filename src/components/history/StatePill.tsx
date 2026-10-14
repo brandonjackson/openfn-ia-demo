@@ -40,9 +40,13 @@ function stateLabel(state: State): string {
   }
 }
 
-/** A work order or run state pill (run_live/components.ex `state_pill`). */
-export default function StatePill({ state }: { state: State }) {
-  return <Pill color={chipColors[state]}>{stateLabel(state)}</Pill>;
+/**
+ * A work order or run state pill (run_live/components.ex `state_pill`).
+ * `labelMode="raw"` shows the state itself, capitalised, as the canvas's
+ * MiniHistory does ("Pending" rather than "Enqueued").
+ */
+export default function StatePill({ state, labelMode = "display" }: { state: State; labelMode?: "display" | "raw" }) {
+  return <Pill color={chipColors[state]}>{labelMode === "raw" ? capitalize(state) : stateLabel(state)}</Pill>;
 }
 
 const channelConfig: Record<ChannelRequestState, { text: string; color: PillColor }> = {

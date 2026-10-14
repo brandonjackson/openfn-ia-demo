@@ -1,4 +1,4 @@
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
 import Tabs from "../../components/Tabs";
@@ -8,24 +8,21 @@ import FilterChip, { FilterMenu } from "../../components/history/FilterChip";
 import { channelRequestsIn, channelsIn } from "../../mock-data/channel-requests";
 import { historyChannelsEnabled } from "../../mock-data/history-extra";
 import { findProject } from "../../mock-data/projects";
+import { useUrlParams } from "../../utils/useUrlParams";
 
 /** Inventory view `history-channel-logs` (RunLive.Index :channel_logs, channel_logs_component.ex). */
 export default function HistoryChannelLogsPage() {
   const { projectId = "" } = useParams();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { params, update } = useUrlParams();
   const project = findProject(projectId);
   const channels = channelsIn(projectId);
-  const channelId = searchParams.get("filters[channel_id]");
+  const channelId = params["filters[channel_id]"] ?? null;
   const selected = channels.find((c) => c.id === channelId);
   const requests = channelRequestsIn(projectId)
     .filter((r) => !selected || r.channelId === selected.id)
     .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
 
-  const setChannel = (id: string | null) => {
-    if (id) searchParams.set("filters[channel_id]", id);
-    else searchParams.delete("filters[channel_id]");
-    setSearchParams(searchParams);
-  };
+  const setChannel = (id: string | null) => update({ "filters[channel_id]": id || null });
 
   return (
     <PageContent

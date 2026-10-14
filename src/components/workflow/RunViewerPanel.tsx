@@ -5,10 +5,11 @@ import { cn } from "../../utils/cn";
 import { formatElapsed, formatLocalDateTime, shortUuid } from "../../utils/format";
 import CodeEditor from "./CodeEditor";
 import StatePill from "../history/StatePill";
+import { LogLevelFilter, type LogLevel } from "../history/LogViewer";
+import { logsAtLevel } from "../../mock-data/history-extra";
 import { DetailItem, DetailList } from "../DetailList";
 import Heading from "../Heading";
 import InfoTooltip from "../InfoTooltip";
-import Menu, { MenuItem } from "../Menu";
 
 export type RunViewerTab = "log" | "input" | "output";
 
@@ -17,8 +18,6 @@ const STEP_ICONS: Record<string, [string, string]> = {
   fail: ["hero-x-circle-solid", "text-red-500"],
   crash: ["hero-x-circle-solid", "text-orange-800"],
 };
-
-const LEVELS = ["debug", "info", "warn", "error"] as const;
 
 interface Props {
   projectId: string;
@@ -39,10 +38,10 @@ interface Props {
  * Output of the selected step below.
  */
 export default function RunViewerPanel({ projectId, run, steps, logs, dataclips, selectedStepId, onSelectStep, activeTab, mismatch = false }: Props) {
-  const [level, setLevel] = useState<(typeof LEVELS)[number]>("info");
+  const [level, setLevel] = useState<LogLevel>("info");
   const step = steps.find((s) => s.id === selectedStepId) ?? null;
   const clip = (id: string | null | undefined) => dataclips.find((d) => d.id === id);
-  const visibleLogs = logs.filter((l) => LEVELS.indexOf(l.level) >= LEVELS.indexOf(level));
+  const visibleLogs = logsAtLevel(logs, level);
 
   const empty = (text: string) => <p className="flex h-full items-center justify-center p-12 text-center text-gray-500">{text}</p>;
   const dataView = (id: string | null | undefined, emptyFinished: string) => {
@@ -115,22 +114,7 @@ export default function RunViewerPanel({ projectId, run, steps, logs, dataclips,
         {activeTab === "log" && (
           <div className="flex h-full flex-col bg-gray-700 font-mono text-gray-200">
             <div className="flex h-6 items-center justify-end border-b border-gray-500 px-2">
-              <Menu
-                className="w-32"
-                trigger={
-                  <button type="button" className="flex items-center gap-1 text-xs opacity-75 hover:opacity-100">
-                    <span className="hero-adjustments-vertical size-4" />
-                    {level}
-                    <span className="hero-chevron-down size-4" />
-                  </button>
-                }
-              >
-                {LEVELS.map((l) => (
-                  <MenuItem key={l} selected={l === level} onClick={() => setLevel(l)}>
-                    {l}
-                  </MenuItem>
-                ))}
-              </Menu>
+              <LogLevelFilter selected={level} onChange={setLevel} />
             </div>
             <div className="min-h-0 flex-1 overflow-auto p-2 text-sm">
               {visibleLogs.length === 0 ? (

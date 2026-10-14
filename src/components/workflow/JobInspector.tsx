@@ -1,13 +1,12 @@
 import { useState } from "react";
-import { ADAPTORS_WITHOUT_CREDENTIALS, adaptorShortName, resolveAdaptor } from "../../mock-data/adaptors";
+import { ADAPTORS_WITHOUT_CREDENTIALS, adaptorShortName } from "../../mock-data/adaptors";
 import type { EditorJob } from "../../mock-data/workflow";
 import AdaptorDisplay, { ADAPTOR_HELP } from "./AdaptorDisplay";
-import AdaptorSelectionModal from "./AdaptorSelectionModal";
+import AdaptorConfigModals, { type AdaptorModal } from "./AdaptorConfigModals";
 import ConfirmModal from "../ConfirmModal";
 import IconButton from "../IconButton";
 import InfoTooltip from "../InfoTooltip";
 import { Field, TextInput } from "../Inputs";
-import ConfigureAdaptorModal from "./ConfigureAdaptorModal";
 import InspectorLayout, { InspectorFooter } from "./InspectorLayout";
 import NewRunButton from "./NewRunButton";
 
@@ -41,9 +40,7 @@ export default function JobInspector({
   canDelete = true,
 }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const [configureOpen, setConfigureOpen] = useState(false);
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickerFromConfigure, setPickerFromConfigure] = useState(false);
+  const [adaptorModal, setAdaptorModal] = useState<AdaptorModal>(null);
 
   const needsConnect = !job.credentialName && !ADAPTORS_WITHOUT_CREDENTIALS.includes(adaptorShortName(job.adaptor));
 
@@ -82,35 +79,20 @@ export default function JobInspector({
           <AdaptorDisplay
             adaptor={job.adaptor}
             credentialName={job.credentialName}
-            onEdit={() => setConfigureOpen(true)}
-            onChangeAdaptor={() => setPickerOpen(true)}
+            onEdit={() => setAdaptorModal("configure")}
+            onChangeAdaptor={() => setAdaptorModal("picker")}
           />
         </Field>
       </InspectorLayout>
 
-      <ConfigureAdaptorModal
-        isOpen={configureOpen}
-        onClose={() => setConfigureOpen(false)}
+      <AdaptorConfigModals
+        open={adaptorModal}
+        onOpenChange={setAdaptorModal}
         projectId={projectId}
-        adaptor={job.adaptor}
-        credentialName={job.credentialName}
-        onChangeAdaptor={() => {
-          setConfigureOpen(false);
-          setPickerFromConfigure(true);
-          setPickerOpen(true);
-        }}
-        onVersionChange={(v) => onChange({ adaptor: `${resolveAdaptor(job.adaptor).package}@${v}` })}
-        onCredentialChange={(name) => onChange({ credentialName: name })}
-      />
-      <AdaptorSelectionModal
-        isOpen={pickerOpen}
+        job={job}
         adaptorsInUse={adaptorsInUse}
-        onClose={() => {
-          setPickerOpen(false);
-          if (pickerFromConfigure) setConfigureOpen(true);
-          setPickerFromConfigure(false);
-        }}
-        onSelect={(pkg) => onChange({ adaptor: `${pkg}@latest`, credentialName: null })}
+        onChange={onChange}
+        returnToConfigure
       />
       <ConfirmModal
         open={confirmDelete}

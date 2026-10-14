@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { LogLine } from "../../mock-data/history";
+import { logsAtLevel } from "../../mock-data/history-extra";
 import { cn } from "../../utils/cn";
 import Menu, { MenuItem } from "../Menu";
 import CodeLines from "./CodeLines";
@@ -7,7 +8,6 @@ import TextPingLoader from "./TextPingLoader";
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 const levels: LogLevel[] = ["debug", "info", "warn", "error"];
-const score = (l: string) => ({ debug: 0, info: 1, warn: 2, error: 3 })[l] ?? 4;
 
 function prettify(message: string) {
   const m = message.trim();
@@ -79,7 +79,7 @@ export default function LogViewer({
     );
   }
 
-  const visible = logs.filter((l) => score(l.level) >= score(level));
+  const visible = logsAtLevel(logs, level);
   const lines: string[] = [];
   const highlighted = new Set<number>();
   for (const log of visible) {

@@ -121,6 +121,13 @@ export function logsOf(run: Run): LogLine[] {
   return runLogs[run.id] ?? [];
 }
 
+const levelScore = (l: string) => ({ debug: 0, info: 1, warn: 2, error: 3 })[l] ?? 4;
+
+/** The log lines a level filter lets through: `level` and everything above it. */
+export function logsAtLevel<T extends { level: string }>(logs: T[], level: LogLine["level"]): T[] {
+  return logs.filter((l) => levelScore(l.level) >= levelScore(level));
+}
+
 /** Lightning's `Run.final_states`. */
 export const finalRunStates: RunState[] = ["success", "failed", "crashed", "cancelled", "killed", "exception", "lost"];
 

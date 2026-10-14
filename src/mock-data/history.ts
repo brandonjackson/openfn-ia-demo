@@ -337,6 +337,14 @@ export function workOrdersIn(projectId: string): WorkOrder[] {
   return workOrders.filter((w) => w.projectId === projectId);
 }
 
+export function workOrdersOfWorkflow(workflowId: string): WorkOrder[] {
+  return workOrders.filter((w) => w.workflowId === workflowId);
+}
+
+export function dataclipsIn(projectId: string): Dataclip[] {
+  return dataclips.filter((d) => d.projectId === projectId);
+}
+
 export function findRun(id: string | undefined): Run | undefined {
   return runs.find((r) => r.id === id);
 }

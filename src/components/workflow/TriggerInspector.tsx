@@ -3,6 +3,7 @@ import { webhookUrl, type EditorTrigger } from "../../mock-data/workflow";
 import { cn } from "../../utils/cn";
 import Button from "../Button";
 import Card from "../Card";
+import Disclosure from "../Disclosure";
 import { Field, Label, Radio, TextInput } from "../Inputs";
 import Pill from "../Pill";
 import TextLink from "../TextLink";
@@ -37,24 +38,6 @@ export function TriggerTypeBadge({ type = "webhook" }: { type?: "webhook" | "cro
 
 function ReadOnlyField({ id, label, value }: { id: string; label: string; value: string }) {
   return <TextInput id={id} label={label} value={value} readOnly className="text-gray-500" />;
-}
-
-function Collapsible({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 text-sm font-medium text-gray-800"
-      >
-        <span className={cn("h-3.5 w-3.5 transition-transform", open ? "hero-chevron-down-mini" : "hero-chevron-right-mini")} />
-        {title}
-        {note && <span className="text-xs text-gray-400">({note})</span>}
-      </button>
-      {open && <div className="mt-2">{children}</div>}
-    </div>
-  );
 }
 
 /** "Webhook URL" with its help text, over the URL box(es). */
@@ -249,7 +232,7 @@ export default function TriggerInspector({ trigger, onChange, onClose }: Props) 
           <div className="mt-1 break-all font-mono text-xs text-gray-600">{url}</div>
         </Card>
       </WebhookUrlField>
-      <Collapsible title="Authentication" note={trigger.hasAuthMethod ? "1 configured" : "none configured"}>
+      <Disclosure variant="inline" defaultOpen={false} title="Authentication" note={trigger.hasAuthMethod ? "1 configured" : "none configured"}>
         {trigger.hasAuthMethod ? (
           <div className="flex items-center gap-2 text-xs">
             <span className="hero-shield-check-micro h-4 w-4 text-green-600" />
@@ -264,15 +247,15 @@ export default function TriggerInspector({ trigger, onChange, onClose }: Props) 
             </TextLink>
           </p>
         )}
-      </Collapsible>
-      <Collapsible title="Response">
+      </Disclosure>
+      <Disclosure variant="inline" defaultOpen={false} title="Response">
         <p className="text-xs text-gray-500">
           {response.shortDescription}{" "}
           <TextLink to="https://docs.openfn.org/documentation/build/triggers#webhook-responses" external>
             learn more
           </TextLink>
         </p>
-      </Collapsible>
+      </Disclosure>
     </InspectorLayout>
   );
 }

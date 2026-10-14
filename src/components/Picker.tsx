@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
-import { cn } from '../utils/cn';
+import { cn } from "../utils/cn";
 
 /**
  * Generic command-palette picker. Content-agnostic: the server ships a
@@ -73,16 +73,14 @@ interface PickerProps {
 export default function Picker(props: PickerProps) {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(props.defaultOpen ?? false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [highlightedIndex, setHighlightedIndex] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [rawHighlightedIndex, setHighlightedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
   const isMac = useMemo(
-    () =>
-      typeof navigator !== 'undefined' &&
-      /Mac|iPod|iPhone|iPad/.test(navigator.platform),
-    []
+    () => typeof navigator !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.platform),
+    [],
   );
 
   const allItems = props.items;
@@ -93,7 +91,7 @@ export default function Picker(props: PickerProps) {
   const viewAllLabel = props.viewAllLabel;
   const viewAllHref = props.viewAllHref;
   const openEvent = props.openEvent;
-  const theme = props.theme ?? '';
+  const theme = props.theme ?? "";
 
   // Filter items by search term. Items are already tree-flattened server-side;
   // we only need to include matches *and* the ancestors that lead to them so
@@ -103,9 +101,7 @@ export default function Picker(props: PickerProps) {
     const lower = searchTerm.toLowerCase();
 
     // Mark matches and include ancestor chain for each match.
-    const selfMatch = allItems.map(i =>
-      i.searchLabel.toLowerCase().includes(lower)
-    );
+    const selfMatch = allItems.map((i) => i.searchLabel.toLowerCase().includes(lower));
     const include = new Array<boolean>(allItems.length).fill(false);
 
     for (let i = 0; i < allItems.length; i++) {
@@ -129,10 +125,12 @@ export default function Picker(props: PickerProps) {
 
   // "View all" is always index 0; items start at index 1.
   const totalItems = items.length + 1;
+  // Clamp when a search shrinks the list.
+  const highlightedIndex = Math.min(rawHighlightedIndex, totalItems - 1);
 
   const openPicker = useCallback(() => {
     setIsOpen(true);
-    setSearchTerm('');
+    setSearchTerm("");
     setHighlightedIndex(items.length > 0 ? 1 : 0);
   }, [items.length]);
 
@@ -149,7 +147,7 @@ export default function Picker(props: PickerProps) {
   // Cmd/Ctrl+P to toggle.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'p') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "p") {
         e.preventDefault();
         if (isOpen) {
           closePicker();
@@ -159,8 +157,8 @@ export default function Picker(props: PickerProps) {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, openPicker, closePicker]);
 
   // Escape to close (capture phase so we beat nested handlers).
@@ -168,7 +166,7 @@ export default function Picker(props: PickerProps) {
     if (!isOpen) return;
 
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
@@ -176,26 +174,17 @@ export default function Picker(props: PickerProps) {
       }
     };
 
-    document.addEventListener('keydown', handleGlobalKeyDown, true);
-    return () =>
-      document.removeEventListener('keydown', handleGlobalKeyDown, true);
+    document.addEventListener("keydown", handleGlobalKeyDown, true);
+    return () => document.removeEventListener("keydown", handleGlobalKeyDown, true);
   }, [isOpen, closePicker]);
-
-  useEffect(() => {
-    if (highlightedIndex >= totalItems) {
-      setHighlightedIndex(Math.max(0, totalItems - 1));
-    }
-  }, [totalItems, highlightedIndex]);
 
   useEffect(() => {
     if (!isOpen) return;
     const list = listRef.current;
     if (!list) return;
-    const highlighted = list.querySelector(
-      `[data-index="${highlightedIndex}"]`
-    ) as HTMLElement;
+    const highlighted = list.querySelector(`[data-index="${highlightedIndex}"]`) as HTMLElement;
     if (highlighted) {
-      highlighted.scrollIntoView({ block: 'nearest' });
+      highlighted.scrollIntoView({ block: "nearest" });
     }
   }, [isOpen, highlightedIndex]);
 
@@ -208,48 +197,42 @@ export default function Picker(props: PickerProps) {
 
   const go = (href: string, sameSection = false) => {
     setIsOpen(false);
-    navigate(href + (sameSection ? window.location.hash : ''));
+    navigate(href + (sameSection ? window.location.hash : ""));
   };
 
-  const handleInputKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault();
-          setHighlightedIndex(i => (i < totalItems - 1 ? i + 1 : 0));
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          setHighlightedIndex(i => (i > 0 ? i - 1 : totalItems - 1));
-          break;
-        case 'Enter': {
-          e.preventDefault();
-          if (highlightedIndex === 0) {
-            go(viewAllHref);
-          } else {
-            const item = items[highlightedIndex - 1];
-            if (item) go(item.href, item.sameSection);
-          }
-          break;
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setHighlightedIndex((i) => (i < totalItems - 1 ? i + 1 : 0));
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setHighlightedIndex((i) => (i > 0 ? i - 1 : totalItems - 1));
+        break;
+      case "Enter": {
+        e.preventDefault();
+        if (highlightedIndex === 0) {
+          go(viewAllHref);
+        } else {
+          const item = items[highlightedIndex - 1];
+          if (item) go(item.href, item.sameSection);
         }
+        break;
       }
-    },
-    [items, highlightedIndex, totalItems, viewAllHref]
-  );
+    }
+  };
 
   if (!isOpen) return null;
 
   return (
-    <div className={cn('picker-root fixed inset-0 z-[9999]', theme)}>
+    <div className={cn("picker-root fixed inset-0 z-[9999]", theme)}>
       <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-xs transition-opacity" />
 
-      <div
-        className="fixed inset-0 flex items-start justify-center pt-[15vh]"
-        onClick={closePicker}
-      >
+      <div className="fixed inset-0 flex items-start justify-center pt-[15vh]" onClick={closePicker}>
         <div
           className="w-full max-w-xl bg-white rounded-xl shadow-2xl ring-1 ring-black/10 overflow-hidden"
-          onClick={e => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center px-4 border-b border-gray-200">
             <span className="hero-magnifying-glass h-5 w-5 text-gray-400 shrink-0" />
@@ -259,7 +242,7 @@ export default function Picker(props: PickerProps) {
               spellCheck="false"
               placeholder={placeholder}
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleInputKeyDown}
               className="w-full border-0 py-4 pl-3 pr-4 text-gray-900 placeholder:text-gray-400 focus:ring-0 text-base"
               role="combobox"
@@ -268,24 +251,19 @@ export default function Picker(props: PickerProps) {
               autoComplete="off"
             />
             <kbd className="hidden sm:inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-gray-400 ring-1 ring-gray-300">
-              <span>{isMac ? '⌘' : 'Ctrl'}</span>
+              <span>{isMac ? "⌘" : "Ctrl"}</span>
               <span>P</span>
             </kbd>
           </div>
 
-          <ul
-            ref={listRef}
-            className="max-h-80 overflow-y-auto py-2"
-            id="picker-options"
-            role="listbox"
-          >
+          <ul ref={listRef} className="max-h-80 overflow-y-auto py-2" id="picker-options" role="listbox">
             <li
               data-index={0}
               className={cn(
-                'group relative cursor-pointer select-none px-4 py-3 flex items-center',
+                "group relative cursor-pointer select-none px-4 py-3 flex items-center",
                 highlightedIndex === 0
-                  ? 'bg-primary-600 text-white'
-                  : 'text-gray-900 hover:bg-primary-600 hover:text-white'
+                  ? "bg-primary-600 text-white"
+                  : "text-gray-900 hover:bg-primary-600 hover:text-white",
               )}
               role="option"
               onClick={() => go(viewAllHref)}
@@ -293,26 +271,20 @@ export default function Picker(props: PickerProps) {
             >
               <span
                 className={cn(
-                  'hero-rectangle-stack h-5 w-5 mr-2 shrink-0',
-                  highlightedIndex === 0
-                    ? 'text-white/70'
-                    : 'text-gray-400 group-hover:text-white/70'
+                  "hero-rectangle-stack h-5 w-5 mr-2 shrink-0",
+                  highlightedIndex === 0 ? "text-white/70" : "text-gray-400 group-hover:text-white/70",
                 )}
               />
               <span className="flex-grow">{viewAllLabel}</span>
               <span
                 className={cn(
-                  'hero-arrow-right h-4 w-4 shrink-0',
-                  highlightedIndex === 0
-                    ? 'text-white/70'
-                    : 'text-gray-400 group-hover:text-white/70'
+                  "hero-arrow-right h-4 w-4 shrink-0",
+                  highlightedIndex === 0 ? "text-white/70" : "text-gray-400 group-hover:text-white/70",
                 )}
               />
             </li>
 
-            {items.length > 0 && (
-              <li className="border-t border-gray-200 my-2" role="separator" />
-            )}
+            {items.length > 0 && <li className="border-t border-gray-200 my-2" role="separator" />}
 
             {items.map((item, index) => {
               const itemIndex = index + 1;
@@ -320,18 +292,17 @@ export default function Picker(props: PickerProps) {
               const isSelected = item.id === currentId;
               const isNested = item.depth > 0;
               const indentPx = item.depth * 10;
-              const itemIcon =
-                item.icon ?? (item.isSandbox ? 'hero-beaker' : 'hero-folder');
+              const itemIcon = item.icon ?? (item.isSandbox ? "hero-beaker" : "hero-folder");
 
               return (
                 <li
                   key={item.id}
                   data-index={itemIndex}
                   className={cn(
-                    'group relative cursor-pointer select-none py-3 pr-4 flex items-center',
+                    "group relative cursor-pointer select-none py-3 pr-4 flex items-center",
                     isHighlighted
-                      ? 'bg-primary-600 text-white'
-                      : 'text-gray-900 hover:bg-primary-600 hover:text-white'
+                      ? "bg-primary-600 text-white"
+                      : "text-gray-900 hover:bg-primary-600 hover:text-white",
                   )}
                   style={{ paddingLeft: `${16 + indentPx}px` }}
                   role="option"
@@ -342,47 +313,32 @@ export default function Picker(props: PickerProps) {
                   {isNested && (
                     <span
                       className={cn(
-                        'hero-arrow-turn-down-right h-4 w-4 mr-2 shrink-0',
-                        isHighlighted
-                          ? 'text-white/50'
-                          : 'text-gray-300 group-hover:text-white/50'
+                        "hero-arrow-turn-down-right h-4 w-4 mr-2 shrink-0",
+                        isHighlighted ? "text-white/50" : "text-gray-300 group-hover:text-white/50",
                       )}
                     />
                   )}
                   <span
                     className={cn(
                       `${itemIcon} h-5 w-5 mr-2 shrink-0`,
-                      isHighlighted
-                        ? 'text-white/70'
-                        : 'text-gray-400 group-hover:text-white/70'
+                      isHighlighted ? "text-white/70" : "text-gray-400 group-hover:text-white/70",
                     )}
                   />
-                  <span
-                    className={cn(
-                      'truncate flex-grow',
-                      isSelected && 'font-semibold'
-                    )}
-                  >
+                  <span className={cn("truncate flex-grow", isSelected && "font-semibold")}>
                     {item.label}
                   </span>
                   {isSelected && (
                     <span
                       className={cn(
-                        'hero-check shrink-0 ml-3 w-5 h-5',
-                        isHighlighted
-                          ? 'text-white'
-                          : 'text-primary-600 group-hover:text-white'
+                        "hero-check shrink-0 ml-3 w-5 h-5",
+                        isHighlighted ? "text-white" : "text-primary-600 group-hover:text-white",
                       )}
                     />
                   )}
                 </li>
               );
             })}
-            {items.length === 0 && (
-              <li className="px-4 py-8 text-center text-gray-500">
-                {emptyMessage}
-              </li>
-            )}
+            {items.length === 0 && <li className="px-4 py-8 text-center text-gray-500">{emptyMessage}</li>}
           </ul>
         </div>
       </div>

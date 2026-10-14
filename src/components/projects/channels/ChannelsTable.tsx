@@ -54,7 +54,7 @@ export default function ChannelsTable({
           <Td className="max-w-80">
             <div className="flex items-center gap-1.5 font-mono text-gray-600">
               <span className="hero-arrow-right-start-on-rectangle h-4 w-4 shrink-0 text-gray-400" />
-              <span className="wrap-break-word">{channel.destinationUrl}</span>
+              <span className="min-w-0 wrap-break-word">{channel.destinationUrl}</span>
             </div>
             <ProxyUrlCopy channelId={channel.id} icon className="mt-1" />
           </Td>

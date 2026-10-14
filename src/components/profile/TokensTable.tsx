@@ -32,7 +32,7 @@ export default function TokensTable({ tokens, onGenerate }: { tokens: ApiToken[]
               <DateTime value={token.insertedAt} />
             </Td>
             <Td>
-              <div className="flex justify-between whitespace-nowrap font-medium">
+              <div className="flex items-center justify-between whitespace-nowrap font-medium">
                 {token.lastUsedAt ? <DateTime value={token.lastUsedAt} /> : "Never used"}
                 <IconButton
                   id={`delete-token-${token.id}`}
@@ -40,6 +40,7 @@ export default function TokensTable({ tokens, onGenerate }: { tokens: ApiToken[]
                   icon="hero-trash"
                   tone="danger"
                   label="Delete token"
+                  className="-my-1"
                 />
               </div>
             </Td>

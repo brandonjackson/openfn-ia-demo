@@ -22,8 +22,8 @@ export default function UuidChip({
   const uuid = uuidOf(id);
   if (to && !disabled) {
     return (
-      <Link to={to} className="link-uuid">
-        <span title={tooltip ?? uuid}>{shortId(id)}</span>
+      <Link to={to} title={tooltip ?? uuid} className="link-uuid">
+        {shortId(id)}
       </Link>
     );
   }

@@ -117,11 +117,9 @@ export function RunCard({
       <div className="flex items-center bg-gray-200 text-xs">
         <div className="flex flex-1 items-center gap-1 py-2 pl-4">
           Run
-          <span title={uuidOf(run.id)}>
-            <TextLink to={`/projects/${projectId}/runs/${run.id}`} className="font-mono">
-              {shortId(run.id)}
-            </TextLink>
-          </span>
+          <TextLink to={`/projects/${projectId}/runs/${run.id}`} title={uuidOf(run.id)} className="font-mono">
+            {shortId(run.id)}
+          </TextLink>
           {total > 1 && (
             <>
               ({index}/{total}

@@ -7,7 +7,7 @@ import Modal from "../Modal";
 import SectionHeader from "../SectionHeader";
 import TextLink from "../TextLink";
 import Toggle from "../Toggle";
-import ProfileCard from "./ProfileCard";
+import Card from "../Card";
 import { fakeTotpSecret } from "../../mock-data/profile";
 
 interface Props {
@@ -50,7 +50,7 @@ export default function MfaCard({ mfaEnabled, onChange }: Props) {
   };
 
   return (
-    <ProfileCard
+    <Card padding="lg"
       annotation="profile-mfa"
       title={<span id={`${id}-label`}>Enable multi-factor authentication</span>}
       description={
@@ -145,6 +145,6 @@ export default function MfaCard({ mfaEnabled, onChange }: Props) {
       <Modal open={showSecret} onClose={() => setShowSecret(false)} title="Your two-factor secret" size="sm">
         <code className="text-sm text-gray-600">{fakeTotpSecret}</code>
       </Modal>
-    </ProfileCard>
+    </Card>
   );
 }

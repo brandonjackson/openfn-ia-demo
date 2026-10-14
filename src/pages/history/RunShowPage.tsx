@@ -91,11 +91,9 @@ export default function RunShowPage() {
                 </TextLink>
               </DetailItem>
               <DetailItem label="Work Order" mono>
-                <span title={uuidOf(workOrder.id)}>
-                  <TextLink to={`/projects/${projectId}/history?filters[workorder_id]=${workOrder.id}`}>
-                    {shortId(workOrder.id)}
-                  </TextLink>
-                </span>
+                <TextLink to={`/projects/${projectId}/history?filters[workorder_id]=${workOrder.id}`} title={uuidOf(workOrder.id)}>
+                  {shortId(workOrder.id)}
+                </TextLink>
               </DetailItem>
               {startedBy && <DetailItem label="Started by">{startedBy}</DetailItem>}
               <DetailItem label="Started">{run.startedAt && <DateTime value={run.startedAt} />}</DetailItem>

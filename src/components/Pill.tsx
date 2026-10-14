@@ -23,6 +23,7 @@ const colorClasses: Record<PillColor, string> = {
  * the code font, and `onRemove` an x button.
  */
 export default function Pill({
+  id,
   color = "gray",
   square = false,
   mono = false,
@@ -32,6 +33,7 @@ export default function Pill({
   className,
   children,
 }: {
+  id?: string;
   color?: PillColor;
   square?: boolean;
   mono?: boolean;
@@ -46,6 +48,7 @@ export default function Pill({
 }) {
   return (
     <span
+      id={id}
       data-ui="tag"
       title={title}
       className={cn(

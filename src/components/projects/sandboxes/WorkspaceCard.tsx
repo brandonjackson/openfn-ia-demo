@@ -77,8 +77,8 @@ export default function WorkspaceCard({
 
 function Badge({ id, label }: { id: string; label: string }) {
   return (
-    <span id={id} className="min-w-0">
-      <Pill className="max-w-32 truncate">{label}</Pill>
-    </span>
+    <Pill id={id} className="max-w-32" title={label}>
+      <span className="truncate">{label}</span>
+    </Pill>
   );
 }

@@ -14,16 +14,18 @@ interface Props {
   onClick?: (e: MouseEvent) => void;
   /** `danger` for destructive actions (Disconnect, Revoke). */
   variant?: "default" | "danger";
+  /** Hover text. */
+  title?: string;
   className?: string;
   children: ReactNode;
 }
 
 /** An inline text link with Lightning's `link` utility (primary-400, underline on hover), or red with `variant="danger"`. */
-export default function TextLink({ to, href, external = false, target, onClick, variant = "default", className, children }: Props) {
+export default function TextLink({ to, href, external = false, target, onClick, variant = "default", title, className, children }: Props) {
   const classes = cn("link", variant === "danger" && "link-danger", className);
   if (to && !external) {
     return (
-      <Link to={to} className={classes} onClick={onClick} data-ui="link">
+      <Link to={to} className={classes} title={title} onClick={onClick} data-ui="link">
         {children}
       </Link>
     );
@@ -35,6 +37,7 @@ export default function TextLink({ to, href, external = false, target, onClick, 
       target={external ? "_blank" : target}
       rel={external ? "noreferrer" : undefined}
       className={classes}
+      title={title}
       data-ui="link"
       onClick={(e) => {
         if (!url) e.preventDefault();

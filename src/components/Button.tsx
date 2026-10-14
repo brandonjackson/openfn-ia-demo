@@ -109,9 +109,17 @@ export default function Button({
       </a>
     );
   }
-  return (
+  const button = (
     <button ref={ref} type={type} disabled={disabled} {...shared} {...rest}>
       {children}
     </button>
+  );
+  // Disabled buttons don't get hover events in every browser, so the tooltip goes on a wrapper.
+  return disabled && tooltip ? (
+    <span title={tooltip} className="inline-flex">
+      {button}
+    </span>
+  ) : (
+    button
   );
 }

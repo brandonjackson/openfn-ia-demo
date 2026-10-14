@@ -50,7 +50,7 @@ interface Props {
 export default function Alert({ type, header, children, className, id }: Props) {
   const c = classes[type];
   return (
-    <div id={id} className={cn("rounded-md p-4 text-wrap", c.bg, className)} data-ui="alert" data-variant={type}>
+    <div id={id} className={cn("rounded-md p-4 text-wrap", c.bg, className)} data-ui="alert" data-variant={type} role={type === "danger" ? "alert" : "status"}>
       <div className={cn("flex", header ? "items-start" : "items-center")}>
         <div className="shrink-0">
           <span className={cn(c.iconName, "block h-5 w-5", c.icon)} />

@@ -22,6 +22,8 @@ interface Props {
   /** Dashed outline, for drop zones and placeholders. */
   dashed?: boolean;
   as?: "div" | "section" | "li" | "article";
+  /** Inventory id for the annotations panel (`data-annotation`). */
+  annotation?: string;
   id?: string;
   className?: string;
   children?: ReactNode;
@@ -39,6 +41,7 @@ export default function Card({
   muted = false,
   dashed = false,
   as: Tag = "div",
+  annotation,
   id,
   className,
   children,
@@ -48,6 +51,7 @@ export default function Card({
     <Tag
       id={id}
       data-ui="card"
+      data-annotation={annotation}
       className={cn(
         "rounded-lg",
         dashed ? "border-2 border-dashed border-gray-300" : "border border-gray-200",

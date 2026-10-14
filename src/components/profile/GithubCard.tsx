@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Button from "../Button";
 import ConfirmModal from "../ConfirmModal";
-import ProfileCard from "./ProfileCard";
+import Card from "../Card";
 
 interface Props {
   /** VersionControl.github_enabled?(): is a GitHub app configured on the instance? */
@@ -14,7 +14,7 @@ interface Props {
 export default function GithubCard({ oauthEnabled, connected, onDisconnect }: Props) {
   const [confirming, setConfirming] = useState(false);
   return (
-    <ProfileCard
+    <Card padding="lg"
       annotation="profile-github"
       title={<span id="github_section-label">GitHub Access</span>}
       description={
@@ -53,6 +53,6 @@ export default function GithubCard({ oauthEnabled, connected, onDisconnect }: Pr
           up or modify version control for your projects.
         </p>
       </ConfirmModal>
-    </ProfileCard>
+    </Card>
   );
 }

@@ -42,9 +42,7 @@ export default function ChannelsTable({
           <Th>Requests</Th>
           <Th>Last Activity</Th>
           <Th>Enabled</Th>
-          <Th>
-            <span className="sr-only">Actions</span>
-          </Th>
+          <Th actions />
         </Tr>
       }
     >
@@ -81,25 +79,23 @@ export default function ChannelsTable({
               </span>
             )}
           </Td>
-          <Td>
-            <div className="flex justify-end gap-2">
-              {canEdit && (
-                <Button theme="secondary" size="xs" onClick={() => onEdit?.(channel.id)}>
-                  Edit
-                </Button>
-              )}
-              {canDelete && (
-                <Button
-                  theme="danger"
-                  size="xs"
-                  onClick={() => {
-                    if (window.confirm(`Delete "${channel.name}"? This cannot be undone.`)) onDelete?.(channel.id);
-                  }}
-                >
-                  Delete
-                </Button>
-              )}
-            </div>
+          <Td actions>
+            {canEdit && (
+              <Button theme="secondary" size="xs" onClick={() => onEdit?.(channel.id)}>
+                Edit
+              </Button>
+            )}
+            {canDelete && (
+              <Button
+                theme="danger"
+                size="xs"
+                onClick={() => {
+                  if (window.confirm(`Delete "${channel.name}"? This cannot be undone.`)) onDelete?.(channel.id);
+                }}
+              >
+                Delete
+              </Button>
+            )}
           </Td>
         </Tr>
       ))}

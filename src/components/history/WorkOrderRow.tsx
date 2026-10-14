@@ -97,13 +97,13 @@ export default function WorkOrderRow({
         <Td>
           <DateTime value={wo.lastActivity} />
         </Td>
-        <Td className="text-right w-28">{lastRun && formatElapsed(lastRun.startedAt, lastRun.finishedAt)}</Td>
-        <Td className="w-32 text-right">
+        <Td align="right" className="w-28">{lastRun && formatElapsed(lastRun.startedAt, lastRun.finishedAt)}</Td>
+        <Td align="right" className="w-32">
           <StatePill state={wo.state} />
         </Td>
-        <Td className="text-right w-20">
+        <Td actions className="w-20">
           {runs.length > 0 && (
-            <div className="flex items-center justify-end gap-2 pr-2 -mr-3">
+            <>
               {wo.state === "pending" && canRunWorkflow && (
                 <IconButton
                   icon="hero-x-mark-mini"
@@ -130,7 +130,7 @@ export default function WorkOrderRow({
                 ))}
               <Pill>{runs.length}</Pill>
               <span className={cn(expanded ? "hero-chevron-up" : "hero-chevron-down", "size-4 text-gray-400")} />
-            </div>
+            </>
           )}
         </Td>
       </Tr>

@@ -19,9 +19,9 @@ const meta = {
             <Th>Input</Th>
             <Th>Created</Th>
             <Th>Last Activity</Th>
-            <Th className="text-right">Duration</Th>
-            <Th className="text-right">Status</Th>
-            <Th className="text-right">Runs</Th>
+            <Th align="right">Duration</Th>
+            <Th align="right">Status</Th>
+            <Th align="right">Runs</Th>
           </Tr>
         }
       >

@@ -8,23 +8,16 @@ import DateTime from "../DateTime";
 import Button from "../Button";
 import TextLink from "../TextLink";
 import WorkOrderStatus from "./WorkOrderStatus";
-import { compareBy, useSort } from "./useSort";
+import { useTableSort, type SortValue } from "../useTableSort";
 
 type SortKey = "name" | "last_workorder_updated_at" | "workorders_count" | "failed_workorders_count" | "enabled";
 
-const sortValue = (key: SortKey) => (s: WorkflowStats) => {
-  switch (key) {
-    case "name":
-      return s.workflow.name;
-    case "last_workorder_updated_at":
-      return s.lastWorkOrder?.updatedAt ?? null;
-    case "workorders_count":
-      return s.workordersCount;
-    case "failed_workorders_count":
-      return s.failedWorkordersCount;
-    case "enabled":
-      return s.workflow.enabled;
-  }
+const sortMap: Record<SortKey, (s: WorkflowStats) => SortValue> = {
+  name: (s) => s.workflow.name,
+  last_workorder_updated_at: (s) => s.lastWorkOrder?.updatedAt ?? null,
+  workorders_count: (s) => s.workordersCount,
+  failed_workorders_count: (s) => s.failedWorkordersCount,
+  enabled: (s) => s.workflow.enabled,
 };
 
 /**
@@ -49,7 +42,7 @@ export default function WorkflowsTable({
   onDelete?: (workflowId: string) => void;
 }) {
   const navigate = useNavigate();
-  const { sortKey, direction, thProps } = useSort<SortKey>("name");
+  const { rows, thProps } = useTableSort({ rows: stats, sortMap, initialKey: "name" });
   const history = `/projects/${projectId}/history`;
 
   if (stats.length === 0) {
@@ -70,8 +63,6 @@ export default function WorkflowsTable({
     );
   }
 
-  const rows = [...stats].sort(compareBy(sortValue(sortKey), direction));
-
   return (
     <Table
       id="workflows-table"
@@ -82,7 +73,7 @@ export default function WorkflowsTable({
           <Th {...thProps("workorders_count")}>Work Orders</Th>
           <Th {...thProps("failed_workorders_count")}>Work Orders in a failed state</Th>
           <Th {...thProps("enabled")}>Enabled</Th>
-          <Th>Actions</Th>
+          <Th actions>Actions</Th>
         </Tr>
       }
     >

@@ -113,11 +113,11 @@ export default function WorkOrdersTable({
           >
             Last Activity
           </Th>
-          <Th className="text-right">Duration</Th>
-          <Th className="text-right">
+          <Th align="right">Duration</Th>
+          <Th align="right">
             <span className="mr-2">Status</span>
           </Th>
-          <Th className="text-right">Runs</Th>
+          <Th align="right">Runs</Th>
         </Tr>
       }
       footer={

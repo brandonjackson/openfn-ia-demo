@@ -7,10 +7,10 @@ import SearchInput from "../SearchInput";
 import Alert from "../Alert";
 import Button from "../Button";
 import Heading from "../Heading";
-import { Radio, TextInput } from "../Inputs";
-import NameBadge from "../NameBadge";
+import { Radio } from "../Inputs";
+import NameField from "../NameField";
 import { Table, Td, Th, Tr } from "../Table";
-import { useTableSort, type SortValue } from "./tableSort";
+import { useTableSort, type SortValue } from "../useTableSort";
 
 type Role = ProjectRole | "";
 const ROLES: ProjectRole[] = ["owner", "admin", "editor", "viewer"];
@@ -59,7 +59,7 @@ export default function AdminProjectForm({ project, users, onSave }: Props) {
   const valid = name !== "" && owners === 1;
 
   const th = (key: SortKey, label: string, center = true) => (
-    <Th className={cn(center && "text-center!")} {...sort.thProps(key)}>
+    <Th align={center ? "center" : "left"} {...sort.thProps(key)}>
       {label}
     </Th>
   );
@@ -73,10 +73,13 @@ export default function AdminProjectForm({ project, users, onSave }: Props) {
           if (valid) onSave?.(name, roles);
         }}
       >
-        <div className="w-1/2 space-y-2 text-sm text-gray-600">
-          <TextInput id="project_raw_name" label="Name" value={rawName} onChange={(e) => setRawName(e.target.value)} />
-          <NameBadge name={name}>Note that this project will be named:</NameBadge>
-        </div>
+        <NameField
+          id="project_raw_name"
+          value={rawName}
+          onChange={setRawName}
+          badgeLabel="Note that this project will be named:"
+          fieldClassName="w-1/2"
+        />
         <Heading as="h2" className="mb-2 mt-8">
           Manage project users
         </Heading>
@@ -98,13 +101,13 @@ export default function AdminProjectForm({ project, users, onSave }: Props) {
               {th("viewer", "VIEWER")}
             </Tr>
           }
-          >
+        >
           {sort.rows.map(({ user, role }) => (
             <Tr key={user.id} className={cn(role === "" && "text-gray-500 opacity-60")}>
               <Td>{fullName(user)}</Td>
               <Td>{user.email}</Td>
               {(["", ...ROLES] as Role[]).map((r) => (
-                <Td key={r || "no_access"} className="text-center">
+                <Td key={r || "no_access"} align="center">
                   <span className="inline-flex justify-center">
                     <Radio
                       name={`project_users[${user.id}][role]`}

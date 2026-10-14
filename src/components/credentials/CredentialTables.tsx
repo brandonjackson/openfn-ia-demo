@@ -70,9 +70,7 @@ export function OauthClientsTable({ rows, showOwner = false, emptyState, actions
               {showOwner && <Th>Owner</Th>}
               <Th>Projects With Access</Th>
               <Th>Authorization URL</Th>
-              <Th>
-                <span className="sr-only">Actions</span>
-              </Th>
+              <Th actions />
             </Tr>
           }
         >
@@ -86,7 +84,7 @@ export function OauthClientsTable({ rows, showOwner = false, emptyState, actions
                 <ProjectBadges ids={client.projectIds} />
               </Td>
               <Td className="wrap-break-word max-w-72">{client.authorizationEndpoint}</Td>
-              <Td className="text-right">{actions?.(client)}</Td>
+              <Td actions>{actions?.(client)}</Td>
             </Tr>
           ))}
         </Table>
@@ -112,9 +110,7 @@ export function CredentialsTable({ rows, showOwner = false, emptyState, actions 
               <Th>Projects with access</Th>
               <Th>External ID</Th>
               <Th>Environments</Th>
-              <Th>
-                <span className="sr-only">Actions</span>
-              </Th>
+              <Th actions />
             </Tr>
           }
         >
@@ -137,7 +133,7 @@ export function CredentialsTable({ rows, showOwner = false, emptyState, actions 
                 {credential.externalId ? <Code>{credential.externalId}</Code> : <span className="text-gray-400">-</span>}
               </Td>
               <Td title={credential.environments.join(", ")}>{credential.environments.length}</Td>
-              <Td className="text-right">{actions?.(credential)}</Td>
+              <Td actions>{actions?.(credential)}</Td>
             </Tr>
           ))}
         </Table>
@@ -167,9 +163,7 @@ export function KeychainCredentialsTable({
               <Th>Path</Th>
               <Th>Default Credential</Th>
               {showOwner && <Th>Owner</Th>}
-              <Th>
-                <span className="sr-only">Actions</span>
-              </Th>
+              <Th actions />
             </Tr>
           }
         >
@@ -187,7 +181,7 @@ export function KeychainCredentialsTable({
                 {showOwner && (
                   <Td className="wrap-break-word max-w-60">{ownerEmail(kc.createdById)}</Td>
                 )}
-                <Td className="text-right">{actions?.(kc)}</Td>
+                <Td actions>{actions?.(kc)}</Td>
               </Tr>
             );
           })}

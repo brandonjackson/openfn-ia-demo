@@ -31,7 +31,7 @@ export default function HistoryExportsTable({ files }: Props) {
           <Th>Filename</Th>
           <Th>Export Requested By</Th>
           <Th>Status</Th>
-          <Th />
+          <Th actions />
         </Tr>
       }
     >
@@ -45,7 +45,7 @@ export default function HistoryExportsTable({ files }: Props) {
             <Td>{f.path ? f.path.split("/").pop() : <em>Pending</em>}</Td>
             <Td>{user ? fullName(user) : ""}</Td>
             <Td>{formatStatus(f.status)}</Td>
-            <Td className="text-right">
+            <Td actions>
               {f.status === "completed" ? (
                 <Button theme="secondary" size="xs">Download</Button>
               ) : (

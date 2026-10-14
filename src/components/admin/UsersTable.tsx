@@ -4,7 +4,7 @@ import SearchInput from "../SearchInput";
 import ButtonMenu from "../ButtonMenu";
 import { MenuItem } from "../Menu";
 import { Table, Td, Th, Tr } from "../Table";
-import { useTableSort, type SortValue } from "./tableSort";
+import { useTableSort, type SortValue } from "../useTableSort";
 import { formatShortDateTime } from "../../utils/format";
 
 type SortKey = "first_name" | "last_name" | "email" | "role" | "enabled" | "support_user" | "scheduled_deletion";
@@ -16,7 +16,7 @@ const sortMap: Record<SortKey, (u: User) => SortValue> = {
   role: (u) => u.role,
   enabled: (u) => !u.disabled,
   support_user: (u) => isSupportUser(u),
-  scheduled_deletion: (u) => u.scheduledDeletion ?? "9999-12-31T23:59:59Z",
+  scheduled_deletion: (u) => u.scheduledDeletion ?? null,
 };
 
 const searchFields: ((u: User) => string)[] = [(u) => u.firstName, (u) => u.lastName, (u) => u.email, (u) => u.role];
@@ -35,7 +35,13 @@ export default function UsersTable({
   users: User[];
   onCancelDeletion?: (user: User) => void;
 }) {
-  const { rows, filter, setFilter, thProps } = useTableSort({ rows: users, initialKey: "email", sortMap, searchFields });
+  const { rows, filter, setFilter, thProps } = useTableSort({
+    rows: users,
+    initialKey: "email",
+    sortMap,
+    searchFields,
+    nulls: "last",
+  });
 
   return (
     <>
@@ -50,7 +56,7 @@ export default function UsersTable({
             <Th {...thProps("enabled")}>Enabled?</Th>
             <Th {...thProps("support_user")}>Support?</Th>
             <Th {...thProps("scheduled_deletion")}>Scheduled Deletion</Th>
-            <Th>Actions</Th>
+            <Th actions>Actions</Th>
           </Tr>
         }
       >

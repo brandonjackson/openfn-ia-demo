@@ -91,7 +91,7 @@ export default function TriageTable({
             <Th className="w-1/8">Work orders</Th>
             <Th>Signature</Th>
             <Th>Suggestion</Th>
-            <Th>Actions</Th>
+            <Th actions>Actions</Th>
           </Tr>
         }
       >

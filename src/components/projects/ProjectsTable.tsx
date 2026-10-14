@@ -6,8 +6,13 @@ import TableTitle from "../TableTitle";
 import DateTime from "../DateTime";
 import Button from "../Button";
 import TextLink from "../TextLink";
-import { compareBy, useSort } from "./useSort";
+import { useTableSort, type SortValue } from "../useTableSort";
 import { capitalize } from "../../utils/format";
+
+const sortMap: Record<"name" | "last_updated_at", (p: ProjectOverview) => SortValue> = {
+  name: (p) => p.name,
+  last_updated_at: (p) => p.lastUpdatedAt,
+};
 
 /**
  * The projects dashboard table (DashboardLive.Components.user_projects_table):
@@ -27,7 +32,7 @@ export default function ProjectsTable({
   onCreate?: () => void;
 }) {
   const navigate = useNavigate();
-  const { sortKey, direction, thProps } = useSort<"name" | "last_updated_at">("name");
+  const { rows, thProps } = useTableSort({ rows: projects, sortMap, initialKey: "name" });
 
   if (projects.length === 0) {
     return (
@@ -39,10 +44,6 @@ export default function ProjectsTable({
       />
     );
   }
-
-  const rows = [...projects].sort(
-    compareBy((p) => (sortKey === "name" ? p.name : p.lastUpdatedAt), direction)
-  );
 
   return (
     <>
@@ -58,7 +59,7 @@ export default function ProjectsTable({
             <Th>Workflows</Th>
             <Th>Collaborators</Th>
             <Th {...thProps("last_updated_at")}>Last Updated</Th>
-            <Th />
+            <Th actions />
           </Tr>
         }
       >
@@ -75,7 +76,7 @@ export default function ProjectsTable({
               <TextLink to={`/projects/${project.id}/settings#collaboration`}>{project.collaboratorsCount}</TextLink>
             </Td>
             <Td>{project.lastUpdatedAt ? <DateTime value={project.lastUpdatedAt} /> : "N/A"}</Td>
-            <Td className="text-right">
+            <Td actions>
               <Button theme="secondary" size="xs" to={`/projects/${project.id}/history`}>
                 History
               </Button>

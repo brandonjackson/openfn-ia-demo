@@ -61,9 +61,7 @@ export default function CollaboratorsTable({
           <Th>Role</Th>
           <Th>Failure Alert</Th>
           <Th>Digest</Th>
-          <Th>
-            <span className="sr-only">Actions</span>
-          </Th>
+          <Th actions />
         </Tr>
       }
     >
@@ -112,7 +110,7 @@ export default function CollaboratorsTable({
                 capitalize(m.digest)
               )}
             </Td>
-            <Td className="text-right">
+            <Td actions>
               <Button
                 id={`remove_project_user_${m.userId}_button`}
                 theme="secondary"

@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom";
 import { Table, Td, Th, Tr } from "../Table";
 import Button from "../Button";
 import DateTime from "../DateTime";
 import Heading from "../Heading";
+import IconButton from "../IconButton";
 import { maskToken, type ApiToken } from "../../mock-data/tokens";
 
 /**
@@ -34,11 +34,12 @@ export default function TokensTable({ tokens, onGenerate }: { tokens: ApiToken[]
             <Td>
               <div className="flex justify-between whitespace-nowrap font-medium">
                 {token.lastUsedAt ? <DateTime value={token.lastUsedAt} /> : "Never used"}
-                <Link
+                <IconButton
                   id={`delete-token-${token.id}`}
                   to={`/profile/tokens/${token.id}/delete`}
-                  aria-label="Delete token"
-                  className="hero-trash h-5 w-5 text-red-600"
+                  icon="hero-trash"
+                  tone="danger"
+                  label="Delete token"
                 />
               </div>
             </Td>

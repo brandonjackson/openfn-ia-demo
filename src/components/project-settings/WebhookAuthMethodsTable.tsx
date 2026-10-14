@@ -38,7 +38,7 @@ export default function WebhookAuthMethodsTable({ authMethods, canWrite, onCreat
           <Th>Name</Th>
           <Th>Type</Th>
           <Th>Linked Triggers &amp; Channels</Th>
-          <Th />
+          <Th actions />
         </Tr>
       }
     >
@@ -57,15 +57,13 @@ export default function WebhookAuthMethodsTable({ authMethods, canWrite, onCreat
                 <span className="italic text-gray-300">No associated triggers or channels...</span>
               )}
             </Td>
-            <Td className="text-right">
-              <div className="inline-flex gap-2">
-                <Button theme="secondary" size="xs" disabled={!canWrite} onClick={() => onView(m)}>
-                  {canWrite ? "View" : "Edit"}
-                </Button>
-                <Button theme="secondary" size="xs" disabled={!canWrite} onClick={() => onDelete(m)}>
-                  Delete
-                </Button>
-              </div>
+            <Td actions>
+              <Button theme="secondary" size="xs" disabled={!canWrite} onClick={() => onView(m)}>
+                {canWrite ? "View" : "Edit"}
+              </Button>
+              <Button theme="secondary" size="xs" disabled={!canWrite} onClick={() => onDelete(m)}>
+                Delete
+              </Button>
             </Td>
           </Tr>
         );

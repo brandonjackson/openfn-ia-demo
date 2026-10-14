@@ -4,7 +4,7 @@ import SearchInput from "../SearchInput";
 import ButtonMenu from "../ButtonMenu";
 import { MenuItem } from "../Menu";
 import { Table, Td, Th, Tr } from "../Table";
-import { useTableSort, type SortValue } from "./tableSort";
+import { useTableSort, type SortValue } from "../useTableSort";
 import { formatShortDateTime } from "../../utils/format";
 
 type SortKey = "name" | "inserted_at" | "description" | "owner" | "scheduled_deletion";
@@ -16,7 +16,7 @@ const sortMap: Record<SortKey, (p: Project) => SortValue> = {
   inserted_at: (p) => p.insertedAt,
   description: (p) => p.description,
   owner: (p) => projectOwnerName(p),
-  scheduled_deletion: (p) => scheduled(p) ?? "9999-12-31T23:59:59Z",
+  scheduled_deletion: (p) => scheduled(p),
 };
 
 const searchFields: ((p: Project) => string)[] = [(p) => p.name, (p) => p.description, (p) => projectOwnerName(p)];
@@ -33,7 +33,13 @@ export default function AdminProjectsTable({
   projects: Project[];
   onCancelDeletion?: (project: Project) => void;
 }) {
-  const { rows, filter, setFilter, thProps } = useTableSort({ rows: projects, initialKey: "name", sortMap, searchFields });
+  const { rows, filter, setFilter, thProps } = useTableSort({
+    rows: projects,
+    initialKey: "name",
+    sortMap,
+    searchFields,
+    nulls: "last",
+  });
 
   return (
     <>
@@ -47,9 +53,7 @@ export default function AdminProjectsTable({
             <Th {...thProps("description")}>Description</Th>
             <Th {...thProps("owner")}>Owner</Th>
             <Th {...thProps("scheduled_deletion")}>Scheduled Deletion</Th>
-            <Th>
-              <span className="sr-only">Actions</span>
-            </Th>
+            <Th actions />
           </Tr>
         }
       >
@@ -63,7 +67,7 @@ export default function AdminProjectsTable({
               <Td className="max-w-80">{project.description}</Td>
               <Td className="max-w-64 wrap-break-word">{owner === "" ? "No owner" : owner}</Td>
               <Td>{deletion && formatShortDateTime(deletion)}</Td>
-              <Td className="py-0.5 text-right">
+              <Td actions className="py-0.5">
                 <ButtonMenu label="Actions">
                   <MenuItem to={`/settings/projects/${project.id}`}>Edit</MenuItem>
                   {deletion && <MenuItem onClick={() => onCancelDeletion?.(project)}>Cancel deletion</MenuItem>}

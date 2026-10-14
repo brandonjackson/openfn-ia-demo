@@ -16,10 +16,13 @@
  *
  * `html[data-theme="…"]` (specificity 0,1,1) deliberately outranks the
  * `:root` defaults below, and a handful of scoped utility overrides at
- * the end resolve the few cases a pure token swap can't (GOV.UK
- * buttons, tags, form fields, tables and focus states under GDS). Those
- * component rules key off `data-ui` hooks the components carry, so they
- * can never leak into the Basic theme.
+ * the end resolve the few cases a pure token swap can't (buttons,
+ * tags, form fields, tables and focus states). That component layer is
+ * written once, reads only `--ui-*` tokens, and keys off `data-ui` hooks
+ * the components carry. Basic never sees it.
+ *
+ * ADDING A THEME: add an entry in `themes.ts`, then a token block here
+ * that sets the Tailwind tokens plus the `--ui-*` component tokens.
  */
 
 /* ============================================================== */
@@ -168,6 +171,23 @@ html[data-theme="gds"] {
   --color-purple-900: #2a1950;
   --color-purple-950: #2a1950;
 
+  /* Component tokens — read by the component layer at the end */
+  --ui-text: #0b0c0c;
+  --ui-border: #cecece;
+  --ui-link: #1a65a6;
+  --ui-link-hover: #0f385c;
+  --ui-focus: #ffdd00;
+  --ui-focus-text: #0b0c0c;
+  --ui-field-border: 2px solid #0b0c0c;
+  --ui-nav-marker: #1d70b8;
+  --ui-tag-radius: 1px;
+  --ui-callout-border-width: 5px;
+  --ui-label-transform: none;
+  --ui-button-weight: 400;
+  --ui-button-bg: #0f7a52;            --ui-button-hover: #0b5c3e;            --ui-button-edge: #083d29;
+  --ui-button-secondary-bg: #f3f3f3;  --ui-button-secondary-hover: #cecece;  --ui-button-secondary-edge: #858686;
+  --ui-button-danger-bg: #ca3535;     --ui-button-danger-hover: #982828;     --ui-button-danger-edge: #651b1b;
+
   /* Radius — GOV.UK components are square */
   --radius-xs: 0px;
   --radius-sm: 0px;
@@ -192,224 +212,112 @@ html[data-theme="gds"] body {
 }
 
 /* ============================================================== */
-/* GDS component rules — mirror the GOV.UK Frontend components     */
+/* Component layer — shared by every theme except Basic.          */
+/* Values come only from the theme's `--ui-*` tokens; selectors    */
+/* target the `data-ui` hooks on our components.                   */
 /* ============================================================== */
+html[data-theme]:not([data-theme="default"]) {
+  /* Button: solid fill with a "pressable" bottom edge that sinks on press. */
+  [data-ui="button"]:is([data-variant="primary"], [data-variant="secondary"], [data-variant="outline-primary"], [data-variant="danger"], [data-variant="outline-danger"]) {
+    --_bg: var(--ui-button-bg);
+    --_hover: var(--ui-button-hover);
+    --_edge: var(--ui-button-edge);
+    --_text: #ffffff;
+    position: relative;
+    border: 2px solid transparent;
+    background-color: var(--_bg);
+    color: var(--_text);
+    box-shadow: 0 2px 0 var(--_edge);
+    font-weight: var(--ui-button-weight);
+    white-space: nowrap;
 
-/* Button (govuk-button): green, 2px "pressable" bottom edge, regular
-   weight, sinks 2px when pressed. Hand-rolled action buttons in the
-   workflow editor get the same treatment. */
-html[data-theme="gds"] [data-ui="button"],
-html[data-theme="gds"] button:is(.bg-blue-600, .bg-indigo-600):not(.rounded-full) {
-  position: relative;
-  border: 2px solid transparent;
-  font-weight: 400;
-}
-html[data-theme="gds"] [data-ui="button"] {
-  white-space: nowrap;
-}
-html[data-theme="gds"] [data-ui="button"]:active:not(:disabled) {
-  top: 2px;
-}
-html[data-theme="gds"] [data-ui="button"][data-variant="primary"],
-html[data-theme="gds"] button:is(.bg-blue-600, .bg-indigo-600):not(.rounded-full) {
-  background-color: #0f7a52;
-  color: #ffffff;
-  box-shadow: 0 2px 0 #083d29;
-}
-html[data-theme="gds"] [data-ui="button"][data-variant="primary"]:hover:not(:disabled),
-html[data-theme="gds"] button:is(.bg-blue-600, .bg-indigo-600):not(.rounded-full):hover {
-  background-color: #0b5c3e;
-}
-/* Secondary (govuk-button--secondary). Our outline-primary maps here too. */
-html[data-theme="gds"] [data-ui="button"]:is([data-variant="secondary"], [data-variant="outline-primary"]) {
-  border-color: transparent;
-  background-color: #f3f3f3;
-  color: #0b0c0c;
-  box-shadow: 0 2px 0 #858686;
-}
-html[data-theme="gds"] [data-ui="button"]:is([data-variant="secondary"], [data-variant="outline-primary"]):hover:not(:disabled) {
-  background-color: #cecece;
-}
-/* Warning (govuk-button--warning). Outline-danger maps here too. */
-html[data-theme="gds"] [data-ui="button"]:is([data-variant="danger"], [data-variant="outline-danger"]) {
-  border-color: transparent;
-  background-color: #ca3535;
-  color: #ffffff;
-  box-shadow: 0 2px 0 #651b1b;
-}
-html[data-theme="gds"] [data-ui="button"]:is([data-variant="danger"], [data-variant="outline-danger"]):hover:not(:disabled) {
-  background-color: #982828;
-}
-html[data-theme="gds"] [data-ui="button"][data-variant="dark"] {
-  background-color: #0b0c0c;
-  color: #ffffff;
-  box-shadow: 0 2px 0 #484949;
-}
-/* Text-only buttons read as GOV.UK links. */
-html[data-theme="gds"] [data-ui="button"]:is([data-variant="ghost"], [data-variant="link-danger"]) {
-  border: 0;
-  text-decoration: underline;
-  text-decoration-thickness: max(1px, 0.0625rem);
-  text-underline-offset: 0.1578em;
-}
-html[data-theme="gds"] [data-ui="button"][data-variant="ghost"] {
-  color: #1a65a6;
-}
-html[data-theme="gds"] [data-ui="button"]:is([data-variant="ghost"], [data-variant="link-danger"]):hover {
-  background-color: transparent;
-  text-decoration-thickness: max(3px, 0.1875rem, 0.12em);
-}
-html[data-theme="gds"] [data-ui="button"][data-variant="ghost"]:hover {
-  color: #0f385c;
-}
+    &:is([data-variant="secondary"], [data-variant="outline-primary"]) {
+      --_bg: var(--ui-button-secondary-bg);
+      --_hover: var(--ui-button-secondary-hover);
+      --_edge: var(--ui-button-secondary-edge);
+      --_text: var(--ui-text);
+    }
+    &:is([data-variant="danger"], [data-variant="outline-danger"]) {
+      --_bg: var(--ui-button-danger-bg);
+      --_hover: var(--ui-button-danger-hover);
+      --_edge: var(--ui-button-danger-edge);
+    }
+    &:hover:not(:disabled) { background-color: var(--_hover); }
+    &:active:not(:disabled) { top: 2px; }
+  }
 
-/* Tag (govuk-tag): 1px radius, regular weight, tinted fill with the
-   palette's shade-50 text. */
-html[data-theme="gds"] [data-ui="tag"] {
-  border-radius: 1px;
-  padding: 2px 8px 3px;
-  font-weight: 400;
-}
-html[data-theme="gds"] [data-ui="tag"][data-tone="blue"]   { color: #0f385c; background-color: #d2e2f1; }
-html[data-theme="gds"] [data-ui="tag"][data-tone="green"]  { color: #083d29; background-color: #cfe4dc; }
-html[data-theme="gds"] [data-ui="tag"][data-tone="yellow"] { color: #7a3c1c; background-color: #ffee80; }
-html[data-theme="gds"] [data-ui="tag"][data-tone="red"]    { color: #651b1b; background-color: #f4d7d7; }
-html[data-theme="gds"] [data-ui="tag"][data-tone="purple"] { color: #2a1950; background-color: #ddd6ec; }
-html[data-theme="gds"] [data-ui="tag"][data-tone="gray"]   { color: #0b0c0c; background-color: #cecece; }
+  /* Tag: the Badge keeps its tone colours; only the shape changes. */
+  [data-ui="tag"] { border-radius: var(--ui-tag-radius); }
 
-/* Pills elsewhere become rectangles, but true circles (avatars, status
-   dots, toggles, all of which set a width) stay round. */
-html[data-theme="gds"] .rounded-full:not([class*="w-"]):not([data-ui="tag"]) {
-  border-radius: 0;
-}
+  /* Links in prose and "view more" actions: always underlined. */
+  [data-ui="link"]:not([data-variant="default"]) {
+    color: var(--ui-link);
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+    &:hover {
+      color: var(--ui-link-hover);
+      text-decoration-thickness: 3px;
+    }
+  }
 
-/* Links (govuk-link): always underlined, thicker underline on hover. */
-html[data-theme="gds"] [data-ui="link"]:is([data-variant="action"], [data-variant="inline"]) {
-  color: #1a65a6;
-  text-decoration: underline;
-  text-decoration-thickness: max(1px, 0.0625rem);
-  text-underline-offset: 0.1578em;
-}
-html[data-theme="gds"] [data-ui="link"]:is([data-variant="action"], [data-variant="inline"]):hover {
-  color: #0f385c;
-  text-decoration-thickness: max(3px, 0.1875rem, 0.12em);
-}
-html[data-theme="gds"] [data-ui="link"][data-variant="default"]:hover {
-  color: #0f385c;
-  text-decoration-thickness: max(3px, 0.1875rem, 0.12em);
-}
+  /* Side navigation: current page marked with a bar, not a fill. */
+  [data-ui="nav-link"] {
+    border-left: 4px solid transparent;
+    &[aria-current="page"] {
+      border-left-color: var(--ui-nav-marker);
+      background-color: transparent;
+      color: var(--ui-text);
+      font-weight: 700;
+    }
+  }
 
-/* Side navigation: GOV.UK service-navigation style. Black text, the
-   current page marked with a 4px brand-blue bar and bold weight. */
-html[data-theme="gds"] [data-ui="nav-link"] {
-  color: #0b0c0c;
-  border-left: 4px solid transparent;
-}
-html[data-theme="gds"] [data-ui="nav-link"] svg {
-  color: currentColor;
-}
-html[data-theme="gds"] [data-ui="nav-link"]:hover {
-  background-color: transparent;
-  color: #0f385c;
-  text-decoration: underline;
-  text-decoration-thickness: max(3px, 0.1875rem, 0.12em);
-  text-underline-offset: 0.1578em;
-}
-html[data-theme="gds"] [data-ui="nav-link"][aria-current="page"] {
-  border-left-color: #1d70b8;
-  color: #0b0c0c;
-  font-weight: 700;
-  background-color: transparent;
-}
-html[data-theme="gds"] [data-ui="nav-link"][aria-current="page"] svg {
-  color: #1d70b8;
-}
+  /* Form fields. */
+  :is(input:not([type="radio"], [type="checkbox"], [type="range"]), textarea, select) {
+    border: var(--ui-field-border);
+  }
 
-/* GOV.UK sets labels and captions in sentence case, never all caps. */
-html[data-theme="gds"] .uppercase {
-  text-transform: none;
-  letter-spacing: normal;
-}
+  /* Callout: a heavy tone-coloured border on a plain surface. */
+  [data-ui="callout"] {
+    border: var(--ui-callout-border-width) solid var(--color-blue-500);
+    background-color: #ffffff;
+    &[data-tone="success"] { border-color: var(--color-green-500); }
+    &[data-tone="warning"] { border-color: var(--color-orange-500); }
+    &[data-tone="danger"]  { border-color: var(--color-red-500); }
+    :is(h3, div, p) { color: var(--ui-text); }
+  }
 
-/* Form fields (govuk-input / textarea / select): 2px black border. */
-html[data-theme="gds"] :is(input:not([type="radio"], [type="checkbox"], [type="range"]), textarea, select) {
-  border: 2px solid #0b0c0c;
-  border-radius: 0;
-  background-color: #ffffff;
-  color: #0b0c0c;
-}
-html[data-theme="gds"] :is(input:not([type="radio"], [type="checkbox"], [type="range"]), textarea, select):disabled {
-  opacity: 0.5;
-  background-color: transparent;
-}
-html[data-theme="gds"] :is(input[type="radio"], input[type="checkbox"]) {
-  accent-color: #0b0c0c;
-}
+  /* Table: bold headers in body colour, rows divided by the border colour. */
+  [data-ui="table"] {
+    thead tr { background-color: transparent; }
+    th { color: var(--ui-text); font-weight: 700; }
+    td { color: var(--ui-text); }
+    tbody tr { border-bottom: 1px solid var(--ui-border); }
+  }
 
-/* Callouts: GOV.UK notification banner / error summary pattern — a
-   heavy 5px coloured border on white. */
-html[data-theme="gds"] [data-ui="callout"] {
-  border: 5px solid #1d70b8;
-  background-color: #ffffff;
-}
-html[data-theme="gds"] [data-ui="callout"][data-tone="success"] { border-color: #0f7a52; }
-html[data-theme="gds"] [data-ui="callout"][data-tone="danger"]  { border-color: #ca3535; }
-html[data-theme="gds"] [data-ui="callout"][data-tone="warning"] { border-color: #f47738; }
-html[data-theme="gds"] [data-ui="callout"] :is(h3, div, p) {
-  color: #0b0c0c;
-}
+  .uppercase {
+    text-transform: var(--ui-label-transform);
+    letter-spacing: normal;
+  }
 
-/* Table (govuk-table): no outer frame, bold black sentence-case
-   headers, black cells, #cecece row rules. */
-html[data-theme="gds"] [data-ui="table"] {
-  border: 0;
-  background-color: transparent;
-}
-html[data-theme="gds"] [data-ui="table"] thead tr {
-  background-color: transparent;
-  border-bottom: 1px solid #cecece;
-}
-html[data-theme="gds"] [data-ui="table"] th {
-  padding-left: 0;
-  color: #0b0c0c;
-  font-weight: 700;
-  text-transform: none;
-  letter-spacing: normal;
-}
-html[data-theme="gds"] [data-ui="table"] td {
-  padding-left: 0;
-  color: #0b0c0c;
-}
-html[data-theme="gds"] [data-ui="table"] tbody tr {
-  border-bottom: 1px solid #cecece;
-}
-html[data-theme="gds"] [data-ui="table"] tbody tr:hover {
-  background-color: transparent;
-}
-
-/* Focus (GOV.UK focus states): links and text controls get a yellow
-   fill with a black underline bar; buttons turn yellow with a black
-   bottom edge; form fields get a yellow outline plus a thick border. */
-html[data-theme="gds"] :focus-visible {
-  transition: none;
-}
-html[data-theme="gds"] :is(a, [role="button"], [tabindex]):focus-visible {
-  outline: 3px solid transparent;
-  background-color: #ffdd00;
-  color: #0b0c0c;
-  box-shadow: 0 -2px #ffdd00, 0 4px #0b0c0c;
-  text-decoration: none;
-}
-html[data-theme="gds"] :is(button, [data-ui="button"][data-variant]):focus-visible:not(:active) {
-  outline: 3px solid transparent;
-  border-color: #ffdd00;
-  background-color: #ffdd00;
-  color: #0b0c0c;
-  box-shadow: 0 2px 0 #0b0c0c;
-}
-html[data-theme="gds"] :is(input, select, textarea):focus-visible,
-html[data-theme="gds"] :is(input, select, textarea):focus {
-  outline: 3px solid #ffdd00;
-  outline-offset: 0;
-  box-shadow: inset 0 0 0 2px #0b0c0c;
+  /* Focus: a filled highlight with a dark bar beneath, applied instantly. */
+  :focus-visible {
+    transition: none;
+  }
+  :is(a, button, [tabindex]):focus-visible {
+    outline: 3px solid transparent;
+    background-color: var(--ui-focus);
+    color: var(--ui-focus-text);
+    box-shadow: 0 -2px var(--ui-focus), 0 4px var(--ui-focus-text);
+    text-decoration: none;
+  }
+  [data-ui="button"]:focus-visible:not(:active) {
+    background-color: var(--ui-focus);
+    box-shadow: 0 2px 0 var(--ui-focus-text);
+  }
+  :is(input, select, textarea):focus-visible {
+    background-color: #ffffff;
+    outline: 3px solid var(--ui-focus);
+    outline-offset: 0;
+    box-shadow: inset 0 0 0 2px var(--ui-focus-text);
+  }
 }

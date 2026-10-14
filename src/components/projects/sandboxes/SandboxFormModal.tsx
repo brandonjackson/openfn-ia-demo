@@ -42,14 +42,14 @@ export default function SandboxFormModal({
     <Modal
       open
       onClose={onClose}
-      width="w-full max-w-lg"
-      title={<span className="font-bold">{mode === "new" ? "Create a new sandbox" : "Edit sandbox"}</span>}
-      subtitle={
+      size="md"
+      title={mode === "new" ? "Create a new sandbox" : "Edit sandbox"}
+      description={
         mode === "new" && (
-          <span className="text-sm text-slate-800">
+          <>
             This sandbox will be created under the <span className="font-medium">{parentName}</span>{" "}
             {parentIsSandbox ? "sandbox" : "project"}.
-          </span>
+          </>
         )
       }
       footer={
@@ -70,7 +70,7 @@ export default function SandboxFormModal({
           if (valid) onClose();
         }}
       >
-        <div className="space-y-6 bg-white">
+        <div className="space-y-6">
           <div className="space-y-2">
             <TextInput
               id="sandbox_raw_name"

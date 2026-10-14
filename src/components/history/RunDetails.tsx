@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { stepsOf, type Run, type Step } from "../../mock-data/history";
 import { findDataclip } from "../../mock-data/history";
 import { shortId, uuidOf } from "../../mock-data/history-extra";
+import IconButton from "../IconButton";
 import DateTime from "./DateTime";
 import StepIcon from "./StepIcon";
 import { formatElapsed } from "./format";
@@ -171,13 +172,7 @@ export function RunCard({
             </div>
             <span className="font-mono w-24 text-right">{run.state}</span>
             {run.state === "available" && canRunWorkflow && (
-              <button
-                type="button"
-                title="Cancel this run"
-                className="inline-flex items-center p-1 text-gray-600 hover:text-red-500 cursor-pointer"
-              >
-                <span className="hero-x-mark-mini h-4 w-4" />
-              </button>
+              <IconButton icon="hero-x-mark-mini" label="Cancel this run" size="sm" className="text-gray-600 hover:text-red-500" />
             )}
           </div>
         </div>

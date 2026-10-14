@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import Alert from "../Alert";
 import Button from "../Button";
-import { Label, TextInput } from "../Inputs";
+import { TextInput } from "../Inputs";
 import Modal from "../Modal";
 import { linkClass } from "./classes";
 import type { WebhookAuthMethod } from "../../mock-data/project-settings";
@@ -44,7 +44,7 @@ export default function WebhookAuthMethodDeleteModal({ projectId, authMethod, on
       }
     >
       <form onSubmit={(e) => (e.preventDefault(), valid && onDelete())}>
-        <div className="space-y-4">
+        <div className="space-y-4 text-sm text-gray-700">
           {unused ? (
             <p>
               You are about to delete the webhook auth method "<span className="font-bold">{authMethod.name}</span>"
@@ -86,14 +86,12 @@ export default function WebhookAuthMethodDeleteModal({ projectId, authMethod, on
               </p>
             </Alert>
           )}
-          <div>
-            <Label htmlFor="delete_confirmation_confirmation">Type in 'DELETE' to confirm the deletion</Label>
-            <TextInput
-              id="delete_confirmation_confirmation"
-              value={confirmation}
-              onChange={(e) => setConfirmation(e.target.value)}
-            />
-          </div>
+          <TextInput
+            id="delete_confirmation_confirmation"
+            label="Type in 'DELETE' to confirm the deletion"
+            value={confirmation}
+            onChange={(e) => setConfirmation(e.target.value)}
+          />
         </div>
       </form>
     </Modal>

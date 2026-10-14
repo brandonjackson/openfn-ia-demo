@@ -16,10 +16,10 @@ export default function CollectionPreviewModal({ collection, onClose }: Props) {
     <Modal
       open
       onClose={onClose}
-      width="max-w-3xl"
+      size="xl"
       title={`Collection Preview: ${collection.name}`}
-      subtitle={
-        <span className="text-sm text-gray-500">
+      description={
+        <>
           Showing first record. We recommend{" "}
           <a
             href="https://docs.openfn.org/documentation/collections-cli"
@@ -30,7 +30,7 @@ export default function CollectionPreviewModal({ collection, onClose }: Props) {
             using the CLI
           </a>{" "}
           to manage collections.
-        </span>
+        </>
       }
     >
       <div className="h-96 rounded-md overflow-hidden">

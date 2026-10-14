@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Button from "../Button";
 import { Select, TextInput } from "../Inputs";
+import IconButton from "../IconButton";
 import Modal from "../Modal";
 import type { ProjectRole } from "../../mock-data/projects";
 import { collaboratorRoles } from "../../mock-data/project-settings";
@@ -34,13 +35,9 @@ export default function InviteCollaboratorsModal({ initial, onCancel, onInvite }
     <Modal
       open
       onClose={onCancel}
-      width="min-w-1/2 max-w-xl"
+      size="xl"
       title="Invite new user(s) to join OpenFn"
-      subtitle={
-        <span className="text-xs">
-          The following users don't have OpenFn accounts, you can invite them to join and grant access to this project
-        </span>
-      }
+      description="The following users don't have OpenFn accounts, you can invite them to join and grant access to this project"
       footer={
         <>
           <Button type="submit" form="invite_collaborators_modal_form" disabled={!valid}>
@@ -95,11 +92,7 @@ export default function InviteCollaboratorsModal({ initial, onCancel, onInvite }
                   />
                 </div>
                 {rows.length > 1 && (
-                  <div className="flex items-center">
-                    <Button theme="secondary" aria-label="Remove row" onClick={() => setRows(rows.filter((_, j) => j !== i))}>
-                      <span className="hero-minus-circle w-5 h-5" />
-                    </Button>
-                  </div>
+                  <IconButton icon="hero-minus-circle" label="Remove row" onClick={() => setRows(rows.filter((_, j) => j !== i))} />
                 )}
               </div>
             </div>

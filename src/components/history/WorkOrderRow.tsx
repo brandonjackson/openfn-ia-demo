@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import IconButton from "../IconButton";
+import { Checkbox } from "../Inputs";
 import { Td, Tr } from "../Table";
 import type { WorkOrder } from "../../mock-data/history";
 import {
@@ -52,13 +54,9 @@ export default function WorkOrderRow({
       >
         <Td className="!pr-1">
           <span onClick={(e) => e.stopPropagation()} title={available ? undefined : zeroPersistence}>
-            <input
-              type="checkbox"
-              className={
-                available
-                  ? "left-4 top-1/2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                  : "left-4 top-1/2 h-4 w-4 rounded border-gray-300 bg-gray-100 text-indigo-600 focus:ring-indigo-600"
-              }
+            <Checkbox
+              label={<span className="sr-only">Select work order</span>}
+              className="disabled:bg-gray-100"
               checked={selected}
               disabled={!available}
               onChange={(e) => onSelect?.(e.target.checked)}
@@ -117,32 +115,30 @@ export default function WorkOrderRow({
           {runs.length > 0 && (
             <div className="flex items-center justify-end gap-2 pr-2 -mr-3">
               {wo.state === "pending" && canRunWorkflow && (
-                <button
-                  type="button"
-                  title="Cancel pending run"
+                <IconButton
+                  icon="hero-x-mark-mini"
+                  label="Cancel pending run"
+                  size="sm"
+                  className="text-gray-600 hover:text-red-500"
                   onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center p-1 text-xs font-medium text-gray-600 hover:text-red-500 cursor-pointer rounded"
-                >
-                  <span className="hero-x-mark-mini h-4 w-4" />
-                </button>
+                />
               )}
               {!activeStates.includes(wo.state) &&
                 (available && canRunWorkflow ? (
-                  <button
-                    type="button"
-                    title="Retry (run from the start)"
+                  <IconButton
+                    icon="hero-arrow-path-mini"
+                    label="Retry (run from the start)"
+                    size="sm"
+                    className="text-gray-600 hover:text-primary-400"
                     onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center p-1 text-xs font-medium text-gray-600 hover:text-primary-400 cursor-pointer rounded"
-                  >
-                    <span className="hero-arrow-path-mini h-4 w-4" />
-                  </button>
+                  />
                 ) : (
-                  <span
-                    title={canRunWorkflow ? zeroPersistence : "You are not authorized to start runs for this project."}
-                    className="inline-flex items-center p-1 text-xs font-medium text-gray-400 cursor-not-allowed rounded"
-                  >
-                    <span className="hero-arrow-path-mini h-4 w-4" />
-                  </span>
+                  <IconButton
+                    icon="hero-arrow-path-mini"
+                    label={canRunWorkflow ? zeroPersistence : "You are not authorized to start runs for this project."}
+                    size="sm"
+                    disabled
+                  />
                 ))}
               <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
                 {runs.length}

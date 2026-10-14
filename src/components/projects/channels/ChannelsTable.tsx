@@ -1,4 +1,3 @@
-import { CircleDot, SquareArrowRightExit } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Channel } from "../../../mock-data/channels";
 import { cn } from "../../../utils/cn";
@@ -62,14 +61,14 @@ export default function ChannelsTable({
           </Td>
           <Td>
             <div className="flex items-center gap-1.5 font-mono text-sm leading-none text-gray-600">
-              <SquareArrowRightExit className="h-4 w-4 shrink-0 text-gray-400" strokeWidth={1.5} />
+              <span className="hero-arrow-right-start-on-rectangle h-4 w-4 shrink-0 text-gray-400" />
               <span className="wrap-break-word max-w-[20rem] translate-y-px">{channel.destinationUrl}</span>
             </div>
             <ProxyUrlCopy
               channelId={channel.id}
               className="mt-1 hover:text-gray-600"
               textClassName="text-gray-400 max-w-[16rem] group-hover/copy:text-gray-600"
-              leading={<CircleDot className="h-4 w-4 shrink-0 text-gray-300" strokeWidth={1.5} />}
+              leading={<span className="hero-arrow-right-end-on-rectangle h-4 w-4 shrink-0 text-gray-300" />}
               trailing={
                 <span className="hero-clipboard-document h-4 w-4 shrink-0 text-gray-300 opacity-0 group-hover/copy:opacity-100 transition-opacity" />
               }

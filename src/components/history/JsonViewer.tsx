@@ -1,4 +1,6 @@
 import { useState, type ReactNode } from "react";
+import { cn } from "../../utils/cn";
+import IconButton from "../IconButton";
 import CodeLines from "./CodeLines";
 
 // Monaco vs-dark JSON token colours, with bracket-pair colourisation. The
@@ -58,7 +60,10 @@ export default function JsonViewer({ value }: { value: unknown }) {
   return (
     <div className="h-full relative">
       {content && (
-        <button
+        <IconButton
+          icon={copied ? "hero-check" : "hero-clipboard-document"}
+          label={copied ? "Copied!" : "Copy to clipboard"}
+          size="sm"
           onClick={(e) => {
             e.currentTarget.blur();
             void navigator.clipboard?.writeText(content).then(() => {
@@ -66,25 +71,8 @@ export default function JsonViewer({ value }: { value: unknown }) {
               setTimeout(() => setCopied(false), 2000);
             });
           }}
-          className="absolute top-3 right-3 z-10 p-1.5 rounded text-gray-400 hover:text-gray-600 hover:bg-gray-100/80 focus:outline-none transition-colors"
-          title={copied ? "Copied!" : "Copy to clipboard"}
-          aria-label={copied ? "Copied to clipboard" : "Copy to clipboard"}
-        >
-          {copied ? (
-            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-              />
-            </svg>
-          )}
-        </button>
+          className={cn("absolute top-3 right-3 z-10 p-1.5 text-gray-400 hover:bg-gray-100/80 hover:text-gray-600", copied && "text-green-600")}
+        />
       )}
       <CodeLines lines={lines} />
     </div>

@@ -1,7 +1,6 @@
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
-import { tableActionClass } from "./classes";
+import TableAction from "../TableAction";
 import { linkedUsageSummary, type WebhookAuthMethod } from "../../mock-data/project-settings";
-import { cn } from "../../utils/cn";
 
 interface Props {
   authMethods: WebhookAuthMethod[];
@@ -31,7 +30,6 @@ export default function WebhookAuthMethodsTable({ authMethods, canWrite, onCreat
       />
     );
   }
-  const action = cn(tableActionClass, !canWrite && "cursor-not-allowed");
   return (
     <Table
       header={
@@ -72,25 +70,13 @@ export default function WebhookAuthMethodsTable({ authMethods, canWrite, onCreat
               </span>
             </Td>
             <Td className="text-right px-4 font-normal whitespace-nowrap py-0.5">
-              <div className="flex items-center inline-flex gap-x-2">
-                <a
-                  id={`edit_auth_method_link_${m.id}`}
-                  href="#webhook_security"
-                  className={action}
-                  onClick={(e) => (e.preventDefault(), canWrite && onView(m))}
-                >
+              <div className="inline-flex items-center gap-x-2">
+                <TableAction disabled={!canWrite} onClick={() => onView(m)}>
                   {canWrite ? "View" : "Edit"}
-                </a>
-              </div>
-              <div className="flex items-center inline-flex gap-x-2">
-                <a
-                  id={`delete_auth_method_link_${m.id}`}
-                  href="#webhook_security"
-                  className={action}
-                  onClick={(e) => (e.preventDefault(), canWrite && onDelete(m))}
-                >
+                </TableAction>
+                <TableAction disabled={!canWrite} onClick={() => onDelete(m)}>
                   Delete
-                </a>
+                </TableAction>
               </div>
             </Td>
           </Tr>

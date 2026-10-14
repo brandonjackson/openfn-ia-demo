@@ -35,8 +35,8 @@ export default function CreateProjectModal({
     <Modal
       open={open}
       onClose={close}
-      title={<span className="font-bold">Create a new project</span>}
-      width="w-auto xl:min-w-1/3 min-w-1/2 max-w-full"
+      title="Create a new project"
+      size="md"
       footer={
         <>
           <Button
@@ -55,7 +55,7 @@ export default function CreateProjectModal({
     >
       <form
         id="project-form"
-        className="text-xs"
+        className="space-y-6"
         onSubmit={(e) => {
           e.preventDefault();
           if (!valid) return;
@@ -63,33 +63,30 @@ export default function CreateProjectModal({
           close();
         }}
       >
-        <div className="container mx-auto px-6 space-y-6 bg-white">
-          <div className="space-y-4">
-            <TextInput
-              id="project_raw_name"
-              label="Name"
-              required
-              value={rawName}
-              onChange={(e) => setRawName(e.target.value)}
-              errors={rawName !== "" && name === "" ? ["can't be blank"] : []}
-            />
-            <small className="mt-2 block text-xs text-gray-600">
-              <NameBadge name={name}>Your project will be named</NameBadge>
-            </small>
-          </div>
-          <div className="space-y-4">
-            <TextArea
-              id="project_description"
-              label="Description"
-              className="bg-white text-slate-900"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              errors={tooLong ? ["should be at most 240 character(s)"] : []}
-            />
-            <small className="mt-2 block text-xs text-gray-600">
-              A short description of a project [max 240 characters]
-            </small>
-          </div>
+        <div className="space-y-2">
+          <TextInput
+            id="project_raw_name"
+            label="Name"
+            required
+            value={rawName}
+            onChange={(e) => setRawName(e.target.value)}
+            errors={rawName !== "" && name === "" ? ["can't be blank"] : []}
+          />
+          <small className="block text-xs text-gray-600">
+            <NameBadge name={name}>Your project will be named</NameBadge>
+          </small>
+        </div>
+        <div className="space-y-2">
+          <TextArea
+            id="project_description"
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            errors={tooLong ? ["should be at most 240 character(s)"] : []}
+          />
+          <small className="block text-xs text-gray-600">
+            A short description of a project [max 240 characters]
+          </small>
         </div>
       </form>
     </Modal>

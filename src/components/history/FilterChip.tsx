@@ -1,5 +1,8 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 import { cn } from "../../utils/cn";
+import IconButton from "../IconButton";
+import { Checkbox, Field, controlClasses } from "../Inputs";
+import Popover from "../Popover";
 
 /**
  * A filter chip that shows a filter's state and opens its dropdown
@@ -17,67 +20,49 @@ export default function FilterChip({
   id?: string;
   active?: boolean;
   onClear?: () => void;
-  /** Menu shown under the chip when it's clicked. Receives a close callback. */
+  /** Panel shown under the chip when it's clicked. Receives a close callback. */
   dropdown?: (close: () => void) => ReactNode;
-  /** Width class for the dropdown panel. */
+  /** Width (and padding) classes for the dropdown panel. */
   dropdownClassName?: string;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [open]);
+  const clearable = active && onClear;
+  const label = (
+    <button type="button" className={cn("cursor-pointer py-1.5 pl-3", clearable ? "pr-0" : "pr-3")}>
+      {children}
+    </button>
+  );
 
   return (
-    <div className="relative" ref={ref}>
-      <div
-        id={id}
-        className={cn(
-          "inline-flex items-center gap-x-1 rounded-full pl-3 text-sm font-medium transition-colors",
-          active
-            ? "bg-indigo-50 text-indigo-700 border border-indigo-200"
-            : "bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200",
-          active && onClear ? "pr-1.5" : "pr-3",
-          "py-1.5"
-        )}
-      >
-        <button type="button" className="cursor-pointer" onClick={() => dropdown && setOpen((o) => !o)}>
-          {children}
-        </button>
-        {active && onClear && (
-          <button
-            type="button"
-            className="group flex items-center justify-center h-5 w-5 rounded-full hover:bg-indigo-200"
-            aria-label="Clear filter"
-            onClick={onClear}
-          >
-            <span className="hero-x-mark-solid h-3 w-3 text-indigo-400 group-hover:text-indigo-600" />
-          </button>
-        )}
-      </div>
-      {open && dropdown && (
-        <div
-          className={cn(
-            "absolute left-0 z-10 mt-2 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black/5 focus:outline-none",
-            dropdownClassName
-          )}
-          role="menu"
-        >
-          {dropdown(() => setOpen(false))}
-        </div>
+    <div
+      id={id}
+      className={cn(
+        "inline-flex items-center gap-x-1 rounded-full border text-sm font-medium transition-colors",
+        active ? "border-indigo-200 bg-indigo-50 text-indigo-700" : "border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200",
+        clearable && "pr-1.5"
+      )}
+    >
+      {dropdown ? (
+        <Popover trigger={label} className={dropdownClassName}>
+          {(close) => dropdown(close)}
+        </Popover>
+      ) : (
+        label
+      )}
+      {clearable && (
+        <IconButton
+          icon="hero-x-mark-solid"
+          label="Clear filter"
+          size="sm"
+          className="h-5 w-5 rounded-full text-indigo-400 hover:bg-indigo-200 hover:text-indigo-600 [&>span]:h-3 [&>span]:w-3"
+          onClick={onClear}
+        />
       )}
     </div>
   );
 }
 
-/** A plain menu of options for a filter chip's dropdown (workflow / channel). */
+/** A plain list of options for a filter chip's dropdown (workflow / channel). */
 export function FilterMenu<T extends string | null>({
   options,
   selected,
@@ -88,23 +73,19 @@ export function FilterMenu<T extends string | null>({
   onSelect: (value: T) => void;
 }) {
   return (
-    <div className="py-1" role="none">
+    <div className="py-1">
       {options.map((o) => (
-        <a
+        <button
           key={o.value ?? "any"}
-          href="#"
-          role="menuitem"
-          onClick={(e) => {
-            e.preventDefault();
-            onSelect(o.value);
-          }}
+          type="button"
+          onClick={() => onSelect(o.value)}
           className={cn(
-            "block px-4 py-2 text-sm hover:bg-gray-100",
+            "block w-full cursor-pointer px-4 py-2 text-left text-sm hover:bg-gray-100",
             o.value === selected ? "bg-gray-100 text-gray-900" : "text-gray-700"
           )}
         >
           {o.label}
-        </a>
+        </button>
       ))}
     </div>
   );
@@ -121,19 +102,9 @@ export function FilterCheckboxes({
   onToggle: (id: string) => void;
 }) {
   return (
-    <div className="pt-2 pb-1" role="none">
+    <div className="space-y-1 px-4 pb-2 pt-3">
       {options.map((o) => (
-        <div key={o.id} className="px-4 py-1 text-gray-700 text-sm">
-          <label className="flex items-center gap-2 text-sm leading-6 text-slate-800">
-            <input
-              type="checkbox"
-              className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 h-4 w-4"
-              checked={checked.includes(o.id)}
-              onChange={() => onToggle(o.id)}
-            />
-            {o.label}
-          </label>
-        </div>
+        <Checkbox key={o.id} label={o.label} checked={checked.includes(o.id)} onChange={() => onToggle(o.id)} />
       ))}
     </div>
   );
@@ -155,19 +126,28 @@ export function FilterDateRange({
   before: string;
   onChange: (after: string, before: string) => void;
 }) {
-  const input =
-    "mt-2 block w-full rounded-lg border border-secondary-300 text-slate-900 focus:ring-0 sm:text-sm sm:leading-6 focus:border-primary-400";
+  const id = useId();
   return (
-    <div className="py-3" role="none">
-      <div className="px-4 py-1 text-gray-500 text-sm">{title}</div>
-      <div className="px-4 py-1 text-gray-700 text-sm">
-        <label>{afterLabel}</label>
-        <input type="datetime-local" className={input} value={after} onChange={(e) => onChange(e.target.value, before)} />
-      </div>
-      <div className="px-4 py-1 text-gray-700 text-sm">
-        <label>{beforeLabel}</label>
-        <input type="datetime-local" className={input} value={before} onChange={(e) => onChange(after, e.target.value)} />
-      </div>
+    <div className="space-y-3 px-4 py-3">
+      <div className="text-sm text-gray-500">{title}</div>
+      <Field id={`${id}-after`} label={afterLabel}>
+        <input
+          id={`${id}-after`}
+          type="datetime-local"
+          className={controlClasses()}
+          value={after}
+          onChange={(e) => onChange(e.target.value, before)}
+        />
+      </Field>
+      <Field id={`${id}-before`} label={beforeLabel}>
+        <input
+          id={`${id}-before`}
+          type="datetime-local"
+          className={controlClasses()}
+          value={before}
+          onChange={(e) => onChange(after, e.target.value)}
+        />
+      </Field>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Button from "../Button";
 import { FieldError, Select, TextInput } from "../Inputs";
+import IconButton from "../IconButton";
 import Modal from "../Modal";
 import type { ProjectRole } from "../../mock-data/projects";
 import { collaboratorRoles } from "../../mock-data/project-settings";
@@ -40,13 +41,8 @@ export default function AddCollaboratorsModal({ existingEmails, onCancel, onSave
     <Modal
       open
       onClose={onCancel}
-      width="min-w-1/3 max-w-xl"
       title="Add new collaborator(s)"
-      subtitle={
-        <span className="text-xs">
-          Enter the email address and role of new collaborator(s) to invite them to this project
-        </span>
-      }
+      description="Enter the email address and role of new collaborator(s) to invite them to this project"
       footer={
         <>
           <Button id="save_collaborators_button" type="submit" form="add_collaborators_modal_form" disabled={!valid}>
@@ -70,7 +66,6 @@ export default function AddCollaboratorsModal({ existingEmails, onCancel, onSave
                       aria-label="Email"
                       placeholder="email@example.com"
                       required
-                      className="w-full"
                       value={r.email}
                       onChange={(e) => update(i, { email: e.target.value })}
                     />
@@ -86,11 +81,7 @@ export default function AddCollaboratorsModal({ existingEmails, onCancel, onSave
                     />
                   </div>
                   {rows.length > 1 && (
-                    <div>
-                      <Button theme="secondary" aria-label="Remove row" onClick={() => setRows(rows.filter((_, j) => j !== i))}>
-                        <span className="hero-minus-circle w-5 h-5" />
-                      </Button>
-                    </div>
+                    <IconButton icon="hero-minus-circle" label="Remove row" onClick={() => setRows(rows.filter((_, j) => j !== i))} />
                   )}
                 </div>
                 {error && (

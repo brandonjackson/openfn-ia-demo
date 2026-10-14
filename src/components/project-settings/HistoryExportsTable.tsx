@@ -1,6 +1,5 @@
-import Button from "../Button";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
-import { tableActionClass } from "./classes";
+import TableAction from "../TableAction";
 import type { ExportStatus, ProjectFile } from "../../mock-data/project-settings";
 import { findUser, fullName } from "../../mock-data/users";
 import { relativeTime } from "../../utils/relativeTime";
@@ -49,24 +48,11 @@ export default function HistoryExportsTable({ files }: Props) {
             <Td>{formatStatus(f.status)}</Td>
             <Td className="flex justify-end py-0.5">
               {f.status === "completed" ? (
-                <a
-                  id={`download-export-file-${f.id}-button`}
-                  href="#history-exports"
-                  onClick={(e) => e.preventDefault()}
-                  className={`${tableActionClass} py-2 px-4`}
-                >
-                  Download
-                </a>
+                <TableAction>Download</TableAction>
               ) : (
-                <Button
-                  id={`download-export-file-${f.id}-button`}
-                  theme="secondary"
-                  disabled
-                  tooltip="Export is not yet ready for download"
-                  className={`${tableActionClass} disabled:bg-gray-50`}
-                >
-                  Download
-                </Button>
+                <span title="Export is not yet ready for download">
+                  <TableAction disabled>Download</TableAction>
+                </span>
               )}
             </Td>
           </Tr>

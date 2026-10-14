@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Button from "../Button";
-import { Label, TextInput } from "../Inputs";
+import { TextInput } from "../Inputs";
 import Modal from "../Modal";
 import NameBadge from "../NameBadge";
 import { urlSafeName } from "../../utils/urlSafeName";
@@ -21,7 +21,7 @@ export default function CollectionFormModal({ title, initialName = "", onCancel,
     <Modal
       open
       onClose={onCancel}
-      width="xl:min-w-1/3 min-w-1/2 max-w-full"
+      size="md"
       title={title}
       footer={
         <>
@@ -35,23 +35,17 @@ export default function CollectionFormModal({ title, initialName = "", onCancel,
       }
     >
       <form id="collection-form" onSubmit={(e) => (e.preventDefault(), name && onSave(name))}>
-        <div className="container mx-auto space-y-6 bg-white">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="collection_raw_name">
-                Name<span className="text-red-500"> *</span>
-              </Label>
-              <TextInput
-              id="collection_raw_name"
-              required
-              value={rawName}
-              onChange={(e) => setRawName(e.target.value)}
-              />
-            </div>
-            <small className="mt-2 block text-xs text-gray-600">
-              <NameBadge name={name}>Your collection will be named</NameBadge>
-            </small>
-          </div>
+        <div className="space-y-2">
+          <TextInput
+            id="collection_raw_name"
+            label="Name"
+            required
+            value={rawName}
+            onChange={(e) => setRawName(e.target.value)}
+          />
+          <small className="block text-xs text-gray-600">
+            <NameBadge name={name}>Your collection will be named</NameBadge>
+          </small>
         </div>
       </form>
     </Modal>

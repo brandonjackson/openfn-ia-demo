@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { LogLine } from "../../mock-data/history";
 import { cn } from "../../utils/cn";
+import Menu, { MenuItem } from "../Menu";
 import CodeLines from "./CodeLines";
 import TextPingLoader from "./TextPingLoader";
 
@@ -22,59 +23,28 @@ function prettify(message: string) {
 
 /** The log level dropdown in the viewer's header (viewers.ex `log_level_filter`). */
 export function LogLevelFilter({ selected, onChange }: { selected: LogLevel; onChange: (l: LogLevel) => void }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => ref.current && !ref.current.contains(e.target as Node) && setOpen(false);
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [open]);
-
   return (
-    <div className="z-50" ref={ref}>
-      <div className="relative">
+    <Menu
+      align="end"
+      className="w-32"
+      trigger={
         <button
           type="button"
-          className="grid w-full cursor-pointer grid-cols-1 bg-inherit text-left text-xs/4 @md:text-sm/6 text-inherit opacity-75 hover:opacity-100"
-          aria-haspopup="listbox"
-          aria-expanded={open}
-          onClick={() => setOpen((o) => !o)}
+          aria-label="Log level"
+          className="inline-flex cursor-pointer items-center gap-1 text-xs/4 @md:text-sm/6 text-inherit opacity-75 hover:opacity-100"
         >
-          <span className="col-start-1 row-start-1 truncate pr-6">
-            <span className="hero-adjustments-vertical size-4 @md:size-6 align-middle" />{" "}
-            <span className="align-middle">{selected}</span>
-          </span>
-          <span className="hero-chevron-down col-start-1 row-start-1 size-4 self-center justify-self-end" aria-hidden="true" />
+          <span className="hero-adjustments-vertical size-4 @md:size-6" />
+          <span>{selected}</span>
+          <span className="hero-chevron-down size-4" aria-hidden="true" />
         </button>
-        {open && (
-          <ul
-            className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-slate-600 py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm"
-            role="listbox"
-          >
-            {levels.map((l) => (
-              <li
-                key={l}
-                role="option"
-                aria-selected={l === selected}
-                className="relative cursor-default select-none py-2 pl-8 pr-4 hover:bg-slate-500"
-                onClick={() => {
-                  onChange(l);
-                  setOpen(false);
-                }}
-              >
-                <span className={cn("block truncate", l === selected ? "font-semibold" : "font-normal")}>{l}</span>
-                {l === selected && (
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-blue-400">
-                    <span className="hero-check size-5 font-semibold" aria-hidden="true" />
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
+      }
+    >
+      {levels.map((l) => (
+        <MenuItem key={l} selected={l === selected} onClick={() => onChange(l)}>
+          {l}
+        </MenuItem>
+      ))}
+    </Menu>
   );
 }
 

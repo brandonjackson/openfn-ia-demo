@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
-import { tableActionClass } from "./classes";
+import TableAction from "../TableAction";
 import type { Collection } from "../../mock-data/project-settings";
 import { bytesToHuman } from "../../utils/bytesToHuman";
 
@@ -71,23 +71,17 @@ export default function CollectionsTable({ collections, canCreateCollection, onC
           <Td>{bytesToHuman(c.byteSizeSum)}</Td>
           <Td className="flex justify-end py-0.5">
             <div className="text-right flex">
-              <button type="button" className={tableActionClass} title="Preview collection" onClick={() => onPreview(c)}>
-                <span className="hero-eye h-4 w-4" />
-              </button>
-              <a href="#collections" className={tableActionClass} onClick={(e) => e.preventDefault()}>
-                Download
-              </a>
-              <button type="button" className={tableActionClass} disabled={!canCreateCollection} onClick={() => onEdit(c)}>
+              <TableAction onClick={() => onPreview(c)}>
+                <span className="hero-eye h-4 w-4" aria-hidden="true" />
+                <span className="sr-only">Preview collection</span>
+              </TableAction>
+              <TableAction>Download</TableAction>
+              <TableAction disabled={!canCreateCollection} onClick={() => onEdit(c)}>
                 Edit
-              </button>
-              <button
-                type="button"
-                className={tableActionClass}
-                disabled={!canCreateCollection}
-                onClick={() => onDelete(c)}
-              >
+              </TableAction>
+              <TableAction disabled={!canCreateCollection} onClick={() => onDelete(c)}>
                 Delete
-              </button>
+              </TableAction>
             </div>
           </Td>
         </Tr>

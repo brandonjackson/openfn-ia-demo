@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import Button from "../Button";
-import { Label, TextInput } from "../Inputs";
+import { Field, TextInput, controlClasses } from "../Inputs";
 import Modal from "../Modal";
 import type { WebhookAuthMethod, WebhookAuthType } from "../../mock-data/project-settings";
 import { cn } from "../../utils/cn";
@@ -26,23 +26,16 @@ const maskApiKey = (v = "") => "*".repeat(Math.min(15, Math.max(0, v.length - 5)
 /** Masked secret with a Show / Copy button (maybe_mask_password_field / maybe_mask_api_key_field). */
 function SecretField({ id, value, type, revealed, onShow }: { id: string; value: string; type: "password" | "text"; revealed: boolean; onShow: () => void }) {
   return (
-    <div className="mt-2 flex rounded-md shadow-xs">
-      <input
-        id={id}
-        type={type}
-        value={value}
-        disabled
-        autoComplete="off"
-        className="block w-full flex-1 rounded-l-lg text-slate-900 disabled:bg-gray-50 disabled:text-gray-500 border border-r-0 border-secondary-300 sm:text-sm sm:leading-6"
-      />
-      <button
+    <div className="flex">
+      <input id={id} type={type} value={value} disabled autoComplete="off" className={controlClasses(false, "flex-1 rounded-r-none")} />
+      <Button
         id={`${id}_action_button`}
-        type="button"
+        theme="secondary"
+        className="-ml-px w-[100px] rounded-l-none rounded-r-lg"
         onClick={revealed ? () => navigator.clipboard?.writeText(value) : onShow}
-        className="w-[100px] inline-block relative rounded-r-lg px-3 text-sm font-normal text-gray-900 border border-secondary-300 hover:bg-gray-50"
       >
         {revealed ? "Copy" : "Show"}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -65,12 +58,6 @@ function TypeOption({ selected, icon, children, onSelect }: { selected: boolean;
     </label>
   );
 }
-
-const Spacer = () => (
-  <div className="hidden sm:block" aria-hidden="true">
-    <div className="py-1" />
-  </div>
-);
 
 /**
  * WebhookAuthMethodFormComponent (workflow_live/webhook_auth_method_form_component.ex):
@@ -151,42 +138,42 @@ export default function WebhookAuthMethodFormModal({ authMethod, onCancel, onSav
     body = (
       <form
         id="webhook-auth-method-form"
+        className="space-y-4"
         onSubmit={(e) => {
           e.preventDefault();
           if (!valid) return;
           onSave(authType === "basic" ? { name, authType, username, password } : { name, authType, apiKey });
         }}
       >
-        <Label htmlFor="webhook_auth_method_name">Auth method name</Label>
-        <TextInput id="webhook_auth_method_name" required value={name} onChange={(e) => setName(e.target.value)} />
-        <Spacer />
+        <TextInput
+          id="webhook_auth_method_name"
+          label="Auth method name"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
         {authType === "basic" ? (
           <>
-            <Label htmlFor="webhook_auth_method_username">Username</Label>
             <TextInput
               id="webhook_auth_method_username"
+              label="Username"
               required
               value={username}
               disabled={!isNew}
               onChange={(e) => setUsername(e.target.value)}
             />
-            <Spacer />
             {isNew ? (
-              <>
-                <Label htmlFor="webhook_auth_method_password">Password</Label>
-                <TextInput
-                  id="webhook_auth_method_password"
-                  type="password"
-                  required
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <Spacer />
-              </>
+              <TextInput
+                id="webhook_auth_method_password"
+                label="Password"
+                type="password"
+                required
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             ) : (
-              <div className="mb-3">
-                <label className="block text-sm font-semibold leading-6 text-slate-800">Password</label>
+              <Field id="webhook_auth_method_password" label="Password">
                 <SecretField
                   id="webhook_auth_method_password"
                   type="password"
@@ -194,12 +181,11 @@ export default function WebhookAuthMethodFormModal({ authMethod, onCancel, onSav
                   revealed={sudo}
                   onShow={() => setReauth(true)}
                 />
-              </div>
+              </Field>
             )}
           </>
         ) : (
-          <>
-            <Label htmlFor="webhook_auth_method_api_key">API Key</Label>
+          <Field id="webhook_auth_method_api_key" label="API Key">
             <SecretField
               id="webhook_auth_method_api_key"
               type="text"
@@ -207,7 +193,7 @@ export default function WebhookAuthMethodFormModal({ authMethod, onCancel, onSav
               revealed={isNew || sudo}
               onShow={() => setReauth(true)}
             />
-          </>
+          </Field>
         )}
       </form>
     );
@@ -224,7 +210,7 @@ export default function WebhookAuthMethodFormModal({ authMethod, onCancel, onSav
   }
 
   return (
-    <Modal open onClose={onCancel} width="min-w-1/3 max-w-xl" title={title} footer={footer}>
+    <Modal open onClose={onCancel} title={title} footer={footer}>
       {body}
     </Modal>
   );

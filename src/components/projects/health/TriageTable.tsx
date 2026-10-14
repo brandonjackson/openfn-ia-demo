@@ -1,6 +1,6 @@
-import { Link } from "react-router-dom";
 import type { ErrorSignature, FailureState } from "../../../mock-data/workflow-health";
-import { cn } from "../../../utils/cn";
+import Button from "../../Button";
+import { Td, Th, Tr } from "../../Table";
 import { EMPTY, FAILURE_COLORS, adaptorLabel } from "./palette";
 
 // One tip per error type the worker reports (TriageTable.tsx `TIPS`).
@@ -39,9 +39,6 @@ const OUTCOMES: Partial<Record<string, FailureState>> = {
   lost: "lost",
   rejected: "rejected",
 };
-
-const TH = "px-3 py-3.5 first:pl-6 last:pr-6 text-left text-sm font-medium whitespace-nowrap text-gray-800";
-const TD = "px-3 py-4 first:pl-6 last:pr-6 text-sm text-gray-500";
 
 const errorTypeOf = ({ error_type }: ErrorSignature) => error_type || "unknown";
 
@@ -82,47 +79,33 @@ export default function TriageTable({
     <div className="-m-6 overflow-x-auto rounded-lg">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
-          <tr>
-            <th scope="col" className={cn(TH, "w-1/8")}>
-              Work orders
-            </th>
-            <th scope="col" className={TH}>
-              Signature
-            </th>
-            <th scope="col" className={TH}>
-              Suggestion
-            </th>
-            <th scope="col" className={TH}>
-              Actions
-            </th>
-          </tr>
+          <Tr>
+            <Th className="w-1/8">Work orders</Th>
+            <Th>Signature</Th>
+            <Th>Suggestion</Th>
+            <Th>Actions</Th>
+          </Tr>
         </thead>
         <tbody className="divide-y divide-gray-200 bg-white">
           {signatures.map((s) => (
-            <tr
-              key={[s.exit_reason, s.error_type, s.step_name, s.adaptor, s.job_id].join("|")}
-              className="transition-colors duration-150 hover:bg-gray-50"
-            >
-              <td className={TD}>
+            <Tr key={[s.exit_reason, s.error_type, s.step_name, s.adaptor, s.job_id].join("|")}>
+              <Td>
                 <span className="inline-block rounded-full bg-slate-200 px-4 py-1.5 text-xs font-medium tabular-nums text-gray-700">
                   {s.count.toLocaleString()}
                 </span>
-              </td>
-              <td className={TD}>
+              </Td>
+              <Td>
                 <Signature signature={s} />
-              </td>
-              <td className={TD}>{(s.error_type && TIPS[s.error_type]) || TIPS.default}</td>
-              <td className={TD}>
+              </Td>
+              <Td>{(s.error_type && TIPS[s.error_type]) || TIPS.default}</Td>
+              <Td>
                 {s.exit_reason && (
-                  <Link
-                    to={historyHref}
-                    className="inline-block whitespace-nowrap rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-900 shadow-xs inset-ring inset-ring-gray-300 hover:inset-ring-gray-400"
-                  >
+                  <Button theme="secondary" to={historyHref} className="whitespace-nowrap">
                     View history
-                  </Link>
+                  </Button>
                 )}
-              </td>
-            </tr>
+              </Td>
+            </Tr>
           ))}
         </tbody>
       </table>

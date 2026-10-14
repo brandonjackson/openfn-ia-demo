@@ -1,3 +1,4 @@
+import Button from "../Button";
 import { Select } from "../Inputs";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 import type { ProjectMember } from "../../mock-data/projects";
@@ -120,16 +121,16 @@ export default function CollaboratorsTable({
             </Td>
             <Td className="flex justify-end py-0.5">
               <div className="text-right">
-                <button
+                <Button
                   id={`remove_project_user_${m.userId}_button`}
-                  type="button"
-                  title={tooltip || undefined}
+                  theme="secondary"
+                  size="lg"
+                  tooltip={tooltip || undefined}
                   disabled={tooltip !== ""}
                   onClick={() => onRemove(m)}
-                  className="cursor-pointer gap-x-2 rounded-md px-3.5 py-2.5 text-sm shadow-xs ring-1 ring-inset ring-gray-300 disabled:cursor-not-allowed"
                 >
                   <span className="hero-minus-circle w-5 h-5" /> Remove Collaborator
-                </button>
+                </Button>
               </div>
             </Td>
           </Tr>

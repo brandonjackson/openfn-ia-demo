@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from "react";
 import type { ChannelEvent, ChannelRequestState } from "../../mock-data/channel-requests";
 import { cn } from "../../utils/cn";
+import IconButton from "../IconButton";
 import { ChannelStatePill } from "./StatePill";
 import { formatBytes } from "./format";
 
@@ -149,14 +150,13 @@ export function StatePillWithTooltip({ state, tooltip }: { state: ChannelRequest
 
 export function CopyIconButton({ value, title = "Copy", size = 4, className }: { value: string; title?: string; size?: 3 | 4; className?: string }) {
   return (
-    <button
-      type="button"
-      title={title}
+    <IconButton
+      icon="hero-clipboard"
+      label={title}
+      size="sm"
       onClick={() => void navigator.clipboard?.writeText(value)}
-      className={cn("copy-btn text-secondary-400 hover:text-secondary-600 transition-colors shrink-0 cursor-pointer", className)}
-    >
-      <span className={cn("hero-clipboard", size === 3 ? "h-3 w-3" : "h-4 w-4")} />
-    </button>
+      className={cn("copy-btn text-secondary-400 hover:text-secondary-600", size === 3 && "[&>span]:h-3 [&>span]:w-3", className)}
+    />
   );
 }
 

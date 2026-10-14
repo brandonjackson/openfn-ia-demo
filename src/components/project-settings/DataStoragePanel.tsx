@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Alert from "../Alert";
 import Button from "../Button";
-import { Select } from "../Inputs";
+import { Radio, Select } from "../Inputs";
 import SectionHeader from "../SectionHeader";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
 import { linkClass } from "./classes";
@@ -97,7 +97,7 @@ export default function DataStoragePanel({ initial, periods, canEditDataRetentio
                   disabled={!canEditDataRetention || periods.length === 1}
                   value={form.historyRetentionPeriod === null ? "" : String(form.historyRetentionPeriod)}
                   onChange={(e) => setForm({ ...form, historyRetentionPeriod: toNum(e.target.value) })}
-                  className="w-auto border-gray-300 focus:ring-indigo-600"
+                  className="w-auto"
                 />
                 <div className="text-xs">
                   <span />
@@ -123,25 +123,16 @@ export default function DataStoragePanel({ initial, periods, canEditDataRetentio
               </div>
               <div className="space-y-2">
                 {policies.map(([value, text]) => (
-                  <div key={value} className="relative flex items-start">
-                    <div className="flex h-6 items-center">
-                      <input
-                        type="radio"
-                        id={value}
-                        name="retention_policy"
-                        value={value}
-                        disabled={!canEditDataRetention}
-                        checked={form.retentionPolicy === value}
-                        onChange={() => setForm({ ...form, retentionPolicy: value })}
-                        className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-600"
-                      />
-                    </div>
-                    <div className="ml-3 leading-6">
-                      <label htmlFor={value} className="text-sm text-neutral-950">
-                        {text}
-                      </label>
-                    </div>
-                  </div>
+                  <Radio
+                    key={value}
+                    id={value}
+                    name="retention_policy"
+                    value={value}
+                    label={text}
+                    disabled={!canEditDataRetention}
+                    checked={form.retentionPolicy === value}
+                    onChange={() => setForm({ ...form, retentionPolicy: value })}
+                  />
                 ))}
               </div>
               {form.retentionPolicy !== "retain_all" && (
@@ -172,7 +163,7 @@ export default function DataStoragePanel({ initial, periods, canEditDataRetentio
                   value={form.dataclipRetentionPeriod === null ? "" : String(form.dataclipRetentionPeriod)}
                   onChange={(e) => setForm({ ...form, dataclipRetentionPeriod: toNum(e.target.value) })}
                   errors={dataclipError ? [dataclipError] : []}
-                  className="w-auto border-gray-300 focus:ring-indigo-600"
+                  className="w-auto"
                 />
               </div>
             </div>

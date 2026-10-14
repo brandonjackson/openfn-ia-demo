@@ -1,313 +1,407 @@
 /**
- * Mock data for the Workflow Editor prototype.
+ * Workflow graphs for the collaborative editor (`/projects/:id/w/:workflowId`):
+ * triggers, jobs, edges and canvas positions, shaped like Lightning's
+ * collaborative-editor `Workflow` types (assets/js/collaborative-editor/types).
+ * One graph per summary in ./workflows.ts, keyed by the same id. Static
+ * fixtures only; the editor copies a graph into local React state.
  *
- * Models a Lightning-style workflow: a trigger, a set of jobs (steps), and the
- * edges that connect them. Node positions are stored directly on each node so
- * the canvas can lay things out with simple absolute positioning.
+ * `wf-openhie` is the OpenHIE Workflow from Lightning's demo seed
+ * (lib/lightning/setup_utils.ex `create_openhie_project`); its job ids match
+ * the steps in ./history.ts so runs light up on the canvas.
  */
 
-/** The kind of adaptor a job uses — drives the icon shown on the node. */
-export type AdaptorKind = "http" | "common" | "dhis2" | "salesforce" | "postgresql";
+export type EdgeConditionType = "always" | "on_job_success" | "on_job_failure" | "js_expression";
 
-/** What makes an edge fire. Drives the little badge drawn on the connector. */
-export type EdgeCondition =
-  | "always"
-  | "on_success"
-  | "on_failure"
-  | "js_expression";
-
-export type RunStatus = "success" | "failed" | "running" | "pending";
-
-export interface TriggerNode {
-  id: string;
-  type: "trigger";
-  /** Webhook / cron / kafka — only webhook is modelled visually for now. */
-  triggerType: "webhook" | "cron" | "kafka";
-  label: string;
-  subtitle: string;
-  x: number;
-  y: number;
-}
-
-export interface JobNode {
-  id: string;
-  type: "job";
-  label: string;
-  adaptor: AdaptorKind;
-  /** Adaptor version string shown under the icon, e.g. "@openfn/language-http". */
-  adaptorPackage: string;
-  /** Source body shown in the code editor when this job is selected. */
-  body: string;
-  x: number;
-  y: number;
-}
-
-export type WorkflowNode = TriggerNode | JobNode;
-
-export interface WorkflowEdge {
-  id: string;
-  source: string;
-  target: string;
-  condition: EdgeCondition;
-  /** Used when condition is "js_expression" — shown as a tooltip / inspector value. */
-  expression?: string;
-}
-
-export interface Workflow {
+export interface EditorJob {
   id: string;
   name: string;
-  project: string;
-  version: string;
-  nodes: WorkflowNode[];
-  edges: WorkflowEdge[];
+  /** Adaptor specifier, e.g. `@openfn/language-http@latest`. */
+  adaptor: string;
+  body: string;
+  /** Name of the connected credential, if any. */
+  credentialName: string | null;
 }
 
-export interface RunHistoryEntry {
+export interface EditorTrigger {
   id: string;
-  /** Pre-formatted relative label, e.g. "yesterday at 4:38 PM". */
-  when: string;
-  status: RunStatus;
+  type: "webhook" | "cron";
+  enabled: boolean;
+  /** Cron triggers only. */
+  cronExpression: string | null;
+  /** cronstrue's reading of the expression, as the node sublabel shows it. */
+  cronDescription: string | null;
+  /** Webhook triggers only: the trigger has at least one auth method. */
+  hasAuthMethod: boolean;
+  /** Webhook replies before the run starts, or after it completes. */
+  webhookReply: "before_start" | "after_completion";
 }
 
-export interface RunStep {
+export interface EditorEdge {
   id: string;
-  /** Matches a JobNode id so the canvas can highlight the active step. */
-  jobId: string;
-  label: string;
-  status: RunStatus;
-  /** Pre-formatted duration, e.g. "179 ms" or "3 s". */
-  duration: string;
+  sourceTriggerId: string | null;
+  sourceJobId: string | null;
+  targetJobId: string;
+  conditionType: EdgeConditionType;
+  conditionLabel: string | null;
+  conditionExpression: string | null;
+  enabled: boolean;
 }
 
-export interface LogLine {
-  source: "RTE" | "VER" | "R/T" | "ADA" | "JOB";
-  message: string;
+export interface Position {
+  x: number;
+  y: number;
 }
 
-export interface RunDetails {
-  workOrderId: string;
-  runId: string;
-  status: RunStatus;
-  duration: string;
-  started: string;
-  startedBy: string;
-  steps: RunStep[];
-  logs: LogLine[];
+export interface WorkflowGraph {
+  id: string;
+  projectId: string;
+  name: string;
+  /** Snapshot number; the version pill reads "latest" when this is the newest. */
+  lockVersion: number;
+  concurrency: number | null;
+  enableJobLogs: boolean;
+  jobs: EditorJob[];
+  triggers: EditorTrigger[];
+  edges: EditorEdge[];
+  /** Top-left of each node's 100x100 shape, in canvas units. */
+  positions: Record<string, Position>;
 }
 
-// ---------------------------------------------------------------------------
-// The "Apply for a national ID" workflow shown in the design reference.
-// ---------------------------------------------------------------------------
+export interface WorkflowSnapshot {
+  lockVersion: number;
+  insertedAt: string;
+}
 
-const searchBody = `// Keep the original application payload safe for downstream steps
-fn(state => {
-  state.application = state.data;
-  return state;
-});
+const OPENHIE = "4adf2644-ed4e-4f97-a24c-ab35b3cb1efa";
+const DHIS2 = "1f0b7c2e-9d3a-4a4b-8f5e-2c6d7e8f9a01";
+const SANDBOX = "8c1d2e3f-4a5b-4c6d-9e7f-0a1b2c3d4e5f";
 
-// Search Identity for potential duplicates
-get(
-  'https://simdpgidentity-production.up.railway.app/citizens/search',
-  state => ({
-    query: {
-      name: state.application.given_name,
-      dob: state.application.date_of_birth,
-    }
-  })
-);
+const SEED_BODY = "fn(state => state);\n";
 
-// Compare results and set match flags for branching
-fn(state => {
-  const app = state.application;
-  const results = Array.isArray(state.data)
-    ? state.data
-    : state.data?.data ?? state.data?.results ?? [];
+/** Dagre spacing in Lightning's layout: 110px nodes + 150 ranksep, 250 nodesep. */
+const RANK = 260;
+const SPREAD = 185;
 
-  const norm = s => (s ?? '').toString().trim().toLowerCase();
-
-  const similar = (a, b) => {
-    a = norm(a);
-    b = norm(b);
-    if (a === b) return 1;
-    if (a && b && (a.includes(b) || b.includes(a))) return 0.8;
-    return 0;
-  };
-
-  let exactMatch = false;
-  return state;
-});`;
-
-export const nationalIdWorkflow: Workflow = {
-  id: "apply-national-id",
-  name: "Apply for a national ID",
-  project: "ytsg",
-  version: "latest",
-  nodes: [
-    {
-      id: "trigger",
-      type: "trigger",
-      triggerType: "webhook",
-      label: "Webhook trigger",
-      subtitle: "On each request received",
-      x: 360,
-      y: 70,
-    },
-    {
-      id: "search",
-      type: "job",
-      label: "Search for duplicate citizens in Identity",
-      adaptor: "http",
-      adaptorPackage: "@openfn/language-http",
-      body: searchBody,
-      x: 360,
-      y: 230,
-    },
-    {
-      id: "notify",
-      type: "job",
-      label: "Notify applicant of existing national ID",
-      adaptor: "http",
-      adaptorPackage: "@openfn/language-http",
-      body: "// Notify the applicant that a national ID already exists\npost('https://.../notify', state => ({ body: state.match }));",
-      x: 130,
-      y: 410,
-    },
-    {
-      id: "create",
-      type: "job",
-      label: "Create new citizen in Identity",
-      adaptor: "http",
-      adaptorPackage: "@openfn/language-http",
-      body: "// Register the new citizen and capture the issued national ID\npost('https://.../citizens', state => ({ body: state.application }));",
-      x: 360,
-      y: 410,
-    },
-    {
-      id: "queue",
-      type: "job",
-      label: "Queue application for retry",
-      adaptor: "common",
-      adaptorPackage: "@openfn/language-common",
-      body: "// Park the application so it can be retried later\nfn(state => state);",
-      x: 600,
-      y: 410,
-    },
-    {
-      id: "confirm",
-      type: "job",
-      label: "Send confirmation notification with national ID",
-      adaptor: "http",
-      adaptorPackage: "@openfn/language-http",
-      body: "// Send the applicant their new national ID\npost('https://.../notify', state => ({ body: state.nationalId }));",
-      x: 360,
-      y: 580,
-    },
-  ],
-  edges: [
-    { id: "e-trigger-search", source: "trigger", target: "search", condition: "always" },
-    {
-      id: "e-search-notify",
-      source: "search",
-      target: "notify",
-      condition: "js_expression",
-      expression: "state.exactMatch === true",
-    },
-    {
-      id: "e-search-create",
-      source: "search",
-      target: "create",
-      condition: "js_expression",
-      expression: "state.exactMatch === false",
-    },
-    { id: "e-search-queue", source: "search", target: "queue", condition: "on_failure" },
-    { id: "e-create-confirm", source: "create", target: "confirm", condition: "on_success" },
-  ],
-};
-
-export const recentHistory: RunHistoryEntry[] = [
-  { id: "b10d4fb0", when: "yesterday at 4:38 PM", status: "success" },
-  { id: "57c51fd5", when: "yesterday at 2:09 PM", status: "success" },
-  { id: "896d2dcb", when: "yesterday at 11:11 AM", status: "success" },
-  { id: "2f11d4f1", when: "June 14th, 12:19 PM", status: "success" },
-  { id: "0b393bfb", when: "June 14th, 12:18 PM", status: "success" },
-  { id: "7143df53", when: "June 14th, 6:12 AM", status: "failed" },
-  { id: "b4f8902d", when: "June 13th, 9:22 AM", status: "success" },
-  { id: "297efcfb", when: "June 13th, 9:21 AM", status: "success" },
-];
-
-export const sampleRun: RunDetails = {
-  workOrderId: "b10d4fb0",
-  runId: "afa317bf",
-  status: "success",
-  duration: "6 s",
-  started: "25/06/2026, 16:37:57",
-  startedBy: "webhook trigger",
-  steps: [
-    { id: "s1", jobId: "search", label: "Search for duplicate citizens in Identity", status: "success", duration: "3 s" },
-    { id: "s2", jobId: "create", label: "Create new citizen in Identity", status: "success", duration: "179 ms" },
-    { id: "s3", jobId: "confirm", label: "Send confirmation notification with national ID", status: "success", duration: "401 ms" },
-  ],
-  logs: [
-    { source: "RTE", message: "Memory limit: 250mb" },
-    { source: "RTE", message: "Timeout: 120s" },
-    { source: "R/T", message: "Compiling all workflow steps ..." },
-    { source: "RTE", message: "Payload limit: 10mb" },
-    { source: "VER", message: "Versions:" },
-    { source: "VER", message: "  ▸ node.js                       24.17.0" },
-    { source: "VER", message: "  ▸ worker                        1.27.0" },
-    { source: "VER", message: "  ▸ @openfn/language-common       3.3.3" },
-    { source: "VER", message: "  ▸ @openfn/language-http         7.3.1" },
-    { source: "R/T", message: "Compiled Search for duplicate citizens in Identity in 0.41s" },
-    { source: "R/T", message: "Compiled Notify applicant of existing national ID in 0.11s" },
-    { source: "R/T", message: "Compiled Create new citizen in Identity in 0.077s" },
-    { source: "R/T", message: "Compiled Send confirmation notification with national ID in 0.12s" },
-    { source: "R/T", message: "Compiled Queue application for retry in 0.043s" },
-    { source: "R/T", message: "Workflow compilation complete in 2.2s" },
-    { source: "R/T", message: "Executing afa317bf-444b-40ab-9e0e-4ef5c975e31a" },
-    { source: "R/T", message: "Starting step Search for duplicate citizens in Identity" },
-    { source: "R/T", message: "Resolved adaptor @openfn/language-http to version 7.3.1" },
-    { source: "ADA", message: "GET https://simdpgidentity-production.up.railway.app/citizens/search?name=Aleksa&dob=1950-01-01 - 200 in 372ms" },
-  ],
-};
-
-/**
- * A blank workflow for "New Workflow": a trigger wired to one empty step.
- * Starting from an event channel names the trigger after that channel so
- * the new workflow fires when the channel does.
- */
-export function buildStarterWorkflow({
-  projectName,
-  channel,
-}: {
-  projectName: string;
-  channel?: { name: string; system: string };
-}): Workflow {
+function webhook(id: string, enabled: boolean): EditorTrigger {
   return {
-    id: "new",
-    name: "Untitled workflow",
-    project: projectName,
-    version: "latest",
-    nodes: [
+    id,
+    type: "webhook",
+    enabled,
+    cronExpression: null,
+    cronDescription: null,
+    hasAuthMethod: false,
+    webhookReply: "before_start",
+  };
+}
+
+function cron(id: string, enabled: boolean, expression: string, description: string): EditorTrigger {
+  return {
+    id,
+    type: "cron",
+    enabled,
+    cronExpression: expression,
+    cronDescription: description,
+    hasAuthMethod: false,
+    webhookReply: "before_start",
+  };
+}
+
+function edge(
+  id: string,
+  from: { trigger?: string; job?: string },
+  targetJobId: string,
+  conditionType: EdgeConditionType,
+  extra: Partial<EditorEdge> = {}
+): EditorEdge {
+  return {
+    id,
+    sourceTriggerId: from.trigger ?? null,
+    sourceJobId: from.job ?? null,
+    targetJobId,
+    conditionType,
+    conditionLabel: null,
+    conditionExpression: null,
+    enabled: true,
+    ...extra,
+  };
+}
+
+function httpJob(id: string, name: string): EditorJob {
+  return { id, name, adaptor: "@openfn/language-http@latest", body: SEED_BODY, credentialName: null };
+}
+
+function openhieGraph(id: string, projectId: string, suffix = ""): WorkflowGraph {
+  const t = `trigger-openhie${suffix}`;
+  const transform = `job-transform${suffix}`;
+  const send = `job-send${suffix}`;
+  const ok = `job-notify-ok${suffix}`;
+  const failed = `job-notify-failed${suffix}`;
+  return {
+    id,
+    projectId,
+    name: "OpenHIE Workflow",
+    lockVersion: suffix ? 3 : 12,
+    concurrency: null,
+    enableJobLogs: true,
+    triggers: [webhook(t, true)],
+    jobs: [
+      httpJob(transform, "Transform data to FHIR standard"),
+      httpJob(send, "Send to OpenHIM to route to SHR"),
+      httpJob(ok, "Notify CHW upload successful"),
+      httpJob(failed, "Notify CHW upload failed"),
+    ],
+    edges: [
+      edge(`edge-openhie-root${suffix}`, { trigger: t }, transform, "always"),
+      edge(`edge-openhie-send${suffix}`, { job: transform }, send, "on_job_success"),
+      edge(`edge-openhie-ok${suffix}`, { job: send }, ok, "on_job_success"),
+      edge(`edge-openhie-failed${suffix}`, { job: send }, failed, "on_job_failure"),
+    ],
+    positions: {
+      [t]: { x: 0, y: 0 },
+      [transform]: { x: 0, y: RANK },
+      [send]: { x: 0, y: RANK * 2 },
+      [ok]: { x: -SPREAD, y: RANK * 3 },
+      [failed]: { x: SPREAD, y: RANK * 3 },
+    },
+  };
+}
+
+export const workflowGraphs: WorkflowGraph[] = [
+  openhieGraph("wf-openhie", OPENHIE),
+  {
+    id: "wf-referrals",
+    projectId: OPENHIE,
+    name: "Referral follow-ups",
+    lockVersion: 7,
+    concurrency: 1,
+    enableJobLogs: true,
+    triggers: [cron("trigger-referrals", true, "0 6 * * *", "At 06:00 AM")],
+    jobs: [
       {
-        id: "trigger",
-        type: "trigger",
-        triggerType: "webhook",
-        label: channel ? channel.name : "Webhook trigger",
-        subtitle: channel ? `On each ${channel.system} event` : "On each request received",
-        x: 360,
-        y: 70,
+        id: "job-referrals",
+        name: "Fetch overdue referrals",
+        adaptor: "@openfn/language-commcare@latest",
+        body: "get('/a/referrals', { query: { status: 'overdue' } });\n",
+        credentialName: "CommCare HQ",
       },
       {
-        id: "first-step",
-        type: "job",
-        label: "Untitled step",
-        adaptor: "common",
-        adaptorPackage: "@openfn/language-common",
-        body: "// Start writing your job here\nfn(state => state);",
-        x: 360,
-        y: 230,
+        id: "job-referral-sms",
+        name: "Send SMS reminders",
+        adaptor: "@openfn/language-twilio@latest",
+        body: "each('$.data[*]', sendSMS(state => ({\n  to: state.data.phone,\n  body: 'Your referral is overdue',\n})));\n",
+        credentialName: null,
+      },
+      {
+        id: "job-referral-errors",
+        name: "Log failed lookups",
+        adaptor: "@openfn/language-common@latest",
+        body: "fn(state => {\n  console.log(state.errors);\n  return state;\n});\n",
+        credentialName: null,
       },
     ],
-    edges: [{ id: "e-trigger-first-step", source: "trigger", target: "first-step", condition: "always" }],
+    edges: [
+      edge("edge-referrals-root", { trigger: "trigger-referrals" }, "job-referrals", "always"),
+      edge("edge-referrals-sms", { job: "job-referrals" }, "job-referral-sms", "js_expression", {
+        conditionLabel: "Has overdue referrals",
+        conditionExpression: "state.data.length > 0",
+      }),
+      edge("edge-referrals-errors", { job: "job-referrals" }, "job-referral-errors", "on_job_failure"),
+    ],
+    positions: {
+      "trigger-referrals": { x: 0, y: 0 },
+      "job-referrals": { x: 0, y: RANK },
+      "job-referral-sms": { x: -SPREAD, y: RANK * 2 },
+      "job-referral-errors": { x: SPREAD, y: RANK * 2 },
+    },
+  },
+  {
+    id: "wf-facility-sync",
+    projectId: OPENHIE,
+    name: "Facility registry sync",
+    lockVersion: 2,
+    concurrency: null,
+    enableJobLogs: false,
+    triggers: [cron("trigger-facility", false, "0 2 * * 1", "At 02:00 AM, only on Monday")],
+    jobs: [
+      {
+        id: "job-facility-get",
+        name: "Get facilities from DHIS2",
+        adaptor: "@openfn/language-dhis2@latest",
+        body: "get('organisationUnits', { fields: '*', paging: false });\n",
+        credentialName: "DHIS2 play",
+      },
+      {
+        id: "job-facility-upsert",
+        name: "Upsert locations in OpenMRS",
+        adaptor: "@openfn/language-openmrs@latest",
+        body: "each('$.data.organisationUnits[*]', upsert('location', state => state.data));\n",
+        credentialName: null,
+      },
+    ],
+    edges: [
+      edge("edge-facility-root", { trigger: "trigger-facility" }, "job-facility-get", "always"),
+      edge("edge-facility-upsert", { job: "job-facility-get" }, "job-facility-upsert", "on_job_success"),
+    ],
+    positions: {
+      "trigger-facility": { x: 0, y: 0 },
+      "job-facility-get": { x: 0, y: RANK },
+      "job-facility-upsert": { x: 0, y: RANK * 2 },
+    },
+  },
+  {
+    // Lightning's seed: create_dhis2_project.
+    id: "wf-dhis2-sheets",
+    projectId: DHIS2,
+    name: "DHIS2 to Sheets",
+    lockVersion: 4,
+    concurrency: null,
+    enableJobLogs: true,
+    triggers: [cron("trigger-dhis2", true, "0 * * * *", "Every hour")],
+    jobs: [
+      {
+        id: "job-dhis2-get",
+        name: "Get DHIS2 data",
+        adaptor: "@openfn/language-dhis2@latest",
+        body: "get('trackedEntityInstances', {\n  ou: 'DiszpKrYNg8',\n  program: 'IpHINAT79UW',\n});\n",
+        credentialName: "DHIS2 play",
+      },
+      {
+        id: "job-dhis2-sheet",
+        name: "Upload to Google Sheet",
+        adaptor: "@openfn/language-googlesheets@latest",
+        body: "appendValues({\n  spreadsheetId: '1O-a4_RgPF_p8W3I6b5K9wobA3-CBW8hLClZfUik5sos',\n  range: 'Sheet1!A1:E1',\n  values: state.data,\n});\n",
+        credentialName: null,
+      },
+    ],
+    edges: [
+      edge("edge-dhis2-root", { trigger: "trigger-dhis2" }, "job-dhis2-get", "always"),
+      edge("edge-dhis2-sheet", { job: "job-dhis2-get" }, "job-dhis2-sheet", "on_job_success"),
+    ],
+    positions: {
+      "trigger-dhis2": { x: 0, y: 0 },
+      "job-dhis2-get": { x: 0, y: RANK },
+      "job-dhis2-sheet": { x: 0, y: RANK * 2 },
+    },
+  },
+  openhieGraph("wf-openhie-sandbox", SANDBOX, "-sb"),
+];
+
+export function findWorkflowGraph(id: string | undefined): WorkflowGraph | undefined {
+  return workflowGraphs.find((w) => w.id === id);
+}
+
+/** What `/w/new` starts from: an empty, unsaved workflow. */
+export function newWorkflowGraph(projectId: string): WorkflowGraph {
+  return {
+    id: "new",
+    projectId,
+    name: "Untitled workflow",
+    lockVersion: 0,
+    concurrency: null,
+    enableJobLogs: true,
+    jobs: [],
+    triggers: [],
+    edges: [],
+    positions: {},
+  };
+}
+
+/**
+ * "Build from scratch" on the landing screen: a webhook trigger and one empty
+ * step (Lightning's BLANK_WORKFLOW_YAML).
+ */
+export function blankWorkflowGraph(projectId: string): WorkflowGraph {
+  return {
+    ...newWorkflowGraph(projectId),
+    triggers: [webhook("trigger-new", true)],
+    jobs: [
+      {
+        id: "job-new",
+        name: "New job",
+        adaptor: "@openfn/language-common@latest",
+        body: "// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n",
+        credentialName: null,
+      },
+    ],
+    edges: [edge("edge-new", { trigger: "trigger-new" }, "job-new", "always")],
+    positions: { "trigger-new": { x: 0, y: 0 }, "job-new": { x: 0, y: RANK } },
+  };
+}
+
+/** Saved snapshots for the version dropdown, newest first. */
+export function snapshotsOf(graph: WorkflowGraph): WorkflowSnapshot[] {
+  const count = Math.min(graph.lockVersion, 6);
+  return Array.from({ length: count }, (_, i) => ({
+    lockVersion: graph.lockVersion - i,
+    insertedAt: new Date(Date.UTC(2026, 9, Math.max(10 - i * 3, 1), 11 - i, 0)).toISOString(),
+  }));
+}
+
+/** The webhook URL Lightning shows for a trigger. */
+export function webhookUrl(triggerId: string): string {
+  return `https://app.openfn.org/i/${triggerId}`;
+}
+
+/** An entry in the landing screen's template browser. */
+export interface WorkflowTemplate {
+  id: string;
+  name: string;
+  description: string;
+  tags: string[];
+}
+
+export const workflowTemplates: WorkflowTemplate[] = [
+  {
+    id: "tpl-base-webhook",
+    name: "Event-based workflow",
+    description: "Start with a webhook trigger that runs one step for each request received.",
+    tags: ["webhook"],
+  },
+  {
+    id: "tpl-base-cron",
+    name: "Scheduled workflow",
+    description: "Start with a cron trigger that runs one step on a schedule.",
+    tags: ["cron"],
+  },
+  {
+    id: "tpl-kobo-postgres",
+    name: "KoboToolbox to Postgres",
+    description: "Fetch new KoboToolbox submissions on a schedule and upsert them into a PostgreSQL table.",
+    tags: ["kobotoolbox", "postgresql"],
+  },
+  {
+    id: "tpl-commcare-dhis2",
+    name: "CommCare to DHIS2",
+    description: "Map CommCare form submissions to DHIS2 tracker events as they arrive.",
+    tags: ["commcare", "dhis2"],
+  },
+];
+
+
+/** The graph a template creates (what its preview shows). */
+export function templateGraph(template: WorkflowTemplate, projectId: string): WorkflowGraph {
+  const base = blankWorkflowGraph(projectId);
+  const isCron = template.tags.includes("cron") || template.id === "tpl-kobo-postgres";
+  const trigger = isCron ? cron("trigger-new", true, "0 0 * * *", "At 12:00 AM") : webhook("trigger-new", true);
+  const adaptors = template.tags.filter((t) => t !== "cron" && t !== "webhook");
+  if (adaptors.length === 0) return { ...base, name: template.name, triggers: [trigger] };
+  const jobs: EditorJob[] = adaptors.map((a, i) => ({
+    id: `job-new-${i}`,
+    name: i === 0 ? `Get data from ${a}` : `Send data to ${a}`,
+    adaptor: `@openfn/language-${a}@latest`,
+    body: SEED_BODY,
+    credentialName: null,
+  }));
+  return {
+    ...base,
+    name: template.name,
+    triggers: [trigger],
+    jobs,
+    edges: jobs.map((j, i) =>
+      i === 0
+        ? edge("edge-new-0", { trigger: trigger.id }, j.id, "always")
+        : edge(`edge-new-${i}`, { job: jobs[i - 1].id }, j.id, "on_job_success")
+    ),
+    positions: Object.fromEntries([[trigger.id, { x: 0, y: 0 }], ...jobs.map((j, i) => [j.id, { x: 0, y: RANK * (i + 1) }])]),
   };
 }

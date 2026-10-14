@@ -1,29 +1,21 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { useState } from "react";
 import CodeEditor from "./CodeEditor";
-import { nationalIdWorkflow, type JobNode } from "../../mock-data/workflow";
-
-const searchJob = nationalIdWorkflow.nodes.find((n) => n.id === "search") as JobNode;
 
 const meta: Meta<typeof CodeEditor> = {
   title: "Workflow/CodeEditor",
   component: CodeEditor,
-  parameters: { layout: "fullscreen" },
-  decorators: [
-    (Story) => (
-      <div style={{ height: 480 }} className="border border-gray-200">
-        <Story />
-      </div>
-    ),
-  ],
+  decorators: [(Story) => <div className="h-64"><Story /></div>],
 };
-
 export default meta;
 type Story = StoryObj<typeof CodeEditor>;
 
-export const Default: Story = { args: { code: searchJob.body } };
+function EditableDemo() {
+  const [value, setValue] = useState("fn(state => state);\n");
+  return <CodeEditor value={value} onChange={setValue} />;
+}
 
-export const ShortJob: Story = {
-  args: {
-    code: "// Send the applicant their new national ID\npost('https://.../notify', state => ({\n  body: state.nationalId,\n}));",
-  },
+export const Editable: Story = { render: () => <EditableDemo /> };
+export const ReadOnly: Story = {
+  args: { value: "get('trackedEntityInstances', {\n  ou: 'DiszpKrYNg8',\n});\n", readOnly: true },
 };

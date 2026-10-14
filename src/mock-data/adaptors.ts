@@ -1,3 +1,10 @@
+/**
+ * Adaptors for the workflow editor: the catalogue shown in the adaptor
+ * picker, the square icons Lightning serves for each one (copied into
+ * public/images/adaptors/), and the docs shown in the IDE's Docs panel.
+ * Static fixtures only.
+ */
+
 export interface Adaptor {
   id: string;
   name: string;
@@ -76,3 +83,114 @@ export const adaptors: Adaptor[] = [
   { id: "whatsapp", name: "WhatsApp", description: "Messaging platform", category: "Social & Messaging" },
   { id: "zoho", name: "Zoho", description: "Business software suite", category: "CRM & ERP" },
 ];
+
+/** Adaptors we have a square icon for (public/images/adaptors/<id>-square.png). */
+const ICONS = new Set([
+  "commcare",
+  "common",
+  "dhis2",
+  "fhir",
+  "googlesheets",
+  "http",
+  "kobotoolbox",
+  "openhim",
+  "openmrs",
+  "postgresql",
+  "salesforce",
+  "twilio",
+]);
+
+/** `@openfn/language-http@latest` → `{ package: "@openfn/language-http", version: "latest" }`. */
+export function resolveAdaptor(specifier: string): { package: string; version: string } {
+  const match = specifier.match(/^(@[^@]+|[^@]+)(?:@(.+))?$/);
+  return { package: match?.[1] ?? specifier, version: match?.[2] ?? "latest" };
+}
+
+/** `@openfn/language-http@latest` → `http` (Lightning's extractAdaptorName). */
+export function adaptorShortName(specifier: string): string {
+  return resolveAdaptor(specifier).package.replace(/^@openfn\/language-/, "");
+}
+
+/** `http` → `Http`, `googlesheets` → `Googlesheets` (Lightning's getAdaptorDisplayName). */
+export function adaptorDisplayName(specifier: string): string {
+  const short = adaptorShortName(specifier);
+  return short.charAt(0).toUpperCase() + short.slice(1);
+}
+
+export function adaptorIconUrl(specifier: string): string | null {
+  const short = adaptorShortName(specifier);
+  return ICONS.has(short) ? `${import.meta.env.BASE_URL}images/adaptors/${short}-square.png` : null;
+}
+
+/** The resolved version `latest` points at, shown in the Docs panel heading. */
+const LATEST_VERSIONS: Record<string, string> = {
+  http: "7.3.3",
+  common: "3.2.3",
+  dhis2: "8.0.6",
+  googlesheets: "3.1.2",
+  commcare: "3.2.1",
+  openmrs: "4.4.0",
+  twilio: "0.4.13",
+};
+
+export function resolvedAdaptorVersion(specifier: string): string {
+  const { version } = resolveAdaptor(specifier);
+  if (version !== "latest") return version;
+  return LATEST_VERSIONS[adaptorShortName(specifier)] ?? "1.0.0";
+}
+
+/** One operation in the Docs panel's "Adaptor API" list. */
+export interface AdaptorFunction {
+  name: string;
+  params: string[];
+  description: string;
+  example?: string;
+}
+
+const COMMON_FUNCTIONS: AdaptorFunction[] = [
+  { name: "alterState", params: ["func"], description: "Alias for \"fn()\"." },
+  { name: "arrayToString", params: ["arr", "separator"], description: "Turns an array into a string, separated by a given separator." },
+  { name: "as", params: ["key", "operation"], description: "Run an operation and save the result to a custom key in state instead of overwriting state.data." },
+  { name: "chunk", params: ["array", "chunkSize"], description: "Chunks an array into an array of arrays, each with no more than a certain size." },
+  { name: "combine", params: ["operations"], description: "Combines two operations into one." },
+  { name: "cursor", params: ["value", "options"], description: "Sets a cursor property on state." },
+  { name: "dataPath", params: ["path"], description: "Ensures a path points at the data." },
+  { name: "dataValue", params: ["path"], description: "Picks out a single value from the source data object.", example: "dataValue('key')" },
+  { name: "del", params: ["path", "options"], description: "Remove a value from a collection." },
+  { name: "each", params: ["dataSource", "operation"], description: "Scopes an array of data based on a JSONPath." },
+  { name: "field", params: ["key", "value"], description: "Returns a key, value pair in an array." },
+  { name: "fields", params: ["fields"], description: "Zips key value pairs into an object." },
+  {
+    name: "fn",
+    params: ["func"],
+    description: "Creates a custom step (or operation) for more flexible job writing.",
+    example: "fn(state => {\n  // do some things to state\n  return state;\n});",
+  },
+  { name: "fnIf", params: ["condition", "operation"], description: "Execute a function only when the condition returns true." },
+  { name: "group", params: ["arrayOfObjects", "keyPath", "callback"], description: "Groups an array of objects by a specified key path." },
+  { name: "humanProper", params: ["str"], description: "Substitutes underscores for spaces and proper-cases a string." },
+  { name: "lastReferenceValue", params: ["path"], description: "Picks out the last reference value from source data." },
+  { name: "log", params: ["args"], description: "Outputs a message, like calling console.log." },
+  { name: "merge", params: ["dataSource", "fields"], description: "Merges fields into each item in an array." },
+  { name: "parseCsv", params: ["csvData", "parsingOptions", "callback"], description: "Takes a CSV file string or stream and parsing options as input." },
+  { name: "sourceValue", params: ["path"], description: "Picks out a single value from source data." },
+  { name: "split", params: ["obj", "path"], description: "Splits an object into two objects based on a list of keys." },
+];
+
+const HTTP_FUNCTIONS: AdaptorFunction[] = [
+  ...COMMON_FUNCTIONS,
+  { name: "get", params: ["path", "options"], description: "Make a GET request.", example: "get('/myEndpoint', {\n  query: { foo: 'bar' },\n});" },
+  { name: "parseXML", params: ["data", "script"], description: "Parse XML with the Cheerio parser." },
+  { name: "patch", params: ["path", "body", "options"], description: "Make a PATCH request." },
+  { name: "post", params: ["path", "body", "options"], description: "Make a POST request.", example: "post('/myEndpoint', state => state.data);" },
+  { name: "put", params: ["path", "body", "options"], description: "Make a PUT request." },
+  { name: "request", params: ["method", "path", "options"], description: "Make a HTTP request." },
+];
+
+export function adaptorFunctions(specifier: string): AdaptorFunction[] {
+  const fns = adaptorShortName(specifier) === "http" ? HTTP_FUNCTIONS : COMMON_FUNCTIONS;
+  return [...fns].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** Adaptors that never need a credential (Lightning's ADAPTORS_WITHOUT_CREDENTIALS). */
+export const ADAPTORS_WITHOUT_CREDENTIALS = ["common", "http"];

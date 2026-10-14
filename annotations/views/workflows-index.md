@@ -17,6 +17,7 @@ inherits:
   - shared-usage-limits-banner      # :check_limits on_mount and the :banner slot (index.ex:16, :38-44)
   - shared-authenticated-session
   - shared-project-header
+  - shared-local-datetime
 
 url_params:
   - name: q
@@ -77,6 +78,12 @@ flows:
   - flow-delete-open-workflow
   - flow-toggle-workflow-open-editor
   - flow-dashboard-history-drilldown
+  - flow-collaborator-added-email
+  - flow-invite-new-collaborator
+  - flow-require-project-mfa
+  - flow-github-sync-actions
+  - flow-login-return-to
+  - flow-sandbox-merge
 ---
 
 ## 1. Purpose

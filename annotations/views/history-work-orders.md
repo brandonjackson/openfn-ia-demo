@@ -19,6 +19,7 @@ inherits:
   - shared-authenticated-session
   - shared-project-header
   - shared-run-components
+  - shared-local-datetime
 
 url_params:
   - name: filters
@@ -115,6 +116,10 @@ flows:
   - flow-workflow-health-drilldown
   - flow-failure-alert-email
   - flow-digest-email
+  - flow-dashboard-history-drilldown
+  - flow-webhook-auth-method-enforcement
+  - flow-zero-persistence-runs
+  - flow-open-run-in-editor
 ---
 
 ## 1. Purpose

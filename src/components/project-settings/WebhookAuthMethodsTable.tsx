@@ -1,3 +1,4 @@
+import TextLink from "../TextLink";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 import Button from "../Button";
 import { linkedUsageSummary, type WebhookAuthMethod } from "../../mock-data/project-settings";
@@ -49,16 +50,9 @@ export default function WebhookAuthMethodsTable({ authMethods, canWrite, onCreat
             <Td className="text-gray-900">{typeLabel[m.authType]}</Td>
             <Td>
               {summary ? (
-                // A plain anchor rather than TextLink: TextLink doesn't take an id.
-                <a
-                  id={`display_linked_usage_link_${m.id}`}
-                  href="#webhook_security"
-                  className="link"
-                  data-ui="link"
-                  onClick={(e) => (e.preventDefault(), onShowUsage(m))}
-                >
+                <TextLink id={`display_linked_usage_link_${m.id}`} onClick={() => onShowUsage(m)}>
                   {summary}
-                </a>
+                </TextLink>
               ) : (
                 <span className="italic text-gray-300">No associated triggers or channels...</span>
               )}

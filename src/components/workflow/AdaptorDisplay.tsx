@@ -45,12 +45,10 @@ export default function AdaptorDisplay({ adaptor, credentialName = null, onEdit,
           {version === "latest" ? "latest" : `v${version}`}
         </span>
         {hasCredential && (
-          <span title={credentialName} aria-label={`Credential connected: ${credentialName}`} className="min-w-0">
-            <Pill color="green" className="max-w-40">
-              <span className="hero-key h-3 w-3 shrink-0" />
-              <span className="truncate">{credentialName}</span>
-            </Pill>
-          </span>
+          <Pill color="green" title={credentialName} aria-label={`Credential connected: ${credentialName}`} className="max-w-40">
+            <span className="hero-key h-3 w-3 shrink-0" />
+            <span className="truncate">{credentialName}</span>
+          </Pill>
         )}
       </div>
       {onEdit && !isReadOnly && (

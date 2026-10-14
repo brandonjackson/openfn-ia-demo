@@ -5,7 +5,8 @@ import { cn } from "../../utils/cn";
 
 /**
  * The white form card on logged-out pages: half the centred column on
- * desktop, with the controller's error / info flash at the top.
+ * desktop, with the controller's error / info flash at the top. Children
+ * stack in a grid, so buttons stretch to the card's width as in Lightning.
  */
 export default function AuthCard({
   error,
@@ -17,7 +18,7 @@ export default function AuthCard({
   children: ReactNode;
 }) {
   return (
-    <Card padding="lg" className="space-y-4 sm:w-2/3 md:w-1/2">
+    <Card padding="lg" className="grid gap-4 sm:w-2/3 md:w-1/2">
       {error && <Alert type="danger">{error}</Alert>}
       {info && <Alert type="info">{info}</Alert>}
       {children}

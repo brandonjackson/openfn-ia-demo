@@ -24,6 +24,7 @@ const colorClasses: Record<PillColor, string> = {
  */
 export default function Pill({
   id,
+  "aria-label": ariaLabel,
   color = "gray",
   square = false,
   mono = false,
@@ -34,6 +35,7 @@ export default function Pill({
   children,
 }: {
   id?: string;
+  "aria-label"?: string;
   color?: PillColor;
   square?: boolean;
   mono?: boolean;
@@ -49,6 +51,7 @@ export default function Pill({
   return (
     <span
       id={id}
+      aria-label={ariaLabel}
       data-ui="tag"
       title={title}
       className={cn(

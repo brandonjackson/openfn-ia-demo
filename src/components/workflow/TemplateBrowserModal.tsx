@@ -46,11 +46,15 @@ export default function TemplateBrowserModal({ isOpen, onClose, projectId, onCre
           </div>
           <div className="flex flex-col gap-2">
             {visible.map((t) => (
-              <button key={t.id} type="button" onClick={() => setPreviewedId(t.id)} aria-pressed={t.id === previewedId} className="rounded-lg text-left">
-                <Card className={t.id === previewedId ? "border-gray-500" : "hover:bg-gray-50"}>
-                  <TemplateSummary template={t} lines="line-clamp-3" />
-                </Card>
-              </button>
+              <Card
+                key={t.id}
+                as="button"
+                onClick={() => setPreviewedId(t.id)}
+                aria-pressed={t.id === previewedId}
+                className={t.id === previewedId ? "border-gray-500" : "hover:bg-gray-50"}
+              >
+                <TemplateSummary template={t} lines="line-clamp-3" />
+              </Card>
             ))}
             {visible.length === 0 && <p className="py-2 text-gray-500">No saved templates match your search.</p>}
           </div>

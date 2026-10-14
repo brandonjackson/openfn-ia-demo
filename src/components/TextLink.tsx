@@ -16,16 +16,18 @@ interface Props {
   variant?: "default" | "danger";
   /** Hover text. */
   title?: string;
+  id?: string;
+  "aria-label"?: string;
   className?: string;
   children: ReactNode;
 }
 
 /** An inline text link with Lightning's `link` utility (primary-400, underline on hover), or red with `variant="danger"`. */
-export default function TextLink({ to, href, external = false, target, onClick, variant = "default", title, className, children }: Props) {
+export default function TextLink({ to, href, external = false, target, onClick, variant = "default", title, id, "aria-label": ariaLabel, className, children }: Props) {
   const classes = cn("link", variant === "danger" && "link-danger", className);
   if (to && !external) {
     return (
-      <Link to={to} className={classes} title={title} onClick={onClick} data-ui="link">
+      <Link to={to} id={id} aria-label={ariaLabel} className={classes} title={title} onClick={onClick} data-ui="link">
         {children}
       </Link>
     );
@@ -36,6 +38,8 @@ export default function TextLink({ to, href, external = false, target, onClick, 
       href={url ?? "#"}
       target={external ? "_blank" : target}
       rel={external ? "noreferrer" : undefined}
+      id={id}
+      aria-label={ariaLabel}
       className={classes}
       title={title}
       data-ui="link"

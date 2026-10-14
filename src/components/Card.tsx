@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "../utils/cn";
 import SectionHeader from "./SectionHeader";
 
@@ -11,7 +11,7 @@ const paddings: Record<CardPadding, string> = {
   lg: "p-6",
 };
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<HTMLElement>, "title"> {
   /** With a title, description or action, the card opens with a SectionHeader. */
   title?: ReactNode;
   description?: ReactNode;
@@ -21,7 +21,8 @@ interface Props {
   muted?: boolean;
   /** Dashed outline, for drop zones and placeholders. */
   dashed?: boolean;
-  as?: "div" | "section" | "li" | "article";
+  /** `button` makes the whole card one click target (option tiles, list choices). */
+  as?: "div" | "section" | "li" | "article" | "button";
   /** Inventory id for the annotations panel (`data-annotation`). */
   annotation?: string;
   id?: string;
@@ -45,10 +46,13 @@ export default function Card({
   id,
   className,
   children,
+  ...rest
 }: Props) {
   const hasHeader = title || description || action;
   return (
     <Tag
+      {...rest}
+      {...(Tag === "button" ? { type: "button" as const } : {})}
       id={id}
       data-ui="card"
       data-annotation={annotation}
@@ -58,6 +62,8 @@ export default function Card({
         muted ? "bg-gray-50" : !dashed && "bg-white shadow-xs",
         paddings[padding],
         hasHeader && "space-y-4",
+        Tag === "button" &&
+          "block w-full text-left transition-shadow hover:shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600",
         className
       )}
     >

@@ -200,8 +200,12 @@ export default function MiniHistory({
   const selectedRun = history.flatMap((h) => h.runs).find((r) => r.id === selectedRunId);
 
   return (
-    <div className="absolute left-4 top-6 z-40" data-annotation="workflow-editor-versions-and-promote" onPointerDown={(e) => e.stopPropagation()}>
-      <Card padding="none" className="overflow-hidden">
+    <Card
+      padding="none"
+      className="absolute left-4 top-6 z-40 overflow-hidden"
+      data-annotation="workflow-editor-versions-and-promote"
+      onPointerDown={(e) => e.stopPropagation()}
+    >
         <div
           title="⌘ H"
           className={cn(
@@ -222,7 +226,6 @@ export default function MiniHistory({
           </div>
         )}
         {!collapsed && <div className="no-scrollbar max-h-82 overflow-y-auto">{list}</div>}
-      </Card>
-    </div>
+    </Card>
   );
 }

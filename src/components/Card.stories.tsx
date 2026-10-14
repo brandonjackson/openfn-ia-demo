@@ -21,3 +21,4 @@ export const WithHeader: Story = {
 export const Large: Story = { args: { padding: "lg" } };
 export const Muted: Story = { args: { muted: true } };
 export const Dashed: Story = { args: { dashed: true, className: "text-center text-sm text-gray-500", children: "Drop a file here" } };
+export const Clickable: Story = { args: { as: "button", onClick: () => {}, children: "Start from a template" } };

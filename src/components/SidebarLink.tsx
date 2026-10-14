@@ -36,6 +36,7 @@ export default function SidebarLink(props: SidebarLinkProps) {
         href={props.href}
         target="_blank"
         rel="noreferrer"
+        data-ui="nav-link"
         className={`${base} text-gray-700 hover:bg-gray-100 hover:text-gray-900`}
       >
         <Icon size={16} className="flex-shrink-0 text-gray-500" />
@@ -53,6 +54,7 @@ export default function SidebarLink(props: SidebarLinkProps) {
     <Link
       to={props.to}
       aria-current={active ? "page" : undefined}
+      data-ui="nav-link"
       className={`${base} ${
         active
           ? "text-indigo-600 font-medium"

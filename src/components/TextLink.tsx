@@ -20,7 +20,7 @@ const variantClasses = {
 /** An in-app link: record names in tables, a "view more" action, or a link in prose. */
 export default function TextLink({ to, children, variant = "default" }: Props) {
   return (
-    <Link to={to} className={variantClasses[variant]}>
+    <Link to={to} data-ui="link" data-variant={variant} className={variantClasses[variant]}>
       {children}
     </Link>
   );

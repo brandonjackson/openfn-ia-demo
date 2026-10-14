@@ -28,9 +28,12 @@ interface Props {
 }
 
 export default function Badge({ label, tone, icon: Icon }: Props) {
-  const colors = toneClasses[tone ?? labelTones[label] ?? "gray"];
+  const resolvedTone = tone ?? labelTones[label] ?? "gray";
+  const colors = toneClasses[resolvedTone];
   return (
     <span
+      data-ui="tag"
+      data-tone={resolvedTone}
       className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${colors}`}
     >
       {Icon && <Icon size={10} />}

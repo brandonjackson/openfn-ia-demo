@@ -16,8 +16,10 @@
  *
  * `html[data-theme="…"]` (specificity 0,1,1) deliberately outranks the
  * `:root` defaults below, and a handful of scoped utility overrides at
- * the end resolve the few cases a pure token swap can't (GOV.UK green
- * action buttons, square pills and the yellow focus state under GDS).
+ * the end resolve the few cases a pure token swap can't (GOV.UK
+ * buttons, tags, form fields, tables and focus states under GDS). Those
+ * component rules key off `data-ui` hooks the components carry, so they
+ * can never leak into the Basic theme.
  */
 
 /* ============================================================== */
@@ -39,111 +41,132 @@ body {
 }
 
 /* ============================================================== */
-/* GDS — the UK Government Digital Service design system (GOV.UK). */
-/* Black text on white, GOV.UK blue links, green action buttons,   */
-/* square corners, no soft shadows and the yellow focus state.     */
-/* Colours follow the GOV.UK Frontend palette. GDS Transport is    */
-/* licensed for gov.uk only, so we use its published Arial fallback.*/
+/* GDS — the GOV.UK Design System (design-system.service.gov.uk).  */
+/* Every value below comes from GOV.UK Frontend v6 (the 2025       */
+/* brand refresh): its colour palette, functional colours, type    */
+/* scale and component styles. GDS Transport is licensed for       */
+/* gov.uk services only, so we use its published Arial fallback.   */
 /* ============================================================== */
 html[data-theme="gds"] {
-  --app-bg: #ffffff;
-  --app-fg: #0b0c0c;
+  --app-bg: #ffffff; /* body-background */
+  --app-fg: #0b0c0c; /* text */
 
-  --font-sans: "GDS Transport", Arial, sans-serif;
+  --font-sans: "GDS Transport", arial, sans-serif;
   --font-mono: ui-monospace, Menlo, Consolas, "Courier New", monospace;
 
-  /* Neutral — GOV.UK greys: light-grey #f3f2f1, mid-grey #b1b4b6,
-     dark-grey #505a5f, text black #0b0c0c */
-  --color-gray-50: #f8f8f8;
-  --color-gray-100: #f3f2f1;
-  --color-gray-200: #e5e6e7;
-  --color-gray-300: #b1b4b6;
-  --color-gray-400: #949494;
-  --color-gray-500: #6f777b;
-  --color-gray-600: #505a5f;
-  --color-gray-700: #383f43;
-  --color-gray-800: #1d2124;
+  /* GOV.UK uses two weights only: regular 400 and bold 700. */
+  --font-weight-medium: 400;
+  --font-weight-semibold: 700;
+
+  /* GOV.UK type scale (rem at 16px): body-s 16, body 19, heading-m 21,
+     heading-l 27, heading-xl 32. Tailwind sizes step onto it. */
+  --text-xs: 0.875rem;   --text-xs--line-height: 1.1428571429;
+  --text-sm: 1rem;       --text-sm--line-height: 1.25;
+  --text-base: 1.1875rem; --text-base--line-height: 1.3157894737;
+  --text-lg: 1.3125rem;  --text-lg--line-height: 1.1904761905;
+  --text-xl: 1.5rem;     --text-xl--line-height: 1.25;
+  --text-2xl: 1.6875rem; --text-2xl--line-height: 1.1111111111;
+  --text-3xl: 2rem;      --text-3xl--line-height: 1.09375;
+
+  /* Neutral — GOV.UK black + its tints: secondary text #484949,
+     border/hover #cecece, light surface #f3f3f3 */
+  --color-gray-50: #f3f3f3;
+  --color-gray-100: #f3f3f3;
+  --color-gray-200: #cecece;
+  --color-gray-300: #cecece;
+  --color-gray-400: #858686;
+  --color-gray-500: #484949;
+  --color-gray-600: #484949;
+  --color-gray-700: #0b0c0c;
+  --color-gray-800: #0b0c0c;
   --color-gray-900: #0b0c0c;
-  --color-gray-950: #000000;
+  --color-gray-950: #0b0c0c;
 
-  /* Primary / interactive — GOV.UK blue #1d70b8, dark blue #003078.
-     Drives blue + indigo + violet + teal utilities across the app. */
-  --color-blue-50: #e8f1f8;   --color-indigo-50: #e8f1f8;  --color-violet-50: #e8f1f8;  --color-teal-50: #e8f1f8;
-  --color-blue-100: #d2e2f1;  --color-indigo-100: #d2e2f1; --color-violet-100: #d2e2f1; --color-teal-100: #d2e2f1;
-  --color-blue-200: #a5c6e3;  --color-indigo-200: #a5c6e3; --color-violet-200: #a5c6e3; --color-teal-200: #a5c6e3;
-  --color-blue-300: #77a9d4;  --color-indigo-300: #77a9d4; --color-violet-300: #77a9d4; --color-teal-300: #77a9d4;
-  --color-blue-400: #5694ca;  --color-indigo-400: #5694ca; --color-violet-400: #5694ca; --color-teal-400: #5694ca;
-  --color-blue-500: #1d70b8;  --color-indigo-500: #1d70b8; --color-violet-500: #1d70b8; --color-teal-500: #1d70b8;
-  --color-blue-600: #1d70b8;  --color-indigo-600: #1d70b8; --color-violet-600: #1d70b8; --color-teal-600: #1d70b8;
-  --color-blue-700: #003078;  --color-indigo-700: #003078; --color-violet-700: #003078; --color-teal-700: #003078;
-  --color-blue-800: #002a6b;  --color-indigo-800: #002a6b; --color-violet-800: #002a6b; --color-teal-800: #002a6b;
-  --color-blue-900: #00205c;  --color-indigo-900: #00205c; --color-violet-900: #00205c; --color-teal-900: #00205c;
-  --color-blue-950: #001640;  --color-indigo-950: #001640; --color-violet-950: #001640; --color-teal-950: #001640;
+  /* Primary — GOV.UK blue: brand #1d70b8, link #1a65a6,
+     link-hover #0f385c, surface #f4f8fb. Drives blue + indigo +
+     violet utilities across the app. */
+  --color-blue-50: #f4f8fb;   --color-indigo-50: #f4f8fb;  --color-violet-50: #f4f8fb;
+  --color-blue-100: #d2e2f1;  --color-indigo-100: #d2e2f1; --color-violet-100: #d2e2f1;
+  --color-blue-200: #8eb8dc;  --color-indigo-200: #8eb8dc; --color-violet-200: #8eb8dc;
+  --color-blue-300: #8eb8dc;  --color-indigo-300: #8eb8dc; --color-violet-300: #8eb8dc;
+  --color-blue-400: #5694ca;  --color-indigo-400: #5694ca; --color-violet-400: #5694ca;
+  --color-blue-500: #1d70b8;  --color-indigo-500: #1d70b8; --color-violet-500: #1d70b8;
+  --color-blue-600: #1a65a6;  --color-indigo-600: #1d70b8; --color-violet-600: #1d70b8;
+  --color-blue-700: #0f385c;  --color-indigo-700: #16548a; --color-violet-700: #16548a;
+  --color-blue-800: #0f385c;  --color-indigo-800: #0f385c; --color-violet-800: #0f385c;
+  --color-blue-900: #0f385c;  --color-indigo-900: #0f385c; --color-violet-900: #0f385c;
+  --color-blue-950: #0f385c;  --color-indigo-950: #0f385c; --color-violet-950: #0f385c;
 
-  /* Success — GOV.UK green #00703c */
-  --color-green-50: #e5f1eb;   --color-emerald-50: #e5f1eb;
-  --color-green-100: #cce2d8;  --color-emerald-100: #cce2d8;
-  --color-green-200: #99c6b1;  --color-emerald-200: #99c6b1;
-  --color-green-300: #66a98a;  --color-emerald-300: #66a98a;
-  --color-green-400: #338d63;  --color-emerald-400: #338d63;
-  --color-green-500: #00703c;  --color-emerald-500: #00703c;
-  --color-green-600: #00703c;  --color-emerald-600: #00703c;
-  --color-green-700: #005a30;  --color-emerald-700: #005a30;
-  --color-green-800: #004424;  --color-emerald-800: #004424;
-  --color-green-900: #002d18;  --color-emerald-900: #002d18;
-  --color-green-950: #00170c;  --color-emerald-950: #00170c;
+  /* Teal — GOV.UK teal #158187 */
+  --color-teal-50: #f3f9f9;  --color-teal-100: #d0e6e7; --color-teal-200: #8ac0c3;
+  --color-teal-300: #8ac0c3; --color-teal-400: #50a1a5; --color-teal-500: #158187;
+  --color-teal-600: #158187; --color-teal-700: #106165; --color-teal-800: #0b4144;
+  --color-teal-900: #0b4144; --color-teal-950: #0b4144;
+
+  /* Success — GOV.UK green #0f7a52 */
+  --color-green-50: #f3f8f6;   --color-emerald-50: #f3f8f6;
+  --color-green-100: #cfe4dc;  --color-emerald-100: #cfe4dc;
+  --color-green-200: #87bca8;  --color-emerald-200: #87bca8;
+  --color-green-300: #87bca8;  --color-emerald-300: #87bca8;
+  --color-green-400: #4b9b7d;  --color-emerald-400: #4b9b7d;
+  --color-green-500: #0f7a52;  --color-emerald-500: #0f7a52;
+  --color-green-600: #0f7a52;  --color-emerald-600: #0f7a52;
+  --color-green-700: #0b5c3e;  --color-emerald-700: #0b5c3e;
+  --color-green-800: #083d29;  --color-emerald-800: #083d29;
+  --color-green-900: #083d29;  --color-emerald-900: #083d29;
+  --color-green-950: #083d29;  --color-emerald-950: #083d29;
 
   /* Warning — GOV.UK yellow #ffdd00 and orange #f47738 */
-  --color-amber-50: #fffbe0;   --color-yellow-50: #fffbe0;  --color-orange-50: #fef1eb;
-  --color-amber-100: #fff7bf;  --color-yellow-100: #fff7bf; --color-orange-100: #fde4d7;
-  --color-amber-200: #fff1a3;  --color-yellow-200: #fff1a3; --color-orange-200: #fbc9af;
-  --color-amber-300: #ffe766;  --color-yellow-300: #ffe766; --color-orange-300: #f8a47a;
+  --color-amber-50: #fffdf2;   --color-yellow-50: #fffdf2;  --color-orange-50: #fef8f5;
+  --color-amber-100: #fff8cc;  --color-yellow-100: #fff8cc; --color-orange-100: #fde4d7;
+  --color-amber-200: #ffee80;  --color-yellow-200: #ffee80; --color-orange-200: #fabb9c;
+  --color-amber-300: #ffe640;  --color-yellow-300: #ffe640; --color-orange-300: #f7996a;
   --color-amber-400: #ffdd00;  --color-yellow-400: #ffdd00; --color-orange-400: #f47738;
-  --color-amber-500: #f0c800;  --color-yellow-500: #f0c800; --color-orange-500: #f47738;
-  --color-amber-600: #b58e00;  --color-yellow-600: #b58e00; --color-orange-600: #c35b26;
-  --color-amber-700: #594d00;  --color-yellow-700: #594d00; --color-orange-700: #6e3619;
-  --color-amber-800: #453c00;  --color-yellow-800: #453c00; --color-orange-800: #552a13;
-  --color-amber-900: #2e2800;  --color-yellow-900: #2e2800; --color-orange-900: #3a1d0d;
-  --color-amber-950: #171400;  --color-yellow-950: #171400; --color-orange-950: #1d0e06;
+  --color-amber-500: #bfa600;  --color-yellow-500: #bfa600; --color-orange-500: #f47738;
+  --color-amber-600: #b7592a;  --color-yellow-600: #806f00; --color-orange-600: #b7592a;
+  --color-amber-700: #7a3c1c;  --color-yellow-700: #7a3c1c; --color-orange-700: #7a3c1c;
+  --color-amber-800: #7a3c1c;  --color-yellow-800: #7a3c1c; --color-orange-800: #7a3c1c;
+  --color-amber-900: #7a3c1c;  --color-yellow-900: #7a3c1c; --color-orange-900: #7a3c1c;
+  --color-amber-950: #7a3c1c;  --color-yellow-950: #7a3c1c; --color-orange-950: #7a3c1c;
 
-  /* Error — GOV.UK red #d4351c */
-  --color-red-50: #fbebe8;   --color-rose-50: #fbebe8;
-  --color-red-100: #f6d7d2;  --color-rose-100: #f6d7d2;
-  --color-red-200: #eeaea4;  --color-rose-200: #eeaea4;
-  --color-red-300: #e58677;  --color-rose-300: #e58677;
-  --color-red-400: #dd5d49;  --color-rose-400: #dd5d49;
-  --color-red-500: #d4351c;  --color-rose-500: #d4351c;
-  --color-red-600: #d4351c;  --color-rose-600: #d4351c;
-  --color-red-700: #aa2a16;  --color-rose-700: #aa2a16;
-  --color-red-800: #942514;  --color-rose-800: #942514;
-  --color-red-900: #6a1b0e;  --color-rose-900: #6a1b0e;
-  --color-red-950: #350d07;  --color-rose-950: #350d07;
+  /* Error — GOV.UK red #ca3535 */
+  --color-red-50: #fcf5f5;   --color-rose-50: #fcf5f5;
+  --color-red-100: #f4d7d7;  --color-rose-100: #f4d7d7;
+  --color-red-200: #e59a9a;  --color-rose-200: #e59a9a;
+  --color-red-300: #e59a9a;  --color-rose-300: #e59a9a;
+  --color-red-400: #d76868;  --color-rose-400: #d76868;
+  --color-red-500: #ca3535;  --color-rose-500: #ca3535;
+  --color-red-600: #ca3535;  --color-rose-600: #ca3535;
+  --color-red-700: #982828;  --color-rose-700: #982828;
+  --color-red-800: #651b1b;  --color-rose-800: #651b1b;
+  --color-red-900: #651b1b;  --color-rose-900: #651b1b;
+  --color-red-950: #651b1b;  --color-rose-950: #651b1b;
 
-  /* Info — GOV.UK light blue #5694ca / turquoise #28a197 */
-  --color-sky-50: #eef4fa;   --color-cyan-50: #e9f6f5;
-  --color-sky-100: #dde9f4;  --color-cyan-100: #d4ecea;
-  --color-sky-200: #bbd4ea;  --color-cyan-200: #a9d9d5;
-  --color-sky-300: #9abfdf;  --color-cyan-300: #7ec7c1;
-  --color-sky-400: #78a9d5;  --color-cyan-400: #53b4ac;
-  --color-sky-500: #5694ca;  --color-cyan-500: #28a197;
-  --color-sky-600: #1d70b8;  --color-cyan-600: #1f7d75;
-  --color-sky-700: #003078;  --color-cyan-700: #175e58;
-  --color-sky-800: #002a6b;  --color-cyan-800: #103f3b;
-  --color-sky-900: #00205c;  --color-cyan-900: #0a2826;
-  --color-sky-950: #001640;  --color-cyan-950: #051413;
+  /* Info — GOV.UK light blue (sky) and teal (cyan) */
+  --color-sky-50: #f4f8fb;   --color-cyan-50: #f3f9f9;
+  --color-sky-100: #d2e2f1;  --color-cyan-100: #d0e6e7;
+  --color-sky-200: #8eb8dc;  --color-cyan-200: #8ac0c3;
+  --color-sky-300: #8eb8dc;  --color-cyan-300: #8ac0c3;
+  --color-sky-400: #5694ca;  --color-cyan-400: #50a1a5;
+  --color-sky-500: #1d70b8;  --color-cyan-500: #158187;
+  --color-sky-600: #1d70b8;  --color-cyan-600: #158187;
+  --color-sky-700: #16548a;  --color-cyan-700: #106165;
+  --color-sky-800: #0f385c;  --color-cyan-800: #0b4144;
+  --color-sky-900: #0f385c;  --color-cyan-900: #0b4144;
+  --color-sky-950: #0f385c;  --color-cyan-950: #0b4144;
 
-  /* Category accent — GOV.UK purple #4c2c92 */
-  --color-purple-50: #edeaf4;
-  --color-purple-100: #dbd5e9;
-  --color-purple-200: #b7abd3;
-  --color-purple-300: #9480be;
-  --color-purple-400: #7056a8;
-  --color-purple-500: #4c2c92;
-  --color-purple-600: #4c2c92;
-  --color-purple-700: #3d2375;
-  --color-purple-800: #2e1a58;
-  --color-purple-900: #1e123a;
-  --color-purple-950: #0f091d;
+  /* Category accent — GOV.UK purple #54319f (also link-visited) */
+  --color-purple-50: #f6f5fa;
+  --color-purple-100: #ddd6ec;
+  --color-purple-200: #aa98cf;
+  --color-purple-300: #aa98cf;
+  --color-purple-400: #7f65b7;
+  --color-purple-500: #54319f;
+  --color-purple-600: #54319f;
+  --color-purple-700: #3f2577;
+  --color-purple-800: #2a1950;
+  --color-purple-900: #2a1950;
+  --color-purple-950: #2a1950;
 
   /* Radius — GOV.UK components are square */
   --radius-xs: 0px;
@@ -154,49 +177,238 @@ html[data-theme="gds"] {
   --radius-2xl: 0px;
   --radius-3xl: 0px;
 
-  /* Shadows — GOV.UK is flat; borders do the separating work */
+  /* Shadows — GOV.UK is flat; borders do the separating work.
+     Menus and dialogs keep a hairline so they still read as raised. */
   --shadow-xs: none;
   --shadow-sm: none;
   --shadow-md: none;
-  --shadow-lg: 0 2px 0 0 #b1b4b6;
-  --shadow-xl: 0 2px 0 0 #b1b4b6;
+  --shadow-lg: 0 0 0 1px #cecece;
+  --shadow-xl: 0 0 0 1px #cecece;
+}
+
+html[data-theme="gds"] body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ============================================================== */
-/* Scoped utility fixes — the few cases a pure token swap can't do */
+/* GDS component rules — mirror the GOV.UK Frontend components     */
 /* ============================================================== */
 
-/* GDS: primary action buttons are GOV.UK green with the signature
-   2px dark-green "pressable" bottom edge. Scoped to buttons and links
-   so blue-600 fills elsewhere (badges, progress) stay GOV.UK blue. */
-html[data-theme="gds"] :is(button, a).bg-blue-600,
-html[data-theme="gds"] :is(button, a).bg-indigo-600 {
-  background-color: #00703c;
-  box-shadow: 0 2px 0 #002d18;
+/* Button (govuk-button): green, 2px "pressable" bottom edge, regular
+   weight, sinks 2px when pressed. Hand-rolled action buttons in the
+   workflow editor get the same treatment. */
+html[data-theme="gds"] [data-ui="button"],
+html[data-theme="gds"] button:is(.bg-blue-600, .bg-indigo-600):not(.rounded-full) {
+  position: relative;
+  border: 2px solid transparent;
+  font-weight: 400;
 }
-html[data-theme="gds"] :is(button, a).bg-blue-600:hover,
-html[data-theme="gds"] :is(button, a).bg-indigo-600:hover,
-html[data-theme="gds"] :is(button, a).bg-blue-700,
-html[data-theme="gds"] :is(button, a).bg-indigo-700 {
-  background-color: #005a30;
+html[data-theme="gds"] [data-ui="button"] {
+  white-space: nowrap;
+}
+html[data-theme="gds"] [data-ui="button"]:active:not(:disabled) {
+  top: 2px;
+}
+html[data-theme="gds"] [data-ui="button"][data-variant="primary"],
+html[data-theme="gds"] button:is(.bg-blue-600, .bg-indigo-600):not(.rounded-full) {
+  background-color: #0f7a52;
+  color: #ffffff;
+  box-shadow: 0 2px 0 #083d29;
+}
+html[data-theme="gds"] [data-ui="button"][data-variant="primary"]:hover:not(:disabled),
+html[data-theme="gds"] button:is(.bg-blue-600, .bg-indigo-600):not(.rounded-full):hover {
+  background-color: #0b5c3e;
+}
+/* Secondary (govuk-button--secondary). Our outline-primary maps here too. */
+html[data-theme="gds"] [data-ui="button"]:is([data-variant="secondary"], [data-variant="outline-primary"]) {
+  border-color: transparent;
+  background-color: #f3f3f3;
+  color: #0b0c0c;
+  box-shadow: 0 2px 0 #858686;
+}
+html[data-theme="gds"] [data-ui="button"]:is([data-variant="secondary"], [data-variant="outline-primary"]):hover:not(:disabled) {
+  background-color: #cecece;
+}
+/* Warning (govuk-button--warning). Outline-danger maps here too. */
+html[data-theme="gds"] [data-ui="button"]:is([data-variant="danger"], [data-variant="outline-danger"]) {
+  border-color: transparent;
+  background-color: #ca3535;
+  color: #ffffff;
+  box-shadow: 0 2px 0 #651b1b;
+}
+html[data-theme="gds"] [data-ui="button"]:is([data-variant="danger"], [data-variant="outline-danger"]):hover:not(:disabled) {
+  background-color: #982828;
+}
+html[data-theme="gds"] [data-ui="button"][data-variant="dark"] {
+  background-color: #0b0c0c;
+  color: #ffffff;
+  box-shadow: 0 2px 0 #484949;
+}
+/* Text-only buttons read as GOV.UK links. */
+html[data-theme="gds"] [data-ui="button"]:is([data-variant="ghost"], [data-variant="link-danger"]) {
+  border: 0;
+  text-decoration: underline;
+  text-decoration-thickness: max(1px, 0.0625rem);
+  text-underline-offset: 0.1578em;
+}
+html[data-theme="gds"] [data-ui="button"][data-variant="ghost"] {
+  color: #1a65a6;
+}
+html[data-theme="gds"] [data-ui="button"]:is([data-variant="ghost"], [data-variant="link-danger"]):hover {
+  background-color: transparent;
+  text-decoration-thickness: max(3px, 0.1875rem, 0.12em);
+}
+html[data-theme="gds"] [data-ui="button"][data-variant="ghost"]:hover {
+  color: #0f385c;
 }
 
-/* GDS: pills become rectangles (badges, tags), but keep true circles
-   such as avatars and status dots round. */
-html[data-theme="gds"] .rounded-full:not([class*="w-"]) {
+/* Tag (govuk-tag): 1px radius, regular weight, tinted fill with the
+   palette's shade-50 text. */
+html[data-theme="gds"] [data-ui="tag"] {
+  border-radius: 1px;
+  padding: 2px 8px 3px;
+  font-weight: 400;
+}
+html[data-theme="gds"] [data-ui="tag"][data-tone="blue"]   { color: #0f385c; background-color: #d2e2f1; }
+html[data-theme="gds"] [data-ui="tag"][data-tone="green"]  { color: #083d29; background-color: #cfe4dc; }
+html[data-theme="gds"] [data-ui="tag"][data-tone="yellow"] { color: #7a3c1c; background-color: #ffee80; }
+html[data-theme="gds"] [data-ui="tag"][data-tone="red"]    { color: #651b1b; background-color: #f4d7d7; }
+html[data-theme="gds"] [data-ui="tag"][data-tone="purple"] { color: #2a1950; background-color: #ddd6ec; }
+html[data-theme="gds"] [data-ui="tag"][data-tone="gray"]   { color: #0b0c0c; background-color: #cecece; }
+
+/* Pills elsewhere become rectangles, but true circles (avatars, status
+   dots, toggles, all of which set a width) stay round. */
+html[data-theme="gds"] .rounded-full:not([class*="w-"]):not([data-ui="tag"]) {
   border-radius: 0;
 }
 
-/* GDS: the GOV.UK focus state — yellow fill, black underline bar. */
-html[data-theme="gds"] :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+/* Links (govuk-link): always underlined, thicker underline on hover. */
+html[data-theme="gds"] [data-ui="link"]:is([data-variant="action"], [data-variant="inline"]) {
+  color: #1a65a6;
+  text-decoration: underline;
+  text-decoration-thickness: max(1px, 0.0625rem);
+  text-underline-offset: 0.1578em;
+}
+html[data-theme="gds"] [data-ui="link"]:is([data-variant="action"], [data-variant="inline"]):hover {
+  color: #0f385c;
+  text-decoration-thickness: max(3px, 0.1875rem, 0.12em);
+}
+html[data-theme="gds"] [data-ui="link"][data-variant="default"]:hover {
+  color: #0f385c;
+  text-decoration-thickness: max(3px, 0.1875rem, 0.12em);
+}
+
+/* Side navigation: GOV.UK service-navigation style. Black text, the
+   current page marked with a 4px brand-blue bar and bold weight. */
+html[data-theme="gds"] [data-ui="nav-link"] {
+  color: #0b0c0c;
+  border-left: 4px solid transparent;
+}
+html[data-theme="gds"] [data-ui="nav-link"] svg {
+  color: currentColor;
+}
+html[data-theme="gds"] [data-ui="nav-link"]:hover {
+  background-color: transparent;
+  color: #0f385c;
+  text-decoration: underline;
+  text-decoration-thickness: max(3px, 0.1875rem, 0.12em);
+  text-underline-offset: 0.1578em;
+}
+html[data-theme="gds"] [data-ui="nav-link"][aria-current="page"] {
+  border-left-color: #1d70b8;
+  color: #0b0c0c;
+  font-weight: 700;
+  background-color: transparent;
+}
+html[data-theme="gds"] [data-ui="nav-link"][aria-current="page"] svg {
+  color: #1d70b8;
+}
+
+/* GOV.UK sets labels and captions in sentence case, never all caps. */
+html[data-theme="gds"] .uppercase {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* Form fields (govuk-input / textarea / select): 2px black border. */
+html[data-theme="gds"] :is(input:not([type="radio"], [type="checkbox"], [type="range"]), textarea, select) {
+  border: 2px solid #0b0c0c;
+  border-radius: 0;
+  background-color: #ffffff;
+  color: #0b0c0c;
+}
+html[data-theme="gds"] :is(input:not([type="radio"], [type="checkbox"], [type="range"]), textarea, select):disabled {
+  opacity: 0.5;
+  background-color: transparent;
+}
+html[data-theme="gds"] :is(input[type="radio"], input[type="checkbox"]) {
+  accent-color: #0b0c0c;
+}
+
+/* Callouts: GOV.UK notification banner / error summary pattern — a
+   heavy 5px coloured border on white. */
+html[data-theme="gds"] [data-ui="callout"] {
+  border: 5px solid #1d70b8;
+  background-color: #ffffff;
+}
+html[data-theme="gds"] [data-ui="callout"][data-tone="success"] { border-color: #0f7a52; }
+html[data-theme="gds"] [data-ui="callout"][data-tone="danger"]  { border-color: #ca3535; }
+html[data-theme="gds"] [data-ui="callout"][data-tone="warning"] { border-color: #f47738; }
+html[data-theme="gds"] [data-ui="callout"] :is(h3, div, p) {
+  color: #0b0c0c;
+}
+
+/* Table (govuk-table): no outer frame, bold black sentence-case
+   headers, black cells, #cecece row rules. */
+html[data-theme="gds"] [data-ui="table"] {
+  border: 0;
+  background-color: transparent;
+}
+html[data-theme="gds"] [data-ui="table"] thead tr {
+  background-color: transparent;
+  border-bottom: 1px solid #cecece;
+}
+html[data-theme="gds"] [data-ui="table"] th {
+  padding-left: 0;
+  color: #0b0c0c;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
+}
+html[data-theme="gds"] [data-ui="table"] td {
+  padding-left: 0;
+  color: #0b0c0c;
+}
+html[data-theme="gds"] [data-ui="table"] tbody tr {
+  border-bottom: 1px solid #cecece;
+}
+html[data-theme="gds"] [data-ui="table"] tbody tr:hover {
+  background-color: transparent;
+}
+
+/* Focus (GOV.UK focus states): links and text controls get a yellow
+   fill with a black underline bar; buttons turn yellow with a black
+   bottom edge; form fields get a yellow outline plus a thick border. */
+html[data-theme="gds"] :focus-visible {
+  transition: none;
+}
+html[data-theme="gds"] :is(a, [role="button"], [tabindex]):focus-visible {
   outline: 3px solid transparent;
   background-color: #ffdd00;
   color: #0b0c0c;
   box-shadow: 0 -2px #ffdd00, 0 4px #0b0c0c;
   text-decoration: none;
 }
-html[data-theme="gds"] :is(input, select, textarea):focus-visible {
-  background-color: #ffffff;
+html[data-theme="gds"] :is(button, [data-ui="button"][data-variant]):focus-visible:not(:active) {
+  outline: 3px solid transparent;
+  border-color: #ffdd00;
+  background-color: #ffdd00;
+  color: #0b0c0c;
+  box-shadow: 0 2px 0 #0b0c0c;
+}
+html[data-theme="gds"] :is(input, select, textarea):focus-visible,
+html[data-theme="gds"] :is(input, select, textarea):focus {
   outline: 3px solid #ffdd00;
   outline-offset: 0;
   box-shadow: inset 0 0 0 2px #0b0c0c;

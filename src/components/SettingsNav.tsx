@@ -43,6 +43,7 @@ export default function SettingsNav({ items, activeId, onSelect, ariaLabel = "Se
               key={item.id}
               to={item.to}
               aria-current={isActive ? "page" : undefined}
+              data-ui="nav-link"
               className={className}
             >
               {content}
@@ -52,6 +53,7 @@ export default function SettingsNav({ items, activeId, onSelect, ariaLabel = "Se
               key={item.id}
               type="button"
               aria-current={isActive ? "page" : undefined}
+              data-ui="nav-link"
               onClick={() => onSelect?.(item.id)}
               className={className}
             >

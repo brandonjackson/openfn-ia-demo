@@ -20,7 +20,7 @@ interface Props<T> {
  */
 export default function DataTable<T>({ columns, rows, getRowKey, emptyMessage = "Nothing here yet." }: Props<T>) {
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+    <div data-ui="table" className="overflow-hidden rounded-lg border border-gray-200 bg-white">
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200 bg-gray-50">

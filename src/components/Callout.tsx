@@ -26,7 +26,7 @@ export default function Callout({ variant = "info", title, icon, children }: Pro
   const s = styles[variant];
   const Icon = icon ?? s.Icon;
   return (
-    <div className={`rounded-lg px-5 py-4 ${s.box}`}>
+    <div data-ui="callout" data-tone={variant} className={`rounded-lg px-5 py-4 ${s.box}`}>
       <div className="flex items-start gap-3">
         <Icon size={18} className={`flex-shrink-0 mt-0.5 ${s.icon}`} />
         <div className="flex-1 min-w-0">

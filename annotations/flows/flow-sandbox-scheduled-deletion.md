@@ -15,6 +15,7 @@ trigger:
     - controller:webhooks
     - workflows-index
     - oban:purge_deleted
+    - workflow-editor-canvas   # added by lead (link lint)
   reachable_when:
     - sandboxes-index: the row is a sandbox (not the workspace root), not already scheduled, and the viewer is owner or admin on it or on the root (index.ex:107-127, :718-735; policies/sandboxes.ex:155-166)
     - project-settings-setup: the project is a sandbox and the viewer is its owner (settings.ex:262-276, settings.html.heex:296-303)
@@ -289,7 +290,7 @@ Feature: Delete a sandbox
 
 - Should deleting from sandbox settings schedule the subtree like the list does, or should the modal stop promising a grace period?
 - Should restoring a child be refused, or cascade upward, while its parent is scheduled?
-- Where should a viewer land after deleting a sandbox they are in: parent's sandboxes, root's workflows, or their access root? Product (Brandon's team) for the list; this flow needs one answer for both entries.
+- Where should a viewer land after deleting a sandbox they are in: parent's sandboxes, root's workflows, or their access root? (owner: product) for the list; this flow needs one answer for both entries.
 - Should sandbox members be emailed, as root-project members are?
 - Is the editor's "archive sandbox" an entry to this flow or to flow-sandbox-merge?
 

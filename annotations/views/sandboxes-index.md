@@ -19,6 +19,7 @@ inherits:
   - shared-project-scope            # on_mount :project_scope (index.ex:27); access_root and project_label come from it (hooks.ex:104-119); S10 and S11 are the receiving end when a sandbox is deleted or merged here
   - shared-usage-limits-banner      # on_mount :check_limits and the :banner slot (index.ex:28, :556-562)
   - shared-project-header           # breadcrumbs, project picker, side menu with :sandboxes active (index.ex:36, :563-577)
+  - shared-flash-messages   # added by lead (final pass)
 
 url_params:
   - name: project_id
@@ -95,6 +96,7 @@ flows:
   - flow-sandbox-merge
   - flow-sandbox-scheduled-deletion
   - flow-github-sync-actions           # referenced; sandboxes-index needs adding to its surfaces as a third entry (merge dispatches openfn-pull.yml)
+  - flow-edit-in-sandbox
 ---
 
 ## 1. Purpose
@@ -711,7 +713,7 @@ Feature: Sandboxes
 
 ## 8. Open questions
 
-- Which project should a viewer land on after deleting the sandbox they're in: the parent (code), the root named in the modal copy, or their access root (6.1)? Product (Brandon's team).
+- Which project should a viewer land on after deleting the sandbox they're in: the parent (code), the root named in the modal copy, or their access root (6.1)? (owner: product).
 - Should the list show the sandbox hierarchy rather than a flat, name-sorted list (6.2)?
 - Should "Deleted in sandbox" be based on the sandbox's own version history instead of its creation time, so merges into siblings and grandparents are labelled correctly (6.1)?
 - Should restore re-enable the triggers deletion turned off, or tell the user they stay off (6.2)?

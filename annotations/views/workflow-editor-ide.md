@@ -22,6 +22,7 @@ inherits:
   - shared-editor-session
   - shared-adaptor-credential-config
   - shared-run-retry-controls
+  - shared-flash-messages   # added by lead (final pass)
 
 url_params:
   - name: panel
@@ -136,6 +137,9 @@ flows:
   - flow-oauth-credential-authorize         # "Connect" in the IDE header leads to the credential modal; S16 asserts the handoff
   - flow-open-run-in-editor                 # step inspect links land here (flow S02); S19 asserts the landing
   - flow-workflow-api-edit-conflict
+  - flow-restore-version-open-editor
+  - flow-editor-credentials-broadcast
+  - flow-adaptor-catalogue-update
 ---
 
 ## 1. Purpose

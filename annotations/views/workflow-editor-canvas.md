@@ -22,6 +22,7 @@ inherits:
   - shared-editor-session
   - shared-run-retry-controls
   - shared-adaptor-credential-config
+  - shared-flash-messages   # added by lead (final pass)
 
 url_params:
   - name: run
@@ -136,6 +137,11 @@ flows:
   - flow-resend-account-confirmation
   - flow-workflow-api-edit-conflict
   - flow-legacy-editor-redirect
+  - flow-ai-session-collaborators
+  - flow-account-revocation-teardown
+  - flow-restore-version-open-editor
+  - flow-edit-in-sandbox
+  - flow-adaptor-catalogue-update
 ---
 
 ## 1. Purpose

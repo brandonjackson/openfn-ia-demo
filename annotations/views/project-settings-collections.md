@@ -21,6 +21,7 @@ inherits:
   - shared-project-header
   - shared-project-settings-tab-chrome    # tab navigation (S01 to S04), role notice (S06 row "editor | Collections"), sandbox editable banner (S08 row "Collections", collections_component.ex:290-294)
   - shared-dataclip-body-viewer
+  - shared-flash-messages   # added by lead (final pass)
 
 url_params:
   - name: "#collections (URL fragment)"
@@ -72,6 +73,7 @@ related:
   - lib/lightning/projects/sandboxes.ex     # sandbox creation clones collection names empty (:1409-1414); merge creates missing names, never deletes (:1448-1470)
 flows:
   - flow-download-collection
+  - flow-admin-collection-reaches-project   # added by lead (link lint)
 ---
 
 ## 1. Purpose
@@ -482,9 +484,9 @@ Feature: Project collections
 
 ## 8. Open questions
 
-- Renaming or deleting a collection gives no warning that jobs referring to it by name will stop finding it. Should the rebuild show which workflows use a collection, or warn on rename and delete? Product (Brandon's team) owns the intended behaviour.
+- Renaming or deleting a collection gives no warning that jobs referring to it by name will stop finding it. Should the rebuild show which workflows use a collection, or warn on rename and delete? (owner: product)
 - Should create, rename and delete be audited (6.2)?
-- In a sandbox, the banner says changes sync to the parent on merge, but merge only creates missing names and never renames or deletes (`sandboxes.ex:1448-1470`); a rename in a sandbox therefore adds a second, empty collection to the parent. This is the collections half of shared-project-settings-tab-chrome 6.1; Product (Brandon's team) to decide which side changes.
+- In a sandbox, the banner says changes sync to the parent on merge, but merge only creates missing names and never renames or deletes (`sandboxes.ex:1448-1470`); a rename in a sandbox therefore adds a second, empty collection to the parent. This is the collections half of shared-project-settings-tab-chrome 6.1; (owner: product) to decide which side changes.
 - Should the list paginate (6.4), and should sort state live in the URL once the tab has its own route?
 - Is the 6.1 `project_id` cast on rename covered by any security review? It should be fixed before or during migration either way.
 

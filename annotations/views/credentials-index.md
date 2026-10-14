@@ -17,6 +17,7 @@ trigger:
 inherits:
   - shared-credential-index-component    # the three tables, row action menus, OAuth client delete, cancel scheduled deletion, keychain handling (not reachable here)
   - shared-authenticated-session
+  - shared-flash-messages   # added by lead (final pass)
 
 url_params: []                           # live_action :index only (router.ex:322, index.ex:24-27); no params read
 
@@ -110,6 +111,7 @@ flows:
   - flow-credential-transfer
   - flow-oauth-credential-authorize
   - flow-credential-scheduled-deletion
+  - flow-editor-credentials-broadcast
 ---
 
 ## 1. Purpose

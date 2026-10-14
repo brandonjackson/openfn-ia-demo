@@ -25,6 +25,7 @@ inherits:
   - shared-adaptor-credential-config
   - shared-run-retry-controls
   - shared-workflow-yaml-format
+  - shared-flash-messages   # added by lead (final pass)
 
 url_params:
   - name: job
@@ -130,6 +131,8 @@ related:
 flows:
   - flow-oauth-credential-authorize           # entry from "New credential" or the edit pencil in Configure connection
   - flow-webhook-auth-method-enforcement      # this view is its attach hop (Finish in the trigger wizard)
+  - flow-editor-credentials-broadcast
+  - flow-adaptor-catalogue-update
 ---
 
 ## 1. Purpose

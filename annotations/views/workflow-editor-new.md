@@ -19,6 +19,7 @@ inherits:
   - shared-usage-limits-banner        # on_mount :check_limits and the :banner slot (collaborate.ex:27, :238-242)
   - shared-editor-session
   - shared-workflow-yaml-format
+  - shared-flash-messages   # added by lead (final pass)
 
 url_params:
   - name: id
@@ -106,7 +107,7 @@ related:
   - assets/test/collaborative-editor/components/yaml-import/{YAMLImportModal,YAMLFileDropzone}.test.tsx
   - assets/test/collaborative-editor/stores/createUIStore.{landing-screen,modals}.test.ts
 flows:
-  - flow-register-first-workflow   # proposed, held for auth-register
+  - flow-register-first-workflow
   - flow-legacy-editor-redirect
   - flow-workflow-api-edit-conflict
 ---

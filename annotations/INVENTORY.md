@@ -6,7 +6,7 @@ Lightning.Extensions.Routing` in `config/config.exs:50`, the tabs in
 `lib/lightning_web/live/project_live/settings.html.heex:31`, and the cards in
 `lib/lightning_web/live/profile_live/components.ex:35`.
 
-Status: `todo` | `batch-N` (in flight) | `done` | `done-with-decides` (has section 6 items at `decide`).
+Status: `todo` | `batch-N` (in flight) | `done` | `done-with-decides` (has section 6 items at `decide`). All 52 are catalogued; see [REPORT.md](REPORT.md).
 
 Paths below are relative to `lib/lightning_web/` unless they start with `assets/`.
 
@@ -14,21 +14,21 @@ Paths below are relative to `lib/lightning_web/` unless they start with `assets/
 
 | id | Route | Module | Main files | Status |
 |----|-------|--------|------------|--------|
-| auth-login | `GET/POST /users/log_in` | `UserSessionController` (controller view) | `controllers/user_session_controller.ex`, `controllers/user_session_html/new.html.heex`, `controllers/user_auth.ex`, `controllers/oidc_controller.ex` (SSO buttons) | todo |
-| auth-register | `GET/POST /users/register` | `UserRegistrationController` (controller view); blocked by `:allow_signup` (`router.ex:31`) | `controllers/user_registration_controller.ex`, `controllers/user_registration_html/new.html.heex` | todo |
-| auth-reset-password | `GET/POST /users/reset_password`, `GET/PUT /users/reset_password/:token` | `UserResetPasswordController` (controller view) | `controllers/user_reset_password_controller.ex`, `controllers/user_reset_password_html/{new,edit}.html.heex` | todo |
-| auth-two-factor | `GET/POST /users/two-factor` | `UserTOTPController` (controller view) | `controllers/user_totp_controller.ex`, `controllers/user_totp_html/new.html.heex` | todo |
-| auth-confirm-account | `GET/POST /users/confirm`, `GET/POST /users/confirm/:token`, `GET /users/send-confirmation-email` | `UserConfirmationController` (controller view) | `controllers/user_confirmation_controller.ex`, `controllers/user_confirmation_html/{new,edit}.html.heex` | todo |
-| auth-confirmation-required | `live /users/confirm-required` (`:confirmation_required` session, no on_mount) | `UserConfirmationRequiredLive` | `live/user_confirmation_required_live.ex`, `.html.heex` | todo |
-| auth-confirm-access | `live /auth/confirm_access` | `ReAuthenticateLive.New` | `live/re_authenticate_live/new.ex`, `new.html.heex` | todo |
-| first-setup | `live /first_setup`; blocked by `:allow_first_setup`, forced by `Plugs.FirstSetup` | `FirstSetupLive.Superuser` | `live/first_setup_live/superuser.ex`, `superuser.html.heex` | todo |
+| auth-login | `GET/POST /users/log_in` | `UserSessionController` (controller view) | `controllers/user_session_controller.ex`, `controllers/user_session_html/new.html.heex`, `controllers/user_auth.ex`, `controllers/oidc_controller.ex` (SSO buttons) | done-with-decides |
+| auth-register | `GET/POST /users/register` | `UserRegistrationController` (controller view); blocked by `:allow_signup` (`router.ex:31`) | `controllers/user_registration_controller.ex`, `controllers/user_registration_html/new.html.heex` | done-with-decides |
+| auth-reset-password | `GET/POST /users/reset_password`, `GET/PUT /users/reset_password/:token` | `UserResetPasswordController` (controller view) | `controllers/user_reset_password_controller.ex`, `controllers/user_reset_password_html/{new,edit}.html.heex` | done-with-decides |
+| auth-two-factor | `GET/POST /users/two-factor` | `UserTOTPController` (controller view) | `controllers/user_totp_controller.ex`, `controllers/user_totp_html/new.html.heex` | done-with-decides |
+| auth-confirm-account | `GET/POST /users/confirm`, `GET/POST /users/confirm/:token`, `GET /users/send-confirmation-email` | `UserConfirmationController` (controller view) | `controllers/user_confirmation_controller.ex`, `controllers/user_confirmation_html/{new,edit}.html.heex` | done-with-decides |
+| auth-confirmation-required | `live /users/confirm-required` (`:confirmation_required` session, no on_mount) | `UserConfirmationRequiredLive` | `live/user_confirmation_required_live.ex`, `.html.heex` | done-with-decides |
+| auth-confirm-access | `live /auth/confirm_access` | `ReAuthenticateLive.New` | `live/re_authenticate_live/new.ex`, `new.html.heex` | done-with-decides |
+| first-setup | `live /first_setup`; blocked by `:allow_first_setup`, forced by `Plugs.FirstSetup` | `FirstSetupLive.Superuser` | `live/first_setup_live/superuser.ex`, `superuser.html.heex` | done-with-decides |
 | projects-dashboard | `live /projects` (config-injected); `/` redirects here | `DashboardLive.Index` | `live/dashboard_live/{index,components,project_creation_modal,user_projects_section}.ex` | done-with-decides |
 
 ## Projects and workflows
 
 | id | Route | Module | Main files | Status |
 |----|-------|--------|------------|--------|
-| mfa-required | `live /mfa_required` | `ProjectLive.MFARequired` | `live/project_live/mfa_required.ex`, `.html.heex` | todo |
+| mfa-required | `live /mfa_required` | `ProjectLive.MFARequired` | `live/project_live/mfa_required.ex`, `.html.heex` | done-with-decides |
 | workflows-index | `live /projects/:project_id/w` | `WorkflowLive.Index` | `live/workflow_live/{index,dashboard_components,helpers}.ex` | done-with-decides |
 | workflow-health | `live /projects/:project_id/w/:id/health` | `WorkflowLive.Health` | `live/workflow_live/health.ex`, `controllers/api/workflow_health_controller.ex`, React mount it renders | done-with-decides |
 | sandboxes-index | `live /projects/:project_id/sandboxes`, `/new`, `/:id/edit` | `SandboxLive.Index` | `live/sandbox_live/{index,form_component,components}.ex` | done-with-decides |
@@ -47,9 +47,9 @@ Split by panel; each sub-view shares the route and differs by URL params or UI s
 | workflow-editor-inspectors | `?job=`, trigger, edge, workflow settings side panels | (React) | `components/inspector/`, `components/{AdaptorSelectionModal,ConfigureAdaptorModal,AdaptorSelector}.tsx`, webhook auth modals in `collaborate.ex:331` | done-with-decides |
 | workflow-editor-ide | `?panel=editor&job=` full-screen code editor | (React) | `components/ide/FullScreenIDE.tsx`, `components/CollaborativeMonaco.tsx` | done-with-decides |
 | workflow-editor-manual-run | manual run panel (run from a job or trigger with a chosen input) | (React) | `components/{ManualRunPanel,NewRunButton,RunRetryButton}.tsx`, `components/manual-run/`, `controllers/workflow_controller.ex` (`create_run`, `retry_run`), `controllers/dataclip_controller.ex` | done-with-decides |
-| workflow-editor-run-viewer | `?run=` run panel (steps, input, output, logs) | (React) | `components/run-viewer/`, `controllers/workflow_controller.ex` (`get_run_steps`) | todo |
-| workflow-editor-ai-assistant | `?chat=` AI assistant panel | (React) | `components/{AIAssistantPanel,AIAssistantPanelWrapper,ChatInput,MessageList,SessionList,AIButton}.tsx`, `controllers/api/ai_assistant_controller.ex`, AI channel | todo |
-| workflow-editor-versions-and-promote | version picker, history, restore, diff; GitHub sync modal; sandbox promote and edit-in-sandbox | (React) | `components/{VersionPicker,VersionDropdown,SnapshotVersionDropdown,RestoreVersionDialog,WorkflowDiffBlocks,GitHubSyncModal,PromoteDialog,PromotedNotice,EditInSandboxPicker}.tsx`, `components/diagram/MiniHistory.tsx` | todo |
+| workflow-editor-run-viewer | `?run=` run panel (steps, input, output, logs) | (React) | `components/run-viewer/`, `controllers/workflow_controller.ex` (`get_run_steps`) | done-with-decides |
+| workflow-editor-ai-assistant | `?chat=` AI assistant panel | (React) | `components/{AIAssistantPanel,AIAssistantPanelWrapper,ChatInput,MessageList,SessionList,AIButton}.tsx`, `controllers/api/ai_assistant_controller.ex`, AI channel | done-with-decides |
+| workflow-editor-versions-and-promote | version picker, history, restore, diff; GitHub sync modal; sandbox promote and edit-in-sandbox | (React) | `components/{VersionPicker,VersionDropdown,SnapshotVersionDropdown,RestoreVersionDialog,WorkflowDiffBlocks,GitHubSyncModal,PromoteDialog,PromotedNotice,EditInSandboxPicker}.tsx`, `components/diagram/MiniHistory.tsx` | done-with-decides |
 
 ## History and runs
 
@@ -82,26 +82,26 @@ All panels share `live/project_live/settings.ex` and `settings.html.heex`. Line 
 | id | Route | Module | Main files | Status |
 |----|-------|--------|------------|--------|
 | credentials-index | `live /credentials` | `CredentialLive.Index` | `live/credential_live/index.ex`, `index.html.heex`, inherits shared-credential-index-component | done-with-decides |
-| profile-account | `live /profile` (config-injected) | `ProfileLive.Edit` + `ProfileLive.FormComponent` | `live/profile_live/{edit,components,form_component}.ex`, `form_component.html.heex`; GDPR preferences card is config-only (`config.exs:291`, off by default) | todo |
-| profile-mfa | `/profile` MFA card | `ProfileLive.MfaComponent` | `live/profile_live/mfa_component.ex`, `.html.heex` | todo |
-| profile-github | `/profile` GitHub card | `ProfileLive.GithubComponent` | `live/profile_live/github_component.ex`, `components/github_components.ex` | todo |
-| profile-experimental-features | `/profile` experimental features card | `ProfileLive.ExperimentalFeaturesComponent` | `live/profile_live/experimental_features_component.ex`, `.html.heex` | todo |
-| profile-delete-account | `live /profile/:id/delete` | `ProfileLive.Edit :delete` | `live/components/user_deletion_modal.ex` (config-injected `delete_modal`) | todo |
-| profile-tokens | `live /profile/tokens`, `/profile/tokens/:id/delete` | `TokensLive.Index` | `live/tokens_live/index.ex`, `index.html.heex`, `live/components/token_deletion_modal.ex` | todo |
-| profile-backup-codes | `live /profile/auth/backup_codes` (sudo), `GET /profile/auth/backup_codes/print` | `BackupCodesLive.Index` | `live/backup_codes_live/index.ex`, `.html.heex`, `controllers/backup_codes_controller.ex`, `backup_codes_html/print.html.heex` | todo |
+| profile-account | `live /profile` (config-injected) | `ProfileLive.Edit` + `ProfileLive.FormComponent` | `live/profile_live/{edit,components,form_component}.ex`, `form_component.html.heex`; GDPR preferences card is config-only (`config.exs:291`, off by default) | done-with-decides |
+| profile-mfa | `/profile` MFA card | `ProfileLive.MfaComponent` | `live/profile_live/mfa_component.ex`, `.html.heex` | done-with-decides |
+| profile-github | `/profile` GitHub card | `ProfileLive.GithubComponent` | `live/profile_live/github_component.ex`, `components/github_components.ex` | done-with-decides |
+| profile-experimental-features | `/profile` experimental features card | `ProfileLive.ExperimentalFeaturesComponent` | `live/profile_live/experimental_features_component.ex`, `.html.heex` | done-with-decides |
+| profile-delete-account | `live /profile/:id/delete` | `ProfileLive.Edit :delete` | `live/components/user_deletion_modal.ex` (config-injected `delete_modal`) | done-with-decides |
+| profile-tokens | `live /profile/tokens`, `/profile/tokens/:id/delete` | `TokensLive.Index` | `live/tokens_live/index.ex`, `index.html.heex`, `live/components/token_deletion_modal.ex` | done-with-decides |
+| profile-backup-codes | `live /profile/auth/backup_codes` (sudo), `GET /profile/auth/backup_codes/print` | `BackupCodesLive.Index` | `live/backup_codes_live/index.ex`, `.html.heex`, `controllers/backup_codes_controller.ex`, `backup_codes_html/print.html.heex` | done-with-decides |
 
 ## Admin (superuser, `on_mount :ensure_admin`)
 
 | id | Route | Module | Main files | Status |
 |----|-------|--------|------------|--------|
-| admin-users | `live /settings/users` (config-injected), `/settings/users/:id/delete` | `UserLive.Index` | `live/user_live/{index,table_component,components}.ex`, `index.html.heex` | todo |
-| admin-user-edit | `live /settings/users/new`, `/settings/users/:id` | `UserLive.Edit` | `live/user_live/{edit,form_component}.ex`, `.html.heex` | todo |
-| admin-projects | `live /settings/projects`, `/new`, `/:id`, `/:id/delete` | `ProjectLive.Index` | `live/project_live/{index,form_component}.ex`, `.html.heex` | todo |
-| admin-audit | `live /settings/audit` | `AuditLive.Index` | `live/audit_live/index.ex`, `.html.heex` | todo |
-| admin-maintenance | `live /settings/maintenance` | `MaintenanceLive.Index` | `live/maintenance_live/index.ex`, `.html.heex` | todo |
-| admin-auth-providers | `live /settings/authentication`, `/new` | `AuthProvidersLive.Index` | `live/auth_providers/{index,form_component}.ex` | todo |
-| admin-collections | `live /settings/collections` | `CollectionLive.Index` | `live/collection_live/{index,components,collection_creation_modal}.ex` | todo |
-| admin-live-dashboard | `live_dashboard /dashboard` | `Phoenix.LiveDashboard` (third party) | `router.ex:362` | todo |
+| admin-users | `live /settings/users` (config-injected), `/settings/users/:id/delete` | `UserLive.Index` | `live/user_live/{index,table_component,components}.ex`, `index.html.heex` | done-with-decides |
+| admin-user-edit | `live /settings/users/new`, `/settings/users/:id` | `UserLive.Edit` | `live/user_live/{edit,form_component}.ex`, `.html.heex` | done-with-decides |
+| admin-projects | `live /settings/projects`, `/new`, `/:id`, `/:id/delete` | `ProjectLive.Index` | `live/project_live/{index,form_component}.ex`, `.html.heex` | done-with-decides |
+| admin-audit | `live /settings/audit` | `AuditLive.Index` | `live/audit_live/index.ex`, `.html.heex` | done-with-decides |
+| admin-maintenance | `live /settings/maintenance` | `MaintenanceLive.Index` | `live/maintenance_live/index.ex`, `.html.heex` | done-with-decides |
+| admin-auth-providers | `live /settings/authentication`, `/new` | `AuthProvidersLive.Index` | `live/auth_providers/{index,form_component}.ex` | done-with-decides |
+| admin-collections | `live /settings/collections` | `CollectionLive.Index` | `live/collection_live/{index,components,collection_creation_modal}.ex` | done-with-decides |
+| admin-live-dashboard | `live_dashboard /dashboard` | `Phoenix.LiveDashboard` (third party) | `router.ex:362` | done-with-decides |
 
 ## Not catalogued as views
 
@@ -119,18 +119,6 @@ cataloguer with its inventory row, and removed from here once the view lists it.
 
 | view | must reference |
 |------|----------------|
-| auth-login | flow-invite-new-collaborator, flow-login-return-to |
-| auth-confirm-account | flow-resend-account-confirmation |
-| auth-register | flow-register-first-workflow (proposed; create with this view) |
-| auth-reset-password | flow-invite-new-collaborator |
-| workflow-editor-run-viewer | shared-editor-session, flow-workflow-api-edit-conflict, flow-manual-run-live-follow (exit), shared-run-retry-controls, shared-dataclip-body-viewer, flow-zero-persistence-runs (shows raw null; see the flow's 6.1), flow-open-run-in-editor (exit), shared-log-viewer |
-| admin-projects | flow-collaborator-added-email, flow-schedule-project-deletion, shared-project-deletion-modal |
-| profile-github | flow-github-connect |
-| profile-mfa | flow-require-project-mfa |
-| mfa-required | flow-require-project-mfa (exit) |
-| workflow-editor-ai-assistant | shared-editor-session, shared-workflow-yaml-format (AI apply), flow-workflow-api-edit-conflict |
-| workflow-editor-versions-and-promote | shared-editor-session, flow-workflow-api-edit-conflict, flow-github-sync-actions (GitHubSyncModal), flow-sandbox-merge (PromoteDialog) |
-| profile-backup-codes | shared-authenticated-session (mounted via `:sudo_auth`), flow-require-project-mfa (first enrolment lands here) |
 
 ## Proposed, not yet created
 
@@ -139,17 +127,29 @@ Held until the views they touch are catalogued, then deduplicated with those bat
 | id | proposed by | note |
 |----|-------------|------|
 | shared-project-mail-recipients | flow-history-export | reads as a capability (who may receive mail); deferred to the capabilities pass |
-| flow-editor-credentials-broadcast | shared-adaptor-credential-config | credential created elsewhere appearing in an open editor; consolidate after batch 6 |
-| flow-adaptor-catalogue-refresh | shared-adaptor-credential-config | likely a capability (/adaptors/catalogue); decide after batch 6 |
-| flow-workflow-yaml-copy | shared-workflow-yaml-format | consolidate after batch 6 |
-| flow-register-first-workflow | workflow-editor-new | revisit with auth-register |
-| flow-account-revocation-teardown | shared-authenticated-session | revisit with admin-users and profile-delete-account |
 | capability:webhook-auth-method-purge | project-settings-webhook-security | capabilities pass |
 | capability:data-retention-cleanup | project-settings-data-storage | capabilities pass |
 | capability:collection-api-name-resolution | project-settings-collections | capabilities pass |
 
 ## Overlaps to clean up
 
+- Done: shared-flash-messages added to `inherits` on every view except auth-confirm-access and auth-two-factor (no flash rendered) and admin-live-dashboard (third-party page).
+- auth-login S16 repeats flow-log-out S01's landing message.
+- auth-confirmation-required S10 duplicates flow-change-email-confirm S08.
+- shared-authenticated-session cites `first_setup.ex:127-149`; the plug is 34 lines. Re-cite.
+- flow-forgot-password 6.1 (timing oracle, silent mailer failure) duplicates auth-reset-password 6.1; keep in the view.
+- flow-login-return-to: list flow-forgot-password (the request hop overwrites the stored return path, so a deep link is lost).
+- flow-invite-new-collaborator S03 goes through flow-forgot-password; reference it.
+- flow-resend-account-confirmation `not_reachable_here` still excludes the welcome email, and auth-register's proposed-flow text and flow-register-first-workflow 6.5 say the same; all now out of date.
+- profile-delete-account S01, S03, S05, S06, S07 and its modal-level 6.2 rows: now owned by shared-user-deletion-modal.
+- profile-tokens 6.5 claims /api does not reject locked-out accounts; flow-personal-access-token-use found `user_auth.ex:362-363` does. Correct the view.
+- flow-login-return-to: cross-reference flow-reauth-backup-codes 6.1 row 3 (a stale `user_return_to` survives logout).
+- workflow-editor-run-viewer S02 to S04: now owned by shared-run-components S15 to S18.
+- workflow-editor-versions-and-promote S09 ("shows a new v3") conflicts with flow-restore-version-open-editor 6.1 (the restorer's publishes list is never refreshed; the view's tests mock the list). Fix the view.
+- flow-change-email-confirm exit: the controller redirects to /projects, not the profile.
+- mfa-required S03 duplicates flow-require-project-mfa S05; keep one.
+- Ctrl/Cmd+H is claimed by both workflow-editor-versions-and-promote and shared-editor-session; one owner.
+- workflow-editor-versions-and-promote row lists VersionPicker.tsx (adaptor picker, owned by shared-adaptor-credential-config) and WorkflowDiffBlocks.tsx (AI assistant); inventory row should drop them.
 - workflow-editor-manual-run S12, S15 to S19, S22, S23 and six 6.2 rows: now owned by shared-run-retry-controls.
 - workflow-editor-ide metadata rows in 6.1: now owned by shared-adaptor-credential-config; its inspectors citations for AdaptorSelector, AdaptorDisplay and the confirmation hook were wrong and are corrected there.
 - workflow-editor-canvas 6.x rows on session plumbing: now owned by shared-editor-session (see its section 8). Canvas cites `LoadingBoundary.tsx:284-330`; the file is 72 lines.

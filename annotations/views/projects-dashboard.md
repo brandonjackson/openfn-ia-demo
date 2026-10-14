@@ -17,6 +17,7 @@ inherits:
   - shared-authenticated-session    # login redirect, lockout, sidebar toggle, book-a-demo banner in the :banner slot (index.ex:22-27, init_assigns.ex:46-54)
   - shared-local-datetime           # "Last Updated" column (components.ex:136-139)
   - shared-project-header           # global project picker (Ctrl/Cmd+P, "View all projects"), account menu and role-dependent menu only; see not_reachable_here and 6.5
+  - shared-flash-messages   # added by lead (final pass)
 
 url_params: []                      # sort state lives in component assigns, not the URL (user_projects_section.ex:20, :24-37)
 
@@ -74,6 +75,13 @@ flows:
   - flow-invite-new-collaborator      # passes through: the invitee's signed-in landing, then the row into workflows-index
   - flow-collaborator-added-email     # referenced: creating a project here does NOT start it (project_creation_modal.ex:55)
   - flow-login-return-to
+  - flow-account-revocation-teardown
+  - flow-change-email-confirm
+  - flow-forgot-password
+  - flow-sso-login
+  - flow-first-superuser-sign-in
+  - flow-admin-created-account-confirm
+  - flow-resend-account-confirmation   # added by lead (link lint)
 ---
 
 ## 1. Purpose
@@ -420,7 +428,7 @@ Feature: Projects
 
 ## Proposed flows
 
-- `flow-login-return-to` (already proposed by the lead; referenced, not created here): signing in without a stored return path lands on `/projects`. Surfaces: auth-log-in (`user_auth.ex:61-70`), projects-dashboard (`user_auth.ex:514`).
+- `flow-login-return-to` (already proposed by the lead; referenced, not created here): signing in without a stored return path lands on `/projects`. Surfaces: auth-login (`user_auth.ex:61-70`), projects-dashboard (`user_auth.ex:514`).
 
 ## Proposed shared
 

@@ -22,6 +22,7 @@ inherits:
   - shared-usage-limits-banner        # the page banner; run-limit refusal in this panel is S19 and S21 here
   - shared-editor-session
   - shared-run-retry-controls
+  - shared-flash-messages   # added by lead (final pass)
 
 url_params:
   - name: panel=run
@@ -94,6 +95,7 @@ related:
 flows:
   - flow-manual-run-live-follow
   - flow-history-live-updates         # referenced; this view publishes work order and run events to it but is not yet in its surfaces (see Proposed flows)
+  - flow-edit-in-sandbox
 ---
 
 ## 1. Purpose

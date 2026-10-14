@@ -22,6 +22,7 @@ inherits:
   - shared-usage-limits-banner            # on_mount :check_limits (settings.ex:52); the GitHub-specific limit banner is this view's own (see S27)
   - shared-project-header
   - shared-project-settings-tab-chrome    # tab navigation; role notice (S06 rows "viewer | Sync to GitHub" and "editor | Sync to GitHub"); sandbox banner (S08 row "Sync to GitHub")
+  - shared-flash-messages   # added by lead (final pass)
 
 url_params:
   - name: "#vcs (URL fragment)"
@@ -607,7 +608,7 @@ Feature: Sync a project to GitHub
 - Should unrelated projects be allowed to share a repo branch (6.2)? Today only a sandbox family is guarded.
 - Should disconnect tell the admin when GitHub cleanup was skipped or failed?
 - Should reconnect be audited like connect and remove?
-- Is putting the user's email in GitHub commit messages intended? Product (Brandon's team) owns the intended behaviour.
+- Is putting the user's email in GitHub commit messages intended? (owner: product)
 - In the rebuild, does the limit banner disable every control on the tab or only connect and sync?
 
 ## Proposed flows

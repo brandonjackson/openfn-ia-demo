@@ -20,6 +20,7 @@ inherits:
   - shared-project-header
   - shared-project-settings-tab-chrome    # tab strip, "available credentials." notice (S06 row "viewer | Credentials"), sandbox "will sync to the parent project on merge" banner (S08 row "Credentials")
   - shared-credential-index-component     # the three tables, owner-only row actions (S01, S02), editor without keychain actions (S03), keychain delete (S04), cancel deletion (S05), forged-action refusal (S06)
+  - shared-flash-messages   # added by lead (final pass)
 
 url_params: []                            # the tab is chosen by fragment; apply_action(:index) ignores params (settings.ex:233)
 
@@ -73,6 +74,7 @@ flows:
   - flow-credential-transfer
   - flow-oauth-credential-authorize
   - flow-credential-scheduled-deletion
+  - flow-editor-credentials-broadcast
 ---
 
 ## 1. Purpose
@@ -403,7 +405,7 @@ Feature: Project credentials
 
 ## 8. Open questions
 
-- Should a viewer who owns a credential be able to save edits to it from project settings, as they can on /credentials (6.1)? Product (Brandon's team) owns the intended behaviour.
+- Should a viewer who owns a credential be able to save edits to it from project settings, as they can on /credentials (6.1)? (owner: product)
 - After scheduling deletion from this tab, should the credential stay visible here with "Cancel deletion" (6.1)?
 - Should viewers see the names of other projects a credential is shared with (6.1)?
 - Should keychain create, update and delete be audited like credentials (6.2)?

@@ -4,7 +4,7 @@ import { cn } from "../../utils/cn";
 /**
  * A read-only, Monaco-styled code area: Lightning renders logs and
  * dataclips in Monaco with its "default" theme (assets/js/monaco/index.tsx:
- * vs-dark base on slate-700, slate-600 current line). This draws the same
+ * vs-dark base on gray-700, gray-600 current line). This draws the same
  * gutter, line height and colours without the editor.
  */
 export default function CodeLines({
@@ -20,12 +20,12 @@ export default function CodeLines({
 }) {
   return (
     <div
-      className={cn("h-full overflow-auto bg-slate-700 text-slate-200 text-[14px] leading-[19px] py-0", className)}
+      className={cn("h-full overflow-auto bg-gray-700 text-gray-200 text-[14px] leading-[19px] py-0", className)}
       style={{ fontFamily: "'Fira Code', 'Fira Code VF', ui-monospace, monospace", fontVariantLigatures: "normal" }}
     >
       <div className="min-w-full w-max">
         {lines.map((line, i) => (
-          <div key={i} className={cn("flex", i === 0 && "bg-slate-600")}>
+          <div key={i} className={cn("flex", i === 0 && "bg-gray-600")}>
             {/* Monaco's line number gutter (lineNumbersMinChars: 3) */}
             <span
               className={cn(

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import type { Project } from "../mock-data/projects";
-import { Breadcrumb, BreadcrumbPicker, Breadcrumbs } from "./Breadcrumbs";
+import type { Project } from "../../mock-data/projects";
+import { Breadcrumb, BreadcrumbPicker, Breadcrumbs } from "../Breadcrumbs";
 import PickerButton from "./PickerButton";
 import { projectLabel } from "./projectPickerItems";
 

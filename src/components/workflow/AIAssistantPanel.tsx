@@ -137,7 +137,7 @@ export default function AIAssistantPanel({ sessions, onClose }: Props) {
                           </Button>
                         </div>
                       </div>
-                      <pre className="bg-slate-700 text-slate-200 text-xs font-mono p-3 overflow-x-auto">{m.code}</pre>
+                      <pre className="bg-gray-700 text-gray-200 text-xs font-mono p-3 overflow-x-auto">{m.code}</pre>
                     </div>
                   )}
                 </div>

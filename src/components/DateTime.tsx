@@ -1,5 +1,5 @@
-import { formatRelative, formatRelativeDetailed, formatTimeOnly, formatUtc } from "./format";
-import { cn } from "../../utils/cn";
+import { formatRelative, formatRelativeDetailed, formatTimeOnly, formatUtc } from "../utils/format";
+import { cn } from "../utils/cn";
 
 /**
  * Lightning's `Common.datetime`: a local, relative timestamp ("today at

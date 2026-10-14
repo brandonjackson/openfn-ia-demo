@@ -1,8 +1,8 @@
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
-import TableAction from "../TableAction";
+import Button from "../Button";
 import type { ExportStatus, ProjectFile } from "../../mock-data/project-settings";
 import { findUser, fullName } from "../../mock-data/users";
-import { relativeTime } from "../../utils/relativeTime";
+import { formatAgo } from "../../utils/format";
 
 interface Props {
   files: ProjectFile[];
@@ -41,17 +41,17 @@ export default function HistoryExportsTable({ files }: Props) {
         return (
           <Tr key={f.id}>
             <Td>
-              <span title={f.insertedAt}>{relativeTime(f.insertedAt)}</span>
+              <span title={f.insertedAt}>{formatAgo(f.insertedAt)}</span>
             </Td>
             <Td>{f.path ? f.path.split("/").pop() : <em>Pending</em>}</Td>
             <Td>{user ? fullName(user) : ""}</Td>
             <Td>{formatStatus(f.status)}</Td>
             <Td className="flex justify-end py-0.5">
               {f.status === "completed" ? (
-                <TableAction>Download</TableAction>
+                <Button theme="secondary" size="xs">Download</Button>
               ) : (
                 <span title="Export is not yet ready for download">
-                  <TableAction disabled>Download</TableAction>
+                  <Button theme="secondary" size="xs" disabled>Download</Button>
                 </span>
               )}
             </Td>

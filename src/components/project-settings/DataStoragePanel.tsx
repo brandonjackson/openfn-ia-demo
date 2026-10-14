@@ -4,7 +4,6 @@ import Button from "../Button";
 import { Radio, Select } from "../Inputs";
 import SectionHeader from "../SectionHeader";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
-import { linkClass } from "./classes";
 import type { RetentionPolicy } from "../../mock-data/projects";
 import { cn } from "../../utils/cn";
 
@@ -81,7 +80,7 @@ export default function DataStoragePanel({ initial, periods, canEditDataRetentio
                     target="_blank"
                     rel="noreferrer"
                     href="https://docs.openfn.org/documentation/manage-projects/retention-periods"
-                    className={cn(linkClass, "ml-1")}
+                    className={"link ml-1"}
                   >
                     Learn more
                   </a>
@@ -115,7 +114,7 @@ export default function DataStoragePanel({ initial, periods, canEditDataRetentio
                     target="_blank"
                     rel="noreferrer"
                     href="https://docs.openfn.org/documentation/manage-projects/io-data-storage"
-                    className={cn(linkClass, "ml-1")}
+                    className={"link ml-1"}
                   >
                     Learn more
                   </a>

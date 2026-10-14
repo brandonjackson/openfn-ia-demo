@@ -94,8 +94,8 @@ export default function LogViewer({
   }
 
   return (
-    <div className="flex flex-col grow rounded-md bg-slate-700 font-mono text-gray-200 @container overflow-hidden">
-      <div className="border-b border-slate-500">
+    <div className="flex flex-col grow rounded-md bg-gray-700 font-mono text-gray-200 @container overflow-hidden">
+      <div className="border-b border-gray-500">
         <div className="mx-auto px-2">
           <div className="flex h-6 @md:h-8 flex-row-reverse items-center">
             <LogLevelFilter selected={level} onChange={setLevel} />
@@ -105,7 +105,7 @@ export default function LogViewer({
       <div className={cn("flex grow", className)}>
         <div className="relative grow">
           {lines.length === 0 ? (
-            <div className="relative text-xs @md:text-base p-12 text-center bg-slate-700 font-mono text-gray-200">
+            <div className="relative text-xs @md:text-base p-12 text-center bg-gray-700 font-mono text-gray-200">
               <TextPingLoader>{waitingMessage}</TextPingLoader>
             </div>
           ) : (

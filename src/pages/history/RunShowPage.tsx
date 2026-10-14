@@ -3,8 +3,8 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import Button from "../../components/Button";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
-import ProjectBreadcrumbs from "../../components/ProjectBreadcrumbs";
-import DateTime from "../../components/history/DateTime";
+import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
+import DateTime from "../../components/DateTime";
 import { DetailItem, DetailList } from "../../components/history/DetailList";
 import LogViewer from "../../components/history/LogViewer";
 import RunStepList from "../../components/history/RunStepList";
@@ -12,7 +12,7 @@ import SnapshotVersionChip from "../../components/history/SnapshotVersionChip";
 import StatePill from "../../components/history/StatePill";
 import StepDataclipViewer from "../../components/history/StepDataclipViewer";
 import Tabs from "../../components/Tabs";
-import { formatElapsed } from "../../components/history/format";
+import { formatElapsed } from "../../utils/format";
 import { findDataclip, findRun, findWorkOrder, stepsOf } from "../../mock-data/history";
 import {
   finalDataclipIdOf,

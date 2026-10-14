@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import Pagination from "../Pagination";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 import { findChannel, type ChannelRequest } from "../../mock-data/channel-requests";
-import DateTime from "./DateTime";
+import DateTime from "../DateTime";
 import { ChannelStatePill } from "./StatePill";
 
 /** History's Channel Logs table (run_live/channel_logs_component.ex). */
@@ -54,7 +54,7 @@ export default function ChannelRequestsTable({
               <Td className="text-sm text-gray-700">
                 <Link
                   to={`/projects/${projectId}/history/channels?filters[channel_id]=${r.channelId}`}
-                  className="text-indigo-600 hover:text-indigo-800"
+                  className="text-primary-600 hover:text-primary-800"
                 >
                   {channel?.name}
                 </Link>

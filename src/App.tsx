@@ -1,5 +1,5 @@
 import { Navigate, Route, Routes, useParams } from "react-router-dom";
-import AppShell from "./components/AppShell";
+import AppShell from "./components/shell/AppShell";
 
 import AuthLoginPage from "./pages/auth/AuthLoginPage";
 import AuthRegisterPage from "./pages/auth/AuthRegisterPage";

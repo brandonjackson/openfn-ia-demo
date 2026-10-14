@@ -61,7 +61,7 @@ export default function WorkspaceCard({
           <div className="flex-1 px-4 py-4 flex items-center justify-between min-w-0">
             <div className="flex-1 min-w-0 cursor-not-allowed" title={deletionTooltip(workspace.scheduledDeletion)}>
               <div className="flex items-center gap-3 mb-1">
-                <h3 className="font-semibold text-lg text-slate-500 line-through truncate">{workspace.name}</h3>
+                <h3 className="font-semibold text-lg text-gray-500 line-through truncate">{workspace.name}</h3>
                 {badges}
               </div>
             </div>
@@ -82,14 +82,14 @@ export default function WorkspaceCard({
     >
       <div className="flex items-stretch">
         {isRoot ? (
-          <div className="w-3 flex-shrink-0 bg-indigo-600" />
+          <div className="w-3 flex-shrink-0 bg-primary-600" />
         ) : (
           <div className="w-3 flex-shrink-0" style={{ backgroundColor: workspace.color ?? "var(--color-primary-600)" }} />
         )}
         <div className="flex-1 px-4 py-4 flex items-center justify-between min-w-0">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-1">
-              <h3 className="font-semibold text-slate-900 text-lg group-hover:text-slate-800 truncate">{workspace.name}</h3>
+              <h3 className="font-semibold text-gray-900 text-lg group-hover:text-gray-800 truncate">{workspace.name}</h3>
               {badges}
             </div>
           </div>

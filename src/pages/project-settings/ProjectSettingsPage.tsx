@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
-import ProjectBreadcrumbs from "../../components/ProjectBreadcrumbs";
+import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import SectionHeader from "../../components/SectionHeader";
 import CredentialIndex from "../../components/credentials/CredentialIndex";
 import NewCredentialMenuButton, { projectCredentialMenuOptions } from "../../components/credentials/NewCredentialMenuButton";

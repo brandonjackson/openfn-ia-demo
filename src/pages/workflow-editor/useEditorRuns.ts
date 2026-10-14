@@ -3,7 +3,7 @@ import { dataclips, findRun, runLogs, runs, stepsOf, workOrders } from "../../mo
 import type { HistoryWorkOrder } from "../../components/workflow/MiniHistory";
 import type { RunOverlay } from "../../components/workflow/WorkflowDiagram";
 import type { WorkflowGraph } from "../../mock-data/workflow";
-import { duration } from "../../components/workflow/formatTime";
+import { formatDuration } from "../../utils/format";
 
 const EXIT_STATE = { success: "success", fail: "fail", crash: "crash" } as const;
 
@@ -33,7 +33,7 @@ export function useEditorRuns(graph: WorkflowGraph, runId: string | null) {
       for (const s of selectedSteps) {
         steps[s.jobId] = {
           state: s.exitReason ? EXIT_STATE[s.exitReason] : "running",
-          duration: s.finishedAt ? duration(s.startedAt, s.finishedAt) : undefined,
+          duration: s.finishedAt ? formatDuration(s.startedAt, s.finishedAt) : undefined,
         };
       }
       const startJob = graph.jobs.find((j) => j.name === selectedRun.startingJob);

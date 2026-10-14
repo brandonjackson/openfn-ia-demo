@@ -6,7 +6,7 @@ import { currentUser } from "../../mock-data/users";
 const meta: Meta<typeof CollaborationPanel> = {
   title: "Project settings/CollaborationPanel",
   component: CollaborationPanel,
-  decorators: [(Story) => <div className="space-y-4 bg-secondary-100 p-6"><Story /></div>],
+  decorators: [(Story) => <div className="space-y-4 bg-gray-100 p-6"><Story /></div>],
   args: {
     initialMembers: projects[0].members,
     currentUserId: currentUser.id,

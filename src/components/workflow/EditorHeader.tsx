@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { Project } from "../../mock-data/projects";
 import type { WorkflowSnapshot } from "../../mock-data/workflow";
 import IconButton from "../IconButton";
-import ProjectBreadcrumbs from "../ProjectBreadcrumbs";
+import ProjectBreadcrumbs from "../shell/ProjectBreadcrumbs";
 import Toggle from "../Toggle";
 import NewRunButton from "./NewRunButton";
 import SaveButton from "./SaveButton";

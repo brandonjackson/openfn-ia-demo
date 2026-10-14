@@ -6,7 +6,7 @@ import { withRouter } from "../../stories/decorators";
 const meta: Meta<typeof ProjectSetupPanel> = {
   title: "Project settings/ProjectSetupPanel",
   component: ProjectSetupPanel,
-  decorators: [withRouter, (Story) => <div className="space-y-4 bg-secondary-100 p-6"><Story /></div>],
+  decorators: [withRouter, (Story) => <div className="space-y-4 bg-gray-100 p-6"><Story /></div>],
   args: { project: projects[0], env: "main", canEditProject: true, canDeleteProject: true },
 };
 export default meta;

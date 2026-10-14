@@ -82,7 +82,7 @@ export default function DiagramNode({
           )}
           {startedBy && (
             <div className="absolute -top-2 flex gap-2 items-center z-10" style={{ left: "calc(100% - 24px)" }} title={`Started by ${startedBy}`}>
-              <div className="flex justify-center items-center w-7 h-7 rounded-full text-slate-50 border-slate-700 bg-slate-600">
+              <div className="flex justify-center items-center w-7 h-7 rounded-full text-gray-50 border-gray-700 bg-gray-600">
                 <span className="hero-play-solid w-3 h-3" />
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function DiagramNode({
         </div>
         <div className="flex flex-col mt-8 absolute left-[116px] top-0 pointer-events-none min-w-[275px]">
           <p className="line-clamp-2 text-base max-w-[220px] text-ellipsis overflow-hidden">{label}</p>
-          {sublabel && <p className="line-clamp-2 text-sm text-slate-500">{sublabel}</p>}
+          {sublabel && <p className="line-clamp-2 text-sm text-gray-500">{sublabel}</p>}
         </div>
       </div>
       {onAddPath && (
@@ -153,7 +153,7 @@ export default function DiagramNode({
               e.stopPropagation();
               onAddPath();
             }}
-            className="transition duration-150 ease-in-out rounded-lg bg-indigo-600 hover:bg-indigo-500 py-1 px-2 text-[0.8125rem] font-semibold leading-5 text-white flex items-center justify-center ml-1 h-6"
+            className="transition duration-150 ease-in-out rounded-lg bg-primary-600 hover:bg-primary-500 py-1 px-2 text-[0.8125rem] font-semibold leading-5 text-white flex items-center justify-center ml-1 h-6"
           >
             <span className="hero-plus h-4 w-4 pointer-events-none" />
           </button>

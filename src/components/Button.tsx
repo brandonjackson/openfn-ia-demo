@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 import { cn } from "../utils/cn";
 
 export type ButtonTheme = "primary" | "secondary" | "danger" | "success" | "warning";
-export type ButtonSize = "sm" | "md" | "lg";
+export type ButtonSize = "xs" | "sm" | "md" | "lg";
 
 const sizeClasses: Record<ButtonSize, string> = {
+  xs: "px-2 py-1",
   sm: "px-2.5 py-1.5",
   md: "px-3 py-2",
   lg: "px-3.5 py-2.5",
@@ -69,7 +70,8 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 /**
  * The button: rounded-md, text-sm font-semibold, shadow-xs, with primary /
- * secondary / danger / success / warning themes and sm / md / lg padding.
+ * secondary / danger / success / warning themes and xs / sm / md / lg padding
+ * (xs is the small row action in a table).
  * Pass `to` or `href` to get a link that looks the same.
  */
 export default function Button({

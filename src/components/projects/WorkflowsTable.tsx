@@ -3,8 +3,8 @@ import type { WorkflowStats } from "../../mock-data/dashboard-stats";
 import { cn } from "../../utils/cn";
 import { Table, Td, Th, Tr } from "../Table";
 import Toggle from "../Toggle";
-import RelativeTime from "./RelativeTime";
-import TableAction from "../TableAction";
+import DateTime from "../DateTime";
+import Button from "../Button";
 import TextLink from "../TextLink";
 import WorkOrderStatus from "./WorkOrderStatus";
 import { compareBy, useSort } from "./useSort";
@@ -108,7 +108,7 @@ export default function WorkflowsTable({
               <Td className="wrap-break-word max-w-[10rem]">
                 {s.workordersCount > 0 ? (
                   <div>
-                    <div className="text-indigo-700 text-lg">
+                    <div className="text-primary-700 text-lg">
                       <Link className="hover:underline" to={history} onClick={(e) => e.stopPropagation()}>
                         {s.workordersCount}
                       </Link>
@@ -124,13 +124,13 @@ export default function WorkflowsTable({
               <Td className="wrap-break-word max-w-[15rem]">
                 {s.failedWorkordersCount > 0 ? (
                   <div>
-                    <div className="text-indigo-700 text-lg">
+                    <div className="text-primary-700 text-lg">
                       <Link className="hover:underline" to={history} onClick={(e) => e.stopPropagation()}>
                         {s.failedWorkordersCount}
                       </Link>
                     </div>
                     <div className="text-gray-500 text-xs">
-                      Latest failure {s.lastFailedAt && <RelativeTime datetime={s.lastFailedAt} />}
+                      Latest failure {s.lastFailedAt && <DateTime value={s.lastFailedAt} />}
                     </div>
                   </div>
                 ) : (
@@ -144,15 +144,15 @@ export default function WorkflowsTable({
               </Td>
               <Td>
                 <div className="flex items-center gap-4">
-                  <TableAction to={`/projects/${projectId}/w/${wf.id}/health`}>Health</TableAction>
+                  <Button theme="secondary" size="xs" to={`/projects/${projectId}/w/${wf.id}/health`}>Health</Button>
                   {canDelete && (
-                    <TableAction
+                    <Button theme="secondary" size="xs"
                       onClick={() => {
                         if (window.confirm("Are you sure you'd like to delete this workflow?")) onDelete?.(wf.id);
                       }}
                     >
                       Delete
-                    </TableAction>
+                    </Button>
                   )}
                 </div>
               </Td>
@@ -184,7 +184,7 @@ function WorkflowName({ name, enabled, updatedAt }: { name: string; enabled: boo
           </span>
         </div>
         <p className="text-gray-500 text-xs mt-1">
-          Updated <RelativeTime datetime={updatedAt} />
+          Updated <DateTime value={updatedAt} />
         </p>
       </div>
     </div>

@@ -3,9 +3,9 @@
 @plugin "@tailwindcss/typography";
 @plugin "../tailwind/heroicons.js";
 
-/* Lightning's palette names (assets/css/app.css in OpenFn/lightning):
-   primary is indigo, secondary is gray. Components use these names so
-   class lists can be copied straight from Lightning's templates. */
+/* Semantic palette names from Lightning (assets/css/app.css): primary is
+   indigo, plus info / success / danger / warning. Neutrals are plain
+   `gray-*`: there's one neutral scale, no slate, zinc or secondary. */
 @theme {
   --color-primary-50: var(--color-indigo-50);
   --color-primary-100: var(--color-indigo-100);
@@ -19,17 +19,6 @@
   --color-primary-900: var(--color-indigo-900);
   --color-primary-950: var(--color-indigo-950);
 
-  --color-secondary-50: var(--color-gray-50);
-  --color-secondary-100: var(--color-gray-100);
-  --color-secondary-200: var(--color-gray-200);
-  --color-secondary-300: var(--color-gray-300);
-  --color-secondary-400: var(--color-gray-400);
-  --color-secondary-500: var(--color-gray-500);
-  --color-secondary-600: var(--color-gray-600);
-  --color-secondary-700: var(--color-gray-700);
-  --color-secondary-800: var(--color-gray-800);
-  --color-secondary-900: var(--color-gray-900);
-  --color-secondary-950: var(--color-gray-950);
 
   --color-info-50: var(--color-sky-50);
   --color-info-100: var(--color-sky-100);
@@ -84,7 +73,7 @@
 }
 
 /* Lightning's shared utilities, copied from assets/css/app.css: the
-   pointer on buttons, link styles, table-action buttons, modal backdrop. */
+   pointer on buttons, link styles, modal backdrop. */
 @layer base {
   /* Use the pointer for buttons */
   button:not(:disabled),
@@ -125,54 +114,8 @@
       hover:bg-gray-200;
 }
 
-@utility link-plain {
-  @apply font-normal
-     text-gray-800;
-}
-
-@utility link-info {
-  @apply text-blue-700 hover:text-blue-600;
-}
-
 @utility link-danger {
   @apply text-red-700 hover:text-red-600;
-}
-
-@utility link-success {
-  @apply text-green-700 hover:text-green-600;
-}
-
-@utility link-warning {
-  @apply text-yellow-700 hover:text-yellow-600;
-}
-
-@utility table-action {
-  @apply inline-flex
-    items-center
-    rounded
-    bg-white
-    mx-0.5
-    my-0.5
-    px-2
-    py-1
-    text-sm
-    font-semibold
-    text-gray-900
-    shadow-xs
-    ring-1
-    ring-inset
-    ring-gray-300
-    hover:bg-gray-50
-    disabled:cursor-not-allowed
-    disabled:opacity-30
-    disabled:hover:bg-white;
-}
-
-@utility table-action-disabled {
-  @apply table-action
-    cursor-not-allowed
-    opacity-30
-    hover:bg-white;
 }
 
 @utility modal-backdrop {

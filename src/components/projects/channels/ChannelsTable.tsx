@@ -4,7 +4,7 @@ import { cn } from "../../../utils/cn";
 import Button from "../../Button";
 import { Table, Td, Th, Tr } from "../../Table";
 import Toggle from "../../Toggle";
-import RelativeTime from "../RelativeTime";
+import DateTime from "../../DateTime";
 import ProxyUrlCopy from "./ProxyUrlCopy";
 
 /**
@@ -75,13 +75,13 @@ export default function ChannelsTable({
             />
           </Td>
           <Td className="text-gray-700">
-            <Link to={logs} className="text-indigo-600 hover:text-indigo-800">
+            <Link to={logs} className="text-primary-600 hover:text-primary-800">
               {channel.requestCount}
             </Link>
           </Td>
           <Td className="text-gray-500 text-sm">
             <Link to={logs} className="hover:text-gray-700">
-              {channel.lastActivityAt ? <RelativeTime datetime={channel.lastActivityAt} /> : <span className="italic">Never</span>}
+              {channel.lastActivityAt ? <DateTime value={channel.lastActivityAt} /> : <span className="italic">Never</span>}
             </Link>
           </Td>
           <Td>

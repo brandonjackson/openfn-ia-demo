@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { cn } from "../utils/cn";
-import { currentUser, instanceAdminEmail, releaseLabel } from "../mock-data/users";
-import type { Project } from "../mock-data/projects";
+import { cn } from "../../utils/cn";
+import { currentUser, instanceAdminEmail, releaseLabel } from "../../mock-data/users";
+import type { Project } from "../../mock-data/projects";
 import NavItem from "./NavItem";
 import UserMenu from "./UserMenu";
 import { OpenFnLogo, OpenFnLogoCollapsed } from "./OpenFnLogo";

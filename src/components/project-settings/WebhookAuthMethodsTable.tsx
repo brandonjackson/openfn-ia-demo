@@ -1,5 +1,5 @@
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
-import TableAction from "../TableAction";
+import Button from "../Button";
 import { linkedUsageSummary, type WebhookAuthMethod } from "../../mock-data/project-settings";
 
 interface Props {
@@ -59,7 +59,7 @@ export default function WebhookAuthMethodsTable({ authMethods, canWrite, onCreat
                   <a
                     id={`display_linked_usage_link_${m.id}`}
                     href="#webhook_security"
-                    className="text-indigo-600 hover:text-indigo-900"
+                    className="text-primary-600 hover:text-primary-900"
                     onClick={(e) => (e.preventDefault(), onShowUsage(m))}
                   >
                     {summary}
@@ -71,12 +71,12 @@ export default function WebhookAuthMethodsTable({ authMethods, canWrite, onCreat
             </Td>
             <Td className="text-right px-4 font-normal whitespace-nowrap py-0.5">
               <div className="inline-flex items-center gap-x-2">
-                <TableAction disabled={!canWrite} onClick={() => onView(m)}>
+                <Button theme="secondary" size="xs" disabled={!canWrite} onClick={() => onView(m)}>
                   {canWrite ? "View" : "Edit"}
-                </TableAction>
-                <TableAction disabled={!canWrite} onClick={() => onDelete(m)}>
+                </Button>
+                <Button theme="secondary" size="xs" disabled={!canWrite} onClick={() => onDelete(m)}>
                   Delete
-                </TableAction>
+                </Button>
               </div>
             </Td>
           </Tr>

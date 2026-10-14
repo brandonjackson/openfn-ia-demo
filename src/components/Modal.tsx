@@ -48,7 +48,7 @@ export default function Modal({ open, onClose, title, description, children, foo
           <DialogPanel
             transition
             className={cn(
-              "relative w-full rounded-xl bg-white text-left shadow-lg shadow-zinc-700/10 ring-1 ring-zinc-700/10",
+              "relative w-full rounded-xl bg-white text-left shadow-lg shadow-gray-700/10 ring-1 ring-gray-700/10",
               "transition duration-200 ease-out data-closed:translate-y-2 data-closed:opacity-0",
               !bare && "py-6",
               sizes[size],
@@ -63,8 +63,8 @@ export default function Modal({ open, onClose, title, description, children, foo
                   <>
                     <header className="flex items-start justify-between gap-4 px-6">
                       <div>
-                        <DialogTitle className="text-lg font-semibold leading-5 text-zinc-800">{title}</DialogTitle>
-                        {description && <Description className="mt-2 text-sm text-zinc-600">{description}</Description>}
+                        <DialogTitle className="text-lg font-semibold leading-5 text-gray-800">{title}</DialogTitle>
+                        {description && <Description className="mt-2 text-sm text-gray-600">{description}</Description>}
                       </div>
                       <IconButton icon="hero-x-mark" label="Close" size="sm" className="-m-0.5 p-0.5" onClick={onClose} />
                     </header>

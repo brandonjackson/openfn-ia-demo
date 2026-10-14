@@ -7,7 +7,7 @@ import { withRouter } from "../../stories/decorators";
 const meta: Meta<typeof WebhookSecurityPanel> = {
   title: "Project settings/WebhookSecurityPanel",
   component: WebhookSecurityPanel,
-  decorators: [withRouter, (Story) => <div className="space-y-4 bg-secondary-100 p-6"><Story /></div>],
+  decorators: [withRouter, (Story) => <div className="space-y-4 bg-gray-100 p-6"><Story /></div>],
   args: { projectId: projects[0].id, initialAuthMethods: webhookAuthMethods, canWrite: true },
 };
 export default meta;

@@ -11,3 +11,4 @@ export const WithLabel: Story = {
   args: { label: "Require MFA", description: "Every collaborator must use multi-factor authentication." },
 };
 export const Disabled: Story = { args: { disabled: true } };
+export const WithTooltip: Story = { args: { disabled: true, tooltip: "Only owners can change this" } };

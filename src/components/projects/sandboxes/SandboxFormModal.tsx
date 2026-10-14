@@ -4,7 +4,7 @@ import Button from "../../Button";
 import { TextInput } from "../../Inputs";
 import Modal from "../../Modal";
 import NameBadge from "../../NameBadge";
-import { slugify } from "../format";
+import { urlSafeName } from "../../../utils/format";
 import ColorPalette from "./ColorPalette";
 
 /**
@@ -34,7 +34,7 @@ export default function SandboxFormModal({
   const [color, setColor] = useState<string | null>(
     () => initialColor ?? sandboxColorPalette[Math.floor(Math.random() * sandboxColorPalette.length)]
   );
-  const name = slugify(rawName);
+  const name = urlSafeName(rawName);
   const errors = existingNames.includes(name) && name !== initialName ? ["Sandbox name already exists"] : [];
   const valid = name !== "" && errors.length === 0;
 

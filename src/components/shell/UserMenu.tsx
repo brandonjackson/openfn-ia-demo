@@ -1,6 +1,6 @@
-import type { User } from "../mock-data/users";
-import Menu, { MenuDivider, MenuHeader, MenuItem } from "./Menu";
-import UserAvatar from "./UserAvatar";
+import type { User } from "../../mock-data/users";
+import Menu, { MenuDivider, MenuHeader, MenuItem } from "../Menu";
+import UserAvatar from "../UserAvatar";
 
 const items = [
   { to: "/projects", icon: "hero-folder", label: "Projects" },

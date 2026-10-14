@@ -1,7 +1,7 @@
 import { Navigate, useParams } from "react-router-dom";
 import Header from "../../components/Header";
 import { PageContent } from "../../components/PageContent";
-import ProjectBreadcrumbs from "../../components/ProjectBreadcrumbs";
+import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import DataclipDetailsCard, { DataclipBodyCard } from "../../components/history/DataclipDetailsCard";
 import JsonViewer from "../../components/history/JsonViewer";
 import { findDataclip } from "../../mock-data/history";

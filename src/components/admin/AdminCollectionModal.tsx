@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { collectionProjectOptions, type Collection } from "../../mock-data/admin";
-import { urlSafeName } from "../../utils/urlSafeName";
+import { urlSafeName } from "../../utils/format";
 import Button from "../Button";
 import { Select, TextInput } from "../Inputs";
 import Modal from "../Modal";

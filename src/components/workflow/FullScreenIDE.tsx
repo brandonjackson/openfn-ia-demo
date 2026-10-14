@@ -127,7 +127,7 @@ export default function FullScreenIDE({
       </div>
 
       <div className="flex-1 overflow-hidden flex">
-        <div className={cn("h-full bg-slate-100 min-w-0 flex", vertical ? "flex-col" : "flex-row", panelState ? "w-[70%]" : "w-full")}>
+        <div className={cn("h-full bg-gray-100 min-w-0 flex", vertical ? "flex-col" : "flex-row", panelState ? "w-[70%]" : "w-full")}>
           <div className={cn("overflow-hidden", docsCollapsed ? "flex-1" : vertical ? "h-[60%]" : "w-[60%]")}>
             {job ? (
               <CodeEditor key={job.id} value={job.body} onChange={onBodyChange} />

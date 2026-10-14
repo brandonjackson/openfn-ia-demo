@@ -41,11 +41,11 @@ export default function AuthRegisterPage() {
                   <Checkbox id="user_terms_accepted" label="" required />
                 </div>
                 <div className="ml-3 text-sm">
-                  <Label htmlFor="user_terms_accepted" className="font-medium text-secondary-700">
+                  <Label htmlFor="user_terms_accepted" className="font-medium text-gray-700">
                     I accept the terms of service
                   </Label>
                   <br />
-                  <span className="text-xs text-secondary-500">
+                  <span className="text-xs text-gray-500">
                     Please check with the host of this instance of Lightning to ensure that you understand, accept,
                     and are willing to abide by all of their terms and conditions. You can read the OpenFn.org terms
                     of service{" "}

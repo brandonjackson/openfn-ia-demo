@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
+import Heading from "./Heading";
 
 interface Props {
   title: ReactNode;
-  subtitle: ReactNode;
+  subtitle?: ReactNode;
   /** Right-aligned action, usually a Button. */
   action?: ReactNode;
   /** When set, shows "Role based permissions: You cannot modify this project's {section}". */
@@ -10,23 +11,23 @@ interface Props {
 }
 
 /**
- * Heading for a settings panel (Lightning's `LayoutComponents.section_header`):
- * a title, a small gray subtitle, an optional permissions warning, and the
- * panel's main action on the right.
+ * A title, a small gray subtitle, an optional permissions warning, and the
+ * section's main action on the right (Lightning's
+ * `LayoutComponents.section_header`). `Card` uses it for its header.
  */
 export default function SectionHeader({ title, subtitle, action, permissionsSection }: Props) {
   return (
-    <div className="flex justify-between content-center">
+    <div className="flex items-start justify-between gap-4">
       <div>
-        <h6 className="font-medium text-black">{title}</h6>
-        <small className="block my-1 text-xs text-gray-600">{subtitle}</small>
+        <Heading>{title}</Heading>
+        {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
         {permissionsSection && (
-          <small className="mt-2 text-red-700">
+          <p className="mt-2 text-sm text-danger-700">
             Role based permissions: You cannot modify this project's {permissionsSection}
-          </small>
+          </p>
         )}
       </div>
-      {action && <div className="sm:block">{action}</div>}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }

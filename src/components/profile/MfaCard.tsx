@@ -4,7 +4,7 @@ import ConfirmModal from "../ConfirmModal";
 import { TextInput } from "../Inputs";
 import Modal from "../Modal";
 import TextLink from "../TextLink";
-import PlainSwitch from "../project-settings/PlainSwitch";
+import Toggle from "../Toggle";
 import ProfileCard, { ProfileCardHeading } from "./ProfileCard";
 import { fakeTotpSecret } from "../../mock-data/profile";
 
@@ -56,7 +56,7 @@ export default function MfaCard({ mfaEnabled, onChange }: Props) {
           description="This adds an additional layer of security to your account by requiring more than just a password to sign in."
         />
         <span className="ml-5">
-          <PlainSwitch id="toggle-mfa-switch" checked={show} onChange={toggle} labelledBy={`${id}-label`} />
+          <Toggle id="toggle-mfa-switch" checked={show} onChange={toggle} labelledBy={`${id}-label`} />
         </span>
       </div>
       {(mfaEnabled || editing) && (

@@ -121,7 +121,7 @@ export default function AuthProviderForm({ provider, onSave, onRemove, initialTe
               />
             </div>
             <div className="hidden sm:block mt-4" aria-hidden="true">
-              <div className="border-t border-secondary-200" />
+              <div className="border-t border-gray-200" />
             </div>
             <div className="mt-4">
               <div className="flex">
@@ -139,7 +139,7 @@ export default function AuthProviderForm({ provider, onSave, onRemove, initialTe
           </div>
           <div className="col-span-3">
             <div className="flex flex-col h-full">
-              <div className="flex-none text-sm text-secondary-700">
+              <div className="flex-none text-sm text-gray-700">
                 <p>
                   Allows users with existing accounts to login with an external OpenID Connect account that matches
                   their email address.
@@ -152,26 +152,26 @@ export default function AuthProviderForm({ provider, onSave, onRemove, initialTe
                 </p>
               </div>
               <div className="flex-none hidden sm:block mt-4" aria-hidden="true">
-                <div className="border-t border-secondary-200" />
+                <div className="border-t border-gray-200" />
               </div>
               <div className="flex-none mt-4">
-                <div className="font-medium text-sm text-secondary-700">Redirect URI</div>
+                <div className="font-medium text-sm text-gray-700">Redirect URI</div>
                 {valid ? (
                   <div
                     id="redirect-uri-preview"
-                    className="font-mono border rounded-md mt-4 p-2 text-secondary-700 bg-gray-200 border-slate-300 shadow-xs"
+                    className="font-mono border rounded-md mt-4 p-2 text-gray-700 bg-gray-200 border-gray-300 shadow-xs"
                   >
                     {authRedirectUri(values)}
                   </div>
                 ) : (
                   <div
                     id="redirect-uri-preview"
-                    className="font-mono border rounded-md mt-4 p-2 text-gray-400 bg-gray-200 border-slate-300 shadow-xs cursor-not-allowed"
+                    className="font-mono border rounded-md mt-4 p-2 text-gray-400 bg-gray-200 border-gray-300 shadow-xs cursor-not-allowed"
                   >
                     {values.redirectHost}&hellip;
                   </div>
                 )}
-                <p className="mt-2 text-sm text-secondary-700">
+                <p className="mt-2 text-sm text-gray-700">
                   Ensure your provider has this redirect URI set. For more information see{" "}
                   {docsLink("https://developers.google.com/identity/protocols/oauth2/openid-connect#setredirecturi")}
                 </p>
@@ -180,8 +180,8 @@ export default function AuthProviderForm({ provider, onSave, onRemove, initialTe
                 <>
                   <div className="grow" />
                   <div className="flex-none mt-4">
-                    <div className="font-medium text-sm text-secondary-700">Remove</div>
-                    <p className="my-2 text-sm text-secondary-700">
+                    <div className="font-medium text-sm text-gray-700">Remove</div>
+                    <p className="my-2 text-sm text-gray-700">
                       Deletes the Authentication Configuration, and disables external authentication for Lightning.
                     </p>
                     <Button theme="danger" onClick={onRemove}>

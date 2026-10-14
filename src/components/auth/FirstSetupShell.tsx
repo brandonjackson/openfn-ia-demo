@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { OpenFnLogo } from "../OpenFnLogo";
+import { OpenFnLogo } from "../shell/OpenFnLogo";
 import { releaseLabel } from "../../mock-data/users";
 
 /**

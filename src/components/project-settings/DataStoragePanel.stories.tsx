@@ -5,7 +5,7 @@ import { dataRetentionPeriods } from "../../mock-data/project-settings";
 const meta: Meta<typeof DataStoragePanel> = {
   title: "Project settings/DataStoragePanel",
   component: DataStoragePanel,
-  decorators: [(Story) => <div className="space-y-4 bg-secondary-100 p-6"><Story /></div>],
+  decorators: [(Story) => <div className="space-y-4 bg-gray-100 p-6"><Story /></div>],
   args: {
     initial: { historyRetentionPeriod: null, dataclipRetentionPeriod: null, retentionPolicy: "retain_all" },
     periods: dataRetentionPeriods,

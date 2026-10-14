@@ -1,5 +1,4 @@
 import Modal from "../Modal";
-import { linkClass } from "./classes";
 import type { Collection } from "../../mock-data/project-settings";
 
 interface Props {
@@ -25,7 +24,7 @@ export default function CollectionPreviewModal({ collection, onClose }: Props) {
             href="https://docs.openfn.org/documentation/collections-cli"
             target="_blank"
             rel="noopener noreferrer"
-            className={linkClass}
+            className="link"
           >
             using the CLI
           </a>{" "}
@@ -35,7 +34,7 @@ export default function CollectionPreviewModal({ collection, onClose }: Props) {
     >
       <div className="h-96 rounded-md overflow-hidden">
         {collection.previewJson ? (
-          <pre className="h-full overflow-auto bg-slate-700 p-4 font-mono text-xs text-slate-200">
+          <pre className="h-full overflow-auto bg-gray-700 p-4 font-mono text-xs text-gray-200">
             {collection.previewJson}
           </pre>
         ) : (

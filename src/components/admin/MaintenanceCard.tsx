@@ -25,8 +25,8 @@ export default function MaintenanceCard({
       className="bg-white shadow-xs rounded-lg border border-gray-200 p-6 flex items-start justify-between gap-6"
     >
       <div className="flex flex-col">
-        <h2 className="text-lg font-semibold text-secondary-900">{title}</h2>
-        <p className="mt-1 text-sm text-secondary-600">{description}</p>
+        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+        <p className="mt-1 text-sm text-gray-600">{description}</p>
       </div>
       <Button onClick={onRun} disabled={running}>
         Run

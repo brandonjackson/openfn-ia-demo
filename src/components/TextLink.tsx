@@ -12,13 +12,15 @@ interface Props {
   target?: string;
   /** With neither `to` nor `href`, the link only runs this (default navigation is prevented). */
   onClick?: (e: MouseEvent) => void;
+  /** `danger` for destructive actions (Disconnect, Revoke). */
+  variant?: "default" | "danger";
   className?: string;
   children: ReactNode;
 }
 
-/** An inline text link with Lightning's `link` utility (primary-400, underline on hover). */
-export default function TextLink({ to, href, external = false, target, onClick, className, children }: Props) {
-  const classes = cn("link", className);
+/** An inline text link with Lightning's `link` utility (primary-400, underline on hover), or red with `variant="danger"`. */
+export default function TextLink({ to, href, external = false, target, onClick, variant = "default", className, children }: Props) {
+  const classes = cn("link", variant === "danger" && "link-danger", className);
   if (to && !external) {
     return (
       <Link to={to} className={classes} onClick={onClick} data-ui="link">

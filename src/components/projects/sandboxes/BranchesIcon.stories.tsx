@@ -4,7 +4,7 @@ import BranchesIcon from "./BranchesIcon";
 const meta: Meta<typeof BranchesIcon> = {
   title: "Projects/Sandboxes/BranchesIcon",
   component: BranchesIcon,
-  args: { className: "h-6 w-6 text-slate-700" },
+  args: { className: "h-6 w-6 text-gray-700" },
 };
 export default meta;
 type Story = StoryObj<typeof BranchesIcon>;

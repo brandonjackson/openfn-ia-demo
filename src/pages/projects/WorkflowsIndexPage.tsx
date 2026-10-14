@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
-import ProjectBreadcrumbs from "../../components/ProjectBreadcrumbs";
+import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import ProjectMetrics from "../../components/projects/ProjectMetrics";
 import WorkflowsHeader from "../../components/projects/WorkflowsHeader";
 import WorkflowsTable from "../../components/projects/WorkflowsTable";

@@ -1,4 +1,4 @@
-import type { ReactNode, TdHTMLAttributes } from "react";
+import type { MouseEvent, ReactNode, TdHTMLAttributes } from "react";
 import { cn } from "../utils/cn";
 
 /**
@@ -30,6 +30,13 @@ export function Table({
   );
 }
 
+/** True when a click landed on a link, button or input inside the row, which handles it itself. */
+function clickedControl(e: MouseEvent<HTMLElement>) {
+  const control = (e.target as HTMLElement).closest("a, button, input, select, textarea, label, [role=switch]");
+  return control !== null && e.currentTarget.contains(control);
+}
+
+/** A row. With `onClick` the whole row is clickable; links and buttons inside it still do their own thing. */
 export function Tr({
   children,
   onClick,
@@ -44,7 +51,7 @@ export function Tr({
   return (
     <tr
       id={id}
-      onClick={onClick}
+      onClick={onClick && ((e) => !clickedControl(e) && onClick())}
       className={cn(
         "transition-colors duration-150",
         "has-[td]:hover:bg-gray-50",
@@ -136,15 +143,15 @@ export function EmptyState({
         disabled={disabled}
         className="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 disabled:hover:border-gray-300 focus:outline-none"
       >
-        <span className={cn(icon, "mx-auto w-12 h-12 text-secondary-400")} />
-        <span className="mt-2 block text-xs font-semibold text-secondary-600">{buttonText}</span>
+        <span className={cn(icon, "mx-auto w-12 h-12 text-gray-400")} />
+        <span className="mt-2 block text-xs font-semibold text-gray-600">{buttonText}</span>
         <div className="mt-2 text-xs text-gray-500">{message}</div>
       </button>
     );
   }
   return (
     <div className="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-4 text-center">
-      <span className={cn(icon, "mx-auto w-12 h-12 text-secondary-400")} />
+      <span className={cn(icon, "mx-auto w-12 h-12 text-gray-400")} />
       <div className="mt-2 text-xs text-gray-500">{message}</div>
     </div>
   );

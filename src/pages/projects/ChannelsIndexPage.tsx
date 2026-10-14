@@ -3,7 +3,7 @@ import { Navigate, useLocation, useNavigate, useParams } from "react-router-dom"
 import Button from "../../components/Button";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
-import ProjectBreadcrumbs from "../../components/ProjectBreadcrumbs";
+import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import ChannelFormModal from "../../components/projects/channels/ChannelFormModal";
 import ChannelMetrics from "../../components/projects/channels/ChannelMetrics";
 import ChannelsTable from "../../components/projects/channels/ChannelsTable";

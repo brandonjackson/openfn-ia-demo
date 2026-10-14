@@ -1,4 +1,4 @@
-import RelativeTime from "../projects/RelativeTime";
+import DateTime from "../DateTime";
 import type { User } from "../../mock-data/users";
 
 /** Left column of /profile (profile_live/components.ex `user_info`). */
@@ -11,7 +11,7 @@ export default function UserInfo({ user }: { user: User }) {
       <p className="mt-1 text-sm leading-6 text-gray-600">Change name, email, password, and request deletion.</p>
       <div className="border-b border-gray-900/10 mt-6 mb-6" />
       <p className="mt-1 text-sm leading-6 text-gray-600">
-        Created: <RelativeTime datetime={user.insertedAt} />
+        Created: <DateTime value={user.insertedAt} />
       </p>
       <p className="mt-1 text-sm leading-6 text-gray-600">Email: {user.email}</p>
     </div>

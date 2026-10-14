@@ -139,8 +139,8 @@ export default function RunViewerPanel({ projectId, run, steps, logs, dataclips,
       </div>
       <div className="flex-1 min-h-0">
         {activeTab === "log" && (
-          <div className="grid h-full grid-rows-[auto_1fr] bg-slate-700 font-mono text-gray-200">
-            <div className="border-b border-slate-500">
+          <div className="grid h-full grid-rows-[auto_1fr] bg-gray-700 font-mono text-gray-200">
+            <div className="border-b border-gray-500">
               <div className="mx-auto px-2">
                 <div className="flex h-6 flex-row-reverse items-center">
                   <Menu
@@ -171,7 +171,7 @@ export default function RunViewerPanel({ projectId, run, steps, logs, dataclips,
                     key={i}
                     className={cn("whitespace-pre-wrap", step && l.stepId && l.stepId !== step.id && "opacity-40", l.level === "error" && "text-red-300")}
                   >
-                    <span className="text-slate-400">{l.source.padEnd(4)}</span> {l.message}
+                    <span className="text-gray-400">{l.source.padEnd(4)}</span> {l.message}
                   </div>
                 ))
               )}

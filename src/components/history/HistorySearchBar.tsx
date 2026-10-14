@@ -63,7 +63,7 @@ export default function HistorySearchBar({
                         on ? "bg-gray-200" : "bg-white"
                       )}
                     >
-                      <span className={cn(f.icon, "h-4 w-4 inline-block align-middle", on && "text-indigo-800")} />
+                      <span className={cn(f.icon, "h-4 w-4 inline-block align-middle", on && "text-primary-800")} />
                     </div>
                   </button>
                 </div>

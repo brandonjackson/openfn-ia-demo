@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Button from "../Button";
 import SectionHeader from "../SectionHeader";
 import LinkedUsageModal from "./LinkedUsageModal";
-import SettingsCard from "./SettingsCard";
+import Card from "../Card";
 import WebhookAuthMethodDeleteModal from "./WebhookAuthMethodDeleteModal";
 import WebhookAuthMethodFormModal from "./WebhookAuthMethodFormModal";
 import WebhookAuthMethodsTable from "./WebhookAuthMethodsTable";
@@ -38,7 +38,7 @@ export default function WebhookSecurityPanel({ projectId, initialAuthMethods, ca
     return (
       <>
         <SectionHeader title={title} subtitle={subtitle} />
-        <SettingsCard
+        <Card
           id="webhook-security-sandbox-notice"
           className="space-y-0"
           title="Webhook authentication is managed in the parent project"
@@ -46,11 +46,11 @@ export default function WebhookSecurityPanel({ projectId, initialAuthMethods, ca
         >
           <Link
             to={`/projects/${parentProject.id}/settings#webhook_security`}
-            className="mt-2 inline-block text-xs font-medium text-indigo-600 hover:text-indigo-900"
+            className="mt-2 inline-block text-xs font-medium text-primary-600 hover:text-primary-900"
           >
             Manage them in the parent project ({parentProject.name})
           </Link>
-        </SettingsCard>
+        </Card>
       </>
     );
   }

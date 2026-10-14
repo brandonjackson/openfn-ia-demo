@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
 import Header from "../Header";
 import { Centered, PageContent } from "../PageContent";
-import { OpenFnLogoCollapsed } from "../OpenFnLogo";
+import { OpenFnLogoCollapsed } from "../shell/OpenFnLogo";
 
 /** The dark top bar with the boxed Fn logo (Lightning's `LayoutComponents.nav`). */
 export function AuthNav() {
   return (
-    <nav className="bg-secondary-800" data-ui="auth-nav">
+    <nav className="bg-gray-800" data-ui="auth-nav">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">

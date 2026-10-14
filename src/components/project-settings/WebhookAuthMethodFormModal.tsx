@@ -53,7 +53,7 @@ function TypeOption({ selected, icon, children, onSelect }: { selected: boolean;
         aria-hidden="true"
         className={cn(
           "pointer-events-none absolute -inset-px rounded-lg",
-          selected ? "outline outline-indigo-600 outline-2 outline-offset-2" : "border-transparent"
+          selected ? "outline outline-primary-600 outline-2 outline-offset-2" : "border-transparent"
         )}
       />
     </label>

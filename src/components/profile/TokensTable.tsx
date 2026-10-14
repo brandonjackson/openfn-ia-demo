@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Table, Td, Th, Tr } from "../Table";
 import Button from "../Button";
-import RelativeTime from "../projects/RelativeTime";
+import DateTime from "../DateTime";
 import { maskToken, type ApiToken } from "../../mock-data/tokens";
 
 /**
@@ -31,13 +31,13 @@ export default function TokensTable({ tokens, onGenerate }: { tokens: ApiToken[]
             </Td>
             <Td>
               <span className="my-auto whitespace-nowrap text-center align-baseline font-medium leading-none">
-                <RelativeTime datetime={token.insertedAt} />
+                <DateTime value={token.insertedAt} />
               </span>
             </Td>
             <Td>
               <div className="flex content-center justify-between">
                 <span className="my-auto whitespace-nowrap text-center align-baseline font-medium leading-none">
-                  {token.lastUsedAt ? <RelativeTime datetime={token.lastUsedAt} /> : "Never used"}
+                  {token.lastUsedAt ? <DateTime value={token.lastUsedAt} /> : "Never used"}
                 </span>
                 <Link id={`delete-token-${token.id}`} to={`/profile/tokens/${token.id}/delete`} className="text-red-600">
                   <span className="hero-trash w-5 h-5" />

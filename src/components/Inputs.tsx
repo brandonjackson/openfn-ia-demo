@@ -10,7 +10,7 @@ import { controlClasses } from "./controlClasses";
 
 export function Label({ htmlFor, className, children }: { htmlFor?: string; className?: string; children: ReactNode }) {
   return (
-    <label htmlFor={htmlFor} className={cn("text-sm/6 font-medium text-slate-800", className)}>
+    <label htmlFor={htmlFor} className={cn("text-sm/6 font-medium text-gray-800", className)}>
       {children}
     </label>
   );
@@ -126,7 +126,7 @@ export function Radio({ label, hint, className, ...rest }: ChoiceProps) {
 
 function Choice({ label, hint, className, ...rest }: ChoiceProps & { type: "checkbox" | "radio" }) {
   return (
-    <label className={cn("flex gap-2 text-sm leading-6 text-slate-700", hint ? "items-start" : "items-center")}>
+    <label className={cn("flex gap-2 text-sm leading-6 text-gray-700", hint ? "items-start" : "items-center")}>
       <input className={cn(choiceClasses, hint && "mt-1", className)} {...rest} />
       <span>
         {label}

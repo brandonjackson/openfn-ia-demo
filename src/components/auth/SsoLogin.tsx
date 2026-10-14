@@ -8,7 +8,7 @@ import type { SsoProvider } from "../../mock-data/auth";
 export default function SsoLogin({ provider }: { provider: SsoProvider }) {
   return (
     <>
-      <div className="text-xs text-secondary-700 border-b border-secondary-200 text-center leading-[0]">
+      <div className="text-xs text-gray-700 border-b border-gray-200 text-center leading-[0]">
         <span className="px-2 bg-white">or</span>
       </div>
       <Button theme="secondary" href={provider.handlerUrl} tooltip={provider.name} className="w-full">

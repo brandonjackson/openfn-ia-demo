@@ -3,7 +3,7 @@ import Button from "../Button";
 import { TextInput } from "../Inputs";
 import Modal from "../Modal";
 import NameBadge from "../NameBadge";
-import { urlSafeName } from "../../utils/urlSafeName";
+import { urlSafeName } from "../../utils/format";
 
 interface Props {
   /** "Create Collection" or "Edit Collection". */

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import Sidebar from "./Sidebar";
-import { projects } from "../mock-data/projects";
-import { withRouterAt } from "../stories/decorators";
+import { projects } from "../../mock-data/projects";
+import { withRouterAt } from "../../stories/decorators";
 
 const meta: Meta<typeof Sidebar> = {
   title: "Shell/Sidebar",

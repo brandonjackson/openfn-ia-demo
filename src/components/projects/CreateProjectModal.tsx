@@ -3,7 +3,7 @@ import Button from "../Button";
 import { TextArea, TextInput } from "../Inputs";
 import Modal from "../Modal";
 import NameBadge from "../NameBadge";
-import { slugify } from "./format";
+import { urlSafeName } from "../../utils/format";
 
 /**
  * "Create a new project" (DashboardLive.ProjectCreationModal): Name, with
@@ -21,7 +21,7 @@ export default function CreateProjectModal({
 }) {
   const [rawName, setRawName] = useState("");
   const [description, setDescription] = useState("");
-  const name = slugify(rawName);
+  const name = urlSafeName(rawName);
   const tooLong = description.length > 240;
   const valid = name !== "" && !tooLong;
 

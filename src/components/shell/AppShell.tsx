@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { Outlet, useLocation, useParams } from "react-router-dom";
-import { findProject } from "../mock-data/projects";
+import { findProject } from "../../mock-data/projects";
 import Sidebar, { type SidebarVariant } from "./Sidebar";
 import Picker from "./Picker";
 import { buildProjectPickerItems } from "./projectPickerItems";

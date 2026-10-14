@@ -2,7 +2,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
 import Tabs from "../../components/Tabs";
-import ProjectBreadcrumbs from "../../components/ProjectBreadcrumbs";
+import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import ChannelRequestsTable from "../../components/history/ChannelRequestsTable";
 import FilterChip, { FilterMenu } from "../../components/history/FilterChip";
 import { channelRequestsIn, channelsIn } from "../../mock-data/channel-requests";

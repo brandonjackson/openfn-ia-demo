@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { Dataclip } from "../../mock-data/history";
 import { uuidOf } from "../../mock-data/history-extra";
 import DataclipTypePill from "./DataclipTypePill";
-import DateTime from "./DateTime";
+import DateTime from "../DateTime";
 
 /** The "Dataclip Details" metadata card (dataclip_live/show.ex). */
 export default function DataclipDetailsCard({ dataclip, updatedAt }: { dataclip: Dataclip; updatedAt?: string }) {

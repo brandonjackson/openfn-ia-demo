@@ -19,7 +19,7 @@ export default function ChannelMetrics({
       <div className="bg-white shadow rounded-lg py-2 px-6">
         <div className="flex items-center justify-between">
           <h2 className="text-sm text-gray-500">Total Requests</h2>
-          <Link to={`/projects/${projectId}/history/channels`} className="text-xs text-indigo-600 hover:text-indigo-800">
+          <Link to={`/projects/${projectId}/history/channels`} className="text-xs text-primary-600 hover:text-primary-800">
             View all
           </Link>
         </div>

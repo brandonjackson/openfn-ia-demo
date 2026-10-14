@@ -5,11 +5,11 @@ import Button from "../Button";
 import { Label, TextArea, TextInput } from "../Inputs";
 import SectionHeader from "../SectionHeader";
 import NameBadge from "../NameBadge";
-import PlainSwitch from "./PlainSwitch";
+import Toggle from "../Toggle";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
-import SettingsCard from "./SettingsCard";
+import Card from "../Card";
 import type { Project } from "../../mock-data/projects";
-import { urlSafeName } from "../../utils/urlSafeName";
+import { urlSafeName } from "../../utils/format";
 
 interface Props {
   project: Project;
@@ -48,7 +48,7 @@ export default function ProjectSetupPanel({ project, env, parentProject, canEdit
       />
       {sandbox && <SandboxSettingsBanner variant="local" />}
       <div className="space-y-4">
-        <SettingsCard
+        <Card
           title={sandbox ? "Sandbox Identity" : "Project Identity"}
           description={
             sandbox ? (
@@ -57,7 +57,7 @@ export default function ProjectSetupPanel({ project, env, parentProject, canEdit
                 {parentProject && (
                   <Link
                     to={`/projects/${parentProject.id}/settings`}
-                    className="font-medium text-indigo-600 hover:text-indigo-900"
+                    className="font-medium text-primary-600 hover:text-primary-900"
                   >
                     {parentProject.name}
                   </Link>
@@ -97,7 +97,7 @@ export default function ProjectSetupPanel({ project, env, parentProject, canEdit
                 disabled={!canEditProject}
                 maxLength={240}
                 onChange={(e) => setDescription(e.target.value)}
-                className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-xs sm:text-sm border-secondary-300 rounded-md"
+                className="mt-1 focus:ring-primary-500 focus:border-primary-500 block w-full shadow-xs sm:text-sm border-gray-300 rounded-md"
               />
               <small className="mt-2 block text-xs text-gray-600">
                 A short description of a project (max 240 characters)
@@ -109,9 +109,9 @@ export default function ProjectSetupPanel({ project, env, parentProject, canEdit
               </Button>
             </div>
           </form>
-        </SettingsCard>
+        </Card>
 
-        <SettingsCard
+        <Card
           title="Concurrency Override"
           description={
             <span className="block @container">
@@ -138,7 +138,7 @@ export default function ProjectSetupPanel({ project, env, parentProject, canEdit
           >
             <div>
               <div className="flex items-center">
-                <PlainSwitch
+                <Toggle
                   id="project-concurrency-switch"
                   checked={serial}
                   onChange={setSerial}
@@ -162,17 +162,17 @@ export default function ProjectSetupPanel({ project, env, parentProject, canEdit
               </Button>
             </div>
           </form>
-        </SettingsCard>
+        </Card>
 
-        <SettingsCard
+        <Card
           title="Export your Project"
           description="Export your project as code, to save this version or edit your project locally."
         >
           <Button>Export project</Button>
-        </SettingsCard>
+        </Card>
 
         {canDeleteProject && (
-          <SettingsCard
+          <Card
             title="The danger zone"
             description={
               sandbox
@@ -183,7 +183,7 @@ export default function ProjectSetupPanel({ project, env, parentProject, canEdit
             <Button theme="danger" to={`/projects/${project.id}/settings/delete`}>
               {sandbox ? "Delete sandbox" : "Delete project"}
             </Button>
-          </SettingsCard>
+          </Card>
         )}
       </div>
     </>

@@ -1,6 +1,6 @@
 import type { WorkOrderDisplayState } from "../../mock-data/dashboard-stats";
 import { cn } from "../../utils/cn";
-import RelativeTime from "./RelativeTime";
+import DateTime from "../DateTime";
 
 const DOT: Record<WorkOrderDisplayState, string> = {
   pending: "bg-gray-600",
@@ -68,7 +68,7 @@ export default function WorkOrderStatus({
         </div>
         {updatedAt && (
           <span className="block text-left text-gray-500 text-xs ml-4 mt-1">
-            <RelativeTime datetime={updatedAt} />
+            <DateTime value={updatedAt} />
           </span>
         )}
       </div>

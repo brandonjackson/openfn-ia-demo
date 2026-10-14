@@ -4,7 +4,6 @@ import Alert from "../Alert";
 import Button from "../Button";
 import { TextInput } from "../Inputs";
 import Modal from "../Modal";
-import { linkClass } from "./classes";
 import type { WebhookAuthMethod } from "../../mock-data/project-settings";
 
 interface Props {
@@ -61,7 +60,7 @@ export default function WebhookAuthMethodDeleteModal({ projectId, authMethod, on
               <ul className="list-disc pl-5 space-y-1">
                 {triggers.map((t) => (
                   <li key={t.triggerId}>
-                    <Link to={`/projects/${projectId}/w/${t.workflowId}?s=${t.triggerId}`} className={linkClass}>
+                    <Link to={`/projects/${projectId}/w/${t.workflowId}?s=${t.triggerId}`} className="link">
                       {t.workflowName}
                     </Link>
                   </li>
@@ -74,7 +73,7 @@ export default function WebhookAuthMethodDeleteModal({ projectId, authMethod, on
               <ul className="list-disc pl-5 space-y-1">
                 {channels.map((c) => (
                   <li key={c.id}>
-                    <Link to={`/projects/${projectId}/channels/${c.id}/edit`} className={linkClass}>
+                    <Link to={`/projects/${projectId}/channels/${c.id}/edit`} className="link">
                       {c.name}
                     </Link>
                   </li>

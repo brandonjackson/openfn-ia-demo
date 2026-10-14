@@ -23,7 +23,7 @@ function ActionButton({
         type="button"
         className={cn(
           "rounded-lg p-2 transition-colors flex items-center justify-center",
-          disabled ? "cursor-not-allowed" : "hover:bg-slate-100"
+          disabled ? "cursor-not-allowed" : "hover:bg-gray-100"
         )}
         onClick={(e) => {
           e.stopPropagation();
@@ -32,7 +32,7 @@ function ActionButton({
         disabled={disabled}
         aria-disabled={disabled}
       >
-        {children(cn("h-4 w-4", disabled ? "text-slate-300" : "text-slate-700"))}
+        {children(cn("h-4 w-4", disabled ? "text-gray-300" : "text-gray-700"))}
       </button>
     </span>
   );

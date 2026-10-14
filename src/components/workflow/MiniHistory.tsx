@@ -5,7 +5,7 @@ import { cn } from "../../utils/cn";
 import IconButton from "../IconButton";
 import RunBadge from "./RunBadge";
 import { shortId } from "./shortId";
-import { duration, formatRelative } from "./formatTime";
+import { formatDuration, formatRelative } from "../../utils/format";
 
 const CHIP_STYLES: Record<string, string> = {
   rejected: "bg-red-300 text-gray-800",
@@ -134,7 +134,7 @@ export default function MiniHistory({
                       key={run.id}
                       className={cn(
                         "px-3 py-1.5 text-xs hover:bg-gray-50 transition-colors cursor-pointer border-l-2 w-full text-left",
-                        runSelected ? "bg-indigo-50 border-l-indigo-500" : "border-l-transparent"
+                        runSelected ? "bg-primary-50 border-l-primary-500" : "border-l-transparent"
                       )}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -174,7 +174,7 @@ export default function MiniHistory({
                           {run.startedAt && run.finishedAt && (
                             <>
                               <span className="text-xs text-gray-800">&bull;</span>
-                              <span className="text-gray-400 text-xs">{duration(run.startedAt, run.finishedAt)}</span>
+                              <span className="text-gray-400 text-xs">{formatDuration(run.startedAt, run.finishedAt)}</span>
                             </>
                           )}
                         </div>

@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
 import TextLink from "../TextLink";
-import { greetingFor } from "./format";
 
 const PARAGRAPH =
   "Click on a project to get started. If you need some help, head to docs.openfn.org or community.openfn.org to learn more.";
 
 const STEP_MS = 50;
+
+/** Lightning's time-of-day greeting (TypewriterHook in assets/js/hooks). */
+function greetingFor(name: string, hour: number): string {
+  if (hour >= 22 || hour < 3) return `Good evening, ${name}. You're up late!`;
+  if (hour < 7) return `Good morning, ${name}. You're up early!`;
+  if (hour < 12) return `Good morning, ${name}!`;
+  if (hour < 18) return `Good afternoon, ${name}!`;
+  return `Good evening, ${name}!`;
+}
 
 /**
  * The projects dashboard greeting (DashboardLive.Components.welcome_banner):

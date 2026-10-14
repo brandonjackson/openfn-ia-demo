@@ -1,7 +1,7 @@
 import { Navigate, useParams } from "react-router-dom";
 import Header from "../../components/Header";
 import { PageContent } from "../../components/PageContent";
-import ProjectBreadcrumbs from "../../components/ProjectBreadcrumbs";
+import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import WorkflowHealth from "../../components/projects/health/WorkflowHealth";
 import { findProject } from "../../mock-data/projects";
 import { findWorkflow } from "../../mock-data/workflows";

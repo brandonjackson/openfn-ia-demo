@@ -1,29 +1,19 @@
 import type { DataclipType } from "../../mock-data/history";
-import { cn } from "../../utils/cn";
+import Pill, { type PillColor } from "../Pill";
 
-const TYPE_CLASSES: Record<DataclipType, string> = {
-  step_result: "bg-purple-500 text-purple-900",
-  http_request: "bg-green-500 text-green-900",
-  global: "bg-blue-500 text-blue-900",
-  saved_input: "bg-yellow-500 text-yellow-900",
-  kafka: "bg-green-500 text-green-900",
+const TYPE_COLORS: Record<DataclipType, PillColor> = {
+  step_result: "purple",
+  http_request: "green",
+  global: "blue",
+  saved_input: "yellow",
+  kafka: "green",
 };
 
-/**
- * A dataclip's type as a coloured mono pill (Common.dataclip_type_pill, and
- * manual-run-panel/DataclipTypePill.tsx with its small size).
- */
-export default function DataclipTypePill({ type, size = "default" }: { type: DataclipType; size?: "default" | "small" }) {
+/** A dataclip's type as a coloured mono pill (Common.dataclip_type_pill). */
+export default function DataclipTypePill({ type }: { type: DataclipType }) {
   return (
-    <div
-      className={cn(
-        size === "small"
-          ? "px-1.5 py-0.5 rounded-full inline-block text-xs font-mono"
-          : "px-2 py-1 rounded-full inline-block text-sm font-mono",
-        TYPE_CLASSES[type] ?? ""
-      )}
-    >
+    <Pill color={TYPE_COLORS[type] ?? "gray"} mono>
       {type}
-    </div>
+    </Pill>
   );
 }

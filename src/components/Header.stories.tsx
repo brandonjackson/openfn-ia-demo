@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import Header from "./Header";
 import Button from "./Button";
-import ProjectBreadcrumbs from "./ProjectBreadcrumbs";
+import ProjectBreadcrumbs from "./shell/ProjectBreadcrumbs";
 import { projects } from "../mock-data/projects";
 import { withRouter } from "../stories/decorators";
 

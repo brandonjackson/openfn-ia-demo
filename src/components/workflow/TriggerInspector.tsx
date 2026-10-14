@@ -35,7 +35,7 @@ export function TriggerTypeBadge({ type = "webhook" }: { type?: "webhook" | "cro
 }
 
 function ReadOnlyField({ id, label, value }: { id: string; label: string; value: string }) {
-  return <TextInput id={id} label={label} value={value} readOnly className="text-slate-500" />;
+  return <TextInput id={id} label={label} value={value} readOnly className="text-gray-500" />;
 }
 
 function Collapsible({ title, note, children }: { title: string; note?: string; children: ReactNode }) {
@@ -45,11 +45,11 @@ function Collapsible({ title, note, children }: { title: string; note?: string; 
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-1.5 text-sm font-medium text-slate-800 focus:outline-none"
+        className="flex w-full items-center gap-1.5 text-sm font-medium text-gray-800 focus:outline-none"
       >
         <span className={cn("h-3.5 w-3.5 transition-transform", open ? "hero-chevron-down-mini" : "hero-chevron-right-mini")} />
         {title}
-        {note && <span className="text-xs font-normal text-slate-400">({note})</span>}
+        {note && <span className="text-xs font-normal text-gray-400">({note})</span>}
       </button>
       {open && <div className="mt-2">{children}</div>}
     </div>
@@ -72,16 +72,16 @@ function WizardBreadcrumb({ step, onChoose }: { step: "choose" | "configure"; on
   return (
     <nav aria-label="Wizard steps" className="flex items-center gap-1.5 text-xs">
       {step === "configure" && onChoose ? (
-        <TextLink onClick={onChoose} className="text-slate-400 hover:text-slate-600">
+        <TextLink onClick={onChoose} className="text-gray-400 hover:text-gray-600">
           Choose
         </TextLink>
       ) : (
-        <span className={step === "choose" ? "font-semibold text-slate-900 underline" : "text-slate-400"}>Choose</span>
+        <span className={step === "choose" ? "font-semibold text-gray-900 underline" : "text-gray-400"}>Choose</span>
       )}
-      <span aria-hidden="true" className="text-slate-300">
+      <span aria-hidden="true" className="text-gray-300">
         ›
       </span>
-      <span className={step === "configure" ? "font-semibold text-slate-900 underline" : "text-slate-400"}>Configure</span>
+      <span className={step === "configure" ? "font-semibold text-gray-900 underline" : "text-gray-400"}>Configure</span>
     </nav>
   );
 }
@@ -184,14 +184,14 @@ export default function TriggerInspector({ trigger, onChange, onClose }: Props) 
           {draft.type === "webhook" ? (
             <>
               <div>
-                <div className="block text-sm font-medium leading-6 text-slate-800">Webhook URL</div>
-                <p className="block text-xs text-slate-500">Send a POST request to these URLs to start this event.</p>
-                <div className="mt-2 rounded-lg border border-gray-200 px-2 py-2 break-all font-mono text-xs leading-5 text-slate-600">
+                <div className="block text-sm font-medium leading-6 text-gray-800">Webhook URL</div>
+                <p className="block text-xs text-gray-500">Send a POST request to these URLs to start this event.</p>
+                <div className="mt-2 rounded-lg border border-gray-200 px-2 py-2 break-all font-mono text-xs leading-5 text-gray-600">
                   {webhookUrl(draft.id)}
                 </div>
               </div>
               <div className="space-y-2">
-                <span className="block text-sm font-medium text-slate-800">Response</span>
+                <span className="block text-sm font-medium text-gray-800">Response</span>
                 {[IMMEDIATELY, ON_COMPLETE].map((o) => (
                   <div key={o.value} className="rounded-lg border border-gray-200 px-3 py-2 hover:bg-gray-50">
                     <Radio
@@ -243,8 +243,8 @@ export default function TriggerInspector({ trigger, onChange, onClose }: Props) 
           <TriggerTypeBadge />
         </div>
         <div>
-          <div className="block text-sm font-medium leading-6 text-slate-800">Webhook URL</div>
-          <p className="block text-xs text-slate-500">Send a POST request to these URLs to start this event.</p>
+          <div className="block text-sm font-medium leading-6 text-gray-800">Webhook URL</div>
+          <p className="block text-xs text-gray-500">Send a POST request to these URLs to start this event.</p>
           <ul className="mt-2 divide-y divide-gray-200 overflow-hidden rounded-lg border border-gray-200">
             <li className="px-2 py-2">
               <div className="flex items-center justify-between gap-2">
@@ -261,7 +261,7 @@ export default function TriggerInspector({ trigger, onChange, onClose }: Props) 
                   }}
                 />
               </div>
-              <div className="mt-0.5 break-all font-mono text-xs leading-5 text-slate-600">{url}</div>
+              <div className="mt-0.5 break-all font-mono text-xs leading-5 text-gray-600">{url}</div>
             </li>
           </ul>
         </div>
@@ -269,11 +269,11 @@ export default function TriggerInspector({ trigger, onChange, onClose }: Props) 
           {trigger.hasAuthMethod ? (
             <div className="flex items-center gap-2 text-xs">
               <span className="hero-shield-check-micro h-4 w-4 text-green-600" />
-              <span className="font-medium text-slate-700">CommCare webhook key</span>
-              <span className="text-slate-400">(API Key)</span>
+              <span className="font-medium text-gray-700">CommCare webhook key</span>
+              <span className="text-gray-400">(API Key)</span>
             </div>
           ) : (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-gray-500">
               No authentication configured.{" "}
               <TextLink onClick={startEdit} className="text-xs font-medium">
                 Add authentication
@@ -282,7 +282,7 @@ export default function TriggerInspector({ trigger, onChange, onClose }: Props) 
           )}
         </Collapsible>
         <Collapsible title="Response">
-          <p className="text-xs leading-5 text-slate-500">
+          <p className="text-xs leading-5 text-gray-500">
             {response.shortDescription}{" "}
             <TextLink to="https://docs.openfn.org/documentation/build/triggers#webhook-responses" external className="text-xs">
               learn more

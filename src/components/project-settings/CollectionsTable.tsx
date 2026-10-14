@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
-import TableAction from "../TableAction";
+import Button from "../Button";
 import type { Collection } from "../../mock-data/project-settings";
-import { bytesToHuman } from "../../utils/bytesToHuman";
+import { formatBytes } from "../../utils/format";
 
 interface Props {
   collections: Collection[];
@@ -68,20 +68,20 @@ export default function CollectionsTable({ collections, canCreateCollection, onC
       {sorted.map((c) => (
         <Tr key={c.id} id={`collection-row-${c.id}`}>
           <Td>{c.name}</Td>
-          <Td>{bytesToHuman(c.byteSizeSum)}</Td>
+          <Td>{formatBytes(c.byteSizeSum)}</Td>
           <Td className="flex justify-end py-0.5">
             <div className="text-right flex">
-              <TableAction onClick={() => onPreview(c)}>
+              <Button theme="secondary" size="xs" onClick={() => onPreview(c)}>
                 <span className="hero-eye h-4 w-4" aria-hidden="true" />
                 <span className="sr-only">Preview collection</span>
-              </TableAction>
-              <TableAction>Download</TableAction>
-              <TableAction disabled={!canCreateCollection} onClick={() => onEdit(c)}>
+              </Button>
+              <Button theme="secondary" size="xs">Download</Button>
+              <Button theme="secondary" size="xs" disabled={!canCreateCollection} onClick={() => onEdit(c)}>
                 Edit
-              </TableAction>
-              <TableAction disabled={!canCreateCollection} onClick={() => onDelete(c)}>
+              </Button>
+              <Button theme="secondary" size="xs" disabled={!canCreateCollection} onClick={() => onDelete(c)}>
                 Delete
-              </TableAction>
+              </Button>
             </div>
           </Td>
         </Tr>

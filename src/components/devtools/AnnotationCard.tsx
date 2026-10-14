@@ -75,7 +75,7 @@ export default function AnnotationCard({ id, annotation, inventory, onOpenId, in
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           <code className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-700">{id}</code>
-          {annotation && <Pill color="indigo">{annotation.folder.replace(/s$/, "")}</Pill>}
+          {annotation && <Pill color="primary">{annotation.folder.replace(/s$/, "")}</Pill>}
           {status && <Pill color={statusColor(status)}>{status}</Pill>}
           {inventory && (
             <Pill color={statusColor(inventory.status)}>

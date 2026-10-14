@@ -82,10 +82,10 @@ export default function EdgeInspector({ edge, onChange, onDelete, onClose }: Pro
               value={expression}
               onChange={(e) => onChange({ conditionExpression: e.target.value })}
               placeholder="eg: !state.error"
-              className="h-24 bg-slate-700 font-mono text-slate-200"
+              className="h-24 bg-gray-700 font-mono text-gray-200"
             />
-            <details className="text-xs text-slate-600">
-              <summary className="cursor-pointer hover:text-slate-800">How to write expressions</summary>
+            <details className="text-xs text-gray-600">
+              <summary className="cursor-pointer hover:text-gray-800">How to write expressions</summary>
               <div className="mt-2 space-y-1">
                 <p>Use the state from the previous step to decide whether this step should run.</p>
                 <p>Must be a single JavaScript expression with `state` in scope.</p>
@@ -100,7 +100,7 @@ export default function EdgeInspector({ edge, onChange, onDelete, onClose }: Pro
             </details>
           </div>
         )}
-        {fromTrigger && <p className="mt-4 text-xs italic text-slate-600">This path will be active if its trigger is enabled</p>}
+        {fromTrigger && <p className="mt-4 text-xs italic text-gray-600">This path will be active if its trigger is enabled</p>}
       </div>
       <ConfirmModal
         open={confirmDelete}

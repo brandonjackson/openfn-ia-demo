@@ -1,5 +1,5 @@
 import type { PickerItem } from "./Picker";
-import { projects, type Project } from "../mock-data/projects";
+import { projects, type Project } from "../../mock-data/projects";
 
 /**
  * Where switching to `projectId` should land from the current URL

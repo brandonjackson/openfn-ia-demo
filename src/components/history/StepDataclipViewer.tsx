@@ -36,7 +36,7 @@ export default function StepDataclipViewer({
         </span>
       </div>
     ) : (
-      <div className="relative rounded-md text-xs @md:text-base p-12 text-center bg-slate-700 font-mono text-gray-200">
+      <div className="relative rounded-md text-xs @md:text-base p-12 text-center bg-gray-700 font-mono text-gray-200">
         <TextPingLoader>Nothing yet</TextPingLoader>
       </div>
     );

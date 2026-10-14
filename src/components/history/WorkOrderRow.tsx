@@ -10,11 +10,11 @@ import {
   runsOfWorkOrder,
   workOrderDataclipAvailable,
 } from "../../mock-data/history-extra";
-import DateTime from "./DateTime";
+import DateTime from "../DateTime";
 import StatePill from "./StatePill";
 import UuidChip from "./UuidChip";
 import { RunCard } from "./RunDetails";
-import { formatElapsed } from "./format";
+import { formatElapsed } from "../../utils/format";
 
 const zeroPersistence =
   "This work order cannot be rerun since no input data has been stored due to the data retention policy set in the project.";

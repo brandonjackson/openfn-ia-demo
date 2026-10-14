@@ -75,7 +75,7 @@ export default function WorkspaceList({
       </div>
       {scheduled.length > 0 && (
         <div id="scheduled-for-deletion-section">
-          <h2 className="text-2xl font-bold text-slate-900 mb-3">Scheduled for deletion</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Scheduled for deletion</h2>
           <div className="space-y-3">{scheduled.map(card)}</div>
         </div>
       )}

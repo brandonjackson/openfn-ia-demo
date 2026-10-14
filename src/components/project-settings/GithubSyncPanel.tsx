@@ -3,8 +3,7 @@ import Button from "../Button";
 import SectionHeader from "../SectionHeader";
 import RemoveIntegrationModal from "./RemoveIntegrationModal";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
-import SettingsCard from "./SettingsCard";
-import { linkClass, linkDangerClass } from "./classes";
+import Card from "../Card";
 import type { VcsFixture } from "../../mock-data/project-settings";
 
 interface Props {
@@ -46,7 +45,7 @@ export default function GithubSyncPanel({ vcs, canInstallGithub, canInitiateGith
           <div className="flex flex-col gap-2 text-black">
             <span>
               Repository:{" "}
-              <a href={`https://www.github.com/${connection.repo}`} target="_blank" rel="noreferrer" className={linkClass}>
+              <a href={`https://www.github.com/${connection.repo}`} target="_blank" rel="noreferrer" className="link">
                 {connection.repo}
               </a>
             </span>
@@ -78,7 +77,7 @@ export default function GithubSyncPanel({ vcs, canInstallGithub, canInitiateGith
             No longer need to sync this project?{" "}
             <a
               href="#vcs"
-              className={linkDangerClass}
+              className="link link-danger"
               onClick={(e) => {
                 e.preventDefault();
                 setConfirmRemove(true);
@@ -101,7 +100,7 @@ export default function GithubSyncPanel({ vcs, canInstallGithub, canInitiateGith
     );
   } else if (canInstallGithub && !userGithubConnected) {
     body = (
-      <SettingsCard
+      <Card
         title="Connect your OpenFn account to GitHub"
         description="To create a new GitHub version control connection you must first connect your OpenFn account to GitHub. Please click the button below to get started."
         className="space-y-0"
@@ -109,11 +108,11 @@ export default function GithubSyncPanel({ vcs, canInstallGithub, canInitiateGith
         <div className="mt-6">
           <Button id="connect-github-link">Connect your GitHub Account</Button>
         </div>
-      </SettingsCard>
+      </Card>
     );
   } else if (canInstallGithub) {
     body = (
-      <SettingsCard
+      <Card
         title="Connect a repository"
         description="Choose a GitHub installation, repository and branch to start syncing. (The connection form needs the GitHub API and isn't reproduced in this demo.)"
       />
@@ -141,7 +140,7 @@ export default function GithubSyncPanel({ vcs, canInstallGithub, canInitiateGith
           target="_blank"
           rel="noreferrer"
           href="https://docs.openfn.org/documentation/deploy/portability#automated-version-control-with-github-and-lightning"
-          className={linkClass}
+          className="link"
         >
           portability docs
         </a>{" "}

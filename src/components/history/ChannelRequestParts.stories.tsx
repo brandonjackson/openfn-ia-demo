@@ -27,7 +27,7 @@ export const RequestSection: Story = {
       <SubSection title="Headers">
         <HeadersTable headers={event.requestHeaders!} />
       </SubSection>
-      <SubSection title="Body" titleRight={<span className="text-[11px] text-secondary-400 font-mono">152 B</span>}>
+      <SubSection title="Body" titleRight={<span className="text-[11px] text-gray-400 font-mono">152 B</span>}>
         <BodyViewer
           preview={event.requestBodyPreview}
           hash={event.requestBodyHash}

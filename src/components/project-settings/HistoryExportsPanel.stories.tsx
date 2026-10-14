@@ -6,7 +6,7 @@ import { withRouter } from "../../stories/decorators";
 const meta: Meta<typeof HistoryExportsPanel> = {
   title: "Project settings/HistoryExportsPanel",
   component: HistoryExportsPanel,
-  decorators: [withRouter, (Story) => <div className="space-y-4 bg-secondary-100 p-6"><Story /></div>],
+  decorators: [withRouter, (Story) => <div className="space-y-4 bg-gray-100 p-6"><Story /></div>],
   args: { files: projectFiles },
 };
 export default meta;

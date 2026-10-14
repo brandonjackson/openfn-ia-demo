@@ -3,9 +3,9 @@ import { stepsOf, type Run, type Step } from "../../mock-data/history";
 import { findDataclip } from "../../mock-data/history";
 import { shortId, uuidOf } from "../../mock-data/history-extra";
 import IconButton from "../IconButton";
-import DateTime from "./DateTime";
+import DateTime from "../DateTime";
 import StepIcon from "./StepIcon";
-import { formatElapsed } from "./format";
+import { formatElapsed } from "../../utils/format";
 
 /**
  * One step row inside an expanded work order (run_live/components.ex

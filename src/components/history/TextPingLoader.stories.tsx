@@ -9,7 +9,7 @@ export const Default: Story = { args: { children: "Nothing yet" } };
 export const OnDark: Story = {
   args: { children: "Waiting for worker" },
   render: (args) => (
-    <div className="relative rounded-md p-12 text-center bg-slate-700 font-mono text-gray-200">
+    <div className="relative rounded-md p-12 text-center bg-gray-700 font-mono text-gray-200">
       <TextPingLoader {...args} />
     </div>
   ),

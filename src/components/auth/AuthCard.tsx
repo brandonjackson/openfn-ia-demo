@@ -16,7 +16,7 @@ export default function AuthCard({
 }) {
   return (
     <div className="grid grid-cols-6 gap-6">
-      <div className="col-span-6 md:col-span-3 sm:col-span-4 border border-secondary-200 rounded-md shadow-xs bg-white p-6">
+      <div className="col-span-6 md:col-span-3 sm:col-span-4 border border-gray-200 rounded-md shadow-xs bg-white p-6">
         {error && <FlashAlert kind="danger">{error}</FlashAlert>}
         {info && <FlashAlert kind="info">{info}</FlashAlert>}
         {children}
@@ -35,7 +35,7 @@ export function FormDivider() {
   return (
     <div className="hidden sm:block" aria-hidden="true">
       <div className="py-5">
-        <div className="border-t border-secondary-200" />
+        <div className="border-t border-gray-200" />
       </div>
     </div>
   );
@@ -44,7 +44,7 @@ export function FormDivider() {
 /** The small links row at the bottom of a card: one left, one right. */
 export function AuthFooterLinks({ left, right }: { left?: ReactNode; right?: ReactNode }) {
   return (
-    <div className="text-xs text-secondary-700">
+    <div className="text-xs text-gray-700">
       <div className="flex">
         <div className="flex-none">{left}</div>
         <div className="grow" />

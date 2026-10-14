@@ -27,7 +27,7 @@ export default function AdaptorDisplay({ adaptor, credentialName = null, onEdit,
   const hasCredential = !!credentialName;
   const canEdit = hasCredential || !needsCredential;
   return (
-    <div className="flex items-center justify-between gap-2 w-full rounded-lg border border-slate-300 sm:text-sm sm:leading-6 p-2">
+    <div className="flex items-center justify-between gap-2 w-full rounded-lg border border-gray-300 sm:text-sm sm:leading-6 p-2">
       <div className="flex items-center gap-2 min-w-0 flex-1">
         {onChangeAdaptor && !isReadOnly ? (
           <Button theme="secondary" size="sm" onClick={onChangeAdaptor} aria-label="Change adaptor" className="min-w-0 py-1 pl-1.5">

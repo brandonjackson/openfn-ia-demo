@@ -13,7 +13,7 @@ export default function AdaptorDocs({ adaptor }: { adaptor: string }) {
   const fns = adaptorFunctions(adaptor);
   return (
     <div className="block w-full overflow-auto ml-1">
-      <h1 className="text-lg font-bold text-secondary-700 mb-2 flex justify-between items-center">
+      <h1 className="text-lg font-bold text-gray-700 mb-2 flex justify-between items-center">
         <span>
           {pkg} ({version})
         </span>
@@ -52,7 +52,7 @@ export default function AdaptorDocs({ adaptor }: { adaptor: string }) {
       <div className="text-sm mb-4">These are the operations available for this adaptor:</div>
       {fns.map((fn) => (
         <details key={fn.name} className="ml-4">
-          <summary className="text-sm text-secondary-700 mb-1 cursor-pointer marker:text-slate-600 marker:text-sm whitespace-nowrap hover:bg-sky-50/50">
+          <summary className="text-sm text-gray-700 mb-1 cursor-pointer marker:text-gray-600 marker:text-sm whitespace-nowrap hover:bg-sky-50/50">
             {fn.name}({fn.params.join(", ")})
           </summary>
           <div className="block mb-4 pl-4">
@@ -61,8 +61,8 @@ export default function AdaptorDocs({ adaptor }: { adaptor: string }) {
             </div>
             {fn.example && (
               <section>
-                <label className="block text-sm text-secondary-700 mt-2">Example</label>
-                <pre className="rounded-md pl-4 pr-8 py-2 mx-4 mt-1 font-mono bg-slate-100 border-2 border-slate-200 text-slate-800 text-xs overflow-x-auto">
+                <label className="block text-sm text-gray-700 mt-2">Example</label>
+                <pre className="rounded-md pl-4 pr-8 py-2 mx-4 mt-1 font-mono bg-gray-100 border-2 border-gray-200 text-gray-800 text-xs overflow-x-auto">
                   {fn.example}
                 </pre>
               </section>

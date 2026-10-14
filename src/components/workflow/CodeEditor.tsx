@@ -14,7 +14,7 @@ const LINE = 19;
 
 /**
  * Stand-in for Lightning's Monaco editor (CollaborativeMonaco.tsx with the
- * "default" theme): slate-700 background, slate line numbers, the current
+ * "default" theme): gray-700 background, slate line numbers, the current
  * line highlighted. A plain textarea, so no autocomplete or syntax colours.
  */
 export default function CodeEditor({ value, onChange, readOnly = false, className, ariaLabel = "Job code" }: Props) {
@@ -27,11 +27,11 @@ export default function CodeEditor({ value, onChange, readOnly = false, classNam
     if (el) setLine(el.value.slice(0, el.selectionStart).split("\n").length - 1);
   };
   return (
-    <div className={cn("relative flex h-full w-full overflow-hidden bg-slate-700 font-mono text-sm", className)}>
+    <div className={cn("relative flex h-full w-full overflow-hidden bg-gray-700 font-mono text-sm", className)}>
       <div className="shrink-0 w-16 select-none text-right pr-6 pt-0 overflow-hidden" aria-hidden="true">
         <div style={{ transform: `translateY(${-scroll}px)` }}>
           {Array.from({ length: lines }, (_, i) => (
-            <div key={i} style={{ height: LINE, lineHeight: `${LINE}px` }} className={i === line ? "text-slate-100" : "text-slate-400"}>
+            <div key={i} style={{ height: LINE, lineHeight: `${LINE}px` }} className={i === line ? "text-gray-100" : "text-gray-400"}>
               {i + 1}
             </div>
           ))}
@@ -39,7 +39,7 @@ export default function CodeEditor({ value, onChange, readOnly = false, classNam
       </div>
       <div className="relative flex-1 min-w-0">
         <div
-          className="absolute left-0 right-0 bg-slate-600 pointer-events-none"
+          className="absolute left-0 right-0 bg-gray-600 pointer-events-none"
           style={{ top: line * LINE - scroll, height: LINE }}
           aria-hidden="true"
         />
@@ -66,7 +66,7 @@ export default function CodeEditor({ value, onChange, readOnly = false, classNam
               requestAnimationFrame(() => el.setSelectionRange(s + 2, s + 2));
             }
           }}
-          className="relative block h-full w-full resize-none border-0 bg-transparent p-0 text-slate-200 caret-slate-100 focus:outline-none focus:ring-0 whitespace-pre-wrap"
+          className="relative block h-full w-full resize-none border-0 bg-transparent p-0 text-gray-200 caret-gray-100 focus:outline-none focus:ring-0 whitespace-pre-wrap"
           style={{ lineHeight: `${LINE}px`, fontSize: 14, fontVariantLigatures: "none" }}
         />
       </div>

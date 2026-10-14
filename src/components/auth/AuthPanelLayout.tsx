@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "../../utils/cn";
-import { OpenFnLogoCollapsed } from "../OpenFnLogo";
+import { OpenFnLogoCollapsed } from "../shell/OpenFnLogo";
 
 /**
  * The full-screen gray layout used by the two-factor, confirm-access and

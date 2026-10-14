@@ -137,7 +137,7 @@ export default function WorkflowDiagram({
   return (
     <div
       ref={ref}
-      className="relative h-full w-full overflow-hidden bg-secondary-100 select-none touch-none"
+      className="relative h-full w-full overflow-hidden bg-gray-100 select-none touch-none"
       style={{
         backgroundImage: `radial-gradient(circle, #91919a ${dot}px, transparent ${dot}px)`,
         backgroundSize: `${gap}px ${gap}px`,

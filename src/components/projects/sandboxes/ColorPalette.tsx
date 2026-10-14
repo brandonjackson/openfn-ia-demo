@@ -21,7 +21,7 @@ export default function ColorPalette({
   const current = value ?? palette[0];
   return (
     <fieldset disabled={disabled}>
-      <label className="block text-sm font-medium text-slate-800 mb-2">{label}</label>
+      <label className="block text-sm font-medium text-gray-800 mb-2">{label}</label>
       <div className="space-y-3">
         <div
           role="radiogroup"

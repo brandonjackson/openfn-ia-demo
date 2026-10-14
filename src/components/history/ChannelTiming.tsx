@@ -1,7 +1,7 @@
 import type { ChannelEvent } from "../../mock-data/channel-requests";
 import { cn } from "../../utils/cn";
 import { DisclosureSection } from "./ChannelRequestParts";
-import { formatUs } from "./format";
+import { formatUs } from "../../utils/format";
 
 interface Segment {
   label: string;
@@ -114,7 +114,7 @@ export default function ChannelTiming({ event }: { event: ChannelEvent | undefin
                   ))}
                 </div>
                 {ttfbPct && (
-                  <div className="absolute top-0 bottom-0 w-0.5 bg-secondary-700 z-10" style={{ left: `${ttfbPct}%` }} />
+                  <div className="absolute top-0 bottom-0 w-0.5 bg-gray-700 z-10" style={{ left: `${ttfbPct}%` }} />
                 )}
               </div>
               {ttfbPct && (
@@ -123,8 +123,8 @@ export default function ChannelTiming({ event }: { event: ChannelEvent | undefin
                     className="absolute flex items-center gap-1 whitespace-nowrap"
                     style={{ left: `clamp(0px, calc(${ttfbPct}% - 36px), calc(100% - 110px))` }}
                   >
-                    <span className="hero-arrow-up-mini h-3 w-3 text-secondary-500" />
-                    <span className="text-[11px] font-mono font-medium text-secondary-600">
+                    <span className="hero-arrow-up-mini h-3 w-3 text-gray-500" />
+                    <span className="text-[11px] font-mono font-medium text-gray-600">
                       TTFB: {formatUs(data.ttfbUs)} ms
                     </span>
                   </div>
@@ -132,11 +132,11 @@ export default function ChannelTiming({ event }: { event: ChannelEvent | undefin
               )}
             </div>
             <div className="flex items-center justify-between mt-1">
-              <span className="text-[11px] text-secondary-500 font-mono">0 ms</span>
-              <span className="text-[11px] text-secondary-500 font-mono">{formatUs(data.totalUs)} ms</span>
+              <span className="text-[11px] text-gray-500 font-mono">0 ms</span>
+              <span className="text-[11px] text-gray-500 font-mono">{formatUs(data.totalUs)} ms</span>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-secondary-500">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500">
             {data.segments.map((s) => (
               <span key={s.label} className="inline-flex items-center gap-1.5">
                 <span className={cn("inline-block w-2.5 h-2.5 rounded-sm shrink-0", s.color)} />
@@ -146,14 +146,14 @@ export default function ChannelTiming({ event }: { event: ChannelEvent | undefin
             {showOverhead && (
               <span className="inline-flex items-center gap-1.5">
                 <span
-                  className="inline-block w-3 h-2.5 rounded-sm shrink-0 bg-secondary-100 border border-secondary-200"
+                  className="inline-block w-3 h-2.5 rounded-sm shrink-0 bg-gray-100 border border-gray-200"
                   style={{ background: hatch }}
                 />
                 <span className="leading-none">Proxy overhead</span>
               </span>
             )}
             {data.ttfbUs && (
-              <span className="ml-auto inline-flex items-center font-mono text-secondary-400 leading-none">
+              <span className="ml-auto inline-flex items-center font-mono text-gray-400 leading-none">
                 TTFB: {formatUs(data.ttfbUs)} ms
               </span>
             )}

@@ -90,7 +90,7 @@ export default function TriageTable({
           {signatures.map((s) => (
             <Tr key={[s.exit_reason, s.error_type, s.step_name, s.adaptor, s.job_id].join("|")}>
               <Td>
-                <span className="inline-block rounded-full bg-slate-200 px-4 py-1.5 text-xs font-medium tabular-nums text-gray-700">
+                <span className="inline-block rounded-full bg-gray-200 px-4 py-1.5 text-xs font-medium tabular-nums text-gray-700">
                   {s.count.toLocaleString()}
                 </span>
               </Td>

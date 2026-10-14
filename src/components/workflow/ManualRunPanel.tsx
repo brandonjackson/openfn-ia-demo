@@ -150,7 +150,7 @@ export default function ManualRunPanel({
                 <div
                   key={clip.id}
                   onClick={() => setSelected(clip)}
-                  className="flex items-center justify-between border border-gray-200 rounded-md px-3 py-2 cursor-pointer hover:bg-slate-100 hover:border-primary-600 group"
+                  className="flex items-center justify-between border border-gray-200 rounded-md px-3 py-2 cursor-pointer hover:bg-gray-100 hover:border-primary-600 group"
                 >
                   <div className="flex gap-2 items-center text-sm max-w-9/10">
                     <span className="flex items-center">
@@ -162,7 +162,7 @@ export default function ManualRunPanel({
                     </span>
                     <span className="font-mono leading-none align-middle truncate">{clip.name || shortId(clip.id)}</span>
                     <span className="align-middle">
-                      <DataclipTypePill type={clip.type} size="small" />
+                      <DataclipTypePill type={clip.type} />
                     </span>
                   </div>
                   <div className="text-xs truncate ml-2">{formatDate(clip.insertedAt)}</div>

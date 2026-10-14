@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import type { Run, Step } from "../../mock-data/history";
 import { cn } from "../../utils/cn";
 import StepIcon from "./StepIcon";
-import { formatElapsed } from "./format";
+import { formatElapsed } from "../../utils/format";
 
 /**
  * The run page's step list (run_live/components.ex `step_list` +

@@ -1,15 +1,15 @@
 import { Link } from "react-router-dom";
 import type { Channel, ChannelEvent, ChannelRequest } from "../../mock-data/channel-requests";
-import DateTime from "./DateTime";
+import DateTime from "../DateTime";
 import { CopyIconButton, MethodBadge, RequestPathDisplay, StatePillWithTooltip, StatusCodeDisplay } from "./ChannelRequestParts";
 import { humanizeError } from "./channelHelpers";
-import { formatUs } from "./format";
+import { formatUs } from "../../utils/format";
 import type { ReactNode } from "react";
 
 function Field({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
   return (
     <div>
-      <dt className="text-secondary-500 text-xs uppercase tracking-wide mb-1">{label}</dt>
+      <dt className="text-gray-500 text-xs uppercase tracking-wide mb-1">{label}</dt>
       <dd className={className}>{children}</dd>
     </div>
   );
@@ -18,7 +18,7 @@ function Field({ label, children, className }: { label: string; children: ReactN
 function Group({ title, className, children }: { title: string; className?: string; children: ReactNode }) {
   return (
     <section className={className}>
-      <h4 className="text-xs font-semibold text-secondary-500 uppercase tracking-wider mb-3 pb-1.5 border-b border-secondary-100">
+      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 pb-1.5 border-b border-gray-100">
         {title}
       </h4>
       {children}
@@ -41,7 +41,7 @@ export default function ChannelRequestSummary({
   channel: Channel;
 }) {
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-secondary-200 p-6">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-6">
         <MethodBadge method={event?.requestMethod} />
         <RequestPathDisplay event={event} />
@@ -52,7 +52,7 @@ export default function ChannelRequestSummary({
         />
         <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
           <span className="flex items-center gap-1.5">
-            <span className="text-secondary-500 uppercase tracking-wide">Channel</span>
+            <span className="text-gray-500 uppercase tracking-wide">Channel</span>
             <Link
               to={`/projects/${channel.projectId}/channels/${channel.id}/edit`}
               className="text-primary-600 hover:text-primary-800"
@@ -61,8 +61,8 @@ export default function ChannelRequestSummary({
             </Link>
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="text-secondary-500 uppercase tracking-wide">Request</span>
-            <span className="text-secondary-900 font-mono">{request.id.slice(0, 8)}</span>
+            <span className="text-gray-500 uppercase tracking-wide">Request</span>
+            <span className="text-gray-900 font-mono">{request.id.slice(0, 8)}</span>
             <CopyIconButton value={request.id} title="Copy request ID" size={3} />
           </span>
         </div>
@@ -71,22 +71,22 @@ export default function ChannelRequestSummary({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
         <Group title="Client">
           <dl className="grid grid-cols-2 gap-4 text-sm">
-            <Field label="IP" className="text-secondary-900">
+            <Field label="IP" className="text-gray-900">
               {request.clientIdentity || "—"}
             </Field>
-            <Field label="Auth" className="text-secondary-900 flex items-start gap-1">
-              <span className="hero-shield-check h-4 w-4 shrink-0 text-secondary-400 mt-0.5" />
+            <Field label="Auth" className="text-gray-900 flex items-start gap-1">
+              <span className="hero-shield-check h-4 w-4 shrink-0 text-gray-400 mt-0.5" />
               {request.clientAuth}
             </Field>
           </dl>
         </Group>
         <Group title="Destination">
           <dl className="grid grid-cols-2 gap-4 text-sm">
-            <Field label="URL" className="text-secondary-900 break-all font-mono text-xs">
+            <Field label="URL" className="text-gray-900 break-all font-mono text-xs">
               {channel.destinationUrl}
             </Field>
-            <Field label="Auth" className="text-secondary-900 flex items-start gap-1">
-              <span className="hero-key h-4 w-4 shrink-0 text-secondary-400 mt-0.5" />
+            <Field label="Auth" className="text-gray-900 flex items-start gap-1">
+              <span className="hero-key h-4 w-4 shrink-0 text-gray-400 mt-0.5" />
               {request.destinationAuth}
             </Field>
           </dl>
@@ -99,7 +99,7 @@ export default function ChannelRequestSummary({
             <Field label="Completed">
               <DateTime value={request.completedAt} />
             </Field>
-            <Field label="Latency" className="text-secondary-900 font-mono">
+            <Field label="Latency" className="text-gray-900 font-mono">
               {event?.latencyUs != null ? `${formatUs(event.latencyUs)} ms` : "—"}
             </Field>
           </dl>

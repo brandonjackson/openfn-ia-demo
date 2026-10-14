@@ -334,7 +334,7 @@ function OauthFields({
     <div className="space-y-4">
       {scopes.length > 0 && (
         <div className="mt-5">
-          <h3 className="leading-6 text-slate-800 pb-2 mb-2">
+          <h3 className="leading-6 text-gray-800 pb-2 mb-2">
             <div className="flex flex-row text-sm font-semibold">
               Select permissions
               <InfoTooltip title="Select permissions associated to your OAuth2 Token" />

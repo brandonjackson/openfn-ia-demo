@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 
-import { cn } from "../utils/cn";
-import Modal from "./Modal";
+import { cn } from "../../utils/cn";
+import Modal from "../Modal";
 
 /**
  * Generic command-palette picker. Content-agnostic: the server ships a

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { cn } from "../utils/cn";
+import { cn } from "../../utils/cn";
 
 interface Props {
   /** In-app route. */

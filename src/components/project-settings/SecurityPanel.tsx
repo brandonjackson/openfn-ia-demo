@@ -1,6 +1,6 @@
 import { useState } from "react";
 import SectionHeader from "../SectionHeader";
-import PlainSwitch from "./PlainSwitch";
+import Toggle from "../Toggle";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
 import type { Project } from "../../mock-data/projects";
 
@@ -38,7 +38,7 @@ export default function SecurityPanel({ initialRequiresMfa, canEditProject, canR
         </div>
         <div>
           <div className="flex items-center">
-            <PlainSwitch
+            <Toggle
               id="toggle-mfa-switch"
               checked={requiresMfa}
               onChange={setRequiresMfa}

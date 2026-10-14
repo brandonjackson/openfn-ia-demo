@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { collectionProjectName, type Collection } from "../../mock-data/admin";
-import { bytesToHuman } from "../../utils/bytesToHuman";
+import { formatBytes } from "../../utils/format";
 import Button from "../Button";
-import TableAction from "../TableAction";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 
 type SortKey = "name" | "byte_size_sum";
@@ -73,11 +72,11 @@ export default function AdminCollectionsTable({ collections, onCreate, onEdit, o
             <Tr key={collection.id} id={`collections-table-row-${collection.id}`}>
               <Td className="wrap-break-word max-w-[15rem] text-gray-800">{collection.name}</Td>
               <Td className="wrap-break-word max-w-[25rem]">{collectionProjectName(collection)}</Td>
-              <Td className="wrap-break-word max-w-[25rem]">{bytesToHuman(collection.byteSizeSum)}</Td>
+              <Td className="wrap-break-word max-w-[25rem]">{formatBytes(collection.byteSizeSum)}</Td>
               <Td>
                 <div className="text-right">
-                  <TableAction onClick={() => onEdit(collection)}>Edit</TableAction>
-                  <TableAction onClick={() => onDelete(collection)}>Delete</TableAction>
+                  <Button theme="secondary" size="xs" onClick={() => onEdit(collection)}>Edit</Button>
+                  <Button theme="secondary" size="xs" onClick={() => onDelete(collection)}>Delete</Button>
                 </div>
               </Td>
             </Tr>

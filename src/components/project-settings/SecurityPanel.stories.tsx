@@ -6,7 +6,7 @@ import { withRouter } from "../../stories/decorators";
 const meta: Meta<typeof SecurityPanel> = {
   title: "Project settings/SecurityPanel",
   component: SecurityPanel,
-  decorators: [withRouter, (Story) => <div className="space-y-4 bg-secondary-100 p-6"><Story /></div>],
+  decorators: [withRouter, (Story) => <div className="space-y-4 bg-gray-100 p-6"><Story /></div>],
   args: { initialRequiresMfa: false, canEditProject: true, canRequireMfa: true },
 };
 export default meta;

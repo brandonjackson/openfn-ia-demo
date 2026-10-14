@@ -23,7 +23,7 @@ export default function Header({ title, breadcrumbs, children, loggedOut = false
         {breadcrumbs ?? (
           <h1
             className={cn(
-              "text-secondary-900 flex items-center",
+              "text-gray-900 flex items-center",
               loggedOut ? "text-3xl font-bold" : "text-xl font-semibold"
             )}
           >

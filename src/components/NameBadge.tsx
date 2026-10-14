@@ -10,7 +10,7 @@ export default function NameBadge({ name, children }: { name: string; children?:
   return (
     <span>
       {children}
-      <span className="ml-1 rounded-md border border-slate-300 bg-yellow-100 p-1 font-mono text-xs">{name}</span>.
+      <span className="ml-1 rounded-md border border-gray-300 bg-yellow-100 p-1 font-mono text-xs">{name}</span>.
     </span>
   );
 }

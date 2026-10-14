@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
 import Tabs from "../../components/Tabs";
-import ProjectBreadcrumbs from "../../components/ProjectBreadcrumbs";
+import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import FilterChip, { FilterCheckboxes, FilterDateRange, FilterMenu } from "../../components/history/FilterChip";
 import HistorySearchBar from "../../components/history/HistorySearchBar";
 import {
@@ -13,7 +13,7 @@ import {
   RerunFromJobModal,
 } from "../../components/history/HistoryModals";
 import WorkOrdersTable, { type WorkOrderSort } from "../../components/history/WorkOrdersTable";
-import { formatChipDate } from "../../components/history/format";
+import { formatChipDate } from "../../utils/format";
 import { findDataclip, workOrdersIn, type WorkOrder } from "../../mock-data/history";
 import {
   historyChannelsEnabled,

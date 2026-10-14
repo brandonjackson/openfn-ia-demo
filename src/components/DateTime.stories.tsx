@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import DateTime from "./DateTime";
 
-const meta = { title: "History/DateTime", component: DateTime } satisfies Meta<typeof DateTime>;
+const meta = { title: "Shared/DateTime", component: DateTime } satisfies Meta<typeof DateTime>;
 export default meta;
 type Story = StoryObj<typeof meta>;
 

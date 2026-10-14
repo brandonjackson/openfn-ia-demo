@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import type { ProjectOverview } from "../../mock-data/dashboard-stats";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 import CountTitle from "./CountTitle";
-import RelativeTime from "./RelativeTime";
-import TableAction from "../TableAction";
+import DateTime from "../DateTime";
+import Button from "../Button";
 import TextLink from "../TextLink";
 import { compareBy, useSort } from "./useSort";
 
@@ -83,9 +83,9 @@ export default function ProjectsTable({
                   {project.collaboratorsCount}
                 </TextLink>
               </Td>
-              <Td>{project.lastUpdatedAt ? <RelativeTime datetime={project.lastUpdatedAt} /> : "N/A"}</Td>
+              <Td>{project.lastUpdatedAt ? <DateTime value={project.lastUpdatedAt} /> : "N/A"}</Td>
               <Td className="text-right">
-                <TableAction to={`/projects/${project.id}/history`}>History</TableAction>
+                <Button theme="secondary" size="xs" to={`/projects/${project.id}/history`}>History</Button>
               </Td>
             </Tr>
           ))}

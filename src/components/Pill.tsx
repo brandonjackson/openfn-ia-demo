@@ -2,31 +2,41 @@ import type { ReactNode } from "react";
 import { cn } from "../utils/cn";
 import IconButton from "./IconButton";
 
-export type PillColor = "gray" | "red" | "yellow" | "green" | "blue" | "indigo" | "purple" | "pink";
+export type PillColor = "gray" | "red" | "orange" | "yellow" | "green" | "blue" | "primary" | "purple" | "pink" | "dark";
 
 const colorClasses: Record<PillColor, string> = {
-  gray: "bg-gray-100 text-gray-600",
+  gray: "bg-gray-100 text-gray-700",
   red: "bg-red-100 text-red-700",
+  orange: "bg-orange-100 text-orange-700",
   yellow: "bg-yellow-100 text-yellow-800",
   green: "bg-green-100 text-green-700",
   blue: "bg-blue-100 text-blue-700",
-  indigo: "bg-indigo-100 text-indigo-700",
+  primary: "bg-primary-100 text-primary-700",
   purple: "bg-purple-100 text-purple-700",
   pink: "bg-pink-100 text-pink-700",
+  dark: "bg-gray-800 text-white",
 };
 
 /**
- * A small rounded-full tag (Lightning's components/pills.ex `pill`). Give it
- * `onRemove` for a removable chip (selected projects, scopes) with an x.
+ * A small tag (Lightning's components/pills.ex `pill`): states, types,
+ * versions, selected items. `square` gives it rounded-md corners, `mono`
+ * the code font, and `onRemove` an x button.
  */
 export default function Pill({
   color = "gray",
+  square = false,
+  mono = false,
+  title,
   onRemove,
   removeLabel = "Remove",
   className,
   children,
 }: {
   color?: PillColor;
+  square?: boolean;
+  mono?: boolean;
+  /** Hover text. */
+  title?: string;
   /** Shows an x button that calls this. */
   onRemove?: () => void;
   /** Accessible name for the x button. */
@@ -37,8 +47,11 @@ export default function Pill({
   return (
     <span
       data-ui="tag"
+      title={title}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 text-xs font-medium",
+        square ? "rounded-md" : "rounded-full",
+        mono && "font-mono",
         colorClasses[color],
         onRemove && "pr-1",
         className

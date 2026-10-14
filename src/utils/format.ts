@@ -160,3 +160,61 @@ export function urlSafeName(name: string | null | undefined): string {
     .replace(/[^\p{L}0-9_.-]+/gu, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+/** "failed" → "Failed": upper-cases the first character, leaves the rest. */
+export function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/**
+ * The first `length` characters of a UUID, as shown in id chips and links.
+ * Lightning truncates two ways: the collaborative editor's `truncateUid`
+ * keeps 7 characters, LiveView's `display_short_uuid` keeps 8. Pass 7 where
+ * the screen being matched is an editor (React) one.
+ */
+export function shortUuid(id: string, length = 8): string {
+  return id.slice(0, length);
+}
+
+/** Calendar.strftime(dt, "%d %b  %H:%M") in UTC: "14 Oct  18:36" (two spaces). */
+export function formatShortDateTime(iso: string): string {
+  const d = new Date(iso);
+  return `${pad(d.getUTCDate())} ${MONTHS_SHORT[d.getUTCMonth()]}  ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+}
+
+/** "21 Oct 2026", in UTC. */
+export function formatUtcDate(iso: string): string {
+  const d = new Date(iso);
+  return `${pad(d.getUTCDate())} ${MONTHS_SHORT[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}
+
+/** "Oct 14, 6:36:12 PM", in the browser's time zone. */
+export function formatShortLocalDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" });
+}
+
+/** The browser's default date and time, `Date#toLocaleString()`. */
+export function formatLocalDateTime(iso: string): string {
+  return new Date(iso).toLocaleString();
+}
+
+/** The browser's default date, `Date#toLocaleDateString()`. */
+export function formatLocalDate(iso: string): string {
+  return new Date(iso).toLocaleDateString();
+}
+
+/**
+ * The AI assistant's session list age: "just now", "5 minutes ago",
+ * "2 days ago", then "Oct 3" after a week.
+ */
+export function formatSessionAge(iso: string, now: Date = new Date()): string {
+  const diff = now.getTime() - new Date(iso).getTime();
+  const min = Math.floor(diff / 60000);
+  const hr = Math.floor(min / 60);
+  const day = Math.floor(hr / 24);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min} ${min === 1 ? "minute" : "minutes"} ago`;
+  if (hr < 24) return `${hr} ${hr === 1 ? "hour" : "hours"} ago`;
+  if (day < 7) return `${day} ${day === 1 ? "day" : "days"} ago`;
+  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}

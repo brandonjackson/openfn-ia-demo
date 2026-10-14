@@ -5,6 +5,7 @@
  */
 import { projects, roleIn, type Project } from "./projects";
 import { currentUser, findUser, users, type User } from "./users";
+import { capitalize } from "../utils/format";
 
 export type TransferStatus = "pending" | "completed" | null;
 
@@ -255,7 +256,7 @@ export function formatSchemaName(schema: string): string {
   if (schema === "http") return "HTTP";
   return schema
     .split("_")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .map(capitalize)
     .join(" ");
 }
 

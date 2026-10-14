@@ -2,13 +2,12 @@ import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ProjectOverview } from "../../mock-data/dashboard-stats";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
-import CountTitle from "./CountTitle";
+import TableTitle from "../TableTitle";
 import DateTime from "../DateTime";
 import Button from "../Button";
 import TextLink from "../TextLink";
 import { compareBy, useSort } from "./useSort";
-
-const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+import { capitalize } from "../../utils/format";
 
 /**
  * The projects dashboard table (DashboardLive.Components.user_projects_table):
@@ -47,10 +46,9 @@ export default function ProjectsTable({
 
   return (
     <>
-      <div className="mt-5 mb-3 flex justify-between">
-        <CountTitle title="Projects" count={projects.length} />
-        <div>{createButton}</div>
-      </div>
+      <TableTitle title="Projects" count={projects.length} className="mt-5">
+        {createButton}
+      </TableTitle>
       <Table
         id="projects-table"
         header={

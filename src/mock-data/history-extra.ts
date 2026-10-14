@@ -3,6 +3,7 @@
  * layered on top of the shared `history.ts` (which stays read-only here).
  * Static data only.
  */
+import { shortUuid } from "../utils/format";
 import {
   dataclips,
   findDataclip,
@@ -42,7 +43,7 @@ export function uuidOf(id: string): string {
 
 /** Lightning's `display_short_uuid`: the first 8 characters of the UUID. */
 export function shortId(id: string): string {
-  return uuidOf(id).slice(0, 8);
+  return shortUuid(uuidOf(id));
 }
 
 /**

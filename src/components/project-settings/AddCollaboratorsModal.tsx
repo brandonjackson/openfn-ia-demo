@@ -5,6 +5,7 @@ import IconButton from "../IconButton";
 import Modal from "../Modal";
 import { roleOptions } from "./roleOptions";
 import type { ProjectRole } from "../../mock-data/projects";
+import { isValidEmail } from "../../utils/validate";
 
 export interface CollaboratorDraft {
   email: string;
@@ -18,8 +19,6 @@ interface Props {
   onSave: (collaborators: CollaboratorDraft[]) => void;
 }
 
-const emailPattern = /^[^\s@]+@[^\s@]+$/;
-
 /**
  * NewCollaboratorComponent (project_live/new_collaborator_component.html.heex):
  * one or more email + role rows. The page decides which emails belong to
@@ -30,7 +29,7 @@ export default function AddCollaboratorsModal({ existingEmails, onCancel, onSave
   const update = (i: number, patch: Partial<CollaboratorDraft>) =>
     setRows(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
   const errorFor = (r: CollaboratorDraft) => {
-    if (r.email && !emailPattern.test(r.email)) return "has invalid format";
+    if (r.email && !isValidEmail(r.email)) return "has invalid format";
     if (existingEmails.includes(r.email.toLowerCase())) return "This account is already part of this project";
     return null;
   };

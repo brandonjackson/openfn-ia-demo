@@ -4,7 +4,8 @@ import SearchInput from "../SearchInput";
 import ButtonMenu from "../ButtonMenu";
 import { MenuItem } from "../Menu";
 import { Table, Td, Th, Tr } from "../Table";
-import { formatShortDateTime, useTableSort, type SortValue } from "./tableSort";
+import { useTableSort, type SortValue } from "./tableSort";
+import { formatShortDateTime } from "../../utils/format";
 
 type SortKey = "first_name" | "last_name" | "email" | "role" | "enabled" | "support_user" | "scheduled_deletion";
 

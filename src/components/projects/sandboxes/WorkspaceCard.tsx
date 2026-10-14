@@ -1,19 +1,17 @@
 import { useNavigate } from "react-router-dom";
 import type { SandboxRow } from "../../../mock-data/sandboxes";
 import { cn } from "../../../utils/cn";
+import { formatUtcDate } from "../../../utils/format";
 import Card from "../../Card";
 import Heading from "../../Heading";
 import Pill from "../../Pill";
 import SandboxActions from "./SandboxActions";
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
 function deletionTooltip(iso: string) {
   const at = new Date(iso);
-  const formatted = `${String(at.getUTCDate()).padStart(2, "0")} ${MONTHS[at.getUTCMonth()]} ${at.getUTCFullYear()}`;
   const days = Math.floor((at.getTime() - Date.now()) / 86_400_000);
   const suffix = days > 1 ? ` (in ${days} days)` : days === 1 ? " (in 1 day)" : days === 0 ? " (today)" : "";
-  return `Scheduled for deletion on ${formatted}${suffix}. Cancel the deletion to restore it.`;
+  return `Scheduled for deletion on ${formatUtcDate(iso)}${suffix}. Cancel the deletion to restore it.`;
 }
 
 /**

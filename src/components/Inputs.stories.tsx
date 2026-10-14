@@ -50,3 +50,13 @@ export const CustomControlInField: Story = {
   ),
 };
 export const Indeterminate: Story = { render: () => <Checkbox label="Select all work orders" indeterminate /> };
+/** `fieldClassName` styles the field wrapper, so inputs can share a flex row. */
+export const GrowInRow: Story = {
+  render: () => (
+    <div className="flex items-end gap-2">
+      <TextInput id="first" label="First name" fieldClassName="flex-1" />
+      <TextInput id="last" label="Last name" fieldClassName="flex-1" />
+      <Select id="role" label="Role" options={["viewer", "editor", "admin"]} fieldClassName="w-40" />
+    </div>
+  ),
+};

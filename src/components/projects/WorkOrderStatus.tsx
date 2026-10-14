@@ -1,6 +1,7 @@
 import type { WorkOrderDisplayState } from "../../mock-data/dashboard-stats";
 import { cn } from "../../utils/cn";
 import DateTime from "../DateTime";
+import { capitalize } from "../../utils/format";
 
 const DOT: Record<WorkOrderDisplayState, string> = {
   pending: "bg-gray-600",
@@ -51,7 +52,7 @@ export default function WorkOrderStatus({
     );
   }
   const active = state === "pending" || state === "running";
-  const text = LABEL[state] ?? state.charAt(0).toUpperCase() + state.slice(1);
+  const text = LABEL[state] ?? capitalize(state);
   return (
     <div>
       <div className="flex items-center gap-x-2">

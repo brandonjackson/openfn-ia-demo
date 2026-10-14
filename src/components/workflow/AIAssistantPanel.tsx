@@ -10,18 +10,8 @@ import Modal from "../Modal";
 import AIDisclaimerFooter from "./AIDisclaimerFooter";
 import Pill from "../Pill";
 import SearchInput from "../SearchInput";
-
-function relative(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const min = Math.floor(diff / 60000);
-  const hr = Math.floor(min / 60);
-  const day = Math.floor(hr / 24);
-  if (min < 1) return "just now";
-  if (min < 60) return `${min} ${min === 1 ? "minute" : "minutes"} ago`;
-  if (hr < 24) return `${hr} ${hr === 1 ? "hour" : "hours"} ago`;
-  if (day < 7) return `${day} ${day === 1 ? "day" : "days"} ago`;
-  return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-}
+import { matchesQuery } from "../../utils/search";
+import { formatSessionAge } from "../../utils/format";
 
 interface Props {
   sessions: AISession[];
@@ -63,7 +53,7 @@ export default function AIAssistantPanel({ sessions, onClose }: Props) {
   };
 
   const shown = sessions
-    .filter((s) => !query || s.title.toLowerCase().includes(query.toLowerCase()))
+    .filter((s) => matchesQuery(query, s.title))
     .sort((a, b) => (desc ? b.updatedAt.localeCompare(a.updatedAt) : a.updatedAt.localeCompare(b.updatedAt)));
 
   return (
@@ -175,7 +165,7 @@ export default function AIAssistantPanel({ sessions, onClose }: Props) {
                       {s.title}
                     </Heading>
                     <div className="flex items-center justify-between gap-3 text-xs text-gray-500">
-                      {relative(s.updatedAt)}
+                      {formatSessionAge(s.updatedAt)}
                       <Pill>{s.messages.length}</Pill>
                     </div>
                   </button>

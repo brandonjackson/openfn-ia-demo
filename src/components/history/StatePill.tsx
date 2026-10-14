@@ -1,6 +1,7 @@
 import type { RunState, WorkOrderState } from "../../mock-data/history";
 import type { ChannelRequestState } from "../../mock-data/channel-requests";
 import Pill, { type PillColor } from "../Pill";
+import { capitalize } from "../../utils/format";
 
 type State = WorkOrderState | RunState | "running";
 
@@ -35,7 +36,7 @@ function stateLabel(state: State): string {
     case "claimed":
       return "Starting";
     default:
-      return state.charAt(0).toUpperCase() + state.slice(1);
+      return capitalize(state);
   }
 }
 

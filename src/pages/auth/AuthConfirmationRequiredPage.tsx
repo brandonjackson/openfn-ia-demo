@@ -7,6 +7,7 @@ import Button from "../../components/Button";
 import Heading from "../../components/Heading";
 import { TextInput } from "../../components/Inputs";
 import { unconfirmedUser } from "../../mock-data/auth";
+import { isValidEmail } from "../../utils/validate";
 
 /**
  * Inventory view `auth-confirmation-required`
@@ -19,7 +20,7 @@ export default function AuthConfirmationRequiredPage() {
   const [newEmail, setNewEmail] = useState("");
   const [password, setPassword] = useState("");
   const [changeRequested, setChangeRequested] = useState<string | null>(null);
-  const valid = /^[^\s@]+@[^\s@]+$/.test(newEmail) && newEmail !== unconfirmedUser.email && password.length > 0;
+  const valid = isValidEmail(newEmail) && newEmail !== unconfirmedUser.email && password.length > 0;
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();

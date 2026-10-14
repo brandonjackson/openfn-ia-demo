@@ -71,12 +71,18 @@ export function Tr({
   );
 }
 
+export type CellAlign = "left" | "center" | "right";
+
+const alignClasses: Record<CellAlign, string> = { left: "text-left", center: "text-center", right: "text-right" };
+
 export function Th({
   children,
   className,
   colSpan,
   sortDirection,
   onSort,
+  align = "left",
+  actions = false,
 }: {
   children?: ReactNode;
   className?: string;
@@ -84,12 +90,16 @@ export function Th({
   /** When set the header is sortable; "asc" / "desc" marks the active column. */
   sortDirection?: "asc" | "desc" | null;
   onSort?: () => void;
+  align?: CellAlign;
+  /** The row-actions column. With no children the header reads "Actions" to screen readers only. */
+  actions?: boolean;
 }) {
+  if (actions && children === undefined) children = <span className="sr-only">Actions</span>;
   return (
     <th
       scope="col"
       colSpan={colSpan}
-      className={cn("text-sm text-left font-semibold text-gray-900 select-none whitespace-nowrap", className)}
+      className={cn("text-sm font-semibold text-gray-900 select-none whitespace-nowrap", alignClasses[align], className)}
     >
       {onSort ? (
         <button type="button" onClick={onSort} className="group inline-flex items-center">
@@ -110,10 +120,21 @@ export function Th({
   );
 }
 
-export function Td({ children, className, ...rest }: TdHTMLAttributes<HTMLTableCellElement> & { children?: ReactNode }) {
+export function Td({
+  children,
+  className,
+  align,
+  actions = false,
+  ...rest
+}: Omit<TdHTMLAttributes<HTMLTableCellElement>, "align"> & {
+  children?: ReactNode;
+  align?: CellAlign;
+  /** A row's action buttons: one right-aligned row with even gaps. */
+  actions?: boolean;
+}) {
   return (
-    <td className={cn("text-sm text-gray-500 first:rounded-bl-lg last:rounded-br-lg", className)} {...rest}>
-      {children}
+    <td className={cn("text-sm text-gray-500 first:rounded-bl-lg last:rounded-br-lg", align && alignClasses[align], className)} {...rest}>
+      {actions ? <div className="flex items-center justify-end gap-2">{children}</div> : children}
     </td>
   );
 }

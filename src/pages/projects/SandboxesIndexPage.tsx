@@ -4,7 +4,7 @@ import Button from "../../components/Button";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
 import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
-import CountTitle from "../../components/projects/CountTitle";
+import TableTitle from "../../components/TableTitle";
 import DeleteSandboxModal from "../../components/projects/sandboxes/DeleteSandboxModal";
 import SandboxFormModal from "../../components/projects/sandboxes/SandboxFormModal";
 import WorkspaceList from "../../components/projects/sandboxes/WorkspaceList";
@@ -49,8 +49,7 @@ export default function SandboxesIndexPage() {
       header={<Header breadcrumbs={<ProjectBreadcrumbs project={project} current="Sandboxes" />} />}
     >
       <Centered>
-        <div className="mb-6 flex items-center justify-between">
-          <CountTitle title="Sandboxes" />
+        <TableTitle title="Sandboxes" className="mb-6">
           <Button
             id="create-sandbox-button"
             size="lg"
@@ -60,7 +59,7 @@ export default function SandboxesIndexPage() {
           >
             Create Sandbox
           </Button>
-        </div>
+        </TableTitle>
 
         <WorkspaceList
           root={rootRow}

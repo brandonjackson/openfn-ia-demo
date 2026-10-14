@@ -7,8 +7,7 @@ import Heading from "../Heading";
 import IconButton from "../IconButton";
 import Pill, { type PillColor } from "../Pill";
 import RunBadge from "./RunBadge";
-import { shortId } from "./shortId";
-import { formatDuration, formatRelative } from "../../utils/format";
+import { capitalize, formatDuration, formatRelative, shortUuid } from "../../utils/format";
 
 // run_live/components.ex `state_pill` chip_styles, mapped onto Pill colours.
 const CHIP_COLORS: Record<string, PillColor> = {
@@ -26,7 +25,7 @@ const CHIP_COLORS: Record<string, PillColor> = {
 
 /** MiniHistory's own state chip: the raw state, capitalised. */
 function MiniStatePill({ state }: { state: string }) {
-  return <Pill color={CHIP_COLORS[state] ?? "gray"}>{state.charAt(0).toUpperCase() + state.slice(1)}</Pill>;
+  return <Pill color={CHIP_COLORS[state] ?? "gray"}>{capitalize(state)}</Pill>;
 }
 
 const Dot = () => <span className="text-gray-800">&bull;</span>;
@@ -121,7 +120,7 @@ export default function MiniHistory({
                     className="link-uuid"
                     title={workOrder.id}
                   >
-                    {shortId(workOrder.id)}
+                    {shortUuid(workOrder.id, 7)}
                   </Link>
                   <Dot />
                   <span className="text-gray-500">{formatRelative(workOrder.lastActivity, now)}</span>
@@ -159,7 +158,7 @@ export default function MiniHistory({
                           <span className="invisible h-5 w-5" />
                         )}
                         <Link to={`/projects/${projectId}/runs/${run.id}`} onClick={(e) => e.stopPropagation()} className="link-uuid" title={run.id}>
-                          {shortId(run.id)}
+                          {shortUuid(run.id, 7)}
                         </Link>
                         {(run.startedAt || run.finishedAt) && (
                           <>

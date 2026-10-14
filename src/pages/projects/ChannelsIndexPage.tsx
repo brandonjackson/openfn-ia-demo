@@ -7,7 +7,7 @@ import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import ChannelFormModal from "../../components/projects/channels/ChannelFormModal";
 import ChannelMetrics from "../../components/projects/channels/ChannelMetrics";
 import ChannelsTable from "../../components/projects/channels/ChannelsTable";
-import CountTitle from "../../components/projects/CountTitle";
+import TableTitle from "../../components/TableTitle";
 import { channelsIn, findChannel } from "../../mock-data/channels";
 import { findProject, roleIn } from "../../mock-data/projects";
 import { currentUser } from "../../mock-data/users";
@@ -46,8 +46,7 @@ export default function ChannelsIndexPage() {
             totalRequests={channels.reduce((sum, c) => sum + c.requestCount, 0)}
             projectId={project.id}
           />
-          <div className="mt-14 mb-3 flex justify-between">
-            <CountTitle title="Channels" count={channels.length} />
+          <TableTitle title="Channels" count={channels.length} className="mt-14">
             <Button
               id="new-channel-button"
               disabled={!canEdit}
@@ -56,7 +55,7 @@ export default function ChannelsIndexPage() {
             >
               New Channel
             </Button>
-          </div>
+          </TableTitle>
           <ChannelsTable
             channels={channels}
             projectId={project.id}

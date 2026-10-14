@@ -41,7 +41,7 @@ export function useEditorRuns(graph: WorkflowGraph, runId: string | null) {
         steps,
         startNodeId: selectedRun.startingTrigger ? (graph.triggers[0]?.id ?? null) : (startJob?.id ?? null),
         startedBy: selectedRun.startingTrigger ? "Trigger" : "editor@openfn.org",
-        startedAt: selectedRun.startingTrigger && selectedRun.startedAt ? new Date(selectedRun.startedAt).toLocaleString() : undefined,
+        startedAt: selectedRun.startingTrigger && selectedRun.startedAt ? selectedRun.startedAt : undefined,
       };
     }
 

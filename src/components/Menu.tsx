@@ -10,7 +10,7 @@ import {
 import { Fragment, type MouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "../utils/cn";
-import { floatingPanelClasses, type FloatingAlign } from "./floating";
+import { floatingPanelClasses, type FloatingAlign, type PanelProps } from "./floating";
 
 interface MenuProps {
   /**
@@ -22,6 +22,8 @@ interface MenuProps {
   align?: FloatingAlign;
   /** Width class for the menu, e.g. `w-56`. */
   className?: string;
+  /** Extra attributes for the open panel, e.g. `data-annotation`. The panel is portalled, so it doesn't inherit its trigger's. */
+  panelProps?: PanelProps;
   children: ReactNode;
 }
 
@@ -29,7 +31,7 @@ interface MenuProps {
  * A dropdown list of actions or choices, opened from a trigger. Keyboard
  * navigation, typeahead and closing on select or click-away come with it.
  */
-export default function Menu({ trigger, align = "end", className = "w-56", children }: MenuProps) {
+export default function Menu({ trigger, align = "end", className = "w-56", panelProps, children }: MenuProps) {
   return (
     <HeadlessMenu>
       <MenuButton as={Fragment}>{trigger}</MenuButton>
@@ -37,6 +39,7 @@ export default function Menu({ trigger, align = "end", className = "w-56", child
         anchor={{ to: `bottom ${align}`, gap: 8 }}
         transition
         data-ui="menu"
+        {...panelProps}
         className={cn(floatingPanelClasses, "py-1", className)}
       >
         {children}

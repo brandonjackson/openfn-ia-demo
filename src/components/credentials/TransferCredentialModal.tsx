@@ -3,6 +3,7 @@ import Modal from "../Modal";
 import Button from "../Button";
 import { TextInput } from "../Inputs";
 import type { Credential } from "../../mock-data/credentials";
+import { isValidEmail } from "../../utils/validate";
 
 interface Props {
   open: boolean;
@@ -22,7 +23,7 @@ interface Props {
 export default function TransferCredentialModal({ open, onClose, credential, onTransfer, onRevoke }: Props) {
   const revoke = credential.transferStatus === "pending";
   const [email, setEmail] = useState("");
-  const valid = /^[^@\s]+@[^@\s]+$/.test(email.trim());
+  const valid = isValidEmail(email.trim());
   const modalId = `transfer-credential-${credential.id}-modal`;
 
   return (

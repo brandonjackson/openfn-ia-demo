@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { Dataclip, LogLine, Run, Step } from "../../mock-data/history";
 import { cn } from "../../utils/cn";
+import { formatElapsed, formatLocalDateTime, shortUuid } from "../../utils/format";
 import CodeEditor from "./CodeEditor";
 import StatePill from "../history/StatePill";
 import { DetailItem, DetailList } from "../DetailList";
@@ -16,14 +17,6 @@ const STEP_ICONS: Record<string, [string, string]> = {
   fail: ["hero-x-circle-solid", "text-red-500"],
   crash: ["hero-x-circle-solid", "text-orange-800"],
 };
-
-function elapsed(from: string | null, to: string | null): string {
-  if (!from) return "Not started";
-  const ms = (to ? new Date(to).getTime() : Date.now()) - new Date(from).getTime();
-  if (ms < 1000) return `${ms} ms`;
-  if (ms < 60000) return `${Math.floor(ms / 1000)} s`;
-  return `${Math.floor(ms / 60000)} m`;
-}
 
 const LEVELS = ["debug", "info", "warn", "error"] as const;
 
@@ -67,19 +60,19 @@ export default function RunViewerPanel({ projectId, run, steps, logs, dataclips,
           <DetailList>
             <DetailItem label="Work Order">
               <Link to={`/projects/${projectId}/history?filters[workorder_id]=${run.workOrderId}`} className="link-uuid" title={`View work order ${run.workOrderId}`}>
-                {run.workOrderId.slice(0, 8)}
+                {shortUuid(run.workOrderId)}
               </Link>
             </DetailItem>
             <DetailItem label="Run">
               <Link to={`/projects/${projectId}/runs/${run.id}`} className="link-uuid" title={`View run ${run.id}`}>
-                {run.id.slice(0, 8)}
+                {shortUuid(run.id)}
               </Link>
             </DetailItem>
             <DetailItem label="Status">
               <StatePill state={run.state} />
             </DetailItem>
-            <DetailItem label="Duration">{elapsed(run.startedAt, run.finishedAt)}</DetailItem>
-            {run.startedAt && <DetailItem label="Started">{new Date(run.startedAt).toLocaleString()}</DetailItem>}
+            <DetailItem label="Duration">{formatElapsed(run.startedAt, run.finishedAt)}</DetailItem>
+            {run.startedAt && <DetailItem label="Started">{formatLocalDateTime(run.startedAt)}</DetailItem>}
             {(run.createdBy || run.startingTrigger) && (
               <DetailItem label="Started by">{run.createdBy ? "editor@openfn.org" : `${run.startingTrigger?.toLowerCase()} trigger`}</DetailItem>
             )}
@@ -109,7 +102,7 @@ export default function RunViewerPanel({ projectId, run, steps, logs, dataclips,
                     >
                       <span className={cn(icon, color, "h-5 w-5 shrink-0")} />
                       <span className="min-w-0 flex-1 truncate">{s.jobName}</span>
-                      <span className="shrink-0 text-xs text-gray-500">{elapsed(s.startedAt, s.finishedAt)}</span>
+                      <span className="shrink-0 text-xs text-gray-500">{formatElapsed(s.startedAt, s.finishedAt)}</span>
                     </button>
                   </li>
                 );

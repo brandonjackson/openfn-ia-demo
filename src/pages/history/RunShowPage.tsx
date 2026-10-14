@@ -13,7 +13,7 @@ import StatePill from "../../components/history/StatePill";
 import StepDataclipViewer from "../../components/history/StepDataclipViewer";
 import Tabs from "../../components/Tabs";
 import TextLink from "../../components/TextLink";
-import { formatElapsed } from "../../utils/format";
+import { capitalize, formatElapsed } from "../../utils/format";
 import { findDataclip, findRun, findWorkOrder, stepsOf } from "../../mock-data/history";
 import {
   finalDataclipIdOf,
@@ -77,7 +77,7 @@ export default function RunShowPage() {
   const finalDataclipId = finalDataclipIdOf(run);
   const startedBy = run.createdBy
     ? findUser(run.createdBy)?.email
-    : run.startingTrigger && `${run.startingTrigger.charAt(0).toUpperCase()}${run.startingTrigger.slice(1).toLowerCase()} trigger`;
+    : run.startingTrigger && `${capitalize(run.startingTrigger.toLowerCase())} trigger`;
 
   return (
     <PageContent header={header}>

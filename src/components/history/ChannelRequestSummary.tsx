@@ -8,7 +8,7 @@ import TextLink from "../TextLink";
 import { MethodBadge, RequestPathDisplay, StatusCodeBadge } from "./ChannelRequestParts";
 import { ChannelStatePill } from "./StatePill";
 import { humanizeError } from "./channelHelpers";
-import { formatUs } from "../../utils/format";
+import { formatUs, shortUuid } from "../../utils/format";
 import CopyButton from "../CopyButton";
 
 function Group({ title, className, children }: { title: string; className?: string; children: ReactNode }) {
@@ -53,7 +53,7 @@ export default function ChannelRequestSummary({
           </span>
           <span className="flex items-center gap-1.5">
             <span className="uppercase tracking-wide text-gray-500">Request</span>
-            <span className="font-mono text-gray-900">{request.id.slice(0, 8)}</span>
+            <span className="font-mono text-gray-900">{shortUuid(request.id)}</span>
             <CopyButton value={request.id} label="Copy request ID" size="sm" />
           </span>
         </div>

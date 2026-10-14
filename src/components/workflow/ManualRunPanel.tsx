@@ -12,7 +12,8 @@ import Tabs from "../Tabs";
 import InspectorLayout, { InspectorFooter } from "./InspectorLayout";
 import NewRunButton from "./NewRunButton";
 import SearchInput from "../SearchInput";
-import { shortId } from "./shortId";
+import { matchesQuery } from "../../utils/search";
+import { formatLocalDate, formatShortLocalDateTime, shortUuid } from "../../utils/format";
 
 type Tab = "empty" | "custom" | "existing";
 
@@ -35,10 +36,6 @@ interface Props {
   onClosePanel?: () => void;
   /** "Run with custom input" opens on the Custom tab. */
   initialTab?: Tab;
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", second: "2-digit" });
 }
 
 /**
@@ -70,11 +67,10 @@ export default function ManualRunPanel({
     { id: "existing" as const, label: "Existing", icon: "hero-queue-list" },
   ];
 
-  const q = query.trim().toLowerCase();
   const visible = dataclips
     .filter((d) => !d.wiped)
     .filter((d) => !namedOnly || d.name)
-    .filter((d) => !q || d.id.startsWith(q) || (d.name ?? "").toLowerCase().includes(q))
+    .filter((d) => d.id.startsWith(query.trim().toLowerCase()) || matchesQuery(query, d.name))
     .slice(0, 10);
 
   let parseError: string | null = null;
@@ -150,10 +146,10 @@ export default function ManualRunPanel({
                     ) : (
                       <span className="hero-document-text size-4 shrink-0 group-hover:text-primary-600" />
                     )}
-                    <span className="truncate font-mono">{clip.name || shortId(clip.id)}</span>
+                    <span className="truncate font-mono">{clip.name || shortUuid(clip.id, 7)}</span>
                     <DataclipTypePill type={clip.type} />
                   </div>
-                  <span className="truncate text-xs">{formatDate(clip.insertedAt)}</span>
+                  <span className="truncate text-xs">{formatShortLocalDateTime(clip.insertedAt)}</span>
                 </div>
               ))
             ) : (
@@ -177,7 +173,7 @@ export default function ManualRunPanel({
           <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
             <span className="capitalize">{selected.type.replace("_", " ")}</span>
             <span>•</span>
-            <span>{new Date(selected.insertedAt).toLocaleDateString()}</span>
+            <span>{formatLocalDate(selected.insertedAt)}</span>
           </div>
         </div>
         <IconButton icon="hero-x-mark" label="Unselect dataclip" onClick={() => setSelected(null)} />

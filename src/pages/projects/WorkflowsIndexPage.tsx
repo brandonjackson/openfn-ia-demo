@@ -9,6 +9,7 @@ import WorkflowsTable from "../../components/projects/WorkflowsTable";
 import { projectMetricsFor, workflowStatsFor } from "../../mock-data/dashboard-stats";
 import { findProject, roleIn } from "../../mock-data/projects";
 import { currentUser } from "../../mock-data/users";
+import { matchesQuery } from "../../utils/search";
 
 /**
  * Inventory view `workflows-index` (WorkflowLive.Index): search, the four
@@ -25,10 +26,9 @@ export default function WorkflowsIndexPage() {
   if (!project) return <Navigate to="/projects" replace />;
 
   const canEdit = roleIn(project, currentUser.id) !== "viewer";
-  const term = search.trim().toLowerCase();
   const stats = workflowStatsFor(project.id)
     .filter((s) => !deleted.includes(s.workflow.id))
-    .filter((s) => term === "" || s.workflow.name.toLowerCase().includes(term))
+    .filter((s) => matchesQuery(search, s.workflow.name))
     .map((s) => ({ ...s, workflow: { ...s.workflow, enabled: enabled[s.workflow.id] ?? s.workflow.enabled } }));
 
   return (

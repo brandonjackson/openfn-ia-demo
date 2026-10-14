@@ -5,6 +5,8 @@
  * Static fixtures only.
  */
 
+import { capitalize } from "../utils/format";
+
 export interface Adaptor {
   id: string;
   name: string;
@@ -113,8 +115,7 @@ export function adaptorShortName(specifier: string): string {
 
 /** `http` → `Http`, `googlesheets` → `Googlesheets` (Lightning's getAdaptorDisplayName). */
 export function adaptorDisplayName(specifier: string): string {
-  const short = adaptorShortName(specifier);
-  return short.charAt(0).toUpperCase() + short.slice(1);
+  return capitalize(adaptorShortName(specifier));
 }
 
 export function adaptorIconUrl(specifier: string): string | null {

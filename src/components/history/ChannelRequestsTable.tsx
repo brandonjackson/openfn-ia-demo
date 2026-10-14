@@ -4,6 +4,7 @@ import { findChannel, type ChannelRequest } from "../../mock-data/channel-reques
 import DateTime from "../DateTime";
 import TextLink from "../TextLink";
 import { ChannelStatePill } from "./StatePill";
+import { shortUuid } from "../../utils/format";
 
 /** History's Channel Logs table (run_live/channel_logs_component.ex). */
 export default function ChannelRequestsTable({
@@ -43,7 +44,7 @@ export default function ChannelRequestsTable({
             <Tr key={r.id} id={`request-${r.id}`}>
               <Td title={r.requestId}>
                 <TextLink to={`/projects/${projectId}/history/channels/${r.id}`} className="font-mono">
-                  {r.requestId.slice(0, 8)}
+                  {shortUuid(r.requestId)}
                 </TextLink>
               </Td>
               <Td className="text-gray-700">{path || "—"}</Td>

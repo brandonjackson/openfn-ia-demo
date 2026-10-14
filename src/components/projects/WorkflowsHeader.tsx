@@ -1,5 +1,5 @@
 import Button from "../Button";
-import CountTitle from "./CountTitle";
+import TableTitle from "../TableTitle";
 import SearchInput from "../SearchInput";
 
 /**
@@ -20,20 +20,17 @@ export default function WorkflowsHeader({
   onSearch: (term: string) => void;
 }) {
   return (
-    <div className="mb-6 flex items-center justify-between">
-      <CountTitle title="Workflows" count={count} />
-      <div className="flex gap-2">
-        <SearchInput value={searchTerm} onChange={onSearch} className="w-96" />
-        <Button
-          id="new-workflow-button"
-          className="whitespace-nowrap"
-          to={`/projects/${projectId}/w/new`}
-          disabled={!canCreate}
-          tooltip={canCreate ? undefined : "You are not authorized to perform this action."}
-        >
-          Create new workflow
-        </Button>
-      </div>
-    </div>
+    <TableTitle title="Workflows" count={count} className="mb-6">
+      <SearchInput value={searchTerm} onChange={onSearch} className="w-96" />
+      <Button
+        id="new-workflow-button"
+        className="whitespace-nowrap"
+        to={`/projects/${projectId}/w/new`}
+        disabled={!canCreate}
+        tooltip={canCreate ? undefined : "You are not authorized to perform this action."}
+      >
+        Create new workflow
+      </Button>
+    </TableTitle>
   );
 }

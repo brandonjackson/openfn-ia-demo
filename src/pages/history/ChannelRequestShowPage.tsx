@@ -20,6 +20,7 @@ import { errorCategory, humanizeError } from "../../components/history/channelHe
 import { findChannel, findChannelRequest, primaryEvent } from "../../mock-data/channel-requests";
 import { historyPermissions } from "../../mock-data/history-extra";
 import { findProject } from "../../mock-data/projects";
+import { shortUuid } from "../../utils/format";
 
 const sizeNote = (size: number | null) => (size ? <SectionSizeBadge size={size} /> : null);
 
@@ -45,7 +46,7 @@ export default function ChannelRequestShowPage() {
             current={
               <>
                 Channel Request
-                <span className="pl-1 font-light font-mono">{request?.requestId.slice(0, 8)}</span>
+                <span className="pl-1 font-light font-mono">{request && shortUuid(request.requestId)}</span>
               </>
             }
           />

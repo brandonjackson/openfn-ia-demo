@@ -41,3 +41,5 @@ export const WithClose: Story = {
     ),
   },
 };
+/** `panelProps` reach the portalled panel, so the annotations panel can find its `data-annotation`. */
+export const WithPanelProps: Story = { args: { panelProps: { "data-annotation": "history-filter-chip" } } };

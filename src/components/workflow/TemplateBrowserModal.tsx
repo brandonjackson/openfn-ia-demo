@@ -6,6 +6,7 @@ import Heading from "../Heading";
 import Modal from "../Modal";
 import SearchInput from "../SearchInput";
 import WorkflowDiagram from "./WorkflowDiagram";
+import { matchesQuery } from "../../utils/search";
 
 interface Props {
   isOpen: boolean;
@@ -33,8 +34,7 @@ function TemplateSummary({ template, lines }: { template: WorkflowTemplate; line
 export default function TemplateBrowserModal({ isOpen, onClose, projectId, onCreate }: Props) {
   const [query, setQuery] = useState("");
   const [previewedId, setPreviewedId] = useState<string | null>(workflowTemplates[0]?.id ?? null);
-  const q = query.trim().toLowerCase();
-  const visible = workflowTemplates.filter((t) => !q || t.name.toLowerCase().includes(q) || t.description.toLowerCase().includes(q));
+  const visible = workflowTemplates.filter((t) => matchesQuery(query, t.name, t.description));
   const previewed = workflowTemplates.find((t) => t.id === previewedId) ?? null;
 
   return (

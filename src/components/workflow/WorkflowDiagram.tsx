@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "../../utils/cn";
+import { formatLocalDateTime } from "../../utils/format";
 import { adaptorIconUrl, adaptorShortName } from "../../mock-data/adaptors";
 import type { WorkflowGraph } from "../../mock-data/workflow";
 import DiagramControls from "./DiagramControls";
@@ -17,6 +18,7 @@ export interface RunOverlay {
   /** The node the run started from (a trigger or a job). */
   startNodeId: string | null;
   startedBy: string;
+  /** ISO timestamp, shown on the start node. */
   startedAt?: string;
 }
 
@@ -209,7 +211,7 @@ export default function WorkflowDiagram({
                 disabled={!t.enabled}
                 didRun={!isRun || started}
                 startedBy={started ? run?.startedBy : undefined}
-                runMeta={started ? run?.startedAt : undefined}
+                runMeta={started && run?.startedAt ? formatLocalDateTime(run.startedAt) : undefined}
                 onClick={() => onSelect({ kind: "trigger", id: t.id })}
               />
             </div>

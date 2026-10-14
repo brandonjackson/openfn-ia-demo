@@ -6,6 +6,7 @@ import { Select, TextInput } from "../Inputs";
 import PasswordInput from "../auth/PasswordInput";
 import type { User } from "../../mock-data/users";
 import { contactPreferenceOptions, contactPreferenceTooltip } from "../../mock-data/profile";
+import { isValidEmail } from "../../utils/validate";
 
 /**
  * The three forms of ProfileLive.FormComponent (profile_live/form_component.html.heex),
@@ -80,7 +81,7 @@ export function BasicInfoForm({ user, onSave }: { user: User; onSave?: (u: Pick<
 export function ChangeEmailForm({ onSubmit }: { onSubmit?: (email: string) => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const valid = /^[^@\s]+@[^@\s]+$/.test(email) && password !== "";
+  const valid = isValidEmail(email) && password !== "";
   return (
     <FormCard
       id="email-form"

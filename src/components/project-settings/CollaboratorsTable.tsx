@@ -4,6 +4,7 @@ import { EmptyState, Table, Td, Th, Tr } from "../Table";
 import type { ProjectMember } from "../../mock-data/projects";
 import { digestOptions } from "../../mock-data/project-settings";
 import { findUser, fullName } from "../../mock-data/users";
+import { capitalize } from "../../utils/format";
 
 interface Props {
   members: ProjectMember[];
@@ -16,8 +17,6 @@ interface Props {
   onAdd: () => void;
   canAdd: boolean;
 }
-
-const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** settings.ex `remove_user_tooltip/5` (sandbox parent-admin rule omitted). */
 function removeTooltip(member: ProjectMember, currentUserId: string, canRemove: boolean): string {

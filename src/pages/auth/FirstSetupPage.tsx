@@ -6,6 +6,7 @@ import Header from "../../components/Header";
 import Button from "../../components/Button";
 import { TextInput } from "../../components/Inputs";
 import { Centered, PageContent } from "../../components/PageContent";
+import { isValidEmail } from "../../utils/validate";
 
 type Fields = { firstName: string; lastName: string; email: string; password: string; passwordConfirmation: string };
 
@@ -28,7 +29,7 @@ export default function FirstSetupPage() {
   const valid =
     f.firstName.trim() !== "" &&
     f.lastName.trim() !== "" &&
-    /^[^\s@]+@[^\s@]+$/.test(f.email) &&
+    isValidEmail(f.email) &&
     f.password.length >= 8 &&
     f.password === f.passwordConfirmation;
 

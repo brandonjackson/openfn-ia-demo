@@ -5,6 +5,7 @@ import Heading from "../Heading";
 import Modal from "../Modal";
 import AdaptorIcon from "./AdaptorIcon";
 import SearchInput from "../SearchInput";
+import { matchesQuery } from "../../utils/search";
 
 interface Props {
   isOpen: boolean;
@@ -40,11 +41,7 @@ function Row({ id, title, onClick, size }: { id: string; title: string; onClick:
  */
 export default function AdaptorSelectionModal({ isOpen, onClose, onSelect, adaptorsInUse = [] }: Props) {
   const [query, setQuery] = useState("");
-  const q = query.trim().toLowerCase();
-  const matches = useMemo(
-    () => adaptors.filter((a) => !q || a.name.toLowerCase().includes(q) || a.id.includes(q)),
-    [q]
-  );
+  const matches = useMemo(() => adaptors.filter((a) => matchesQuery(query, a.name, a.id)), [query]);
   const inProject = matches.filter((a) => adaptorsInUse.includes(a.id));
   const rest = matches.filter((a) => !adaptorsInUse.includes(a.id));
   const fallback = matches.length === 0;

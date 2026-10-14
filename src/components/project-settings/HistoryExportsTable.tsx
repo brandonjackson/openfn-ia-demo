@@ -2,7 +2,7 @@ import { EmptyState, Table, Td, Th, Tr } from "../Table";
 import Button from "../Button";
 import type { ExportStatus, ProjectFile } from "../../mock-data/project-settings";
 import { findUser, fullName } from "../../mock-data/users";
-import { formatAgo } from "../../utils/format";
+import { capitalize, formatAgo } from "../../utils/format";
 
 interface Props {
   files: ProjectFile[];
@@ -10,8 +10,7 @@ interface Props {
 
 /** data_tables.ex `format_export_status/1`: "in_progress" -> "In progress". */
 function formatStatus(status: ExportStatus): string {
-  const s = status.replace(/_/g, " ");
-  return s.charAt(0).toUpperCase() + s.slice(1);
+  return capitalize(status.replace(/_/g, " "));
 }
 
 /**

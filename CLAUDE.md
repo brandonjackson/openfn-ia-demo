@@ -27,10 +27,8 @@ inline literals scattered through the markup.
   (`lib/lightning_web/router.ex`), commented with its INVENTORY.md id.
 - `src/pages/<area>/` — one file per Lightning view. Named after the
   inventory id (e.g. `history-work-orders` → `HistoryWorkOrdersPage.tsx`).
-- `src/components/` — the component library. The app shell (`AppShell`,
-  `Sidebar`, `UserMenu`, `Picker`, `PickerButton`, `Header`, `PageContent`,
-  `Breadcrumbs`, `ProjectBreadcrumbs`) and shared parts (`Button`, `Table`
-  with `Tr`/`Th`/`Td`/`EmptyState`, `PillTabs`, `Modal`, `Toggle`, `Inputs`).
+- `src/components/` — the component library: primitives at the top level,
+  feature components in area subfolders. See **Components** below.
 - `src/mock-data/` — fixtures modelled on Lightning's demo seed
   (`lib/lightning/setup_utils.ex`): users, projects, workflows, history.
 - `src/theme/` — themes, chosen from the settings button (bottom right).
@@ -45,28 +43,62 @@ inline literals scattered through the markup.
 
 ## Matching Lightning
 
-- **Copy, don't reinterpret.** Find the view's template in OpenFn/lightning
-  (paths are in INVENTORY.md) and port its markup and Tailwind classes as
-  closely as React allows. Same headings, labels, button text, empty states,
-  column names and order.
+This repo is becoming the React frontend that replaces Lightning's
+LiveView UI, so Lightning is the source of truth for **what** a page does,
+not **how** it's built.
+
+- **Copy behaviour and content exactly.** Find the view in OpenFn/lightning
+  (paths are in INVENTORY.md) and match its headings, labels, button text,
+  empty states, column names and order, and what each action does.
+- **Don't copy its implementation.** Lightning mixes LiveView components,
+  the collaborative editor's React components and a half-started new design
+  system. Don't port those splits. Build every page from the primitives
+  below, and when two Lightning screens style the same thing differently,
+  pick one treatment in the primitive rather than copying both.
 - Colour names match Lightning: `primary-*` (indigo), `secondary-*` (gray),
   `info`, `success`, `danger`, `warning` are defined in `src/index.css`.
-- Icons are Heroicons as CSS classes, exactly as in Lightning:
-  `<span className="hero-folder h-5 w-5" />`, with `-solid`, `-mini` and
-  `-micro` suffixes. Prefer these over `lucide-react`.
+- Icons are Heroicons as CSS classes: `<span className="hero-folder h-5 w-5" />`,
+  with `-solid`, `-mini` and `-micro` suffixes. No icon packages.
 - Use `cn()` from `src/utils/cn.ts` for conditional classes.
 - Every page is `<PageContent header={<Header … />}>` with a `<Centered>`
-  body, unless Lightning's page does something else.
+  body, unless the page needs a different layout.
 
 ## Components
 
-- **Every UI element on a page must be a component in `src/components/`
-  with a story.** Pages compose components; they don't hand-roll styled
-  buttons, inputs or tables.
-- **Need something that doesn't exist yet? Create the component first**, add
-  its story, then use it. If an existing component is close, extend it.
-- Group a page area's components in a subfolder when there are several
-  (`src/components/history/`, `src/components/workflow/`).
+The design system has two layers.
+
+**Primitives** (`src/components/*.tsx`) are small, general and used
+everywhere. Reach for these first:
+
+| Need | Use |
+|---|---|
+| An action | `Button` (`to` for routes, `href` for plain links) |
+| An icon-only action | `IconButton` (always give it a `label`) |
+| A form control | `TextInput`, `TextArea`, `Select`, `Checkbox`, `Radio` from `Inputs`; wrap anything else in `Field` with `controlClasses()` |
+| A dialog | `Modal` (`size`, or `bare` for custom layouts); `ConfirmModal` to confirm one action |
+| A list of actions or choices | `Menu` with `MenuItem`, `MenuSection`, `MenuDivider` |
+| A floating panel (filters, details) | `Popover` |
+| Tabular data | `Table` with `Tr`, `Th`, `Td`, `EmptyState` |
+| A status message | `Alert` |
+| Page frame | `PageContent`, `Header`, `Centered`, `Breadcrumbs` |
+
+Dialogs, menus and popovers sit on Headless UI (`@headlessui/react`), which
+handles focus, keyboard and positioning. Don't hand-roll `fixed inset-0`
+overlays, click-outside handlers or `absolute` dropdown panels.
+
+**Feature components** (`src/components/<area>/`) are one panel or section
+of a page (`WorkOrdersTable`, `WebhookSecurityPanel`). They're often used
+once, and that's fine: they're the unit we wire to the backend and annotate.
+They compose primitives and don't carry their own button, input, modal or
+menu styling.
+
+- **Pages compose components** and hold state, route params and mock-data
+  queries. No styled raw `<button>`, `<input>` or `<table>` in pages.
+- **Need something that doesn't exist yet?** If it's general, add or extend a
+  primitive. If it's specific to an area, make a feature component. Either
+  way, add its story first.
+- When a pattern repeats across three or more feature components, it's a
+  primitive waiting to happen. Promote it.
 - Button labels follow Lightning's own wording, not a house style.
 
 ## Storybook

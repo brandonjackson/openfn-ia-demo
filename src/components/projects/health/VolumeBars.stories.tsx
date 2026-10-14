@@ -9,7 +9,7 @@ const day = healthFor("wf-openhie", "1");
 const meta: Meta<typeof VolumeBars> = {
   title: "Projects/Health/VolumeBars",
   component: VolumeBars,
-  decorators: [(Story) => <div className="w-[48rem] bg-white p-6"><Story /></div>],
+  decorators: [(Story) => <div className="w-3xl bg-white p-6"><Story /></div>],
   args: { buckets: week.buckets, hours: week.bucketHours, timezone: week.timezone, emptyMessage: "No runs in the last 7 days" },
 };
 export default meta;

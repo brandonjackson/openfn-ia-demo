@@ -39,12 +39,7 @@ export default function CreateProjectModal({
       size="md"
       footer={
         <>
-          <Button
-            type="submit"
-            form="project-form"
-            theme="primary"
-            disabled={!valid}
-          >
+          <Button type="submit" form="project-form" disabled={!valid}>
             Create project
           </Button>
           <Button id="cancel-project-creation" theme="secondary" onClick={close}>
@@ -72,9 +67,9 @@ export default function CreateProjectModal({
             onChange={(e) => setRawName(e.target.value)}
             errors={rawName !== "" && name === "" ? ["can't be blank"] : []}
           />
-          <small className="block text-xs text-gray-600">
+          <p className="text-xs text-gray-600">
             <NameBadge name={name}>Your project will be named</NameBadge>
-          </small>
+          </p>
         </div>
         <div className="space-y-2">
           <TextArea
@@ -84,9 +79,9 @@ export default function CreateProjectModal({
             onChange={(e) => setDescription(e.target.value)}
             errors={tooLong ? ["should be at most 240 character(s)"] : []}
           />
-          <small className="block text-xs text-gray-600">
+          <p className="text-xs text-gray-600">
             A short description of a project [max 240 characters]
-          </small>
+          </p>
         </div>
       </form>
     </Modal>

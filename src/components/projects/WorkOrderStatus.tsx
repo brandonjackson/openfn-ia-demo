@@ -10,8 +10,8 @@ const DOT: Record<WorkOrderDisplayState, string> = {
   crashed: "bg-orange-600",
   cancelled: "bg-gray-500",
   killed: "bg-yellow-600",
-  exception: "bg-gray-300 border-solid border-2 border-gray-800",
-  lost: "bg-gray-300 border-solid border-2 border-gray-800",
+  exception: "bg-gray-300 border-2 border-gray-800",
+  lost: "bg-gray-300 border-2 border-gray-800",
 };
 
 const TEXT: Record<WorkOrderDisplayState, string> = {
@@ -44,34 +44,24 @@ export default function WorkOrderStatus({
 }) {
   if (!state) {
     return (
-      <div className="flex flex-col text-center">
-        <div className="flex items-center gap-x-2">
-          <span className="inline-block h-2 w-2 bg-gray-200 rounded-full" />
-          <span className="italic">Nothing {period}</span>
-        </div>
+      <div className="flex items-center gap-x-2">
+        <span className="h-2 w-2 rounded-full bg-gray-200" />
+        <span className="italic">Nothing {period}</span>
       </div>
     );
   }
   const active = state === "pending" || state === "running";
   const text = LABEL[state] ?? state.charAt(0).toUpperCase() + state.slice(1);
   return (
-    <div className="flex flex-col text-center">
-      <div>
-        <div className="flex items-center gap-x-2">
-          <span className="relative inline-flex h-2 w-2">
-            {active && (
-              <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", DOT[state])} />
-            )}
-            <span className={cn("relative inline-flex rounded-full h-2 w-2", DOT[state])} />
-          </span>
-          <span className={cn(TEXT[state], "font-medium")}>{text}</span>
-        </div>
-        {updatedAt && (
-          <span className="block text-left text-gray-500 text-xs ml-4 mt-1">
-            <DateTime value={updatedAt} />
-          </span>
-        )}
+    <div>
+      <div className="flex items-center gap-x-2">
+        <span className="relative flex h-2 w-2">
+          {active && <span className={cn("absolute h-full w-full animate-ping rounded-full opacity-75", DOT[state])} />}
+          <span className={cn("relative h-2 w-2 rounded-full", DOT[state])} />
+        </span>
+        <span className={cn(TEXT[state], "font-medium")}>{text}</span>
       </div>
+      {updatedAt && <DateTime value={updatedAt} className="mt-1 ml-4 block text-xs" />}
     </div>
   );
 }

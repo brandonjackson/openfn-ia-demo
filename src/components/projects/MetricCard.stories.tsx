@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import MetricCard from "./MetricCard";
+import TextLink from "../TextLink";
 
 const meta: Meta<typeof MetricCard> = {
   title: "Projects/MetricCard",
@@ -12,5 +13,5 @@ type Story = StoryObj<typeof MetricCard>;
 
 export const Default: Story = {};
 export const WithLink: Story = {
-  args: { title: "Work Orders in failed state", value: 26, suffix: "2.0%", link: <a className="text-primary-400">View all</a> },
+  args: { title: "Work Orders in failed state", value: 26, suffix: "2.0%", link: <TextLink href="#">View all</TextLink> },
 };

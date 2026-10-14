@@ -59,7 +59,7 @@ export default function ChannelFormModal({
       >
         {channel && (
           <Field label="Proxy URL">
-            <ProxyUrlCopy channelId={channel.id} className="min-w-0 hover:text-gray-600" textClassName="text-gray-500" />
+            <ProxyUrlCopy channelId={channel.id} />
           </Field>
         )}
         <TextInput id="channel_name" label="Name" value={name} onChange={(e) => setName(e.target.value)} />

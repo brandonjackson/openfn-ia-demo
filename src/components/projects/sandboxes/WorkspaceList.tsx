@@ -1,5 +1,7 @@
-import { Link } from "react-router-dom";
 import type { SandboxRow } from "../../../mock-data/sandboxes";
+import Card from "../../Card";
+import Heading from "../../Heading";
+import TextLink from "../../TextLink";
 import WorkspaceCard from "./WorkspaceCard";
 
 /**
@@ -46,37 +48,30 @@ export default function WorkspaceList({
     <div className="space-y-8">
       <div className="space-y-3">
         <WorkspaceCard workspace={root} isRoot={root.parentId === null} isCurrent={root.id === currentProjectId} />
-        <div>
-          {active.length === 0 && scheduled.length === 0 ? (
-            <div className="text-gray-500 text-center py-8 rounded-lg border-2 border-dashed border-gray-200">
-              <div className="space-y-3">
-                <div className="text-base font-medium">No sandboxes found</div>
-                <div className="text-sm">
-                  {canCreate ? (
-                    <>
-                      <Link
-                        to={`/projects/${currentProjectId}/sandboxes/new`}
-                        className="text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        Create your first sandbox
-                      </Link>{" "}
-                      to start experimenting.
-                    </>
-                  ) : (
-                    disabledReason
-                  )}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3">{active.map(card)}</div>
-          )}
-        </div>
+        {active.length === 0 && scheduled.length === 0 ? (
+          <Card dashed className="space-y-3 py-8 text-center text-sm text-gray-500">
+            <p className="text-base font-medium">No sandboxes found</p>
+            <p>
+              {canCreate ? (
+                <>
+                  <TextLink to={`/projects/${currentProjectId}/sandboxes/new`}>Create your first sandbox</TextLink> to
+                  start experimenting.
+                </>
+              ) : (
+                disabledReason
+              )}
+            </p>
+          </Card>
+        ) : (
+          active.map(card)
+        )}
       </div>
       {scheduled.length > 0 && (
-        <div id="scheduled-for-deletion-section">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Scheduled for deletion</h2>
-          <div className="space-y-3">{scheduled.map(card)}</div>
+        <div id="scheduled-for-deletion-section" className="space-y-3">
+          <Heading as="h2" size="lg">
+            Scheduled for deletion
+          </Heading>
+          {scheduled.map(card)}
         </div>
       )}
     </div>

@@ -19,10 +19,8 @@ export default function ProjectsDashboardPage() {
   return (
     <PageContent header={<Header title="Projects" />}>
       <Centered>
-        <div className="w-full -mt-6">
-          <div>
-            <WelcomeBanner firstName={currentUser.firstName} />
-          </div>
+        <div className="-mt-6">
+          <WelcomeBanner firstName={currentUser.firstName} />
           <div id="user-projects-section">
             <ProjectsTable
               projects={projects}

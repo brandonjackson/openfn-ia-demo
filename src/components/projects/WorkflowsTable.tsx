@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+import type { ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import type { WorkflowStats } from "../../mock-data/dashboard-stats";
 import { cn } from "../../utils/cn";
 import { Table, Td, Th, Tr } from "../Table";
@@ -53,114 +54,95 @@ export default function WorkflowsTable({
 
   if (stats.length === 0) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">
-          {searchTerm !== "" ? (
-            <>
-              No workflows found matching "{searchTerm}". Try a different search term or{" "}
-              <TextLink to={`/projects/${projectId}/w/new`}>create a new one</TextLink>.
-            </>
-          ) : (
-            <>
-              No workflows found. <TextLink to={`/projects/${projectId}/w/new`}>Create one</TextLink> to start
-              automating.
-            </>
-          )}
-        </p>
-      </div>
+      <p className="py-8 text-center text-gray-500">
+        {searchTerm !== "" ? (
+          <>
+            No workflows found matching "{searchTerm}". Try a different search term or{" "}
+            <TextLink to={`/projects/${projectId}/w/new`}>create a new one</TextLink>.
+          </>
+        ) : (
+          <>
+            No workflows found. <TextLink to={`/projects/${projectId}/w/new`}>Create one</TextLink> to start
+            automating.
+          </>
+        )}
+      </p>
     );
   }
 
   const rows = [...stats].sort(compareBy(sortValue(sortKey), direction));
 
   return (
-    <div>
-      <Table
-        id="workflows-table"
-        header={
-          <Tr>
-            <Th {...thProps("name")}>Name</Th>
-            <Th {...thProps("last_workorder_updated_at")}>Latest Work Order</Th>
-            <Th {...thProps("workorders_count")}>Work Orders</Th>
-            <Th {...thProps("failed_workorders_count")}>Work Orders in a failed state</Th>
-            <Th {...thProps("enabled")}>Enabled</Th>
-            <Th>Actions</Th>
+    <Table
+      id="workflows-table"
+      header={
+        <Tr>
+          <Th {...thProps("name")}>Name</Th>
+          <Th {...thProps("last_workorder_updated_at")}>Latest Work Order</Th>
+          <Th {...thProps("workorders_count")}>Work Orders</Th>
+          <Th {...thProps("failed_workorders_count")}>Work Orders in a failed state</Th>
+          <Th {...thProps("enabled")}>Enabled</Th>
+          <Th>Actions</Th>
+        </Tr>
+      }
+    >
+      {rows.map((s) => {
+        const wf = s.workflow;
+        return (
+          <Tr key={wf.id} id={`workflow-${wf.id}`} onClick={() => navigate(`/projects/${projectId}/w/${wf.id}`)}>
+            <Td className="max-w-60">
+              <p
+                className={cn("workflow-name truncate font-medium", wf.enabled ? "text-gray-900" : "text-gray-400")}
+                title={wf.enabled ? wf.name : `${wf.name} (disabled)`}
+              >
+                {wf.name}
+              </p>
+              <p className="mt-1 text-xs">
+                Updated <DateTime value={wf.updatedAt} />
+              </p>
+            </Td>
+            <Td>
+              <WorkOrderStatus state={s.lastWorkOrder?.state ?? null} updatedAt={s.lastWorkOrder?.updatedAt} />
+            </Td>
+            <Td>
+              <Count value={s.workordersCount} to={history}>
+                ({s.stepCount} steps, {s.stepSuccessRate.toFixed(1)}% success)
+              </Count>
+            </Td>
+            <Td>
+              <Count value={s.failedWorkordersCount} to={history}>
+                Latest failure {s.lastFailedAt && <DateTime value={s.lastFailedAt} />}
+              </Count>
+            </Td>
+            <Td>
+              <Toggle
+                checked={wf.enabled}
+                onChange={(v) => onToggle?.(wf.id, v)}
+                tooltip={toggleTooltip(wf.triggerType, wf.enabled)}
+              />
+            </Td>
+            <Td>
+              <div className="flex items-center gap-4">
+                <Button theme="secondary" size="xs" to={`/projects/${projectId}/w/${wf.id}/health`}>
+                  Health
+                </Button>
+                {canDelete && (
+                  <Button
+                    theme="secondary"
+                    size="xs"
+                    onClick={() => {
+                      if (window.confirm("Are you sure you'd like to delete this workflow?")) onDelete?.(wf.id);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                )}
+              </div>
+            </Td>
           </Tr>
-        }
-      >
-        {rows.map((s) => {
-          const wf = s.workflow;
-          return (
-            <Tr
-              key={wf.id}
-              id={`workflow-${wf.id}`}
-              className="hover:bg-gray-100 transition-colors duration-200"
-              onClick={() => navigate(`/projects/${projectId}/w/${wf.id}`)}
-            >
-              <Td className="wrap-break-word max-w-[15rem]">
-                <div className="cursor-pointer">
-                  <WorkflowName name={wf.name} enabled={wf.enabled} updatedAt={wf.updatedAt} />
-                </div>
-              </Td>
-              <Td className="wrap-break-word max-w-[15rem]">
-                <WorkOrderStatus state={s.lastWorkOrder?.state ?? null} updatedAt={s.lastWorkOrder?.updatedAt} />
-              </Td>
-              <Td className="wrap-break-word max-w-[10rem]">
-                {s.workordersCount > 0 ? (
-                  <div>
-                    <div className="text-primary-700 text-lg">
-                      <Link className="hover:underline" to={history} onClick={(e) => e.stopPropagation()}>
-                        {s.workordersCount}
-                      </Link>
-                    </div>
-                    <div className="text-gray-500 text-xs">
-                      ({s.stepCount} steps, <span>{s.stepSuccessRate.toFixed(1)}% success</span>)
-                    </div>
-                  </div>
-                ) : (
-                  <Zero />
-                )}
-              </Td>
-              <Td className="wrap-break-word max-w-[15rem]">
-                {s.failedWorkordersCount > 0 ? (
-                  <div>
-                    <div className="text-primary-700 text-lg">
-                      <Link className="hover:underline" to={history} onClick={(e) => e.stopPropagation()}>
-                        {s.failedWorkordersCount}
-                      </Link>
-                    </div>
-                    <div className="text-gray-500 text-xs">
-                      Latest failure {s.lastFailedAt && <DateTime value={s.lastFailedAt} />}
-                    </div>
-                  </div>
-                ) : (
-                  <Zero spaced />
-                )}
-              </Td>
-              <Td>
-                <div onClick={(e) => e.stopPropagation()} title={toggleTooltip(wf.triggerType, wf.enabled)}>
-                  <Toggle checked={wf.enabled} onChange={(v) => onToggle?.(wf.id, v)} />
-                </div>
-              </Td>
-              <Td>
-                <div className="flex items-center gap-4">
-                  <Button theme="secondary" size="xs" to={`/projects/${projectId}/w/${wf.id}/health`}>Health</Button>
-                  {canDelete && (
-                    <Button theme="secondary" size="xs"
-                      onClick={() => {
-                        if (window.confirm("Are you sure you'd like to delete this workflow?")) onDelete?.(wf.id);
-                      }}
-                    >
-                      Delete
-                    </Button>
-                  )}
-                </div>
-              </Td>
-            </Tr>
-          );
-        })}
-      </Table>
-    </div>
+        );
+      })}
+    </Table>
   );
 }
 
@@ -169,37 +151,12 @@ function toggleTooltip(triggerType: string, enabled: boolean) {
   return enabled ? `This workflow is active (${triggerType} trigger enabled)` : "This workflow is inactive (manual runs only)";
 }
 
-function WorkflowName({ name, enabled, updatedAt }: { name: string; enabled: boolean; updatedAt: string }) {
+/** A work order count linking to History with a detail line under it, or a gray 0 and "N/A". */
+function Count({ value, to, children }: { value: number; to: string; children: ReactNode }) {
   return (
-    <div className="flex flex-1 items-center truncate">
-      <div className="text-sm">
-        <div className="flex items-center" title={enabled ? name : `${name} (disabled)`}>
-          <span
-            className={cn(
-              "flex-shrink truncate font-medium workflow-name max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap",
-              enabled ? "text-gray-900" : "text-gray-400"
-            )}
-          >
-            {name}
-          </span>
-        </div>
-        <p className="text-gray-500 text-xs mt-1">
-          Updated <DateTime value={updatedAt} />
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function Zero({ spaced = false }: { spaced?: boolean }) {
-  return (
-    <div>
-      <div className="text-gray-400 text-lg">
-        <span>0</span>
-      </div>
-      <div className={cn("text-xs", spaced && "mt-1")}>
-        <span>N/A</span>
-      </div>
-    </div>
+    <>
+      <div className="text-lg">{value > 0 ? <TextLink to={to}>{value}</TextLink> : <span className="text-gray-400">0</span>}</div>
+      <div className="mt-1 text-xs">{value > 0 ? children : "N/A"}</div>
+    </>
   );
 }

@@ -1,5 +1,5 @@
 import type { RunBucket } from "../../../mock-data/workflow-health";
-import { CANCELLED, EMPTY, FAILED, FRAME, SUCCESS } from "./palette";
+import { CANCELLED, DOT, EMPTY, FAILED, FRAME, LEGEND, SUCCESS } from "./palette";
 
 const SERIES = [
   { key: "success", label: "Success", color: SUCCESS },
@@ -68,7 +68,7 @@ export default function VolumeBars({
   return (
     <>
       <div className={`${FRAME} flex`} aria-hidden="true">
-        <div className="flex w-11 shrink-0 flex-col text-[11px] text-gray-500">
+        <div className="flex w-11 shrink-0 flex-col text-xs text-gray-500">
           <div className="relative flex-1">
             {ticks.map((t, i) => (
               <span key={i} className="absolute right-2 translate-y-1/2" style={{ bottom: `${(t / ceiling) * 100}%` }}>
@@ -86,7 +86,7 @@ export default function VolumeBars({
             {rows.map((r) => (
               <div
                 key={r.at}
-                className="relative flex h-full flex-1 cursor-pointer flex-col-reverse justify-start hover:bg-gray-50"
+                className="flex h-full flex-1 flex-col-reverse hover:bg-gray-50"
                 title={`${rangeLabel(r.at, hours, timezone)}: ${totals.map((t) => `${t.label} ${r[t.key]}`).join(", ")}`}
               >
                 {[...shown].reverse().map((k) => {
@@ -96,7 +96,7 @@ export default function VolumeBars({
               </div>
             ))}
           </div>
-          <div className="flex h-5 gap-[1%] pt-1 text-[11px] text-gray-500">
+          <div className="flex h-5 gap-[1%] pt-1 text-xs text-gray-500">
             {rows.map((r, i) => (
               <span key={r.at} className="flex-1 truncate text-center">
                 {hours >= 12 || i % 2 === 0 ? tickLabel(r.at, hours, timezone) : ""}
@@ -106,11 +106,11 @@ export default function VolumeBars({
         </div>
       </div>
       <p className="sr-only">{`Window totals: ${totals.map(({ label, value }) => `${label} ${value.toLocaleString()}`).join(", ")}.`}</p>
-      <ul aria-hidden="true" className="mt-2 flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm text-gray-700">
+      <ul aria-hidden="true" className={LEGEND}>
         {totals.map(({ key, label, color }) => (
           <li key={key} className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
-            <span>{label}</span>
+            <span className={DOT} style={{ backgroundColor: color }} />
+            {label}
           </li>
         ))}
       </ul>

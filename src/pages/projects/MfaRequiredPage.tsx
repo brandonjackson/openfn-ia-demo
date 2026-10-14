@@ -9,12 +9,8 @@ import MfaRequiredCard from "../../components/projects/MfaRequiredCard";
 export default function MfaRequiredPage() {
   return (
     <PageContent header={<Header />}>
-      <Centered>
-        <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto lg:py-0">
-          <div>
-            <MfaRequiredCard />
-          </div>
-        </div>
+      <Centered className="flex justify-center px-6 py-8">
+        <MfaRequiredCard />
       </Centered>
     </PageContent>
   );

@@ -45,35 +45,31 @@ export default function WelcomeBanner({
   const typingHeading = typed < heading.length;
 
   return (
-    <div className="mb-2 min-h-[100px]" id="welcome-banner-typewriter">
-      <div className="flex justify-between items-center pt-6">
-        <h1 className="text-2xl font-medium">
-          {h1}
-          {typingHeading && <span className="typewriter-cursor animate-pulse text-[#666]">|</span>}
-        </h1>
-      </div>
-      <div id="welcome-banner-content">
-        <p className="mb-6 mt-4">
-          {done ? (
-            <>
-              Click on a project to get started. If you need some help, head to{" "}
-              <TextLink to="https://docs.openfn.org" external>
-                docs.openfn.org
-              </TextLink>{" "}
-              or{" "}
-              <TextLink to="https://community.openfn.org" external>
-                community.openfn.org
-              </TextLink>{" "}
-              to learn more.
-            </>
-          ) : (
-            <>
-              {p}
-              {!typingHeading && <span className="animate-pulse text-[#666]">|</span>}
-            </>
-          )}
-        </p>
-      </div>
+    <div className="mb-2 min-h-25 pt-6" id="welcome-banner-typewriter">
+      <h1 className="text-2xl font-medium">
+        {h1}
+        {typingHeading && <span className="typewriter-cursor animate-pulse text-gray-500">|</span>}
+      </h1>
+      <p id="welcome-banner-content" className="mb-6 mt-4">
+        {done ? (
+          <>
+            Click on a project to get started. If you need some help, head to{" "}
+            <TextLink to="https://docs.openfn.org" external>
+              docs.openfn.org
+            </TextLink>{" "}
+            or{" "}
+            <TextLink to="https://community.openfn.org" external>
+              community.openfn.org
+            </TextLink>{" "}
+            to learn more.
+          </>
+        ) : (
+          <>
+            {p}
+            {!typingHeading && <span className="animate-pulse text-gray-500">|</span>}
+          </>
+        )}
+      </p>
     </div>
   );
 }

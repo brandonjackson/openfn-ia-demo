@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import type { ProjectMetrics as Metrics } from "../../mock-data/dashboard-stats";
 import MetricCard from "./MetricCard";
 import TextLink from "../TextLink";
@@ -15,11 +14,7 @@ export default function ProjectMetrics({ metrics, projectId }: { metrics: Metric
       <MetricCard
         title="Work Orders"
         value={metrics.workOrders.total}
-        suffix={
-          <Link to={history} className="hover:underline">
-            {metrics.workOrders.pending} pending
-          </Link>
-        }
+        suffix={<TextLink to={history}>{metrics.workOrders.pending} pending</TextLink>}
       />
       <MetricCard title="Runs" value={metrics.runs.total} suffix={`${metrics.runs.pending} pending`} />
       <MetricCard

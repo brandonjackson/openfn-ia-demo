@@ -1,7 +1,9 @@
 import type { ErrorSignature, FailureState } from "../../../mock-data/workflow-health";
 import Button from "../../Button";
-import { Td, Th, Tr } from "../../Table";
-import { EMPTY, FAILURE_COLORS, adaptorLabel } from "./palette";
+import Card from "../../Card";
+import Pill from "../../Pill";
+import { Table, Td, Th, Tr } from "../../Table";
+import { DOT, EMPTY, FAILURE_COLORS, adaptorLabel } from "./palette";
 
 // One tip per error type the worker reports (TriageTable.tsx `TIPS`).
 const TIPS: Record<string, string> = {
@@ -48,7 +50,7 @@ function Signature({ signature }: { signature: ErrorSignature }) {
   return (
     <div className="space-y-1.5">
       <p className="flex items-center gap-2 font-medium text-gray-900 capitalize">
-        {color && <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />}
+        {color && <span aria-hidden="true" className={DOT} style={{ backgroundColor: color }} />}
         {state ?? errorTypeOf(signature)}
       </p>
       <p className="border-l-2 border-gray-300 pl-2 font-mono text-gray-900" style={{ borderColor: color }}>
@@ -62,8 +64,8 @@ function Signature({ signature }: { signature: ErrorSignature }) {
 
 /**
  * "Triage - grouped by failure type": failed work orders grouped by error
- * signature, largest first, each with a suggestion and a link to History.
- * Sits in a padded card and bleeds to its edges (TriageTable.tsx).
+ * signature, largest first, each with a suggestion and a link to History
+ * (TriageTable.tsx). With no failures it's a card with the empty message.
  */
 export default function TriageTable({
   signatures,
@@ -74,41 +76,44 @@ export default function TriageTable({
   emptyMessage: string;
   historyHref: string;
 }) {
-  if (signatures.length === 0) return <p className={EMPTY}>{emptyMessage}</p>;
+  if (signatures.length === 0) {
+    return (
+      <Card padding="lg">
+        <p className={EMPTY}>{emptyMessage}</p>
+      </Card>
+    );
+  }
   return (
-    <div className="-m-6 overflow-x-auto rounded-lg">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+    <div className="overflow-x-auto">
+      <Table
+        header={
           <Tr>
             <Th className="w-1/8">Work orders</Th>
             <Th>Signature</Th>
             <Th>Suggestion</Th>
             <Th>Actions</Th>
           </Tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
-          {signatures.map((s) => (
-            <Tr key={[s.exit_reason, s.error_type, s.step_name, s.adaptor, s.job_id].join("|")}>
-              <Td>
-                <span className="inline-block rounded-full bg-gray-200 px-4 py-1.5 text-xs font-medium tabular-nums text-gray-700">
-                  {s.count.toLocaleString()}
-                </span>
-              </Td>
-              <Td>
-                <Signature signature={s} />
-              </Td>
-              <Td>{(s.error_type && TIPS[s.error_type]) || TIPS.default}</Td>
-              <Td>
-                {s.exit_reason && (
-                  <Button theme="secondary" to={historyHref} className="whitespace-nowrap">
-                    View history
-                  </Button>
-                )}
-              </Td>
-            </Tr>
-          ))}
-        </tbody>
-      </table>
+        }
+      >
+        {signatures.map((s) => (
+          <Tr key={[s.exit_reason, s.error_type, s.step_name, s.adaptor, s.job_id].join("|")}>
+            <Td>
+              <Pill className="tabular-nums">{s.count.toLocaleString()}</Pill>
+            </Td>
+            <Td>
+              <Signature signature={s} />
+            </Td>
+            <Td>{(s.error_type && TIPS[s.error_type]) || TIPS.default}</Td>
+            <Td>
+              {s.exit_reason && (
+                <Button theme="secondary" to={historyHref} className="whitespace-nowrap">
+                  View history
+                </Button>
+              )}
+            </Td>
+          </Tr>
+        ))}
+      </Table>
     </div>
   );
 }

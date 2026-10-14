@@ -53,7 +53,6 @@ export default function SandboxesIndexPage() {
           <CountTitle title="Sandboxes" />
           <Button
             id="create-sandbox-button"
-            theme="primary"
             size="lg"
             disabled={!canCreate}
             tooltip={disabledReason}

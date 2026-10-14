@@ -65,34 +65,33 @@ export default function SandboxFormModal({
     >
       <form
         id="sandbox-form"
+        className="space-y-6"
         onSubmit={(e) => {
           e.preventDefault();
           if (valid) onClose();
         }}
       >
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <TextInput
-              id="sandbox_raw_name"
-              label="Name"
-              required
-              placeholder="My Sandbox"
-              value={rawName}
-              onChange={(e) => setRawName(e.target.value)}
-              errors={errors}
-            />
-            {/* Lightning hides the hint while the name is blank (its changeset
-                already carries "can't be blank"). */}
-            {errors.length === 0 && name !== "" && (
-              <small className="block text-xs text-gray-600">
-                <NameBadge name={name}>
-                  {mode === "new" ? "Your sandbox will be named" : "The sandbox will be named"}
-                </NameBadge>
-              </small>
-            )}
-          </div>
-          <ColorPalette value={color} onChange={setColor} />
+        <div className="space-y-2">
+          <TextInput
+            id="sandbox_raw_name"
+            label="Name"
+            required
+            placeholder="My Sandbox"
+            value={rawName}
+            onChange={(e) => setRawName(e.target.value)}
+            errors={errors}
+          />
+          {/* Lightning hides the hint while the name is blank (its changeset
+              already carries "can't be blank"). */}
+          {errors.length === 0 && name !== "" && (
+            <p className="text-xs text-gray-600">
+              <NameBadge name={name}>
+                {mode === "new" ? "Your sandbox will be named" : "The sandbox will be named"}
+              </NameBadge>
+            </p>
+          )}
         </div>
+        <ColorPalette value={color} onChange={setColor} />
       </form>
     </Modal>
   );

@@ -20,13 +20,12 @@ export default function WorkflowsHeader({
   onSearch: (term: string) => void;
 }) {
   return (
-    <div className="flex justify-between items-center mb-6">
+    <div className="mb-6 flex items-center justify-between">
       <CountTitle title="Workflows" count={count} />
-      <div className="flex gap-2 items-stretch">
+      <div className="flex gap-2">
         <SearchInput value={searchTerm} onChange={onSearch} className="w-96" />
         <Button
           id="new-workflow-button"
-          theme="primary"
           className="whitespace-nowrap"
           to={`/projects/${projectId}/w/new`}
           disabled={!canCreate}

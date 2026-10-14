@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { EMPTY, FRAME, percent } from "./palette";
+import { DOT, EMPTY, FRAME, LEGEND, percent } from "./palette";
 
 export interface Slice {
   key: string;
@@ -64,7 +64,7 @@ export default function Donut({
               const from = angle;
               angle += (s.value / total) * 360;
               return (
-                <path key={s.key} d={arc(from, angle)} fill={s.color} stroke="#fff" strokeWidth={2} className="cursor-pointer">
+                <path key={s.key} d={arc(from, angle)} fill={s.color} stroke="#fff" strokeWidth={2} >
                   <title>{`${s.label}: ${s.value.toLocaleString()} (${percent(s.value, total)})`}</title>
                 </path>
               );
@@ -76,11 +76,11 @@ export default function Donut({
           <span className="text-xs text-gray-500">{middle.label}</span>
         </div>
       </div>
-      <ul className="mt-2 flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm text-gray-700">
+      <ul className={LEGEND}>
         {slices.map(({ key, label, color, value, href }) => (
           <li key={key}>
-            <Link to={href} className="flex items-center gap-1.5 rounded-xs">
-              <span aria-hidden="true" className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} />
+            <Link to={href} className="flex items-center gap-1.5">
+              <span aria-hidden="true" className={DOT} style={{ backgroundColor: color }} />
               <span className="capitalize">{label}</span>{" "}
               <span className="font-medium tabular-nums text-gray-900">{value.toLocaleString()}</span>
             </Link>

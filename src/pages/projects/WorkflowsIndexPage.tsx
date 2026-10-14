@@ -42,7 +42,7 @@ export default function WorkflowsIndexPage() {
           onSearch={setSearch}
         />
         <ProjectMetrics metrics={projectMetricsFor(stats)} projectId={project.id} />
-        <div className="w-full mt-8">
+        <div className="mt-8">
           <WorkflowsTable
             stats={stats}
             projectId={project.id}

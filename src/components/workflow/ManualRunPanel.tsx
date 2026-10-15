@@ -14,6 +14,7 @@ import NewRunButton from "./NewRunButton";
 import SearchInput from "../SearchInput";
 import { matchesQuery } from "../../utils/search";
 import { formatLocalDate, formatShortLocalDateTime, shortUuid } from "../../utils/format";
+import { uuidOf } from "../../mock-data/history-extra";
 
 type Tab = "empty" | "custom" | "existing";
 
@@ -146,7 +147,7 @@ export default function ManualRunPanel({
                     ) : (
                       <span className="hero-document-text size-4 shrink-0 group-hover:text-primary-600" />
                     )}
-                    <span className="truncate font-mono">{clip.name || shortUuid(clip.id, 7)}</span>
+                    <span className="truncate font-mono">{clip.name || shortUuid(uuidOf(clip.id), 7)}</span>
                     <DataclipTypePill type={clip.type} />
                   </div>
                   <span className="truncate text-xs">{formatShortLocalDateTime(clip.insertedAt)}</span>

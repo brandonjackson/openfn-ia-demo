@@ -1,5 +1,6 @@
 import Pill from "../Pill";
 import { shortUuid } from "../../utils/format";
+import { uuidOf } from "../../mock-data/history-extra";
 
 /**
  * "Run abc1234" chip with a dismiss X (collaborative-editor/components/common/
@@ -18,7 +19,7 @@ export default function RunBadge({
 }) {
   return (
     <Pill color={variant === "default" ? "blue" : "yellow"} onRemove={onClose} className={className}>
-      Run {shortUuid(runId, 7)}
+      Run {shortUuid(uuidOf(runId), 7)}
     </Pill>
   );
 }

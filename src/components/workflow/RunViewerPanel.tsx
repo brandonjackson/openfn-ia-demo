@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import type { Dataclip, LogLine, Run, Step } from "../../mock-data/history";
 import { cn } from "../../utils/cn";
 import { formatElapsed, formatLocalDateTime, shortUuid } from "../../utils/format";
+import { uuidOf } from "../../mock-data/history-extra";
 import CodeEditor from "./CodeEditor";
 import StatePill from "../history/StatePill";
 import { LogLevelFilter, type LogLevel } from "../history/LogViewer";
@@ -58,13 +59,13 @@ export default function RunViewerPanel({ projectId, run, steps, logs, dataclips,
         <div className="border-r border-gray-200">
           <DetailList>
             <DetailItem label="Work Order">
-              <Link to={`/projects/${projectId}/history?filters[workorder_id]=${run.workOrderId}`} className="link-uuid" title={`View work order ${run.workOrderId}`}>
-                {shortUuid(run.workOrderId)}
+              <Link to={`/projects/${projectId}/history?filters[workorder_id]=${run.workOrderId}`} className="link-uuid" title={`View work order ${uuidOf(run.workOrderId)}`}>
+                {shortUuid(uuidOf(run.workOrderId))}
               </Link>
             </DetailItem>
             <DetailItem label="Run">
-              <Link to={`/projects/${projectId}/runs/${run.id}`} className="link-uuid" title={`View run ${run.id}`}>
-                {shortUuid(run.id)}
+              <Link to={`/projects/${projectId}/runs/${run.id}`} className="link-uuid" title={`View run ${uuidOf(run.id)}`}>
+                {shortUuid(uuidOf(run.id))}
               </Link>
             </DetailItem>
             <DetailItem label="Status">

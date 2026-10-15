@@ -8,6 +8,7 @@ import IconButton from "../IconButton";
 import StatePill from "../history/StatePill";
 import RunBadge from "./RunBadge";
 import { formatDuration, formatRelative, shortUuid } from "../../utils/format";
+import { uuidOf } from "../../mock-data/history-extra";
 
 const Dot = () => <span className="text-gray-800">&bull;</span>;
 
@@ -104,9 +105,9 @@ export default function MiniHistory({
                     to={`/projects/${projectId}/history?filters[workorder_id]=${workOrder.id}`}
                     onClick={(e) => e.stopPropagation()}
                     className="link-uuid"
-                    title={workOrder.id}
+                    title={uuidOf(workOrder.id)}
                   >
-                    {shortUuid(workOrder.id, 7)}
+                    {shortUuid(uuidOf(workOrder.id), 7)}
                   </Link>
                   <Dot />
                   <span className="text-gray-500">{formatRelative(workOrder.lastActivity, now)}</span>
@@ -143,8 +144,8 @@ export default function MiniHistory({
                         ) : (
                           <span className="invisible h-5 w-5" />
                         )}
-                        <Link to={`/projects/${projectId}/runs/${run.id}`} onClick={(e) => e.stopPropagation()} className="link-uuid" title={run.id}>
-                          {shortUuid(run.id, 7)}
+                        <Link to={`/projects/${projectId}/runs/${run.id}`} onClick={(e) => e.stopPropagation()} className="link-uuid" title={uuidOf(run.id)}>
+                          {shortUuid(uuidOf(run.id), 7)}
                         </Link>
                         {(run.startedAt || run.finishedAt) && (
                           <>

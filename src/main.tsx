@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { HashRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.tsx";
+import { ToastProvider } from "./components/Toast";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import { AnnotationsProvider } from "./annotations/AnnotationsContext";
 import SettingsMenu from "./components/devtools/SettingsMenu";
@@ -14,9 +15,11 @@ createRoot(document.getElementById("root")!).render(
     <ThemeProvider>
       <HashRouter>
         <AnnotationsProvider>
-          <AnnotationsFrame>
-            <App />
-          </AnnotationsFrame>
+          <ToastProvider>
+            <AnnotationsFrame>
+              <App />
+            </AnnotationsFrame>
+          </ToastProvider>
           {/* Demo tooling, outside the Lightning UI: annotations and themes. */}
           <AnnotationsPanel />
           <SettingsMenu />

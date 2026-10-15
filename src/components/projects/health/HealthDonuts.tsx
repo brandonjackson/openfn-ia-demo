@@ -1,3 +1,4 @@
+import { formatNumber } from "../../../utils/format";
 import { FAILURE_STATES, failureTotal, type WorkOrderStateCounts } from "../../../mock-data/workflow-health";
 import Donut from "./Donut";
 import { CANCELLED, FAILED, FAILURE_COLORS, SUCCESS, percent } from "./palette";
@@ -44,7 +45,7 @@ export function FailureBreakdownDonut({ counts, emptyMessage, historyHref }: Pro
         value: counts[state],
         href: historyHref,
       }))}
-      centre={(total) => ({ value: total.toLocaleString(), label: total === 1 ? "failure" : "failures" })}
+      centre={(total) => ({ value: formatNumber(total), label: total === 1 ? "failure" : "failures" })}
       emptyMessage={emptyMessage}
     />
   );

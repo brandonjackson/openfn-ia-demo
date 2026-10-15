@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { formatNumber } from "../../../utils/format";
+import TextLink from "../../TextLink";
 import { DOT, EMPTY, FRAME, LEGEND, percent } from "./palette";
 
 export interface Slice {
@@ -57,7 +58,7 @@ export default function Donut({
         <svg viewBox={`0 0 ${SIZE} ${SIZE}`} className="h-full w-full" aria-hidden="true">
           {drawn.length === 1 ? (
             <circle cx={C} cy={C} r={(OUTER + INNER) / 2} fill="none" stroke={drawn[0].color} strokeWidth={OUTER - INNER}>
-              <title>{`${drawn[0].label}: ${drawn[0].value.toLocaleString()} (${percent(drawn[0].value, total)})`}</title>
+              <title>{`${drawn[0].label}: ${formatNumber(drawn[0].value)} (${percent(drawn[0].value, total)})`}</title>
             </circle>
           ) : (
             drawn.map((s) => {
@@ -65,7 +66,7 @@ export default function Donut({
               angle += (s.value / total) * 360;
               return (
                 <path key={s.key} d={arc(from, angle)} fill={s.color} stroke="#fff" strokeWidth={2} >
-                  <title>{`${s.label}: ${s.value.toLocaleString()} (${percent(s.value, total)})`}</title>
+                  <title>{`${s.label}: ${formatNumber(s.value)} (${percent(s.value, total)})`}</title>
                 </path>
               );
             })
@@ -79,11 +80,11 @@ export default function Donut({
       <ul className={LEGEND}>
         {slices.map(({ key, label, color, value, href }) => (
           <li key={key}>
-            <Link to={href} className="flex items-center gap-1.5">
+            <TextLink to={href} variant="plain" className="flex items-center gap-1.5">
               <span aria-hidden="true" className={DOT} style={{ backgroundColor: color }} />
               <span className="capitalize">{label}</span>{" "}
-              <span className="font-medium tabular-nums text-gray-900">{value.toLocaleString()}</span>
-            </Link>
+              <span className="font-medium tabular-nums text-gray-900">{formatNumber(value)}</span>
+            </TextLink>
           </li>
         ))}
       </ul>

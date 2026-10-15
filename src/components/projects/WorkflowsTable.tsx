@@ -73,7 +73,7 @@ export default function WorkflowsTable({
           <Th {...thProps("workorders_count")}>Work Orders</Th>
           <Th {...thProps("failed_workorders_count")}>Work Orders in a failed state</Th>
           <Th {...thProps("enabled")}>Enabled</Th>
-          <Th actions>Actions</Th>
+          <Th actions align="right">Actions</Th>
         </Tr>
       }
     >
@@ -112,23 +112,21 @@ export default function WorkflowsTable({
                 tooltip={toggleTooltip(wf.triggerType, wf.enabled)}
               />
             </Td>
-            <Td>
-              <div className="flex items-center gap-4">
-                <Button theme="secondary" size="xs" to={`/projects/${projectId}/w/${wf.id}/health`}>
-                  Health
+            <Td actions>
+              <Button theme="secondary" size="xs" to={`/projects/${projectId}/w/${wf.id}/health`}>
+                Health
+              </Button>
+              {canDelete && (
+                <Button
+                  theme="secondary"
+                  size="xs"
+                  onClick={() => {
+                    if (window.confirm("Are you sure you'd like to delete this workflow?")) onDelete?.(wf.id);
+                  }}
+                >
+                  Delete
                 </Button>
-                {canDelete && (
-                  <Button
-                    theme="secondary"
-                    size="xs"
-                    onClick={() => {
-                      if (window.confirm("Are you sure you'd like to delete this workflow?")) onDelete?.(wf.id);
-                    }}
-                  >
-                    Delete
-                  </Button>
-                )}
-              </div>
+              )}
             </Td>
           </Tr>
         );

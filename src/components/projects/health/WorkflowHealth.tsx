@@ -1,3 +1,4 @@
+import { formatNumber } from "../../../utils/format";
 import { useState } from "react";
 import {
   DEFAULT_HEALTH_DAYS,
@@ -20,7 +21,7 @@ const windowLabel = (days: HealthRange["days"]) => (days === "1" ? "24 hours" : 
 
 const workOrders = (counts: WorkOrderStateCounts) => {
   const n = Object.values(counts).reduce((sum, c) => sum + c, 0);
-  return `${n.toLocaleString()} work order${n === 1 ? "" : "s"}`;
+  return `${formatNumber(n)} work order${n === 1 ? "" : "s"}`;
 };
 
 /**

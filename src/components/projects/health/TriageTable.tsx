@@ -1,3 +1,4 @@
+import { formatNumber } from "../../../utils/format";
 import type { ErrorSignature, FailureState } from "../../../mock-data/workflow-health";
 import Button from "../../Button";
 import Card from "../../Card";
@@ -91,20 +92,20 @@ export default function TriageTable({
             <Th className="w-1/8">Work orders</Th>
             <Th>Signature</Th>
             <Th>Suggestion</Th>
-            <Th actions>Actions</Th>
+            <Th actions align="right">Actions</Th>
           </Tr>
         }
       >
         {signatures.map((s) => (
           <Tr key={[s.exit_reason, s.error_type, s.step_name, s.adaptor, s.job_id].join("|")}>
             <Td>
-              <Pill className="tabular-nums">{s.count.toLocaleString()}</Pill>
+              <Pill className="tabular-nums">{formatNumber(s.count)}</Pill>
             </Td>
             <Td>
               <Signature signature={s} />
             </Td>
             <Td>{(s.error_type && TIPS[s.error_type]) || TIPS.default}</Td>
-            <Td>
+            <Td actions>
               {s.exit_reason && (
                 <Button theme="secondary" to={historyHref} className="whitespace-nowrap">
                   View history

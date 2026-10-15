@@ -218,3 +218,8 @@ export function formatSessionAge(iso: string, now: Date = new Date()): string {
   if (day < 7) return `${day} ${day === 1 ? "day" : "days"} ago`;
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
+
+/** A count with the browser's digit grouping, `Number#toLocaleString()`: 12345 → "12,345". */
+export function formatNumber(n: number): string {
+  return n.toLocaleString();
+}

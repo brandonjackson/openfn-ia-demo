@@ -1,3 +1,4 @@
+import { formatNumber } from "../../../utils/format";
 import type { ErrorSignature } from "../../../mock-data/workflow-health";
 import { cn } from "../../../utils/cn";
 import { EMPTY, FAILED, UNATTRIBUTED, adaptorLabel } from "./palette";
@@ -43,7 +44,7 @@ export default function StepFailureBars({
                 </span>
                 {adaptor && <span className="truncate font-mono text-xs text-gray-500">{adaptorLabel(adaptor)}</span>}
               </div>
-              <span className="shrink-0 font-medium tabular-nums text-gray-900">{count.toLocaleString()}</span>
+              <span className="shrink-0 font-medium tabular-nums text-gray-900">{formatNumber(count)}</span>
             </div>
             <div aria-hidden="true" className="h-1.5 rounded-full bg-gray-100">
               <div

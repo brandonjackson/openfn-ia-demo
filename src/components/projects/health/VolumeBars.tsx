@@ -1,3 +1,4 @@
+import { formatNumber } from "../../../utils/format";
 import type { RunBucket } from "../../../mock-data/workflow-health";
 import { CANCELLED, DOT, EMPTY, FAILED, FRAME, LEGEND, SUCCESS } from "./palette";
 
@@ -105,7 +106,7 @@ export default function VolumeBars({
           </div>
         </div>
       </div>
-      <p className="sr-only">{`Window totals: ${totals.map(({ label, value }) => `${label} ${value.toLocaleString()}`).join(", ")}.`}</p>
+      <p className="sr-only">{`Window totals: ${totals.map(({ label, value }) => `${label} ${formatNumber(value)}`).join(", ")}.`}</p>
       <ul aria-hidden="true" className={LEGEND}>
         {totals.map(({ key, label, color }) => (
           <li key={key} className="flex items-center gap-2">

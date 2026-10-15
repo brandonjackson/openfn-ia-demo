@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { Channel, ChannelEvent, ChannelRequest } from "../../mock-data/channel-requests";
+import type { Channel, ChannelEvent, ChannelRequest } from "../../types/channels";
 import Card from "../Card";
 import DateTime from "../DateTime";
 import { DetailItem, DetailList } from "../DetailList";

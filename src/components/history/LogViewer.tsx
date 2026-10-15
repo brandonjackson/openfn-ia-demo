@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { LogLine } from "../../mock-data/history";
-import { logsAtLevel } from "../../mock-data/history-extra";
+import type { LogLine } from "../../types/history";
+import { logsAtLevel } from "../../utils/history";
 import { cn } from "../../utils/cn";
 import Menu, { MenuItem } from "../Menu";
 import CodeLines from "./CodeLines";

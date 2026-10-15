@@ -1,7 +1,7 @@
 import Heading from "../Heading";
 import Modal from "../Modal";
 import TextLink from "../TextLink";
-import type { WebhookAuthMethod } from "../../mock-data/project-settings";
+import type { WebhookAuthMethod } from "../../types/project-settings";
 
 interface Props {
   projectId: string;

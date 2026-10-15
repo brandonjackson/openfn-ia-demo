@@ -1,5 +1,5 @@
 import { formatNumber } from "../../../utils/format";
-import type { RunBucket } from "../../../mock-data/workflow-health";
+import type { RunBucket } from "../../../types/workflow-health";
 import { CANCELLED, DOT, EMPTY, FAILED, FRAME, LEGEND, SUCCESS } from "./palette";
 
 const SERIES = [

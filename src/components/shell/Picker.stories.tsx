@@ -9,7 +9,7 @@ const meta: Meta<typeof Picker> = {
   component: Picker,
   decorators: [withRouter],
   args: {
-    items: buildProjectPickerItems("/projects/x/history"),
+    items: buildProjectPickerItems("/projects/x/history", projects),
     currentId: projects[0].id,
     placeholder: "Search projects...",
     emptyMessage: "No projects found",

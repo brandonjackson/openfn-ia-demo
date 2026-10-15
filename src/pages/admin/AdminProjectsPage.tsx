@@ -6,8 +6,9 @@ import AdminProjectForm from "../../components/admin/AdminProjectForm";
 import AdminProjectsTable from "../../components/admin/AdminProjectsTable";
 import ProjectDeletionModal from "../../components/project-settings/ProjectDeletionModal";
 import { useToast } from "../../components/Toast";
-import { projectScheduledDeletions, purgeDeletedAfterDays } from "../../mock-data/admin";
-import { findProject, projects } from "../../mock-data/projects";
+import { adminProjectRows, projectScheduledDeletions } from "../../mock-data/admin";
+import { purgeDeletedAfterDays } from "../../mock-data/project-settings";
+import { findProject } from "../../mock-data/projects";
 import { users } from "../../mock-data/users";
 
 /**
@@ -67,7 +68,7 @@ export default function AdminProjectsPage() {
             }}
           />
         ) : (
-          <AdminProjectsTable projects={projects} onCancelDeletion={() => toast("Project deletion canceled")} />
+          <AdminProjectsTable projects={adminProjectRows()} onCancelDeletion={() => toast("Project deletion canceled")} />
         )}
       </Centered>
     </PageContent>

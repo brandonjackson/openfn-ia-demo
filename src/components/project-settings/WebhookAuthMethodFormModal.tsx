@@ -3,7 +3,7 @@ import Button from "../Button";
 import { Field, TextInput } from "../Inputs";
 import FormModal from "../FormModal";
 import Modal from "../Modal";
-import type { WebhookAuthMethod, WebhookAuthType } from "../../mock-data/project-settings";
+import type { WebhookAuthMethod, WebhookAuthType } from "../../types/project-settings";
 import { cn } from "../../utils/cn";
 import { useCopy } from "../../utils/useCopy";
 

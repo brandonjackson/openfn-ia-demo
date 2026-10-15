@@ -1,20 +1,20 @@
-import { collectionProjectName, type Collection } from "../../mock-data/admin";
+import type { AdminCollectionRow } from "../../types/admin";
 import { formatBytes } from "../../utils/format";
 import Button from "../Button";
 import TableTitle from "../TableTitle";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 import { useTableSort, type SortValue } from "../useTableSort";
 
-const sortMap: Record<"name" | "byte_size_sum", (c: Collection) => SortValue> = {
+const sortMap: Record<"name" | "byte_size_sum", (c: AdminCollectionRow) => SortValue> = {
   name: (c) => c.name,
   byte_size_sum: (c) => c.byteSizeSum,
 };
 
 interface Props {
-  collections: Collection[];
+  collections: AdminCollectionRow[];
   onCreate: () => void;
-  onEdit: (collection: Collection) => void;
-  onDelete: (collection: Collection) => void;
+  onEdit: (collection: AdminCollectionRow) => void;
+  onDelete: (collection: AdminCollectionRow) => void;
 }
 
 /**
@@ -58,7 +58,7 @@ export default function AdminCollectionsTable({ collections, onCreate, onEdit, o
         {rows.map((collection) => (
           <Tr key={collection.id} id={`collections-table-row-${collection.id}`}>
             <Td className="max-w-60 wrap-break-word text-gray-800">{collection.name}</Td>
-            <Td className="max-w-100 wrap-break-word">{collectionProjectName(collection)}</Td>
+            <Td className="max-w-100 wrap-break-word">{collection.projectName}</Td>
             <Td className="max-w-100 wrap-break-word">{formatBytes(collection.byteSizeSum)}</Td>
             <Td actions>
               <Button theme="secondary" size="xs" onClick={() => onEdit(collection)}>

@@ -1,6 +1,6 @@
 import { Select } from "../Inputs";
-import type { ProjectRole } from "../../mock-data/projects";
-import { collaboratorRoles } from "../../mock-data/project-settings";
+import type { ProjectRole } from "../../types/projects";
+import { collaboratorRoles } from "../../constants";
 import { capitalize } from "../../utils/format";
 
 /** The role options ("Admin", "Editor", …). */

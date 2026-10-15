@@ -1,4 +1,4 @@
-import type { AuditEvent } from "../../mock-data/admin";
+import type { AuditEvent } from "../../types/admin";
 import Card from "../Card";
 import { Td } from "../Table";
 

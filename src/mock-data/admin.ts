@@ -4,25 +4,13 @@
  * project fields the shared users / projects fixtures don't carry.
  * Static fixtures only: nothing here talks to a backend.
  */
-import { fullName, users, type User } from "./users";
-import { projects, type Project } from "./projects";
-import type { Collection } from "./project-settings";
-
-// ---------------------------------------------------------------------------
-// Users (admin-only fields)
-
-/** Users flagged `support_user` (can access projects with support access on). */
-export const supportUserIds: string[] = [];
-
-export function isSupportUser(user: Pick<User, "id">): boolean {
-  return supportUserIds.includes(user.id);
-}
-
-/** Role options for the user form (User.RolesEnum, capitalised, sorted). */
-export const userRoleOptions: [label: string, value: string][] = [
-  ["Superuser", "superuser"],
-  ["User", "user"],
-];
+import { fullName } from "../utils/format";
+import { users } from "./users";
+import { projects } from "./projects";
+import type { Project } from "../types/projects";
+import type { User } from "../types/users";
+import { collections } from "./project-settings";
+import type { AdminCollectionRow, AdminProjectRow, AuditEvent, AuthProvider, LiveDashboardData } from "../types/admin";
 
 // ---------------------------------------------------------------------------
 // Projects (admin-only fields)
@@ -30,33 +18,23 @@ export const userRoleOptions: [label: string, value: string][] = [
 /** Projects scheduled for deletion (project id -> ISO date). */
 export const projectScheduledDeletions: Record<string, string> = {};
 
-export { purgeDeletedAfterDays } from "./project-settings";
-
-export function projectOwnerName(project: Project): string {
+function projectOwnerName(project: Project): string {
   const owner = project.members.find((m) => m.role === "owner");
   const user = owner && users.find((u) => u.id === owner.userId);
   return user ? fullName(user) : "";
 }
 
+/** Every project, with its owner's name and deletion date (ProjectLive.Index). */
+export function adminProjectRows(): AdminProjectRow[] {
+  return projects.map((p) => ({
+    ...p,
+    ownerName: projectOwnerName(p),
+    scheduledDeletion: projectScheduledDeletions[p.id] ?? null,
+  }));
+}
+
 // ---------------------------------------------------------------------------
 // Audit trail
-
-export interface AuditEvent {
-  id: string;
-  /** ISO timestamp. */
-  insertedAt: string;
-  event: string;
-  /** Item type as stored, e.g. "workflow"; the table shows the last dotted segment. */
-  itemType: string;
-  itemId: string;
-  actorId: string;
-  actorLabel: string;
-  /** Email for users; null shows the actor's short id instead. */
-  actorIdentifier: string | null;
-  changes: { before: Record<string, string> | null; after: Record<string, string> | null };
-  /** Encrypted credential bodies per environment, shown under the changes. */
-  credentialBodies?: Record<string, string>;
-}
 
 const amy = users.find((u) => u.id === "user-amy")!;
 const sizwe = users.find((u) => u.id === "user-sizwe")!;
@@ -174,21 +152,8 @@ export const auditEvents: AuditEvent[] = [
 /** Auditing.list_all page size. */
 export const auditPageSize = 10;
 
-/** First 8 hex chars of a UUID (display_short_uuid). */
-export { shortUuid } from "../utils/format";
-
 // ---------------------------------------------------------------------------
 // Authentication (OpenID Connect provider)
-
-export interface AuthProvider {
-  id: string | null;
-  name: string;
-  discoveryUrl: string;
-  clientId: string;
-  clientSecret: string;
-  redirectHost: string;
-  allowUnverifiedEmail: boolean;
-}
 
 /** LightningWeb.Endpoint.struct_url(), the default redirect host. */
 export const instanceUrl = "http://localhost:4000";
@@ -214,10 +179,6 @@ export const emptyAuthProvider: AuthProvider = {
   allowUnverifiedEmail: false,
 };
 
-export function authRedirectUri(provider: Pick<AuthProvider, "redirectHost" | "name">): string {
-  return `${provider.redirectHost.replace(/\/$/, "")}/authenticate/${provider.name}/callback`;
-}
-
 // ---------------------------------------------------------------------------
 // Collections
 
@@ -225,10 +186,10 @@ export function authRedirectUri(provider: Pick<AuthProvider, "redirectHost" | "n
  * The instance's collections are the per-project ones from project-settings.ts
  * (the admin page lists every project's collections together).
  */
-export { collections, type Collection } from "./project-settings";
 
-export function collectionProjectName(collection: Collection): string {
-  return projects.find((p) => p.id === collection.projectId)?.name ?? "";
+/** Every collection on the instance, with its project's name (CollectionLive.Index). */
+export function adminCollectionRows(): AdminCollectionRow[] {
+  return collections.map((c) => ({ ...c, projectName: projects.find((p) => p.id === c.projectId)?.name ?? "" }));
 }
 
 /** Project options for the collection form's select. */
@@ -239,7 +200,7 @@ export const collectionProjectOptions: [label: string, value: string][] = projec
 // ---------------------------------------------------------------------------
 // Phoenix LiveDashboard (static approximation of its home page)
 
-export const liveDashboard = {
+export const liveDashboard: LiveDashboardData = {
   systemInfo:
     "Erlang/OTP 28 [erts-16.4] [source] [64-bit] [smp:4:4] [ds:4:4:10] [async-threads:1] [jit:ns] [x86_64-pc-linux-gnu]",
   versions: { elixir: "1.18.4", phoenix: "1.7.24", dashboard: "0.8.7" },

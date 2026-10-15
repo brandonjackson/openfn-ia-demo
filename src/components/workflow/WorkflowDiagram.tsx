@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "../../utils/cn";
 import { formatLocalDateTime } from "../../utils/format";
-import { adaptorIconUrl, adaptorShortName } from "../../mock-data/adaptors";
-import type { WorkflowGraph } from "../../mock-data/workflow";
+import { adaptorIconUrl, adaptorShortName } from "../../utils/adaptors";
+import type { WorkflowGraph } from "../../types/workflow-graph";
 import DiagramControls from "./DiagramControls";
 import DiagramEdge from "./DiagramEdge";
 import DiagramMiniMap from "./DiagramMiniMap";

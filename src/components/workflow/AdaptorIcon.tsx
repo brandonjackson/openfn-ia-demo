@@ -1,4 +1,4 @@
-import { adaptorIconUrl, adaptorShortName } from "../../mock-data/adaptors";
+import { adaptorIconUrl, adaptorShortName } from "../../utils/adaptors";
 import { cn } from "../../utils/cn";
 
 const sizeClasses = {

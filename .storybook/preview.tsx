@@ -1,6 +1,8 @@
 import type { Preview, Decorator } from "@storybook/react";
 import "../src/index.css";
 import { DEFAULT_THEME_ID, THEMES } from "../src/theme/themes";
+import SessionProvider from "../src/session/SessionProvider";
+import { session } from "../src/mock-data/users";
 
 /**
  * Reflects the toolbar-selected theme onto <html> so every story can be
@@ -15,6 +17,13 @@ const withTheme: Decorator = (Story, context) => {
   }
   return <Story />;
 };
+
+/** Signs every story in as the session fixture's user, as main.tsx does for the app. */
+const withSession: Decorator = (Story) => (
+  <SessionProvider session={session}>
+    <Story />
+  </SessionProvider>
+);
 
 const preview: Preview = {
   parameters: {
@@ -40,7 +49,7 @@ const preview: Preview = {
       },
     },
   },
-  decorators: [withTheme],
+  decorators: [withTheme, withSession],
 };
 
 export default preview;

@@ -1,4 +1,4 @@
-import type { EdgeConditionType, Position } from "../../mock-data/workflow";
+import type { EdgeConditionType, Position } from "../../types/workflow-graph";
 import {
   EDGE_COLOR,
   EDGE_COLOR_NEIGHBOUR,

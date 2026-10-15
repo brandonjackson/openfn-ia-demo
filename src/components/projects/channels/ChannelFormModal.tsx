@@ -1,9 +1,5 @@
 import { useState } from "react";
-import {
-  projectCredentialOptions,
-  webhookAuthMethods,
-  type Channel,
-} from "../../../mock-data/channels";
+import type { Channel } from "../../../types/channels";
 import FormModal from "../../FormModal";
 import { Checkbox, Field, Select, TextInput } from "../../Inputs";
 import Toggle from "../../Toggle";
@@ -19,11 +15,17 @@ import ProxyUrlCopy from "./ProxyUrlCopy";
 export default function ChannelFormModal({
   channel,
   projectId,
+  credentialOptions,
+  authMethodOptions,
   onClose,
 }: {
   /** The channel being edited; omit for New Channel. */
   channel?: Channel;
   projectId: string;
+  /** Project credentials (Destination Credential select). */
+  credentialOptions: { id: string; name: string }[];
+  /** The project's webhook auth methods (Client Credentials checkboxes). */
+  authMethodOptions: { id: string; name: string }[];
   onClose: () => void;
 }) {
   const [name, setName] = useState(channel?.name ?? "");
@@ -65,7 +67,7 @@ export default function ChannelFormModal({
         id="channel_destination_credential"
         label={<LabelWithLink to={`/projects/${projectId}/settings#credentials`}>Destination Credential</LabelWithLink>}
         hint="How OpenFn authenticates with the destination service"
-        options={[["None", ""], ...projectCredentialOptions.map((pc): [string, string] => [pc.name, pc.id])]}
+        options={[["None", ""], ...credentialOptions.map((pc): [string, string] => [pc.name, pc.id])]}
         value={credentialId}
         onChange={(e) => setCredentialId(e.target.value)}
       />
@@ -73,11 +75,11 @@ export default function ChannelFormModal({
         label={<LabelWithLink to={`/projects/${projectId}/settings#webhook_security`}>Client Credentials</LabelWithLink>}
         hint="Credentials that you can use to access this channel"
       >
-        {webhookAuthMethods.length === 0 ? (
+        {authMethodOptions.length === 0 ? (
           <p className="italic text-xs text-gray-400">No webhook auth methods available.</p>
         ) : (
           <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            {webhookAuthMethods.map((wam) => (
+            {authMethodOptions.map((wam) => (
               <Checkbox
                 key={wam.id}
                 id={`client_auth_${wam.id}`}

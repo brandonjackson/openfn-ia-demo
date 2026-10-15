@@ -1,11 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import AdminCollectionModal from "./AdminCollectionModal";
-import { collections } from "../../mock-data/admin";
+import { collectionProjectOptions } from "../../mock-data/admin";
+import { collections } from "../../mock-data/project-settings";
 
 const meta: Meta<typeof AdminCollectionModal> = {
   title: "Admin/AdminCollectionModal",
   component: AdminCollectionModal,
-  args: { onCancel: () => {}, onSave: () => {} },
+  args: { projectOptions: collectionProjectOptions, onCancel: () => {}, onSave: () => {} },
 };
 export default meta;
 type Story = StoryObj<typeof AdminCollectionModal>;

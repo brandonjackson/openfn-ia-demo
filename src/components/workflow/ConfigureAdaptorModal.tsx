@@ -1,5 +1,9 @@
+// eslint-disable-next-line no-restricted-imports -- wiring: the project's credentials (and owner emails) for the picker.
 import { credentials, ownerEmail } from "../../mock-data/credentials";
-import { ADAPTORS_WITHOUT_CREDENTIALS, adaptorDisplayName, adaptorShortName, resolveAdaptor, resolvedAdaptorVersion } from "../../mock-data/adaptors";
+import { ADAPTORS_WITHOUT_CREDENTIALS } from "../../constants";
+import { adaptorDisplayName, adaptorShortName, resolveAdaptor } from "../../utils/adaptors";
+// eslint-disable-next-line no-restricted-imports -- wiring: the adaptor registry (catalogue, versions, docs).
+import { resolvedAdaptorVersion } from "../../mock-data/adaptors";
 import Button from "../Button";
 import Card from "../Card";
 import InfoTooltip from "../InfoTooltip";

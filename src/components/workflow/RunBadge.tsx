@@ -1,6 +1,5 @@
 import Pill from "../Pill";
-import { shortUuid } from "../../utils/format";
-import { uuidOf } from "../../mock-data/history-extra";
+import { shortUuid, uuidOf } from "../../utils/format";
 
 /**
  * "Run abc1234" chip with a dismiss X (collaborative-editor/components/common/

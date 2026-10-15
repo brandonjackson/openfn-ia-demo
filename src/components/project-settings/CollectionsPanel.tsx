@@ -7,7 +7,7 @@ import CollectionFormModal from "./CollectionFormModal";
 import CollectionPreviewModal from "./CollectionPreviewModal";
 import CollectionsTable from "./CollectionsTable";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
-import type { Collection } from "../../mock-data/project-settings";
+import type { Collection } from "../../types/project-settings";
 
 interface Props {
   projectId: string;

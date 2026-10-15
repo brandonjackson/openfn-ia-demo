@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { adaptors, resolvedAdaptorVersion, type Adaptor } from "../../mock-data/adaptors";
+// eslint-disable-next-line no-restricted-imports -- wiring: the adaptor registry (catalogue, versions, docs).
+import { adaptors, resolvedAdaptorVersion } from "../../mock-data/adaptors";
+import type { Adaptor } from "../../types/adaptors";
 import Alert from "../Alert";
 import Modal from "../Modal";
 import AdaptorIcon from "./AdaptorIcon";

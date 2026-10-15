@@ -4,7 +4,7 @@ import { Centered, PageContent } from "../../components/PageContent";
 import BackupCodesCard from "../../components/profile/BackupCodesCard";
 import MfaDisabledNotice from "../../components/profile/MfaDisabledNotice";
 import { useToast } from "../../components/Toast";
-import { currentUser } from "../../mock-data/users";
+import { useCurrentUser } from "../../session/session";
 import { backupCodes, regenerateFakeBackupCodes } from "../../mock-data/tokens";
 
 /**
@@ -13,6 +13,7 @@ import { backupCodes, regenerateFakeBackupCodes } from "../../mock-data/tokens";
  * Like Lightning, the MFA-disabled notice sits above the codes when MFA is off.
  */
 export default function BackupCodesPage() {
+  const currentUser = useCurrentUser();
   const [codes, setCodes] = useState(backupCodes);
   const toast = useToast();
   return (

@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
 import { Outlet, useLocation, useParams } from "react-router-dom";
-import { findProject } from "../../mock-data/projects";
+// eslint-disable-next-line no-restricted-imports -- wiring: the layout route loads the project in the URL and the picker's project tree.
+import { findProject, projects } from "../../mock-data/projects";
+import { usePermissions } from "../../session/session";
 import Sidebar, { type SidebarVariant } from "./Sidebar";
 import Picker from "./Picker";
 import { buildProjectPickerItems } from "./projectPickerItems";
@@ -14,6 +16,7 @@ export default function AppShell() {
   const { pathname } = useLocation();
   const { projectId } = useParams();
   const project = findProject(projectId);
+  const { canAccessAdmin } = usePermissions(project);
   const [collapsed, setCollapsed] = useState(false);
   const toggle = useCallback(() => setCollapsed((c) => !c), []);
 
@@ -25,12 +28,12 @@ export default function AppShell() {
 
   return (
     <main className="flex h-screen">
-      <Sidebar variant={variant} project={project} collapsed={collapsed} onToggle={toggle} />
+      <Sidebar variant={variant} project={project} canAccessAdmin={canAccessAdmin} collapsed={collapsed} onToggle={toggle} />
       <div className="min-w-0 flex-auto">
         <Outlet />
       </div>
       <Picker
-        items={buildProjectPickerItems(pathname)}
+        items={buildProjectPickerItems(pathname, projects)}
         currentId={project?.id}
         placeholder="Search projects..."
         emptyMessage="No projects found"

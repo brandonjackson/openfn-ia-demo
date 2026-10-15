@@ -1,4 +1,4 @@
-import type { SandboxRow } from "../../../mock-data/sandboxes";
+import type { SandboxRow } from "../../../types/sandboxes";
 import Button from "../../Button";
 import IconButton from "../../IconButton";
 import BranchesIcon from "./BranchesIcon";

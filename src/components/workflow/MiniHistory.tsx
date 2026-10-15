@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Run, WorkOrder } from "../../mock-data/history";
+import type { Run, WorkOrder } from "../../types/history";
 import { cn } from "../../utils/cn";
 import Card from "../Card";
 import DateTime from "../DateTime";
@@ -8,8 +8,7 @@ import IconButton from "../IconButton";
 import UuidChip from "../UuidChip";
 import StatePill from "../history/StatePill";
 import RunBadge from "./RunBadge";
-import { formatDuration } from "../../utils/format";
-import { uuidOf } from "../../mock-data/history-extra";
+import { formatDuration, uuidOf } from "../../utils/format";
 
 const Dot = () => <span className="text-gray-800">&bull;</span>;
 

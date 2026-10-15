@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { sandboxColorPalette } from "../../../mock-data/sandboxes";
+import { sandboxColorPalette } from "../../../constants";
 import FormModal from "../../FormModal";
 import NameField from "../../NameField";
 import { useToast } from "../../Toast";

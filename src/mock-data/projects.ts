@@ -4,36 +4,7 @@
  */
 
 import { kickstartProjects } from "./generated/kickstart";
-
-export type ProjectRole = "owner" | "admin" | "editor" | "viewer";
-
-export type RetentionPolicy = "retain_all" | "retain_with_errors" | "erase_all";
-
-export interface ProjectMember {
-  userId: string;
-  role: ProjectRole;
-  failureAlert: boolean;
-  digest: "never" | "daily" | "weekly" | "monthly";
-}
-
-export interface Project {
-  id: string;
-  name: string;
-  description: string;
-  /** Sandboxes point at their parent project. */
-  parentId: string | null;
-  /** Hex colour used for sandbox accents in the picker and banner. */
-  color: string | null;
-  concurrency: number | null;
-  retentionPolicy: RetentionPolicy;
-  historyRetentionPeriod: number | null;
-  dataclipRetentionPeriod: number | null;
-  requiresMfa: boolean;
-  members: ProjectMember[];
-  /** When the project was last touched (for the projects dashboard). */
-  lastUpdatedAt: string;
-  insertedAt: string;
-}
+import type { Project } from "../types/projects";
 
 export const projects: Project[] = [
   {
@@ -97,20 +68,4 @@ export const projects: Project[] = [
 
 export function findProject(id: string | undefined): Project | undefined {
   return projects.find((p) => p.id === id);
-}
-
-export function isSandbox(project: Project): boolean {
-  return project.parentId !== null;
-}
-
-/** Top-level projects only (sandboxes are reached from their parent). */
-export const rootProjects = projects.filter((p) => p.parentId === null);
-
-export function sandboxesOf(projectId: string): Project[] {
-  return projects.filter((p) => p.parentId === projectId);
-}
-
-/** The signed-in user's role in a project, if they're a member. */
-export function roleIn(project: Project, userId: string): ProjectRole | undefined {
-  return project.members.find((m) => m.userId === userId)?.role;
 }

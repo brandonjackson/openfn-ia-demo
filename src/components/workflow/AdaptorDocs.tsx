@@ -1,4 +1,6 @@
-import { adaptorFunctions, adaptorShortName, resolveAdaptor, resolvedAdaptorVersion } from "../../mock-data/adaptors";
+// eslint-disable-next-line no-restricted-imports -- wiring: the adaptor registry (catalogue, versions, docs).
+import { adaptorFunctions, resolvedAdaptorVersion } from "../../mock-data/adaptors";
+import { adaptorShortName, resolveAdaptor } from "../../utils/adaptors";
 import Disclosure from "../Disclosure";
 import Heading from "../Heading";
 import TextLink from "../TextLink";

@@ -12,27 +12,25 @@ import TransferCredentialModal from "./TransferCredentialModal";
 import CredentialDeletionModal from "./CredentialDeletionModal";
 import { deleteKeychainMessage, deleteOauthClientMessage } from "./messages";
 import { useCredentialModalRequests, type NewCredentialTarget } from "./credentialModalEvents";
-import type { Project } from "../../mock-data/projects";
-import { currentUser } from "../../mock-data/users";
-import {
-  canCreateProjectCredential,
-  canEditCredential,
-  canEditKeychain,
-  credentialsFor,
-  keychainCredentialsIn,
-  oauthClientsFor,
-  type Credential,
-  type KeychainCredential,
-  type OauthClient,
-} from "../../mock-data/credentials";
+import type { Project } from "../../types/projects";
+import type { Credential, KeychainCredential, OauthClient } from "../../types/credentials";
+import { canEditCredential } from "../../permissions";
+import { useCurrentUser } from "../../session/session";
 
 interface Props {
   /** Project scope (project settings › Credentials). Omit for the user's /credentials page. */
   project?: Project;
-  /** Fixture overrides (stories); default to the mock-data helpers for the scope. */
-  credentials?: Credential[];
-  oauthClients?: OauthClient[];
+  /** The user's own (on /credentials) or the project's credentials and clients. */
+  credentials: Credential[];
+  oauthClients: OauthClient[];
+  /** The project's keychain credentials; only shown with a project. */
   keychainCredentials?: KeychainCredential[];
+  /** The host's `can_create_project_credential` (/credentials hard-codes it on). */
+  canCreateProjectCredential: boolean;
+  canCreateKeychainCredential?: boolean;
+  canEditKeychainCredential?: boolean;
+  /** Superusers may make an OAuth client global. */
+  canCreateGlobalOauthClient: boolean;
 }
 
 type ActiveModal =
@@ -63,27 +61,28 @@ export default function CredentialIndex({
   project,
   credentials: initialCredentials,
   oauthClients: initialClients,
-  keychainCredentials: initialKeychains,
+  keychainCredentials: initialKeychains = [],
+  canCreateProjectCredential: canCreate,
+  canCreateKeychainCredential = false,
+  canEditKeychainCredential = false,
+  canCreateGlobalOauthClient,
 }: Props) {
-  const [credentials, setCredentials] = useState<Credential[]>(() => initialCredentials ?? credentialsFor(project));
-  const [clients, setClients] = useState<OauthClient[]>(() => initialClients ?? oauthClientsFor(project));
-  const [keychains, setKeychains] = useState<KeychainCredential[]>(
-    () => initialKeychains ?? (project ? keychainCredentialsIn(project) : [])
-  );
+  const [credentials, setCredentials] = useState<Credential[]>(initialCredentials);
+  const [clients, setClients] = useState<OauthClient[]>(initialClients);
+  const [keychains, setKeychains] = useState<KeychainCredential[]>(initialKeychains);
   const [active, setActive] = useState<ActiveModal>(null);
   const toast = useToast();
+  const user = useCurrentUser();
 
   const showOwner = !!project;
-  const canCreate = canCreateProjectCredential(project);
-  const canKeychain = canEditKeychain(project);
   const defaultProjectIds = project ? [project.id] : [];
 
   const open = useCallback(
     (target: NewCredentialTarget) => {
-      if (target === "new_keychain_credential" ? !canKeychain : !canCreate) return;
+      if (target === "new_keychain_credential" ? !canCreateKeychainCredential : !canCreate) return;
       setActive({ kind: target });
     },
-    [canCreate, canKeychain]
+    [canCreate, canCreateKeychainCredential]
   );
   useCredentialModalRequests(open);
 
@@ -111,7 +110,7 @@ export default function CredentialIndex({
           />
         }
         actions={(client) =>
-          canEditCredential(client.ownerId) && (
+          canEditCredential(client, user) && (
             <ButtonMenu label="Actions">
               <MenuItem onClick={() => setActive({ kind: "edit_oauth_client", id: client.id })}>
                 Edit
@@ -130,7 +129,7 @@ export default function CredentialIndex({
           <EmptyState message="No credentials found." buttonText="Create a new Credential" onClick={() => open("new_credential")} />
         }
         actions={(credential) =>
-          canEditCredential(credential.ownerId) && (
+          canEditCredential(credential, user) && (
             <ButtonMenu label="Actions">
               <MenuItem onClick={() => setActive({ kind: "transfer_credential", id: credential.id })}>
                 {credential.transferStatus === "pending" ? "Revoke Transfer" : "Transfer"}
@@ -167,7 +166,7 @@ export default function CredentialIndex({
             />
           }
           actions={(kc) =>
-            canKeychain && (
+            canEditKeychainCredential && (
               <ButtonMenu label="Actions">
                 <MenuItem onClick={() => setActive({ kind: "edit_keychain_credential", id: kc.id })}>
                   Edit
@@ -238,7 +237,7 @@ export default function CredentialIndex({
           onClose={close}
           client={active.kind === "edit_oauth_client" ? activeClient : undefined}
           defaultProjectIds={defaultProjectIds}
-          allowGlobal={currentUser.role === "superuser"}
+          allowGlobal={canCreateGlobalOauthClient}
           onSave={(c) => {
             setClients((list) => upsert(list, c));
             toast(active.kind === "edit_oauth_client" ? "Oauth client updated successfully" : "Oauth client created successfully");

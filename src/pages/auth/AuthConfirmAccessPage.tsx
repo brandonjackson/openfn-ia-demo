@@ -10,7 +10,7 @@ import TextLink from "../../components/TextLink";
 import Button from "../../components/Button";
 import UserAvatar from "../../components/UserAvatar";
 import { PasswordInput, TextInput } from "../../components/Inputs";
-import { currentUser } from "../../mock-data/users";
+import { useCurrentUser } from "../../session/session";
 
 /**
  * Inventory view `auth-confirm-access` (re_authenticate_live/new.html.heex):
@@ -21,7 +21,7 @@ import { currentUser } from "../../mock-data/users";
 export default function AuthConfirmAccessPage() {
   const navigate = useNavigate();
   const [option, setOption] = useState<"password" | "totp">("password");
-  const user = currentUser;
+  const user = useCurrentUser();
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();

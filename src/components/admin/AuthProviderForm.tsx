@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { authRedirectUri, type AuthProvider } from "../../mock-data/admin";
+import { authRedirectUri } from "../../utils/urls";
+import type { AuthProvider } from "../../types/admin";
 import Button from "../Button";
 import Card from "../Card";
 import Heading from "../Heading";

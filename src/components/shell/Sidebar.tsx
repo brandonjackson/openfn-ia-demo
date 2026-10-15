@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { cn } from "../../utils/cn";
-import { currentUser, instanceAdminEmail, releaseLabel } from "../../mock-data/users";
-import type { Project } from "../../mock-data/projects";
+import { useCurrentUser, useInstanceInfo } from "../../session/session";
+import type { Project } from "../../types/projects";
 import NavItem from "./NavItem";
 import UserMenu from "./UserMenu";
 import { OpenFnLogo, OpenFnLogoCollapsed } from "./OpenFnLogo";
@@ -14,6 +14,8 @@ interface Props {
   variant: SidebarVariant;
   /** Required for the project variant. */
   project?: Project;
+  /** Superusers get the Admin menu in place of the support links. */
+  canAccessAdmin: boolean;
   collapsed: boolean;
   onToggle: () => void;
 }
@@ -25,10 +27,11 @@ function isAt(pathname: string, path: string) {
 function ProjectItems({ project }: { project: Project }) {
   const { pathname } = useLocation();
   const base = `/projects/${project.id}`;
+  const user = useCurrentUser();
   return (
     <>
       <NavItem to={`${base}/w`} icon="hero-square-3-stack-3d" label="Workflows" active={isAt(pathname, `${base}/w`)} />
-      {currentUser.experimentalFeatures && (
+      {user.experimentalFeatures && (
         <NavItem
           to={`${base}/channels`}
           icon="hero-arrows-right-left"
@@ -93,8 +96,9 @@ function AdminItems() {
 }
 
 /** Support links for regular users; superusers get the Admin menu instead. */
-function FooterItems() {
-  if (currentUser.role === "superuser") {
+function FooterItems({ canAccessAdmin }: { canAccessAdmin: boolean }) {
+  const { adminEmail } = useInstanceInfo();
+  if (canAccessAdmin) {
     return (
       <>
         <NavItem to="/settings/projects" icon="hero-cog-6-tooth" label="Admin Menu" />
@@ -107,11 +111,11 @@ function FooterItems() {
       <NavItem href="https://docs.openfn.org" icon="hero-book-open-mini" label="Documentation" />
       <NavItem href="https://community.openfn.org" icon="hero-user-group-mini" label="Community" />
       <NavItem
-        href={`mailto:${instanceAdminEmail}`}
+        href={`mailto:${adminEmail}`}
         target="_self"
         icon="hero-lifebuoy-mini"
         label="Support"
-        title={instanceAdminEmail}
+        title={adminEmail}
       />
     </>
   );
@@ -119,6 +123,7 @@ function FooterItems() {
 
 /** The OpenFn logo and release version at the foot of the side menu. */
 export function SidebarLogo({ collapsed = false }: { collapsed?: boolean }) {
+  const { releaseLabel } = useInstanceInfo();
   return (
     <div className="primary-light mt-3 border-t border-white/10 pt-5 text-center">
       {collapsed ? <OpenFnLogoCollapsed className="mx-auto h-6" /> : <OpenFnLogo className="mx-auto h-6" />}
@@ -133,7 +138,8 @@ export function SidebarLogo({ collapsed = false }: { collapsed?: boolean }) {
  * admin links pinned low, then the OpenFn logo, version and collapse toggle.
  * Ctrl+M collapses it, as in Lightning.
  */
-export default function Sidebar({ variant, project, collapsed, onToggle }: Props) {
+export default function Sidebar({ variant, project, canAccessAdmin, collapsed, onToggle }: Props) {
+  const user = useCurrentUser();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key.toLowerCase() === "m") {
@@ -156,7 +162,7 @@ export default function Sidebar({ variant, project, collapsed, onToggle }: Props
         className={cn("fixed z-[100] flex h-full flex-col transition-all duration-200", variant === "admin" && "sudo-variant")}
       >
         <div className="app-logo-container flex h-20 items-center">
-          <UserMenu user={currentUser} />
+          <UserMenu user={user} />
         </div>
         <nav id="side-menu" className="flex min-h-0 flex-1 flex-col">
           <div className={cn("flex min-h-0 flex-1 flex-col overflow-y-auto", variant !== "admin" && "py-4")}>
@@ -166,11 +172,11 @@ export default function Sidebar({ variant, project, collapsed, onToggle }: Props
               <>
                 {variant === "project" && project ? <ProjectItems project={project} /> : <ProfileItems />}
                 <div className="grow" />
-                <FooterItems />
+                <FooterItems canAccessAdmin={canAccessAdmin} />
               </>
             )}
           </div>
-          {currentUser.experimentalFeatures && (
+          {user.experimentalFeatures && (
             <div className="mt-3 border-t border-white/10 pt-3">
               <div
                 title="You're using features that are still being built. Things may work differently for you than for your teammates."

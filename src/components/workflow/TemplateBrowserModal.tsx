@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { templateGraph, workflowTemplates, type WorkflowTemplate } from "../../mock-data/workflow";
+import { templateGraph } from "../../utils/workflowGraph";
+import type { WorkflowTemplate } from "../../types/workflow-graph";
 import Button from "../Button";
 import Card from "../Card";
 import Heading from "../Heading";
@@ -12,6 +13,8 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   projectId: string;
+  /** Templates available to the project (base templates and published ones). */
+  templates: WorkflowTemplate[];
   onCreate: (template: WorkflowTemplate) => void;
 }
 
@@ -31,11 +34,11 @@ function TemplateSummary({ template, lines }: { template: WorkflowTemplate; line
  * "Templates" (TemplateBrowserModal.tsx): searchable template list on the
  * left, a preview of the selected one on the right with Create.
  */
-export default function TemplateBrowserModal({ isOpen, onClose, projectId, onCreate }: Props) {
+export default function TemplateBrowserModal({ isOpen, onClose, projectId, templates, onCreate }: Props) {
   const [query, setQuery] = useState("");
-  const [previewedId, setPreviewedId] = useState<string | null>(workflowTemplates[0]?.id ?? null);
-  const visible = workflowTemplates.filter((t) => matchesQuery(query, t.name, t.description));
-  const previewed = workflowTemplates.find((t) => t.id === previewedId) ?? null;
+  const [previewedId, setPreviewedId] = useState<string | null>(templates[0]?.id ?? null);
+  const visible = templates.filter((t) => matchesQuery(query, t.name, t.description));
+  const previewed = templates.find((t) => t.id === previewedId) ?? null;
 
   return (
     <Modal open={isOpen} onClose={onClose} size="2xl" title="Templates">

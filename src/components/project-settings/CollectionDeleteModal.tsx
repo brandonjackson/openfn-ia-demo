@@ -1,5 +1,5 @@
 import ConfirmModal from "../ConfirmModal";
-import type { Collection } from "../../mock-data/project-settings";
+import type { Collection } from "../../types/project-settings";
 
 interface Props {
   collection: Collection;

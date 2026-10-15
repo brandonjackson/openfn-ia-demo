@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import type { Dataclip } from "../../mock-data/history";
-import { uuidOf } from "../../mock-data/history-extra";
+import type { Dataclip } from "../../types/history";
+import { uuidOf } from "../../utils/format";
 import Card from "../Card";
 import DateTime from "../DateTime";
 import { DetailItem, DetailList } from "../DetailList";

@@ -1,5 +1,5 @@
 import Button from "../Button";
-import type { SsoProvider } from "../../mock-data/auth";
+import type { SsoProvider } from "../../types/auth";
 
 /**
  * The "or / via external provider" block under the login button, shown when

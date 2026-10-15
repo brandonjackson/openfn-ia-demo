@@ -1,11 +1,13 @@
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 import Button from "../Button";
-import type { ExportStatus, ProjectFile } from "../../mock-data/project-settings";
-import { findUser, fullName } from "../../mock-data/users";
-import { capitalize, formatAgo } from "../../utils/format";
+import type { ExportStatus, ProjectFile } from "../../types/project-settings";
+import type { User } from "../../types/users";
+import { capitalize, formatAgo, fullName } from "../../utils/format";
 
 interface Props {
   files: ProjectFile[];
+  /** Users to show who requested each export. */
+  users: User[];
 }
 
 /** data_tables.ex `format_export_status/1`: "in_progress" -> "In progress". */
@@ -18,7 +20,7 @@ function formatStatus(status: ExportStatus): string {
  * Export Requested By, Status and a Download action (disabled until the
  * export completes).
  */
-export default function HistoryExportsTable({ files }: Props) {
+export default function HistoryExportsTable({ files, users }: Props) {
   if (files.length === 0) {
     return <EmptyState icon="hero-folder-arrow-down" message="No history exports found for this project." />;
   }
@@ -36,7 +38,7 @@ export default function HistoryExportsTable({ files }: Props) {
       }
     >
       {files.map((f) => {
-        const user = findUser(f.createdByUserId);
+        const user = users.find((u) => u.id === f.createdByUserId);
         return (
           <Tr key={f.id}>
             <Td>

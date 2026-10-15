@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import type { EditorJob } from "../../mock-data/workflow";
+import type { EditorJob } from "../../types/workflow-graph";
 import { cn } from "../../utils/cn";
 import Button from "../Button";
 import IconButton from "../IconButton";

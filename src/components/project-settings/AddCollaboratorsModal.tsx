@@ -4,7 +4,7 @@ import { FieldError, TextInput } from "../Inputs";
 import IconButton from "../IconButton";
 import FormModal from "../FormModal";
 import RoleSelect from "./RoleSelect";
-import type { ProjectRole } from "../../mock-data/projects";
+import type { ProjectRole } from "../../types/projects";
 import { isValidEmail } from "../../utils/validate";
 
 export interface CollaboratorDraft {

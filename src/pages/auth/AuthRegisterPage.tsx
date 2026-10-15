@@ -6,7 +6,8 @@ import PlainTextResponse from "../../components/auth/PlainTextResponse";
 import TextLink from "../../components/TextLink";
 import Button from "../../components/Button";
 import { Checkbox, PasswordInput, TextInput } from "../../components/Inputs";
-import { authFlags, signupDisabledMessage } from "../../mock-data/auth";
+import { authFlags } from "../../mock-data/auth";
+import { signupDisabledMessage } from "../../constants";
 
 /**
  * Inventory view `auth-register` (user_registration_html/new.html.heex).

@@ -20,16 +20,12 @@ import WorkflowSettings from "../../components/workflow/WorkflowSettings";
 import YAMLImportModal from "../../components/workflow/YAMLImportModal";
 import { workflowNameFromYaml } from "../../components/workflow/workflowYaml";
 import { aiSessionsFor } from "../../mock-data/ai-assistant";
-import { adaptorShortName } from "../../mock-data/adaptors";
-import { findProject, type Project } from "../../mock-data/projects";
-import {
-  blankWorkflowGraph,
-  findWorkflowGraph,
-  newWorkflowGraph,
-  snapshotsOf,
-  templateGraph,
-  type WorkflowGraph,
-} from "../../mock-data/workflow";
+import { adaptorShortName } from "../../utils/adaptors";
+import { findProject } from "../../mock-data/projects";
+import type { Project } from "../../types/projects";
+import { blankWorkflowGraph, newWorkflowGraph, templateGraph } from "../../utils/workflowGraph";
+import { findWorkflowGraph, snapshotsOf, workflowTemplates } from "../../mock-data/workflow";
+import type { WorkflowGraph } from "../../types/workflow-graph";
 import { useUrlParams, type ParamPatch } from "../../utils/useUrlParams";
 import { useEditorRuns } from "./useEditorRuns";
 import { useWorkflowEditorState } from "./useWorkflowEditorState";
@@ -412,6 +408,7 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
         isOpen={landingModal.which === "templates"}
         onClose={closeLandingModal}
         projectId={project.id}
+        templates={workflowTemplates}
         onCreate={(t) => {
           createFrom(templateGraph(t, project.id));
           closeLandingModal();

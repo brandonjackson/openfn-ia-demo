@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { User, UserRole } from "../../mock-data/users";
-import { isSupportUser, userRoleOptions } from "../../mock-data/admin";
+import type { User, UserRole } from "../../types/users";
+import { userRoleOptions } from "../../constants";
 import Alert from "../Alert";
 import Button from "../Button";
 import { Checkbox, PasswordInput, Select, TextInput } from "../Inputs";
@@ -39,7 +39,7 @@ export default function UserForm({ user, onSave, cancelTo = "/settings/users" }:
     email: user?.email ?? "",
     password: "",
     role: user?.role ?? "user",
-    supportUser: user ? isSupportUser(user) : false,
+    supportUser: user?.supportUser ?? false,
     scheduledDeletion: user?.scheduledDeletion ?? "",
     disabled: user?.disabled ?? false,
   });

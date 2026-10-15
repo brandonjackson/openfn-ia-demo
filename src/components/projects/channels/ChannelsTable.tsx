@@ -1,4 +1,4 @@
-import type { Channel } from "../../../mock-data/channels";
+import type { Channel } from "../../../types/channels";
 import { cn } from "../../../utils/cn";
 import Button from "../../Button";
 import { EmptyState, Table, Td, Th, Tr } from "../../Table";

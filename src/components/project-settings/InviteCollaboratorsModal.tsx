@@ -3,7 +3,7 @@ import FormModal from "../FormModal";
 import { TextInput } from "../Inputs";
 import IconButton from "../IconButton";
 import RoleSelect from "./RoleSelect";
-import type { ProjectRole } from "../../mock-data/projects";
+import type { ProjectRole } from "../../types/projects";
 
 export interface InviteDraft {
   firstName: string;

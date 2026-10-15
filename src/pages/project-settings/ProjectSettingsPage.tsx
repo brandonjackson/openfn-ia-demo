@@ -19,18 +19,12 @@ import Tabs from "../../components/Tabs";
 import { useToast } from "../../components/Toast";
 import WebhookSecurityPanel from "../../components/project-settings/WebhookSecurityPanel";
 import { defaultSettingsHash, projectSettingsTabs } from "../../components/project-settings/tabs";
-import {
-  collectionsIn,
-  dataRetentionPeriods,
-  projectFilesIn,
-  projectSettingsFor,
-  purgeDeletedAfterDays,
-  settingsPermissionsFor,
-  vcsFor,
-  webhookAuthMethodsIn,
-} from "../../mock-data/project-settings";
-import { findProject, roleIn } from "../../mock-data/projects";
-import { currentUser } from "../../mock-data/users";
+import { collectionsIn, dataRetentionPeriods, projectFilesIn, projectSettingsFor, purgeDeletedAfterDays, vcsFor, webhookAuthMethodsIn } from "../../mock-data/project-settings";
+import { credentialsFor, keychainCredentialsIn, oauthClientsFor } from "../../mock-data/credentials";
+import { findProject } from "../../mock-data/projects";
+import { users } from "../../mock-data/users";
+import { permissionsFor } from "../../permissions";
+import { useCurrentUser } from "../../session/session";
 import { cn } from "../../utils/cn";
 
 /**
@@ -44,6 +38,7 @@ export default function ProjectSettingsPage() {
   const { hash, pathname } = useLocation();
   const navigate = useNavigate();
   const toast = useToast();
+  const user = useCurrentUser();
   const project = findProject(projectId);
 
   if (!project) {
@@ -62,7 +57,7 @@ export default function ProjectSettingsPage() {
   const settingsPath = `/projects/${project.id}/settings`;
   const parentProject = project.parentId ? findProject(project.parentId) : undefined;
   const sandbox = !!parentProject;
-  const perms = settingsPermissionsFor(roleIn(project, currentUser.id));
+  const perms = permissionsFor(project, user);
   const settings = projectSettingsFor(project.id);
 
   const panels: Record<string, ReactNode> = {
@@ -89,7 +84,16 @@ export default function ProjectSettingsPage() {
           }
         />
         {sandbox && <SandboxSettingsBanner variant="editable" />}
-        <CredentialIndex project={project} />
+        <CredentialIndex
+          project={project}
+          credentials={credentialsFor(project, user)}
+          oauthClients={oauthClientsFor(project, user)}
+          keychainCredentials={keychainCredentialsIn(project)}
+          canCreateProjectCredential={perms.canCreateProjectCredential}
+          canCreateKeychainCredential={perms.canCreateKeychainCredential}
+          canEditKeychainCredential={perms.canEditKeychainCredential}
+          canCreateGlobalOauthClient={perms.canCreateGlobalOauthClient}
+        />
       </>
     ),
     collections: (
@@ -111,7 +115,8 @@ export default function ProjectSettingsPage() {
     collaboration: (
       <CollaborationPanel
         initialMembers={project.members}
-        currentUserId={currentUser.id}
+        users={users}
+        currentUserId={user.id}
         initialSupportAccess={settings.allowSupportAccess}
         canEditProject={perms.canEditProject}
         canAddProjectUser={perms.canAddProjectUser}
@@ -132,7 +137,7 @@ export default function ProjectSettingsPage() {
         vcs={vcsFor(project.id)}
         canInstallGithub={perms.canInstallGithub}
         canInitiateGithubSync={perms.canInitiateGithubSync}
-        userGithubConnected={currentUser.githubConnected}
+        userGithubConnected={user.githubConnected}
         sandbox={sandbox}
       />
     ),
@@ -148,7 +153,7 @@ export default function ProjectSettingsPage() {
         sandbox={sandbox}
       />
     ),
-    "history-exports": <HistoryExportsPanel files={projectFilesIn(project.id)} sandbox={sandbox} />,
+    "history-exports": <HistoryExportsPanel files={projectFilesIn(project.id)} users={users} sandbox={sandbox} />,
   };
 
   return (

@@ -10,7 +10,8 @@ import Alert from "../../components/Alert";
 import TextLink from "../../components/TextLink";
 import Button from "../../components/Button";
 import { TextInput } from "../../components/Inputs";
-import { authMessages, type TwoFactorMethod } from "../../mock-data/auth";
+import { authMessages } from "../../constants";
+import type { TwoFactorMethod } from "../../types/auth";
 
 /**
  * Inventory view `auth-two-factor` (user_totp_html/new.html.heex).

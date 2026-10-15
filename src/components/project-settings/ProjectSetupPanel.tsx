@@ -9,7 +9,7 @@ import { useToast } from "../Toast";
 import Toggle from "../Toggle";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
 import Card from "../Card";
-import type { Project } from "../../mock-data/projects";
+import type { Project } from "../../types/projects";
 import { urlSafeName } from "../../utils/format";
 
 interface Props {

@@ -1,4 +1,4 @@
-import type { WorkOrderDisplayState } from "../../mock-data/dashboard-stats";
+import type { WorkOrderDisplayState } from "../../types/workflows";
 import { cn } from "../../utils/cn";
 import DateTime from "../DateTime";
 import { capitalize } from "../../utils/format";

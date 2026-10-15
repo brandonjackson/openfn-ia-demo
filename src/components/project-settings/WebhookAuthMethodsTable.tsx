@@ -1,7 +1,8 @@
 import TextLink from "../TextLink";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 import Button from "../Button";
-import { linkedUsageSummary, type WebhookAuthMethod } from "../../mock-data/project-settings";
+import { linkedUsageSummary } from "../../utils/format";
+import type { WebhookAuthMethod } from "../../types/project-settings";
 
 interface Props {
   authMethods: WebhookAuthMethod[];

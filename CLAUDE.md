@@ -11,7 +11,7 @@ the behaviour audit in OpenFn/lightning (`annotations/INVENTORY.md`, branch
 invite, run) only change local React state, or do nothing. The next step is
 cross-referencing each page with its annotation and wiring it to the backend,
 so keep pages easy to wire: data comes in through mock-data helpers, not
-inline literals scattered through the markup.
+inline literals scattered through the markup. See **The data seam** below.
 
 ## Commands
 
@@ -37,12 +37,23 @@ inline literals scattered through the markup.
 - `src/components/` — the component library: primitives at the top level,
   app chrome (sidebar, project picker, user menu) in `shell/`, feature
   components in area subfolders. See **Components** below.
+- `src/types/` — the record types (`User`, `Project`, `WorkOrder`, …), one
+  file per area. Types only.
+- `src/constants.ts` — Lightning's fixed vocabulary: option lists, labels and
+  copy hard-coded in its source (`historyStatuses`, `collaboratorRoles`, …).
 - `src/utils/format.ts` — every date, duration, size, id and name formatter
-  (`capitalize`, `shortUuid`, …). Add new ones here, not in an area folder.
+  (`capitalize`, `shortUuid`, `fullName`, …). Add new ones here, not in an area folder.
   Other shared helpers sit beside it: `search.ts` (`matchesQuery`),
-  `validate.ts` (`isValidEmail`), `useUrlParams.ts`, `useCopy.ts`.
-- `src/mock-data/` — fixtures modelled on Lightning's demo seed
-  (`lib/lightning/setup_utils.ex`): users, projects, workflows, history.
+  `validate.ts` (`isValidEmail`), `useUrlParams.ts`, `useCopy.ts`, and pure
+  domain helpers per area (`adaptors.ts`, `history.ts`, `urls.ts`,
+  `workflowGraph.ts`).
+- `src/permissions.ts` — `permissionsFor(project, user)`: every `can*` flag,
+  mirroring Lightning's policies (`lib/lightning/policies/`).
+- `src/session/` — the signed-in user and instance details:
+  `useCurrentUser()`, `useInstanceInfo()`, `usePermissions(project)`.
+- `src/mock-data/` — the fake database: fixtures modelled on Lightning's demo
+  seed (`lib/lightning/setup_utils.ex`) and the queries over them (`findProject`,
+  `workOrdersIn`, …). No types, no pure helpers.
   `generated/kickstart.ts` is generated from the project exports in
   `kickstart/exports/` by `npm run kickstart:sync`, which also writes the
   Kickstart scenario that loads the same projects into a local Lightning
@@ -146,6 +157,9 @@ menu styling.
 
 - **Pages compose components** and hold state, route params and mock-data
   queries. No styled raw `<button>`, `<input>` or `<table>` in pages.
+- **Components never import `src/mock-data/`** (ESLint enforces it; stories
+  are exempt). They take records and `can*` booleans as props. See **The data
+  seam** below.
 - **Need something that doesn't exist yet?** If it's general, add or extend a
   primitive. If it's specific to an area, make a feature component. Either
   way, add its story first.
@@ -157,6 +171,24 @@ menu styling.
 - Use Tailwind's scale, not arbitrary values (`text-[13px]`, `max-w-[15rem]`),
   except for real geometry such as the workflow diagram.
 - Button labels follow Lightning's own wording, not a house style.
+
+## The data seam
+
+Wiring the backend should only touch files that import `src/mock-data/`:
+pages, `main.tsx` (the session) and a short, labelled list of components.
+
+- **Data** comes in through pages. A page queries mock-data and passes records
+  down. When a component needs a join Lightning preloads (a work order's runs,
+  a project's owner), give the record type the joined field
+  (`HistoryWorkOrder`, `AdminProjectRow`) and build it in the mock-data query.
+- **The current user** comes from `useCurrentUser()`, never a fixture import.
+- **Permissions** come from `permissionsFor(project, user)` (or
+  `usePermissions(project)`) in the page, passed down as booleans, the way
+  Lightning's views assign `can_*` at mount. No inline role checks.
+- **Exceptions** are components that still read fixtures. Each import says
+  why: `// eslint-disable-next-line no-restricted-imports -- wiring: …`.
+  `grep -rn "wiring:" src/components` lists them. Don't add one without a reason
+  the next person can act on.
 
 ## Storybook
 
@@ -170,6 +202,7 @@ Every component has a `.stories.tsx` next to it.
 - **Wrappers** (a gray page background, a right-hand side panel, a white
   card, a diagram canvas) → `withGrayPanel`, `withSidePanel`,
   `withWhitePanel`, `withCanvas` from the same file, not inline divs.
-- Stories use fixtures from `src/mock-data/`.
+- Stories use fixtures from `src/mock-data/`; every story is signed in as
+  `session.user` (`.storybook/preview.tsx`).
 
 Run `npm run build-storybook` to verify stories compile. CI runs it on every PR.

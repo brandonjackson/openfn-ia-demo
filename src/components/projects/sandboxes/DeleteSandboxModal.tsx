@@ -1,4 +1,3 @@
-import { sandboxGracePeriodLabel } from "../../../mock-data/sandboxes";
 import Alert from "../../Alert";
 import ConfirmModal from "../../ConfirmModal";
 
@@ -12,6 +11,7 @@ export default function DeleteSandboxModal({
   descendantCount = 0,
   isCurrent = false,
   rootName,
+  gracePeriodDays,
   onClose,
   onConfirm,
 }: {
@@ -19,6 +19,8 @@ export default function DeleteSandboxModal({
   descendantCount?: number;
   isCurrent?: boolean;
   rootName: string;
+  /** Lightning's `purge_deleted_after_days`. */
+  gracePeriodDays: number;
   onClose: () => void;
   onConfirm?: () => void;
 }) {
@@ -53,7 +55,7 @@ export default function DeleteSandboxModal({
       )}
       <p>To confirm, type the sandbox name below.</p>
       <Alert type="warning">
-        This sandbox will be retained for {sandboxGracePeriodLabel} before being permanently removed. You can restore it
+        This sandbox will be retained for {gracePeriodDays} days before being permanently removed. You can restore it
         from the sandbox list during that window.
       </Alert>
     </ConfirmModal>

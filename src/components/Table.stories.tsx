@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { EmptyState, Table, Td, Th, Tr } from "./Table";
 import Pagination from "./Pagination";
-import { users, fullName } from "../mock-data/users";
+import { users } from "../mock-data/users";
+import { fullName } from "../utils/format";
 
 const meta: Meta = { title: "Shared/Table" };
 export default meta;

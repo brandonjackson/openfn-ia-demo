@@ -3,8 +3,8 @@ import IconButton from "../IconButton";
 import { Checkbox } from "../Inputs";
 import Pagination from "../Pagination";
 import { Table, Th, Tr } from "../Table";
-import type { WorkOrder } from "../../mock-data/history";
-import { activeStates, workOrderDataclipAvailable } from "../../mock-data/history-extra";
+import type { HistoryWorkOrder } from "../../types/history";
+import { activeStates } from "../../constants";
 import WorkOrderRow from "./WorkOrderRow";
 
 export type WorkOrderSort = { by: "inserted_at" | "last_activity"; direction: "asc" | "desc" };
@@ -29,7 +29,7 @@ export default function WorkOrdersTable({
   canRunWorkflow = true,
   pageSize = 10,
 }: {
-  workOrders: WorkOrder[];
+  workOrders: HistoryWorkOrder[];
   projectId: string;
   sort: WorkOrderSort;
   onSort: (by: WorkOrderSort["by"]) => void;
@@ -42,7 +42,7 @@ export default function WorkOrdersTable({
   canRunWorkflow?: boolean;
   pageSize?: number;
 }) {
-  const selectable = workOrders.filter(workOrderDataclipAvailable);
+  const selectable = workOrders.filter((w) => !w.dataclipWiped);
   const selected = workOrders.filter((w) => selectedIds.includes(w.id));
   const allSelected = workOrders.length > 0 && selected.length === workOrders.length;
   const partial = selected.length > 0 && !allSelected;

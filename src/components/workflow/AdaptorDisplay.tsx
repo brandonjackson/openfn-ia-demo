@@ -1,4 +1,5 @@
-import { adaptorDisplayName, ADAPTORS_WITHOUT_CREDENTIALS, adaptorShortName, resolveAdaptor } from "../../mock-data/adaptors";
+import { adaptorDisplayName, adaptorShortName, resolveAdaptor } from "../../utils/adaptors";
+import { ADAPTORS_WITHOUT_CREDENTIALS } from "../../constants";
 import { cn } from "../../utils/cn";
 import Button from "../Button";
 import Card from "../Card";

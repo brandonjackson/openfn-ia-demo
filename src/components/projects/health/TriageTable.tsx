@@ -1,5 +1,5 @@
 import { formatNumber } from "../../../utils/format";
-import type { ErrorSignature, FailureState } from "../../../mock-data/workflow-health";
+import type { ErrorSignature, FailureState } from "../../../types/workflow-health";
 import Button from "../../Button";
 import Card from "../../Card";
 import Pill from "../../Pill";

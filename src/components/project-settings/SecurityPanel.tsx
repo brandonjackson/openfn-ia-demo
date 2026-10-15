@@ -4,7 +4,7 @@ import SectionHeader from "../SectionHeader";
 import { useToast } from "../Toast";
 import Toggle from "../Toggle";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
-import type { Project } from "../../mock-data/projects";
+import type { Project } from "../../types/projects";
 
 interface Props {
   initialRequiresMfa: boolean;

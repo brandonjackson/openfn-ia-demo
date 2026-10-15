@@ -5,7 +5,8 @@ import AuthCard, { AuthFooterLinks } from "../../components/auth/AuthCard";
 import SsoLogin from "../../components/auth/SsoLogin";
 import Button from "../../components/Button";
 import { Checkbox, PasswordInput, TextInput } from "../../components/Inputs";
-import { authFlags, authMessages } from "../../mock-data/auth";
+import { authFlags } from "../../mock-data/auth";
+import { authMessages } from "../../constants";
 import TextLink from "../../components/TextLink";
 
 /**

@@ -7,7 +7,7 @@ import Pill from "../Pill";
 import SectionHeader from "../SectionHeader";
 import TextLink from "../TextLink";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
-import type { VcsFixture } from "../../mock-data/project-settings";
+import type { VcsFixture } from "../../types/project-settings";
 
 interface Props {
   vcs: VcsFixture;

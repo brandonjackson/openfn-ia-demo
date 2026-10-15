@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import FilterChip, { FilterCheckboxes, FilterDateRange, FilterMenu } from "./FilterChip";
-import { historyStatuses } from "../../mock-data/history-extra";
+import { historyStatuses } from "../../constants";
 
 const meta = { title: "History/FilterChip", component: FilterChip } satisfies Meta<typeof FilterChip>;
 export default meta;

@@ -1,6 +1,6 @@
 import Pagination from "../Pagination";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
-import { findChannel, type ChannelRequest } from "../../mock-data/channel-requests";
+import type { Channel, ChannelRequest } from "../../types/channels";
 import DateTime from "../DateTime";
 import TextLink from "../TextLink";
 import { ChannelStatePill } from "./StatePill";
@@ -9,9 +9,12 @@ import { shortUuid } from "../../utils/format";
 /** History's Channel Logs table (run_live/channel_logs_component.ex). */
 export default function ChannelRequestsTable({
   requests,
+  channels,
   projectId,
 }: {
   requests: ChannelRequest[];
+  /** The project's channels, for each request's Channel Name. */
+  channels: Channel[];
   projectId: string;
 }) {
   return (
@@ -37,7 +40,7 @@ export default function ChannelRequestsTable({
         </Tr>
       ) : (
         requests.map((r) => {
-          const channel = findChannel(r.channelId);
+          const channel = channels.find((c) => c.id === r.channelId);
           const path = r.events.find((e) => e.type === "destination_response")?.requestPath;
           const error = r.events.find((e) => e.type === "error")?.errorMessage;
           return (

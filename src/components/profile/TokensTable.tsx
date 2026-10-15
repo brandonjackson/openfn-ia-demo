@@ -3,7 +3,8 @@ import Button from "../Button";
 import DateTime from "../DateTime";
 import Heading from "../Heading";
 import IconButton from "../IconButton";
-import { maskToken, type ApiToken } from "../../mock-data/tokens";
+import { maskToken } from "../../utils/format";
+import type { ApiToken } from "../../types/tokens";
 
 /**
  * The personal access tokens table (tokens_live/index.html.heex): masked

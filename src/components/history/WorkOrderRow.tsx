@@ -3,21 +3,15 @@ import IconButton from "../IconButton";
 import { Checkbox } from "../Inputs";
 import Pill from "../Pill";
 import { Td, Tr } from "../Table";
-import type { WorkOrder } from "../../mock-data/history";
-import {
-  activeStates,
-  lastRunOf,
-  runsOfWorkOrder,
-  uuidOf,
-  workOrderDataclipAvailable,
-} from "../../mock-data/history-extra";
+import type { HistoryWorkOrder } from "../../types/history";
+import { activeStates } from "../../constants";
+import { formatElapsed, uuidOf } from "../../utils/format";
 import DateTime from "../DateTime";
 import TextLink from "../TextLink";
 import StatePill from "./StatePill";
 import UuidChip from "../UuidChip";
 import { RunCard } from "./RunDetails";
 import { cn } from "../../utils/cn";
-import { formatElapsed } from "../../utils/format";
 import { zeroPersistenceMessage as zeroPersistence } from "./runHelpers";
 
 /**
@@ -32,7 +26,7 @@ export default function WorkOrderRow({
   canRunWorkflow = true,
   defaultExpanded = false,
 }: {
-  workOrder: WorkOrder;
+  workOrder: HistoryWorkOrder;
   projectId: string;
   selected?: boolean;
   onSelect?: (selected: boolean) => void;
@@ -41,9 +35,9 @@ export default function WorkOrderRow({
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const [showPrevious, setShowPrevious] = useState(false);
-  const runs = runsOfWorkOrder(workOrder);
-  const lastRun = lastRunOf(workOrder);
-  const available = workOrderDataclipAvailable(workOrder);
+  const runs = workOrder.runs;
+  const lastRun = runs[0];
+  const available = !workOrder.dataclipWiped;
   const wo = workOrder;
 
   return (

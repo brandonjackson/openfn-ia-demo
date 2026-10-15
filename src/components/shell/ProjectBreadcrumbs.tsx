@@ -1,8 +1,10 @@
 import type { ReactNode } from "react";
-import type { Project } from "../../mock-data/projects";
+import type { Project } from "../../types/projects";
 import { Breadcrumb, BreadcrumbPicker, Breadcrumbs } from "../Breadcrumbs";
 import PickerButton from "./PickerButton";
 import { projectLabel } from "./projectPickerItems";
+// eslint-disable-next-line no-restricted-imports -- wiring: a sandbox's ancestors, for the "parent/child" picker label.
+import { projects } from "../../mock-data/projects";
 
 interface Props {
   project: Project;
@@ -17,7 +19,7 @@ export default function ProjectBreadcrumbs({ project, items = [], current }: Pro
   return (
     <Breadcrumbs>
       <BreadcrumbPicker>
-        <PickerButton label={projectLabel(project)} isSandbox={project.parentId !== null} color={project.color} />
+        <PickerButton label={projectLabel(project, projects)} isSandbox={project.parentId !== null} color={project.color} />
       </BreadcrumbPicker>
       {items.map(([label, to]) => (
         <Breadcrumb key={to} to={to}>

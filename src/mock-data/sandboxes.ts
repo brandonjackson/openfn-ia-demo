@@ -4,40 +4,9 @@
  * state and per-sandbox permissions). Built on projects.ts, plus one sandbox
  * scheduled for deletion so that section renders.
  */
-import { findProject, projects, type Project } from "./projects";
-
-export interface SandboxRow {
-  id: string;
-  name: string;
-  color: string | null;
-  parentId: string | null;
-  /** Environment label, e.g. "staging". Shown as a badge when set. */
-  env: string | null;
-  scheduledDeletion: string | null;
-  canEdit: boolean;
-  canDelete: boolean;
-  canMerge: boolean;
-}
-
-/** Lightning's sandbox colour palette (`SandboxLive.Components.@color_palette`). */
-export const sandboxColorPalette = [
-  "#870d4c",
-  "#E33D63",
-  "#E64A2E",
-  "#F39B33",
-  "#F4C644",
-  "#fcde32",
-  "#d6e819",
-  "#9AD04E",
-  "#E040FB",
-  "#8E3FB1",
-  "#5E3FB8",
-  "#5AA1F0",
-  "#68d6e2",
-  "#4AC1CE",
-  "#2E9B92",
-  "#56B15A",
-];
+import { findProject, projects } from "./projects";
+import type { Project } from "../types/projects";
+import type { SandboxRow } from "../types/sandboxes";
 
 const envs: Record<string, string> = {
   "8c1d2e3f-4a5b-4c6d-9e7f-0a1b2c3d4e5f": "staging",
@@ -97,6 +66,3 @@ export function findSandboxRow(id: string | undefined): SandboxRow | undefined {
   if (p) return toRow(p);
   return scheduled.find((s) => s.id === id);
 }
-
-/** Lightning's deletion grace period (`purge_deleted_after_days`). */
-export const sandboxGracePeriodLabel = "7 days";

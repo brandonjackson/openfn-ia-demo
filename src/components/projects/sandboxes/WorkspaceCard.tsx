@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import type { SandboxRow } from "../../../mock-data/sandboxes";
+import type { SandboxRow } from "../../../types/sandboxes";
 import { cn } from "../../../utils/cn";
 import { formatUtcDate } from "../../../utils/format";
 import Card from "../../Card";

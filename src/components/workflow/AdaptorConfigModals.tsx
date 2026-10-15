@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { adaptorAtVersion, latestAdaptor } from "../../mock-data/adaptors";
-import type { EditorJob } from "../../mock-data/workflow";
+import { adaptorAtVersion, latestAdaptor } from "../../utils/adaptors";
+import type { EditorJob } from "../../types/workflow-graph";
 import AdaptorSelectionModal from "./AdaptorSelectionModal";
 import ConfigureAdaptorModal from "./ConfigureAdaptorModal";
 

@@ -1,4 +1,4 @@
-import type { FailureState } from "../../../mock-data/workflow-health";
+import type { FailureState } from "../../../types/workflow-health";
 
 /** Status colours shared by the health charts (assets/js/health/charts). */
 export const SUCCESS = "#0ca30c";

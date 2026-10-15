@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import CollaboratorsTable from "./CollaboratorsTable";
 import { projects } from "../../mock-data/projects";
-import { currentUser } from "../../mock-data/users";
+import { session, users } from "../../mock-data/users";
 
 const noop = () => {};
 const meta: Meta<typeof CollaboratorsTable> = {
@@ -9,7 +9,8 @@ const meta: Meta<typeof CollaboratorsTable> = {
   component: CollaboratorsTable,
   args: {
     members: projects[0].members,
-    currentUserId: currentUser.id,
+    users,
+    currentUserId: session.user.id,
     canRemoveProjectUser: true,
     canAdd: true,
     onChange: noop,

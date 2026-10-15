@@ -8,10 +8,11 @@ import SectionHeader from "../SectionHeader";
 import TextLink from "../TextLink";
 import Toggle from "../Toggle";
 import Card from "../Card";
-import { fakeTotpSecret } from "../../mock-data/profile";
 
 interface Props {
   mfaEnabled: boolean;
+  /** The TOTP secret offered while setting up MFA ("this secret key"). */
+  totpSecret: string;
   onChange?: (enabled: boolean) => void;
 }
 
@@ -36,7 +37,7 @@ function FakeQrCode() {
  * opens the authenticator-app setup, or the "Disable MFA" confirmation when
  * MFA is on; with MFA on it links to the recovery codes.
  */
-export default function MfaCard({ mfaEnabled, onChange }: Props) {
+export default function MfaCard({ mfaEnabled, totpSecret, onChange }: Props) {
   const id = "mfa_section";
   const [editing, setEditing] = useState(false);
   const [code, setCode] = useState("");
@@ -143,7 +144,7 @@ export default function MfaCard({ mfaEnabled, onChange }: Props) {
       </ConfirmModal>
 
       <Modal open={showSecret} onClose={() => setShowSecret(false)} title="Your two-factor secret" size="sm">
-        <code className="text-sm text-gray-600">{fakeTotpSecret}</code>
+        <code className="text-sm text-gray-600">{totpSecret}</code>
       </Modal>
     </Card>
   );

@@ -1,5 +1,5 @@
-import type { RunState, WorkOrderState } from "../../mock-data/history";
-import type { ChannelRequestState } from "../../mock-data/channel-requests";
+import type { RunState, WorkOrderState } from "../../types/history";
+import type { ChannelRequestState } from "../../types/channels";
 import Pill, { type PillColor } from "../Pill";
 import { capitalize } from "../../utils/format";
 

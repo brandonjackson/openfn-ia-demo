@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import UserMenu from "./UserMenu";
-import { currentUser, users } from "../../mock-data/users";
+import { session, users } from "../../mock-data/users";
 import { withRouter } from "../../stories/decorators";
 
 const meta: Meta<typeof UserMenu> = {
@@ -14,7 +14,7 @@ const meta: Meta<typeof UserMenu> = {
       </div>
     ),
   ],
-  args: { user: currentUser },
+  args: { user: session.user },
 };
 export default meta;
 type Story = StoryObj<typeof UserMenu>;

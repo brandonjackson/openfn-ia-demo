@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import type { ProjectOverview } from "../../mock-data/dashboard-stats";
+import type { ProjectOverview } from "../../types/workflows";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 import TableTitle from "../TableTitle";
 import DateTime from "../DateTime";

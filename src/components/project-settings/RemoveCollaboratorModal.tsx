@@ -1,6 +1,6 @@
 import ConfirmModal from "../ConfirmModal";
-import type { User } from "../../mock-data/users";
-import { fullName } from "../../mock-data/users";
+import type { User } from "../../types/users";
+import { fullName } from "../../utils/format";
 
 interface Props {
   user: User;

@@ -1,11 +1,6 @@
 import { formatNumber } from "../../../utils/format";
 import { useState } from "react";
-import {
-  DEFAULT_HEALTH_DAYS,
-  healthFor,
-  type HealthRange,
-  type WorkOrderStateCounts,
-} from "../../../mock-data/workflow-health";
+import type { HealthRange, WorkflowHealthData, WorkOrderStateCounts } from "../../../types/workflow-health";
 import { FailureBreakdownDonut, OutcomesDonut } from "./HealthDonuts";
 import RangePicker from "./RangePicker";
 import StepFailureBars from "./StepFailureBars";
@@ -28,22 +23,26 @@ const workOrders = (counts: WorkOrderStateCounts) => {
  * The workflow health page body (assets/js/health/WorkflowHealth.tsx): the
  * workflow name with a range picker, Work orders / Runs tabs over the
  * Outcomes, Failure breakdown and Steps with failures cards (or Runs over
- * time), and the triage table. Data comes from static fixtures per range.
+ * time), and the triage table. The page owns the range and loads its data.
  */
 export default function WorkflowHealth({
-  workflowId,
   projectId,
   workflowName,
+  days,
+  onDaysChange,
+  data,
   historyRetentionPeriod = null,
 }: {
-  workflowId: string;
   projectId: string;
   workflowName: string;
+  /** The selected range. */
+  days: HealthRange["days"];
+  onDaysChange: (days: HealthRange["days"]) => void;
+  /** What WorkflowHealthController returns for the workflow over `days`. */
+  data: WorkflowHealthData;
   historyRetentionPeriod?: number | null;
 }) {
-  const [days, setDays] = useState<HealthRange["days"]>(DEFAULT_HEALTH_DAYS);
   const [tab, setTab] = useState<Tab>("Work orders");
-  const data = healthFor(workflowId, days);
   const historyHref = `/projects/${projectId}/history`;
   const empty = (noun = "finished work orders") => `No ${noun} in the last ${windowLabel(days)}`;
 
@@ -54,7 +53,7 @@ export default function WorkflowHealth({
           {workflowName}
         </Heading>
         <div className="order-1 shrink-0 md:order-2">
-          <RangePicker days={days} onChange={setDays} retentionDays={historyRetentionPeriod} />
+          <RangePicker days={days} onChange={onDaysChange} retentionDays={historyRetentionPeriod} />
         </div>
       </div>
 

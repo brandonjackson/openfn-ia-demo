@@ -1,5 +1,4 @@
-import type { User } from "../../mock-data/users";
-import { isSupportUser } from "../../mock-data/admin";
+import type { User } from "../../types/users";
 import SearchInput from "../SearchInput";
 import ButtonMenu from "../ButtonMenu";
 import { MenuItem } from "../Menu";
@@ -15,7 +14,7 @@ const sortMap: Record<SortKey, (u: User) => SortValue> = {
   email: (u) => u.email,
   role: (u) => u.role,
   enabled: (u) => !u.disabled,
-  support_user: (u) => isSupportUser(u),
+  support_user: (u) => u.supportUser,
   scheduled_deletion: (u) => u.scheduledDeletion ?? null,
 };
 
@@ -73,7 +72,7 @@ export default function UsersTable({
             </Td>
             <Td>{user.role}</Td>
             <Td>{!user.disabled && checkIcon}</Td>
-            <Td>{isSupportUser(user) && checkIcon}</Td>
+            <Td>{user.supportUser && checkIcon}</Td>
             <Td>{user.scheduledDeletion && formatShortDateTime(user.scheduledDeletion)}</Td>
             <Td className="py-0.5">
               <ButtonMenu label="Actions">

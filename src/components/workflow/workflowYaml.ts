@@ -1,4 +1,4 @@
-import type { WorkflowGraph } from "../../mock-data/workflow";
+import type { WorkflowGraph } from "../../types/workflow-graph";
 
 const slug = (s: string) => s.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "");
 

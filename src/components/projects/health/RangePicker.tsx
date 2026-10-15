@@ -1,4 +1,5 @@
-import { HEALTH_RANGES, type HealthRange } from "../../../mock-data/workflow-health";
+import { HEALTH_RANGES } from "../../../constants";
+import type { HealthRange } from "../../../types/workflow-health";
 import Tabs from "../../Tabs";
 
 /**

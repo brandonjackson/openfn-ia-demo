@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { withRouter } from "../../stories/decorators";
 import { channelRequests } from "../../mock-data/channel-requests";
+import { channels } from "../../mock-data/channels";
 import ChannelRequestsTable from "./ChannelRequestsTable";
 
 const meta = {
@@ -11,5 +12,5 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = { args: { requests: channelRequests, projectId: "p" } };
-export const Empty: Story = { args: { requests: [], projectId: "p" } };
+export const Default: Story = { args: { requests: channelRequests, channels, projectId: "p" } };
+export const Empty: Story = { args: { requests: [], channels, projectId: "p" } };

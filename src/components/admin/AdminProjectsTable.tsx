@@ -1,5 +1,4 @@
-import type { Project } from "../../mock-data/projects";
-import { projectOwnerName, projectScheduledDeletions } from "../../mock-data/admin";
+import type { AdminProjectRow } from "../../types/admin";
 import SearchInput from "../SearchInput";
 import ButtonMenu from "../ButtonMenu";
 import { MenuItem } from "../Menu";
@@ -9,17 +8,15 @@ import { formatShortDateTime } from "../../utils/format";
 
 type SortKey = "name" | "inserted_at" | "description" | "owner" | "scheduled_deletion";
 
-const scheduled = (p: Project) => projectScheduledDeletions[p.id] ?? null;
-
-const sortMap: Record<SortKey, (p: Project) => SortValue> = {
+const sortMap: Record<SortKey, (p: AdminProjectRow) => SortValue> = {
   name: (p) => p.name,
   inserted_at: (p) => p.insertedAt,
   description: (p) => p.description,
-  owner: (p) => projectOwnerName(p),
-  scheduled_deletion: (p) => scheduled(p),
+  owner: (p) => p.ownerName,
+  scheduled_deletion: (p) => p.scheduledDeletion,
 };
 
-const searchFields: ((p: Project) => string)[] = [(p) => p.name, (p) => p.description, (p) => projectOwnerName(p)];
+const searchFields: ((p: AdminProjectRow) => string)[] = [(p) => p.name, (p) => p.description, (p) => p.ownerName];
 
 /**
  * The superuser projects table (project_live/index.html.heex): every project
@@ -30,8 +27,8 @@ export default function AdminProjectsTable({
   projects,
   onCancelDeletion,
 }: {
-  projects: Project[];
-  onCancelDeletion?: (project: Project) => void;
+  projects: AdminProjectRow[];
+  onCancelDeletion?: (project: AdminProjectRow) => void;
 }) {
   const { rows, filter, setFilter, thProps } = useTableSort({
     rows: projects,
@@ -58,8 +55,8 @@ export default function AdminProjectsTable({
         }
       >
         {rows.map((project) => {
-          const owner = projectOwnerName(project);
-          const deletion = scheduled(project);
+          const owner = project.ownerName;
+          const deletion = project.scheduledDeletion;
           return (
             <Tr key={project.id} id={`project-row-${project.id}`}>
               <Td className="max-w-80">{project.name}</Td>

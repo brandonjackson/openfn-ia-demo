@@ -1,4 +1,4 @@
-import type { SandboxRow } from "../../../mock-data/sandboxes";
+import type { SandboxRow } from "../../../types/sandboxes";
 import Card from "../../Card";
 import Heading from "../../Heading";
 import TextLink from "../../TextLink";

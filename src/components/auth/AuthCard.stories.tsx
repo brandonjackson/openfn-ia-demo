@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import AuthCard, { AuthFooterLinks } from "./AuthCard";
 import Button from "../Button";
 import { TextInput } from "../Inputs";
-import { authMessages } from "../../mock-data/auth";
+import { authMessages } from "../../constants";
 import { withRouter } from "../../stories/decorators";
 import TextLink from "../TextLink";
 

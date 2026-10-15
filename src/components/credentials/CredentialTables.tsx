@@ -3,16 +3,9 @@ import Heading from "../Heading";
 import InfoTooltip from "../InfoTooltip";
 import Pill from "../Pill";
 import { Table, Td, Th, Tr } from "../Table";
-import {
-  credentialTypeLabel,
-  credentials as allCredentials,
-  missingOauthClient,
-  ownerEmail,
-  projectNames,
-  type Credential,
-  type KeychainCredential,
-  type OauthClient,
-} from "../../mock-data/credentials";
+// eslint-disable-next-line no-restricted-imports -- wiring: owner emails, project names and OAuth client names are joins; Lightning preloads them.
+import { credentialTypeLabel, credentials as allCredentials, missingOauthClient, ownerEmail, projectNames } from "../../mock-data/credentials";
+import type { Credential, KeychainCredential, OauthClient } from "../../types/credentials";
 
 /**
  * The three tables of the credential index (live/components/data_tables.ex):

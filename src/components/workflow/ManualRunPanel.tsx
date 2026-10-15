@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Dataclip } from "../../mock-data/history";
+import type { Dataclip } from "../../types/history";
 import { cn } from "../../utils/cn";
 import DataclipTypePill from "../history/DataclipTypePill";
 import Button from "../Button";
@@ -13,8 +13,7 @@ import InspectorLayout, { InspectorFooter } from "./InspectorLayout";
 import NewRunButton from "./NewRunButton";
 import SearchInput from "../SearchInput";
 import { matchesQuery } from "../../utils/search";
-import { formatLocalDate, formatShortLocalDateTime, shortUuid } from "../../utils/format";
-import { uuidOf } from "../../mock-data/history-extra";
+import { formatLocalDate, formatShortLocalDateTime, shortUuid, uuidOf } from "../../utils/format";
 
 type Tab = "empty" | "custom" | "existing";
 

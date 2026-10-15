@@ -16,10 +16,12 @@ import ChannelRequestSummary from "../../components/history/ChannelRequestSummar
 import ChannelTiming from "../../components/history/ChannelTiming";
 import WipedDataViewer from "../../components/history/WipedDataViewer";
 import { errorCategory, humanizeError } from "../../components/history/channelHelpers";
-import { findChannel, findChannelRequest, primaryEvent } from "../../mock-data/channel-requests";
-import { historyPermissions } from "../../mock-data/history-extra";
+import { findChannel } from "../../mock-data/channels";
+import { findChannelRequest } from "../../mock-data/channel-requests";
+import { primaryEvent } from "../../utils/history";
 import { findProject } from "../../mock-data/projects";
 import { shortUuid } from "../../utils/format";
+import { usePermissions } from "../../session/session";
 
 const sizeNote = (size: number | null) => (size ? <SectionSizeBadge size={size} /> : null);
 
@@ -27,6 +29,7 @@ const sizeNote = (size: number | null) => (size ? <SectionSizeBadge size={size} 
 export default function ChannelRequestShowPage() {
   const { projectId = "", requestId } = useParams();
   const project = findProject(projectId);
+  const { canEditDataRetention } = usePermissions(project);
   const request = findChannelRequest(requestId);
   const channel = request && findChannel(request.channelId);
   const event = request && primaryEvent(request);
@@ -81,7 +84,7 @@ export default function ChannelRequestShowPage() {
             <WipedDataViewer
               dataLabel="request_response"
               projectId={projectId}
-              canEditDataRetention={historyPermissions.canEditDataRetention}
+              canEditDataRetention={canEditDataRetention}
             />
           ) : (
             <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">

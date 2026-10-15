@@ -2,22 +2,7 @@
  * AI Assistant conversations shown in the workflow editor's assistant panel.
  * Static fixtures only: the demo has no assistant behind it.
  */
-
-export interface AIMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  /** Job code the assistant proposed, shown as an artifact with Add / Copy. */
-  code?: string;
-}
-
-export interface AISession {
-  id: string;
-  workflowId: string;
-  title: string;
-  updatedAt: string;
-  messages: AIMessage[];
-}
+import type { AISession } from "../types/ai-assistant";
 
 export const aiSessions: AISession[] = [
   {

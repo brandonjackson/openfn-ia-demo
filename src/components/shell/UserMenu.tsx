@@ -1,4 +1,4 @@
-import type { User } from "../../mock-data/users";
+import type { User } from "../../types/users";
 import Menu, { MenuDivider, MenuHeader, MenuItem } from "../Menu";
 import UserAvatar from "../UserAvatar";
 

@@ -8,8 +8,8 @@ import LinkedUsageModal from "./LinkedUsageModal";
 import WebhookAuthMethodDeleteModal from "./WebhookAuthMethodDeleteModal";
 import WebhookAuthMethodFormModal from "./WebhookAuthMethodFormModal";
 import WebhookAuthMethodsTable from "./WebhookAuthMethodsTable";
-import type { Project } from "../../mock-data/projects";
-import type { WebhookAuthMethod } from "../../mock-data/project-settings";
+import type { Project } from "../../types/projects";
+import type { WebhookAuthMethod } from "../../types/project-settings";
 
 interface Props {
   projectId: string;

@@ -1,13 +1,11 @@
-import { stepsOf, type Run, type Step } from "../../mock-data/history";
-import { findDataclip } from "../../mock-data/history";
-import { shortId, uuidOf } from "../../mock-data/history-extra";
+import type { HistoryRun, HistoryStep, Run } from "../../types/history";
+import { formatElapsed, shortId, uuidOf } from "../../utils/format";
 import Card from "../Card";
 import IconButton from "../IconButton";
 import DateTime from "../DateTime";
 import TextLink from "../TextLink";
 import StepIcon from "./StepIcon";
 import { cn } from "../../utils/cn";
-import { formatElapsed } from "../../utils/format";
 import { clonedStepMessage, inspectStepPath, isClonedStep, zeroPersistenceMessage } from "./runHelpers";
 
 /**
@@ -22,14 +20,14 @@ export function StepListItem({
   workflowId,
   canRunWorkflow = true,
 }: {
-  step: Step;
+  step: HistoryStep;
   run: Run;
   projectId: string;
   workflowId: string;
   canRunWorkflow?: boolean;
 }) {
   const isClone = isClonedStep(step, run);
-  const inputAvailable = !findDataclip(step.inputDataclipId)?.wiped;
+  const inputAvailable = !step.inputWiped;
   return (
     <div id={`step-${step.id}`} role="row" className={cn("flex items-center text-xs text-gray-500 hover:bg-white", isClone && "opacity-50")}>
       <div role="cell" className="flex flex-1 items-center gap-2 py-2 pl-4">
@@ -99,7 +97,7 @@ export function RunCard({
   workflowId,
   canRunWorkflow = true,
 }: {
-  run: Run;
+  run: HistoryRun;
   /** 1-based position, oldest first. */
   index: number;
   total: number;
@@ -110,7 +108,7 @@ export function RunCard({
   canRunWorkflow?: boolean;
 }) {
   const [label, at] = runStatusText(run);
-  const steps = stepsOf(run);
+  const steps = run.steps;
   return (
     <Card id={`run_${run.id}`} padding="none" className="overflow-hidden">
       <div className="flex items-center bg-gray-200 text-xs">

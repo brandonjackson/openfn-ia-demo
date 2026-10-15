@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { collectionProjectOptions, type Collection } from "../../mock-data/admin";
+import type { Collection } from "../../types/project-settings";
 import { urlSafeName } from "../../utils/format";
 import FormModal from "../FormModal";
 import { Select } from "../Inputs";
@@ -8,6 +8,8 @@ import NameField from "../NameField";
 interface Props {
   /** The collection being edited; omit to create one. */
   collection?: Collection;
+  /** Every project on the instance, as [name, id], sorted by name. */
+  projectOptions: [label: string, value: string][];
   onCancel: () => void;
   onSave: (name: string, projectId: string) => void;
 }
@@ -17,9 +19,9 @@ interface Props {
  * (collection_live/collection_creation_modal.ex): a name, with the slug it
  * will get, and the project it belongs to.
  */
-export default function AdminCollectionModal({ collection, onCancel, onSave }: Props) {
+export default function AdminCollectionModal({ collection, projectOptions, onCancel, onSave }: Props) {
   const [rawName, setRawName] = useState(collection?.name ?? "");
-  const [projectId, setProjectId] = useState(collection?.projectId ?? collectionProjectOptions[0]?.[1] ?? "");
+  const [projectId, setProjectId] = useState(collection?.projectId ?? projectOptions[0]?.[1] ?? "");
   const name = urlSafeName(rawName);
 
   return (
@@ -46,7 +48,7 @@ export default function AdminCollectionModal({ collection, onCancel, onSave }: P
         id="collection_project_id"
         label="Project"
         required
-        options={collectionProjectOptions}
+        options={projectOptions}
         value={projectId}
         onChange={(e) => setProjectId(e.target.value)}
       />

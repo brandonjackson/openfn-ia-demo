@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { withRouter } from "../stories/decorators";
-import { uuidOf } from "../mock-data/history-extra";
+import { uuidOf } from "../utils/format";
 import UuidChip from "./UuidChip";
 
 const meta = {

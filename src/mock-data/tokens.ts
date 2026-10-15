@@ -3,14 +3,7 @@
  * (/profile/tokens, /profile/auth/backup_codes). Static fixtures only:
  * every value is an obviously fake placeholder, never a real secret.
  */
-
-export interface ApiToken {
-  id: string;
-  /** Full token; only its last 10 characters are ever shown in the table. */
-  token: string;
-  insertedAt: string;
-  lastUsedAt: string | null;
-}
+import type { ApiToken, BackupCode } from "../types/tokens";
 
 export const apiTokens: ApiToken[] = [
   {
@@ -27,11 +20,6 @@ export const apiTokens: ApiToken[] = [
   },
 ];
 
-/** Lightning's `mask_token`: "..." plus the last 10 characters. */
-export function maskToken(token: ApiToken): string {
-  return "..." + token.token.slice(-10);
-}
-
 /** A new fake token, shown once after "Generate New Token". */
 export function generateFakeToken(): ApiToken {
   const suffix = Math.random().toString(36).slice(2, 12).padEnd(10, "x");
@@ -41,11 +29,6 @@ export function generateFakeToken(): ApiToken {
     insertedAt: new Date().toISOString(),
     lastUsedAt: null,
   };
-}
-
-export interface BackupCode {
-  code: string;
-  usedAt: string | null;
 }
 
 /** Ten placeholder recovery codes; one already used. */

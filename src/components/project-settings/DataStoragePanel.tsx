@@ -8,7 +8,7 @@ import SectionHeader from "../SectionHeader";
 import TextLink from "../TextLink";
 import { useToast } from "../Toast";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
-import type { RetentionPolicy } from "../../mock-data/projects";
+import type { RetentionPolicy } from "../../types/projects";
 import { cn } from "../../utils/cn";
 
 interface RetentionSettings {

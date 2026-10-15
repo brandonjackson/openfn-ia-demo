@@ -1,4 +1,4 @@
-import type { WorkflowGraph } from "../../mock-data/workflow";
+import type { WorkflowGraph } from "../../types/workflow-graph";
 import Button from "../Button";
 import CodeEditor from "./CodeEditor";
 import InspectorLayout, { InspectorFooter } from "./InspectorLayout";

@@ -1,4 +1,4 @@
-import type { Step } from "../../mock-data/history";
+import type { Step } from "../../types/history";
 import { cn } from "../../utils/cn";
 
 const icons: Record<string, [string, string]> = {

@@ -4,25 +4,7 @@
  */
 
 import { kickstartWorkflows } from "./generated/kickstart";
-
-export type TriggerType = "webhook" | "cron" | "kafka";
-
-export interface WorkflowSummary {
-  id: string;
-  projectId: string;
-  name: string;
-  triggerType: TriggerType;
-  /** Whether the trigger is enabled ("Active" toggle on the index). */
-  enabled: boolean;
-  /** Human-readable trigger description, e.g. the cron expression. */
-  triggerLabel: string;
-  lastRunAt: string | null;
-  lastRunStatus: "success" | "failed" | "crashed" | "running" | null;
-  workOrderCount: number;
-  failedWorkOrderCount: number;
-  updatedAt: string;
-  insertedAt: string;
-}
+import type { WorkflowSummary } from "../types/workflows";
 
 export const workflows: WorkflowSummary[] = [
   {

@@ -1,6 +1,6 @@
 import DateTime from "../DateTime";
 import Heading from "../Heading";
-import type { User } from "../../mock-data/users";
+import type { User } from "../../types/users";
 
 /** Left column of /profile (profile_live/components.ex `user_info`). */
 export default function UserInfo({ user }: { user: User }) {

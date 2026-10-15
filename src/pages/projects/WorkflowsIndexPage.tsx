@@ -7,9 +7,11 @@ import ProjectMetrics from "../../components/projects/ProjectMetrics";
 import WorkflowsHeader from "../../components/projects/WorkflowsHeader";
 import WorkflowsTable from "../../components/projects/WorkflowsTable";
 import { useToast } from "../../components/Toast";
-import { projectMetricsFor, workflowStatsFor } from "../../mock-data/dashboard-stats";
-import { findProject, roleIn } from "../../mock-data/projects";
-import { currentUser } from "../../mock-data/users";
+import { projectMetricsFor } from "../../utils/history";
+import { workflowStatsFor } from "../../mock-data/dashboard-stats";
+import { findProject } from "../../mock-data/projects";
+import { permissionsFor } from "../../permissions";
+import { useCurrentUser } from "../../session/session";
 import { matchesQuery } from "../../utils/search";
 
 /**
@@ -19,6 +21,7 @@ import { matchesQuery } from "../../utils/search";
  */
 export default function WorkflowsIndexPage() {
   const { projectId } = useParams();
+  const user = useCurrentUser();
   const project = findProject(projectId);
   const [search, setSearch] = useState("");
   const [enabled, setEnabled] = useState<Record<string, boolean>>({});
@@ -27,7 +30,7 @@ export default function WorkflowsIndexPage() {
 
   if (!project) return <Navigate to="/projects" replace />;
 
-  const canEdit = roleIn(project, currentUser.id) !== "viewer";
+  const { canCreateWorkflow, canDeleteWorkflow } = permissionsFor(project, user);
   const stats = workflowStatsFor(project.id)
     .filter((s) => !deleted.includes(s.workflow.id))
     .filter((s) => matchesQuery(search, s.workflow.name))
@@ -39,7 +42,7 @@ export default function WorkflowsIndexPage() {
         <WorkflowsHeader
           count={stats.length}
           projectId={project.id}
-          canCreate={canEdit}
+          canCreate={canCreateWorkflow}
           searchTerm={search}
           onSearch={setSearch}
         />
@@ -49,7 +52,7 @@ export default function WorkflowsIndexPage() {
             stats={stats}
             projectId={project.id}
             searchTerm={search}
-            canDelete={canEdit}
+            canDelete={canDeleteWorkflow}
             onToggle={(id, v) => {
               setEnabled((m) => ({ ...m, [id]: v }));
               toast("Workflow updated");

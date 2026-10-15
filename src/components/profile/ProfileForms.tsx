@@ -3,8 +3,8 @@ import Button from "../Button";
 import Card from "../Card";
 import InfoTooltip from "../InfoTooltip";
 import { PasswordInput, Select, TextInput } from "../Inputs";
-import type { User } from "../../mock-data/users";
-import { contactPreferenceOptions, contactPreferenceTooltip } from "../../mock-data/profile";
+import type { User } from "../../types/users";
+import { contactPreferenceOptions, contactPreferenceTooltip } from "../../constants";
 import { isValidEmail } from "../../utils/validate";
 
 /**

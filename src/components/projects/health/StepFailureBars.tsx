@@ -1,5 +1,5 @@
 import { formatNumber } from "../../../utils/format";
-import type { ErrorSignature } from "../../../mock-data/workflow-health";
+import type { ErrorSignature } from "../../../types/workflow-health";
 import { cn } from "../../../utils/cn";
 import { EMPTY, FAILED, UNATTRIBUTED, adaptorLabel } from "./palette";
 

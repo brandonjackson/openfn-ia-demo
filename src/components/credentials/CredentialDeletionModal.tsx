@@ -1,7 +1,7 @@
 import Modal from "../Modal";
 import Button from "../Button";
 import ConfirmModal from "../ConfirmModal";
-import type { Credential } from "../../mock-data/credentials";
+import type { Credential } from "../../types/credentials";
 
 interface Props {
   open: boolean;

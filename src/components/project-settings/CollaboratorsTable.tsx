@@ -1,13 +1,15 @@
 import Button from "../Button";
 import { Select } from "../Inputs";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
-import type { ProjectMember } from "../../mock-data/projects";
-import { digestOptions } from "../../mock-data/project-settings";
-import { findUser, fullName } from "../../mock-data/users";
-import { capitalize } from "../../utils/format";
+import type { ProjectMember } from "../../types/projects";
+import { digestOptions } from "../../constants";
+import type { User } from "../../types/users";
+import { capitalize, fullName } from "../../utils/format";
 
 interface Props {
   members: ProjectMember[];
+  /** Users to show each member's name and email from. */
+  users: User[];
   currentUserId: string;
   canRemoveProjectUser: boolean;
   /** Whether the instance can send failure alerts at all. */
@@ -33,6 +35,7 @@ function removeTooltip(member: ProjectMember, currentUserId: string, canRemove: 
  */
 export default function CollaboratorsTable({
   members,
+  users,
   currentUserId,
   canRemoveProjectUser,
   canReceiveFailureAlerts = true,
@@ -66,7 +69,7 @@ export default function CollaboratorsTable({
       }
     >
       {members.map((m) => {
-        const user = findUser(m.userId);
+        const user = users.find((u) => u.id === m.userId);
         const self = m.userId === currentUserId;
         const tooltip = removeTooltip(m, currentUserId, canRemoveProjectUser);
         return (

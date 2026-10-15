@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState, type ComponentProps } from "react";
 import { withRouter } from "../../stories/decorators";
 import { workOrders } from "../../mock-data/history";
+import { historyWorkOrder } from "../../mock-data/history-extra";
 import WorkOrdersTable from "./WorkOrdersTable";
 
 const meta = {
@@ -13,7 +14,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const base = {
-  workOrders,
+  workOrders: workOrders.map(historyWorkOrder),
   projectId: "p",
   sort: { by: "last_activity", direction: "desc" } as const,
   onSort: () => {},

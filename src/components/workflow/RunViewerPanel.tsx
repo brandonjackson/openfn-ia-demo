@@ -1,7 +1,7 @@
-import type { Dataclip, LogLine, Run, Step } from "../../mock-data/history";
-import { finalRunStates, uuidOf } from "../../mock-data/history-extra";
+import type { Dataclip, LogLine, Run, Step } from "../../types/history";
+import { finalRunStates } from "../../constants";
+import { formatElapsed, formatLocalDateTime, uuidOf } from "../../utils/format";
 import { cn } from "../../utils/cn";
-import { formatElapsed, formatLocalDateTime } from "../../utils/format";
 import CodeEditor from "./CodeEditor";
 import StatePill from "../history/StatePill";
 import StepIcon from "../history/StepIcon";

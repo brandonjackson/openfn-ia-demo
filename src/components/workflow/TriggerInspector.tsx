@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from "react";
-import { webhookUrl, type EditorTrigger } from "../../mock-data/workflow";
+import { webhookUrl } from "../../utils/urls";
+import type { EditorTrigger } from "../../types/workflow-graph";
 import { cn } from "../../utils/cn";
 import Button from "../Button";
 import Card from "../Card";

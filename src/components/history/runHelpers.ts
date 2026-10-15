@@ -1,4 +1,4 @@
-import type { Run, Step } from "../../mock-data/history";
+import type { Run, Step } from "../../types/history";
 
 /** Shared by History's work order rows and the run page's step lists. */
 

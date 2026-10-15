@@ -3,7 +3,7 @@ import { dataclipsIn, findRun, stepsOf, workOrdersOfWorkflow } from "../../mock-
 import { logsOf, runsOfWorkOrder } from "../../mock-data/history-extra";
 import type { HistoryWorkOrder } from "../../components/workflow/MiniHistory";
 import type { RunOverlay } from "../../components/workflow/WorkflowDiagram";
-import type { WorkflowGraph } from "../../mock-data/workflow";
+import type { WorkflowGraph } from "../../types/workflow-graph";
 import { formatDuration } from "../../utils/format";
 
 const EXIT_STATE = { success: "success", fail: "fail", crash: "crash" } as const;

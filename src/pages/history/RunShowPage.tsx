@@ -13,18 +13,13 @@ import StatePill from "../../components/history/StatePill";
 import StepDataclipViewer from "../../components/history/StepDataclipViewer";
 import Tabs from "../../components/Tabs";
 import TextLink from "../../components/TextLink";
-import { capitalize, formatElapsed } from "../../utils/format";
+import { capitalize, formatElapsed, shortId, uuidOf } from "../../utils/format";
 import { findDataclip, findRun, findWorkOrder, stepsOf } from "../../mock-data/history";
-import {
-  finalDataclipIdOf,
-  finalRunStates,
-  historyPermissions,
-  logsOf,
-  shortId,
-  uuidOf,
-} from "../../mock-data/history-extra";
+import { finalDataclipIdOf, logsOf } from "../../mock-data/history-extra";
+import { finalRunStates } from "../../constants";
 import { findProject } from "../../mock-data/projects";
 import { findUser } from "../../mock-data/users";
+import { usePermissions } from "../../session/session";
 
 /** Inventory view `run-show` (RunLive.Show, run_live/show.ex). */
 export default function RunShowPage() {
@@ -32,6 +27,7 @@ export default function RunShowPage() {
   const [searchParams] = useSearchParams();
   const [tab, setTab] = useState("log");
   const project = findProject(projectId);
+  const { canRunWorkflow, canEditDataRetention } = usePermissions(project);
   const run = findRun(runId);
   const workOrder = run && findWorkOrder(run.workOrderId);
   const steps = run ? stepsOf(run) : [];
@@ -107,7 +103,7 @@ export default function RunShowPage() {
               <DetailItem label="Status">
                 <StatePill state={run.state} />
               </DetailItem>
-              {run.state === "available" && historyPermissions.canRunWorkflow && (
+              {run.state === "available" && canRunWorkflow && (
                 <DetailItem label="Action">
                   <Button size="sm" theme="secondary">
                     Cancel
@@ -178,7 +174,7 @@ export default function RunShowPage() {
                   )}
                   runFinished={finished}
                   projectId={projectId}
-                  canEditDataRetention={historyPermissions.canEditDataRetention}
+                  canEditDataRetention={canEditDataRetention}
                 />
               )}
             </div>

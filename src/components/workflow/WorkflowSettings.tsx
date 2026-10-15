@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import type { WorkflowGraph } from "../../mock-data/workflow";
+import type { WorkflowGraph } from "../../types/workflow-graph";
 import Button from "../Button";
 import ConfirmModal from "../ConfirmModal";
 import Heading from "../Heading";

@@ -5,7 +5,8 @@ import Tabs from "../../components/Tabs";
 import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import ChannelRequestsTable from "../../components/history/ChannelRequestsTable";
 import FilterChip, { FilterMenu } from "../../components/history/FilterChip";
-import { channelRequestsIn, channelsIn } from "../../mock-data/channel-requests";
+import { channelRequestsIn } from "../../mock-data/channel-requests";
+import { channelsIn } from "../../mock-data/channels";
 import { historyChannelsEnabled } from "../../mock-data/history-extra";
 import { findProject } from "../../mock-data/projects";
 import { useUrlParams } from "../../utils/useUrlParams";
@@ -59,7 +60,7 @@ export default function HistoryChannelLogsPage() {
             Channel is {selected ? selected.name : "any"}
           </FilterChip>
         </div>
-        <ChannelRequestsTable requests={requests} projectId={projectId} />
+        <ChannelRequestsTable requests={requests} channels={channels} projectId={projectId} />
       </Centered>
     </PageContent>
   );

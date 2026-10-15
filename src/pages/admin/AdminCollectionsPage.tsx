@@ -5,7 +5,8 @@ import AdminCollectionModal from "../../components/admin/AdminCollectionModal";
 import AdminCollectionsTable from "../../components/admin/AdminCollectionsTable";
 import CollectionDeleteModal from "../../components/project-settings/CollectionDeleteModal";
 import { useToast } from "../../components/Toast";
-import { collections, type Collection } from "../../mock-data/admin";
+import { adminCollectionRows, collectionProjectOptions } from "../../mock-data/admin";
+import type { Collection } from "../../types/project-settings";
 
 type Dialog = { kind: "create" } | { kind: "edit"; collection: Collection } | { kind: "delete"; collection: Collection };
 
@@ -23,17 +24,18 @@ export default function AdminCollectionsPage() {
     <PageContent header={<Header title="Collections" />}>
       <Centered>
         <AdminCollectionsTable
-          collections={collections}
+          collections={adminCollectionRows()}
           onCreate={() => setDialog({ kind: "create" })}
           onEdit={(collection) => setDialog({ kind: "edit", collection })}
           onDelete={(collection) => setDialog({ kind: "delete", collection })}
         />
         {dialog?.kind === "create" && (
-          <AdminCollectionModal onCancel={close} onSave={closeWith("Collection created successfully")} />
+          <AdminCollectionModal projectOptions={collectionProjectOptions} onCancel={close} onSave={closeWith("Collection created successfully")} />
         )}
         {dialog?.kind === "edit" && (
           <AdminCollectionModal
             collection={dialog.collection}
+            projectOptions={collectionProjectOptions}
             onCancel={close}
             onSave={closeWith("Collection updated successfully")}
           />

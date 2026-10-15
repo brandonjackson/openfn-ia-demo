@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import type { Run, Step } from "../../mock-data/history";
+import type { Run, Step } from "../../types/history";
 import { cn } from "../../utils/cn";
 import StepIcon from "./StepIcon";
 import { formatElapsed } from "../../utils/format";

@@ -10,15 +10,14 @@ import { Checkbox, PasswordInput, Radio, TextArea, TextInput } from "../Inputs";
 import Tabs from "../Tabs";
 import TextLink from "../TextLink";
 import ProjectsPicker from "./ProjectsPicker";
-import { projects as allProjects, type Project } from "../../mock-data/projects";
-import { currentUser } from "../../mock-data/users";
-import {
-  credentialTypeOptions,
-  fieldsForSchema,
-  formatSchemaName,
-  type Credential,
-  type OauthClient,
-} from "../../mock-data/credentials";
+// eslint-disable-next-line no-restricted-imports -- wiring: the projects a credential can be shared with (the user's projects).
+import { projects as allProjects } from "../../mock-data/projects";
+import type { Project } from "../../types/projects";
+import { useCurrentUser } from "../../session/session";
+// eslint-disable-next-line no-restricted-imports -- wiring: credential schemas come from the adaptor registry.
+import { credentialTypeOptions, fieldsForSchema } from "../../mock-data/credentials";
+import { formatSchemaName } from "../../utils/format";
+import type { Credential, OauthClient } from "../../types/credentials";
 
 interface Props {
   open: boolean;
@@ -59,6 +58,7 @@ export default function CredentialFormModal({
   defaultProjectIds = [],
   onSave,
 }: Props) {
+  const user = useCurrentUser();
   const editing = !!credential;
   const [page, setPage] = useState<"first" | "second">(editing ? "second" : "first");
   const [selected, setSelected] = useState<string | null>(null);
@@ -107,7 +107,7 @@ export default function CredentialFormModal({
       name: name.trim(),
       schema: schema ?? "raw",
       oauthClientId: schema === "oauth" ? oauthClientId : undefined,
-      ownerId: credential?.ownerId ?? currentUser.id,
+      ownerId: credential?.ownerId ?? user.id,
       projectIds,
       externalId: externalId.trim() || null,
       environments: envs.map((e) => e.name),

@@ -1,4 +1,4 @@
-import type { ChannelEvent } from "../../mock-data/channel-requests";
+import type { ChannelEvent } from "../../types/channels";
 import Disclosure from "../Disclosure";
 import { cn } from "../../utils/cn";
 import Pill from "../Pill";

@@ -1,4 +1,4 @@
-import type { Dataclip, Step } from "../../mock-data/history";
+import type { Dataclip, Step } from "../../types/history";
 import JsonViewer from "./JsonViewer";
 import TextPingLoader from "./TextPingLoader";
 import WipedDataViewer from "./WipedDataViewer";

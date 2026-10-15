@@ -1,6 +1,6 @@
 import Modal from "../Modal";
 import TextLink from "../TextLink";
-import type { Collection } from "../../mock-data/project-settings";
+import type { Collection } from "../../types/project-settings";
 
 interface Props {
   collection: Collection;

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { adaptorIconUrl } from "../../mock-data/adaptors";
+import { adaptorIconUrl } from "../../utils/adaptors";
 import DiagramNode from "./DiagramNode";
 
 const meta: Meta<typeof DiagramNode> = {

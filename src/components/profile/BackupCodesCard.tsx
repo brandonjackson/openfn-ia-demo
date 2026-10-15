@@ -3,7 +3,7 @@ import Button from "../Button";
 import Card from "../Card";
 import InfoTooltip from "../InfoTooltip";
 import SectionHeader from "../SectionHeader";
-import type { BackupCode } from "../../mock-data/tokens";
+import type { BackupCode } from "../../types/tokens";
 import { useCopy } from "../../utils/useCopy";
 
 /**

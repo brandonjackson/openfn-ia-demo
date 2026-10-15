@@ -5,7 +5,8 @@ import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import DataclipDetailsCard, { DataclipBodyCard } from "../../components/history/DataclipDetailsCard";
 import JsonViewer from "../../components/history/JsonViewer";
 import { findDataclip } from "../../mock-data/history";
-import { dataclipUpdatedAt, shortId } from "../../mock-data/history-extra";
+import { dataclipUpdatedAt } from "../../mock-data/history-extra";
+import { shortId } from "../../utils/format";
 import { findProject } from "../../mock-data/projects";
 
 /** Inventory view `dataclip-show` (DataclipLive.Show, dataclip_live/show.ex). */

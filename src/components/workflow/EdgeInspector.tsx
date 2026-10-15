@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { EdgeConditionType, EditorEdge } from "../../mock-data/workflow";
+import type { EdgeConditionType, EditorEdge } from "../../types/workflow-graph";
 import Button from "../Button";
 import ConfirmModal from "../ConfirmModal";
 import Disclosure from "../Disclosure";

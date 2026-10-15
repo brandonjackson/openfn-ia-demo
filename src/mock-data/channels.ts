@@ -5,31 +5,9 @@
  */
 
 import { webhookAuthMethodsIn } from "./project-settings";
+import type { Channel } from "../types/channels";
 
 const OPENHIE = "4adf2644-ed4e-4f97-a24c-ab35b3cb1efa";
-
-export interface Channel {
-  id: string;
-  projectId: string;
-  name: string;
-  enabled: boolean;
-  destinationUrl: string;
-  /** Project credential used to authenticate with the destination. */
-  destinationCredentialId: string | null;
-  /** Webhook auth methods clients use to call the channel. */
-  clientAuthMethodIds: string[];
-  requestCount: number;
-  lastActivityAt: string | null;
-  /** Bumped on every save; channel requests record the version they ran against. */
-  lockVersion: number;
-}
-
-/** Base URL the proxy URLs hang off (`LightningWeb.Endpoint.url()`). */
-export const channelProxyBase = "https://app.openfn.org";
-
-export function channelProxyUrl(channelId: string): string {
-  return `${channelProxyBase}/channels/${channelId}`;
-}
 
 export const channels: Channel[] = [
   {

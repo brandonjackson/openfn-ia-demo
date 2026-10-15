@@ -7,7 +7,8 @@ import NewTokenBanner from "../../components/profile/NewTokenBanner";
 import TokensTable from "../../components/profile/TokensTable";
 import TokenDeletionModal from "../../components/profile/TokenDeletionModal";
 import { useToast } from "../../components/Toast";
-import { apiTokens, generateFakeToken, type ApiToken } from "../../mock-data/tokens";
+import { apiTokens, generateFakeToken } from "../../mock-data/tokens";
+import type { ApiToken } from "../../types/tokens";
 
 /**
  * Inventory view `profile-tokens` (tokens_live/index.html.heex): "Generate

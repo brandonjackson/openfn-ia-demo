@@ -1,4 +1,4 @@
-import type { Project } from "../../mock-data/projects";
+import type { Project } from "../../types/projects";
 import { Select } from "../Inputs";
 import Pill from "../Pill";
 

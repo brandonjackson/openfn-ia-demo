@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { liveDashboard } from "../../mock-data/admin";
+import type { LiveDashboardData } from "../../types/admin";
 import { cn } from "../../utils/cn";
 import Alert from "../Alert";
 import Card from "../Card";
@@ -8,7 +8,7 @@ import Heading from "../Heading";
 import Pill from "../Pill";
 import TextLink from "../TextLink";
 
-type Data = typeof liveDashboard;
+type Data = LiveDashboardData;
 
 const info = <span className="hero-information-circle h-4 w-4 text-gray-400" />;
 
@@ -49,7 +49,7 @@ function Limit({ label, used, limit }: { label: string; used: number; limit: num
  * the route sits outside the app shell and the page is labelled as an
  * approximation.
  */
-export default function LiveDashboardHome({ data = liveDashboard }: { data?: Data }) {
+export default function LiveDashboardHome({ data }: { data: Data }) {
   const totalMemory = data.memory.reduce((s, m) => s + m.value, 0);
   const versions = [
     { label: "Elixir", value: data.versions.elixir, className: "from-purple-600 to-primary-500" },

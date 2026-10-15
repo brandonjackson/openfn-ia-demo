@@ -9,11 +9,13 @@ import CollaboratorsTable from "./CollaboratorsTable";
 import InviteCollaboratorsModal from "./InviteCollaboratorsModal";
 import RemoveCollaboratorModal from "./RemoveCollaboratorModal";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
-import type { ProjectMember, ProjectRole } from "../../mock-data/projects";
-import { findUser, users } from "../../mock-data/users";
+import type { ProjectMember, ProjectRole } from "../../types/projects";
+import type { User } from "../../types/users";
 
 interface Props {
   initialMembers: ProjectMember[];
+  /** The instance's users: members' details, and who "Add" can find by email. */
+  users: User[];
   currentUserId: string;
   initialSupportAccess: boolean;
   canEditProject: boolean;
@@ -35,6 +37,7 @@ type Modal =
  */
 export default function CollaborationPanel({
   initialMembers,
+  users,
   currentUserId,
   initialSupportAccess,
   canEditProject,
@@ -47,6 +50,7 @@ export default function CollaborationPanel({
   const [modal, setModal] = useState<Modal>(null);
   const close = () => setModal(null);
   const toast = useToast();
+  const findUser = (id: string) => users.find((u) => u.id === id);
   const memberEmails = members.map((m) => findUser(m.userId)?.email.toLowerCase() ?? "");
 
   const addCollaborators = (drafts: CollaboratorDraft[]) => {
@@ -129,6 +133,7 @@ export default function CollaborationPanel({
 
       <CollaboratorsTable
         members={members}
+        users={users}
         currentUserId={currentUserId}
         canRemoveProjectUser={canRemoveProjectUser}
         canAdd={canEditProject}

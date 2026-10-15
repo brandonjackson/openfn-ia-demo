@@ -1,5 +1,5 @@
 import type { PickerItem } from "./Picker";
-import { projects, type Project } from "../../mock-data/projects";
+import type { Project } from "../../types/projects";
 import { matchesQuery } from "../../utils/search";
 
 /**
@@ -23,7 +23,7 @@ export function projectPickerTarget(projectId: string, currentPath: string) {
 }
 
 /** The project tree, flattened in pre-order (Lightning's `build_project_picker_items`). */
-export function buildProjectPickerItems(currentPath: string, all: Project[] = projects): PickerItem[] {
+export function buildProjectPickerItems(currentPath: string, all: Project[]): PickerItem[] {
   const out: PickerItem[] = [];
   const walk = (parentId: string | null, depth: number, parentLabel: string) => {
     all
@@ -50,7 +50,7 @@ export function buildProjectPickerItems(currentPath: string, all: Project[] = pr
 }
 
 /** "parent/child" label for a project, as shown on the picker button. */
-export function projectLabel(project: Project, all: Project[] = projects): string {
+export function projectLabel(project: Project, all: Project[]): string {
   const names: string[] = [];
   let p: Project | undefined = project;
   while (p) {

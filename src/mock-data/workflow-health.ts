@@ -3,56 +3,7 @@
  * returns for `outcomes`, `failures` and `runs` (assets/js/health/types.ts).
  * Static per workflow and per range; the demo never queries.
  */
-
-export const FAILURE_STATES = ["failed", "crashed", "killed", "exception", "lost", "rejected"] as const;
-export type FailureState = (typeof FAILURE_STATES)[number];
-export type WorkOrderStateCounts = Record<"success" | "cancelled" | FailureState, number>;
-
-export const failureTotal = (counts: WorkOrderStateCounts) =>
-  FAILURE_STATES.reduce((sum, state) => sum + counts[state], 0);
-
-export interface ErrorSignature {
-  count: number;
-  exit_reason: string;
-  error_type: string | null;
-  job_id: string | null;
-  step_name: string | null;
-  adaptor: string | null;
-}
-
-export interface RunBucket {
-  at: string;
-  success: number;
-  cancelled: number;
-  failed: number;
-  crashed: number;
-  killed: number;
-  exception: number;
-  lost: number;
-}
-
-export interface HealthRange {
-  days: "1" | "7" | "30";
-  label: string;
-}
-
-/** The range picker's options; "7" is the default (`DEFAULT_DAYS`). */
-export const HEALTH_RANGES: HealthRange[] = [
-  { days: "1", label: "Last 24 hours" },
-  { days: "7", label: "Last 7 days" },
-  { days: "30", label: "Last 30 days" },
-];
-
-export const DEFAULT_HEALTH_DAYS: HealthRange["days"] = "7";
-
-export interface WorkflowHealthData {
-  counts: WorkOrderStateCounts;
-  signatures: ErrorSignature[];
-  /** Bar width in hours: 2 for 24 hours, 12 for 7 days, 24 for 30 days. */
-  bucketHours: number;
-  timezone: string;
-  buckets: RunBucket[];
-}
+import type { ErrorSignature, HealthRange, RunBucket, WorkOrderStateCounts, WorkflowHealthData } from "../types/workflow-health";
 
 const zero: WorkOrderStateCounts = {
   success: 0,

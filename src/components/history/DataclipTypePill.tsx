@@ -1,4 +1,4 @@
-import type { DataclipType } from "../../mock-data/history";
+import type { DataclipType } from "../../types/history";
 import Pill, { type PillColor } from "../Pill";
 
 const TYPE_COLORS: Record<DataclipType, PillColor> = {

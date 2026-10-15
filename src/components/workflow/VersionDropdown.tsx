@@ -1,4 +1,4 @@
-import type { WorkflowSnapshot } from "../../mock-data/workflow";
+import type { WorkflowSnapshot } from "../../types/workflow-graph";
 import { cn } from "../../utils/cn";
 import { formatLocalDateTime } from "../../utils/format";
 import Menu, { MenuHeader, MenuItem } from "../Menu";

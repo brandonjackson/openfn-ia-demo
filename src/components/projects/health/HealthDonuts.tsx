@@ -1,5 +1,6 @@
 import { formatNumber } from "../../../utils/format";
-import { FAILURE_STATES, failureTotal, type WorkOrderStateCounts } from "../../../mock-data/workflow-health";
+import { FAILURE_STATES, type WorkOrderStateCounts } from "../../../types/workflow-health";
+import { failureTotal } from "../../../utils/history";
 import Donut from "./Donut";
 import { CANCELLED, FAILED, FAILURE_COLORS, SUCCESS, percent } from "./palette";
 

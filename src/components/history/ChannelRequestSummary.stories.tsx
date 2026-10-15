@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { withRouter } from "../../stories/decorators";
-import { channelRequests, findChannel, primaryEvent } from "../../mock-data/channel-requests";
+import { channelRequests } from "../../mock-data/channel-requests";
+import { findChannel } from "../../mock-data/channels";
+import { primaryEvent } from "../../utils/history";
 import ChannelRequestSummary from "./ChannelRequestSummary";
 
 const meta = {

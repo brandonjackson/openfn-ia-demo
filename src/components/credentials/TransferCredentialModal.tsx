@@ -1,7 +1,7 @@
 import { useState } from "react";
 import FormModal from "../FormModal";
 import { TextInput } from "../Inputs";
-import type { Credential } from "../../mock-data/credentials";
+import type { Credential } from "../../types/credentials";
 import { isValidEmail } from "../../utils/validate";
 
 interface Props {

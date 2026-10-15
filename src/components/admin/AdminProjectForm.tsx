@@ -1,7 +1,7 @@
 import { useState } from "react";
-import type { Project, ProjectRole } from "../../mock-data/projects";
-import { fullName, type User } from "../../mock-data/users";
-import { urlSafeName } from "../../utils/format";
+import type { Project, ProjectRole } from "../../types/projects";
+import { fullName, urlSafeName } from "../../utils/format";
+import type { User } from "../../types/users";
 import { cn } from "../../utils/cn";
 import SearchInput from "../SearchInput";
 import Alert from "../Alert";

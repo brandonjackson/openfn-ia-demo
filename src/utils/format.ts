@@ -3,6 +3,9 @@
  * Ports of Lightning's LocalTimeConverter / ElapsedIndicator hooks
  * (assets/js/hooks/index.ts), utils/duration.ts and Lightning.Helpers.
  */
+import type { WebhookAuthMethod } from "../types/project-settings";
+import type { ApiToken } from "../types/tokens";
+import type { User } from "../types/users";
 
 const MONTHS = [
   "January",
@@ -222,4 +225,63 @@ export function formatSessionAge(iso: string, now: Date = new Date()): string {
 /** A count with the browser's digit grouping, `Number#toLocaleString()`: 12345 → "12,345". */
 export function formatNumber(n: number): string {
   return n.toLocaleString();
+}
+
+export function fullName(user: Pick<User, "firstName" | "lastName">): string {
+  return [user.firstName, user.lastName].filter(Boolean).join(" ");
+}
+
+/** Lightning's `mask_token`: "..." plus the last 10 characters. */
+export function maskToken(token: ApiToken): string {
+  return "..." + token.token.slice(-10);
+}
+
+/** Lightning's `format_schema_name`: "dhis2" → "Dhis2", "aws-s3" → "Aws-s3". */
+export function formatSchemaName(schema: string): string {
+  if (schema === "raw") return "Raw JSON";
+  if (schema === "oauth") return "OAuth";
+  if (schema === "http") return "HTTP";
+  return schema
+    .split("_")
+    .map(capitalize)
+    .join(" ");
+}
+
+/**
+ * Lightning shows full UUIDs (and their first 8 characters as "short ids").
+ * The shared fixtures use readable ids like "run-1", so derive a stable,
+ * UUID-shaped id from each one for display.
+ */
+export function uuidOf(id: string): string {
+  let hex = "";
+  for (let round = 0; hex.length < 32; round++) {
+    let h = 0x811c9dc5 ^ (round * 0x9e3779b9);
+    for (let i = 0; i < id.length; i++) {
+      h = Math.imul(h ^ id.charCodeAt(i), 0x01000193);
+    }
+    // murmur3 finaliser, so similar ids give unrelated hex.
+    h = Math.imul(h ^ (h >>> 16), 0x85ebca6b);
+    h = Math.imul(h ^ (h >>> 13), 0xc2b2ae35);
+    h ^= h >>> 16;
+    hex += (h >>> 0).toString(16).padStart(8, "0");
+  }
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
+}
+
+/** Lightning's `display_short_uuid`: the first 8 characters of the UUID. */
+export function shortId(id: string): string {
+  return shortUuid(uuidOf(id));
+}
+
+/** The "Linked Triggers & Channels" summary, e.g. "1 trigger, 2 channels". */
+export function linkedUsageSummary(method: WebhookAuthMethod): string {
+  return (
+    [
+      [method.triggers.length, "trigger"],
+      [method.channels.length, "channel"],
+    ] as const
+  )
+    .filter(([count]) => count > 0)
+    .map(([count, noun]) => (count === 1 ? `1 ${noun}` : `${count} ${noun}s`))
+    .join(", ");
 }

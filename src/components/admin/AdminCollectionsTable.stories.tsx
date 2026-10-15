@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import AdminCollectionsTable from "./AdminCollectionsTable";
-import { collections } from "../../mock-data/admin";
+import { adminCollectionRows } from "../../mock-data/admin";
+
+const collections = adminCollectionRows();
 
 const meta: Meta<typeof AdminCollectionsTable> = {
   title: "Admin/AdminCollectionsTable",

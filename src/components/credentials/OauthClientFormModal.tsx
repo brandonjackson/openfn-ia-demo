@@ -5,9 +5,11 @@ import Card from "../Card";
 import Pill from "../Pill";
 import { Checkbox, PasswordInput, TextInput } from "../Inputs";
 import ProjectsPicker from "./ProjectsPicker";
-import { projects as allProjects, type Project } from "../../mock-data/projects";
-import { currentUser } from "../../mock-data/users";
-import type { OauthClient } from "../../mock-data/credentials";
+// eslint-disable-next-line no-restricted-imports -- wiring: the projects a client can be shared with (the user's projects).
+import { projects as allProjects } from "../../mock-data/projects";
+import type { Project } from "../../types/projects";
+import { useCurrentUser } from "../../session/session";
+import type { OauthClient } from "../../types/credentials";
 
 interface Props {
   open: boolean;
@@ -17,7 +19,7 @@ interface Props {
   projects?: Project[];
   defaultProjectIds?: string[];
   /** Superusers may make a client global. */
-  allowGlobal?: boolean;
+  allowGlobal: boolean;
   onSave?: (client: OauthClient) => void;
 }
 
@@ -31,9 +33,10 @@ export default function OauthClientFormModal({
   client,
   projects = allProjects,
   defaultProjectIds = [],
-  allowGlobal = currentUser.role === "superuser",
+  allowGlobal,
   onSave,
 }: Props) {
+  const user = useCurrentUser();
   const [values, setValues] = useState({
     name: client?.name ?? "",
     authorizationEndpoint: client?.authorizationEndpoint ?? "",
@@ -59,7 +62,7 @@ export default function OauthClientFormModal({
   const save = () => {
     onSave?.({
       id: client?.id ?? `oc-${Date.now()}`,
-      ownerId: client?.ownerId ?? currentUser.id,
+      ownerId: client?.ownerId ?? user.id,
       name: values.name.trim(),
       global,
       projectIds: global ? [] : projectIds,

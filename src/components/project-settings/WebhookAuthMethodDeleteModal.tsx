@@ -1,7 +1,7 @@
 import Alert from "../Alert";
 import ConfirmModal from "../ConfirmModal";
 import { UsageLinks } from "./LinkedUsageModal";
-import type { WebhookAuthMethod } from "../../mock-data/project-settings";
+import type { WebhookAuthMethod } from "../../types/project-settings";
 
 interface Props {
   projectId: string;

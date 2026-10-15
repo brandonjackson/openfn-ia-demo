@@ -1,5 +1,5 @@
 import ConfirmModal from "../ConfirmModal";
-import type { Project } from "../../mock-data/projects";
+import type { Project } from "../../types/projects";
 
 interface Props {
   project: Project;

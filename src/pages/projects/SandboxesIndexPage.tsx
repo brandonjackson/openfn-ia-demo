@@ -9,9 +9,12 @@ import { useToast } from "../../components/Toast";
 import DeleteSandboxModal from "../../components/projects/sandboxes/DeleteSandboxModal";
 import SandboxFormModal from "../../components/projects/sandboxes/SandboxFormModal";
 import WorkspaceList from "../../components/projects/sandboxes/WorkspaceList";
-import { findProject, roleIn } from "../../mock-data/projects";
-import { findSandboxRow, rootOf, sandboxRowsUnder, type SandboxRow } from "../../mock-data/sandboxes";
-import { currentUser } from "../../mock-data/users";
+import { findProject } from "../../mock-data/projects";
+import { purgeDeletedAfterDays } from "../../mock-data/project-settings";
+import { permissionsFor } from "../../permissions";
+import { findSandboxRow, rootOf, sandboxRowsUnder } from "../../mock-data/sandboxes";
+import type { SandboxRow } from "../../types/sandboxes";
+import { useCurrentUser } from "../../session/session";
 
 /**
  * Inventory view `sandboxes-index` (SandboxLive.Index): the workspace tree
@@ -23,6 +26,7 @@ export default function SandboxesIndexPage() {
   const { projectId, sandboxId } = useParams();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const user = useCurrentUser();
   const project = findProject(projectId);
   const [deleting, setDeleting] = useState<SandboxRow | null>(null);
   const [deletedAt, setDeletedAt] = useState<Record<string, string>>({});
@@ -33,8 +37,7 @@ export default function SandboxesIndexPage() {
 
   const root = rootOf(project.id)!;
   const rootRow = findSandboxRow(root.id)!;
-  const role = roleIn(project, currentUser.id);
-  const canCreate = role === "owner" || role === "admin";
+  const { canCreateSandbox: canCreate } = permissionsFor(project, user);
   const disabledReason = canCreate ? undefined : "You are not authorized to create sandboxes in this workspace";
   const sandboxes = sandboxRowsUnder(root.id).map((s) => {
     if (restoredIds.includes(s.id)) return { ...s, scheduledDeletion: null };
@@ -88,10 +91,11 @@ export default function SandboxesIndexPage() {
             descendantCount={sandboxRowsUnder(deleting.id).length}
             isCurrent={deleting.id === project.id}
             rootName={root.name}
+            gracePeriodDays={purgeDeletedAfterDays}
             onClose={() => setDeleting(null)}
             onConfirm={() => {
               // Scheduled for deletion at the end of the grace period.
-              const at = new Date(Date.now() + 7 * 86_400_000).toISOString();
+              const at = new Date(Date.now() + purgeDeletedAfterDays * 86_400_000).toISOString();
               setDeletedAt((m) => ({ ...m, [deleting.id]: at }));
               setRestoredIds((ids) => ids.filter((id) => id !== deleting.id));
               setDeleting(null);

@@ -4,19 +4,10 @@
  * Static fixtures layered on projects.ts and workflows.ts; nothing is counted
  * live.
  */
-import { projects, roleIn, type ProjectRole } from "./projects";
-import { workflows, workflowsIn, type WorkflowSummary } from "./workflows";
-
-/** A row on the projects dashboard (`ProjectOverviewRow`). */
-export interface ProjectOverview {
-  id: string;
-  name: string;
-  role: ProjectRole;
-  workflowsCount: number;
-  collaboratorsCount: number;
-  /** Latest workflow update in the project; null when it has none. */
-  lastUpdatedAt: string | null;
-}
+import { projects } from "./projects";
+import { roleIn } from "../permissions";
+import { workflows, workflowsIn } from "./workflows";
+import type { ProjectOverview, WorkflowStats } from "../types/workflows";
 
 /** Root projects the user belongs to (sandboxes never show on the dashboard). */
 export function projectsOverviewFor(userId: string): ProjectOverview[] {
@@ -38,31 +29,6 @@ export function projectsOverviewFor(userId: string): ProjectOverview[] {
         },
       ];
     });
-}
-
-export type WorkOrderDisplayState =
-  | "pending"
-  | "running"
-  | "success"
-  | "failed"
-  | "crashed"
-  | "cancelled"
-  | "killed"
-  | "exception"
-  | "lost";
-
-/** One row of the workflows table (`DashboardStats.WorkflowStats`). */
-export interface WorkflowStats {
-  workflow: WorkflowSummary;
-  lastWorkOrder: { state: WorkOrderDisplayState; updatedAt: string } | null;
-  lastFailedAt: string | null;
-  workordersCount: number;
-  failedWorkordersCount: number;
-  stepCount: number;
-  stepSuccessRate: number;
-  /** Counted for the metric cards. */
-  pendingWorkorders: number;
-  runs: { total: number; pending: number; success: number };
 }
 
 const extra: Record<string, Omit<WorkflowStats, "workflow">> = {
@@ -137,34 +103,4 @@ export function workflowStatsFor(projectId: string): WorkflowStats[] {
 export function findWorkflowStats(workflowId: string): WorkflowStats | undefined {
   const workflow = workflows.find((w) => w.id === workflowId);
   return workflow && { workflow, ...(extra[workflow.id] ?? NO_ACTIVITY) };
-}
-
-/** The four metric cards above the workflows table (`ProjectMetrics`). */
-export interface ProjectMetrics {
-  workOrders: { total: number; pending: number; failed: number; failedPercentage: number };
-  runs: { total: number; pending: number; success: number; successRate: number };
-}
-
-const pct = (n: number, d: number) => (d === 0 ? 0 : Math.round((n / d) * 1000) / 10);
-
-export function projectMetricsFor(stats: WorkflowStats[]): ProjectMetrics {
-  const sum = (f: (s: WorkflowStats) => number) => stats.reduce((acc, s) => acc + f(s), 0);
-  const woTotal = sum((s) => s.workordersCount);
-  const woFailed = sum((s) => s.failedWorkordersCount);
-  const runTotal = sum((s) => s.runs.total);
-  const runSuccess = sum((s) => s.runs.success);
-  return {
-    workOrders: {
-      total: woTotal,
-      pending: sum((s) => s.pendingWorkorders),
-      failed: woFailed,
-      failedPercentage: pct(woFailed, woTotal),
-    },
-    runs: {
-      total: runTotal,
-      pending: sum((s) => s.runs.pending),
-      success: runSuccess,
-      successRate: pct(runSuccess, runTotal),
-    },
-  };
 }

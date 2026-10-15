@@ -1,8 +1,8 @@
 import { useState } from "react";
 import FormModal from "../FormModal";
 import { Select, TextInput } from "../Inputs";
-import { currentUser } from "../../mock-data/users";
-import type { Credential, KeychainCredential } from "../../mock-data/credentials";
+import { useCurrentUser } from "../../session/session";
+import type { Credential, KeychainCredential } from "../../types/credentials";
 
 interface Props {
   open: boolean;
@@ -27,6 +27,7 @@ export default function KeychainCredentialFormModal({
   credentials,
   onSave,
 }: Props) {
+  const user = useCurrentUser();
   const [name, setName] = useState(kc?.name ?? "");
   const [path, setPath] = useState(kc?.path ?? "");
   const [defaultId, setDefaultId] = useState(kc?.defaultCredentialId ?? "");
@@ -39,7 +40,7 @@ export default function KeychainCredentialFormModal({
       path: path.trim(),
       defaultCredentialId: defaultId || null,
       projectId,
-      createdById: kc?.createdById ?? currentUser.id,
+      createdById: kc?.createdById ?? user.id,
     });
     onClose();
   };

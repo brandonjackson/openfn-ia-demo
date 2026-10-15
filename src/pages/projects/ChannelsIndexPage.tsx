@@ -9,9 +9,10 @@ import ChannelMetrics from "../../components/projects/channels/ChannelMetrics";
 import ChannelsTable from "../../components/projects/channels/ChannelsTable";
 import TableTitle from "../../components/TableTitle";
 import { useToast } from "../../components/Toast";
-import { channelsIn, findChannel } from "../../mock-data/channels";
-import { findProject, roleIn } from "../../mock-data/projects";
-import { currentUser } from "../../mock-data/users";
+import { channelsIn, findChannel, projectCredentialOptions, webhookAuthMethods } from "../../mock-data/channels";
+import { findProject } from "../../mock-data/projects";
+import { permissionsFor } from "../../permissions";
+import { useCurrentUser } from "../../session/session";
 
 /**
  * Inventory view `channels-index` (ChannelLive.Index): stats, the channels
@@ -23,6 +24,7 @@ export default function ChannelsIndexPage() {
   const { projectId, channelId } = useParams();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const user = useCurrentUser();
   const project = findProject(projectId);
   const [enabled, setEnabled] = useState<Record<string, boolean>>({});
   const [deleted, setDeleted] = useState<string[]>([]);
@@ -30,7 +32,7 @@ export default function ChannelsIndexPage() {
 
   if (!project) return <Navigate to="/projects" replace />;
 
-  const canEdit = roleIn(project, currentUser.id) !== "viewer";
+  const { canCreateChannel, canEditChannel, canDeleteChannel } = permissionsFor(project, user);
   const channels = channelsIn(project.id)
     .filter((c) => !deleted.includes(c.id))
     .map((c) => ({ ...c, enabled: enabled[c.id] ?? c.enabled }));
@@ -51,8 +53,8 @@ export default function ChannelsIndexPage() {
           <TableTitle title="Channels" count={channels.length} className="mt-14">
             <Button
               id="new-channel-button"
-              disabled={!canEdit}
-              tooltip={canEdit ? undefined : "You are not authorized to perform this action."}
+              disabled={!canCreateChannel}
+              tooltip={canCreateChannel ? undefined : "You are not authorized to perform this action."}
               onClick={() => navigate(`${back}/new`)}
             >
               New Channel
@@ -61,8 +63,8 @@ export default function ChannelsIndexPage() {
           <ChannelsTable
             channels={channels}
             projectId={project.id}
-            canEdit={canEdit}
-            canDelete={canEdit}
+            canEdit={canEditChannel}
+            canDelete={canDeleteChannel}
             onToggle={(id, v) => {
               setEnabled((m) => ({ ...m, [id]: v }));
               toast("Channel updated");
@@ -76,7 +78,14 @@ export default function ChannelsIndexPage() {
         </Centered>
       </PageContent>
       {(creating || editing) && (
-        <ChannelFormModal key={editing?.id ?? "new"} channel={editing} projectId={project.id} onClose={() => navigate(back)} />
+        <ChannelFormModal
+          key={editing?.id ?? "new"}
+          channel={editing}
+          projectId={project.id}
+          credentialOptions={projectCredentialOptions}
+          authMethodOptions={webhookAuthMethods}
+          onClose={() => navigate(back)}
+        />
       )}
     </>
   );

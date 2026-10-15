@@ -10,8 +10,8 @@ import ExperimentalFeaturesCard from "../../components/profile/ExperimentalFeatu
 import DeleteAccountCard from "../../components/profile/DeleteAccountCard";
 import UserDeletionModal from "../../components/admin/UserDeletionModal";
 import { useToast } from "../../components/Toast";
-import { currentUser } from "../../mock-data/users";
-import { githubOauthEnabled, hasActivityInProjects } from "../../mock-data/profile";
+import { useCurrentUser } from "../../session/session";
+import { fakeTotpSecret, githubOauthEnabled, hasActivityInProjects } from "../../mock-data/profile";
 
 /**
  * Inventory views `profile-account`, `profile-mfa`, `profile-github`,
@@ -20,6 +20,7 @@ import { githubOauthEnabled, hasActivityInProjects } from "../../mock-data/profi
  * /profile/:userId/delete opens the delete account modal over the page.
  */
 export default function ProfilePage() {
+  const currentUser = useCurrentUser();
   const { userId } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState(currentUser);
@@ -56,6 +57,7 @@ export default function ProfilePage() {
             <ChangePasswordForm onSubmit={() => toast("Password changed successfully.")} />
             <MfaCard
               mfaEnabled={user.mfaEnabled}
+              totpSecret={fakeTotpSecret}
               onChange={(mfaEnabled) => {
                 setUser((u) => ({ ...u, mfaEnabled }));
                 toast(mfaEnabled ? "MFA Setup" : "MFA Disabled");

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import type { WorkflowStats } from "../../mock-data/dashboard-stats";
+import type { WorkflowStats } from "../../types/workflows";
 import { cn } from "../../utils/cn";
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 import Toggle from "../Toggle";

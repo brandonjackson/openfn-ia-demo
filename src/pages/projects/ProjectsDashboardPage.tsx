@@ -7,13 +7,14 @@ import { useToast } from "../../components/Toast";
 import ProjectsTable from "../../components/projects/ProjectsTable";
 import WelcomeBanner from "../../components/projects/WelcomeBanner";
 import { projectsOverviewFor } from "../../mock-data/dashboard-stats";
-import { currentUser } from "../../mock-data/users";
+import { useCurrentUser } from "../../session/session";
 
 /**
  * Inventory view `projects-dashboard` (DashboardLive.Index): the greeting,
  * the user's projects, and the Create project modal.
  */
 export default function ProjectsDashboardPage() {
+  const currentUser = useCurrentUser();
   const [creating, setCreating] = useState(false);
   const toast = useToast();
   const projects = projectsOverviewFor(currentUser.id);

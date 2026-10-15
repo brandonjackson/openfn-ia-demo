@@ -1,6 +1,6 @@
 import Alert, { type AlertType } from "../Alert";
 import TextLink from "../TextLink";
-import type { Project } from "../../mock-data/projects";
+import type { Project } from "../../types/projects";
 
 type Variant = "local" | "editable" | "inherited";
 

@@ -1,4 +1,4 @@
-import { sandboxColorPalette } from "../../../mock-data/sandboxes";
+import { sandboxColorPalette } from "../../../constants";
 import { Label } from "../../Inputs";
 
 /**

@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState, type ComponentProps } from "react";
 import HistorySearchBar from "./HistorySearchBar";
-import { historySearchFields, type SearchFieldId } from "../../mock-data/history-extra";
+import { historySearchFields } from "../../constants";
+import type { SearchFieldId } from "../../types/history";
 
 const meta = { title: "History/HistorySearchBar", component: HistorySearchBar } satisfies Meta<typeof HistorySearchBar>;
 export default meta;

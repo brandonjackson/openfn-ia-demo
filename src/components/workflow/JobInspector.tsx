@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { ADAPTORS_WITHOUT_CREDENTIALS, adaptorShortName } from "../../mock-data/adaptors";
-import type { EditorJob } from "../../mock-data/workflow";
+import { ADAPTORS_WITHOUT_CREDENTIALS } from "../../constants";
+import { adaptorShortName } from "../../utils/adaptors";
+import type { EditorJob } from "../../types/workflow-graph";
 import AdaptorDisplay, { ADAPTOR_HELP } from "./AdaptorDisplay";
 import AdaptorConfigModals, { type AdaptorModal } from "./AdaptorConfigModals";
 import ConfirmModal from "../ConfirmModal";

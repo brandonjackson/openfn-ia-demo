@@ -14,22 +14,14 @@ import {
   RerunFromJobModal,
 } from "../../components/history/HistoryModals";
 import WorkOrdersTable, { type WorkOrderSort } from "../../components/history/WorkOrdersTable";
-import { formatChipDate } from "../../utils/format";
-import { findDataclip, workOrdersIn, type WorkOrder } from "../../mock-data/history";
-import {
-  historyChannelsEnabled,
-  historyPermissions,
-  historySearchFields,
-  historyStatuses,
-  logsOf,
-  runsOfWorkOrder,
-  shortId,
-  uuidOf,
-  workflowJobs,
-  type SearchFieldId,
-} from "../../mock-data/history-extra";
+import { formatChipDate, shortId, uuidOf } from "../../utils/format";
+import { findDataclip, workOrdersIn } from "../../mock-data/history";
+import type { SearchFieldId, WorkOrder } from "../../types/history";
+import { historyChannelsEnabled, historyWorkOrder, logsOf, runsOfWorkOrder, workflowJobs } from "../../mock-data/history-extra";
+import { historySearchFields, historyStatuses } from "../../constants";
 import { findProject } from "../../mock-data/projects";
 import { workflowsIn } from "../../mock-data/workflows";
+import { usePermissions } from "../../session/session";
 
 /** Lightning's default filter: last activity in the past 30 days. */
 function thirtyDaysAgo() {
@@ -86,6 +78,7 @@ export default function HistoryWorkOrdersPage() {
   const { projectId = "" } = useParams();
   const { params, update } = useUrlParams();
   const project = findProject(projectId);
+  const { canRunWorkflow } = usePermissions(project);
   const workflows = workflowsIn(projectId);
   const workorderId = params["filters[workorder_id]"] ?? null;
 
@@ -108,7 +101,8 @@ export default function HistoryWorkOrdersPage() {
       .filter((wo) => inRange(wo.insertedAt, received.after, received.before))
       .filter((wo) => inRange(wo.lastActivity, activity.after, activity.before))
       .filter((wo) => matchesSearch(wo, searchTerm, searchFields))
-      .sort((a, b) => (sort.direction === "asc" ? 1 : -1) * a[key].localeCompare(b[key]));
+      .sort((a, b) => (sort.direction === "asc" ? 1 : -1) * a[key].localeCompare(b[key]))
+      .map(historyWorkOrder);
   }, [projectId, workorderId, workflowId, statuses, received, activity, searchTerm, searchFields, sort]);
 
   const selectedWorkflow = entries.find((w) => selectedIds.includes(w.id))?.workflowId;
@@ -242,7 +236,7 @@ export default function HistoryWorkOrdersPage() {
             onSort={(by) => setSort((s) => ({ by, direction: s.by === by && s.direction === "desc" ? "asc" : "desc" }))}
             selectedIds={selectedIds}
             onSelectionChange={setSelectedIds}
-            canRunWorkflow={historyPermissions.canRunWorkflow}
+            canRunWorkflow={canRunWorkflow}
             onBulkCancel={() => setModal("cancel")}
             onBulkRetry={() => setModal("retry")}
             onBulkRetryFrom={() => {

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import CollaborationPanel from "./CollaborationPanel";
 import { projects } from "../../mock-data/projects";
-import { currentUser } from "../../mock-data/users";
+import { session, users } from "../../mock-data/users";
 import { withGrayPanel } from "../../stories/decorators";
 
 const meta: Meta<typeof CollaborationPanel> = {
@@ -10,7 +10,8 @@ const meta: Meta<typeof CollaborationPanel> = {
   decorators: [withGrayPanel],
   args: {
     initialMembers: projects[0].members,
-    currentUserId: currentUser.id,
+    users,
+    currentUserId: session.user.id,
     initialSupportAccess: false,
     canEditProject: true,
     canAddProjectUser: true,

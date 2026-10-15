@@ -25,10 +25,10 @@ export const EditOauthCredential: Story = {
   render: () => <CredentialFormModal open onClose={noop} credential={credentials[2]} oauthClients={oauthClients} />,
 };
 export const NewOauthClient: Story = {
-  render: () => <OauthClientFormModal open onClose={noop} />,
+  render: () => <OauthClientFormModal open onClose={noop} allowGlobal />,
 };
 export const EditOauthClient: Story = {
-  render: () => <OauthClientFormModal open onClose={noop} client={oauthClients[0]} />,
+  render: () => <OauthClientFormModal open onClose={noop} client={oauthClients[0]} allowGlobal />,
 };
 export const NewKeychainCredential: Story = {
   render: () => <KeychainCredentialFormModal open onClose={noop} projectId={projects[0].id} credentials={credentials} />,

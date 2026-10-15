@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { AIMessage, AISession } from "../../mock-data/ai-assistant";
+import type { AIMessage, AISession } from "../../types/ai-assistant";
 import { cn } from "../../utils/cn";
 import Button from "../Button";
 import Card from "../Card";

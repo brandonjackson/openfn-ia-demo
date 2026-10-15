@@ -1,4 +1,4 @@
-import type { ChannelEvent } from "../../mock-data/channel-requests";
+import type { ChannelEvent } from "../../types/channels";
 import { cn } from "../../utils/cn";
 import Card from "../Card";
 import { DetailItem, DetailList } from "../DetailList";

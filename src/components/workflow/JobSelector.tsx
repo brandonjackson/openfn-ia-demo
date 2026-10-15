@@ -1,4 +1,4 @@
-import type { EditorJob } from "../../mock-data/workflow";
+import type { EditorJob } from "../../types/workflow-graph";
 import ButtonMenu from "../ButtonMenu";
 import { MenuItem } from "../Menu";
 

@@ -1,7 +1,7 @@
 import { EmptyState, Table, Td, Th, Tr } from "../Table";
 import { useTableSort, type SortValue } from "../useTableSort";
 import Button from "../Button";
-import type { Collection } from "../../mock-data/project-settings";
+import type { Collection } from "../../types/project-settings";
 import { formatBytes } from "../../utils/format";
 
 interface Props {

@@ -1,4 +1,4 @@
-import type { EdgeConditionType, Position, WorkflowGraph } from "../../mock-data/workflow";
+import type { EdgeConditionType, Position, WorkflowGraph } from "../../types/workflow-graph";
 
 /**
  * Geometry shared by the hand-rolled diagram (Lightning draws it with

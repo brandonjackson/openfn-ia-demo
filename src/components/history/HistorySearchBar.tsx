@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Button from "../Button";
 import IconButton from "../IconButton";
-import type { SearchFieldId } from "../../mock-data/history-extra";
+import type { SearchFieldId } from "../../types/history";
 import SearchInput from "../SearchInput";
 
 /**

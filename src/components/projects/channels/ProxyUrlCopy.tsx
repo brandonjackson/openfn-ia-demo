@@ -1,5 +1,5 @@
 import { useCopy } from "../../../utils/useCopy";
-import { channelProxyUrl } from "../../../mock-data/channels";
+import { channelProxyUrl } from "../../../utils/urls";
 import { cn } from "../../../utils/cn";
 
 /**

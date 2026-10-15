@@ -1,4 +1,4 @@
-import type { ProjectMetrics as Metrics } from "../../mock-data/dashboard-stats";
+import type { ProjectMetrics as Metrics } from "../../types/workflows";
 import MetricCard from "./MetricCard";
 import TextLink from "../TextLink";
 

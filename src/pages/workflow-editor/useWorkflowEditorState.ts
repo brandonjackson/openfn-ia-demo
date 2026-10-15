@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import type { EditorEdge, EditorJob, EditorTrigger, WorkflowGraph } from "../../mock-data/workflow";
+import type { EditorEdge, EditorJob, EditorTrigger, WorkflowGraph } from "../../types/workflow-graph";
 
 /**
  * The editor's local stand-in for Lightning's Y.Doc-backed WorkflowStore:

@@ -1,5 +1,6 @@
 import { Fragment } from "react";
-import { shortUuid, type AuditEvent } from "../../mock-data/admin";
+import type { AuditEvent } from "../../mock-data/admin";
+import { shortUuid } from "../../utils/format";
 import Pagination from "../Pagination";
 import Pill from "../Pill";
 import DateTime from "../DateTime";

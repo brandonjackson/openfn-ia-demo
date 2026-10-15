@@ -1,5 +1,6 @@
 import type { PickerItem } from "./Picker";
 import { projects, type Project } from "../../mock-data/projects";
+import { matchesQuery } from "../../utils/search";
 
 /**
  * Where switching to `projectId` should land from the current URL
@@ -65,11 +66,11 @@ export function projectLabel(project: Project, all: Project[] = projects): strin
  * filter). `items` must be in pre-order, as `buildProjectPickerItems` gives.
  */
 export function filterPickerItems(items: PickerItem[], term: string): PickerItem[] {
-  if (!term) return items;
-  const lower = term.toLowerCase();
-  const include = items.map((i) => i.searchLabel.toLowerCase().includes(lower));
+  if (!term.trim()) return items;
+  const matches = items.map((i) => matchesQuery(term, i.searchLabel));
+  const include = [...matches];
   items.forEach((item, i) => {
-    if (!item.searchLabel.toLowerCase().includes(lower)) return;
+    if (!matches[i]) return;
     // The parent is the most recent item with a strictly smaller depth.
     let depth = item.depth;
     for (let j = i - 1; j >= 0 && depth > 0; j--) {

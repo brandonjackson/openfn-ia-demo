@@ -117,6 +117,16 @@ function FooterItems() {
   );
 }
 
+/** The OpenFn logo and release version at the foot of the side menu. */
+export function SidebarLogo({ collapsed = false }: { collapsed?: boolean }) {
+  return (
+    <div className="primary-light mt-3 border-t border-white/10 pt-5 text-center">
+      {collapsed ? <OpenFnLogoCollapsed className="mx-auto h-6" /> : <OpenFnLogo className="mx-auto h-6" />}
+      <code className="block py-1 text-[8px] opacity-50">{releaseLabel}</code>
+    </div>
+  );
+}
+
 /**
  * Lightning's side menu (layouts/live.html.heex and settings.html.heex): the
  * user menu in a dark h-20 bar, the menu items for where you are, support or
@@ -171,10 +181,7 @@ export default function Sidebar({ variant, project, collapsed, onToggle }: Props
               </div>
             </div>
           )}
-          <div className="primary-light mt-3 border-t border-white/10 pt-5 text-center">
-            {collapsed ? <OpenFnLogoCollapsed className="mx-auto h-6" /> : <OpenFnLogo className="mx-auto h-6" />}
-            <code className="block py-1 text-[8px] opacity-50">{releaseLabel}</code>
-          </div>
+          <SidebarLogo collapsed={collapsed} />
           <button
             type="button"
             onClick={onToggle}

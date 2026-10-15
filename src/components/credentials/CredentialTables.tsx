@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Heading from "../Heading";
+import InfoTooltip from "../InfoTooltip";
 import Pill from "../Pill";
 import { Table, Td, Th, Tr } from "../Table";
 import {
@@ -119,7 +120,12 @@ export function CredentialsTable({ rows, showOwner = false, emptyState, actions 
               <Td className="wrap-break-word max-w-60">
                 {credential.name}
                 {missingOauthClient(credential) && (
-                  <span title="OAuth client not found" className="hero-exclamation-triangle ml-2 h-5 w-5" />
+                  <InfoTooltip
+                    title="OAuth client not found"
+                    icon="hero-exclamation-triangle"
+                    iconClass="h-5 w-5"
+                    className="ml-2"
+                  />
                 )}
               </Td>
               <Td className="wrap-break-word max-w-40">{credentialTypeLabel(credential)}</Td>

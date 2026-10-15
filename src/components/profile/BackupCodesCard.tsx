@@ -1,20 +1,17 @@
-import { useState } from "react";
 import Alert from "../Alert";
 import Button from "../Button";
 import Card from "../Card";
+import InfoTooltip from "../InfoTooltip";
 import SectionHeader from "../SectionHeader";
 import type { BackupCode } from "../../mock-data/tokens";
+import { useCopy } from "../../utils/useCopy";
 
 /**
  * The recovery codes card (backup_codes_live/index.html.heex): the codes
  * (used ones struck through), Print and Copy, and "Generate new backup codes".
  */
 export default function BackupCodesCard({ codes, onRegenerate }: { codes: BackupCode[]; onRegenerate?: () => void }) {
-  const [copied, setCopied] = useState(false);
-  const copy = () => {
-    navigator.clipboard?.writeText(codes.map((c) => c.code).join("\n\n")).catch(() => {});
-    setCopied(true);
-  };
+  const { copied, copy } = useCopy(codes.map((c) => c.code).join("\n\n"));
   return (
     <Card padding="none" className="divide-y divide-gray-300">
       <div className="p-6">
@@ -32,10 +29,7 @@ export default function BackupCodesCard({ codes, onRegenerate }: { codes: Backup
           c.usedAt ? (
             <span key={c.code} className="text-sm text-gray-300">
               <span className="line-through">{c.code}</span>
-              <span
-                className="hero-information-circle-solid ml-1 h-4 w-4 text-primary-600 opacity-50"
-                title={`Code used on ${c.usedAt.slice(0, 19).replace("T", " ")}`}
-              />
+              <InfoTooltip title={`Code used on ${c.usedAt.slice(0, 19).replace("T", " ")}`} />
             </span>
           ) : (
             <span key={c.code}>{c.code}</span>

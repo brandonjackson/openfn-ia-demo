@@ -101,7 +101,7 @@ not compared) and send them the side-by-side PNGs that show a fix.
   coordinates and works in both apps.
 - **Ids differ outside Kickstarted projects.** Lightning ids are random per seed (`lightning-vars.sh`
   prints them). Replica ids are readable fixture ids, shown through `uuidOf()`
-  in `mock-data/history-extra.ts`. Never show a raw fixture id in the UI.
+  in `utils/format.ts`. Never show a raw fixture id in the UI.
 
 ## 5. Improving the comparison (not done yet)
 

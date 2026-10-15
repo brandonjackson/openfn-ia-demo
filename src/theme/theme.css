@@ -71,6 +71,238 @@ html[data-theme="lightning-v2"] {
 }
 
 /* ============================================================== */
+/* Light — airy and quiet, in the manner of Stripe's dashboard.   */
+/* Builds on the Basic theme (the original white-page look) and   */
+/* sets it in Geist.                                              */
+/*                                                                */
+/*  - A white page. Panels are separated by hairlines and soft,   */
+/*    low shadows, not by grey grounds or heavy borders.          */
+/*  - Cool, slightly blue greys, so the page never feels muddy.   */
+/*  - One brand colour, a bright blurple, for actions, links,     */
+/*    focus and the current page. Everything else stays neutral.  */
+/*  - Lighter type: medium where Lightning uses semibold, and     */
+/*    semibold for headings; slight negative tracking on large    */
+/*    text, as Geist is drawn for.                                */
+/*  - Focus is a soft blurple halo rather than a hard outline.    */
+/* ============================================================== */
+html[data-theme="light"] {
+  --app-bg: #ffffff;
+  --app-fg: #1a1b25;
+
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
+    "Liberation Mono", monospace;
+
+  /* One step lighter throughout. */
+  --font-weight-medium: 450;
+  --font-weight-semibold: 500;
+  --font-weight-bold: 600;
+
+  /* Neutral: cool greys with a hint of blue. */
+  --color-gray-50: #f7f8fa;
+  --color-gray-100: #f0f2f5;
+  --color-gray-200: #e3e7ec;
+  --color-gray-300: #cfd5dd;
+  --color-gray-400: #a3acba;
+  --color-gray-500: #6c7688;
+  --color-gray-600: #545b6b;
+  --color-gray-700: #414552;
+  --color-gray-800: #2b2d38;
+  --color-gray-900: #1a1b25;
+  --color-gray-950: #0d0e14;
+
+  /* Primary: blurple, centred on #635bff. Drives primary utilities. */
+  --color-indigo-50: #f5f5ff;
+  --color-indigo-100: #ebeaff;
+  --color-indigo-200: #d6d3ff;
+  --color-indigo-300: #b3aeff;
+  --color-indigo-400: #8f88ff;
+  --color-indigo-500: #7a73ff;
+  --color-indigo-600: #635bff;
+  --color-indigo-700: #554dea;
+  --color-indigo-800: #4740c7;
+  --color-indigo-900: #37329a;
+  --color-indigo-950: #221f60;
+
+  --ui-text: #1a1b25;
+  --ui-secondary-text: #6c7688;
+  --ui-border: #e3e7ec;
+  --ui-brand: #635bff;
+  --ui-brand-hover: #554dea;
+  --ui-halo: 0 0 0 4px rgb(99 91 255 / 0.18);
+  --ui-surface: #f7f8fa;
+
+  /* Workflow canvas: blurple selection. */
+  --ui-diagram-selected: #635bff;
+  --ui-diagram-selected-disabled: #d6d3ff;
+  --ui-diagram-neighbour: #8f88ff;
+  --ui-diagram-neighbour-faded: #ebeaff;
+
+  /* Slightly softer corners than Lightning's. */
+  --radius-xs: 0.1875rem;
+  --radius-sm: 0.3125rem;
+  --radius-md: 0.4375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+
+  /* Soft, low shadows: a 1px contact shadow plus a wide, faint blur. */
+  --shadow-xs: 0 1px 1px rgb(0 0 0 / 0.03), 0 1px 2px rgb(60 66 87 / 0.06);
+  --shadow-sm: 0 1px 1px rgb(0 0 0 / 0.03), 0 2px 5px rgb(60 66 87 / 0.08);
+  --shadow: var(--shadow-sm);
+  --shadow-md: 0 2px 5px rgb(60 66 87 / 0.08), 0 7px 14px rgb(60 66 87 / 0.08);
+  --shadow-card: 0 2px 5px rgb(60 66 87 / 0.06), 0 7px 14px rgb(60 66 87 / 0.06);
+  --shadow-lg: 0 0 0 1px rgb(60 66 87 / 0.06), 0 7px 14px rgb(60 66 87 / 0.08), 0 15px 35px rgb(60 66 87 / 0.1);
+  --shadow-xl: 0 0 0 1px rgb(60 66 87 / 0.06), 0 15px 35px rgb(60 66 87 / 0.12), 0 50px 100px rgb(50 50 93 / 0.12);
+}
+
+/* Side menu: a pale column ruled off from the page, grey links and
+   the current page in blurple. Admin pages look the same. */
+html[data-theme="light"],
+html[data-theme="light"] .sudo-variant {
+  --ui-sidebar-bg: #f7f8fa;
+  --ui-sidebar-bg-dark: #f7f8fa;
+  --ui-sidebar-text: #1a1b25;
+  --ui-sidebar-text-light: #545b6b;
+  --ui-sidebar-text-lighter: #635bff;
+}
+
+/* ============================================================== */
+/* Light component layer. Selectors target the `data-ui` hooks.   */
+/* ============================================================== */
+html[data-theme="light"] {
+  /* ---- Page frame -------------------------------------------- */
+
+  [data-ui="page-body"] { background-color: #ffffff; }
+  [data-ui="page-header"] {
+    border-bottom-color: var(--ui-border);
+    box-shadow: none;
+  }
+  [data-ui="auth-nav"] { background-color: var(--ui-text); }
+
+  :is(h1, h2, h3) { letter-spacing: -0.015em; }
+
+  /* ---- Actions ----------------------------------------------- */
+
+  /* Buttons: a soft lift instead of a flat fill. Secondary buttons
+     are white with a hairline, coloured ones get an inner highlight. */
+  [data-ui="button"] {
+    font-weight: 500;
+    box-shadow: var(--shadow-sm);
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+    &:is([data-variant="primary"], [data-variant="danger"], [data-variant="success"], [data-variant="warning"]) {
+      box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), var(--shadow-sm);
+    }
+    &[data-variant="primary"]:hover:not(:disabled) { background-color: var(--ui-brand-hover); }
+    /* Tailwind's ring is a box-shadow too, so the hairline is drawn here. */
+    &[data-variant="secondary"] {
+      box-shadow: 0 0 0 1px var(--color-gray-300), var(--shadow-sm);
+      &:hover:not(:disabled) { background-color: var(--ui-surface); }
+    }
+    &:disabled { box-shadow: none; }
+  }
+
+  /* Links: blurple, underlined only on hover. */
+  [data-ui="link"] {
+    --color-primary-400: var(--ui-brand);
+    --color-primary-500: var(--ui-brand-hover);
+  }
+
+  /* ---- Statuses and messages --------------------------------- */
+
+  [data-ui="tag"] { font-weight: 500; }
+
+  [data-ui="alert"] { border-radius: var(--radius-lg); }
+
+  /* ---- Containers -------------------------------------------- */
+
+  [data-ui="card"] { border-color: var(--ui-border); }
+
+  /* Table: white throughout, a hairline round the edge and between
+     rows, quiet grey headers. */
+  [data-ui="table"] {
+    background-color: #ffffff;
+    box-shadow: 0 0 0 1px var(--ui-border), var(--shadow-xs);
+    thead { background-color: #ffffff; }
+    th { color: var(--ui-secondary-text); font-weight: 500; }
+    tbody tr { transition: background-color 0.1s ease; }
+  }
+
+  /* Tabs: a touch more weight on the selected tab. */
+  [data-ui="tabs"] [role="tab"][aria-selected="true"] { font-weight: 500; }
+
+  /* Side menu */
+  [data-ui="sidebar"] {
+    border-right: 1px solid var(--ui-border);
+
+    .app-logo-container,
+    .sidebar-toggle-btn,
+    [class*="border-white"] { border-color: var(--ui-border); }
+    .app-logo-container { border-bottom: 1px solid var(--ui-border); }
+
+    .menu-item { font-weight: 450; }
+    .menu-item-inactive:hover {
+      background-color: var(--color-gray-200);
+      color: var(--ui-text);
+    }
+    .menu-item-active {
+      background-color: #ffffff;
+      box-shadow: 0 0 0 1px var(--ui-border), var(--shadow-xs);
+      font-weight: 500;
+    }
+
+    .user-menu-trigger {
+      background-color: #ffffff;
+      color: var(--ui-text);
+      box-shadow: 0 0 0 1px var(--ui-border), var(--shadow-xs);
+    }
+    .user-menu-trigger:hover { background-color: var(--color-gray-100); }
+    .user-menu-chevron,
+    .sidebar-toggle-btn svg { color: var(--ui-secondary-text); }
+    .sidebar-toggle-btn:hover { background-color: var(--color-gray-200); }
+    .primary-light { color: var(--ui-secondary-text); }
+    [class*="text-amber"] { color: var(--color-amber-600); }
+  }
+
+  /* ---- Forms ------------------------------------------------- */
+
+  [data-ui="label"] { color: var(--color-gray-700); }
+  [data-ui="hint"] { color: var(--ui-secondary-text); }
+
+  [data-ui="field"] {
+    border-color: var(--color-gray-300);
+    box-shadow: var(--shadow-xs);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    &:focus {
+      outline: none;
+      border-color: var(--ui-brand);
+      box-shadow: var(--ui-halo);
+    }
+  }
+  [data-ui="form-group"][data-invalid] [data-ui="field"]:focus {
+    border-color: var(--color-red-500);
+    box-shadow: 0 0 0 4px rgb(239 68 68 / 0.15);
+  }
+
+  :is([data-ui="choice"], input[type="checkbox"], input[type="radio"]) {
+    border-color: var(--color-gray-300);
+    color: var(--ui-brand);
+    &:focus-visible { outline: none; box-shadow: var(--ui-halo); }
+  }
+
+  /* Small caps labels: lighter and more open. */
+  .uppercase { letter-spacing: 0.04em; }
+
+  /* ---- Focus ------------------------------------------------- */
+
+  :is(a, button, [role="tab"]):focus-visible {
+    outline: none;
+    box-shadow: var(--ui-halo);
+  }
+}
+
+/* ============================================================== */
 /* ============================================================== */
 /* GDS — the GOV.UK Design System (design-system.service.gov.uk), */
 /* GOV.UK Frontend v6 (the 2025 brand refresh).                   */

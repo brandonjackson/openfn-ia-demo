@@ -20,6 +20,10 @@ inline literals scattered through the markup.
 - `npm run lint` — run ESLint
 - `npm run storybook` — start Storybook on port 6006
 - `npm run build-storybook` — build Storybook static site
+- `npm run compare -- --spec scripts/compare-lightning/specs/core.json …` —
+  screenshot the same screens in a local Lightning and the replica, side by
+  side, with a report of wording only one side has. See **Comparing with
+  Lightning** below.
 - `node scripts/design-system-metrics.mjs` — count styling outside the
   primitives (className lists, distinct Tailwind tokens, raw elements). Run it
   before and after design-system work; the numbers should go down.
@@ -71,6 +75,17 @@ not **how** it's built.
 - Use `cn()` from `src/utils/cn.ts` for conditional classes.
 - Every page is `<PageContent header={<Header … />}>` with a `<Centered>`
   body, unless the page needs a different layout.
+
+### Comparing with Lightning
+
+To check pages against Lightning, use the `compare-with-lightning` skill
+(`.claude/skills/compare-with-lightning/SKILL.md`). In short: run Lightning
+`main` locally on the demo seed (not demo.openfn.org, which runs an older
+release), run `scripts/compare-lightning/compare.mjs` on both apps, read the
+report and open every side-by-side shot, then fix wording and behaviour
+differences. Ignore visual drift and the richer fixture data. Add new
+screens to the specs in `scripts/compare-lightning/specs/` so the next run
+covers them.
 
 ## Components
 

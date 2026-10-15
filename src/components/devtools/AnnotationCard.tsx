@@ -1,8 +1,9 @@
 import type { Annotation, InventoryRow } from "../../annotations/source";
 import Button from "../Button";
-import Card from "../Card";
+import Disclosure from "../Disclosure";
 import Heading from "../Heading";
 import Pill, { type PillColor } from "../Pill";
+import { EmptyState } from "../Table";
 import TextLink from "../TextLink";
 import Markdown from "./Markdown";
 
@@ -60,15 +61,16 @@ export default function AnnotationCard({ id, annotation, inventory, onOpenId, in
         <div className="flex items-start justify-between gap-2">
           <Heading as="h2">{title}</Heading>
           {annotation && (
-            <a
-              href={annotation.url}
-              target="_blank"
-              rel="noreferrer"
+            <TextLink
+              to={annotation.url}
+              external
+              variant="plain"
               title="Open on GitHub"
+              aria-label="Open on GitHub"
               className="text-gray-400 hover:text-gray-600"
             >
               <span className="hero-arrow-top-right-on-square h-4 w-4" aria-hidden="true" />
-            </a>
+            </TextLink>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
@@ -89,33 +91,34 @@ export default function AnnotationCard({ id, annotation, inventory, onOpenId, in
       </div>
 
       {!annotation && (
-        <Card dashed className="space-y-1 text-center text-xs text-gray-500">
-          <span className="hero-document-magnifying-glass h-10 w-10 text-gray-400" />
-          <Heading as="p" size="sm">
-            Not annotated yet
-          </Heading>
-          <p>
-            {inventory
-              ? "This view is in the inventory but its annotation hasn't been written."
-              : "No annotation file and no inventory row for this id."}
-          </p>
-          {inventoryHref && (
-            <TextLink href={inventoryHref} external>
-              Open INVENTORY.md
-            </TextLink>
-          )}
-        </Card>
+        <EmptyState
+          icon="hero-document-magnifying-glass"
+          message={
+            <div className="space-y-1">
+              <Heading as="p" size="sm">
+                Not annotated yet
+              </Heading>
+              <p>
+                {inventory
+                  ? "This view is in the inventory but its annotation hasn't been written."
+                  : "No annotation file and no inventory row for this id."}
+              </p>
+              {inventoryHref && (
+                <TextLink href={inventoryHref} external>
+                  Open INVENTORY.md
+                </TextLink>
+              )}
+            </div>
+          }
+        />
       )}
 
       {annotation && (
         <>
           {annotation.frontMatterRaw && (
-            <Card muted padding="none" className="text-xs text-gray-600">
-              <details>
-                <summary className="cursor-pointer px-3 py-2 font-medium">Front matter</summary>
-                <pre className="overflow-x-auto border-t border-gray-200 px-3 py-2">{annotation.frontMatterRaw}</pre>
-              </details>
-            </Card>
+            <Disclosure title="Front matter" defaultOpen={false} padded={false}>
+              <pre className="overflow-x-auto border-t border-gray-200 px-4 py-3 text-xs text-gray-600">{annotation.frontMatterRaw}</pre>
+            </Disclosure>
           )}
           <Markdown source={annotation.body} />
         </>

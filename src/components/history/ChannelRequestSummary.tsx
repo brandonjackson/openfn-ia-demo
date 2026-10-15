@@ -48,11 +48,15 @@ export default function ChannelRequestSummary({
         />
         <div className="ml-auto flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
           <span className="flex items-center gap-1.5">
-            <span className="uppercase tracking-wide text-gray-500">Channel</span>
+            <Heading size="eyebrow" as="span">
+              Channel
+            </Heading>
             <TextLink to={`/projects/${channel.projectId}/channels/${channel.id}/edit`}>{channel.name}</TextLink>
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="uppercase tracking-wide text-gray-500">Request</span>
+            <Heading size="eyebrow" as="span">
+              Request
+            </Heading>
             <span className="font-mono text-gray-900">{shortUuid(request.id)}</span>
             <CopyButton value={request.id} label="Copy request ID" size="sm" />
           </span>

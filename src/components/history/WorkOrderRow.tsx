@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import IconButton from "../IconButton";
 import { Checkbox } from "../Inputs";
 import Pill from "../Pill";
@@ -12,14 +11,13 @@ import {
   workOrderDataclipAvailable,
 } from "../../mock-data/history-extra";
 import DateTime from "../DateTime";
+import TextLink from "../TextLink";
 import StatePill from "./StatePill";
 import UuidChip from "./UuidChip";
 import { RunCard } from "./RunDetails";
 import { cn } from "../../utils/cn";
 import { formatElapsed } from "../../utils/format";
-
-const zeroPersistence =
-  "This work order cannot be rerun since no input data has been stored due to the data retention policy set in the project.";
+import { zeroPersistenceMessage as zeroPersistence } from "./runHelpers";
 
 /**
  * A work order row in History plus, when expanded, its runs and steps
@@ -70,13 +68,14 @@ export default function WorkOrderRow({
         </Td>
         <Td>
           {lastRun ? (
-            <Link
+            <TextLink
               to={`/projects/${projectId}/w/${wo.workflowId}?run=${lastRun.id}`}
+              variant="plain"
               className="workflow-name block max-w-50 truncate text-gray-900 hover:text-primary-600"
               title={`${wo.workflowName}\nClick to view`}
             >
               {wo.workflowName}
-            </Link>
+            </TextLink>
           ) : (
             <span title={wo.workflowName} className="workflow-name block max-w-50 truncate text-gray-900">
               {wo.workflowName}

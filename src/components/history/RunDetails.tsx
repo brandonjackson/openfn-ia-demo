@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { stepsOf, type Run, type Step } from "../../mock-data/history";
 import { findDataclip } from "../../mock-data/history";
 import { shortId, uuidOf } from "../../mock-data/history-extra";
@@ -9,6 +8,7 @@ import TextLink from "../TextLink";
 import StepIcon from "./StepIcon";
 import { cn } from "../../utils/cn";
 import { formatElapsed } from "../../utils/format";
+import { clonedStepMessage, inspectStepPath, isClonedStep, zeroPersistenceMessage } from "./runHelpers";
 
 /**
  * One step row inside an expanded work order (run_live/components.ex
@@ -28,20 +28,21 @@ export function StepListItem({
   workflowId: string;
   canRunWorkflow?: boolean;
 }) {
-  const isClone = step.startedAt < run.insertedAt;
+  const isClone = isClonedStep(step, run);
   const inputAvailable = !findDataclip(step.inputDataclipId)?.wiped;
   return (
     <div id={`step-${step.id}`} role="row" className={cn("flex items-center text-xs text-gray-500 hover:bg-white", isClone && "opacity-50")}>
       <div role="cell" className="flex flex-1 items-center gap-2 py-2 pl-4">
         <StepIcon reason={step.exitReason} />
-        <Link to={`/projects/${projectId}/runs/${run.id}?step=${step.id}`} className="whitespace-nowrap text-gray-800 hover:text-primary-500">
+        <TextLink
+          to={`/projects/${projectId}/runs/${run.id}?step=${step.id}`}
+          variant="plain"
+          className="whitespace-nowrap text-gray-800 hover:text-primary-500"
+        >
           {step.jobName}
-        </Link>
+        </TextLink>
         {isClone && (
-          <span
-            className="hero-paper-clip-mini h-3 w-3"
-            title="This step was originally executed in a previous run. It was skipped in this run; the original output has been used as the starting point for downstream jobs."
-          />
+          <span className="hero-paper-clip-mini h-3 w-3" title={clonedStepMessage} />
         )}
         &bull;
         <span>
@@ -54,16 +55,12 @@ export function StepListItem({
           (inputAvailable ? (
             <IconButton icon="hero-play-circle-mini" label="Run this step with the latest version of this workflow" />
           ) : (
-            <IconButton
-              icon="hero-play-circle-mini"
-              label="This work order cannot be rerun since no input data has been stored due to the data retention policy set in the project."
-              disabled
-            />
+            <IconButton icon="hero-play-circle-mini" label={zeroPersistenceMessage} disabled />
           ))}
         <IconButton
           icon="hero-document-magnifying-glass-mini"
           label="Inspect this step"
-          to={`/projects/${projectId}/w/${workflowId}?run=${run.id}&panel=editor&job=${step.jobId}`}
+          to={inspectStepPath(projectId, workflowId, run, step)}
         />
         <span className="w-16 text-right">{formatElapsed(step.startedAt, step.finishedAt)}</span>
         <span className="w-24 text-right font-mono">{step.exitReason}</span>

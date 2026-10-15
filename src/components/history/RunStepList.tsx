@@ -3,6 +3,7 @@ import type { Run, Step } from "../../mock-data/history";
 import { cn } from "../../utils/cn";
 import StepIcon from "./StepIcon";
 import { formatElapsed } from "../../utils/format";
+import { clonedStepMessage, inspectStepPath, isClonedStep } from "./runHelpers";
 
 /**
  * The run page's step list (run_live/components.ex `step_list` +
@@ -27,7 +28,7 @@ export default function RunStepList({
     <ul role="list" className="-mb-8 flex-1">
       {steps.map((step) => {
         const selected = step.id === selectedStepId;
-        const isClone = step.startedAt < run.insertedAt;
+        const isClone = isClonedStep(step, run);
         return (
           <li key={step.id} data-step-id={step.id} className="p-2">
             <Link
@@ -40,10 +41,7 @@ export default function RunStepList({
               <StepIcon reason={step.exitReason} />
               <span className={cn("flex min-w-0 flex-1 items-center gap-1 pr-1.5", isClone && "opacity-50")}>
                 {isClone && (
-                  <span
-                    className="hero-paper-clip-mini mr-1 h-3 w-3"
-                    title="This step was originally executed in a previous run. It was skipped in this run; the original output has been used as the starting point for downstream jobs."
-                  />
+                  <span className="hero-paper-clip-mini mr-1 h-3 w-3" title={clonedStepMessage} />
                 )}
                 {step.jobName}
                 {/* A link inside the step's link in Lightning; a span here so the DOM stays valid. */}
@@ -54,7 +52,7 @@ export default function RunStepList({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    navigate(`/projects/${projectId}/w/${workflowId}?run=${run.id}&panel=editor&job=${step.jobId}`);
+                    navigate(inspectStepPath(projectId, workflowId, run, step));
                   }}
                 />
                 <span className="grow whitespace-nowrap text-right text-gray-500">

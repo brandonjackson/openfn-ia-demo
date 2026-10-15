@@ -6,6 +6,7 @@
 import { projects, roleIn, type Project } from "./projects";
 import { currentUser, findUser, users, type User } from "./users";
 import { capitalize } from "../utils/format";
+import { kickstartCredentials } from "./generated/kickstart";
 
 export type TransferStatus = "pending" | "completed" | null;
 
@@ -145,6 +146,8 @@ export const credentials: Credential[] = [
     transferStatus: null,
     scheduledDeletion: "2026-10-21T09:00:00Z",
   },
+  // Projects loaded from kickstart/exports/ (see kickstart/sync.mjs).
+  ...kickstartCredentials,
 ];
 
 export const keychainCredentials: KeychainCredential[] = [

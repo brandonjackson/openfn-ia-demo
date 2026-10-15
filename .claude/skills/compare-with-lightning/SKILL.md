@@ -33,6 +33,18 @@ The first run takes about 10 minutes, then seconds. Users: `demo@openfn.org`
 
 Then start the replica: `npm run dev` (port 5173).
 
+Load the shared projects too, so both apps hold the same data (see
+`kickstart/README.md`):
+
+```bash
+npm run kickstart:sync                     # in this repo
+mix lightning.kickstart <this repo>/kickstart/scenario.yaml   # in Lightning
+```
+
+Kickstarted projects have the same ids in both apps, so their specs need no
+per-side paths. Until Lightning fixes the `z.uuidv4()` check described in
+`kickstart/README.md`, patch it locally or its editor won't load them.
+
 If OpenHIE Workflow has no successful run yet, open it in Lightning and click
 Run once. The run specs need one.
 
@@ -41,6 +53,9 @@ Run once. The run specs need one.
 ```bash
 npm run compare -- --spec scripts/compare-lightning/specs/core.json \
   --out compare-out $(scripts/compare-lightning/lightning-vars.sh)
+
+# projects loaded from kickstart/exports/ (same ids on both sides)
+npm run compare -- --spec scripts/compare-lightning/specs/kickstart.json --out compare-out
 
 # admin pages, as the superuser
 npm run compare -- --spec scripts/compare-lightning/specs/admin.json \
@@ -61,8 +76,8 @@ scratchpad if you're in a cloud session.
 Start with `report.md`, then **open every side-by-side PNG and look at it.**
 Neither one is enough alone. For each difference, decide which kind it is:
 
-- **Fixture data**: the replica's fixtures are richer than the seed (more
-  workflows, runs, credentials). Not a bug. The wording diff will be noisy
+- **Fixture data**: outside the Kickstarted projects, the replica's fixtures
+  are richer than the seed (more workflows, runs, credentials). Not a bug. The wording diff will be noisy
   here; ignore names, ids, dates and counts.
 - **Version or config**: Lightning features that depend on config (AI, GitHub
   sync) or on the user's role. Check the Lightning code before calling it a bug.
@@ -90,15 +105,18 @@ design system's primitives, per CLAUDE.md, not by copying Lightning's markup.
 - **Menu items in Lightning can be "not visible"** to Playwright while open.
   Use `>> visible=true` in the selector.
 - **The /projects greeting types itself out**; give it a few seconds.
-- **Ids differ.** Lightning ids are random per seed (`lightning-vars.sh`
+- **Select canvas nodes by URL where you can** (`?job=<id>`, `?trigger=`,
+  `?edge=`, `?panel=settings|code|run|editor`). It's sturdier than mouse
+  coordinates and works in both apps.
+- **Ids differ outside Kickstarted projects.** Lightning ids are random per seed (`lightning-vars.sh`
   prints them). Replica ids are readable fixture ids, shown through `uuidOf()`
   in `mock-data/history-extra.ts`. Never show a raw fixture id in the UI.
 
 ## 5. Improving the comparison (not done yet)
 
-- A Lightning Kickstart scenario generated from `src/mock-data/`
-  (`mix lightning.kickstart`, see `bin/e2e.d/scenarios/README.md` in
-  Lightning), so both apps show the same rows and the wording diff gets quiet.
+- More of the replica's data in `kickstart/exports/`, so fewer screens
+  compare the replica's hand-written fixtures against Lightning's thin seed.
+  Runs and history still can't be shared this way.
 - Shots driven by `annotations/INVENTORY.md` ids, so coverage is measurable.
 - The same specs run as `editor@` and `viewer@`, to catch permission
   differences.

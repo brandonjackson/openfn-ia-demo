@@ -178,8 +178,12 @@ for (const s of spec) {
   await R.screenshot({ path: path.join(opts.out, `${s.name}-replica.png`) });
 
   const [lw, rw] = [await wording(L), await wording(R)];
-  const onlyL = lw.filter((t) => !rw.includes(t) && !ignored.has(t));
-  const onlyR = rw.filter((t) => !lw.includes(t) && !ignored.has(t));
+  // Case-insensitive: the replica uppercases some labels with CSS, which
+  // innerText reports, and that's styling rather than wording.
+  const key = (t) => t.toLowerCase();
+  const [lk, rk] = [new Set(lw.map(key)), new Set(rw.map(key))];
+  const onlyL = lw.filter((t) => !rk.has(key(t)) && !ignored.has(t));
+  const onlyR = rw.filter((t) => !lk.has(key(t)) && !ignored.has(t));
 
   report.push(`## ${s.name}`, "", `- Lightning: \`${L.url().replace(opts.lightning, "")}\``, `- Replica: \`${R.url().replace(opts.replica, "")}\``);
   for (const f of failures) report.push(`- ⚠️ ${f}`);

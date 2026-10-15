@@ -3,6 +3,8 @@
  * itself (jobs, edges, positions) lives in ./workflow.ts.
  */
 
+import { kickstartWorkflows } from "./generated/kickstart";
+
 export type TriggerType = "webhook" | "cron" | "kafka";
 
 export interface WorkflowSummary {
@@ -93,6 +95,8 @@ export const workflows: WorkflowSummary[] = [
     updatedAt: "2026-10-13T11:50:00Z",
     insertedAt: "2026-09-30T08:00:00Z",
   },
+  // Projects loaded from kickstart/exports/ (see kickstart/sync.mjs).
+  ...kickstartWorkflows,
 ];
 
 export function workflowsIn(projectId: string): WorkflowSummary[] {

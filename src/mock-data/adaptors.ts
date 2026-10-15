@@ -6,6 +6,7 @@
  */
 
 import { capitalize } from "../utils/format";
+import { kickstartAdaptorDocs } from "./generated/kickstart";
 
 export interface Adaptor {
   id: string;
@@ -86,20 +87,74 @@ export const adaptors: Adaptor[] = [
   { id: "zoho", name: "Zoho", description: "Business software suite", category: "CRM & ERP" },
 ];
 
-/** Adaptors we have a square icon for (public/images/adaptors/<id>-square.png). */
+/**
+ * Adaptors we have a square icon for (public/images/adaptors/<id>-square.png),
+ * downloaded from a local Lightning's /adaptors/icons/ (see the
+ * compare-with-lightning skill).
+ */
 const ICONS = new Set([
+  "arcgis",
+  "asana",
+  "aws-s3",
+  "azure-storage",
+  "beyonic",
+  "bigquery",
+  "cartodb",
+  "chatgpt",
+  "cht",
+  "claude",
   "commcare",
   "common",
   "dhis2",
+  "divoc",
+  "dynamics",
+  "erpnext",
+  "facebook",
   "fhir",
+  "flutterwave",
+  "gemini",
+  "gmail",
+  "godata",
+  "googledrive",
+  "googlehealthcare",
   "googlesheets",
   "http",
+  "ihris",
+  "khanacademy",
   "kobotoolbox",
+  "magpi",
+  "mailchimp",
+  "mailgun",
+  "maximo",
+  "medicmobile",
+  "mongodb",
+  "mpesa",
+  "msgraph",
+  "mssql",
+  "mysql",
+  "odk",
+  "odoo",
+  "opencrvs",
+  "openelis",
   "openhim",
+  "openimis",
+  "openlmis",
   "openmrs",
+  "openspp",
   "postgresql",
+  "primero",
+  "rapidpro",
+  "redis",
   "salesforce",
+  "satusehat",
+  "sftp",
+  "stripe",
+  "surveycto",
+  "telerivet",
   "twilio",
+  "vtiger",
+  "whatsapp",
+  "zoho",
 ]);
 
 /** `@openfn/language-http@latest` → `{ package: "@openfn/language-http", version: "latest" }`. */
@@ -199,6 +254,9 @@ const HTTP_FUNCTIONS: AdaptorFunction[] = [
 ];
 
 export function adaptorFunctions(specifier: string): AdaptorFunction[] {
+  // Real docs for adaptors used by workflows in kickstart/exports/.
+  const docs = kickstartAdaptorDocs[specifier];
+  if (docs) return docs;
   const fns = adaptorShortName(specifier) === "http" ? HTTP_FUNCTIONS : COMMON_FUNCTIONS;
   return [...fns].sort((a, b) => a.name.localeCompare(b.name));
 }

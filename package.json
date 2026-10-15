@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "compare": "node scripts/compare-lightning/compare.mjs"
+    "compare": "node scripts/compare-lightning/compare.mjs",
+    "kickstart:sync": "node kickstart/sync.mjs"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",
@@ -31,11 +32,13 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "cronstrue": "2.50.0",
     "eslint": "^9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
     "heroicons": "^2.2.0",
+    "js-yaml": "4.1.0",
     "playwright-core": "1.56.0",
     "storybook": "^10.3.5",
     "tailwindcss": "^4.2.2",

@@ -3,6 +3,8 @@
  * plus a sandbox, so the project picker shows the parent/child tree.
  */
 
+import { kickstartProjects } from "./generated/kickstart";
+
 export type ProjectRole = "owner" | "admin" | "editor" | "viewer";
 
 export type RetentionPolicy = "retain_all" | "retain_with_errors" | "erase_all";
@@ -89,6 +91,8 @@ export const projects: Project[] = [
     lastUpdatedAt: "2026-10-13T12:00:00Z",
     insertedAt: "2026-09-30T08:00:00Z",
   },
+  // Projects loaded from kickstart/exports/ (see kickstart/sync.mjs).
+  ...kickstartProjects,
 ];
 
 export function findProject(id: string | undefined): Project | undefined {

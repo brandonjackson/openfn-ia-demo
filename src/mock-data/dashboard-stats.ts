@@ -118,13 +118,25 @@ const extra: Record<string, Omit<WorkflowStats, "workflow">> = {
   },
 };
 
+/** A workflow with no work orders yet (e.g. one loaded from kickstart/exports/). */
+const NO_ACTIVITY: Omit<WorkflowStats, "workflow"> = {
+  lastWorkOrder: null,
+  lastFailedAt: null,
+  workordersCount: 0,
+  failedWorkordersCount: 0,
+  stepCount: 0,
+  stepSuccessRate: 0,
+  pendingWorkorders: 0,
+  runs: { total: 0, pending: 0, success: 0 },
+};
+
 export function workflowStatsFor(projectId: string): WorkflowStats[] {
-  return workflowsIn(projectId).map((workflow) => ({ workflow, ...extra[workflow.id] }));
+  return workflowsIn(projectId).map((workflow) => ({ workflow, ...(extra[workflow.id] ?? NO_ACTIVITY) }));
 }
 
 export function findWorkflowStats(workflowId: string): WorkflowStats | undefined {
   const workflow = workflows.find((w) => w.id === workflowId);
-  return workflow && { workflow, ...extra[workflow.id] };
+  return workflow && { workflow, ...(extra[workflow.id] ?? NO_ACTIVITY) };
 }
 
 /** The four metric cards above the workflows table (`ProjectMetrics`). */

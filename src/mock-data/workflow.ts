@@ -10,6 +10,8 @@
  * the steps in ./history.ts so runs light up on the canvas.
  */
 
+import { kickstartGraphs } from "./generated/kickstart";
+
 export type EdgeConditionType = "always" | "on_job_success" | "on_job_failure" | "js_expression";
 
 export interface EditorJob {
@@ -284,6 +286,8 @@ export const workflowGraphs: WorkflowGraph[] = [
     },
   },
   openhieGraph("wf-openhie-sandbox", SANDBOX, "-sb"),
+  // Projects loaded from kickstart/exports/ (see kickstart/sync.mjs).
+  ...kickstartGraphs,
 ];
 
 export function findWorkflowGraph(id: string | undefined): WorkflowGraph | undefined {

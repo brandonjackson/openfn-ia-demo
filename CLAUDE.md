@@ -24,6 +24,8 @@ inline literals scattered through the markup.
   screenshot the same screens in a local Lightning and the replica, side by
   side, with a report of wording only one side has. See **Comparing with
   Lightning** below.
+- `npm run kickstart:sync` — regenerate the shared projects from
+  `kickstart/exports/` (fixtures here, Kickstart scenario for Lightning).
 - `node scripts/design-system-metrics.mjs` — count styling outside the
   primitives (className lists, distinct Tailwind tokens, raw elements). Run it
   before and after design-system work; the numbers should go down.
@@ -43,6 +45,10 @@ inline literals scattered through the markup.
   `validate.ts` (`isValidEmail`), `useUrlParams.ts`, `useCopy.ts`.
 - `src/mock-data/` — fixtures modelled on Lightning's demo seed
   (`lib/lightning/setup_utils.ex`): users, projects, workflows, history.
+  `generated/kickstart.ts` is generated from the project exports in
+  `kickstart/exports/` by `npm run kickstart:sync`, which also writes the
+  Kickstart scenario that loads the same projects into a local Lightning
+  (`kickstart/README.md`). Don't edit it by hand.
 - `src/theme/` — themes, chosen from the settings button (bottom right).
   Lightning v2 is the default.
 - `annotations/` — a copy of the behaviour audit from OpenFn/lightning

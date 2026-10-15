@@ -11,7 +11,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "compare": "node scripts/compare-lightning/compare.mjs",
-    "kickstart:sync": "node kickstart/sync.mjs"
+    "kickstart:sync": "node kickstart/sync.mjs",
+    "compare:all": "scripts/compare-lightning/run-all.sh"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.10",

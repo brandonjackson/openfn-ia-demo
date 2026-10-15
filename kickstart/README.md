@@ -18,6 +18,7 @@ That reads every `exports/*.yaml` and writes:
   credentials and adaptor docs, appended to the replica's fixtures.
 
 Commit all three (the export, the scenario and the generated file).
+`npm run compare:all` runs the sync and loads the scenario for you.
 
 ## Adding an export
 

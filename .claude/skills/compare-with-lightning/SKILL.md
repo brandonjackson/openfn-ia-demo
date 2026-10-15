@@ -1,6 +1,6 @@
 ---
 name: compare-with-lightning
-description: Compare the replica with Lightning side by side, screen by screen, and fix the differences that matter. Use when asked to check the replica against Lightning, find what's missing or wrong, verify a page matches, or "make it as close as possible" to Lightning.
+description: Compare the replica with Lightning side by side, screen by screen, and fix the differences that matter. Use whenever asked to "compare with Lightning", check the replica against Lightning, find what's missing or wrong, verify a page matches, load a project export into both apps, or make the replica "as close as possible" to Lightning. One command (`npm run compare:all`) sets up Lightning, the shared data and the replica, then runs every spec.
 ---
 
 # Compare the replica with Lightning
@@ -12,68 +12,54 @@ harmonises Lightning's styling into one design system (see CLAUDE.md,
 "Matching Lightning"). Only chase a visual difference when it's a big layout
 mistake, such as a panel in the wrong place or something missing.
 
-## 1. Run Lightning `main` locally, not demo.openfn.org
-
-demo.openfn.org runs an older release. The replica follows Lightning `main`
-(the commit in `annotations/SOURCE.md`), so compare against that. Load the
-`lightning-screenshots` skill and run its `setup.sh` (the path is the skill's
-base directory, shown when it loads) from a Lightning checkout on `main`. It
-installs the toolchain, seeds the same data as the demo and starts the server
-on :4000:
+## 1. Run everything with one command
 
 ```bash
-cd <lightning checkout>
-<lightning-screenshots skill dir>/setup.sh
+npm run compare:all
 ```
 
-The first run takes about 10 minutes, then seconds. Users: `demo@openfn.org`
-(Amy Admin), `editor@`, `viewer@`, `super@` (superuser), all with password
-`welcome12345`. `openhie-project` has the same id in the seed and in
-`src/mock-data/`.
+That's the whole setup. `scripts/compare-lightning/run-all.sh` does what's
+missing and skips what's done:
 
-Then start the replica: `npm run dev` (port 5173).
+- finds the Lightning checkout (`LIGHTNING_DIR`, else `../lightning` next to
+  this repo) or clones OpenFn/lightning `main` there. Compare against `main`,
+  never demo.openfn.org, which runs an older release;
+- installs the toolchain, seeds the demo data and starts Lightning on :4000;
+- patches Lightning's editor UUID check locally (see `kickstart/README.md`;
+  never commit that change in Lightning);
+- syncs `kickstart/exports/` and loads it into Lightning, so those projects
+  have the same data and ids in both apps;
+- starts the replica on :5173;
+- runs `specs/core.json` and `specs/kickstart.json` as Amy and
+  `specs/admin.json` as the superuser, into `compare-out/<spec>/`.
 
-Load the shared projects too, so both apps hold the same data (see
-`kickstart/README.md`):
+**The first run in a fresh container takes 10 to 15 minutes** (Erlang,
+Elixir, deps, compile); later runs take a few minutes. Run it in the
+background and wait for it to finish rather than polling. `--setup` only sets
+up; `--only core|kickstart|admin` runs one spec. If a step fails, the script
+prints the tail of its log.
 
-```bash
-npm run kickstart:sync                     # in this repo
-mix lightning.kickstart <this repo>/kickstart/scenario.yaml   # in Lightning
-```
+If the user gives you a **project export** (a Lightning project YAML), add it
+to `kickstart/exports/` first, following `kickstart/README.md` (swap personal
+emails for demo users), and add a spec for it like `specs/kickstart.json`.
 
-Kickstarted projects have the same ids in both apps, so their specs need no
-per-side paths. Until Lightning fixes the `z.uuidv4()` check described in
-`kickstart/README.md`, patch it locally or its editor won't load them.
+Demo users: `demo@openfn.org` (Amy Admin), `editor@`, `viewer@`, `super@`
+(superuser), all with password `welcome12345`.
 
-If OpenHIE Workflow has no successful run yet, open it in Lightning and click
-Run once. The run specs need one.
+## 2. Add to the specs as you go
 
-## 2. Run the comparison script
+The header of `scripts/compare-lightning/compare.mjs` documents the spec
+format: paths per side, click/fill/mouse/scroll steps, and `{{VAR}}`
+substitution. When you check a screen that isn't in a spec yet, add it to
+one, so the next run covers it. Don't write one-off scripts.
 
-```bash
-npm run compare -- --spec scripts/compare-lightning/specs/core.json \
-  --out compare-out $(scripts/compare-lightning/lightning-vars.sh)
-
-# projects loaded from kickstart/exports/ (same ids on both sides)
-npm run compare -- --spec scripts/compare-lightning/specs/kickstart.json --out compare-out
-
-# admin pages, as the superuser
-npm run compare -- --spec scripts/compare-lightning/specs/admin.json \
-  --out compare-out --email super@openfn.org
-```
-
-For each shot it writes `<name>.png` (Lightning left, replica right) and a
-`report.md` listing, per shot, the wording only one side has. The header of
-`scripts/compare-lightning/compare.mjs` documents the spec format: paths per
-side, click/fill/mouse/scroll steps, and `{{VAR}}` substitution. Add shots to
-a spec rather than writing one-off scripts.
-
-Write output somewhere uncommitted (`compare-out/` is gitignored), or to the
-scratchpad if you're in a cloud session.
+To rerun a few shots after a fix:
+`npm run compare -- --spec scripts/compare-lightning/specs/<spec>.json --out compare-out/<spec> --only shot-a,shot-b`
+(core.json also needs `$(scripts/compare-lightning/lightning-vars.sh)`).
 
 ## 3. Read the results
 
-Start with `report.md`, then **open every side-by-side PNG and look at it.**
+Start with each `compare-out/<spec>/report.md`, then **open every side-by-side PNG and look at it.**
 Neither one is enough alone. For each difference, decide which kind it is:
 
 - **Fixture data**: outside the Kickstarted projects, the replica's fixtures
@@ -91,6 +77,11 @@ Neither one is enough alone. For each difference, decide which kind it is:
 Before fixing, find the Lightning source of truth (INVENTORY.md gives the
 path) and copy its exact wording, including its typos. Fix it with the
 design system's primitives, per CLAUDE.md, not by copying Lightning's markup.
+
+Then fix the real differences, rerun the affected shots to confirm, and run
+`npm run lint`, `npm run build` and `npm run build-storybook`. Tell the user
+what you found in four groups (fixed, Lightning bugs, deliberately left,
+not compared) and send them the side-by-side PNGs that show a fix.
 
 ## 4. Things that tripped up past runs
 

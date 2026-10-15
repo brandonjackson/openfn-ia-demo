@@ -20,10 +20,8 @@ inline literals scattered through the markup.
 - `npm run lint` — run ESLint
 - `npm run storybook` — start Storybook on port 6006
 - `npm run build-storybook` — build Storybook static site
-- `npm run compare -- --spec scripts/compare-lightning/specs/core.json …` —
-  screenshot the same screens in a local Lightning and the replica, side by
-  side, with a report of wording only one side has. See **Comparing with
-  Lightning** below.
+- `npm run compare:all` — set up a local Lightning and compare it with the
+  replica, screen by screen. See **Comparing with Lightning** below.
 - `npm run kickstart:sync` — regenerate the shared projects from
   `kickstart/exports/` (fixtures here, Kickstart scenario for Lightning).
 - `node scripts/design-system-metrics.mjs` — count styling outside the
@@ -84,14 +82,15 @@ not **how** it's built.
 
 ### Comparing with Lightning
 
-To check pages against Lightning, use the `compare-with-lightning` skill
-(`.claude/skills/compare-with-lightning/SKILL.md`). In short: run Lightning
-`main` locally on the demo seed (not demo.openfn.org, which runs an older
-release), run `scripts/compare-lightning/compare.mjs` on both apps, read the
-report and open every side-by-side shot, then fix wording and behaviour
-differences. Ignore visual drift and the richer fixture data. Add new
-screens to the specs in `scripts/compare-lightning/specs/` so the next run
-covers them.
+When asked to "compare with Lightning" (or to check a page against it, or to
+load a project export), follow the `compare-with-lightning` skill
+(`.claude/skills/compare-with-lightning/SKILL.md`). The short version:
+`npm run compare:all` sets up a local Lightning `main` on the demo seed plus
+the shared projects from `kickstart/exports/`, starts the replica, and writes
+side-by-side screenshots and wording reports to `compare-out/`. Read the
+reports, open every shot, then fix wording and behaviour differences. Ignore
+visual drift and the richer fixture data. Add new screens to the specs in
+`scripts/compare-lightning/specs/` so the next run covers them.
 
 ## Components
 

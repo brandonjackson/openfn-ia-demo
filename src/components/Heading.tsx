@@ -29,7 +29,7 @@ export default function Heading({
   children: ReactNode;
 }) {
   return (
-    <Tag id={id} className={cn(sizes[size], className)}>
+    <Tag id={id} data-ui="heading" data-variant={size} className={cn(sizes[size], className)}>
       {children}
     </Tag>
   );

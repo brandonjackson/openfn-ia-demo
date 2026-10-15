@@ -22,6 +22,7 @@ export default function AuthPanelLayout({
 }) {
   return (
     <section
+      data-ui="page-body"
       className={cn(
         "flex min-h-screen flex-col items-center gap-4 bg-gray-50 px-6 py-8",
         align === "centered" && "justify-center lg:py-0"

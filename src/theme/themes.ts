@@ -33,7 +33,7 @@ export const THEMES: ThemeMeta[] = [
   {
     id: "gds",
     name: "GDS",
-    description: "GOV.UK design system: blue links, green buttons, square and flat.",
+    description: "GOV.UK design system: a plain white page, functional colour, square and flat, underlined links.",
     mode: "light",
     swatches: ["#1d70b8", "#0f7a52", "#0b0c0c", "#ffdd00"],
   },

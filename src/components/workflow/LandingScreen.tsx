@@ -43,6 +43,7 @@ export default function LandingScreen({ aiAssistantEnabled = true, onBuildWithAI
       aria-labelledby="landing-screen-heading"
       className="absolute inset-0 z-10 flex items-center justify-center bg-gray-100"
       data-testid="landing-screen"
+      data-ui="page-body"
       data-annotation="workflow-editor-new"
     >
       <div className="flex w-full flex-col gap-6 px-6 md:max-w-xl lg:px-2">

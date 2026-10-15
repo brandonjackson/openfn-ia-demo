@@ -18,7 +18,7 @@ export function PageContent({
     <div className="flex h-full w-full flex-col">
       {banner}
       {header}
-      <div className="flex-auto bg-gray-100 relative">
+      <div className="flex-auto bg-gray-100 relative" data-ui="page-body">
         <section
           id="inner_content"
           className="overflow-y-auto [scrollbar-gutter:stable_both-edges] absolute top-0 bottom-0 left-0 right-0"

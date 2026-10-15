@@ -47,6 +47,8 @@ export default function Pagination({ pageNumber, pageSize, totalEntries, onPage,
             key={n}
             type="button"
             onClick={() => onPage?.(n)}
+            aria-current={n === pageNumber ? "page" : undefined}
+            data-ui="pagination-page"
             className={cn(
               "relative inline-flex items-center px-4 py-2 border text-sm font-medium",
               n === pageNumber

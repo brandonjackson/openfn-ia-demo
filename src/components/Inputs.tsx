@@ -11,7 +11,7 @@ import { controlClasses } from "./controlClasses";
 
 export function Label({ htmlFor, className, children }: { htmlFor?: string; className?: string; children: ReactNode }) {
   return (
-    <label htmlFor={htmlFor} className={cn("text-sm/6 font-medium text-gray-800", className)}>
+    <label htmlFor={htmlFor} data-ui="label" className={cn("text-sm/6 font-medium text-gray-800", className)}>
       {children}
     </label>
   );
@@ -19,7 +19,7 @@ export function Label({ htmlFor, className, children }: { htmlFor?: string; clas
 
 export function FieldError({ children }: { children: ReactNode }) {
   return (
-    <p data-tag="error_message" className="mt-1 inline-flex items-center gap-x-1.5 text-xs text-danger-600">
+    <p data-tag="error_message" data-ui="error-message" className="mt-1 inline-flex items-center gap-x-1.5 text-xs text-danger-600">
       <span className="hero-exclamation-circle h-4 w-4" />
       {children}
     </p>
@@ -39,14 +39,14 @@ interface FieldProps {
 /** A label, optional hint, a control and its errors. */
 export function Field({ id, label, required, hint, errors = [], className, children }: Omit<FieldProps, "fieldClassName"> & { id?: string; className?: string; children: ReactNode }) {
   return (
-    <div className={className}>
+    <div className={className} data-ui="form-group" data-invalid={errors.length > 0 || undefined}>
       {label && (
         <Label htmlFor={id} className="mb-2 block">
           {label}
-          {required && <span className="text-red-500"> *</span>}
+          {required && <span data-ui="required" className="text-red-500"> *</span>}
         </Label>
       )}
-      {hint && <small className="mb-2 block text-xs text-gray-600">{hint}</small>}
+      {hint && <small data-ui="hint" className="mb-2 block text-xs text-gray-600">{hint}</small>}
       {children}
       {errors.map((e) => (
         <FieldError key={e}>{e}</FieldError>
@@ -131,7 +131,7 @@ export function Radio({ label, hint, className, ...rest }: ChoiceProps) {
 function Choice({ label, hint, className, ...rest }: ChoiceProps & { type: "checkbox" | "radio" }) {
   return (
     <label className={cn("flex gap-2 text-sm leading-6 text-gray-700", hint ? "items-start" : "items-center")}>
-      <input className={cn(choiceClasses, hint && "mt-1", className)} {...rest} />
+      <input data-ui="choice" className={cn(choiceClasses, hint && "mt-1", className)} {...rest} />
       <span>
         {label}
         {hint && <span className="block text-xs text-gray-500">{hint}</span>}

@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import type { Run, WorkOrder } from "../../mock-data/history";
 import { cn } from "../../utils/cn";
 import Card from "../Card";
+import DateTime from "../DateTime";
 import Heading from "../Heading";
 import IconButton from "../IconButton";
+import TextLink from "../TextLink";
 import StatePill from "../history/StatePill";
 import RunBadge from "./RunBadge";
-import { formatDuration, formatRelative, shortUuid } from "../../utils/format";
+import { formatDuration, shortUuid } from "../../utils/format";
 import { uuidOf } from "../../mock-data/history-extra";
 
 const Dot = () => <span className="text-gray-800">&bull;</span>;
@@ -64,7 +65,6 @@ export default function MiniHistory({
   onBack,
 }: Props) {
   const [expanded, setExpanded] = useState("");
-  const now = new Date();
   const historyHref = `/projects/${projectId}/history?filters[workflow_id]=${workflowId}`;
 
   const list =
@@ -101,16 +101,17 @@ export default function MiniHistory({
                       expand();
                     }}
                   />
-                  <Link
+                  <TextLink
+                    variant="plain"
                     to={`/projects/${projectId}/history?filters[workorder_id]=${workOrder.id}`}
                     onClick={(e) => e.stopPropagation()}
                     className="link-uuid"
                     title={uuidOf(workOrder.id)}
                   >
                     {shortUuid(uuidOf(workOrder.id), 7)}
-                  </Link>
+                  </TextLink>
                   <Dot />
-                  <span className="text-gray-500">{formatRelative(workOrder.lastActivity, now)}</span>
+                  <DateTime value={workOrder.lastActivity} className="text-gray-500" />
                 </div>
                 <StatePill labelMode="raw" state={workOrder.state} />
               </div>
@@ -144,13 +145,19 @@ export default function MiniHistory({
                         ) : (
                           <span className="invisible h-5 w-5" />
                         )}
-                        <Link to={`/projects/${projectId}/runs/${run.id}`} onClick={(e) => e.stopPropagation()} className="link-uuid" title={uuidOf(run.id)}>
+                        <TextLink
+                          variant="plain"
+                          to={`/projects/${projectId}/runs/${run.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="link-uuid"
+                          title={uuidOf(run.id)}
+                        >
                           {shortUuid(uuidOf(run.id), 7)}
-                        </Link>
+                        </TextLink>
                         {(run.startedAt || run.finishedAt) && (
                           <>
                             <Dot />
-                            {formatRelative((run.startedAt || run.finishedAt) as string, now)}
+                            <DateTime value={run.startedAt || run.finishedAt} />
                           </>
                         )}
                         {run.startedAt && run.finishedAt && (

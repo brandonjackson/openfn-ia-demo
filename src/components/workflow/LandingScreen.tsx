@@ -19,13 +19,13 @@ interface Props {
 function OptionCard({ icon, title, description, onClick, testId }: { icon: string; title: string; description: string; onClick: () => void; testId: string }) {
   return (
     <Card as="button" data-testid={testId} onClick={onClick} padding="lg" className="h-full text-sm text-gray-600">
-        <div className="mb-3 w-fit rounded-lg bg-gray-100 p-2">
-          <span className={cn("block h-5 w-5 text-gray-700", icon)} />
-        </div>
-        <Heading size="sm" as="p">
-          {title}
-        </Heading>
-        <p className="mt-1">{description}</p>
+      <div className="mb-3 w-fit rounded-lg bg-gray-100 p-2">
+        <span className={cn("block h-5 w-5 text-gray-700", icon)} />
+      </div>
+      <Heading size="sm" as="p">
+        {title}
+      </Heading>
+      <p className="mt-1">{description}</p>
     </Card>
   );
 }

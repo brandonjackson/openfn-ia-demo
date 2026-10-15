@@ -1,4 +1,5 @@
 import { adaptorFunctions, adaptorShortName, resolveAdaptor, resolvedAdaptorVersion } from "../../mock-data/adaptors";
+import Disclosure from "../Disclosure";
 import Heading from "../Heading";
 import TextLink from "../TextLink";
 
@@ -31,11 +32,8 @@ export default function AdaptorDocs({ adaptor }: { adaptor: string }) {
           </TextLink>
         </p>
       </div>
-      <details>
-        <summary className="cursor-pointer">
-          <h3 className="inline">Editor tips & shortcuts</h3>
-        </summary>
-        <div className="mt-2 border-l-4 border-gray-300 pl-2">
+      <Disclosure variant="inline" defaultOpen={false} title="Editor tips & shortcuts">
+        <div className="border-l-4 border-gray-300 pl-2">
           <p className="mb-2">
             Most adaptors provide intelligent code suggestions to the editor. Start typing and press TAB or ENTER to accept a
             suggestion, or ESC to cancel
@@ -46,17 +44,14 @@ export default function AdaptorDocs({ adaptor }: { adaptor: string }) {
             <li>Press F1 to show the command menu (not all commands will work!)</li>
           </ul>
         </div>
-      </details>
+      </Disclosure>
       <div>
         <Heading size="sm">Adaptor API</Heading>
         <p>These are the operations available for this adaptor:</p>
       </div>
-      <div>
+      <div className="ml-4 space-y-1">
         {fns.map((fn) => (
-          <details key={fn.name} className="ml-4">
-            <summary className="mb-1 cursor-pointer whitespace-nowrap text-gray-700 marker:text-gray-600 hover:bg-gray-50">
-              {fn.name}({fn.params.join(", ")})
-            </summary>
+          <Disclosure key={fn.name} variant="inline" defaultOpen={false} title={`${fn.name}(${fn.params.join(", ")})`}>
             <div className="mb-4 pl-4">
               <p>{fn.description}</p>
               {fn.example && (
@@ -68,7 +63,7 @@ export default function AdaptorDocs({ adaptor }: { adaptor: string }) {
                 </>
               )}
             </div>
-          </details>
+          </Disclosure>
         ))}
       </div>
     </div>

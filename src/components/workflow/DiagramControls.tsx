@@ -41,7 +41,6 @@ export default function DiagramControls({
       <IconButton
         icon={isManualLayout ? "hero-cursor-arrow-rays" : "hero-cursor-arrow-ripple"}
         label={isManualLayout ? "Switch to auto layout mode" : "Switch to manual layout mode"}
-       
         onClick={onToggleLayout}
       />
       <IconButton icon="hero-squares-2x2" label="Run auto layout (override manual positions)" onClick={onAutoLayout} />

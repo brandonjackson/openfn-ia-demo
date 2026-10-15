@@ -136,10 +136,12 @@ export default function ManualRunPanel({
           <div className="flex flex-col gap-3 overflow-auto">
             {visible.length ? (
               visible.map((clip, i) => (
-                <div
+                <Card
                   key={clip.id}
+                  as="button"
+                  padding="none"
                   onClick={() => setSelected(clip)}
-                  className="group flex cursor-pointer items-center justify-between gap-2 rounded-md border border-gray-200 px-3 py-2 hover:border-primary-600 hover:bg-gray-100"
+                  className="group flex items-center justify-between gap-2 rounded-md px-3 py-2 shadow-none hover:border-primary-600 hover:bg-gray-100 hover:shadow-none"
                 >
                   <div className="flex min-w-0 items-center gap-2">
                     {i === 0 ? (
@@ -151,7 +153,7 @@ export default function ManualRunPanel({
                     <DataclipTypePill type={clip.type} />
                   </div>
                   <span className="truncate text-xs">{formatShortLocalDateTime(clip.insertedAt)}</span>
-                </div>
+                </Card>
               ))
             ) : (
               <p className="text-center">No dataclips match the filter.</p>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { EdgeConditionType, EditorEdge } from "../../mock-data/workflow";
 import Button from "../Button";
 import ConfirmModal from "../ConfirmModal";
+import Disclosure from "../Disclosure";
 import { Select, TextArea, TextInput } from "../Inputs";
 import TextLink from "../TextLink";
 import Toggle from "../Toggle";
@@ -81,9 +82,8 @@ export default function EdgeInspector({ edge, onChange, onDelete, onClose }: Pro
             placeholder="eg: !state.error"
             className="h-24 bg-gray-700 font-mono text-gray-200"
           />
-          <details className="text-xs text-gray-600">
-            <summary className="cursor-pointer hover:text-gray-800">How to write expressions</summary>
-            <div className="mt-2 space-y-1">
+          <Disclosure variant="inline" defaultOpen={false} title="How to write expressions">
+            <div className="space-y-1 text-xs text-gray-600">
               <p>Use the state from the previous step to decide whether this step should run.</p>
               <p>Must be a single JavaScript expression with `state` in scope.</p>
               <p>
@@ -94,7 +94,7 @@ export default function EdgeInspector({ edge, onChange, onDelete, onClose }: Pro
                 for more details.
               </p>
             </div>
-          </details>
+          </Disclosure>
         </div>
       )}
       {fromTrigger && <p className="text-xs italic text-gray-600">This path will be active if its trigger is enabled</p>}

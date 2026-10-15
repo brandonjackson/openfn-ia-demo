@@ -2,9 +2,8 @@ import { useState } from "react";
 import type { User, UserRole } from "../../mock-data/users";
 import { isSupportUser, userRoleOptions } from "../../mock-data/admin";
 import Alert from "../Alert";
-import PasswordInput from "../auth/PasswordInput";
 import Button from "../Button";
-import { Checkbox, Select, TextInput } from "../Inputs";
+import { Checkbox, PasswordInput, Select, TextInput } from "../Inputs";
 import Toggle from "../Toggle";
 
 interface Props {

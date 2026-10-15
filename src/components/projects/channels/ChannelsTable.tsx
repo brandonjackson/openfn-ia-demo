@@ -1,7 +1,7 @@
 import type { Channel } from "../../../mock-data/channels";
 import { cn } from "../../../utils/cn";
 import Button from "../../Button";
-import { Table, Td, Th, Tr } from "../../Table";
+import { EmptyState, Table, Td, Th, Tr } from "../../Table";
 import Toggle from "../../Toggle";
 import DateTime from "../../DateTime";
 import TextLink from "../../TextLink";
@@ -29,7 +29,7 @@ export default function ChannelsTable({
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
 }) {
-  if (channels.length === 0) return <p className="py-8 text-center text-gray-500">No channels found.</p>;
+  if (channels.length === 0) return <EmptyState variant="plain" message="No channels found." />;
   const logs = `/projects/${projectId}/history/channels`;
 
   return (

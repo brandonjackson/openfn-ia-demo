@@ -1,10 +1,9 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import FirstSetupShell from "../../components/auth/FirstSetupShell";
-import PasswordInput from "../../components/auth/PasswordInput";
 import Header from "../../components/Header";
 import Button from "../../components/Button";
-import { TextInput } from "../../components/Inputs";
+import { PasswordInput, TextInput } from "../../components/Inputs";
 import { Centered, PageContent } from "../../components/PageContent";
 import { isValidEmail } from "../../utils/validate";
 

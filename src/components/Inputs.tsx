@@ -1,6 +1,7 @@
-import type { InputHTMLAttributes, ReactNode, Ref, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import { useState, type InputHTMLAttributes, type ReactNode, type Ref, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 import { cn } from "../utils/cn";
 import { controlClasses } from "./controlClasses";
+import IconButton from "./IconButton";
 
 /**
  * Form controls. Every control shares one look (`controlClasses`) and sits
@@ -59,6 +60,35 @@ export function TextInput({ label, required, hint, errors = [], fieldClassName, 
   return (
     <Field id={id} label={label} required={required} hint={hint} errors={errors} className={fieldClassName}>
       <input id={id} type="text" autoComplete="off" required={required} data-ui="field" className={controlClasses(errors.length > 0, className)} {...rest} />
+    </Field>
+  );
+}
+
+/**
+ * Lightning's password `.input` (new_inputs.ex): a text field with an eye
+ * button that toggles between hidden and shown.
+ */
+export function PasswordInput({ label, required, hint, errors = [], fieldClassName, className, id, ...rest }: FieldProps & Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
+  const [revealed, setRevealed] = useState(false);
+  return (
+    <Field id={id} label={label} required={required} hint={hint} errors={errors} className={fieldClassName}>
+      <div className="relative">
+        <input
+          id={id}
+          type={revealed ? "text" : "password"}
+          required={required}
+          data-ui="field"
+          className={controlClasses(errors.length > 0, cn("pr-10", className))}
+          {...rest}
+        />
+        <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+          <IconButton
+            icon={revealed ? "hero-eye" : "hero-eye-slash"}
+            label={revealed ? "Hide password" : "Show password"}
+            onClick={() => setRevealed((r) => !r)}
+          />
+        </div>
+      </div>
     </Field>
   );
 }

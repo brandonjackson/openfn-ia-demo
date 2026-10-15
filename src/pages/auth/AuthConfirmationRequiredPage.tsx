@@ -1,11 +1,10 @@
 import { useState, type FormEvent } from "react";
 import AuthPanelLayout, { AuthPanel } from "../../components/auth/AuthPanelLayout";
 import Alert from "../../components/Alert";
-import PasswordInput from "../../components/auth/PasswordInput";
 import TextLink from "../../components/TextLink";
 import Button from "../../components/Button";
 import Heading from "../../components/Heading";
-import { TextInput } from "../../components/Inputs";
+import { PasswordInput, TextInput } from "../../components/Inputs";
 import { unconfirmedUser } from "../../mock-data/auth";
 import { isValidEmail } from "../../utils/validate";
 

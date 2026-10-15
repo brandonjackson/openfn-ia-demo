@@ -102,9 +102,9 @@ everywhere. Reach for these first:
 | Need | Use |
 |---|---|
 | An action | `Button` (`to` for routes, `href` for plain links; `size="xs" theme="secondary"` for table row actions) |
-| An icon-only action | `IconButton` (always give it a `label`; `to`/`href` for icon links, `tone="danger"`, or pass an SVG element as `icon`) |
+| An icon-only action | `IconButton` (always give it a `label`; `to`/`href` for icon links, `external` to open `href` in a new tab, `tone="danger"`, or pass an SVG element as `icon`) |
 | A button that opens a menu | `ButtonMenu`; `SplitButton` when the button also has its own action |
-| A form control | `TextInput`, `TextArea`, `Select`, `Checkbox`, `Radio` from `Inputs` (`fieldClassName` styles the wrapper, e.g. `flex-1` in a row); wrap anything else in `Field` with `controlClasses()` and `data-ui="field"` |
+| A form control | `TextInput`, `PasswordInput`, `TextArea`, `Select`, `Checkbox`, `Radio` from `Inputs` (`fieldClassName` styles the wrapper, e.g. `flex-1` in a row); wrap anything else in `Field` with `controlClasses()` and `data-ui="field"` |
 | A name that becomes a URL-safe slug | `NameField` (input plus the "will be named" badge) |
 | A dialog | `Modal` (`size`, or `bare` for custom layouts) |
 | A dialog around one form | `FormModal` (`formId`, `onSubmit`, `submitLabel`; Enter submits, Cancel is built in) |
@@ -120,9 +120,10 @@ everywhere. Reach for these first:
 | A heading inside a page | `Heading` (`size` xl/lg/md/sm/eyebrow, `as` for the level) |
 | Labelled values | `DetailList` + `DetailItem` (`rows` or `grid`) |
 | A timestamp | `DateTime` |
-| An on/off switch | `Toggle` |
+| A short work order, run or dataclip id | `UuidChip` (`to` links it, `length={7}` in the workflow editor) |
+| An on/off switch | `Toggle` (`note` adds gray text after the label) |
 | An inline link | `TextLink` (`variant="danger"` for destructive ones) |
-| Tabular data | `Table` with `Tr`, `Th`, `Td`, `EmptyState` (a clickable `Tr` ignores clicks on links and buttons inside it, so no `stopPropagation`; `<Th actions />` and `<Td actions>` for the row-actions column, `align` for right/centre) |
+| Tabular data | `Table` with `Tr`, `Th`, `Td`, `EmptyState` (dashed box, or `variant="plain"` for centred text inside a card or list; `title`, `children` below the message) (a clickable `Tr` ignores clicks on links and buttons inside it, so no `stopPropagation`; `<Th actions />` and `<Td actions>` for the row-actions column, `align` for right/centre) |
 | Sorting and filtering a table in the browser | `useTableSort` (or `useSort` for state only, when rows are sorted elsewhere) from `useTableSort.ts` |
 | "Projects (3)" above a table, with its buttons | `TableTitle` |
 | A status message | `Alert` |

@@ -1,4 +1,5 @@
 import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions } from "@headlessui/react";
+import { EmptyState } from "./Table";
 import { Fragment, useRef, type KeyboardEvent, type ReactNode } from "react";
 import { cn } from "../utils/cn";
 import Heading from "./Heading";
@@ -160,7 +161,7 @@ export default function SearchList<T>({
         <ComboboxOptions static ref={listRef} id={listId} aria-label={listLabel} className={look.list}>
           {header}
           {total === 0 && emptyState !== undefined ? (
-            <div className="px-4 py-8 text-center text-gray-500">{emptyState}</div>
+            <EmptyState variant="plain" message={emptyState} />
           ) : (
             sections.map((section) => {
               if (section.items.length === 0 && !section.empty) return null;
@@ -175,7 +176,7 @@ export default function SearchList<T>({
                         {section.heading}
                       </Heading>
                     )}
-                    {section.items.length === 0 && <div className="px-4 py-8 text-center text-gray-500">{section.empty}</div>}
+                    {section.items.length === 0 && <EmptyState variant="plain" message={section.empty} />}
                     {section.items.map((item) => {
                       const selected = isSelected(item);
                       return (

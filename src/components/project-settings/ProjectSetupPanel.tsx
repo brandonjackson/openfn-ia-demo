@@ -126,19 +126,14 @@ export default function ProjectSetupPanel({ project, env, parentProject, canEdit
             toast("Project updated successfully");
           }}
         >
-          <div className="flex items-center gap-3">
-            <Toggle
-              id="project-concurrency-switch"
-              checked={serial}
-              onChange={setSerial}
-              disabled={!canEditProject}
-              labelledBy="concurrency-description"
-            />
-            <span className="text-sm text-gray-500" id="concurrency-description">
-              <span className="font-medium text-gray-900">Disable parallel execution</span> (No more than one run at
-              a time)
-            </span>
-          </div>
+          <Toggle
+            id="project-concurrency-switch"
+            checked={serial}
+            onChange={setSerial}
+            disabled={!canEditProject}
+            label="Disable parallel execution"
+            note="(No more than one run at a time)"
+          />
           {serial && concurrencyChanged && (
             <Alert type="warning" header="Heads Up!">
               <p>Disabling parallel run execution may significantly reduce the overall throughput of your project.</p>

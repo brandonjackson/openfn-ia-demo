@@ -3,6 +3,7 @@ import type { AIMessage, AISession } from "../../mock-data/ai-assistant";
 import { cn } from "../../utils/cn";
 import Button from "../Button";
 import Card from "../Card";
+import CopyButton from "../CopyButton";
 import Heading from "../Heading";
 import IconButton from "../IconButton";
 import Menu, { MenuDivider, MenuItem } from "../Menu";
@@ -12,17 +13,6 @@ import Pill from "../Pill";
 import SearchInput from "../SearchInput";
 import { matchesQuery } from "../../utils/search";
 import { formatSessionAge } from "../../utils/format";
-import { useCopy } from "../../utils/useCopy";
-
-/** "Copy" on a suggested code block. CopyButton has no `xs` size to sit beside "Add". */
-function CopyCodeButton({ code }: { code: string }) {
-  const { copied, copy } = useCopy(code);
-  return (
-    <Button theme="secondary" size="xs" onClick={copy}>
-      {copied ? "Copied!" : "Copy"}
-    </Button>
-  );
-}
 
 interface Props {
   sessions: AISession[];
@@ -130,7 +120,9 @@ export default function AIAssistantPanel({ sessions, onClose }: Props) {
                         <Heading size="eyebrow" as="p" className="flex-1">
                           Job code
                         </Heading>
-                        <CopyCodeButton code={m.code} />
+                        <CopyButton value={m.code} size="xs">
+                          Copy
+                        </CopyButton>
                         <Button size="xs">Add</Button>
                       </div>
                       <pre className="overflow-x-auto bg-gray-700 p-3 font-mono text-xs text-gray-200">{m.code}</pre>

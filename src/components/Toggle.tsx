@@ -1,3 +1,4 @@
+import { useId, type ReactNode } from "react";
 import { cn } from "../utils/cn";
 
 interface Props {
@@ -5,6 +6,8 @@ interface Props {
   onChange?: (checked: boolean) => void;
   /** Shown to the right of the switch. */
   label?: string;
+  /** Gray text after the label, e.g. "(currently optional for this project)". */
+  note?: ReactNode;
   description?: string;
   disabled?: boolean;
   id?: string;
@@ -18,7 +21,8 @@ interface Props {
  * Lightning's toggle switch (new_inputs.ex `type="toggle"`): primary-600
  * when on, with a check / cross in the knob.
  */
-export default function Toggle({ checked, onChange, label, description, disabled = false, id, tooltip, labelledBy }: Props) {
+export default function Toggle({ checked, onChange, label, note, description, disabled = false, id, tooltip, labelledBy }: Props) {
+  const labelId = useId();
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-3">
@@ -27,8 +31,7 @@ export default function Toggle({ checked, onChange, label, description, disabled
           type="button"
           role="switch"
           aria-checked={checked}
-          aria-label={labelledBy ? undefined : label}
-          aria-labelledby={labelledBy}
+          aria-labelledby={labelledBy ?? (label ? labelId : undefined)}
           disabled={disabled}
           title={tooltip}
           data-ui="toggle"
@@ -50,7 +53,12 @@ export default function Toggle({ checked, onChange, label, description, disabled
             <span className={cn("h-4 w-4", checked ? "hero-check-micro text-primary-600" : "hero-x-mark-micro text-gray-400")} />
           </span>
         </button>
-        {label && <span className="text-sm font-medium text-gray-900">{label}</span>}
+        {label && (
+          <span id={labelId} className="text-sm text-gray-500">
+            <span className="font-medium text-gray-900">{label}</span>
+            {note && <> {note}</>}
+          </span>
+        )}
       </div>
       {description && <p className="text-sm text-gray-500">{description}</p>}
     </div>

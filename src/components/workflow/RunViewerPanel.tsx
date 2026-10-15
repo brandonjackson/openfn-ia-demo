@@ -5,7 +5,7 @@ import { formatElapsed, formatLocalDateTime } from "../../utils/format";
 import CodeEditor from "./CodeEditor";
 import StatePill from "../history/StatePill";
 import StepIcon from "../history/StepIcon";
-import UuidChip from "../history/UuidChip";
+import UuidChip from "../UuidChip";
 import LogViewer from "../history/LogViewer";
 import { DetailItem, DetailList } from "../DetailList";
 import Heading from "../Heading";
@@ -51,13 +51,13 @@ export default function RunViewerPanel({ projectId, run, steps, logs, dataclips,
           <DetailList>
             <DetailItem label="Work Order">
               <UuidChip
-                id={run.workOrderId}
+                uuid={uuidOf(run.workOrderId)}
                 to={`/projects/${projectId}/history?filters[workorder_id]=${run.workOrderId}`}
                 tooltip={`View work order ${uuidOf(run.workOrderId)}`}
               />
             </DetailItem>
             <DetailItem label="Run">
-              <UuidChip id={run.id} to={`/projects/${projectId}/runs/${run.id}`} tooltip={`View run ${uuidOf(run.id)}`} />
+              <UuidChip uuid={uuidOf(run.id)} to={`/projects/${projectId}/runs/${run.id}`} tooltip={`View run ${uuidOf(run.id)}`} />
             </DetailItem>
             <DetailItem label="Status">
               <StatePill state={run.state} />

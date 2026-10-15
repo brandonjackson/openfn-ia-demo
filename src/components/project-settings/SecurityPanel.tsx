@@ -36,23 +36,18 @@ export default function SecurityPanel({ initialRequiresMfa, canEditProject, canR
           </span>
         }
       >
-        <div className="flex items-center gap-3">
-          <Toggle
-            id="toggle-mfa-switch"
-            checked={requiresMfa}
-            onChange={(on) => {
-              setRequiresMfa(on);
-              toast("Project MFA requirement updated successfully");
-            }}
-            disabled={!canRequireMfa || sandbox}
-            tooltip={canEditProject ? undefined : "You do not have permission to perform this action"}
-            labelledBy="require-mfa-label"
-          />
-          <span className="text-sm text-gray-500" id="require-mfa-label">
-            <span className="font-medium text-gray-900">Require MFA?</span>{" "}
-            {requiresMfa ? "(currently required for this project)" : "(currently optional for this project)"}
-          </span>
-        </div>
+        <Toggle
+          id="toggle-mfa-switch"
+          checked={requiresMfa}
+          onChange={(on) => {
+            setRequiresMfa(on);
+            toast("Project MFA requirement updated successfully");
+          }}
+          disabled={!canRequireMfa || sandbox}
+          tooltip={canEditProject ? undefined : "You do not have permission to perform this action"}
+          label="Require MFA?"
+          note={requiresMfa ? "(currently required for this project)" : "(currently optional for this project)"}
+        />
       </Card>
     </>
   );

@@ -8,12 +8,13 @@ import {
   activeStates,
   lastRunOf,
   runsOfWorkOrder,
+  uuidOf,
   workOrderDataclipAvailable,
 } from "../../mock-data/history-extra";
 import DateTime from "../DateTime";
 import TextLink from "../TextLink";
 import StatePill from "./StatePill";
-import UuidChip from "./UuidChip";
+import UuidChip from "../UuidChip";
 import { RunCard } from "./RunDetails";
 import { cn } from "../../utils/cn";
 import { formatElapsed } from "../../utils/format";
@@ -64,7 +65,7 @@ export default function WorkOrderRow({
           </span>
         </Td>
         <Td>
-          <UuidChip id={wo.id} to={`/projects/${projectId}/history?filters[workorder_id]=${wo.id}`} />
+          <UuidChip uuid={uuidOf(wo.id)} to={`/projects/${projectId}/history?filters[workorder_id]=${wo.id}`} />
         </Td>
         <Td>
           {lastRun ? (
@@ -84,7 +85,7 @@ export default function WorkOrderRow({
         </Td>
         <Td>
           <UuidChip
-            id={wo.dataclipId}
+            uuid={uuidOf(wo.dataclipId)}
             to={`/projects/${projectId}/dataclips/${wo.dataclipId}/show`}
             disabled={!available}
             tooltip={available ? undefined : "The input dataclip is unavailable due to this project's data retention policy."}

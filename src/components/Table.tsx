@@ -140,40 +140,64 @@ export function Td({
 }
 
 /**
- * Dashed "nothing here yet" box (table.ex `empty_state`). With `onClick` it's
- * a button that starts the create flow.
+ * "Nothing here yet" (table.ex `empty_state`): a dashed box, or with
+ * `variant="plain"` just the centred text, for inside a card or list. With
+ * `buttonText` the dashed box is a button that starts the create flow.
+ * `children` go below the message (e.g. an error code).
  */
 export function EmptyState({
-  icon = "hero-plus-circle",
+  variant = "dashed",
+  icon = variant === "dashed" ? "hero-plus-circle" : undefined,
+  title,
   message,
   buttonText,
   onClick,
   disabled,
+  className,
+  children,
 }: {
+  variant?: "dashed" | "plain";
   icon?: string;
-  message: ReactNode;
+  title?: ReactNode;
+  message?: ReactNode;
   buttonText?: string;
   onClick?: () => void;
   disabled?: boolean;
+  className?: string;
+  children?: ReactNode;
 }) {
-  if (buttonText) {
+  const plain = variant === "plain";
+  const body = (
+    <>
+      {icon && <span className={cn(icon, "mx-auto block text-gray-400", plain ? "mb-2 h-8 w-8" : "h-12 w-12")} />}
+      {buttonText && <span className="mt-2 block text-xs font-semibold text-gray-600">{buttonText}</span>}
+      {title && <span className={cn("block font-medium text-gray-900", plain ? "text-sm" : "mt-2 text-xs")}>{title}</span>}
+      {message && <div className={cn(plain ? "mt-1 text-sm text-gray-500" : "mt-2 text-xs text-gray-500")}>{message}</div>}
+      {children && <div className="mt-2">{children}</div>}
+    </>
+  );
+  const classes = cn(
+    "relative block w-full text-center",
+    plain ? "px-4 py-8" : "rounded-lg border-2 border-dashed border-gray-300 p-4",
+    className
+  );
+  if (buttonText && !plain) {
     return (
       <button
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-4 text-center hover:border-gray-400 disabled:hover:border-gray-300 focus:outline-none"
+        data-ui="empty-state"
+        data-variant={variant}
+        className={cn(classes, "hover:border-gray-400 disabled:hover:border-gray-300 focus:outline-none")}
       >
-        <span className={cn(icon, "mx-auto w-12 h-12 text-gray-400")} />
-        <span className="mt-2 block text-xs font-semibold text-gray-600">{buttonText}</span>
-        <div className="mt-2 text-xs text-gray-500">{message}</div>
+        {body}
       </button>
     );
   }
   return (
-    <div className="relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-4 text-center">
-      <span className={cn(icon, "mx-auto w-12 h-12 text-gray-400")} />
-      <div className="mt-2 text-xs text-gray-500">{message}</div>
+    <div data-ui="empty-state" data-variant={variant} className={classes}>
+      {body}
     </div>
   );
 }

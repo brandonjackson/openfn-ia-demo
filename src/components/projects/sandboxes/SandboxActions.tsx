@@ -38,8 +38,7 @@ export default function SandboxActions({
   const mergeLabel = sandbox.canMerge ? "Merge this sandbox" : "You are not authorized to merge this sandbox";
   return (
     <div className="flex gap-1">
-      {/* The wrapper carries the tooltip, since a disabled button shows none. */}
-      <span id={`branch-rewire-sandbox-${sandbox.id}`} title={mergeLabel}>
+      <span id={`branch-rewire-sandbox-${sandbox.id}`}>
         <IconButton
           icon={<BranchesIcon className="h-5 w-5" />}
           label={mergeLabel}

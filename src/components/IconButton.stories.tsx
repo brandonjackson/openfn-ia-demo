@@ -18,6 +18,7 @@ export const Active: Story = { args: { active: true, icon: "hero-view-columns", 
 export const Disabled: Story = { args: { disabled: true, icon: "hero-play", label: "Run" } };
 export const Danger: Story = { args: { tone: "danger", icon: "hero-trash", label: "Delete token" } };
 export const AsLink: Story = { args: { to: "/projects", icon: "hero-rectangle-stack", label: "View full history" } };
+export const ExternalLink: Story = { args: { href: "https://docs.openfn.org", external: true, icon: "hero-arrow-top-right-on-square", label: "Open docs" } };
 export const CustomIcon: Story = {
   args: {
     label: "Merge",

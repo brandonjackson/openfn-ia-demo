@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Checkbox, Field, Radio, Select, TextArea, TextInput } from "./Inputs";
+import { Checkbox, Field, PasswordInput, Radio, Select, TextArea, TextInput } from "./Inputs";
 import { controlClasses } from "./controlClasses";
 
 const meta: Meta = { title: "Shared/Inputs" };
@@ -14,6 +14,10 @@ export const TextWithError: Story = {
   render: () => <TextInput id="name" label="Name" defaultValue="" errors={["can't be blank"]} />,
 };
 export const Disabled: Story = { render: () => <TextInput id="id" label="Project ID" value="4adf2644" disabled readOnly /> };
+export const Password: Story = { render: () => <PasswordInput id="password" label="Password" required /> };
+export const PasswordWithError: Story = {
+  render: () => <PasswordInput id="password" label="Password" errors={["should be at least 8 character(s)"]} defaultValue="short" />,
+};
 export const Area: Story = { render: () => <TextArea id="desc" label="Description" rows={3} /> };
 export const Dropdown: Story = {
   render: () => <Select id="role" label="Role" options={["viewer", "editor", "admin", "owner"]} prompt="Choose a role" />,

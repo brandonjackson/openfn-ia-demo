@@ -2,9 +2,8 @@ import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import AuthLayout from "../../components/auth/AuthLayout";
 import AuthCard, { AuthFooterLinks } from "../../components/auth/AuthCard";
-import PasswordInput from "../../components/auth/PasswordInput";
 import Button from "../../components/Button";
-import { TextInput } from "../../components/Inputs";
+import { PasswordInput, TextInput } from "../../components/Inputs";
 import { authFlags } from "../../mock-data/auth";
 import TextLink from "../../components/TextLink";
 

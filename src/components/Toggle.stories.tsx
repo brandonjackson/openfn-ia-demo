@@ -10,5 +10,6 @@ export const Off: Story = { args: { checked: false } };
 export const WithLabel: Story = {
   args: { label: "Require MFA", description: "Every collaborator must use multi-factor authentication." },
 };
+export const WithNote: Story = { args: { checked: false, label: "Require MFA?", note: "(currently optional for this project)" } };
 export const Disabled: Story = { args: { disabled: true } };
 export const WithTooltip: Story = { args: { disabled: true, tooltip: "Only owners can change this" } };

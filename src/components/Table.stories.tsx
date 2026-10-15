@@ -36,6 +36,21 @@ export const Empty: Story = {
   render: () => <EmptyState message="No sandboxes found" />,
 };
 
+export const EmptyPlain: Story = {
+  render: () => <EmptyState variant="plain" message="No channels found." />,
+};
+
+export const EmptyWithTitle: Story = {
+  render: () => (
+    <EmptyState
+      variant="plain"
+      icon="hero-eye-slash"
+      title="No Data Available"
+      message="This dataclip's data has been wiped in accordance with the project's data retention policy."
+    />
+  ),
+};
+
 export const EmptyWithAction: Story = {
   render: () => <EmptyState message="No collections yet." buttonText="Create a new collection" onClick={() => {}} />,
 };

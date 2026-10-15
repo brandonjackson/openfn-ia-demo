@@ -18,6 +18,8 @@ interface Props extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"
   to?: string;
   /** Render as a plain link. Ignored while disabled. */
   href?: string;
+  /** Open the `href` link in a new tab. */
+  external?: boolean;
   ref?: Ref<HTMLButtonElement>;
 }
 
@@ -45,6 +47,7 @@ export default function IconButton({
   tone = "default",
   to,
   href,
+  external = false,
   className,
   type = "button",
   title,
@@ -70,14 +73,22 @@ export default function IconButton({
         {content}
       </Link>
     ) : (
-      <a href={href} onClick={onClick} {...common}>
+      <a href={href} onClick={onClick} {...(external && { target: "_blank", rel: "noopener noreferrer" })} {...common}>
         {content}
       </a>
     );
   }
-  return (
+  const button = (
     <button ref={ref} type={type} {...rest} {...common}>
       {content}
     </button>
+  );
+  // Disabled buttons don't get hover events in every browser, so the tooltip goes on a wrapper.
+  return rest.disabled ? (
+    <span title={common.title} className="inline-flex">
+      {button}
+    </span>
+  ) : (
+    button
   );
 }

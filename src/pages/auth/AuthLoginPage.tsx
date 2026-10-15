@@ -2,10 +2,9 @@ import type { FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AuthLayout from "../../components/auth/AuthLayout";
 import AuthCard, { AuthFooterLinks } from "../../components/auth/AuthCard";
-import PasswordInput from "../../components/auth/PasswordInput";
 import SsoLogin from "../../components/auth/SsoLogin";
 import Button from "../../components/Button";
-import { Checkbox, TextInput } from "../../components/Inputs";
+import { Checkbox, PasswordInput, TextInput } from "../../components/Inputs";
 import { authFlags, authMessages } from "../../mock-data/auth";
 import TextLink from "../../components/TextLink";
 

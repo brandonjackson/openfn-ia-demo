@@ -5,6 +5,7 @@ import { DetailItem, DetailList } from "../DetailList";
 import Pill, { type PillColor } from "../Pill";
 import { formatBytes } from "../../utils/format";
 import CopyButton from "../CopyButton";
+import { EmptyState } from "../Table";
 
 /*
  * Building blocks of the channel request page
@@ -98,10 +99,7 @@ export function BodyViewer({
   const ct = contentTypeOf(headers);
   if (size === 0 && !preview) {
     return (
-      <div className="flex flex-col items-center py-6 text-xs text-gray-400">
-        <span className="hero-document mb-1 h-6 w-6 text-gray-300" />
-        No body
-      </div>
+      <EmptyState variant="plain" icon="hero-document" message="No body" />
     );
   }
   if (ct && !isText(ct)) {
@@ -166,13 +164,10 @@ export function ResponseEmpty({
       ? ["hero-exclamation-triangle", "No response received"]
       : ["hero-lock-closed", "Request not sent — credential error"];
   return (
-    <div className="flex flex-col items-center gap-1 border-t border-gray-100 px-4 py-8 text-sm text-gray-500">
-      <span className={cn(icon, "mb-2 h-8 w-8 text-gray-400")} />
-      <p className="text-base font-medium">{label}</p>
-      <p className="mb-1">{humanMessage}</p>
+    <EmptyState variant="plain" icon={icon} title={label} message={humanMessage} className="border-t border-gray-100">
       <Pill square mono>
         {errorCode}
       </Pill>
-    </div>
+    </EmptyState>
   );
 }

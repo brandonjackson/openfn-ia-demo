@@ -2,6 +2,7 @@ import type { Annotation, InventoryRow } from "../../annotations/source";
 import Button from "../Button";
 import Disclosure from "../Disclosure";
 import Heading from "../Heading";
+import IconButton from "../IconButton";
 import Pill, { type PillColor } from "../Pill";
 import { EmptyState } from "../Table";
 import TextLink from "../TextLink";
@@ -61,16 +62,13 @@ export default function AnnotationCard({ id, annotation, inventory, onOpenId, in
         <div className="flex items-start justify-between gap-2">
           <Heading as="h2">{title}</Heading>
           {annotation && (
-            <TextLink
-              to={annotation.url}
+            <IconButton
+              href={annotation.url}
               external
-              variant="plain"
-              title="Open on GitHub"
-              aria-label="Open on GitHub"
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <span className="hero-arrow-top-right-on-square h-4 w-4" aria-hidden="true" />
-            </TextLink>
+              icon="hero-arrow-top-right-on-square"
+              label="Open on GitHub"
+              size="sm"
+            />
           )}
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
@@ -93,24 +91,19 @@ export default function AnnotationCard({ id, annotation, inventory, onOpenId, in
       {!annotation && (
         <EmptyState
           icon="hero-document-magnifying-glass"
+          title="Not annotated yet"
           message={
-            <div className="space-y-1">
-              <Heading as="p" size="sm">
-                Not annotated yet
-              </Heading>
-              <p>
-                {inventory
-                  ? "This view is in the inventory but its annotation hasn't been written."
-                  : "No annotation file and no inventory row for this id."}
-              </p>
-              {inventoryHref && (
-                <TextLink href={inventoryHref} external>
-                  Open INVENTORY.md
-                </TextLink>
-              )}
-            </div>
+            inventory
+              ? "This view is in the inventory but its annotation hasn't been written."
+              : "No annotation file and no inventory row for this id."
           }
-        />
+        >
+          {inventoryHref && (
+            <TextLink href={inventoryHref} external>
+              Open INVENTORY.md
+            </TextLink>
+          )}
+        </EmptyState>
       )}
 
       {annotation && (

@@ -6,11 +6,10 @@ import AuthPanelLayout, {
   AuthPanelTitle,
   HavingProblems,
 } from "../../components/auth/AuthPanelLayout";
-import PasswordInput from "../../components/auth/PasswordInput";
 import TextLink from "../../components/TextLink";
 import Button from "../../components/Button";
 import UserAvatar from "../../components/UserAvatar";
-import { TextInput } from "../../components/Inputs";
+import { PasswordInput, TextInput } from "../../components/Inputs";
 import { currentUser } from "../../mock-data/users";
 
 /**

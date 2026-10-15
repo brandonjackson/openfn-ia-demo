@@ -4,7 +4,7 @@ import { uuidOf } from "../../mock-data/history-extra";
 import Card from "../Card";
 import DateTime from "../DateTime";
 import { DetailItem, DetailList } from "../DetailList";
-import Heading from "../Heading";
+import { EmptyState } from "../Table";
 import DataclipTypePill from "./DataclipTypePill";
 
 /** The "Dataclip Details" metadata card (dataclip_live/show.ex). */
@@ -39,12 +39,13 @@ export function DataclipBodyCard({ dataclip, children }: { dataclip: Dataclip; c
   return (
     <Card padding="none" className="h-96 overflow-hidden">
       {dataclip.wiped ? (
-        <div className="flex h-full flex-col items-center justify-center text-center text-sm text-gray-500">
-          <span className="hero-eye-slash h-12 w-12 text-gray-400" />
-          <Heading size="sm" className="mt-2">
-            No Data Available
-          </Heading>
-          <p className="mt-1">This dataclip's data has been wiped in accordance with the project's data retention policy.</p>
+        <div className="flex h-full items-center">
+          <EmptyState
+            variant="plain"
+            icon="hero-eye-slash"
+            title="No Data Available"
+            message="This dataclip's data has been wiped in accordance with the project's data retention policy."
+          />
         </div>
       ) : (
         children

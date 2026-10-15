@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Card from "../Card";
 import SectionHeader from "../SectionHeader";
+import { useToast } from "../Toast";
 import Toggle from "../Toggle";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
 import type { Project } from "../../mock-data/projects";
@@ -16,6 +17,7 @@ interface Props {
 /** The Security tab (`#security`, settings.html.heex:681-756): the "Require MFA?" switch. */
 export default function SecurityPanel({ initialRequiresMfa, canEditProject, canRequireMfa, parentProject }: Props) {
   const [requiresMfa, setRequiresMfa] = useState(initialRequiresMfa);
+  const toast = useToast();
   const sandbox = !!parentProject;
   return (
     <>
@@ -38,7 +40,10 @@ export default function SecurityPanel({ initialRequiresMfa, canEditProject, canR
           <Toggle
             id="toggle-mfa-switch"
             checked={requiresMfa}
-            onChange={setRequiresMfa}
+            onChange={(on) => {
+              setRequiresMfa(on);
+              toast("Project MFA requirement updated successfully");
+            }}
             disabled={!canRequireMfa || sandbox}
             tooltip={canEditProject ? undefined : "You do not have permission to perform this action"}
             labelledBy="require-mfa-label"

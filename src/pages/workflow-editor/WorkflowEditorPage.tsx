@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import Pill from "../../components/Pill";
+import { useToast } from "../../components/Toast";
 import AdaptorConfigModals, { type AdaptorModal } from "../../components/workflow/AdaptorConfigModals";
 import AIAssistantPanel from "../../components/workflow/AIAssistantPanel";
 import EdgeInspector from "../../components/workflow/EdgeInspector";
@@ -68,6 +69,7 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
   const [ideAdaptorModal, setIdeAdaptorModal] = useState<AdaptorModal>(null);
 
   const runs = useEditorRuns(graph, params.run ?? null);
+  const toast = useToast();
 
   // Selection (Lightning's useNodeSelection): one of ?job, ?trigger, ?edge.
   const selection: Selection = useMemo(
@@ -128,10 +130,18 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
   // Running: the demo "starts" a run by following the workflow's newest
   // finished fixture run. From the canvas, running also closes the run panel;
   // the IDE stays open.
-  const followDemoRun = (closePanel: boolean) => {
+  // Lightning's Header: a followed run that finished and has steps is retried, not re-run.
+  const isRetryable =
+    !!runs.selectedRun &&
+    !["available", "claimed", "started"].includes(runs.selectedRun.state) &&
+    runs.selectedSteps.length > 0;
+
+  // Lightning's useRunRetry / Header toast "Run started" or "Retry started" once the run is submitted.
+  const followDemoRun = (closePanel: boolean, retry = false) => {
     const close: ParamPatch = closePanel ? { panel: null, runMode: null } : {};
     if (runs.demoRunId) update({ run: runs.demoRunId, step: null, ...close });
     else if (closePanel) update(close);
+    toast(retry ? "Retry started" : "Run started");
   };
 
   // Replacing the new workflow's blank graph (from the landing screen) creates it.
@@ -272,8 +282,11 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
             onSettingsClick={() => update({ panel: panel === "settings" ? null : "settings" })}
             canRun={!!firstTrigger}
             runDisabled={isRunPanelOpen || isIDEOpen}
+            runLabel={isRetryable ? "Retry" : "Run"}
             onRun={() =>
-              runs.demoRunId ? followDemoRun(true) : update({ panel: "run", trigger: firstTrigger.id, job: null, edge: null })
+              runs.demoRunId
+                ? followDemoRun(true, isRetryable)
+                : update({ panel: "run", trigger: firstTrigger.id, job: null, edge: null })
             }
             onRunWithCustomInput={() =>
               update({ panel: "run", trigger: firstTrigger.id, job: null, edge: null, runMode: "custom" })
@@ -282,6 +295,7 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
             onSave={() => {
               editor.save();
               setCreated(true);
+              toast("Workflow saved");
             }}
             saveLabel={isNew && !created ? "Create" : "Save"}
             aiOpen={aiOpen}
@@ -363,9 +377,9 @@ function WorkflowEditor({ project, initial, isNew }: { project: Project; initial
                 }}
                 onShowCreateRun={() => setIdeSub("create-run")}
                 followRunId={params.run ?? null}
-                isRetryable={!!runs.selectedRun && !["available", "claimed", "started"].includes(runs.selectedRun.state)}
+                isRetryable={isRetryable}
                 onRun={() => followDemoRun(false)}
-                onRetry={() => followDemoRun(false)}
+                onRetry={() => followDemoRun(false, true)}
                 onClearRun={() => {
                   update({ run: null, step: null });
                   setIdeSub(undefined);

@@ -2,6 +2,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
 import AuthProviderForm from "../../components/admin/AuthProviderForm";
+import { useToast } from "../../components/Toast";
 import { authProvider, emptyAuthProvider } from "../../mock-data/admin";
 
 /**
@@ -12,13 +13,19 @@ import { authProvider, emptyAuthProvider } from "../../mock-data/admin";
 export default function AdminAuthProvidersPage() {
   const { pathname } = useLocation();
   const isNew = pathname.endsWith("/new");
+  const toast = useToast();
   if (!isNew && !authProvider) return <Navigate to="/settings/authentication/new" replace />;
   const provider = isNew || !authProvider ? emptyAuthProvider : authProvider;
 
   return (
     <PageContent header={<Header title="Authentication" />}>
       <Centered>
-        <AuthProviderForm key={provider.id ?? "new"} provider={provider} />
+        <AuthProviderForm
+          key={provider.id ?? "new"}
+          provider={provider}
+          onSave={() => toast(provider.id ? "Authentication Provider updated." : "Authentication Provider created.")}
+          onRemove={() => toast("Authentication Provider removed")}
+        />
       </Centered>
     </PageContent>
   );

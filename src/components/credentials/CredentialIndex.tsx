@@ -3,6 +3,7 @@ import ConfirmModal from "../ConfirmModal";
 import ButtonMenu from "../ButtonMenu";
 import { MenuItem } from "../Menu";
 import { EmptyState } from "../Table";
+import { useToast } from "../Toast";
 import { CredentialsTable, KeychainCredentialsTable, OauthClientsTable } from "./CredentialTables";
 import CredentialFormModal from "./CredentialFormModal";
 import OauthClientFormModal from "./OauthClientFormModal";
@@ -70,6 +71,7 @@ export default function CredentialIndex({
     () => initialKeychains ?? (project ? keychainCredentialsIn(project) : [])
   );
   const [active, setActive] = useState<ActiveModal>(null);
+  const toast = useToast();
 
   const showOwner = !!project;
   const canCreate = canCreateProjectCredential(project);
@@ -137,7 +139,12 @@ export default function CredentialIndex({
                 Edit
               </MenuItem>
               {credential.scheduledDeletion && (
-                <MenuItem onClick={() => patchCredential(credential.id, { scheduledDeletion: null })}>
+                <MenuItem
+                  onClick={() => {
+                    patchCredential(credential.id, { scheduledDeletion: null });
+                    toast("Credential deletion canceled");
+                  }}
+                >
                   Cancel deletion
                 </MenuItem>
               )}
@@ -180,7 +187,10 @@ export default function CredentialIndex({
           onClose={close}
           oauthClients={clients}
           defaultProjectIds={defaultProjectIds}
-          onSave={(c) => setCredentials((list) => upsert(list, c))}
+          onSave={(c) => {
+            setCredentials((list) => upsert(list, c));
+            toast("Credential created successfully");
+          }}
         />
       )}
       {active?.kind === "edit_credential" && activeCredential && (
@@ -189,7 +199,10 @@ export default function CredentialIndex({
           onClose={close}
           credential={activeCredential}
           oauthClients={clients}
-          onSave={(c) => setCredentials((list) => upsert(list, c))}
+          onSave={(c) => {
+            setCredentials((list) => upsert(list, c));
+            toast("Credential updated successfully");
+          }}
         />
       )}
       {active?.kind === "transfer_credential" && activeCredential && (
@@ -197,8 +210,14 @@ export default function CredentialIndex({
           open
           onClose={close}
           credential={activeCredential}
-          onTransfer={() => patchCredential(activeCredential.id, { transferStatus: "pending" })}
-          onRevoke={() => patchCredential(activeCredential.id, { transferStatus: null })}
+          onTransfer={() => {
+            patchCredential(activeCredential.id, { transferStatus: "pending" });
+            toast("Credential transfer initiated. We've sent you a confirmation email.");
+          }}
+          onRevoke={() => {
+            patchCredential(activeCredential.id, { transferStatus: null });
+            toast("Transfer revoked successfully");
+          }}
         />
       )}
       {active?.kind === "delete_credential" && activeCredential && (
@@ -206,7 +225,11 @@ export default function CredentialIndex({
           open
           onClose={close}
           credential={activeCredential}
-          onDelete={() => setCredentials((list) => list.filter((c) => c.id !== activeCredential.id))}
+          onDelete={() => {
+            setCredentials((list) => list.filter((c) => c.id !== activeCredential.id));
+            // credential_deletion_modal.ex: the first delete schedules it; deleting a scheduled one is final.
+            toast(activeCredential.scheduledDeletion ? "Credential deleted successfully" : "Credential scheduled for deletion");
+          }}
         />
       )}
       {(active?.kind === "new_oauth_client" || (active?.kind === "edit_oauth_client" && activeClient)) && (
@@ -216,7 +239,10 @@ export default function CredentialIndex({
           client={active.kind === "edit_oauth_client" ? activeClient : undefined}
           defaultProjectIds={defaultProjectIds}
           allowGlobal={currentUser.role === "superuser"}
-          onSave={(c) => setClients((list) => upsert(list, c))}
+          onSave={(c) => {
+            setClients((list) => upsert(list, c));
+            toast(active.kind === "edit_oauth_client" ? "Oauth client updated successfully" : "Oauth client created successfully");
+          }}
         />
       )}
       {active?.kind === "delete_oauth_client" && activeClient && (
@@ -229,6 +255,7 @@ export default function CredentialIndex({
           onConfirm={() => {
             setClients((list) => list.filter((c) => c.id !== activeClient.id));
             close();
+            toast("Oauth client deleted");
           }}
         >
           <p>{deleteOauthClientMessage(activeClient.name)}</p>
@@ -243,7 +270,14 @@ export default function CredentialIndex({
             projectId={project.id}
             keychainCredential={active.kind === "edit_keychain_credential" ? activeKeychain : undefined}
             credentials={credentials}
-            onSave={(k) => setKeychains((list) => upsert(list, k))}
+            onSave={(k) => {
+              setKeychains((list) => upsert(list, k));
+              toast(
+                active.kind === "edit_keychain_credential"
+                  ? "Keychain credential updated successfully"
+                  : "Keychain credential created successfully"
+              );
+            }}
           />
         )}
       {active?.kind === "delete_keychain_credential" && activeKeychain && (
@@ -256,6 +290,7 @@ export default function CredentialIndex({
           onConfirm={() => {
             setKeychains((list) => list.filter((k) => k.id !== activeKeychain.id));
             close();
+            toast("Keychain credential deleted");
           }}
         >
           <p>{deleteKeychainMessage(activeKeychain.name)}</p>

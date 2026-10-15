@@ -3,6 +3,7 @@ import Button from "../Button";
 import Card from "../Card";
 import SectionHeader from "../SectionHeader";
 import TextLink from "../TextLink";
+import { useToast } from "../Toast";
 import LinkedUsageModal from "./LinkedUsageModal";
 import WebhookAuthMethodDeleteModal from "./WebhookAuthMethodDeleteModal";
 import WebhookAuthMethodFormModal from "./WebhookAuthMethodFormModal";
@@ -31,6 +32,7 @@ export default function WebhookSecurityPanel({ projectId, initialAuthMethods, ca
   const [methods, setMethods] = useState(initialAuthMethods);
   const [modal, setModal] = useState<Modal>(null);
   const close = () => setModal(null);
+  const toast = useToast();
   const title = "Webhook security";
   const subtitle = "Webhook authentication methods that are used with the starting trigger in workflows.";
 
@@ -70,8 +72,10 @@ export default function WebhookSecurityPanel({ projectId, initialAuthMethods, ca
           onSave={(values) => {
             if (modal.kind === "edit") {
               setMethods(methods.map((m) => (m.id === modal.method.id ? { ...m, name: values.name } : m)));
+              toast("Webhook auth method updated successfully");
             } else {
               setMethods([...methods, { ...values, id: `wam-${Date.now()}`, projectId, triggers: [], channels: [] }]);
+              toast("Webhook auth method created successfully");
             }
             close();
           }}
@@ -85,6 +89,7 @@ export default function WebhookSecurityPanel({ projectId, initialAuthMethods, ca
           onDelete={() => {
             setMethods(methods.filter((m) => m.id !== modal.method.id));
             close();
+            toast("Your Webhook Authentication method has been deleted.");
           }}
         />
       )}

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { sandboxColorPalette } from "../../../mock-data/sandboxes";
 import FormModal from "../../FormModal";
 import NameField from "../../NameField";
+import { useToast } from "../../Toast";
 import { urlSafeName } from "../../../utils/format";
 import ColorPalette from "./ColorPalette";
 
@@ -35,6 +36,7 @@ export default function SandboxFormModal({
   const name = urlSafeName(rawName);
   const errors = existingNames.includes(name) && name !== initialName ? ["Sandbox name already exists"] : [];
   const valid = name !== "" && errors.length === 0;
+  const toast = useToast();
 
   return (
     <FormModal
@@ -52,7 +54,9 @@ export default function SandboxFormModal({
       }
       formId="sandbox-form"
       onSubmit={() => {
-        if (valid) onClose();
+        if (!valid) return;
+        onClose();
+        toast(mode === "new" ? "Sandbox created" : "Sandbox updated");
       }}
       submitLabel={mode === "new" ? "Create sandbox" : "Save changes"}
       submitDisabled={mode === "new" && !valid}

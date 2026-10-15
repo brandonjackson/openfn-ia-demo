@@ -4,6 +4,7 @@ import { Centered, PageContent } from "../../components/PageContent";
 import AdminCollectionModal from "../../components/admin/AdminCollectionModal";
 import AdminCollectionsTable from "../../components/admin/AdminCollectionsTable";
 import CollectionDeleteModal from "../../components/project-settings/CollectionDeleteModal";
+import { useToast } from "../../components/Toast";
 import { collections, type Collection } from "../../mock-data/admin";
 
 type Dialog = { kind: "create" } | { kind: "edit"; collection: Collection } | { kind: "delete"; collection: Collection };
@@ -12,6 +13,11 @@ type Dialog = { kind: "create" } | { kind: "edit"; collection: Collection } | { 
 export default function AdminCollectionsPage() {
   const [dialog, setDialog] = useState<Dialog | null>(null);
   const close = () => setDialog(null);
+  const toast = useToast();
+  const closeWith = (message: string) => () => {
+    close();
+    toast(message);
+  };
 
   return (
     <PageContent header={<Header title="Collections" />}>
@@ -22,12 +28,22 @@ export default function AdminCollectionsPage() {
           onEdit={(collection) => setDialog({ kind: "edit", collection })}
           onDelete={(collection) => setDialog({ kind: "delete", collection })}
         />
-        {dialog?.kind === "create" && <AdminCollectionModal onCancel={close} onSave={close} />}
+        {dialog?.kind === "create" && (
+          <AdminCollectionModal onCancel={close} onSave={closeWith("Collection created successfully")} />
+        )}
         {dialog?.kind === "edit" && (
-          <AdminCollectionModal collection={dialog.collection} onCancel={close} onSave={close} />
+          <AdminCollectionModal
+            collection={dialog.collection}
+            onCancel={close}
+            onSave={closeWith("Collection updated successfully")}
+          />
         )}
         {dialog?.kind === "delete" && (
-          <CollectionDeleteModal collection={dialog.collection} onCancel={close} onDelete={close} />
+          <CollectionDeleteModal
+            collection={dialog.collection}
+            onCancel={close}
+            onDelete={closeWith("Collection deleted")}
+          />
         )}
       </Centered>
     </PageContent>

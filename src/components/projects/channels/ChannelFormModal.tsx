@@ -8,6 +8,7 @@ import FormModal from "../../FormModal";
 import { Checkbox, Field, Select, TextInput } from "../../Inputs";
 import Toggle from "../../Toggle";
 import TextLink from "../../TextLink";
+import { useToast } from "../../Toast";
 import ProxyUrlCopy from "./ProxyUrlCopy";
 
 /**
@@ -30,6 +31,7 @@ export default function ChannelFormModal({
   const [destinationUrl, setDestinationUrl] = useState(channel?.destinationUrl ?? "");
   const [credentialId, setCredentialId] = useState(channel?.destinationCredentialId ?? "");
   const [clients, setClients] = useState<string[]>(channel?.clientAuthMethodIds ?? []);
+  const toast = useToast();
 
   return (
     <FormModal
@@ -38,7 +40,10 @@ export default function ChannelFormModal({
       size="md"
       title={channel ? "Edit Channel" : "New Channel"}
       formId="channel-form"
-      onSubmit={onClose}
+      onSubmit={() => {
+        onClose();
+        toast(channel ? "Channel updated successfully." : "Channel created successfully.");
+      }}
       submitLabel="Save"
     >
       {channel && (

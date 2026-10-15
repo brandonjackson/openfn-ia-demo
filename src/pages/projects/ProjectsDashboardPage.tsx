@@ -3,6 +3,7 @@ import Button from "../../components/Button";
 import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
 import CreateProjectModal from "../../components/projects/CreateProjectModal";
+import { useToast } from "../../components/Toast";
 import ProjectsTable from "../../components/projects/ProjectsTable";
 import WelcomeBanner from "../../components/projects/WelcomeBanner";
 import { projectsOverviewFor } from "../../mock-data/dashboard-stats";
@@ -14,6 +15,7 @@ import { currentUser } from "../../mock-data/users";
  */
 export default function ProjectsDashboardPage() {
   const [creating, setCreating] = useState(false);
+  const toast = useToast();
   const projects = projectsOverviewFor(currentUser.id);
 
   return (
@@ -32,7 +34,11 @@ export default function ProjectsDashboardPage() {
               }
             />
           </div>
-          <CreateProjectModal open={creating} onClose={() => setCreating(false)} />
+          <CreateProjectModal
+            open={creating}
+            onClose={() => setCreating(false)}
+            onCreate={() => toast("Project created successfully")}
+          />
         </div>
       </Centered>
     </PageContent>

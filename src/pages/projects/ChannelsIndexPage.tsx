@@ -8,6 +8,7 @@ import ChannelFormModal from "../../components/projects/channels/ChannelFormModa
 import ChannelMetrics from "../../components/projects/channels/ChannelMetrics";
 import ChannelsTable from "../../components/projects/channels/ChannelsTable";
 import TableTitle from "../../components/TableTitle";
+import { useToast } from "../../components/Toast";
 import { channelsIn, findChannel } from "../../mock-data/channels";
 import { findProject, roleIn } from "../../mock-data/projects";
 import { currentUser } from "../../mock-data/users";
@@ -25,6 +26,7 @@ export default function ChannelsIndexPage() {
   const project = findProject(projectId);
   const [enabled, setEnabled] = useState<Record<string, boolean>>({});
   const [deleted, setDeleted] = useState<string[]>([]);
+  const toast = useToast();
 
   if (!project) return <Navigate to="/projects" replace />;
 
@@ -61,9 +63,15 @@ export default function ChannelsIndexPage() {
             projectId={project.id}
             canEdit={canEdit}
             canDelete={canEdit}
-            onToggle={(id, v) => setEnabled((m) => ({ ...m, [id]: v }))}
+            onToggle={(id, v) => {
+              setEnabled((m) => ({ ...m, [id]: v }));
+              toast("Channel updated");
+            }}
             onEdit={(id) => navigate(`${back}/${id}/edit`)}
-            onDelete={(id) => setDeleted((d) => [...d, id])}
+            onDelete={(id) => {
+              setDeleted((d) => [...d, id]);
+              toast("Channel deleted.");
+            }}
           />
         </Centered>
       </PageContent>

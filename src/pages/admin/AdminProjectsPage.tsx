@@ -5,7 +5,8 @@ import { Centered, PageContent } from "../../components/PageContent";
 import AdminProjectForm from "../../components/admin/AdminProjectForm";
 import AdminProjectsTable from "../../components/admin/AdminProjectsTable";
 import ProjectDeletionModal from "../../components/project-settings/ProjectDeletionModal";
-import { purgeDeletedAfterDays } from "../../mock-data/admin";
+import { useToast } from "../../components/Toast";
+import { projectScheduledDeletions, purgeDeletedAfterDays } from "../../mock-data/admin";
 import { findProject, projects } from "../../mock-data/projects";
 import { users } from "../../mock-data/users";
 
@@ -19,6 +20,7 @@ export default function AdminProjectsPage() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const back = () => navigate("/settings/projects");
+  const toast = useToast();
 
   const isNew = pathname.endsWith("/settings/projects/new");
   const isDelete = pathname.endsWith("/delete");
@@ -44,13 +46,28 @@ export default function AdminProjectsPage() {
             project={project}
             gracePeriodDays={purgeDeletedAfterDays}
             onCancel={back}
-            onDelete={back}
+            onDelete={() => {
+              toast(
+                projectScheduledDeletions[project.id]
+                  ? "Project deletion started. This may take a while to complete."
+                  : "Project scheduled for deletion"
+              );
+              back();
+            }}
           />
         )}
         {isForm ? (
-          <AdminProjectForm key={project?.id ?? "new"} project={isNew ? undefined : project} users={users} onSave={back} />
+          <AdminProjectForm
+            key={project?.id ?? "new"}
+            project={isNew ? undefined : project}
+            users={users}
+            onSave={() => {
+              toast(isNew ? "Project created successfully" : "Project updated successfully");
+              back();
+            }}
+          />
         ) : (
-          <AdminProjectsTable projects={projects} />
+          <AdminProjectsTable projects={projects} onCancelDeletion={() => toast("Project deletion canceled")} />
         )}
       </Centered>
     </PageContent>

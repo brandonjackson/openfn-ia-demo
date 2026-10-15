@@ -5,6 +5,7 @@ import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
 import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import TableTitle from "../../components/TableTitle";
+import { useToast } from "../../components/Toast";
 import DeleteSandboxModal from "../../components/projects/sandboxes/DeleteSandboxModal";
 import SandboxFormModal from "../../components/projects/sandboxes/SandboxFormModal";
 import WorkspaceList from "../../components/projects/sandboxes/WorkspaceList";
@@ -26,6 +27,7 @@ export default function SandboxesIndexPage() {
   const [deleting, setDeleting] = useState<SandboxRow | null>(null);
   const [deletedAt, setDeletedAt] = useState<Record<string, string>>({});
   const [restoredIds, setRestoredIds] = useState<string[]>([]);
+  const toast = useToast();
 
   if (!project) return <Navigate to="/projects" replace />;
 
@@ -76,6 +78,7 @@ export default function SandboxesIndexPage() {
               delete next[s.id];
               return next;
             });
+            toast(`Cancelled deletion of sandbox ${s.name}.`);
           }}
         />
 
@@ -92,6 +95,7 @@ export default function SandboxesIndexPage() {
               setDeletedAt((m) => ({ ...m, [deleting.id]: at }));
               setRestoredIds((ids) => ids.filter((id) => id !== deleting.id));
               setDeleting(null);
+              toast(`Sandbox ${deleting.name} scheduled for deletion.`);
             }}
           />
         )}

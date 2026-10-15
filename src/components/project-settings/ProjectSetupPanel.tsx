@@ -5,6 +5,7 @@ import { TextArea, TextInput } from "../Inputs";
 import SectionHeader from "../SectionHeader";
 import NameField from "../NameField";
 import TextLink from "../TextLink";
+import { useToast } from "../Toast";
 import Toggle from "../Toggle";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
 import Card from "../Card";
@@ -32,6 +33,7 @@ export default function ProjectSetupPanel({ project, env, parentProject, canEdit
   const [description, setDescription] = useState(project.description);
   const [savedSerial, setSavedSerial] = useState(project.concurrency === 1);
   const [serial, setSerial] = useState(project.concurrency === 1);
+  const toast = useToast();
   const name = urlSafeName(rawName);
   const concurrencyChanged = serial !== savedSerial;
 
@@ -62,7 +64,14 @@ export default function ProjectSetupPanel({ project, env, parentProject, canEdit
           )
         }
       >
-        <form id="project-settings-form" className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+        <form
+          id="project-settings-form"
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            toast("Project updated successfully");
+          }}
+        >
           <NameField
             id="project-settings-form_raw_name"
             label="Project name"
@@ -114,6 +123,7 @@ export default function ProjectSetupPanel({ project, env, parentProject, canEdit
           onSubmit={(e) => {
             e.preventDefault();
             setSavedSerial(serial);
+            toast("Project updated successfully");
           }}
         >
           <div className="flex items-center gap-3">

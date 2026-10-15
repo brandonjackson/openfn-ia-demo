@@ -6,6 +6,7 @@ import Heading from "../Heading";
 import { Radio, Select } from "../Inputs";
 import SectionHeader from "../SectionHeader";
 import TextLink from "../TextLink";
+import { useToast } from "../Toast";
 import SandboxSettingsBanner from "./SandboxSettingsBanner";
 import type { RetentionPolicy } from "../../mock-data/projects";
 import { cn } from "../../utils/cn";
@@ -52,6 +53,7 @@ function Setting({ title, dimmed = false, description, children }: { title: stri
 export default function DataStoragePanel({ initial, periods, canEditDataRetention, sandbox = false }: Props) {
   const [saved, setSaved] = useState(initial);
   const [form, setForm] = useState(initial);
+  const toast = useToast();
   const options = periods.map((d) => [`${d} Days`, String(d)] as [string, string]);
   const eraseAll = form.retentionPolicy === "erase_all";
   const noHistory = form.historyRetentionPeriod === null;
@@ -81,6 +83,7 @@ export default function DataStoragePanel({ initial, periods, canEditDataRetentio
             const next = eraseAll ? { ...form, dataclipRetentionPeriod: null } : form;
             setSaved(next);
             setForm(next);
+            toast("Project updated successfully");
           }}
         >
           <Setting

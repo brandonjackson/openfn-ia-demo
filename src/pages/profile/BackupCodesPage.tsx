@@ -3,6 +3,7 @@ import Header from "../../components/Header";
 import { Centered, PageContent } from "../../components/PageContent";
 import BackupCodesCard from "../../components/profile/BackupCodesCard";
 import MfaDisabledNotice from "../../components/profile/MfaDisabledNotice";
+import { useToast } from "../../components/Toast";
 import { currentUser } from "../../mock-data/users";
 import { backupCodes, regenerateFakeBackupCodes } from "../../mock-data/tokens";
 
@@ -13,6 +14,7 @@ import { backupCodes, regenerateFakeBackupCodes } from "../../mock-data/tokens";
  */
 export default function BackupCodesPage() {
   const [codes, setCodes] = useState(backupCodes);
+  const toast = useToast();
   return (
     <PageContent header={<Header title="Two-factor backup codes" />}>
       <Centered>
@@ -22,7 +24,13 @@ export default function BackupCodesPage() {
             receive two-factor authentication codes.
           </p>
           {!currentUser.mfaEnabled && <MfaDisabledNotice />}
-          <BackupCodesCard codes={codes} onRegenerate={() => setCodes(regenerateFakeBackupCodes())} />
+          <BackupCodesCard
+            codes={codes}
+            onRegenerate={() => {
+              setCodes(regenerateFakeBackupCodes());
+              toast("New Backup Codes Generated!");
+            }}
+          />
         </div>
       </Centered>
     </PageContent>

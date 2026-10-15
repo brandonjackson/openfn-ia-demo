@@ -6,6 +6,7 @@ import ProjectBreadcrumbs from "../../components/shell/ProjectBreadcrumbs";
 import ProjectMetrics from "../../components/projects/ProjectMetrics";
 import WorkflowsHeader from "../../components/projects/WorkflowsHeader";
 import WorkflowsTable from "../../components/projects/WorkflowsTable";
+import { useToast } from "../../components/Toast";
 import { projectMetricsFor, workflowStatsFor } from "../../mock-data/dashboard-stats";
 import { findProject, roleIn } from "../../mock-data/projects";
 import { currentUser } from "../../mock-data/users";
@@ -22,6 +23,7 @@ export default function WorkflowsIndexPage() {
   const [search, setSearch] = useState("");
   const [enabled, setEnabled] = useState<Record<string, boolean>>({});
   const [deleted, setDeleted] = useState<string[]>([]);
+  const toast = useToast();
 
   if (!project) return <Navigate to="/projects" replace />;
 
@@ -48,8 +50,14 @@ export default function WorkflowsIndexPage() {
             projectId={project.id}
             searchTerm={search}
             canDelete={canEdit}
-            onToggle={(id, v) => setEnabled((m) => ({ ...m, [id]: v }))}
-            onDelete={(id) => setDeleted((d) => [...d, id])}
+            onToggle={(id, v) => {
+              setEnabled((m) => ({ ...m, [id]: v }));
+              toast("Workflow updated");
+            }}
+            onDelete={(id) => {
+              setDeleted((d) => [...d, id]);
+              toast("Workflow successfully deleted.");
+            }}
           />
         </div>
       </Centered>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Button from "../Button";
 import SectionHeader from "../SectionHeader";
+import { useToast } from "../Toast";
 import CollectionDeleteModal from "./CollectionDeleteModal";
 import CollectionFormModal from "./CollectionFormModal";
 import CollectionPreviewModal from "./CollectionPreviewModal";
@@ -25,6 +26,7 @@ export default function CollectionsPanel({ projectId, initialCollections, canCre
   const [items, setItems] = useState(initialCollections);
   const [action, setAction] = useState<Action>(null);
   const close = () => setAction(null);
+  const toast = useToast();
 
   return (
     <div id="collections" className="space-y-4">
@@ -52,6 +54,7 @@ export default function CollectionsPanel({ projectId, initialCollections, canCre
           onSave={(name) => {
             setItems([...items, { id: `col-${Date.now()}`, projectId, name, byteSizeSum: 0, previewJson: null }]);
             close();
+            toast("Collection created");
           }}
         />
       )}
@@ -63,6 +66,7 @@ export default function CollectionsPanel({ projectId, initialCollections, canCre
           onSave={(name) => {
             setItems(items.map((c) => (c.id === action.collection.id ? { ...c, name } : c)));
             close();
+            toast("Collection updated");
           }}
         />
       )}
@@ -73,6 +77,7 @@ export default function CollectionsPanel({ projectId, initialCollections, canCre
           onDelete={() => {
             setItems(items.filter((c) => c.id !== action.collection.id));
             close();
+            toast("Collection deleted");
           }}
         />
       )}

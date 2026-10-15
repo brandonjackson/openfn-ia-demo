@@ -16,6 +16,7 @@ import ProjectSetupPanel from "../../components/project-settings/ProjectSetupPan
 import SandboxSettingsBanner from "../../components/project-settings/SandboxSettingsBanner";
 import SecurityPanel from "../../components/project-settings/SecurityPanel";
 import Tabs from "../../components/Tabs";
+import { useToast } from "../../components/Toast";
 import WebhookSecurityPanel from "../../components/project-settings/WebhookSecurityPanel";
 import { defaultSettingsHash, projectSettingsTabs } from "../../components/project-settings/tabs";
 import {
@@ -42,6 +43,7 @@ export default function ProjectSettingsPage() {
   const { projectId } = useParams();
   const { hash, pathname } = useLocation();
   const navigate = useNavigate();
+  const toast = useToast();
   const project = findProject(projectId);
 
   if (!project) {
@@ -182,7 +184,10 @@ export default function ProjectSettingsPage() {
           gracePeriodDays={purgeDeletedAfterDays}
           key={project.id}
           onCancel={() => navigate(settingsPath)}
-          onDelete={() => navigate("/projects")}
+          onDelete={() => {
+            toast("Project scheduled for deletion");
+            navigate("/projects");
+          }}
         />
       )}
     </PageContent>

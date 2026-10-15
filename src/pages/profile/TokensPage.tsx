@@ -6,6 +6,7 @@ import { Centered, PageContent } from "../../components/PageContent";
 import NewTokenBanner from "../../components/profile/NewTokenBanner";
 import TokensTable from "../../components/profile/TokensTable";
 import TokenDeletionModal from "../../components/profile/TokenDeletionModal";
+import { useToast } from "../../components/Toast";
 import { apiTokens, generateFakeToken, type ApiToken } from "../../mock-data/tokens";
 
 /**
@@ -18,11 +19,13 @@ export default function TokensPage() {
   const navigate = useNavigate();
   const [tokens, setTokens] = useState<ApiToken[]>(apiTokens);
   const [newToken, setNewToken] = useState<string | null>(null);
+  const toast = useToast();
 
   const generate = () => {
     const token = generateFakeToken();
     setTokens((list) => [token, ...list]);
     setNewToken(token.token);
+    toast("Token created successfully");
   };
 
   return (
@@ -40,7 +43,10 @@ export default function TokensPage() {
         {tokenId && tokens.some((t) => t.id === tokenId) && (
           <TokenDeletionModal
             onClose={() => navigate("/profile/tokens")}
-            onDelete={() => setTokens((list) => list.filter((t) => t.id !== tokenId))}
+            onDelete={() => {
+              setTokens((list) => list.filter((t) => t.id !== tokenId));
+              toast("Token deleted successfully");
+            }}
           />
         )}
         {newToken && <NewTokenBanner token={newToken} />}

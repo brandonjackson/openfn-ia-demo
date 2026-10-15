@@ -46,13 +46,14 @@ export default function HistoryExportsTable({ files }: Props) {
             <Td>{user ? fullName(user) : ""}</Td>
             <Td>{formatStatus(f.status)}</Td>
             <Td actions>
-              {f.status === "completed" ? (
-                <Button theme="secondary" size="xs">Download</Button>
-              ) : (
-                <span title="Export is not yet ready for download">
-                  <Button theme="secondary" size="xs" disabled>Download</Button>
-                </span>
-              )}
+              <Button
+                theme="secondary"
+                size="xs"
+                disabled={f.status !== "completed"}
+                tooltip={f.status === "completed" ? undefined : "Export is not yet ready for download"}
+              >
+                Download
+              </Button>
             </Td>
           </Tr>
         );

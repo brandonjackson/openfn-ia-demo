@@ -5,6 +5,7 @@ import FormModal from "../FormModal";
 import Modal from "../Modal";
 import type { WebhookAuthMethod, WebhookAuthType } from "../../mock-data/project-settings";
 import { cn } from "../../utils/cn";
+import { useCopy } from "../../utils/useCopy";
 
 interface Props {
   /** Omit to create a new method (starts at the "choose a type" step). */
@@ -26,6 +27,7 @@ const maskApiKey = (v = "") => "*".repeat(Math.min(15, Math.max(0, v.length - 5)
 
 /** Masked secret with a Show / Copy button (maybe_mask_password_field / maybe_mask_api_key_field). */
 function SecretField({ id, value, type, revealed, onShow }: { id: string; value: string; type: "password" | "text"; revealed: boolean; onShow: () => void }) {
+  const { copy } = useCopy(value);
   return (
     <div className="flex">
       <TextInput id={id} type={type} value={value} disabled fieldClassName="flex-1" className="rounded-r-none" />
@@ -33,7 +35,7 @@ function SecretField({ id, value, type, revealed, onShow }: { id: string; value:
         id={`${id}_action_button`}
         theme="secondary"
         className="-ml-px w-24 rounded-l-none rounded-r-lg"
-        onClick={revealed ? () => navigator.clipboard?.writeText(value) : onShow}
+        onClick={revealed ? copy : onShow}
       >
         {revealed ? "Copy" : "Show"}
       </Button>

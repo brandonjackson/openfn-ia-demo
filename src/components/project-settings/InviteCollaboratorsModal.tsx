@@ -1,8 +1,8 @@
 import { useState } from "react";
 import FormModal from "../FormModal";
-import { Select, TextInput } from "../Inputs";
+import { TextInput } from "../Inputs";
 import IconButton from "../IconButton";
-import { roleOptions } from "./roleOptions";
+import RoleSelect from "./RoleSelect";
 import type { ProjectRole } from "../../mock-data/projects";
 
 export interface InviteDraft {
@@ -18,7 +18,6 @@ interface Props {
   onCancel: () => void;
   onInvite: (invites: InviteDraft[]) => void;
 }
-
 
 /** InviteCollaboratorComponent (project_live/invite_collaborator_component.html.heex). */
 export default function InviteCollaboratorsModal({ initial, onCancel, onInvite }: Props) {
@@ -68,14 +67,7 @@ export default function InviteCollaboratorsModal({ initial, onCancel, onInvite }
             value={r.email}
             onChange={(e) => update(i, { email: e.target.value })}
           />
-          <Select
-            aria-label="Role"
-            prompt="Select Role"
-            required
-            options={roleOptions}
-            value={r.role}
-            onChange={(e) => update(i, { role: e.target.value as ProjectRole })}
-          />
+          <RoleSelect value={r.role} onChange={(role) => update(i, { role })} />
           {rows.length > 1 && (
             <IconButton icon="hero-minus-circle" label="Remove row" onClick={() => setRows(rows.filter((_, j) => j !== i))} />
           )}

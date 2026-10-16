@@ -4,7 +4,6 @@
  * (assets/js/hooks/index.ts), utils/duration.ts and Lightning.Helpers.
  */
 import type { WebhookAuthMethod } from "../types/project-settings";
-import type { ApiToken } from "../types/tokens";
 import type { User } from "../types/users";
 
 const MONTHS = [
@@ -229,11 +228,6 @@ export function formatNumber(n: number): string {
 
 export function fullName(user: Pick<User, "firstName" | "lastName">): string {
   return [user.firstName, user.lastName].filter(Boolean).join(" ");
-}
-
-/** Lightning's `mask_token`: "..." plus the last 10 characters. */
-export function maskToken(token: ApiToken): string {
-  return "..." + token.token.slice(-10);
 }
 
 /** Lightning's `format_schema_name`: "dhis2" → "Dhis2", "aws-s3" → "Aws-s3". */

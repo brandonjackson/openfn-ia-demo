@@ -2,8 +2,8 @@
 
 export interface ApiToken {
   id: string;
-  /** Full token; only its last 10 characters are ever shown in the table. */
-  token: string;
+  /** "..." plus the token's last 10 characters (Lightning's `mask_token`). The server never sends a stored token's secret. */
+  masked: string;
   insertedAt: string;
   lastUsedAt: string | null;
 }

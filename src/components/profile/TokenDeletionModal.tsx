@@ -1,7 +1,7 @@
 import ConfirmModal from "../ConfirmModal";
 
 /** Lightning's TokenDeletionModal (live/components/token_deletion_modal.ex). */
-export default function TokenDeletionModal({ onClose, onDelete }: { onClose: () => void; onDelete?: () => void }) {
+export default function TokenDeletionModal({ onClose, onDelete }: { onClose: () => void; onDelete?: () => void | Promise<void> }) {
   return (
     <ConfirmModal
       open
@@ -9,8 +9,8 @@ export default function TokenDeletionModal({ onClose, onDelete }: { onClose: () 
       title="Delete API Access Token"
       tone="danger"
       confirmLabel="Yes"
-      onConfirm={() => {
-        onDelete?.();
+      onConfirm={async () => {
+        await onDelete?.();
         onClose();
       }}
     >

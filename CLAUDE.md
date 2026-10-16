@@ -13,6 +13,10 @@ cross-referencing each page with its annotation and wiring it to the backend,
 so keep pages easy to wire: data comes in through mock-data helpers, not
 inline literals scattered through the markup. See **The data seam** below.
 
+**How pages behave** (pending, failure, server-driven lists, loading states)
+is in [STANDARDS.md](./STANDARDS.md). Read it before adding a mutation or a
+list page; `src/pages/profile/TokensPage.tsx` is the worked example.
+
 ## Commands
 
 - `npm run dev` — start dev server
@@ -112,13 +116,14 @@ everywhere. Reach for these first:
 
 | Need | Use |
 |---|---|
-| An action | `Button` (`to` for routes, `href` for plain links; `size="xs" theme="secondary"` for table row actions) |
+| An action | `Button` (`to` for routes, `href` for plain links; `size="xs" theme="secondary"` for table row actions; `pending` while its request runs) |
+| A request in flight | `useAction` from `utils/useAction.ts` (pending, error, double-click guard); `Spinner` for anything loading |
 | An icon-only action | `IconButton` (always give it a `label`; `to`/`href` for icon links, `external` to open `href` in a new tab, `tone="danger"`, or pass an SVG element as `icon`) |
 | A button that opens a menu | `ButtonMenu`; `SplitButton` when the button also has its own action |
 | A form control | `TextInput`, `PasswordInput`, `TextArea`, `Select`, `Checkbox`, `Radio` from `Inputs` (`fieldClassName` styles the wrapper, e.g. `flex-1` in a row); wrap anything else in `Field` with `controlClasses()` and `data-ui="field"` |
 | A name that becomes a URL-safe slug | `NameField` (input plus the "will be named" badge) |
 | A dialog | `Modal` (`size`, or `bare` for custom layouts) |
-| A dialog around one form | `FormModal` (`formId`, `onSubmit`, `submitLabel`; Enter submits, Cancel is built in) |
+| A dialog around one form | `FormModal` (`formId`, async `onSubmit`, `submitLabel`; Enter submits, Cancel is built in, pending and failure shown) |
 | Confirming one action | `ConfirmModal`; `confirmation` adds a type-to-confirm field |
 | A list of actions or choices | `Menu` with `MenuItem`, `MenuSection`, `MenuDivider` |
 | A floating panel (filters, details) | `Popover` (`panelProps` puts `data-annotation` on the portalled panel; Menu takes it too) |

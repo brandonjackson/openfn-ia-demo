@@ -56,3 +56,10 @@ export const CollectOnly: Story = {
     children: <p>This user's account and credential data will be deleted.</p>,
   },
 };
+/** A rejected `onConfirm`: stays open with the failure, so the user can retry or cancel. */
+export const Failed: Story = {
+  args: { onConfirm: () => Promise.reject(new Error("Work orders can't be rerun while the project is locked.")) },
+  play: async ({ canvasElement }) => {
+    canvasElement.ownerDocument.querySelector<HTMLButtonElement>('button[type="submit"]')?.click();
+  },
+};

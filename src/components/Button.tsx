@@ -1,6 +1,7 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode, Ref } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "../utils/cn";
+import Spinner from "./Spinner";
 
 export type ButtonTheme = "primary" | "secondary" | "danger" | "success" | "warning";
 export type ButtonSize = "xs" | "sm" | "md" | "lg";
@@ -64,6 +65,12 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   rel?: string;
   /** Shown on hover (often why it's disabled). */
   tooltip?: string;
+  /**
+   * The action is in flight: the button is disabled and shows a spinner
+   * before its label. Pass `useAction().pending` or let `FormModal` /
+   * `ConfirmModal` manage it.
+   */
+  pending?: boolean;
   ref?: Ref<HTMLButtonElement>;
   children: ReactNode;
 }
@@ -72,7 +79,8 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
  * The button: rounded-md, text-sm font-semibold, shadow-xs, with primary /
  * secondary / danger / success / warning themes and xs / sm / md / lg padding
  * (xs is the small row action in a table).
- * Pass `to` or `href` to get a link that looks the same.
+ * Pass `to` or `href` to get a link that looks the same. `pending` disables
+ * it and shows a spinner while a request runs (STANDARDS.md pattern 1).
  */
 export default function Button({
   theme = "primary",
@@ -80,7 +88,8 @@ export default function Button({
   to,
   href,
   tooltip,
-  disabled = false,
+  pending = false,
+  disabled: disabledProp = false,
   className,
   type = "button",
   id,
@@ -91,8 +100,23 @@ export default function Button({
   children,
   ...rest
 }: Props) {
+  const disabled = disabledProp || pending;
   const classes = buttonClasses(theme, size, disabled, className);
-  const shared = { id, className: classes, title: tooltip, "data-ui": "button", "data-variant": theme };
+  const shared = {
+    id,
+    className: classes,
+    title: tooltip,
+    "data-ui": "button",
+    "data-variant": theme,
+    "data-pending": pending || undefined,
+    "aria-busy": pending || undefined,
+  };
+  const content = (
+    <>
+      {pending && <Spinner size={size === "xs" ? "xs" : "sm"} label="Working" />}
+      {children}
+    </>
+  );
   // Links take the same handlers and aria props as buttons.
   const link = { ...(rest as AnchorHTMLAttributes<HTMLAnchorElement>), ...shared, target, rel: rel ?? (target === "_blank" ? "noreferrer" : undefined) };
   if (to && !disabled) {
@@ -111,11 +135,11 @@ export default function Button({
   }
   const button = (
     <button ref={ref} type={type} disabled={disabled} {...shared} {...rest}>
-      {children}
+      {content}
     </button>
   );
   // Disabled buttons don't get hover events in every browser, so the tooltip goes on a wrapper.
-  return disabled && tooltip ? (
+  return disabled && tooltip && !pending ? (
     <span title={tooltip} className="inline-flex">
       {button}
     </span>

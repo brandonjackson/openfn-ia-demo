@@ -19,8 +19,12 @@ export interface Confirmation {
 interface Props {
   open: boolean;
   onClose: () => void;
-  /** Called with the typed text when there's a `confirmation` field. */
-  onConfirm: (typed: string) => void;
+  /**
+   * Called with the typed text when there's a `confirmation` field. May be
+   * async: the modal shows pending until it settles and stays open with the
+   * error if it throws. Close the modal yourself once it resolves.
+   */
+  onConfirm: (typed: string) => void | Promise<void>;
   title: ReactNode;
   /** What will happen, and anything the user needs to decide. */
   children: ReactNode;
@@ -37,8 +41,9 @@ interface Props {
 }
 
 /**
- * Asks the user to confirm one action. The confirm button (or Enter) only
- * calls `onConfirm`; close the modal from there once the action is done.
+ * Asks the user to confirm one action (STANDARDS.md pattern 6). The confirm
+ * button (or Enter) only calls `onConfirm`; close the modal from there once
+ * the action is done. Pending and failure handling come from `FormModal`.
  */
 export default function ConfirmModal({
   open,

@@ -43,3 +43,17 @@ export const ContentBeforeForm: Story = {
     before: <Alert type="info">Fields marked * are required.</Alert>,
   },
 };
+/** An async `onSubmit`: the submit button spins and Cancel is inert until it settles. */
+export const Pending: Story = {
+  args: { onSubmit: () => new Promise(() => {}) },
+  play: async ({ canvasElement }) => {
+    canvasElement.ownerDocument.querySelector<HTMLButtonElement>('button[type="submit"]')?.click();
+  },
+};
+/** A rejected `onSubmit`: the modal stays open and shows the message above the form. */
+export const Failed: Story = {
+  args: { onSubmit: () => Promise.reject(new Error("A project with that name already exists.")) },
+  play: async ({ canvasElement }) => {
+    canvasElement.ownerDocument.querySelector<HTMLButtonElement>('button[type="submit"]')?.click();
+  },
+};

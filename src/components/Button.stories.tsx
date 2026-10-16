@@ -17,6 +17,7 @@ export const Danger: Story = { args: { theme: "danger", children: "Delete" } };
 export const Success: Story = { args: { theme: "success", children: "Connect" } };
 export const Warning: Story = { args: { theme: "warning", children: "Retry" } };
 export const Disabled: Story = { args: { disabled: true, tooltip: "You don't have permission" } };
+export const Pending: Story = { args: { pending: true, children: "Saving" } };
 export const Small: Story = { args: { size: "sm", children: "Run" } };
 export const Large: Story = { args: { size: "lg", children: "Create project" } };
 export const AsLink: Story = { args: { to: "/projects", children: "Projects" } };

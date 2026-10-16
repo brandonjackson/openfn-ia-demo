@@ -41,6 +41,8 @@ wrapper.
   (`lib/lightning_web/router.ex`), commented with its INVENTORY.md id.
 - `src/pages/<area>/` — one file per Lightning view. Named after the
   inventory id (e.g. `history-work-orders` → `HistoryWorkOrdersPage.tsx`).
+  A view that follows pattern 11 (page and wrapper) adds a
+  `<Name>.replica.tsx` wrapper beside it, and `App.tsx` routes to that.
 - `src/components/` — the component library: primitives at the top level,
   app chrome (sidebar, project picker, user menu) in `shell/`, feature
   components in area subfolders. See **Components** below.
@@ -164,7 +166,9 @@ They compose primitives and don't carry their own button, input, modal or
 menu styling.
 
 - **Pages compose components** and hold state, route params and mock-data
-  queries. No styled raw `<button>`, `<input>` or `<table>` in pages.
+  queries. No styled raw `<button>`, `<input>` or `<table>` in pages. Under
+  pattern 11 the `.replica.tsx` wrapper holds those, and the page only takes
+  props.
 - **Components never import `src/mock-data/`** (ESLint enforces it; stories
   are exempt). They take records and `can*` booleans as props. See **The data
   seam** below.
@@ -189,6 +193,9 @@ pages, `main.tsx` (the session) and a short, labelled list of components.
   down. When a component needs a join Lightning preloads (a work order's runs,
   a project's owner), give the record type the joined field
   (`HistoryWorkOrder`, `AdminProjectRow`) and build it in the mock-data query.
+- **Pattern 11 pages** narrow the seam to one file: only the `.replica.tsx`
+  wrapper imports mock-data. Wiring that page means writing a Lightning
+  wrapper; the page file doesn't change.
 - **The current user** comes from `useCurrentUser()`, never a fixture import.
 - **Permissions** come from `permissionsFor(project, user)` (or
   `usePermissions(project)`) in the page, passed down as booleans, the way

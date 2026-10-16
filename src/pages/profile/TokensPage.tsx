@@ -1,5 +1,3 @@
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import Header from "../../components/Header";
 import Button from "../../components/Button";
 import { Centered, PageContent } from "../../components/PageContent";
@@ -7,42 +5,35 @@ import NewTokenBanner from "../../components/profile/NewTokenBanner";
 import TokensTable from "../../components/profile/TokensTable";
 import TokenDeletionModal from "../../components/profile/TokenDeletionModal";
 import { useToast } from "../../components/Toast";
-import { apiTokens, generateFakeToken } from "../../mock-data/tokens";
-import { simulateRequest } from "../../mock-data/request";
 import type { ApiToken } from "../../types/tokens";
 import { errorMessage } from "../../utils/errors";
 import { useAction } from "../../utils/useAction";
 
+/** The contract between this page and whatever feeds it (the replica wrapper, later Lightning). */
+export interface TokensPageProps {
+  /** The signed-in user's tokens, newest first, as the server lists them. */
+  tokens: ApiToken[];
+  /** The full secret of the token just generated, shown once in the banner; otherwise null. */
+  newToken: string | null;
+  /** The token whose delete modal is open (/profile/tokens/:tokenId/delete); otherwise null. */
+  tokenId: string | null;
+  /** Generates a token. Rejects on failure, which the page toasts. */
+  onGenerate: () => Promise<void>;
+  /** Deletes a token. Rejects on failure, which the modal shows inline. */
+  onDelete: (id: string) => Promise<void>;
+  /** Closes the delete modal, after a delete or on Cancel. */
+  onClose: () => void;
+}
+
 /**
  * Inventory view `profile-tokens` (tokens_live/index.html.heex): "Generate
  * New Token" shows the new token once in a banner; the table masks the rest.
- * /profile/tokens/:tokenId/delete opens the delete modal.
- *
- * The worked example of STANDARDS.md patterns 1, 4 and 7: the page owns the
- * list, every mutation awaits a request, the button shows pending, success
- * toasts here and failure toasts here.
+ * Props only, so it can run unchanged in Lightning; the replica's data and
+ * routing live in TokensPage.replica.tsx.
  */
-export default function TokensPage() {
-  const { tokenId } = useParams();
-  const navigate = useNavigate();
-  const [tokens, setTokens] = useState<ApiToken[]>(apiTokens);
-  const [newToken, setNewToken] = useState<string | null>(null);
+export default function TokensPage({ tokens, newToken, tokenId, onGenerate, onDelete, onClose }: TokensPageProps) {
   const toast = useToast();
-
-  const generate = useAction(
-    async () => {
-      const token = await simulateRequest(generateFakeToken());
-      setTokens((list) => [token, ...list]);
-      setNewToken(token.token);
-      toast("Token created successfully");
-    },
-    { onError: (e) => toast(errorMessage(e), "error") }
-  );
-  const remove = async (id: string) => {
-    await simulateRequest();
-    setTokens((list) => list.filter((t) => t.id !== id));
-    toast("Token deleted successfully");
-  };
+  const generate = useAction(onGenerate, { onError: (e) => toast(errorMessage(e), "error") });
 
   return (
     <PageContent
@@ -57,7 +48,7 @@ export default function TokensPage() {
     >
       <Centered>
         {tokenId && tokens.some((t) => t.id === tokenId) && (
-          <TokenDeletionModal onClose={() => navigate("/profile/tokens")} onDelete={() => remove(tokenId)} />
+          <TokenDeletionModal onClose={onClose} onDelete={() => onDelete(tokenId)} />
         )}
         {newToken && <NewTokenBanner token={newToken} />}
         <TokensTable tokens={tokens} onGenerate={() => generate.run()} />

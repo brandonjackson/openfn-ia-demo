@@ -20,8 +20,10 @@ Status of each pattern, as of this commit:
 | 8 | Live updates | Todo, after 3 | subscription hook |
 | 9 | Permission gating | Mostly done | one disabled-with-reason look |
 | 10 | Session and route guards | Todo | router-level guard |
+| 11 | Page and wrapper | Pilot: Tokens | one page at a time |
 
-Worked example: `src/pages/profile/TokensPage.tsx` (patterns 1, 4, 6, 7).
+Worked example: `src/pages/profile/TokensPage.tsx` and its
+`TokensPage.replica.tsx` wrapper (patterns 1, 4, 6, 7, 11).
 
 ## 1. Async action
 
@@ -161,6 +163,35 @@ pending, to confirm-required when unconfirmed, to the MFA-required page for
 projects that require it, and away from `/settings/*` for non-superusers.
 Lightning does this in plugs and `on_mount`; mirror those rules in one
 `RouteGuard` component around the route groups in `App.tsx`.
+
+## 11. Page and wrapper
+
+A page that will move to Lightning is two files: the page draws, the wrapper
+feeds it. The page file is copied into Lightning unchanged; only the wrapper
+is rewritten.
+
+- **`XPage.tsx`** takes everything as props: the records, and an `on*`
+  function per action returning `Promise<void>`. It imports nothing from
+  `src/mock-data/`, `src/session/` or `react-router-dom`. Its props type
+  (`XPageProps`, a comment on each prop) is the contract between the two.
+- **`XPage.replica.tsx`** is what `App.tsx` routes to. It holds the fixtures
+  in state as the server would, reads URL params, awaits `simulateRequest`,
+  fires success toasts and navigates. It is the "page" patterns 4 and 7 mean.
+- **In Lightning**, an island wrapper feeds the same `XPage.tsx` from the
+  LiveView's `data-*` attributes and turns each `on*` call into a
+  `pushEvent`. After an action the LiveView re-renders with new attributes,
+  so new props arrive the same way they do in the replica.
+- **Shapes are Lightning's**, not the convenient ones: a token arrives
+  `masked`, and its secret only once, as `newToken`.
+- **The page keeps UI state only**: which modal is open, a draft not yet
+  saved. Never its own copy of the records.
+- **The page gets a story** with plain props: `withRouter`,
+  `withCanvas("h-screen")` and `layout: "fullscreen"` (`PageContent` fills
+  its parent, so without a height its body is clipped).
+
+Open: the Generate error toast still lives in `TokensPage.tsx`, and
+Lightning's design system has no toast yet. Move it to the wrapper or give
+Lightning a toast that maps to `put_flash`.
 
 ## How to add a pattern to a component
 

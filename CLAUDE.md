@@ -15,7 +15,10 @@ inline literals scattered through the markup. See **The data seam** below.
 
 **How pages behave** (pending, failure, server-driven lists, loading states)
 is in [STANDARDS.md](./STANDARDS.md). Read it before adding a mutation or a
-list page; `src/pages/profile/TokensPage.tsx` is the worked example.
+list page; `src/pages/profile/TokensPage.tsx` (props only) and its
+`TokensPage.replica.tsx` wrapper (fake data, URL, toasts) are the worked
+example. A page that will move to Lightning follows pattern 11, page and
+wrapper.
 
 ## Commands
 

@@ -3,7 +3,6 @@ import Button from "../Button";
 import DateTime from "../DateTime";
 import Heading from "../Heading";
 import IconButton from "../IconButton";
-import { maskToken } from "../../utils/format";
 import type { ApiToken } from "../../types/tokens";
 
 /**
@@ -27,7 +26,7 @@ export default function TokensTable({ tokens, onGenerate }: { tokens: ApiToken[]
         {tokens.map((token) => (
           <Tr key={token.id} id={`tokens-${token.id}`}>
             <Td>
-              <code className="whitespace-nowrap">{maskToken(token)}</code>
+              <code className="whitespace-nowrap">{token.masked}</code>
             </Td>
             <Td className="whitespace-nowrap font-medium">
               <DateTime value={token.insertedAt} />

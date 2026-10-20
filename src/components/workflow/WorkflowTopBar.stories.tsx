@@ -6,6 +6,7 @@ import { nationalIdWorkflow, workflowVersions } from "../../mock-data/workflow";
 import { projects } from "../../mock-data/projects";
 
 const sandboxes = projects[0].sandboxes;
+const retryStep = nationalIdWorkflow.nodes[1].label;
 
 /** Keeps sandbox and version in state so the pickers and actions respond. */
 function ControlledTopBar(args: ComponentProps<typeof WorkflowTopBar>) {
@@ -48,7 +49,7 @@ export const OnMain: Story = {};
 /** In a sandbox the action is "Promote". */
 export const InSandbox: Story = { args: { sandbox: sandboxes[1] } };
 
-export const RetryRun: Story = { args: { runLabel: "Run (Retry)" } };
+export const RetryRun: Story = { args: { retryStep } };
 
 export const WithBackButton: Story = { args: { onBack: () => {} } };
 

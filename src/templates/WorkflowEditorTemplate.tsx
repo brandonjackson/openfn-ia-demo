@@ -92,7 +92,7 @@ export default function WorkflowEditorTemplate({
     <div className="flex h-full flex-col bg-white">
       <WorkflowTopBar
         workflow={workflow}
-        runLabel={expandedJob ? "Run (Retry)" : "Run"}
+        retryStep={expandedJob?.label}
         onBack={onBack}
         sandboxes={sandboxes}
         sandbox={sandbox}

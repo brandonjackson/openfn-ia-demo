@@ -27,7 +27,7 @@ import RunControl from "./RunControl";
  */
 export default function WorkflowTopBar({
   workflow,
-  runLabel = "Run",
+  retryStep,
   onBack,
   sandboxes = ["main"],
   sandbox = "main",
@@ -42,7 +42,8 @@ export default function WorkflowTopBar({
   defaultLive = true,
 }: {
   workflow: Workflow;
-  runLabel?: string;
+  /** Name of the open step to retry from, when there is one. */
+  retryStep?: string;
   onBack?: () => void;
   /** Sandboxes of the workflow's project, "main" first. */
   sandboxes?: string[];
@@ -109,7 +110,7 @@ export default function WorkflowTopBar({
 
       {/* Actions */}
       <div className="flex items-center gap-2">
-        <RunControl live={live} runLabel={runLabel} onToggleLive={setLive} />
+        <RunControl live={live} retryStep={retryStep} onToggleLive={setLive} />
         {onMain ? (
           <Button variant="outline-primary" size="sm" icon={FlaskConical} onClick={onEditInSandbox}>
             Edit in sandbox

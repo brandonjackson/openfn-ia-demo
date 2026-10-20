@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, FileJson, Play, Power, PowerOff } from "lucide-react";
+import { ChevronDown, FileJson, Pause, Play, Power, PowerOff, RotateCcw } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface MenuItem {
-  id: "custom" | "toggle-live";
+  id: "from-start" | "custom" | "toggle-live";
   label: string;
   description: string;
   icon: LucideIcon;
@@ -12,23 +12,32 @@ interface MenuItem {
 /**
  * One control for whether a workflow is live and for running it.
  *
- * The control reads as the workflow's state ("Live" or "Disabled"). Inset on
- * it is a play button that runs the workflow straight away, in either state.
- * Clicking anywhere else opens a menu: run with custom input, and go live or
- * disable depending on the current state.
+ * The control reads as the workflow's state: "Live" with a green dot, or
+ * "Disabled" with a pause icon. Inset on it is a run button that runs the
+ * workflow straight away, in either state. Clicking anywhere else opens a
+ * menu: run with custom input, and go live or disable depending on the
+ * current state.
+ *
+ * When `retryStep` is set (a step from an earlier run is open), the inset
+ * button becomes a retry icon that retries from that step, and the menu gains
+ * "Run from start" so a fresh run is still one click away.
  */
 export default function RunControl({
   live,
-  runLabel = "Run",
+  retryStep,
   onRun,
+  onRunFromStart,
   onRunWithCustomInput,
   onToggleLive,
   defaultOpen = false,
 }: {
   live: boolean;
-  /** Tooltip and accessible name of the play button, e.g. "Run (Retry)". */
-  runLabel?: string;
+  /** Name of the step to retry from; switches the inset button to retry. */
+  retryStep?: string;
+  /** The inset button: run, or retry from `retryStep` when set. */
   onRun?: () => void;
+  /** Menu item shown while retrying, for a fresh run of the whole workflow. */
+  onRunFromStart?: () => void;
   onRunWithCustomInput?: () => void;
   /** Called with the new state when "Go live" or "Disable" is chosen. */
   onToggleLive?: (live: boolean) => void;
@@ -55,6 +64,16 @@ export default function RunControl({
   }, [open]);
 
   const items: MenuItem[] = [
+    ...(retryStep
+      ? [
+          {
+            id: "from-start" as const,
+            label: "Run from start",
+            description: "Start a fresh run of the whole workflow.",
+            icon: Play,
+          },
+        ]
+      : []),
     {
       id: "custom",
       label: "Run with custom input",
@@ -78,17 +97,19 @@ export default function RunControl({
 
   const select = (id: MenuItem["id"]) => {
     setOpen(false);
-    if (id === "custom") onRunWithCustomInput?.();
+    if (id === "from-start") onRunFromStart?.();
+    else if (id === "custom") onRunWithCustomInput?.();
     else onToggleLive?.(!live);
   };
+
+  const runLabel = retryStep ? `Retry from ${retryStep}` : "Run";
+  const RunIcon = retryStep ? RotateCcw : Play;
 
   return (
     <div ref={ref} className="relative inline-block">
       <div
-        className={`flex h-8 items-center rounded-md border text-sm font-medium transition-colors ${
-          live
-            ? "border-green-200 bg-green-50 text-green-800 hover:bg-green-100"
-            : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+        className={`flex h-8 items-center rounded-md border text-sm font-medium text-gray-700 transition-colors ${
+          open ? "border-gray-300 bg-gray-50" : "border-gray-200 bg-white hover:bg-gray-50"
         }`}
       >
         <button
@@ -99,10 +120,11 @@ export default function RunControl({
           onClick={() => setOpen((o) => !o)}
           className="inline-flex h-full items-center gap-1.5 pl-2.5 pr-2"
         >
-          <span
-            className={`h-2 w-2 rounded-full ${live ? "bg-green-500" : "bg-gray-300"}`}
-            aria-hidden
-          />
+          {live ? (
+            <span className="mx-0.5 h-2 w-2 rounded-full bg-green-500" aria-hidden />
+          ) : (
+            <Pause size={14} className="text-gray-500" aria-hidden />
+          )}
           {live ? "Live" : "Disabled"}
         </button>
         <button
@@ -110,16 +132,16 @@ export default function RunControl({
           title={runLabel}
           aria-label={runLabel}
           onClick={onRun}
-          className="inline-flex h-6 w-6 items-center justify-center rounded bg-blue-600 text-white shadow-sm hover:bg-blue-700"
+          className="inline-flex h-6 w-6 items-center justify-center rounded border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-900"
         >
-          <Play size={12} fill="currentColor" />
+          <RunIcon size={13} />
         </button>
         <button
           type="button"
           tabIndex={-1}
           aria-hidden
           onClick={() => setOpen((o) => !o)}
-          className="inline-flex h-full items-center pl-1.5 pr-2 opacity-70"
+          className="inline-flex h-full items-center pl-1.5 pr-2 text-gray-400"
         >
           <ChevronDown size={14} />
         </button>

@@ -2,6 +2,9 @@ import { useState } from "react";
 import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import RunControl from "./RunControl";
+import { nationalIdWorkflow } from "../../mock-data/workflow";
+
+const retryStep = nationalIdWorkflow.nodes[1].label;
 
 /** Keeps the live state so "Go live" and "Disable" respond. */
 function ControlledRunControl(args: ComponentProps<typeof RunControl>) {
@@ -34,4 +37,7 @@ export const LiveMenuOpen: Story = { args: { defaultOpen: true } };
 
 export const DisabledMenuOpen: Story = { args: { live: false, defaultOpen: true } };
 
-export const Retry: Story = { args: { runLabel: "Run (Retry)" } };
+/** A step from an earlier run is open: the inset button retries from it. */
+export const Retry: Story = { args: { retryStep } };
+
+export const RetryMenuOpen: Story = { args: { retryStep, defaultOpen: true } };

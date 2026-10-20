@@ -3,22 +3,31 @@ import Card from "./Card";
 import Button from "./Button";
 
 const meta: Meta<typeof Card> = {
-  title: "Shared/Card",
+  title: "Components/Card",
   component: Card,
-  args: { children: "The webhook URL is shown once the trigger is saved." },
+  parameters: { layout: "padded" },
 };
+
 export default meta;
 type Story = StoryObj<typeof Card>;
 
-export const Default: Story = {};
-export const WithHeader: Story = {
+export const Default: Story = {
   args: {
-    title: "Project Identity",
-    description: "Project name and description.",
-    action: <Button theme="secondary">Edit</Button>,
+    title: "Export your Project",
+    description: "Export your project as code, to save this version or edit your project locally.",
+    children: <Button variant="secondary">Export project</Button>,
   },
 };
-export const Large: Story = { args: { padding: "lg" } };
-export const Muted: Story = { args: { muted: true } };
-export const Dashed: Story = { args: { dashed: true, className: "text-center text-sm text-gray-500", children: "Drop a file here" } };
-export const Clickable: Story = { args: { as: "button", onClick: () => {}, children: "Start from a template" } };
+
+export const ContentOnly: Story = {
+  args: {
+    children: <p className="text-sm text-gray-700">A card with no heading.</p>,
+  },
+};
+
+export const Flush: Story = {
+  args: {
+    flush: true,
+    children: <div className="bg-gray-50 px-4 py-3 text-sm text-gray-500">Flush cards have no padding (used to wrap tables).</div>,
+  },
+};

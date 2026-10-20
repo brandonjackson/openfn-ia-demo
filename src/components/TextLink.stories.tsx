@@ -3,24 +3,28 @@ import TextLink from "./TextLink";
 import { withRouter } from "../stories/decorators";
 
 const meta: Meta<typeof TextLink> = {
-  title: "Shared/TextLink",
+  title: "Components/TextLink",
   component: TextLink,
   decorators: [withRouter],
-  args: { to: "/profile", children: "your account" },
 };
+
 export default meta;
 type Story = StoryObj<typeof TextLink>;
 
-export const InApp: Story = {};
-export const External: Story = { args: { to: "https://docs.openfn.org", external: true, children: "documentation" } };
-export const Action: Story = { args: { to: undefined, onClick: () => {}, children: "Resend confirmation email" } };
-export const Bold: Story = { args: { className: "font-medium", children: "Log in" } };
-export const Danger: Story = { args: { to: undefined, onClick: () => {}, variant: "danger", children: "Remove integration" } };
-export const Plain: Story = {
-  args: { variant: "plain", to: "/users/log_in", children: "Log in" },
+export const Default: Story = {
+  args: { to: "/connected-systems/kobo-toolbox", children: "KoBoToolbox" },
+};
+
+export const Action: Story = {
+  args: { to: "/status", children: "View status", variant: "action" },
+};
+
+/** A link inside running prose, e.g. in the Handbook. */
+export const Inline: Story = {
   render: (args) => (
-    <p className="text-xs text-gray-700">
-      <TextLink {...args} />
+    <p className="text-sm text-gray-700">
+      Production credentials belong to the <TextLink {...args} />, not to a person.
     </p>
   ),
+  args: { to: "/connected-systems", children: "system", variant: "inline" },
 };

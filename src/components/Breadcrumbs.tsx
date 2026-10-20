@@ -1,41 +1,56 @@
-import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { ChevronRight, Home } from "lucide-react";
+import { projects } from "../mock-data/projects";
+import ProjectContextBar from "./ProjectContextBar";
+
+interface Crumb {
+  label: string;
+  path: string;
+}
 
 /**
- * Breadcrumb trail for the page header (Lightning's `breadcrumbs`,
- * `breadcrumb_items` and `breadcrumb`). Separators show between crumbs only.
+ * Page breadcrumbs. Inside a project the Home and Projects crumbs give way to
+ * the {@link ProjectContextBar}'s project and sandbox pickers.
  */
-export function Breadcrumbs({ children }: { children: ReactNode }) {
+export default function Breadcrumbs({
+  ancestors,
+  current,
+}: {
+  ancestors: Crumb[];
+  current: string;
+}) {
+  const { pathname } = useLocation();
+  const match = pathname.match(/^\/projects\/([^/]+)/);
+  const project = match ? projects.find((p) => p.id === match[1]) : undefined;
+
+  if (project) {
+    const base = `/projects/${project.id}`;
+    return (
+      <ProjectContextBar
+        project={project}
+        trail={ancestors.filter((a) => a.path.startsWith(base + "/"))}
+        current={pathname === base ? undefined : current}
+      />
+    );
+  }
+
   return (
-    <nav className="flex" aria-label="Breadcrumbs">
-      <ol
-        role="list"
-        className="flex items-center space-x-2 [&>li.breadcrumb-item_.breadcrumb-separator]:hidden [&>li.breadcrumb-item+li.breadcrumb-item_.breadcrumb-separator]:flex"
-      >
-        {children}
-      </ol>
+    <nav className="flex items-center gap-1.5 text-sm text-gray-500">
+      <Link to="/" className="hover:text-gray-900 flex items-center gap-1">
+        <Home size={14} />
+      </Link>
+      {ancestors.map((a) => (
+        <span key={a.path} className="flex items-center gap-1.5">
+          <ChevronRight size={14} className="text-gray-300" />
+          <Link to={a.path} className="hover:text-gray-900">
+            {a.label}
+          </Link>
+        </span>
+      ))}
+      <span className="flex items-center gap-1.5">
+        <ChevronRight size={14} className="text-gray-300" />
+        <span className="text-gray-900 font-medium">{current}</span>
+      </span>
     </nav>
   );
-}
-
-export function Breadcrumb({ to, children }: { to?: string; children: ReactNode }) {
-  return (
-    <li className="breadcrumb-item">
-      <div className="flex items-center">
-        <span className="hero-chevron-right breadcrumb-separator mr-1 h-5 w-5 shrink-0 text-gray-400" />
-        {to ? (
-          <Link to={to} className="ml-1 flex text-sm font-medium text-gray-500 hover:text-gray-700">
-            {children}
-          </Link>
-        ) : (
-          <span className="ml-1 flex items-center text-sm font-medium text-gray-500">{children}</span>
-        )}
-      </div>
-    </li>
-  );
-}
-
-/** Wraps a picker button as the first crumb (`breadcrumb_project_picker`). */
-export function BreadcrumbPicker({ children }: { children: ReactNode }) {
-  return <li className="mr-3">{children}</li>;
 }

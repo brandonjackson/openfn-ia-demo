@@ -1,13 +1,10 @@
 import { useState } from "react";
 import {
   ArrowLeft,
-  ChevronDown,
   Clock,
   FlaskConical,
   GitMerge,
   Lock,
-  SlidersHorizontal,
-  Play,
   MessageSquare,
 } from "lucide-react";
 import type { Workflow, WorkflowVersion } from "../../mock-data/workflow";
@@ -15,10 +12,11 @@ import { versionOptions } from "../../mock-data/workflow";
 import Picker from "../Picker";
 import Button from "../Button";
 import PromoteSandboxModal from "../PromoteSandboxModal";
+import RunControl from "./RunControl";
 
 /**
  * The editor top bar: the workflow name, then sandbox and version pickers on
- * the left; the inspector toggle, Run and the main action on the right.
+ * the left; the live/run control and the main action on the right.
  *
  * What you can do depends on the sandbox. On main the workflow is read-only
  * and the main action is "Edit in sandbox". In any other sandbox it's
@@ -41,6 +39,7 @@ export default function WorkflowTopBar({
   onEditInSandbox,
   onPromote,
   defaultPromoteOpen = false,
+  defaultLive = true,
 }: {
   workflow: Workflow;
   runLabel?: string;
@@ -61,8 +60,11 @@ export default function WorkflowTopBar({
   onPromote?: (message: string) => void;
   /** Start with the promote dialog open (useful for stories). */
   defaultPromoteOpen?: boolean;
+  /** Whether the workflow starts out live. */
+  defaultLive?: boolean;
 }) {
   const [promoteOpen, setPromoteOpen] = useState(defaultPromoteOpen);
+  const [live, setLive] = useState(defaultLive);
   const onMain = sandbox === "main";
 
   return (
@@ -107,24 +109,7 @@ export default function WorkflowTopBar({
 
       {/* Actions */}
       <div className="flex items-center gap-2">
-        <button
-          title="Toggle inspector"
-          className="relative inline-flex h-6 w-11 items-center rounded-full bg-blue-600"
-        >
-          <span className="ml-auto mr-0.5 inline-block h-5 w-5 rounded-full bg-white shadow" />
-        </button>
-        <button title="Run settings" className="p-1.5 text-gray-400 hover:text-gray-600">
-          <SlidersHorizontal size={18} />
-        </button>
-        <div className="flex items-center rounded-md bg-blue-600 text-white overflow-hidden">
-          <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium hover:bg-blue-700">
-            <Play size={14} fill="currentColor" />
-            {runLabel}
-          </button>
-          <button className="px-1.5 py-1.5 border-l border-blue-500 hover:bg-blue-700">
-            <ChevronDown size={14} />
-          </button>
-        </div>
+        <RunControl live={live} runLabel={runLabel} onToggleLive={setLive} />
         {onMain ? (
           <Button variant="outline-primary" size="sm" icon={FlaskConical} onClick={onEditInSandbox}>
             Edit in sandbox

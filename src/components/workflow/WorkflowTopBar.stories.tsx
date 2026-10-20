@@ -68,3 +68,5 @@ export const SandboxPickerOpen: Story = {
 export const PromoteDialogOpen: Story = {
   args: { sandbox: sandboxes[1], defaultPromoteOpen: true },
 };
+
+export const Disabled: Story = { args: { defaultLive: false } };

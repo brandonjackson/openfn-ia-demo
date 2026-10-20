@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Check, FlaskConical, Globe } from "lucide-react";
+import { Check, FlaskConical, Globe, Trash2 } from "lucide-react";
 import ListRow from "./ListRow";
 import Badge from "./Badge";
+import Button from "./Button";
 import { withRouter } from "../stories/decorators";
 import { connectedSystemListItems } from "../mock-data/connected-systems";
 import { projects, projectSandboxes } from "../mock-data/projects";
@@ -57,5 +58,16 @@ export const Selected: Story = {
     onClick: undefined,
     selected: true,
     badges: <Badge label="Selected" tone="blue" icon={Check} />,
+  },
+};
+
+export const WithActions: Story = {
+  args: {
+    ...Clickable.args,
+    actions: (
+      <Button variant="outline-danger" size="xs" icon={Trash2}>
+        Delete
+      </Button>
+    ),
   },
 };

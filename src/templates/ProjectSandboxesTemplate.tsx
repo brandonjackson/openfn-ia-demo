@@ -1,4 +1,5 @@
-import { Check, FlaskConical, Plus } from "lucide-react";
+import { useState } from "react";
+import { Check, FlaskConical, Plus, Trash2 } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { ProjectSandboxesPageData, SandboxItem } from "../page-data";
 import { useSandbox } from "../sandbox-state";
@@ -20,10 +21,12 @@ function SandboxRow({
   sandbox,
   selected,
   onSelect,
+  onDelete,
 }: {
   sandbox: SandboxItem;
   selected?: boolean;
   onSelect?: () => void;
+  onDelete?: () => void;
 }) {
   return (
     <ListRow
@@ -32,6 +35,13 @@ function SandboxRow({
       monoTitle
       selected={selected}
       onClick={onSelect}
+      actions={
+        onDelete && (
+          <Button variant="outline-danger" size="xs" icon={Trash2} onClick={onDelete}>
+            Delete
+          </Button>
+        )
+      }
       badges={
         <>
           {selected && <Badge label="Selected" tone="blue" icon={Check} />}
@@ -55,15 +65,25 @@ function SandboxRow({
 
 /**
  * A project's sandboxes. The one you're working in sits on its own at the
- * top; the rest are listed below, and picking one switches to it.
+ * top; the rest are listed below, and picking one switches to it. Any
+ * sandbox but main can be deleted; deleting the selected one goes back to main.
  */
 export default function ProjectSandboxesTemplate({ node, ancestors, data }: Props) {
   const [selectedName, setSelected] = useSandbox(data.projectId);
+  const [deleted, setDeleted] = useState<string[]>([]);
+  const sandboxes = data.sandboxes.filter((s) => !deleted.includes(s.name));
+  const main = sandboxes.find((s) => s.isMain);
   const selected =
-    data.sandboxes.find((s) => s.name === selectedName) ??
-    data.sandboxes.find((s) => s.isMain) ??
-    data.sandboxes[0];
-  const others = data.sandboxes.filter((s) => s !== selected);
+    sandboxes.find((s) => s.name === selectedName) ?? main ?? sandboxes[0];
+  const others = sandboxes.filter((s) => s !== selected);
+
+  const remove = (sandbox: SandboxItem) => {
+    if (!window.confirm(`Delete sandbox "${sandbox.name}"? This can't be undone.`)) return;
+    setDeleted((d) => [...d, sandbox.name]);
+    if (sandbox === selected && main) setSelected(main.name);
+  };
+  const deleteHandler = (sandbox: SandboxItem) =>
+    sandbox.isMain ? undefined : () => remove(sandbox);
 
   return (
     <div className="space-y-8">
@@ -84,7 +104,7 @@ export default function ProjectSandboxesTemplate({ node, ancestors, data }: Prop
       {selected && (
         <section>
           <SectionHeading title="Selected" variant="label" />
-          <SandboxRow sandbox={selected} selected />
+          <SandboxRow sandbox={selected} selected onDelete={deleteHandler(selected)} />
         </section>
       )}
 
@@ -97,6 +117,7 @@ export default function ProjectSandboxesTemplate({ node, ancestors, data }: Prop
                 key={sandbox.name}
                 sandbox={sandbox}
                 onSelect={() => setSelected(sandbox.name)}
+                onDelete={deleteHandler(sandbox)}
               />
             ))}
           </div>

@@ -56,7 +56,12 @@ export const OnMain: Story = {};
 /** In a sandbox the action is "Promote". */
 export const InSandbox: Story = { args: { sandbox: sandboxes[1] } };
 
-export const RetryRun: Story = { args: { retryStep } };
+export const RetryRun: Story = { args: { retry: { step: retryStep } } };
+
+/** Viewing v1 as a past run executed it: the version picker turns yellow. */
+export const ViewingOlderVersion: Story = {
+  args: { version: "v1", retry: { hint: "Runs this input on the latest version (v2), not v1" } },
+};
 
 export const WithBackButton: Story = { args: { onBack: () => {} } };
 

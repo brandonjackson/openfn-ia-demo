@@ -21,13 +21,17 @@ import RunControl from "./RunControl";
  * What you can do depends on the sandbox. On main the workflow is read-only
  * and the main action is "Edit in sandbox". In any other sandbox it's
  * "Promote", which opens a dialog to promote the sandbox's changes to main.
+ * The version picker turns yellow while an older version is on the canvas.
  *
  * When `onBack` is provided, a back control is shown in the top-left corner to
  * leave the full-screen editor and return to the app shell.
  */
 export default function WorkflowTopBar({
   workflow,
-  retryStep,
+  retry,
+  onRun,
+  onRetry,
+  onRunWithCustomInput,
   url,
   onSeeDetails,
   onBack,
@@ -44,8 +48,11 @@ export default function WorkflowTopBar({
   defaultLive = true,
 }: {
   workflow: Workflow;
-  /** Name of the open step to retry from, when there is one. */
-  retryStep?: string;
+  /** Set while an earlier run is selected; see {@link RunControl}. */
+  retry?: { step?: string; hint?: string };
+  onRun?: () => void;
+  onRetry?: () => void;
+  onRunWithCustomInput?: () => void;
   /** The URL that starts the workflow, for "Copy URL". */
   url?: string;
   /** Opens the service listing where the workflow is documented. */
@@ -111,6 +118,7 @@ export default function WorkflowTopBar({
           value={version}
           onChange={onSelectVersion}
           menuWidthClass="w-80"
+          highlight={version !== "latest"}
         />
       </div>
 
@@ -118,7 +126,10 @@ export default function WorkflowTopBar({
       <div className="flex items-center gap-2">
         <RunControl
           live={live}
-          retryStep={retryStep}
+          retry={retry}
+          onRun={onRun}
+          onRetry={onRetry}
+          onRunWithCustomInput={onRunWithCustomInput}
           url={url}
           onSeeDetails={onSeeDetails}
           onToggleLive={setLive}

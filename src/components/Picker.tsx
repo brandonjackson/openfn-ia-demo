@@ -36,6 +36,8 @@ interface Props {
   menuWidthClass?: string;
   /** Start with the menu open (useful for stories and screenshots). */
   defaultOpen?: boolean;
+  /** Tints the trigger yellow, e.g. while viewing an older version. */
+  highlight?: boolean;
 }
 
 /**
@@ -54,6 +56,7 @@ export default function Picker({
   maxWidthClass = "max-w-xs",
   menuWidthClass = "w-72",
   defaultOpen = false,
+  highlight = false,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
   const ref = useRef<HTMLDivElement>(null);
@@ -87,8 +90,12 @@ export default function Picker({
         aria-label={ariaLabel}
         title={selected?.label}
         onClick={() => setOpen((o) => !o)}
-        className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-sm text-gray-700 transition-colors ${maxWidthClass} ${
-          open ? "border-gray-300 bg-gray-50" : "border-gray-200 bg-white hover:bg-gray-50"
+        className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-sm transition-colors ${maxWidthClass} ${
+          highlight
+            ? "border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100"
+            : open
+              ? "border-gray-300 bg-gray-50 text-gray-700"
+              : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
         }`}
       >
         {TriggerIcon && <TriggerIcon size={14} className="flex-shrink-0 text-gray-500" />}

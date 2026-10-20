@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import RunPanel from "./RunPanel";
-import { sampleRun } from "../../mock-data/workflow";
+import { failedRun, sampleRun } from "../../mock-data/runs";
 
 const meta: Meta<typeof RunPanel> = {
   title: "Workflow/RunPanel",
@@ -13,5 +13,7 @@ type Story = StoryObj<typeof RunPanel>;
 
 export const Default: Story = { args: { run: sampleRun } };
 export const WithSelectedStep: Story = {
-  args: { run: sampleRun, selectedStepId: "s1" },
+  args: { run: sampleRun, selectedStepId: sampleRun.steps[0].id },
 };
+
+export const FailedRun: Story = { args: { run: failedRun } };

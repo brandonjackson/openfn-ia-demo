@@ -39,6 +39,16 @@ export const Radios: Story = {
   ),
 };
 
+/** Radio options with a line of explanation each. */
+export const RadiosWithHints: Story = {
+  render: () => (
+    <div className="space-y-2">
+      <RadioOption name="hints" label="Nothing" hint="An empty sandbox. Pick input when you run." defaultChecked />
+      <RadioOption name="hints" label="A saved input" hint="One of this project's named inputs." />
+    </div>
+  ),
+};
+
 export const InFormFields: Story = {
   render: () => (
     <div className="max-w-md space-y-4">

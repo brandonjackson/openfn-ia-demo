@@ -55,7 +55,8 @@ export default function RunPanel({
           <MetaRow label="Status">
             <StatusPill status={run.status} />
           </MetaRow>
-          <MetaRow label="Duration">{run.duration}</MetaRow>
+          <MetaRow label="Version">{run.version}</MetaRow>
+          <MetaRow label="Duration">{run.duration || "—"}</MetaRow>
           <MetaRow label="Started">{run.started}</MetaRow>
           <MetaRow label="Started by">{run.startedBy}</MetaRow>
         </div>

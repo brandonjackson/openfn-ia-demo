@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import LogConsole from "./LogConsole";
-import { sampleRun } from "../../mock-data/workflow";
+import { sampleRun } from "../../mock-data/runs";
 
 const meta: Meta<typeof LogConsole> = {
   title: "Workflow/LogConsole",

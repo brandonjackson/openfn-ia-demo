@@ -1,4 +1,4 @@
-import type { JobNode, RunDetails, Workflow } from "../mock-data/workflow";
+import type { Dataclip, JobNode, RunDetails, Workflow } from "../mock-data/workflow";
 import WorkflowTopBar from "../components/workflow/WorkflowTopBar";
 import JobEditorView from "../components/workflow/JobEditorView";
 
@@ -13,18 +13,21 @@ export default function JobEditorTemplate({
   workflow,
   job,
   run,
+  dataclips,
   onClose,
 }: {
   workflow: Workflow;
   job: JobNode;
-  run: RunDetails;
+  run?: RunDetails;
+  dataclips?: Dataclip[];
   onClose?: () => void;
 }) {
+  const ranThisStep = run?.steps.some((s) => s.jobId === job.id);
   return (
     <div className="flex h-full flex-col bg-white">
-      <WorkflowTopBar workflow={workflow} retryStep={job.label} />
+      <WorkflowTopBar workflow={workflow} retry={ranThisStep ? { step: job.label } : undefined} />
       <div className="min-h-0 flex-1">
-        <JobEditorView job={job} run={run} onClose={onClose} />
+        <JobEditorView job={job} run={run} dataclips={dataclips} onClose={onClose} />
       </div>
     </div>
   );

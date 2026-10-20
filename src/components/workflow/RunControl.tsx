@@ -23,13 +23,15 @@ interface MenuItem {
  * service listing (when it has one), then go live or disable depending on the
  * current state.
  *
- * When `retryStep` is set (a step from an earlier run is open), the inset
- * button reads "Retry" and retries from that step. "Run" in the menu still
- * starts a fresh run of the whole workflow.
+ * When `retry` is set (an earlier run is selected), the inset button reads
+ * "Retry" and runs that run's input again: from the open step when there is
+ * one, otherwise from the start. Its tooltip carries `retry.hint`, e.g. that
+ * the retry runs on a newer version than the original. "Run" in the menu
+ * still starts a fresh run of the whole workflow.
  */
 export default function RunControl({
   live,
-  retryStep,
+  retry,
   onRun,
   onRetry,
   onRunWithCustomInput,
@@ -39,11 +41,14 @@ export default function RunControl({
   defaultOpen = false,
 }: {
   live: boolean;
-  /** Name of the step to retry from; switches the inset button to retry. */
-  retryStep?: string;
+  /**
+   * Switches the inset button to retry a selected run: `step` names the step
+   * to retry from, `hint` adds a note to the tooltip.
+   */
+  retry?: { step?: string; hint?: string };
   /** A fresh run of the whole workflow: the inset button, and "Run" in the menu. */
   onRun?: () => void;
-  /** Retry from `retryStep`: the inset button while a step is open. */
+  /** Retries the selected run: the inset button while `retry` is set. */
   onRetry?: () => void;
   onRunWithCustomInput?: () => void;
   /** The URL that starts the workflow; adds "Copy URL" to the menu. */
@@ -126,7 +131,9 @@ export default function RunControl({
     else onToggleLive?.(!live);
   };
 
-  const runLabel = retryStep ? `Retry from ${retryStep}` : "Run";
+  const runLabel = retry
+    ? [retry.step ? `Retry from ${retry.step}` : "Retry this run's input", retry.hint].filter(Boolean).join(". ")
+    : "Run";
 
   return (
     <div ref={ref} className="relative inline-block">
@@ -153,12 +160,12 @@ export default function RunControl({
           type="button"
           title={runLabel}
           aria-label={runLabel}
-          onClick={retryStep ? onRetry : onRun}
+          onClick={retry ? onRetry : onRun}
           className={`inline-flex h-6 items-center justify-center rounded border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-900 ${
-            retryStep ? "px-2 text-xs font-medium" : "w-6"
+            retry ? "px-2 text-xs font-medium" : "w-6"
           }`}
         >
-          {retryStep ? "Retry" : <Play size={13} />}
+          {retry ? "Retry" : <Play size={13} />}
         </button>
         <button
           type="button"

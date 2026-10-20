@@ -72,3 +72,15 @@ export const Version: Story = {
     defaultOpen: true,
   },
 };
+
+/** Viewing an older version, e.g. as a past run executed it: the trigger turns yellow. */
+export const OlderVersionHighlighted: Story = {
+  args: {
+    icon: Clock,
+    ariaLabel: "Switch version",
+    options: versionOptions(workflowVersions),
+    value: "v1",
+    menuWidthClass: "w-80",
+    highlight: true,
+  },
+};

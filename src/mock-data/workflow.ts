@@ -71,26 +71,44 @@ export interface WorkflowVersion {
   date: string;
 }
 
-export interface RunHistoryEntry {
+/** What kind of data a dataclip holds, which decides where it can be reused. */
+export type DataclipType = "http_request" | "step_result" | "saved_input";
+
+/**
+ * A piece of JSON data in the project: what a trigger received, what a step
+ * produced, or an input someone wrote and saved. Naming one keeps it around so
+ * it can be picked again as the input for a run.
+ */
+export interface Dataclip {
   id: string;
-  /** Pre-formatted relative label, e.g. "yesterday at 4:38 PM". */
-  when: string;
-  status: RunStatus;
+  /** Set when someone has named it so it can be reused. */
+  name?: string;
+  type: DataclipType;
+  /** Pretty-printed JSON. */
+  body: string;
+  /** Pre-formatted, e.g. "today at 9:42 AM". */
+  created: string;
 }
 
 export interface RunStep {
   id: string;
-  /** Matches a JobNode id so the canvas can highlight the active step. */
+  /** Matches a JobNode id so the canvas can show the step on its node. */
   jobId: string;
   label: string;
   status: RunStatus;
   /** Pre-formatted duration, e.g. "179 ms" or "3 s". */
   duration: string;
+  /** Dataclip the step received. */
+  inputId?: string;
+  /** Dataclip the step produced. */
+  outputId?: string;
 }
 
 export interface LogLine {
   source: "RTE" | "VER" | "R/T" | "ADA" | "JOB";
   message: string;
+  /** The step that wrote the line; run-level lines have none. */
+  stepId?: string;
 }
 
 export interface RunDetails {
@@ -99,9 +117,28 @@ export interface RunDetails {
   status: RunStatus;
   duration: string;
   started: string;
+  /** Pre-formatted relative label, e.g. "yesterday at 4:38 PM". */
+  when: string;
   startedBy: string;
+  /** The version of the workflow that ran, e.g. "v1". */
+  version: string;
+  /** The dataclip the run started from. */
+  inputId: string;
   steps: RunStep[];
   logs: LogLine[];
+}
+
+/**
+ * One piece of incoming work (a request, an event) and every run made to
+ * process it: the first run, then any retries, newest first.
+ */
+export interface WorkOrder {
+  id: string;
+  /** The status of its latest run. */
+  status: RunStatus;
+  /** Pre-formatted relative label for its latest run. */
+  lastActivity: string;
+  runs: RunDetails[];
 }
 
 // ---------------------------------------------------------------------------
@@ -233,51 +270,53 @@ export const nationalIdWorkflow: Workflow = {
   ],
 };
 
-export const recentHistory: RunHistoryEntry[] = [
-  { id: "b10d4fb0", when: "yesterday at 4:38 PM", status: "success" },
-  { id: "57c51fd5", when: "yesterday at 2:09 PM", status: "success" },
-  { id: "896d2dcb", when: "yesterday at 11:11 AM", status: "success" },
-  { id: "2f11d4f1", when: "June 14th, 12:19 PM", status: "success" },
-  { id: "0b393bfb", when: "June 14th, 12:18 PM", status: "success" },
-  { id: "7143df53", when: "June 14th, 6:12 AM", status: "failed" },
-  { id: "b4f8902d", when: "June 13th, 9:22 AM", status: "success" },
-  { id: "297efcfb", when: "June 13th, 9:21 AM", status: "success" },
-];
-
-export const sampleRun: RunDetails = {
-  workOrderId: "b10d4fb0",
-  runId: "afa317bf",
-  status: "success",
-  duration: "6 s",
-  started: "25/06/2026, 16:37:57",
-  startedBy: "webhook trigger",
-  steps: [
-    { id: "s1", jobId: "search", label: "Search for duplicate citizens in Identity", status: "success", duration: "3 s" },
-    { id: "s2", jobId: "create", label: "Create new citizen in Identity", status: "success", duration: "179 ms" },
-    { id: "s3", jobId: "confirm", label: "Send confirmation notification with national ID", status: "success", duration: "401 ms" },
-  ],
-  logs: [
-    { source: "RTE", message: "Memory limit: 250mb" },
-    { source: "RTE", message: "Timeout: 120s" },
-    { source: "R/T", message: "Compiling all workflow steps ..." },
-    { source: "RTE", message: "Payload limit: 10mb" },
-    { source: "VER", message: "Versions:" },
-    { source: "VER", message: "  ▸ node.js                       24.17.0" },
-    { source: "VER", message: "  ▸ worker                        1.27.0" },
-    { source: "VER", message: "  ▸ @openfn/language-common       3.3.3" },
-    { source: "VER", message: "  ▸ @openfn/language-http         7.3.1" },
-    { source: "R/T", message: "Compiled Search for duplicate citizens in Identity in 0.41s" },
-    { source: "R/T", message: "Compiled Notify applicant of existing national ID in 0.11s" },
-    { source: "R/T", message: "Compiled Create new citizen in Identity in 0.077s" },
-    { source: "R/T", message: "Compiled Send confirmation notification with national ID in 0.12s" },
-    { source: "R/T", message: "Compiled Queue application for retry in 0.043s" },
-    { source: "R/T", message: "Workflow compilation complete in 2.2s" },
-    { source: "R/T", message: "Executing afa317bf-444b-40ab-9e0e-4ef5c975e31a" },
-    { source: "R/T", message: "Starting step Search for duplicate citizens in Identity" },
-    { source: "R/T", message: "Resolved adaptor @openfn/language-http to version 7.3.1" },
-    { source: "ADA", message: "GET https://simdpgidentity-production.up.railway.app/citizens/search?name=Aleksa&dob=1950-01-01 - 200 in 372ms" },
+/**
+ * The same workflow at v1, before the duplicate check was promoted: every
+ * application went straight to Identity. Step ids match the latest version,
+ * so a v1 run can be shown on either graph.
+ */
+export const nationalIdWorkflowV1: Workflow = {
+  ...nationalIdWorkflow,
+  version: "v1",
+  nodes: nationalIdWorkflow.nodes
+    .filter((n) => n.id !== "search" && n.id !== "notify")
+    .map((n) => {
+      if (n.id === "create") return { ...n, y: 230 };
+      if (n.id === "confirm") return { ...n, x: 240, y: 410 };
+      if (n.id === "queue") return { ...n, x: 480, y: 410 };
+      return n;
+    }),
+  edges: [
+    { id: "e-trigger-create", source: "trigger", target: "create", condition: "always" },
+    { id: "e-create-confirm", source: "create", target: "confirm", condition: "on_success" },
+    { id: "e-create-queue", source: "create", target: "queue", condition: "on_failure" },
   ],
 };
+
+/** The national ID workflow's graph at a version; "latest" (or v2) is the current one. */
+export function nationalIdWorkflowAt(version: string): Workflow {
+  return version === "v1" ? nationalIdWorkflowV1 : nationalIdWorkflow;
+}
+
+/**
+ * The steps a run takes when everything succeeds, starting from `fromJobId`
+ * or the step after the trigger. Where a step branches, the run takes the
+ * "no duplicate found" path, the common case.
+ */
+export function happyPath(workflow: Workflow, fromJobId?: string): string[] {
+  const next = (id: string) => {
+    const out = workflow.edges.filter((e) => e.source === id && e.condition !== "on_failure");
+    return (out.find((e) => e.expression?.includes("false")) ?? out[0])?.target;
+  };
+  const trigger = workflow.nodes.find((n) => n.type === "trigger");
+  const path: string[] = [];
+  let current = fromJobId ?? (trigger ? next(trigger.id) : undefined);
+  while (current && !path.includes(current)) {
+    path.push(current);
+    current = next(current);
+  }
+  return path;
+}
 
 /**
  * A blank workflow for "New Workflow": a trigger wired to one empty step.
@@ -327,7 +366,7 @@ export const workflowVersions: WorkflowVersion[] = [
     id: "v2",
     message: "Promoted sandbox adding duplicate-application check",
     author: "Brandon Jackson",
-    date: "20 Oct 2026",
+    date: "14 Oct 2026",
   },
   { id: "v1", message: "Initial go-live", author: "Brandon Jackson", date: "2 Sep 2026" },
 ];

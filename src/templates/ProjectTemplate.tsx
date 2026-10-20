@@ -77,11 +77,6 @@ export default function ProjectTemplate({ node, ancestors, currentPath, data }: 
         <SectionHeading
           title="Build something new"
           description="Describe a service in plain words, or start from an idea."
-          action={
-            <TextLink to={`${currentPath}/create`} variant="action">
-              See what you can build with
-            </TextLink>
-          }
         />
         <div className="-mt-3 space-y-4">
           <BuildPrompt value={prompt} onChange={setPrompt} onSubmit={startBuilding} />

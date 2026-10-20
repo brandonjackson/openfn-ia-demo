@@ -1,32 +1,73 @@
-# OpenFn Lightning, in React
+# React + TypeScript + Vite
 
-A clickable replica of [OpenFn Lightning](https://github.com/OpenFn/lightning)'s
-UI, page for page, as a plain React app with no backend. It started life as an
-information architecture (iA) experiment; it now mirrors Lightning 1:1 so it can
-be cross-referenced with the behaviour audit in Lightning's `annotations/`
-folder and then wired up to the real backend.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-- Every route is a Lightning URL. `src/App.tsx` lists them, each commented with
-  its id from the audit's `annotations/INVENTORY.md`.
-- Every page renders from static fixtures in `src/mock-data/`, modelled on
-  Lightning's demo seed. Buttons that would talk to a server only change local
-  state.
-- The look is Lightning's own: its side menu, header, buttons, tables and
-  modals, its `primary`/`secondary` colour names and its `hero-*` icon classes.
-  The Style Picker (bottom right) can re-skin it; Lightning v2 is the default.
+Currently, two official plugins are available:
 
-## Running it
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-```bash
-npm install
-npm run dev              # the app
-npm run storybook        # the component library on :6006
-npm run build            # typecheck and build
-npm run lint
+## React Compiler
+
+The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Expanding the ESLint configuration
+
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
 
-The app uses hash routing, so a page's address looks like
-`/#/projects/<project-id>/history`.
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-See [CLAUDE.md](./CLAUDE.md) for how the code is organised and the rules for
-adding pages and components.
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
+```

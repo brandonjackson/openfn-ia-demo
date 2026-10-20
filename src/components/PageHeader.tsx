@@ -9,6 +9,8 @@ interface Props {
   description?: ReactNode;
   /** Icon tile shown before the title, for record pages (a system, a service). */
   icon?: LucideIcon;
+  /** Replaces the icon tile, e.g. with a system's AdaptorLogo. */
+  logo?: ReactNode;
   /** Badges shown after the title. */
   badges?: ReactNode;
   /** Buttons (or a badge) aligned to the right of the title. */
@@ -19,13 +21,14 @@ interface Props {
  * Top of every page: breadcrumbs, the page title with an optional icon and
  * badges, a description, and page-level actions on the right.
  */
-export default function PageHeader({ breadcrumbs, title, description, icon: Icon, badges, actions }: Props) {
+export default function PageHeader({ breadcrumbs, title, description, icon: Icon, logo, badges, actions }: Props) {
   return (
     <div data-ui="page-header">
       {breadcrumbs && <Breadcrumbs ancestors={breadcrumbs.ancestors} current={breadcrumbs.current} />}
       <div className={`flex items-start justify-between gap-4 ${breadcrumbs ? "mt-6" : ""}`}>
         <div className="flex min-w-0 items-start gap-4">
-          {Icon && (
+          {logo}
+          {!logo && Icon && (
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-gray-100">
               <Icon size={22} className="text-gray-400" />
             </div>

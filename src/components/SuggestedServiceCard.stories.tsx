@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import SuggestedServiceCard from "./SuggestedServiceCard";
 import { suggestedServices } from "../mock-data/overview";
-import { connectedSystemSummaries } from "../mock-data/connected-systems";
 
 const meta: Meta<typeof SuggestedServiceCard> = {
   title: "Components/SuggestedServiceCard",
@@ -20,16 +19,9 @@ export default meta;
 type Story = StoryObj<typeof SuggestedServiceCard>;
 
 export const Default: Story = {
-  args: {
-    service: suggestedServices[0],
-    systems: connectedSystemSummaries,
-  },
+  args: { service: suggestedServices[0] },
 };
 
-export const UnknownSystems: Story = {
-  name: "Systems not yet connected (grey pills)",
-  args: {
-    service: suggestedServices[0],
-    systems: [],
-  },
+export const Reporting: Story = {
+  args: { service: suggestedServices[3] },
 };

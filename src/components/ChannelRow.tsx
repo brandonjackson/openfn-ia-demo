@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Eye, Globe, PenLine, Plug, Zap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import AdaptorLogo from "./AdaptorLogo";
 import type { ChannelType } from "../page-data";
 import Badge from "./Badge";
 import type { BadgeTone } from "./Badge";
@@ -55,7 +56,7 @@ export default function ChannelRow({ id, name, description, channelType, autoCre
           <>
             {system && (
               <Link to={system.path} className="inline-flex items-center gap-1 hover:text-blue-600">
-                <Globe size={11} />
+                <AdaptorLogo name={system.name} size="2xs" />
                 {system.name}
                 <ArrowUpRight size={10} />
               </Link>

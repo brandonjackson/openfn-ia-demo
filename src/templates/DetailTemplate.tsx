@@ -1,6 +1,7 @@
 import { BookOpen, ExternalLink, FolderOpen, Globe, Lock, ShieldX, User, Users } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { AccessGrant, DetailPageData, DetailSectionItem } from "../page-data";
+import AdaptorLogo from "../components/AdaptorLogo";
 import Badge from "../components/Badge";
 import Button from "../components/Button";
 import ChannelRow from "../components/ChannelRow";
@@ -130,6 +131,7 @@ export default function DetailTemplate({ node, ancestors, data }: Props) {
             current: node.label,
           }}
           icon={Globe}
+          logo={system && <AdaptorLogo adaptor={system.adaptor} name={system.name} size="lg" />}
           title={node.label}
           badges={
             headerBadge && (

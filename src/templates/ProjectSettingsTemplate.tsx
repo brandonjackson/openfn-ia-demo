@@ -27,6 +27,7 @@ import { TextInput, TextArea, Select, RadioOption } from "../components/FormCont
 import ToggleSwitch from "../components/ToggleSwitch";
 import DataTable from "../components/DataTable";
 import type { DataTableColumn } from "../components/DataTable";
+import SystemLabel from "../components/SystemLabel";
 
 /* ------------------------------------------------------------------ */
 /*  Section menu                                                       */
@@ -133,7 +134,7 @@ function SetupSection({ data }: { data: ProjectSettingsPageData }) {
 
 const credentialColumns: DataTableColumn<OrgCredential>[] = [
   { key: "name", header: "Name", render: (c) => <span className="font-medium text-gray-900">{c.name}</span> },
-  { key: "system", header: "System", render: (c) => c.system },
+  { key: "system", header: "System", render: (c) => <SystemLabel name={c.system} /> },
   { key: "environment", header: "Environment", render: (c) => <EnvironmentBadge environment={c.environment} /> },
   { key: "owner", header: "Owner", render: (c) => c.owner },
   {

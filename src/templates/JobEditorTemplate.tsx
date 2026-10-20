@@ -22,7 +22,7 @@ export default function JobEditorTemplate({
 }) {
   return (
     <div className="flex h-full flex-col bg-white">
-      <WorkflowTopBar workflow={workflow} runLabel="Run (Retry)" />
+      <WorkflowTopBar workflow={workflow} retryStep={job.label} />
       <div className="min-h-0 flex-1">
         <JobEditorView job={job} run={run} onClose={onClose} />
       </div>

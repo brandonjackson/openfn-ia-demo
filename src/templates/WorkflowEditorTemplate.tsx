@@ -38,6 +38,8 @@ export default function WorkflowEditorTemplate({
   onSelectSandbox,
   onViewAllSandboxes,
   versions: initialVersions = [],
+  url,
+  onSeeDetails,
 }: {
   workflow: Workflow;
   history: RunHistoryEntry[];
@@ -52,6 +54,10 @@ export default function WorkflowEditorTemplate({
   onViewAllSandboxes?: () => void;
   /** Version history on main, newest first. */
   versions?: WorkflowVersion[];
+  /** The URL that starts the workflow, for "Copy URL". */
+  url?: string;
+  /** Opens the service listing where the workflow is documented. */
+  onSeeDetails?: () => void;
 }) {
   const [selectedId, setSelectedId] = useState<string | undefined>(initialSelectedId);
   const [expandedId, setExpandedId] = useState<string | undefined>(initialExpandedId);
@@ -92,7 +98,9 @@ export default function WorkflowEditorTemplate({
     <div className="flex h-full flex-col bg-white">
       <WorkflowTopBar
         workflow={workflow}
-        runLabel={expandedJob ? "Run (Retry)" : "Run"}
+        retryStep={expandedJob?.label}
+        url={url}
+        onSeeDetails={onSeeDetails}
         onBack={onBack}
         sandboxes={sandboxes}
         sandbox={sandbox}

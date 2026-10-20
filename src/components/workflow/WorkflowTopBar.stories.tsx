@@ -3,9 +3,11 @@ import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowTopBar from "./WorkflowTopBar";
 import { nationalIdWorkflow, workflowVersions } from "../../mock-data/workflow";
-import { projects } from "../../mock-data/projects";
+import { projects, serviceForWorkflow } from "../../mock-data/projects";
 
 const sandboxes = projects[0].sandboxes;
+const retryStep = nationalIdWorkflow.nodes[1].label;
+const service = serviceForWorkflow("planning-application-workflow");
 
 /** Keeps sandbox and version in state so the pickers and actions respond. */
 function ControlledTopBar(args: ComponentProps<typeof WorkflowTopBar>) {
@@ -28,7 +30,13 @@ const meta: Meta<typeof WorkflowTopBar> = {
   title: "Workflow/WorkflowTopBar",
   component: WorkflowTopBar,
   parameters: { layout: "fullscreen" },
-  args: { workflow: nationalIdWorkflow, sandboxes, versions: workflowVersions },
+  args: {
+    workflow: nationalIdWorkflow,
+    sandboxes,
+    versions: workflowVersions,
+    url: service?.url,
+    onSeeDetails: () => {},
+  },
   decorators: [
     (Story) => (
       <div className="h-96">
@@ -48,7 +56,7 @@ export const OnMain: Story = {};
 /** In a sandbox the action is "Promote". */
 export const InSandbox: Story = { args: { sandbox: sandboxes[1] } };
 
-export const RetryRun: Story = { args: { runLabel: "Run (Retry)" } };
+export const RetryRun: Story = { args: { retryStep } };
 
 export const WithBackButton: Story = { args: { onBack: () => {} } };
 
@@ -68,3 +76,5 @@ export const SandboxPickerOpen: Story = {
 export const PromoteDialogOpen: Story = {
   args: { sandbox: sandboxes[1], defaultPromoteOpen: true },
 };
+
+export const Disabled: Story = { args: { defaultLive: false } };

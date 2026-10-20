@@ -4,6 +4,7 @@ import type {
   WorkflowNode,
   RunHistoryEntry,
   RunDetails,
+  WorkflowVersion,
 } from "../mock-data/workflow";
 import { sampleRun } from "../mock-data/workflow";
 import WorkflowTopBar from "../components/workflow/WorkflowTopBar";
@@ -15,6 +16,10 @@ import JobEditorView from "../components/workflow/JobEditorView";
 /**
  * The full workflow canvas editor: top bar, the diagram surface, the floating
  * Recent History panel and — when a job is selected — the job inspector.
+ *
+ * The top bar's sandbox can be controlled by the caller (`sandbox` +
+ * `onSelectSandbox`) or left to the template. Promoting a sandbox adds a new
+ * version to the history and switches back to main, where it's now live.
  *
  * Clicking the inspector's expand button swaps the canvas for the full
  * {@link JobEditorView} (code + run + logs); the editor's close button returns
@@ -28,6 +33,11 @@ export default function WorkflowEditorTemplate({
   initialSelectedId,
   initialExpandedId,
   onBack,
+  sandboxes = ["main"],
+  sandbox: controlledSandbox,
+  onSelectSandbox,
+  onViewAllSandboxes,
+  versions: initialVersions = [],
 }: {
   workflow: Workflow;
   history: RunHistoryEntry[];
@@ -35,9 +45,38 @@ export default function WorkflowEditorTemplate({
   initialSelectedId?: string;
   initialExpandedId?: string;
   onBack?: () => void;
+  /** Sandboxes of the workflow's project, "main" first. */
+  sandboxes?: string[];
+  sandbox?: string;
+  onSelectSandbox?: (sandbox: string) => void;
+  onViewAllSandboxes?: () => void;
+  /** Version history on main, newest first. */
+  versions?: WorkflowVersion[];
 }) {
   const [selectedId, setSelectedId] = useState<string | undefined>(initialSelectedId);
   const [expandedId, setExpandedId] = useState<string | undefined>(initialExpandedId);
+
+  const [localSandbox, setLocalSandbox] = useState("main");
+  const sandbox = controlledSandbox ?? localSandbox;
+  const selectSandbox = onSelectSandbox ?? setLocalSandbox;
+  const [versions, setVersions] = useState(initialVersions);
+  const [version, setVersion] = useState("latest");
+
+  // Editing starts in the first sandbox; with none yet, go make one.
+  const editInSandbox = () => {
+    const firstSandbox = sandboxes.find((s) => s !== "main");
+    if (firstSandbox) selectSandbox(firstSandbox);
+    else onViewAllSandboxes?.();
+  };
+
+  const promote = (message: string) => {
+    setVersions([
+      { id: `v${versions.length + 1}`, message, author: "Jane Doe", date: "20 Oct 2026" },
+      ...versions,
+    ]);
+    setVersion("latest");
+    selectSandbox("main");
+  };
 
   const selectedNode = workflow.nodes.find((n) => n.id === selectedId);
   const selectedJob = selectedNode?.type === "job" ? selectedNode : undefined;
@@ -55,6 +94,15 @@ export default function WorkflowEditorTemplate({
         workflow={workflow}
         runLabel={expandedJob ? "Run (Retry)" : "Run"}
         onBack={onBack}
+        sandboxes={sandboxes}
+        sandbox={sandbox}
+        onSelectSandbox={selectSandbox}
+        onViewAllSandboxes={onViewAllSandboxes}
+        versions={versions}
+        version={version}
+        onSelectVersion={setVersion}
+        onEditInSandbox={editInSandbox}
+        onPromote={promote}
       />
 
       {expandedJob ? (

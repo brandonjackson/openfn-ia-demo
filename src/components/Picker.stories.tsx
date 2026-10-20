@@ -1,9 +1,10 @@
 import { useState } from "react";
 import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { FlaskConical, Folder, FolderKanban } from "lucide-react";
+import { Clock, FlaskConical, Folder, FolderKanban } from "lucide-react";
 import Picker from "./Picker";
 import { recentProjects } from "../mock-data/projects";
+import { versionOptions, workflowVersions } from "../mock-data/workflow";
 
 const projectOptions = recentProjects.map((p) => ({ id: p.id, label: p.name }));
 const sandboxOptions = recentProjects[1].sandboxes.map((s) => ({ id: s, label: s }));
@@ -55,6 +56,17 @@ export const Sandbox: Story = {
     options: sandboxOptions,
     value: "main",
     footerAction: { label: "View all", icon: FlaskConical, onClick: () => {} },
+    defaultOpen: true,
+  },
+};
+
+export const Version: Story = {
+  args: {
+    icon: Clock,
+    ariaLabel: "Switch version",
+    options: versionOptions(workflowVersions),
+    value: "latest",
+    menuWidthClass: "w-80",
     defaultOpen: true,
   },
 };

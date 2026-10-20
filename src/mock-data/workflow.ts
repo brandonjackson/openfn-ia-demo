@@ -62,6 +62,15 @@ export interface Workflow {
   edges: WorkflowEdge[];
 }
 
+/** A saved version of a workflow on main, newest first in {@link workflowVersions}. */
+export interface WorkflowVersion {
+  /** e.g. "v2". */
+  id: string;
+  message: string;
+  author: string;
+  date: string;
+}
+
 export interface RunHistoryEntry {
   id: string;
   /** Pre-formatted relative label, e.g. "yesterday at 4:38 PM". */
@@ -140,7 +149,7 @@ fn(state => {
 export const nationalIdWorkflow: Workflow = {
   id: "apply-national-id",
   name: "Apply for a national ID",
-  project: "ytsg",
+  project: "Project A",
   version: "latest",
   nodes: [
     {
@@ -310,4 +319,30 @@ export function buildStarterWorkflow({
     ],
     edges: [{ id: "e-trigger-first-step", source: "trigger", target: "first-step", condition: "always" }],
   };
+}
+
+/** Version history of a workflow on main, newest first. The newest is live. */
+export const workflowVersions: WorkflowVersion[] = [
+  {
+    id: "v2",
+    message: "Promoted sandbox adding duplicate-application check",
+    author: "Brandon Jackson",
+    date: "20 Oct 2026",
+  },
+  { id: "v1", message: "Initial go-live", author: "Brandon Jackson", date: "2 Sep 2026" },
+];
+
+/** Picker options for a version switcher: "Latest", then the version history. */
+export function versionOptions(versions: WorkflowVersion[]) {
+  return [
+    { id: "latest", label: "Latest" },
+    ...versions.map((v, i) => ({
+      id: v.id,
+      label: v.message,
+      shortLabel: v.id,
+      description: `${v.author} · ${v.date}`,
+      badge: { label: v.id, tone: i === 0 ? ("green" as const) : ("gray" as const) },
+      group: "Version history",
+    })),
+  ];
 }

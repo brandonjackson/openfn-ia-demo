@@ -4,10 +4,12 @@ import {
   buildStarterWorkflow,
   nationalIdWorkflow,
   recentHistory,
+  workflowVersions,
   type Workflow,
 } from "../mock-data/workflow";
 import { projects } from "../mock-data/projects";
 import { serviceCatalogData } from "../mock-data/service-catalog";
+import { useSandbox } from "../sandbox-state";
 
 /**
  * `/workflow-editor/new?project=…&channel=…` opens a blank workflow in that
@@ -63,6 +65,9 @@ export default function WorkflowEditorPage() {
   const [searchParams] = useSearchParams();
   const isNew = workflowId === "new";
   const workflow = isNew ? resolveNewWorkflow(searchParams) : resolveWorkflow(workflowId);
+  // The editor shares the project's selected sandbox with the rest of the app.
+  const project = projects.find((p) => p.name === workflow.project);
+  const [sandbox, setSandbox] = useSandbox(project?.id ?? workflow.project);
 
   return (
     <div className="h-screen">
@@ -70,6 +75,11 @@ export default function WorkflowEditorPage() {
         workflow={workflow}
         history={isNew ? [] : recentHistory}
         onBack={() => navigate(-1)}
+        sandboxes={project?.sandboxes ?? ["main"]}
+        sandbox={sandbox}
+        onSelectSandbox={setSandbox}
+        onViewAllSandboxes={project ? () => navigate(`/projects/${project.id}/sandboxes`) : undefined}
+        versions={isNew ? [] : workflowVersions}
       />
     </div>
   );

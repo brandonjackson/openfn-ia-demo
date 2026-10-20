@@ -57,7 +57,7 @@ function resolveWorkflow(workflowId?: string): Workflow {
  * shows the workflow editor on its own, mirroring the real Lightning editor.
  * Opened from anywhere a workflow is opened (e.g. a project's components list)
  * via `/workflow-editor/:workflowId`, or blank via `/workflow-editor/new`. A back control in the top-left corner
- * returns you to the app shell view you came from.
+ * returns you to the workflows list of the workflow's project.
  */
 export default function WorkflowEditorPage() {
   const navigate = useNavigate();
@@ -74,7 +74,7 @@ export default function WorkflowEditorPage() {
       <WorkflowEditorTemplate
         workflow={workflow}
         history={isNew ? [] : recentHistory}
-        onBack={() => navigate(-1)}
+        onBack={() => (project ? navigate(`/projects/${project.id}/workflows`) : navigate(-1))}
         sandboxes={project?.sandboxes ?? ["main"]}
         sandbox={sandbox}
         onSelectSandbox={setSandbox}

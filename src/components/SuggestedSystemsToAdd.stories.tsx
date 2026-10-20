@@ -30,3 +30,9 @@ export const SingleSuggestion: Story = {
     ],
   },
 };
+
+/** Compact dashed chips, as used on the Overview page. */
+export const Inline: Story = {
+  args: { variant: "inline" },
+  decorators: [(Story) => <div className="flex flex-wrap gap-1.5"><Story /></div>],
+};

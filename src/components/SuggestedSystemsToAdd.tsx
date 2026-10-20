@@ -14,9 +14,37 @@ const defaultSuggestions: SuggestedSystem[] = [
 interface Props {
   suggestions?: SuggestedSystem[];
   onSelect?: (systemName: string) => void;
+  /**
+   * `list` stacks each suggestion with its description; `inline` renders
+   * compact dashed chips that wrap, for tight spaces like the Overview.
+   */
+  variant?: "list" | "inline";
 }
 
-export default function SuggestedSystemsToAdd({ suggestions = defaultSuggestions, onSelect }: Props) {
+export default function SuggestedSystemsToAdd({
+  suggestions = defaultSuggestions,
+  onSelect,
+  variant = "list",
+}: Props) {
+  if (variant === "inline") {
+    return (
+      <>
+        {suggestions.map((sys) => (
+          <button
+            key={sys.name}
+            type="button"
+            title={sys.description}
+            onClick={() => onSelect?.(sys.name)}
+            className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-dashed border-gray-300 px-2.5 py-0.5 text-xs font-medium text-gray-500 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+          >
+            <Plus size={10} />
+            {sys.name}
+          </button>
+        ))}
+      </>
+    );
+  }
+
   return (
     <div>
       <p className="text-xs font-medium text-gray-500 mb-2.5 uppercase tracking-wide">

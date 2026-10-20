@@ -1,5 +1,5 @@
 import type { PageData } from "../page-data";
-import { connectedSystemListItems } from "./connected-systems";
+import { connectedSystemListItems, connectedSystemsIntro } from "./connected-systems";
 import { serviceCatalogData } from "./service-catalog";
 import { historyData } from "./history";
 import { overviewData } from "./overview";
@@ -25,6 +25,7 @@ pageDataRegistry.set("connected-systems", {
   filterKey: "access",
   filterMap: { "You have access": "yes", "No access": "no" },
   showSuggestions: true,
+  intro: connectedSystemsIntro,
 });
 
 pageDataRegistry.set("service-catalog", serviceCatalogData);

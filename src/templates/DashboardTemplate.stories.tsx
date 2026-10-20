@@ -26,7 +26,7 @@ export const FewSystems: Story = {
   },
 };
 
-/** A quiet week: nothing open, no recent activity. */
+/** A quiet week: every system and workflow running. */
 export const AllClear: Story = {
   args: {
     data: {
@@ -35,8 +35,15 @@ export const AllClear: Story = {
         { ...overviewData.tiles[0], value: "All clear", detail: "Every system and workflow is running", badge: { label: "Operational", tone: "green" } },
         ...overviewData.tiles.slice(1),
       ],
-      attention: [],
-      recentActivity: [],
+    },
+  },
+};
+
+export const FewProjects: Story = {
+  args: {
+    data: {
+      ...overviewData,
+      projects: overviewData.projects.slice(0, 2),
     },
   },
 };

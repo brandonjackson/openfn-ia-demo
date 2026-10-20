@@ -5,6 +5,7 @@ import type { ListPageData, ListItem } from "../page-data";
 import Badge from "../components/Badge";
 import Button from "../components/Button";
 import EmptyState from "../components/EmptyState";
+import FeatureIntro from "../components/FeatureIntro";
 import ListRow from "../components/ListRow";
 import PageHeader from "../components/PageHeader";
 import SegmentedControl from "../components/SegmentedControl";
@@ -77,6 +78,8 @@ export default function ListTemplate({ node, ancestors, currentPath, data }: Pro
           </>
         }
       />
+
+      {data.intro && <FeatureIntro {...data.intro} />}
 
       <div className="space-y-4">
         {firstFilter && (

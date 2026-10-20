@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ActivityList from "./ActivityList";
 import { withRouter } from "../stories/decorators";
-import { overviewData } from "../mock-data/overview";
+import { attention, recentActivity } from "../mock-data/overview";
 
 const meta: Meta<typeof ActivityList> = {
   title: "Components/ActivityList",
@@ -20,12 +20,12 @@ export default meta;
 type Story = StoryObj<typeof ActivityList>;
 
 export const RecentActivity: Story = {
-  args: { items: overviewData.recentActivity },
+  args: { items: recentActivity },
 };
 
 /** Problems pulled from Status. */
 export const NeedsAttention: Story = {
-  args: { items: overviewData.attention },
+  args: { items: attention },
 };
 
 export const Empty: Story = {

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ListTemplate from "./ListTemplate";
 import { withRouter } from "../stories/decorators";
-import { connectedSystemListItems } from "../mock-data/connected-systems";
+import { connectedSystemListItems, connectedSystemsIntro } from "../mock-data/connected-systems";
 import type { IANode } from "../ia-tree";
 
 const node: IANode = {
@@ -34,6 +34,7 @@ export const Default: Story = {
       filterKey: "access",
       filterMap: { "You have access": "yes", "No access": "no" },
       showSuggestions: true,
+      intro: { ...connectedSystemsIntro, storageKey: undefined },
     },
   },
 };

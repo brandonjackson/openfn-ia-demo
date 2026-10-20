@@ -1,3 +1,4 @@
+import { KeyRound, Sparkles, Zap } from "lucide-react";
 import type {
   ListItem,
   ConnectedSystemSummary,
@@ -5,6 +6,7 @@ import type {
   Environment,
   OrgCredential,
   SystemEnvironment,
+  FeatureIntroData,
 } from "../page-data";
 
 export interface ConnectedSystem {
@@ -217,3 +219,29 @@ export const connectedSystemSummaries: ConnectedSystemSummary[] = connectedSyste
   hasAccess: s.hasAccess,
   color: s.color,
 }));
+
+/** Intro banner at the top of the Systems page. */
+export const connectedSystemsIntro: FeatureIntroData = {
+  title: "Why connect your systems?",
+  storageKey: "openfn:intro:connected-systems",
+  features: [
+    {
+      icon: KeyRound,
+      title: "Connect once",
+      description:
+        "Org-shared credentials mean everyone on your team gets access, without sharing passwords.",
+    },
+    {
+      icon: Zap,
+      title: "Instant value",
+      description:
+        "As soon as a system is connected you get observability, channels, mock data, and credential management out of the box.",
+    },
+    {
+      icon: Sparkles,
+      title: "Smart suggestions",
+      description:
+        "The more systems you connect, the smarter your service recommendations become.",
+    },
+  ],
+};

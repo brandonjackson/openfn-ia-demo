@@ -1,4 +1,5 @@
 import type { BadgeTone } from "./components/Badge";
+import type { FeatureIntroItem } from "./components/FeatureIntro";
 
 /* ------------------------------------------------------------------ */
 /*  Shared primitive types                                             */
@@ -58,6 +59,16 @@ export interface ListPageData {
   filterKey?: string; // metadata key used for filtering
   filterMap?: Record<string, string>; // filter option -> metadata value mapping
   showSuggestions?: boolean;
+  /** Dismissible "why use this" banner shown at the top of the page. */
+  intro?: FeatureIntroData;
+}
+
+export interface FeatureIntroData {
+  title: string;
+  description?: string;
+  features: FeatureIntroItem[];
+  /** localStorage key that remembers the banner was dismissed. */
+  storageKey?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -208,12 +219,9 @@ export interface DashboardPageData {
   pageType: "dashboard";
   /** Summary tiles that link through to Status and Insights. */
   tiles: StatTileData[];
-  /** Open problems, newest first. Empty when everything is fine. */
-  attention: ActivityItem[];
-  recentActivity: ActivityItem[];
   connectedSystems: ConnectedSystemSummary[];
   recommendedSystems: { name: string; description: string }[];
-  suggestedServices: SuggestedService[];
+  projects: ProjectSummary[];
   recommended: number;
 }
 

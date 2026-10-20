@@ -1,5 +1,5 @@
 import type { ActivityItem, DashboardPageData, SuggestedService } from "../page-data";
-import { connectedSystemSummaries } from "./connected-systems";
+import { connectedSystemSummaries, recommendedSystems } from "./connected-systems";
 import { openIssues } from "./status";
 import { projectSummaries } from "./projects";
 import { errorRate, errorTrend, runTrend, totalErrors, totalRuns } from "./insights";
@@ -128,11 +128,7 @@ export const overviewData: DashboardPageData = {
     },
   ],
   connectedSystems: connectedSystemSummaries,
-  recommendedSystems: [
-    { name: "OpenMRS", description: "Electronic medical records" },
-    { name: "PostgreSQL", description: "Relational database" },
-    { name: "WhatsApp Business", description: "Messaging & notifications" },
-  ],
+  recommendedSystems,
   projects: projectSummaries,
-  recommended: 10,
+  recommended: connectedSystemSummaries.length + recommendedSystems.length,
 };

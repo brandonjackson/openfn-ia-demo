@@ -1,14 +1,12 @@
-import { ChevronRight, Plus } from "lucide-react";
-
-interface SuggestedSystem {
-  name: string;
-  description: string;
-}
+import { ChevronRight } from "lucide-react";
+import type { SuggestedSystem } from "../page-data";
+import AdaptorLogo from "./AdaptorLogo";
+import SystemPill from "./SystemPill";
 
 const defaultSuggestions: SuggestedSystem[] = [
-  { name: "OpenMRS", description: "Electronic medical records" },
-  { name: "PostgreSQL", description: "Relational database" },
-  { name: "WhatsApp Business", description: "Messaging & notifications" },
+  { name: "OpenMRS", description: "Electronic medical records", adaptor: "openmrs" },
+  { name: "PostgreSQL", description: "Relational database", adaptor: "postgresql" },
+  { name: "WhatsApp Business", description: "Messaging and notifications", adaptor: "whatsapp" },
 ];
 
 interface Props {
@@ -16,7 +14,7 @@ interface Props {
   onSelect?: (systemName: string) => void;
   /**
    * `list` stacks each suggestion with its description; `inline` renders
-   * compact dashed chips that wrap, for tight spaces like the Overview.
+   * compact dashed pills that wrap, for tight spaces like the Overview.
    */
   variant?: "list" | "inline";
 }
@@ -30,16 +28,14 @@ export default function SuggestedSystemsToAdd({
     return (
       <>
         {suggestions.map((sys) => (
-          <button
+          <SystemPill
             key={sys.name}
-            type="button"
+            name={sys.name}
+            adaptor={sys.adaptor}
             title={sys.description}
+            suggested
             onClick={() => onSelect?.(sys.name)}
-            className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-dashed border-gray-300 px-2.5 py-0.5 text-xs font-medium text-gray-500 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
-          >
-            <Plus size={10} />
-            {sys.name}
-          </button>
+          />
         ))}
       </>
     );
@@ -57,9 +53,7 @@ export default function SuggestedSystemsToAdd({
             onClick={() => onSelect?.(sys.name)}
             className="flex items-center gap-2.5 rounded-md border border-dashed border-gray-200 px-2.5 py-2 hover:border-blue-200 hover:bg-blue-50/30 group cursor-pointer transition-colors"
           >
-            <div className="w-6 h-6 rounded-md border border-dashed border-gray-300 flex items-center justify-center group-hover:border-blue-300">
-              <Plus size={11} className="text-gray-400 group-hover:text-blue-500" />
-            </div>
+            <AdaptorLogo adaptor={sys.adaptor} name={sys.name} size="sm" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-700 group-hover:text-blue-700">{sys.name}</p>
               <p className="text-xs text-gray-400">{sys.description}</p>

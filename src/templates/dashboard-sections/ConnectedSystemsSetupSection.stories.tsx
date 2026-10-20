@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ConnectedSystemsSetupSection from "./ConnectedSystemsSetupSection";
 import { withRouter } from "../../stories/decorators";
-import { connectedSystemSummaries } from "../../mock-data/connected-systems";
+import { connectedSystemSummaries, recommendedSystems } from "../../mock-data/connected-systems";
 
 const meta: Meta<typeof ConnectedSystemsSetupSection> = {
   title: "Dashboard Sections/ConnectedSystemsSetupSection",
@@ -16,12 +16,8 @@ type Story = StoryObj<typeof ConnectedSystemsSetupSection>;
 export const Default: Story = {
   args: {
     systems: connectedSystemSummaries,
-    recommendedSystems: [
-      { name: "OpenMRS", description: "Electronic medical records" },
-      { name: "PostgreSQL", description: "Relational database" },
-      { name: "WhatsApp Business", description: "Messaging & notifications" },
-    ],
-    recommended: 10,
+    recommendedSystems,
+    recommended: connectedSystemSummaries.length + recommendedSystems.length,
   },
 };
 
@@ -36,10 +32,7 @@ export const AllConnected: Story = {
 export const FewSystems: Story = {
   args: {
     systems: connectedSystemSummaries.slice(0, 2),
-    recommendedSystems: [
-      { name: "OpenMRS", description: "Electronic medical records" },
-      { name: "PostgreSQL", description: "Relational database" },
-    ],
+    recommendedSystems: recommendedSystems.slice(0, 3),
     recommended: 10,
   },
 };

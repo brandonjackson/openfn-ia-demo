@@ -5,6 +5,8 @@ import type { LucideIcon } from "lucide-react";
 
 interface Props {
   icon: LucideIcon;
+  /** Replaces the icon tile, e.g. with an AdaptorLogo. */
+  logo?: ReactNode;
   title: string;
   /** Badges or chips shown after the title. */
   badges?: ReactNode;
@@ -33,6 +35,7 @@ interface Props {
  */
 export default function ListRow({
   icon: Icon,
+  logo,
   title,
   badges,
   description,
@@ -57,18 +60,20 @@ export default function ListRow({
 
   const content = (
     <>
-      <div
-        className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-          selected ? "bg-blue-100" : "bg-gray-100"
-        } ${interactive ? "group-hover:bg-blue-50" : ""}`}
-      >
-        <Icon
-          size={20}
-          className={`${selected ? "text-blue-500" : "text-gray-400"} ${
-            interactive ? "group-hover:text-blue-500" : ""
-          }`}
-        />
-      </div>
+      {logo ?? (
+        <div
+          className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
+            selected ? "bg-blue-100" : "bg-gray-100"
+          } ${interactive ? "group-hover:bg-blue-50" : ""}`}
+        >
+          <Icon
+            size={20}
+            className={`${selected ? "text-blue-500" : "text-gray-400"} ${
+              interactive ? "group-hover:text-blue-500" : ""
+            }`}
+          />
+        </div>
+      )}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 min-w-0">
           <h3

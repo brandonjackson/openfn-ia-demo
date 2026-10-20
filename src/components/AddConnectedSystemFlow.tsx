@@ -2,7 +2,6 @@ import { useState, useMemo, useRef, useEffect } from "react";
 import {
   X,
   Search,
-  Globe,
   ChevronRight,
   KeyRound,
   Eye,
@@ -10,6 +9,7 @@ import {
   Check,
 } from "lucide-react";
 import { adaptors, type Adaptor } from "../mock-data/adaptors";
+import AdaptorLogo from "./AdaptorLogo";
 import Button from "./Button";
 import EmptyState from "./EmptyState";
 import { ENVIRONMENTS, type Environment } from "../page-data";
@@ -101,12 +101,7 @@ function AdaptorSearchList({
                     onClick={() => onSelect(adaptor)}
                     className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-blue-50 transition-colors group"
                   >
-                    <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-100">
-                      <Globe
-                        size={16}
-                        className="text-gray-400 group-hover:text-blue-500"
-                      />
-                    </div>
+                    <AdaptorLogo adaptor={adaptor.id} name={adaptor.name} size="sm" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-800 group-hover:text-blue-700">
                         {adaptor.name}
@@ -182,9 +177,7 @@ function ConfigForm({
       </button>
 
       <div className="flex items-center gap-3 rounded-lg bg-blue-50 border border-blue-100 px-4 py-3 mb-6">
-        <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-          <Globe size={18} className="text-blue-600" />
-        </div>
+        <AdaptorLogo adaptor={adaptor.id} name={adaptor.name} />
         <div>
           <p className="text-sm font-semibold text-blue-900">{adaptor.name}</p>
           <p className="text-xs text-blue-600">{adaptor.description}</p>

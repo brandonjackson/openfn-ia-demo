@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Check, Globe, Lock, Plus, Download } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { ListPageData, ListItem } from "../page-data";
+import AdaptorLogo from "../components/AdaptorLogo";
 import Badge from "../components/Badge";
 import Button from "../components/Button";
 import EmptyState from "../components/EmptyState";
@@ -26,6 +27,7 @@ function ListItemRow({ item, basePath }: { item: ListItem; basePath: string }) {
     <ListRow
       to={item.linkTo ?? `${basePath}/${item.id}`}
       icon={Globe}
+      logo={item.metadata?.adaptor && <AdaptorLogo adaptor={item.metadata.adaptor} name={item.name} />}
       title={item.name}
       badges={
         access === "yes" ? (

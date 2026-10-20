@@ -1,4 +1,4 @@
-import { ChevronRight, ChevronLeft, History } from "lucide-react";
+import { ChevronRight, ChevronLeft, ChartColumn } from "lucide-react";
 import type { RunHistoryEntry } from "../../mock-data/workflow";
 import StatusPill from "./StatusPill";
 
@@ -20,7 +20,7 @@ export default function RecentHistoryPanel({
       <div className="flex items-center justify-between border-b border-gray-100 px-3 py-2.5">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-gray-900">Recent History</span>
-          <History size={14} className="text-gray-300" />
+          <ChartColumn size={14} className="text-gray-300" />
         </div>
         <button className="text-gray-300 hover:text-gray-500" title="Collapse">
           <ChevronLeft size={16} />

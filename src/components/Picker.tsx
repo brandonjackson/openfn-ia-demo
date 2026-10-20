@@ -5,6 +5,14 @@ import type { LucideIcon } from "lucide-react";
 export interface PickerOption {
   id: string;
   label: string;
+  /** Shown on the trigger instead of `label` when this option is selected. */
+  shortLabel?: string;
+  /** Secondary line under the label, e.g. "Brandon Jackson · 20 Oct 2026". */
+  description?: string;
+  /** Small tag before the label, e.g. a version number. */
+  badge?: { label: string; tone?: "green" | "gray" };
+  /** Options sharing a group are listed under a heading with this name. */
+  group?: string;
 }
 
 interface Props {
@@ -20,13 +28,17 @@ interface Props {
   footerAction?: { label: string; icon?: LucideIcon; onClick: () => void };
   /** Caps the trigger width so long labels truncate. */
   maxWidthClass?: string;
+  /** Width of the open menu. */
+  menuWidthClass?: string;
   /** Start with the menu open (useful for stories and screenshots). */
   defaultOpen?: boolean;
 }
 
 /**
- * Select-style chip that opens a dropdown on click. Used for the project and
- * sandbox switchers in the project top bar and the workflow editor.
+ * Select-style chip that opens a dropdown on click. Used for the project,
+ * sandbox and version switchers in the project top bar and the workflow
+ * editor. Options can carry a badge and a description, and be grouped under
+ * headings (e.g. "Version history").
  */
 export default function Picker({
   icon: Icon,
@@ -36,6 +48,7 @@ export default function Picker({
   ariaLabel,
   footerAction,
   maxWidthClass = "max-w-xs",
+  menuWidthClass = "w-72",
   defaultOpen = false,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
@@ -74,17 +87,23 @@ export default function Picker({
         }`}
       >
         {Icon && <Icon size={14} className="flex-shrink-0 text-gray-500" />}
-        <span className="truncate font-medium">{selected?.label ?? value}</span>
+        <span className="truncate font-medium">{selected?.shortLabel ?? selected?.label ?? value}</span>
         <ChevronDown size={14} className="flex-shrink-0 text-gray-400" />
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-72 rounded-lg border border-gray-200 bg-white p-1.5 shadow-lg">
+        <div className={`absolute left-0 top-full z-50 mt-1 ${menuWidthClass} rounded-lg border border-gray-200 bg-white p-1.5 shadow-lg`}>
           <ul role="listbox" aria-label={ariaLabel} className="max-h-72 overflow-y-auto">
-            {options.map((option) => {
+            {options.map((option, i) => {
               const isSelected = option.id === value;
+              const startsGroup = option.group && option.group !== options[i - 1]?.group;
               return (
                 <li key={option.id} role="option" aria-selected={isSelected}>
+                  {startsGroup && (
+                    <div className="px-2 pb-1 pt-2 text-xs font-medium uppercase tracking-wide text-gray-400">
+                      {option.group}
+                    </div>
+                  )}
                   <button
                     type="button"
                     onClick={() => {
@@ -95,9 +114,28 @@ export default function Picker({
                       isSelected ? "font-medium text-gray-900" : "text-gray-700"
                     }`}
                   >
-                    {Icon && <Icon size={14} className="flex-shrink-0 text-gray-400" />}
-                    <span className="min-w-0 flex-1 truncate" title={option.label}>
-                      {option.label}
+                    {option.badge ? (
+                      <span
+                        className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-xs font-medium ${
+                          option.badge.tone === "green"
+                            ? "border-green-200 bg-green-50 text-green-700"
+                            : "border-gray-200 bg-gray-50 text-gray-600"
+                        }`}
+                      >
+                        {option.badge.label}
+                      </span>
+                    ) : (
+                      Icon && <Icon size={14} className="flex-shrink-0 text-gray-400" />
+                    )}
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate" title={option.label}>
+                        {option.label}
+                      </span>
+                      {option.description && (
+                        <span className="block truncate text-xs font-normal text-gray-500">
+                          {option.description}
+                        </span>
+                      )}
                     </span>
                     {isSelected && <Check size={14} className="flex-shrink-0 text-blue-600" />}
                   </button>

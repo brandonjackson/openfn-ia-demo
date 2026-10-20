@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Activity, ChartColumn, Clock, LayoutDashboard } from "lucide-react";
+import { Activity, ChartColumn, LayoutDashboard, Lightbulb } from "lucide-react";
 import SidebarSection from "./SidebarSection";
 import SidebarLink from "./SidebarLink";
 import { withRouter } from "../stories/decorators";
@@ -26,8 +26,8 @@ export const Labelled: Story = {
     children: (
       <>
         <SidebarLink to="/status" icon={Activity} label="Status" active />
-        <SidebarLink to="/insights" icon={ChartColumn} label="Insights" />
-        <SidebarLink to="/history" icon={Clock} label="History" />
+        <SidebarLink to="/insights" icon={Lightbulb} label="Insights" />
+        <SidebarLink to="/history" icon={ChartColumn} label="History" />
       </>
     ),
   },

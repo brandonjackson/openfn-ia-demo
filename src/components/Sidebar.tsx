@@ -7,15 +7,14 @@ import {
   BookOpen,
   Activity,
   ChartColumn,
-  Clock,
+  Lightbulb,
   Folder,
   FolderKanban,
-  Layers,
+  Workflow,
   Boxes,
   Sparkles,
   Rocket,
   FlaskConical,
-  Archive,
   Settings,
   BookMarked,
   LifeBuoy,
@@ -35,8 +34,8 @@ const navIcons: Record<string, LucideIcon> = {
   "connected-systems": Globe,
   "service-catalog": LibraryBig,
   status: Activity,
-  insights: ChartColumn,
-  history: Clock,
+  insights: Lightbulb,
+  history: ChartColumn,
   projects: FolderKanban,
 };
 
@@ -56,7 +55,7 @@ const projectNavGroups: { label?: string; sections: ProjectSection[] }[] = [
     label: "Build",
     sections: [
       { id: "create", label: "Create", icon: Sparkles },
-      { id: "workflows", label: "Workflows", icon: Layers },
+      { id: "workflows", label: "Workflows", icon: Workflow },
       { id: "components", label: "Components", icon: Boxes },
       { id: "sandboxes", label: "Sandboxes", icon: FlaskConical },
     ],
@@ -64,8 +63,8 @@ const projectNavGroups: { label?: string; sections: ProjectSection[] }[] = [
   {
     label: "Maintain",
     sections: [
-      { id: "history", label: "History", icon: Archive },
-      { id: "insights", label: "Insights", icon: ChartColumn },
+      { id: "history", label: "History", icon: ChartColumn },
+      { id: "insights", label: "Insights", icon: Lightbulb },
       { id: "deployments", label: "Deployments", icon: Rocket },
       { id: "settings", label: "Settings", icon: Settings },
     ],

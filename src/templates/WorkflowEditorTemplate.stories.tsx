@@ -1,11 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowEditorTemplate from "./WorkflowEditorTemplate";
-import { nationalIdWorkflow, recentHistory } from "../mock-data/workflow";
+import { nationalIdWorkflow, recentHistory, workflowVersions } from "../mock-data/workflow";
+import { projects } from "../mock-data/projects";
 
 const meta: Meta<typeof WorkflowEditorTemplate> = {
   title: "Templates/WorkflowEditorTemplate",
   component: WorkflowEditorTemplate,
   parameters: { layout: "fullscreen" },
+  args: { sandboxes: projects[0].sandboxes, versions: workflowVersions },
   decorators: [
     (Story) => (
       <div style={{ height: "100vh" }}>
@@ -45,5 +47,13 @@ export const JobExpanded: Story = {
     history: recentHistory,
     initialSelectedId: "search",
     initialExpandedId: "search",
+  },
+};
+
+export const InSandbox: Story = {
+  args: {
+    workflow: nationalIdWorkflow,
+    history: recentHistory,
+    sandbox: projects[0].sandboxes[1],
   },
 };

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, ChevronsUpDown, FileText, Tag, History, Play } from "lucide-react";
+import { X, ChevronsUpDown, FileText, Tag, ChartColumn, Play } from "lucide-react";
 import type { JobNode, RunDetails } from "../../mock-data/workflow";
 import CodeEditor from "./CodeEditor";
 import RunPanel from "./RunPanel";
@@ -55,7 +55,7 @@ export default function JobEditorView({
         </div>
         <div className="flex items-center gap-2">
           <button className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-700">
-            <History size={14} /> History
+            <ChartColumn size={14} /> History
           </button>
           <div className="flex items-center rounded-md bg-indigo-600 text-white overflow-hidden">
             <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium hover:bg-indigo-700">

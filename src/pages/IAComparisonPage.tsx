@@ -237,7 +237,7 @@ const proposedTree: TreeNode[] = [
         path: "/projects/:project",
         note: "Project — Overview with published services & components; top bar shows project and sandbox pickers, sidebar swaps in the project menu (Overview; Build; Maintain)",
         children: [
-          { label: "Create", note: "Build: \"What would you like to build?\" AI prompt, with starter ideas and every system, channel & service to draw on" },
+          { label: "Create", note: "Build: \"What would you like to build?\" AI prompt, with starter ideas" },
           { label: "Workflows", note: "Build: every workflow in this project" },
           {
             label: "Components",

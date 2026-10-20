@@ -406,23 +406,10 @@ export interface BuildIdea {
   prompt: string;
 }
 
-/** Something already available to build with: a system, channel or service. */
-export interface BuildingBlock {
-  id: string;
-  name: string;
-  description: string;
-  /** Short label for the block's owner or system, e.g. "OpenCRVS". */
-  meta?: string;
-  to: string;
-}
-
 export interface ProjectCreatePageData {
   pageType: "project-create";
   projectId: string;
   ideas: BuildIdea[];
-  systems: BuildingBlock[];
-  channels: BuildingBlock[];
-  services: BuildingBlock[];
 }
 
 /* ------------------------------------------------------------------ */

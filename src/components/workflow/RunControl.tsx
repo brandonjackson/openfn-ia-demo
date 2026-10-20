@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, FileJson, Pause, Play, Power, PowerOff, RotateCcw } from "lucide-react";
+import { ChevronDown, FileJson, Play, Power, PowerOff, RotateCcw } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface MenuItem {
@@ -13,7 +13,7 @@ interface MenuItem {
  * One control for whether a workflow is live and for running it.
  *
  * The control reads as the workflow's state: "Live" with a green dot, or
- * "Disabled" with a pause icon. Inset on it is a run button that runs the
+ * "Disabled" with a grey one. Inset on it is a run button that runs the
  * workflow straight away, in either state. Clicking anywhere else opens a
  * menu: run, run with custom input, and go live or disable depending on the
  * current state.
@@ -116,11 +116,10 @@ export default function RunControl({
           onClick={() => setOpen((o) => !o)}
           className="inline-flex h-full items-center gap-1.5 pl-2.5 pr-2"
         >
-          {live ? (
-            <span className="mx-0.5 h-2 w-2 rounded-full bg-green-500" aria-hidden />
-          ) : (
-            <Pause size={14} className="text-gray-500" aria-hidden />
-          )}
+          <span
+            className={`mx-0.5 h-2 w-2 rounded-full ${live ? "bg-green-500" : "bg-gray-300"}`}
+            aria-hidden
+          />
           {live ? "Live" : "Disabled"}
         </button>
         <button

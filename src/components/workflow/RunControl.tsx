@@ -3,7 +3,7 @@ import { ChevronDown, FileJson, Pause, Play, Power, PowerOff, RotateCcw } from "
 import type { LucideIcon } from "lucide-react";
 
 interface MenuItem {
-  id: "from-start" | "custom" | "toggle-live";
+  id: "run" | "custom" | "toggle-live";
   label: string;
   description: string;
   icon: LucideIcon;
@@ -15,18 +15,18 @@ interface MenuItem {
  * The control reads as the workflow's state: "Live" with a green dot, or
  * "Disabled" with a pause icon. Inset on it is a run button that runs the
  * workflow straight away, in either state. Clicking anywhere else opens a
- * menu: run with custom input, and go live or disable depending on the
+ * menu: run, run with custom input, and go live or disable depending on the
  * current state.
  *
  * When `retryStep` is set (a step from an earlier run is open), the inset
- * button becomes a retry icon that retries from that step, and the menu gains
- * "Run from start" so a fresh run is still one click away.
+ * button becomes a retry icon that retries from that step. "Run" in the menu
+ * still starts a fresh run of the whole workflow.
  */
 export default function RunControl({
   live,
   retryStep,
   onRun,
-  onRunFromStart,
+  onRetry,
   onRunWithCustomInput,
   onToggleLive,
   defaultOpen = false,
@@ -34,10 +34,10 @@ export default function RunControl({
   live: boolean;
   /** Name of the step to retry from; switches the inset button to retry. */
   retryStep?: string;
-  /** The inset button: run, or retry from `retryStep` when set. */
+  /** A fresh run of the whole workflow: the inset button, and "Run" in the menu. */
   onRun?: () => void;
-  /** Menu item shown while retrying, for a fresh run of the whole workflow. */
-  onRunFromStart?: () => void;
+  /** Retry from `retryStep`: the inset button while a step is open. */
+  onRetry?: () => void;
   onRunWithCustomInput?: () => void;
   /** Called with the new state when "Go live" or "Disable" is chosen. */
   onToggleLive?: (live: boolean) => void;
@@ -64,16 +64,12 @@ export default function RunControl({
   }, [open]);
 
   const items: MenuItem[] = [
-    ...(retryStep
-      ? [
-          {
-            id: "from-start" as const,
-            label: "Run from start",
-            description: "Start a fresh run of the whole workflow.",
-            icon: Play,
-          },
-        ]
-      : []),
+    {
+      id: "run",
+      label: "Run",
+      description: "Start a fresh run of the whole workflow.",
+      icon: Play,
+    },
     {
       id: "custom",
       label: "Run with custom input",
@@ -97,7 +93,7 @@ export default function RunControl({
 
   const select = (id: MenuItem["id"]) => {
     setOpen(false);
-    if (id === "from-start") onRunFromStart?.();
+    if (id === "run") onRun?.();
     else if (id === "custom") onRunWithCustomInput?.();
     else onToggleLive?.(!live);
   };
@@ -131,7 +127,7 @@ export default function RunControl({
           type="button"
           title={runLabel}
           aria-label={runLabel}
-          onClick={onRun}
+          onClick={retryStep ? onRetry : onRun}
           className="inline-flex h-6 w-6 items-center justify-center rounded border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-900"
         >
           <RunIcon size={13} />

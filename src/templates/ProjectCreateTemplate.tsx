@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { ArrowLeftRight, Globe, LibraryBig } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import type { IANode } from "../ia-tree";
-import type { BuildingBlock, ProjectCreatePageData } from "../page-data";
+import type { ProjectCreatePageData } from "../page-data";
 import Breadcrumbs from "../components/Breadcrumbs";
 import BuildPrompt from "../components/BuildPrompt";
-import BuildingBlockTile from "../components/BuildingBlockTile";
 import Callout from "../components/Callout";
 import IdeaCard from "../components/IdeaCard";
 import SectionHeading from "../components/SectionHeading";
@@ -18,34 +15,9 @@ interface Props {
   data: ProjectCreatePageData;
 }
 
-function BlockSection({
-  title,
-  description,
-  blocks,
-  icon,
-}: {
-  title: string;
-  description: string;
-  blocks: BuildingBlock[];
-  icon: LucideIcon;
-}) {
-  if (blocks.length === 0) return null;
-  return (
-    <section>
-      <SectionHeading title={title} description={description} />
-      <div className="-mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {blocks.map((b) => (
-          <BuildingBlockTile key={b.id} block={b} icon={icon} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
 /**
  * The project's starting point for something new: a "what would you like to
- * build?" prompt, starter ideas for public services, and everything the org
- * already has to build with (systems, channels and live services).
+ * build?" prompt and starter ideas for public services.
  */
 export default function ProjectCreateTemplate({ node, ancestors, data }: Props) {
   // A prompt started on the project Overview arrives in router state, already
@@ -96,25 +68,6 @@ export default function ProjectCreateTemplate({ node, ancestors, data }: Props) 
           ))}
         </div>
       </section>
-
-      <BlockSection
-        title="Systems"
-        description="Connected systems you can read from and write to."
-        blocks={data.systems}
-        icon={Globe}
-      />
-      <BlockSection
-        title="Channels"
-        description="Ready-made reads, writes and events published by connected systems."
-        blocks={data.channels}
-        icon={ArrowLeftRight}
-      />
-      <BlockSection
-        title="Live services"
-        description="Services other projects have already published, to reuse or build on."
-        blocks={data.services}
-        icon={LibraryBig}
-      />
     </div>
   );
 }

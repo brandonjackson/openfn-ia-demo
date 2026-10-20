@@ -1,13 +1,4 @@
-import type {
-  BuildIdea,
-  BuildingBlock,
-  CatalogEntry,
-  ChannelCatalogEntry,
-  ProjectCreatePageData,
-  WorkflowCatalogEntry,
-} from "../page-data";
-import { connectedSystems } from "./connected-systems";
-import { serviceCatalogData } from "./service-catalog";
+import type { BuildIdea, ProjectCreatePageData } from "../page-data";
 
 /**
  * Starter ideas for new public services, each built from systems and
@@ -52,29 +43,10 @@ export const buildIdeas: BuildIdea[] = [
   },
 ];
 
-export const buildSystems: BuildingBlock[] = connectedSystems.map((s) => ({
-  id: s.id,
-  name: s.name,
-  description: s.description,
-  meta: s.owner,
-  to: `/connected-systems/${s.id}`,
-}));
-
-export const buildChannels: BuildingBlock[] = serviceCatalogData.entries
-  .filter((e: CatalogEntry): e is ChannelCatalogEntry => e.kind === "channel")
-  .map((e) => ({ id: e.id, name: e.name, description: e.description, meta: e.system, to: e.systemPath }));
-
-export const buildServices: BuildingBlock[] = serviceCatalogData.entries
-  .filter((e: CatalogEntry): e is WorkflowCatalogEntry => e.kind === "workflow")
-  .map((e) => ({ id: e.id, name: e.name, description: e.description, meta: e.project, to: e.projectPath }));
-
 export function buildCreatePageData(projectId: string): ProjectCreatePageData {
   return {
     pageType: "project-create",
     projectId,
     ideas: buildIdeas,
-    systems: buildSystems,
-    channels: buildChannels,
-    services: buildServices,
   };
 }

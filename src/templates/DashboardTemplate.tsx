@@ -1,11 +1,10 @@
 import { useState } from "react";
 import type { DashboardPageData } from "../page-data";
 import ConnectedSystemsSetupSection from "./dashboard-sections/ConnectedSystemsSetupSection";
-import SuggestedServicesSection from "./dashboard-sections/SuggestedServicesSection";
 import AddConnectedSystemFlow from "../components/AddConnectedSystemFlow";
 import PageHeader from "../components/PageHeader";
+import ProjectCard from "../components/ProjectCard";
 import StatTile from "../components/StatTile";
-import ActivityList from "../components/ActivityList";
 import SectionHeading from "../components/SectionHeading";
 import TextLink from "../components/TextLink";
 
@@ -14,8 +13,8 @@ interface Props {
 }
 
 /**
- * Overview: what needs your attention and what's happened recently. The
- * tiles summarise Status and Insights and link through for the detail.
+ * Overview: summary tiles that link through to Status and Insights, setup
+ * progress for connected systems, and your projects.
  */
 export default function DashboardTemplate({ data }: Props) {
   const [addFlowOpen, setAddFlowOpen] = useState(false);
@@ -30,7 +29,7 @@ export default function DashboardTemplate({ data }: Props) {
     <div className="space-y-8">
       <PageHeader
         title="Overview"
-        description="What needs your attention, and what's happened recently."
+        description="How things are running, and the projects you're working on."
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -43,23 +42,6 @@ export default function DashboardTemplate({ data }: Props) {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <section>
-          <SectionHeading
-            title="Needs attention"
-            action={<TextLink to="/status" variant="action">View status</TextLink>}
-          />
-          <ActivityList items={data.attention} emptyMessage="Nothing needs your attention." />
-        </section>
-        <section>
-          <SectionHeading
-            title="Recent activity"
-            action={<TextLink to="/history" variant="action">View history</TextLink>}
-          />
-          <ActivityList items={data.recentActivity} emptyMessage="No activity yet." />
-        </section>
-      </div>
-
       <ConnectedSystemsSetupSection
         systems={data.connectedSystems}
         recommendedSystems={data.recommendedSystems}
@@ -67,10 +49,17 @@ export default function DashboardTemplate({ data }: Props) {
         onAddSystem={handleOpenAddFlow}
       />
 
-      <SuggestedServicesSection
-        services={data.suggestedServices}
-        systems={data.connectedSystems}
-      />
+      <section>
+        <SectionHeading
+          title="Projects"
+          action={<TextLink to="/projects" variant="action">View all projects</TextLink>}
+        />
+        <div className="space-y-2">
+          {data.projects.map((project) => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </div>
+      </section>
 
       <AddConnectedSystemFlow
         open={addFlowOpen}

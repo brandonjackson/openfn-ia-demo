@@ -1,23 +1,23 @@
-import { Check, Lock, Plus } from "lucide-react";
-import type { ConnectedSystemSummary } from "../../page-data";
-import Badge from "../../components/Badge";
+import { Plus } from "lucide-react";
+import type { ConnectedSystemSummary, SuggestedSystem } from "../../page-data";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import ProgressBar from "../../components/ProgressBar";
 import SectionHeading from "../../components/SectionHeading";
 import SuggestedSystemsToAdd from "../../components/SuggestedSystemsToAdd";
+import SystemPill from "../../components/SystemPill";
 import TextLink from "../../components/TextLink";
 
 interface Props {
   systems: ConnectedSystemSummary[];
-  recommendedSystems: { name: string; description: string }[];
+  recommendedSystems: SuggestedSystem[];
   recommended: number;
   onAddSystem?: (systemName?: string) => void;
 }
 
 /**
- * Compact setup progress: one bar, then connected systems and suggestions
- * as a single row of chips.
+ * Compact setup progress: one bar, then connected systems (linking to their
+ * pages) and suggestions (opening the add flow) as one row of pills.
  */
 export default function ConnectedSystemsSetupSection({
   systems,
@@ -39,17 +39,18 @@ export default function ConnectedSystemsSetupSection({
         }
       />
 
-      <Card className="space-y-3">
+      <Card className="space-y-4">
         <ProgressBar value={total} max={recommended} showCount />
 
-        <div className="flex flex-wrap items-center gap-1.5">
-          {systems.map((system) =>
-            system.hasAccess ? (
-              <Badge key={system.id} label={system.name} tone="green" icon={Check} />
-            ) : (
-              <Badge key={system.id} label={system.name} tone="gray" icon={Lock} />
-            )
-          )}
+        <div className="flex flex-wrap items-center gap-2">
+          {systems.map((system) => (
+            <SystemPill
+              key={system.id}
+              name={system.name}
+              adaptor={system.adaptor}
+              to={`/connected-systems/${system.id}`}
+            />
+          ))}
           <SuggestedSystemsToAdd
             variant="inline"
             suggestions={recommendedSystems}

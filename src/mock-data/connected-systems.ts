@@ -7,6 +7,7 @@ import type {
   OrgCredential,
   SystemEnvironment,
   FeatureIntroData,
+  SuggestedSystem,
 } from "../page-data";
 
 export interface ConnectedSystem {
@@ -17,6 +18,8 @@ export interface ConnectedSystem {
   /** Whether the current user personally has access to this system. */
   hasAccess: boolean;
   color: string;
+  /** OpenFn adaptor package id, used for the system's logo. */
+  adaptor: string;
   owner: string;
   ownerType: "user" | "org";
   /** Where the system lives, and which credential reaches it, in each environment. */
@@ -37,6 +40,7 @@ export const connectedSystems: ConnectedSystem[] = [
     credentialType: "org",
     hasAccess: true,
     color: "bg-blue-100 text-blue-700",
+    adaptor: "dhis2",
     owner: "Acme Health Ministry",
     ownerType: "org",
     environments: {
@@ -53,6 +57,7 @@ export const connectedSystems: ConnectedSystem[] = [
     credentialType: "org",
     hasAccess: true,
     color: "bg-sky-100 text-sky-700",
+    adaptor: "salesforce",
     owner: "Acme Operations",
     ownerType: "org",
     environments: {
@@ -69,6 +74,7 @@ export const connectedSystems: ConnectedSystem[] = [
     credentialType: "user",
     hasAccess: false,
     color: "bg-green-100 text-green-700",
+    adaptor: "commcare",
     owner: "jsmith",
     ownerType: "user",
     environments: {
@@ -85,6 +91,7 @@ export const connectedSystems: ConnectedSystem[] = [
     credentialType: "user",
     hasAccess: false,
     color: "bg-orange-100 text-orange-700",
+    adaptor: "kobotoolbox",
     owner: "adiallo",
     ownerType: "user",
     environments: {
@@ -101,6 +108,7 @@ export const connectedSystems: ConnectedSystem[] = [
     credentialType: "org",
     hasAccess: true,
     color: "bg-emerald-100 text-emerald-700",
+    adaptor: "googlesheets",
     owner: "Acme Data Team",
     ownerType: "org",
     environments: {
@@ -117,6 +125,7 @@ export const connectedSystems: ConnectedSystem[] = [
     credentialType: "user",
     hasAccess: false,
     color: "bg-purple-100 text-purple-700",
+    adaptor: "fhir",
     owner: "bwilson",
     ownerType: "user",
     environments: {
@@ -133,6 +142,7 @@ export const connectedSystems: ConnectedSystem[] = [
     credentialType: "org",
     hasAccess: true,
     color: "bg-rose-100 text-rose-700",
+    adaptor: "opencrvs",
     owner: "Acme Health Ministry",
     ownerType: "org",
     environments: {
@@ -205,6 +215,7 @@ export const connectedSystemListItems: ListItem[] = connectedSystems.map((s) => 
     metadata: {
       credentialType: s.credentialType,
       access: s.hasAccess ? "yes" : "no",
+      adaptor: s.adaptor,
       ...(url ? { url } : {}),
     },
     linkTo: s.linkTo,
@@ -218,7 +229,20 @@ export const connectedSystemSummaries: ConnectedSystemSummary[] = connectedSyste
   credentialType: s.credentialType,
   hasAccess: s.hasAccess,
   color: s.color,
+  adaptor: s.adaptor,
 }));
+
+/** Systems we suggest connecting next, shown on the Overview. */
+export const recommendedSystems: SuggestedSystem[] = [
+  { name: "OpenMRS", description: "Electronic medical records", adaptor: "openmrs" },
+  { name: "PostgreSQL", description: "Relational database", adaptor: "postgresql" },
+  { name: "WhatsApp Business", description: "Messaging and notifications", adaptor: "whatsapp" },
+  { name: "RapidPro", description: "SMS and chat flows", adaptor: "rapidpro" },
+  { name: "ODK", description: "Offline mobile data collection", adaptor: "odk" },
+  { name: "Twilio", description: "SMS and voice messaging", adaptor: "twilio" },
+  { name: "Primero", description: "Child protection case management", adaptor: "primero" },
+  { name: "OpenHIM", description: "Health information mediator", adaptor: "openhim" },
+];
 
 /** Intro banner at the top of the Systems page. */
 export const connectedSystemsIntro: FeatureIntroData = {

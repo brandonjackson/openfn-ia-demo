@@ -203,6 +203,15 @@ export interface ConnectedSystemSummary {
   credentialType: "user" | "org";
   hasAccess: boolean;
   color: string;
+  /** OpenFn adaptor package id, used for the system's logo. */
+  adaptor?: string;
+}
+
+/** A system we suggest connecting. */
+export interface SuggestedSystem {
+  name: string;
+  description: string;
+  adaptor?: string;
 }
 
 export interface SuggestedService {
@@ -220,7 +229,7 @@ export interface DashboardPageData {
   /** Summary tiles that link through to Status and Insights. */
   tiles: StatTileData[];
   connectedSystems: ConnectedSystemSummary[];
-  recommendedSystems: { name: string; description: string }[];
+  recommendedSystems: SuggestedSystem[];
   projects: ProjectSummary[];
   recommended: number;
 }

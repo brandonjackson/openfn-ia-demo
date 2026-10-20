@@ -65,8 +65,8 @@ function SandboxRow({
 
 /**
  * A project's sandboxes. The one you're working in sits on its own at the
- * top; the rest are listed below, and picking one switches to it. Any
- * sandbox but main can be deleted; deleting the selected one goes back to main.
+ * top; the rest are listed below, and picking one switches to it. Listed
+ * sandboxes other than main can be deleted; the selected one can't.
  */
 export default function ProjectSandboxesTemplate({ node, ancestors, data }: Props) {
   const [selectedName, setSelected] = useSandbox(data.projectId);
@@ -80,7 +80,6 @@ export default function ProjectSandboxesTemplate({ node, ancestors, data }: Prop
   const remove = (sandbox: SandboxItem) => {
     if (!window.confirm(`Delete sandbox "${sandbox.name}"? This can't be undone.`)) return;
     setDeleted((d) => [...d, sandbox.name]);
-    if (sandbox === selected && main) setSelected(main.name);
   };
   const deleteHandler = (sandbox: SandboxItem) =>
     sandbox.isMain ? undefined : () => remove(sandbox);
@@ -104,7 +103,7 @@ export default function ProjectSandboxesTemplate({ node, ancestors, data }: Prop
       {selected && (
         <section>
           <SectionHeading title="Selected" variant="label" />
-          <SandboxRow sandbox={selected} selected onDelete={deleteHandler(selected)} />
+          <SandboxRow sandbox={selected} selected />
         </section>
       )}
 

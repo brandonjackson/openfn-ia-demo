@@ -1,13 +1,15 @@
 import { useState } from "react";
 import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { Clock, FlaskConical, Folder, FolderKanban } from "lucide-react";
+import { Clock, FlaskConical, Folder, FolderKanban, Lock } from "lucide-react";
 import Picker from "./Picker";
 import { recentProjects } from "../mock-data/projects";
 import { versionOptions, workflowVersions } from "../mock-data/workflow";
 
 const projectOptions = recentProjects.map((p) => ({ id: p.id, label: p.name }));
-const sandboxOptions = recentProjects[1].sandboxes.map((s) => ({ id: s, label: s }));
+const sandboxOptions = recentProjects[1].sandboxes.map((s) =>
+  s === "main" ? { id: s, label: s, icon: Lock, tag: "Read only" } : { id: s, label: s }
+);
 
 /** Keeps the selection in state so clicking an option updates the trigger. */
 function ControlledPicker(args: ComponentProps<typeof Picker>) {

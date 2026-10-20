@@ -11,6 +11,10 @@ export interface PickerOption {
   description?: string;
   /** Small tag before the label, e.g. a version number. */
   badge?: { label: string; tone?: "green" | "gray" };
+  /** Overrides the picker's icon for this option, e.g. a lock for main. */
+  icon?: LucideIcon;
+  /** Short tag after the label, shown on the trigger too, e.g. "Read only". */
+  tag?: string;
   /** Options sharing a group are listed under a heading with this name. */
   group?: string;
 }
@@ -72,6 +76,7 @@ export default function Picker({
   }, [open]);
 
   const FooterIcon = footerAction?.icon;
+  const TriggerIcon = selected?.icon ?? Icon;
 
   return (
     <div ref={ref} className="relative inline-block">
@@ -86,8 +91,9 @@ export default function Picker({
           open ? "border-gray-300 bg-gray-50" : "border-gray-200 bg-white hover:bg-gray-50"
         }`}
       >
-        {Icon && <Icon size={14} className="flex-shrink-0 text-gray-500" />}
+        {TriggerIcon && <TriggerIcon size={14} className="flex-shrink-0 text-gray-500" />}
         <span className="truncate font-medium">{selected?.shortLabel ?? selected?.label ?? value}</span>
+        {selected?.tag && <OptionTag label={selected.tag} />}
         <ChevronDown size={14} className="flex-shrink-0 text-gray-400" />
       </button>
 
@@ -125,7 +131,10 @@ export default function Picker({
                         {option.badge.label}
                       </span>
                     ) : (
-                      Icon && <Icon size={14} className="flex-shrink-0 text-gray-400" />
+                      (() => {
+                        const OptionIcon = option.icon ?? Icon;
+                        return OptionIcon && <OptionIcon size={14} className="flex-shrink-0 text-gray-400" />;
+                      })()
                     )}
                     <span className="min-w-0 flex-1">
                       <span className="block truncate" title={option.label}>
@@ -137,6 +146,7 @@ export default function Picker({
                         </span>
                       )}
                     </span>
+                    {option.tag && <OptionTag label={option.tag} />}
                     {isSelected && <Check size={14} className="flex-shrink-0 text-blue-600" />}
                   </button>
                 </li>
@@ -162,5 +172,14 @@ export default function Picker({
         </div>
       )}
     </div>
+  );
+}
+
+/** Small gray tag after an option's label, e.g. "Read only". */
+function OptionTag({ label }: { label: string }) {
+  return (
+    <span className="flex-shrink-0 whitespace-nowrap rounded bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-500">
+      {label}
+    </span>
   );
 }

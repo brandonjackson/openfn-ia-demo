@@ -13,7 +13,6 @@ import {
 import type { Workflow, WorkflowVersion } from "../../mock-data/workflow";
 import { versionOptions } from "../../mock-data/workflow";
 import Picker from "../Picker";
-import Badge from "../Badge";
 import Button from "../Button";
 import PromoteSandboxModal from "../PromoteSandboxModal";
 
@@ -84,7 +83,9 @@ export default function WorkflowTopBar({
         <Picker
           icon={FlaskConical}
           ariaLabel="Switch sandbox"
-          options={sandboxes.map((s) => ({ id: s, label: s }))}
+          options={sandboxes.map((s) =>
+            s === "main" ? { id: s, label: s, icon: Lock, tag: "Read only" } : { id: s, label: s }
+          )}
           value={sandbox}
           onChange={onSelectSandbox}
           footerAction={
@@ -102,7 +103,6 @@ export default function WorkflowTopBar({
           onChange={onSelectVersion}
           menuWidthClass="w-80"
         />
-        {onMain && <Badge label="Read only" icon={Lock} />}
       </div>
 
       {/* Actions */}

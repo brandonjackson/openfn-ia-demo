@@ -63,6 +63,11 @@ export default function ProjectContextBar({ project, trail = [], current }: Prop
         options={project.sandboxes.map((s) => ({ id: s, label: s }))}
         value={sandbox}
         onChange={setSandbox}
+        footerAction={{
+          label: "View all",
+          icon: FlaskConical,
+          onClick: () => navigate(`/projects/${project.id}/sandboxes`),
+        }}
         maxWidthClass="max-w-[14rem]"
       />
       {trail.map((crumb) => (

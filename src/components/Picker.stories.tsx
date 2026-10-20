@@ -54,6 +54,7 @@ export const Sandbox: Story = {
     ariaLabel: "Switch sandbox",
     options: sandboxOptions,
     value: "main",
+    footerAction: { label: "View all", icon: FlaskConical, onClick: () => {} },
     defaultOpen: true,
   },
 };

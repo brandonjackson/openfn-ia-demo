@@ -16,6 +16,11 @@ interface Props {
   onClick?: () => void;
   /** Replaces the chevron on the right, e.g. with a status or action. */
   trailing?: ReactNode;
+  /**
+   * Buttons shown at the right edge, outside the row's link or click target,
+   * so they can be pressed without also opening the row (e.g. Delete).
+   */
+  actions?: ReactNode;
   /** Highlights the row, e.g. the currently selected item. */
   selected?: boolean;
   /** Renders the title in a monospace font (names like branches or slugs). */
@@ -35,13 +40,19 @@ export default function ListRow({
   to,
   onClick,
   trailing,
+  actions,
   selected = false,
   monoTitle = false,
 }: Props) {
   const interactive = Boolean(to || onClick);
-  const className = `group flex w-full items-center gap-4 rounded-lg border p-4 text-left transition-all ${
+  const frame = `group flex w-full items-center rounded-lg border text-left transition-all ${
     selected ? "border-blue-300 bg-blue-50/40" : "border-gray-200 bg-white"
   } ${interactive ? "hover:border-blue-300 hover:shadow-sm" : ""}`;
+  // With actions, the frame wraps both the row and the action buttons, and
+  // only the inner part is the link or button.
+  const className = actions
+    ? "flex flex-1 min-w-0 items-center gap-4 p-4 text-left"
+    : `${frame} gap-4 p-4`;
   const hoverText = interactive ? "group-hover:text-blue-600" : "";
 
   const content = (
@@ -82,19 +93,23 @@ export default function ListRow({
     </>
   );
 
-  if (to) {
-    return (
-      <Link to={to} className={className}>
-        {content}
-      </Link>
-    );
-  }
-  if (onClick) {
-    return (
-      <button type="button" onClick={onClick} className={className}>
-        {content}
-      </button>
-    );
-  }
-  return <div className={className}>{content}</div>;
+  const row = to ? (
+    <Link to={to} className={className}>
+      {content}
+    </Link>
+  ) : onClick ? (
+    <button type="button" onClick={onClick} className={className}>
+      {content}
+    </button>
+  ) : (
+    <div className={className}>{content}</div>
+  );
+
+  if (!actions) return row;
+  return (
+    <div className={frame}>
+      {row}
+      <div className="flex flex-shrink-0 items-center gap-2 pr-4">{actions}</div>
+    </div>
+  );
 }

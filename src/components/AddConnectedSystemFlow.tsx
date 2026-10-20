@@ -1,18 +1,9 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import {
-  X,
-  Search,
-  ChevronRight,
-  KeyRound,
-  Eye,
-  EyeOff,
-  Check,
-} from "lucide-react";
+import { X, Search, ChevronRight, Check } from "lucide-react";
 import { adaptors, type Adaptor } from "../mock-data/adaptors";
 import AdaptorLogo from "./AdaptorLogo";
 import Button from "./Button";
 import EmptyState from "./EmptyState";
-import { ENVIRONMENTS, type Environment } from "../page-data";
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -140,11 +131,8 @@ function ConfigForm({
 }) {
   const [name, setName] = useState(adaptor.name);
   const [description, setDescription] = useState("");
-  const [apiToken, setApiToken] = useState("");
-  const [secret, setSecret] = useState("");
-  const [showSecret, setShowSecret] = useState(false);
-  const [environment, setEnvironment] = useState<Environment>("production");
-  const [sharing, setSharing] = useState<"org" | "private">("org");
+  const [endpointUrl, setEndpointUrl] = useState("");
+  const [docsUrl, setDocsUrl] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
   if (submitted) {
@@ -220,133 +208,38 @@ function ConfigForm({
           </p>
         </div>
 
-        {/* Credentials */}
-        <fieldset className="rounded-lg border border-gray-200 p-4">
-          <legend className="flex items-center gap-1.5 px-1 text-sm font-medium text-gray-700">
-            <KeyRound size={14} className="text-gray-400" />
-            Credentials
-          </legend>
-
-          <div className="space-y-4 mt-2">
-            {/* API Token */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                API Token
-              </label>
-              <input
-                type="text"
-                value={apiToken}
-                onChange={(e) => setApiToken(e.target.value)}
-                placeholder="Enter your API token"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Secret */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Secret
-              </label>
-              <div className="relative">
-                <input
-                  type={showSecret ? "text" : "password"}
-                  value={secret}
-                  onChange={(e) => setSecret(e.target.value)}
-                  placeholder="Enter your secret"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 pr-9 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowSecret(!showSecret)}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  {showSecret ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
-
-            {/* Environment */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Environment
-              </label>
-              <div className="flex gap-4">
-                {ENVIRONMENTS.map((env) => (
-                  <label key={env} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="environment"
-                      value={env}
-                      checked={environment === env}
-                      onChange={() => setEnvironment(env)}
-                      className="text-blue-600"
-                    />
-                    <span className="text-sm text-gray-700 capitalize">{env}</span>
-                  </label>
-                ))}
-              </div>
-              <p className="mt-1 text-xs text-gray-400">
-                Each credential belongs to one environment. Add the others from the system's page.
-              </p>
-            </div>
-          </div>
-        </fieldset>
-
-        {/* Sharing */}
+        {/* Endpoint URL */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Sharing
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Endpoint URL <span className="font-normal text-gray-400">(optional)</span>
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => setSharing("org")}
-              className={`flex flex-col items-center gap-1.5 rounded-lg border-2 p-4 transition-colors ${
-                sharing === "org"
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
-            >
-              <span
-                className={`text-sm font-medium ${
-                  sharing === "org" ? "text-blue-700" : "text-gray-700"
-                }`}
-              >
-                Org-wide
-              </span>
-              <span
-                className={`text-xs ${
-                  sharing === "org" ? "text-blue-500" : "text-gray-400"
-                }`}
-              >
-                Shared across the organization
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setSharing("private")}
-              className={`flex flex-col items-center gap-1.5 rounded-lg border-2 p-4 transition-colors ${
-                sharing === "private"
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
-              }`}
-            >
-              <span
-                className={`text-sm font-medium ${
-                  sharing === "private" ? "text-blue-700" : "text-gray-700"
-                }`}
-              >
-                Private
-              </span>
-              <span
-                className={`text-xs ${
-                  sharing === "private" ? "text-blue-500" : "text-gray-400"
-                }`}
-              >
-                Only visible to you
-              </span>
-            </button>
-          </div>
+          <input
+            type="url"
+            value={endpointUrl}
+            onChange={(e) => setEndpointUrl(e.target.value)}
+            placeholder="https://"
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            The base URL of the system's API.
+          </p>
+        </div>
+
+        {/* Docs URL */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Docs URL <span className="font-normal text-gray-400">(optional)</span>
+          </label>
+          <input
+            type="url"
+            value={docsUrl}
+            onChange={(e) => setDocsUrl(e.target.value)}
+            placeholder="https://"
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            Where to find the system's API documentation.
+          </p>
         </div>
 
         {/* Submit */}

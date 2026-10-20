@@ -3,8 +3,10 @@ import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import RunControl from "./RunControl";
 import { nationalIdWorkflow } from "../../mock-data/workflow";
+import { serviceForWorkflow } from "../../mock-data/projects";
 
 const retryStep = nationalIdWorkflow.nodes[1].label;
+const service = serviceForWorkflow("planning-application-workflow");
 
 /** Keeps the live state so "Go live" and "Disable" respond. */
 function ControlledRunControl(args: ComponentProps<typeof RunControl>) {
@@ -15,7 +17,7 @@ function ControlledRunControl(args: ComponentProps<typeof RunControl>) {
 const meta: Meta<typeof RunControl> = {
   title: "Workflow/RunControl",
   component: RunControl,
-  args: { live: true },
+  args: { live: true, url: service?.url, onSeeDetails: () => {} },
   decorators: [
     (Story) => (
       <div className="flex h-64 items-start justify-end p-4">
@@ -32,6 +34,9 @@ type Story = StoryObj<typeof RunControl>;
 export const Live: Story = {};
 
 export const Disabled: Story = { args: { live: false } };
+
+/** Without a published service there is no URL to copy or listing to open. */
+export const NoService: Story = { args: { url: undefined, onSeeDetails: undefined, defaultOpen: true } };
 
 export const LiveMenuOpen: Story = { args: { defaultOpen: true } };
 

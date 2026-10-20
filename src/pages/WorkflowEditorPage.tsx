@@ -7,7 +7,7 @@ import {
   workflowVersions,
   type Workflow,
 } from "../mock-data/workflow";
-import { projects } from "../mock-data/projects";
+import { projects, serviceForWorkflow } from "../mock-data/projects";
 import { serviceCatalogData } from "../mock-data/service-catalog";
 import { useSandbox } from "../sandbox-state";
 
@@ -68,6 +68,8 @@ export default function WorkflowEditorPage() {
   // The editor shares the project's selected sandbox with the rest of the app.
   const project = projects.find((p) => p.name === workflow.project);
   const [sandbox, setSandbox] = useSandbox(project?.id ?? workflow.project);
+  // "See details" opens the service listing that documents this workflow.
+  const service = isNew ? undefined : serviceForWorkflow(workflow.id);
 
   return (
     <div className="h-screen">
@@ -80,6 +82,8 @@ export default function WorkflowEditorPage() {
         onSelectSandbox={setSandbox}
         onViewAllSandboxes={project ? () => navigate(`/projects/${project.id}/sandboxes`) : undefined}
         versions={isNew ? [] : workflowVersions}
+        url={service?.url}
+        onSeeDetails={service ? () => navigate(service.path) : undefined}
       />
     </div>
   );

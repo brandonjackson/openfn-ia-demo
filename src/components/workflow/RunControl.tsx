@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronDown, FileJson, Play, Power, PowerOff, RotateCcw } from "lucide-react";
+import { BookOpen, ChevronDown, FileJson, Link2, Play, Power, PowerOff } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 interface MenuItem {
-  id: "run" | "custom" | "toggle-live";
+  id: "run" | "custom" | "copy-url" | "details" | "toggle-live";
   label: string;
   description: string;
+  /** Show the description in a monospace font, e.g. for a URL. */
+  mono?: boolean;
+  /** Draw a divider above this item. */
+  divider?: boolean;
   icon: LucideIcon;
 }
 
@@ -15,12 +19,13 @@ interface MenuItem {
  * The control reads as the workflow's state: "Live" with a green dot, or
  * "Disabled" with a grey one. Inset on it is a run button that runs the
  * workflow straight away, in either state. Clicking anywhere else opens a
- * menu: run, run with custom input, and go live or disable depending on the
+ * menu: run, run with custom input, copy the workflow's URL and see its
+ * service listing (when it has one), then go live or disable depending on the
  * current state.
  *
  * When `retryStep` is set (a step from an earlier run is open), the inset
- * button becomes a retry icon that retries from that step. "Run" in the menu
- * still starts a fresh run of the whole workflow.
+ * button reads "Retry" and retries from that step. "Run" in the menu still
+ * starts a fresh run of the whole workflow.
  */
 export default function RunControl({
   live,
@@ -28,6 +33,8 @@ export default function RunControl({
   onRun,
   onRetry,
   onRunWithCustomInput,
+  url,
+  onSeeDetails,
   onToggleLive,
   defaultOpen = false,
 }: {
@@ -39,6 +46,10 @@ export default function RunControl({
   /** Retry from `retryStep`: the inset button while a step is open. */
   onRetry?: () => void;
   onRunWithCustomInput?: () => void;
+  /** The URL that starts the workflow; adds "Copy URL" to the menu. */
+  url?: string;
+  /** Opens the service listing where the workflow is documented; adds "See details". */
+  onSeeDetails?: () => void;
   /** Called with the new state when "Go live" or "Disable" is chosen. */
   onToggleLive?: (live: boolean) => void;
   /** Start with the menu open (useful for stories and screenshots). */
@@ -76,14 +87,29 @@ export default function RunControl({
       description: "Choose or write the input for this run.",
       icon: FileJson,
     },
+    ...(url
+      ? [{ id: "copy-url" as const, label: "Copy URL", description: url, mono: true, icon: Link2 }]
+      : []),
+    ...(onSeeDetails
+      ? [
+          {
+            id: "details" as const,
+            label: "See details",
+            description: "Open the service listing and its docs.",
+            icon: BookOpen,
+          },
+        ]
+      : []),
     live
       ? {
+          divider: true,
           id: "toggle-live",
           label: "Disable",
           description: "Stop triggers from starting new runs.",
           icon: PowerOff,
         }
       : {
+          divider: true,
           id: "toggle-live",
           label: "Go live",
           description: "Let triggers start runs automatically.",
@@ -95,11 +121,12 @@ export default function RunControl({
     setOpen(false);
     if (id === "run") onRun?.();
     else if (id === "custom") onRunWithCustomInput?.();
+    else if (id === "copy-url") void navigator.clipboard?.writeText(url ?? "");
+    else if (id === "details") onSeeDetails?.();
     else onToggleLive?.(!live);
   };
 
   const runLabel = retryStep ? `Retry from ${retryStep}` : "Run";
-  const RunIcon = retryStep ? RotateCcw : Play;
 
   return (
     <div ref={ref} className="relative inline-block">
@@ -127,9 +154,11 @@ export default function RunControl({
           title={runLabel}
           aria-label={runLabel}
           onClick={retryStep ? onRetry : onRun}
-          className="inline-flex h-6 w-6 items-center justify-center rounded border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-900"
+          className={`inline-flex h-6 items-center justify-center rounded border border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:bg-gray-100 hover:text-gray-900 ${
+            retryStep ? "px-2 text-xs font-medium" : "w-6"
+          }`}
         >
-          <RunIcon size={13} />
+          {retryStep ? "Retry" : <Play size={13} />}
         </button>
         <button
           type="button"
@@ -151,7 +180,10 @@ export default function RunControl({
             {items.map((item) => {
               const ItemIcon = item.icon;
               return (
-                <li key={item.id}>
+                <li
+                  key={item.id}
+                  className={item.divider ? "mt-1.5 border-t border-gray-100 pt-1.5" : undefined}
+                >
                   <button
                     type="button"
                     role="menuitem"
@@ -161,7 +193,12 @@ export default function RunControl({
                     <ItemIcon size={14} className="mt-0.5 flex-shrink-0 text-gray-400" />
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm text-gray-900">{item.label}</span>
-                      <span className="block text-xs text-gray-500">{item.description}</span>
+                      <span
+                        className={`block text-xs text-gray-500 ${item.mono ? "truncate font-mono" : ""}`}
+                        title={item.description}
+                      >
+                        {item.description}
+                      </span>
                     </span>
                   </button>
                 </li>

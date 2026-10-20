@@ -411,3 +411,20 @@ export function projectSandboxes(project: Project): SandboxItem[] {
         }
   );
 }
+
+/**
+ * The published service a workflow backs, if any, with the path to its
+ * listing and the URL that starts it (webhook services only).
+ */
+export function serviceForWorkflow(
+  workflowId: string
+): { project: Project; service: ProjectService; path: string; url?: string } | undefined {
+  for (const project of projects) {
+    const service = project.services.find((s) => s.workflowId === workflowId);
+    if (service) {
+      const url = service.api?.invocation.match(/https?:\/\/\S+/)?.[0];
+      return { project, service, path: `/projects/${project.id}/services/${service.id}`, url };
+    }
+  }
+  return undefined;
+}

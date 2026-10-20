@@ -28,6 +28,8 @@ import RunControl from "./RunControl";
 export default function WorkflowTopBar({
   workflow,
   retryStep,
+  url,
+  onSeeDetails,
   onBack,
   sandboxes = ["main"],
   sandbox = "main",
@@ -44,6 +46,10 @@ export default function WorkflowTopBar({
   workflow: Workflow;
   /** Name of the open step to retry from, when there is one. */
   retryStep?: string;
+  /** The URL that starts the workflow, for "Copy URL". */
+  url?: string;
+  /** Opens the service listing where the workflow is documented. */
+  onSeeDetails?: () => void;
   onBack?: () => void;
   /** Sandboxes of the workflow's project, "main" first. */
   sandboxes?: string[];
@@ -110,7 +116,13 @@ export default function WorkflowTopBar({
 
       {/* Actions */}
       <div className="flex items-center gap-2">
-        <RunControl live={live} retryStep={retryStep} onToggleLive={setLive} />
+        <RunControl
+          live={live}
+          retryStep={retryStep}
+          url={url}
+          onSeeDetails={onSeeDetails}
+          onToggleLive={setLive}
+        />
         {onMain ? (
           <Button variant="outline-primary" size="sm" icon={FlaskConical} onClick={onEditInSandbox}>
             Edit in sandbox

@@ -20,6 +20,11 @@ export const Suggested: Story = {
   args: { name: "OpenMRS", adaptor: "openmrs", suggested: true, title: "Electronic medical records" },
 };
 
+/** Static label, as used on idea and suggestion cards. */
+export const Small: Story = {
+  args: { name: "Google Sheets", size: "sm" },
+};
+
 export const Row: Story = {
   render: () => (
     <div className="flex flex-wrap gap-2">

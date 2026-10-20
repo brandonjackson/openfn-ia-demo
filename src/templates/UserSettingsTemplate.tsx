@@ -32,6 +32,7 @@ import FormField from "../components/FormField";
 import { TextInput, Select } from "../components/FormControls";
 import DataTable from "../components/DataTable";
 import type { DataTableColumn } from "../components/DataTable";
+import SystemLabel from "../components/SystemLabel";
 
 /* ------------------------------------------------------------------ */
 /*  Section menu                                                       */
@@ -179,7 +180,7 @@ const credentialColumns: DataTableColumn<UserCredential>[] = [
 
 const oauthColumns: DataTableColumn<OAuthClient>[] = [
   { key: "name", header: "Name", render: (c) => <span className="font-medium text-gray-900">{c.name}</span> },
-  { key: "system", header: "System", render: (c) => c.system },
+  { key: "system", header: "System", render: (c) => <SystemLabel name={c.system} /> },
   { key: "scope", header: "Available to", render: (c) => <Badge label={c.scope} tone={c.scope === "Global" ? "blue" : "gray"} /> },
   {
     key: "actions",

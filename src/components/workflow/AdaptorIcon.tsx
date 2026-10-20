@@ -1,5 +1,7 @@
 import { Globe, Clock, Radio } from "lucide-react";
 import type { AdaptorKind } from "../../mock-data/workflow";
+import { hasAdaptorLogo } from "../../adaptor-lookup";
+import AdaptorLogo from "../AdaptorLogo";
 
 type Size = "sm" | "md" | "lg";
 
@@ -22,6 +24,8 @@ const adaptorStyle: Record<AdaptorKind, { label: string; classes: string }> = {
   postgresql: { label: "pg", classes: "bg-indigo-600 text-white" },
 };
 
+const logoSize: Record<Size, "sm" | "md" | "lg"> = { sm: "sm", md: "md", lg: "lg" };
+
 export function AdaptorIcon({
   adaptor,
   size = "md",
@@ -29,6 +33,8 @@ export function AdaptorIcon({
   adaptor: AdaptorKind;
   size?: Size;
 }) {
+  // Prefer the adaptor's real logo; the lettered tile is the fallback.
+  if (hasAdaptorLogo(adaptor)) return <AdaptorLogo adaptor={adaptor} size={logoSize[size]} />;
   const style = adaptorStyle[adaptor];
   return (
     <span

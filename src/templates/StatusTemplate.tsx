@@ -6,6 +6,7 @@ import SectionHeading from "../components/SectionHeading";
 import DataTable from "../components/DataTable";
 import type { DataTableColumn } from "../components/DataTable";
 import StatusBadge from "../components/StatusBadge";
+import SystemLabel from "../components/SystemLabel";
 import TextLink from "../components/TextLink";
 
 interface Props {
@@ -22,7 +23,7 @@ const worstFirst = <T extends { status: HealthState }>(rows: T[]) =>
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 const systemColumns: DataTableColumn<SystemStatus>[] = [
-  { key: "name", header: "System", render: (s) => <TextLink to={s.linkTo}>{s.name}</TextLink> },
+  { key: "name", header: "System", render: (s) => <SystemLabel name={s.name} to={s.linkTo} /> },
   { key: "status", header: "Status", render: (s) => <StatusBadge status={s.status} /> },
   { key: "note", header: "Details", render: (s) => <span className="text-gray-500">{s.note}</span> },
 ];

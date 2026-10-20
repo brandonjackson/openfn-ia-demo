@@ -5,7 +5,7 @@ import { connectedSystems } from "../mock-data/connected-systems";
 const meta: Meta<typeof AdaptorLogo> = {
   title: "Components/AdaptorLogo",
   component: AdaptorLogo,
-  argTypes: { size: { control: "select", options: ["xs", "sm", "md", "lg"] } },
+  argTypes: { size: { control: "select", options: ["2xs", "xs", "sm", "md", "lg"] } },
 };
 
 export default meta;
@@ -18,6 +18,11 @@ export const Default: Story = {
 /** Systems without a logo fall back to a globe. */
 export const Fallback: Story = {
   args: { adaptor: "not-an-adaptor", size: "md" },
+};
+
+/** Looks the adaptor up from a system name when no adaptor id is given. */
+export const ByName: Story = {
+  args: { name: "Google Sheets", size: "md" },
 };
 
 export const ConnectedSystems: Story = {

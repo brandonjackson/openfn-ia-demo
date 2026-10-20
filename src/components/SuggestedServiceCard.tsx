@@ -1,8 +1,9 @@
 import { ArrowRight } from "lucide-react";
-import type { ConnectedSystemSummary, SuggestedService } from "../page-data";
+import type { SuggestedService } from "../page-data";
 import Badge from "./Badge";
 import type { BadgeTone } from "./Badge";
 import Button from "./Button";
+import SystemPill from "./SystemPill";
 
 const categoryTones: Record<string, BadgeTone> = {
   "Data sync": "blue",
@@ -11,20 +12,8 @@ const categoryTones: Record<string, BadgeTone> = {
   Reporting: "yellow",
 };
 
-const FALLBACK_SYSTEM_COLOR = "bg-gray-100 text-gray-600";
-
-function SystemPill({ name, color }: { name: string; color: string }) {
-  return (
-    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${color}`}>
-      {name}
-    </span>
-  );
-}
-
 interface Props {
   service: SuggestedService;
-  /** Connected systems, used to colour each system the service links. */
-  systems: ConnectedSystemSummary[];
   onStart?: (service: SuggestedService) => void;
   onDismiss?: (service: SuggestedService) => void;
 }
@@ -33,9 +22,7 @@ interface Props {
  * A service we suggest building from the systems already connected: what it
  * does, which systems it links (from → to), why, and a way to start it.
  */
-export default function SuggestedServiceCard({ service, systems, onStart, onDismiss }: Props) {
-  const colorOf = (name: string) => systems.find((s) => s.name === name)?.color ?? FALLBACK_SYSTEM_COLOR;
-
+export default function SuggestedServiceCard({ service, onStart, onDismiss }: Props) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-blue-200 hover:shadow-sm">
       <Badge label={service.category} tone={categoryTones[service.category]} />
@@ -44,11 +31,11 @@ export default function SuggestedServiceCard({ service, systems, onStart, onDism
 
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
         {service.fromSystems.map((name) => (
-          <SystemPill key={name} name={name} color={colorOf(name)} />
+          <SystemPill key={name} name={name} size="sm" />
         ))}
         <ArrowRight size={12} className="flex-shrink-0 text-gray-400" />
         {service.toSystems.map((name) => (
-          <SystemPill key={name} name={name} color={colorOf(name)} />
+          <SystemPill key={name} name={name} size="sm" />
         ))}
       </div>
 

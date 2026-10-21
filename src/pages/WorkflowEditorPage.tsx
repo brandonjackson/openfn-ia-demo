@@ -11,6 +11,7 @@ import { dataclips, workOrders } from "../mock-data/runs";
 import { projects, serviceForWorkflow } from "../mock-data/projects";
 import { serviceCatalogData } from "../mock-data/service-catalog";
 import { useSandbox } from "../sandbox-state";
+import { assistantConversations } from "../mock-data/assistant";
 
 /**
  * `/workflow-editor/new?project=…&channel=…` opens a blank workflow in that
@@ -106,6 +107,7 @@ export default function WorkflowEditorPage() {
         versions={isNew ? [] : workflowVersions}
         url={service?.url}
         onSeeDetails={service ? () => navigate(service.path) : undefined}
+        assistantConversations={isNew ? [] : assistantConversations}
       />
     </div>
   );

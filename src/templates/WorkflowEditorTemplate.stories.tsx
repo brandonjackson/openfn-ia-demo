@@ -3,6 +3,7 @@ import WorkflowEditorTemplate from "./WorkflowEditorTemplate";
 import { nationalIdWorkflow, nationalIdWorkflowAt, workflowVersions } from "../mock-data/workflow";
 import { dataclips, failedRun, olderRun, sampleRun, workOrders } from "../mock-data/runs";
 import { projects } from "../mock-data/projects";
+import { assistantConversations } from "../mock-data/assistant";
 
 const meta: Meta<typeof WorkflowEditorTemplate> = {
   title: "Templates/WorkflowEditorTemplate",
@@ -15,6 +16,7 @@ const meta: Meta<typeof WorkflowEditorTemplate> = {
     graphForVersion: nationalIdWorkflowAt,
     sandboxes: projects[0].sandboxes,
     versions: workflowVersions,
+    assistantConversations,
   },
   decorators: [
     (Story) => (
@@ -83,4 +85,14 @@ export const EditInSandboxFromRun: Story = {
 /** A brand-new workflow with no history. */
 export const NewWorkflow: Story = {
   args: { workOrders: [], versions: [], graphForVersion: undefined },
+};
+
+/** The AI Assistant tray open beside the canvas, on the workflow's conversations. */
+export const AssistantOpen: Story = {
+  args: { defaultAssistantOpen: true },
+};
+
+/** With a job expanded, the assistant is about that job's code. */
+export const AssistantOpenInJobEditor: Story = {
+  args: { defaultAssistantOpen: true, initialExpandedId: "search", runId: sampleRun.runId },
 };

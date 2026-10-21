@@ -23,6 +23,8 @@ import RunControl from "./RunControl";
  * "Promote", which opens a dialog to promote the sandbox's changes to main.
  * The version picker turns yellow while an older version is on the canvas.
  *
+ * The round chat button at the far right toggles the AI Assistant tray.
+ *
  * When `onBack` is provided, a back control is shown in the top-left corner to
  * leave the full-screen editor and return to the app shell.
  */
@@ -46,6 +48,8 @@ export default function WorkflowTopBar({
   onPromote,
   defaultPromoteOpen = false,
   defaultLive = true,
+  assistantOpen = false,
+  onToggleAssistant,
 }: {
   workflow: Workflow;
   /** Set while an earlier run is selected; see {@link RunControl}. */
@@ -76,6 +80,9 @@ export default function WorkflowTopBar({
   defaultPromoteOpen?: boolean;
   /** Whether the workflow starts out live. */
   defaultLive?: boolean;
+  /** Whether the AI Assistant tray is open; the chat button fills in while it is. */
+  assistantOpen?: boolean;
+  onToggleAssistant?: () => void;
 }) {
   const [promoteOpen, setPromoteOpen] = useState(defaultPromoteOpen);
   const [live, setLive] = useState(defaultLive);
@@ -143,7 +150,16 @@ export default function WorkflowTopBar({
             Promote
           </Button>
         )}
-        <button className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-400 hover:text-gray-600">
+        <button
+          type="button"
+          onClick={onToggleAssistant}
+          aria-pressed={assistantOpen}
+          aria-label={assistantOpen ? "Close AI Assistant" : "Open AI Assistant"}
+          title={`${assistantOpen ? "Close" : "Open"} AI Assistant (Ctrl/⌘ + K)`}
+          className={`inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
+            assistantOpen ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+          }`}
+        >
           <MessageSquare size={16} />
         </button>
       </div>

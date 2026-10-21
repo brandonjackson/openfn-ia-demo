@@ -83,3 +83,6 @@ export const PromoteDialogOpen: Story = {
 };
 
 export const Disabled: Story = { args: { defaultLive: false } };
+
+/** The chat button fills in while the AI Assistant tray is open. */
+export const AssistantOpen: Story = { args: { assistantOpen: true } };

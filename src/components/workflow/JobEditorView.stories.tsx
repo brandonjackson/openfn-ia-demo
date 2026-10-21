@@ -1,14 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import JobEditorView from "./JobEditorView";
-import { nationalIdWorkflow, sampleRun, type JobNode } from "../../mock-data/workflow";
+import RecentHistoryPanel from "./RecentHistoryPanel";
+import { nationalIdWorkflow, type JobNode } from "../../mock-data/workflow";
+import { dataclips, failedRun, sampleRun, workOrders } from "../../mock-data/runs";
 
-const searchJob = nationalIdWorkflow.nodes.find((n) => n.id === "search") as JobNode;
-const queueJob = nationalIdWorkflow.nodes.find((n) => n.id === "queue") as JobNode;
+const job = (id: string) => nationalIdWorkflow.nodes.find((n) => n.id === id) as JobNode;
 
 const meta: Meta<typeof JobEditorView> = {
   title: "Workflow/JobEditorView",
   component: JobEditorView,
   parameters: { layout: "fullscreen" },
+  args: {
+    dataclips,
+    historyPanel: <RecentHistoryPanel workOrders={workOrders} latestVersion="v2" />,
+  },
   decorators: [
     (Story) => (
       <div style={{ height: "100vh" }}>
@@ -21,10 +26,22 @@ const meta: Meta<typeof JobEditorView> = {
 export default meta;
 type Story = StoryObj<typeof JobEditorView>;
 
-export const HttpJob: Story = {
-  args: { job: searchJob, run: sampleRun },
+/** Following a step of the selected run: its logs, input and output. */
+export const FollowingRun: Story = {
+  args: { job: job("search"), run: sampleRun },
 };
 
-export const CommonJob: Story = {
-  args: { job: queueJob, run: sampleRun },
+/** The step that failed in a failed run. */
+export const FailedStep: Story = {
+  args: { job: job("create"), run: failedRun },
+};
+
+/** The open job wasn't part of the selected run. */
+export const StepNotInRun: Story = {
+  args: { job: job("queue"), run: sampleRun },
+};
+
+/** No run selected yet. */
+export const NoRun: Story = {
+  args: { job: job("search") },
 };

@@ -33,9 +33,22 @@ export function Select({ options, className = "w-auto", ...rest }: SelectProps) 
 
 interface RadioOptionProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
   label: string;
+  /** Helper text under the label. */
+  hint?: string;
 }
 
-export function RadioOption({ label, ...rest }: RadioOptionProps) {
+export function RadioOption({ label, hint, ...rest }: RadioOptionProps) {
+  if (hint) {
+    return (
+      <label className="flex items-start gap-2 cursor-pointer">
+        <input type="radio" className="mt-1 text-blue-600" {...rest} />
+        <span>
+          <span className="block text-sm text-gray-700">{label}</span>
+          <span className="block text-xs text-gray-500">{hint}</span>
+        </span>
+      </label>
+    );
+  }
   return (
     <label className="flex items-center gap-2 cursor-pointer">
       <input type="radio" className="text-blue-600" {...rest} />

@@ -42,7 +42,15 @@ export const LiveMenuOpen: Story = { args: { defaultOpen: true } };
 
 export const DisabledMenuOpen: Story = { args: { live: false, defaultOpen: true } };
 
-/** A step from an earlier run is open: the inset button retries from it. */
-export const Retry: Story = { args: { retryStep } };
+/** An earlier run is selected: the inset button retries its input. */
+export const Retry: Story = { args: { retry: {} } };
 
-export const RetryMenuOpen: Story = { args: { retryStep, defaultOpen: true } };
+/** A step of the selected run is open: the inset button retries from it. */
+export const RetryFromStep: Story = { args: { retry: { step: retryStep } } };
+
+/** The selected run was on an older version; the tooltip says the retry runs on the latest. */
+export const RetryOnNewerVersion: Story = {
+  args: { retry: { hint: "Runs this input on the latest version (v2), not v1" } },
+};
+
+export const RetryMenuOpen: Story = { args: { retry: { step: retryStep }, defaultOpen: true } };

@@ -25,3 +25,15 @@ export const AllStatuses: Story = {
     </div>
   ),
 };
+
+/** The compact dot used in history rows. */
+export const Dots: Story = {
+  render: () => (
+    <div className="flex items-center gap-3">
+      <StatusPill status="success" variant="dot" />
+      <StatusPill status="failed" variant="dot" />
+      <StatusPill status="running" variant="dot" />
+      <StatusPill status="pending" variant="dot" />
+    </div>
+  ),
+};

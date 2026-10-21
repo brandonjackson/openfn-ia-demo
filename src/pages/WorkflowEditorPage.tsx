@@ -3,10 +3,11 @@ import WorkflowEditorTemplate from "../templates/WorkflowEditorTemplate";
 import {
   buildStarterWorkflow,
   nationalIdWorkflow,
-  recentHistory,
+  nationalIdWorkflowAt,
   workflowVersions,
   type Workflow,
 } from "../mock-data/workflow";
+import { dataclips, workOrders } from "../mock-data/runs";
 import { projects, serviceForWorkflow } from "../mock-data/projects";
 import { serviceCatalogData } from "../mock-data/service-catalog";
 import { useSandbox } from "../sandbox-state";
@@ -27,14 +28,16 @@ function resolveNewWorkflow(params: URLSearchParams): Workflow {
 }
 
 /**
- * Resolve a workflow to open from its id. There is a single richly-modelled
- * workflow ({@link nationalIdWorkflow}); any other workflow component in the
- * prototype reuses its graph but is relabelled with the component's name and
- * owning project so the editor reads correctly.
+ * Resolve a workflow to open from its id, at a version ("latest" by default).
+ * There is a single richly-modelled workflow ({@link nationalIdWorkflow});
+ * any other workflow component in the prototype reuses its graph and history
+ * but is relabelled with the component's name and owning project so the
+ * editor reads correctly.
  */
-function resolveWorkflow(workflowId?: string): Workflow {
+function resolveWorkflow(workflowId?: string, version = "latest"): Workflow {
+  const graph = nationalIdWorkflowAt(version);
   if (!workflowId || workflowId === nationalIdWorkflow.id) {
-    return nationalIdWorkflow;
+    return graph;
   }
   for (const project of projects) {
     const component = project.components.find(
@@ -42,14 +45,14 @@ function resolveWorkflow(workflowId?: string): Workflow {
     );
     if (component) {
       return {
-        ...nationalIdWorkflow,
+        ...graph,
         id: component.id,
         name: component.name,
         project: project.name,
       };
     }
   }
-  return nationalIdWorkflow;
+  return graph;
 }
 
 /**
@@ -58,11 +61,14 @@ function resolveWorkflow(workflowId?: string): Workflow {
  * Opened from anywhere a workflow is opened (e.g. a project's components list)
  * via `/workflow-editor/:workflowId`, or blank via `/workflow-editor/new`. A back control in the top-left corner
  * returns you to the workflows list of the workflow's project.
+ *
+ * The selected run is kept in the URL as `?run=<id>`, so a link to a run opens
+ * the editor with that run on the canvas.
  */
 export default function WorkflowEditorPage() {
   const navigate = useNavigate();
   const { workflowId } = useParams();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const isNew = workflowId === "new";
   const workflow = isNew ? resolveNewWorkflow(searchParams) : resolveWorkflow(workflowId);
   // The editor shares the project's selected sandbox with the rest of the app.
@@ -71,11 +77,27 @@ export default function WorkflowEditorPage() {
   // "See details" opens the service listing that documents this workflow.
   const service = isNew ? undefined : serviceForWorkflow(workflow.id);
 
+  const runId = searchParams.get("run") ?? undefined;
+  const setRunId = (id: string | undefined) =>
+    setSearchParams(
+      (params) => {
+        const next = new URLSearchParams(params);
+        if (id) next.set("run", id);
+        else next.delete("run");
+        return next;
+      },
+      { replace: true }
+    );
+
   return (
     <div className="h-screen">
       <WorkflowEditorTemplate
         workflow={workflow}
-        history={isNew ? [] : recentHistory}
+        workOrders={isNew ? [] : workOrders}
+        dataclips={isNew ? [] : dataclips}
+        graphForVersion={isNew ? undefined : (version) => resolveWorkflow(workflowId, version)}
+        runId={runId}
+        onRunChange={setRunId}
         onBack={() => (project ? navigate(`/projects/${project.id}/workflows`) : navigate(-1))}
         sandboxes={project?.sandboxes ?? ["main"]}
         sandbox={sandbox}

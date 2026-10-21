@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   Dataclip,
   RunDetails,
@@ -19,6 +19,8 @@ import RunInputModal from "../components/RunInputModal";
 import type { RunInput } from "../components/RunInputModal";
 import EditInSandboxModal from "../components/EditInSandboxModal";
 import type { SandboxStart } from "../components/EditInSandboxModal";
+import AIAssistantPanel from "../components/workflow/AIAssistantPanel";
+import type { AssistantConversation } from "../mock-data/assistant";
 
 /** Who starts runs and retries in the prototype. */
 const CURRENT_USER = "Jane Doe";
@@ -47,6 +49,10 @@ const RUN_TIME_MS = 1500;
  *
  * Clicking the inspector's expand button swaps the canvas for the full
  * {@link JobEditorView}, which follows the open job's step in the selected run.
+ *
+ * The chat button in the top bar (or Ctrl/⌘ + K) opens the AI Assistant tray
+ * down the right-hand side, pushing the canvas or job editor over. With a job
+ * expanded the assistant is about that job; otherwise it's about the workflow.
  */
 export default function WorkflowEditorTemplate({
   workflow,
@@ -68,6 +74,8 @@ export default function WorkflowEditorTemplate({
   onSeeDetails,
   defaultEditInSandboxOpen = false,
   defaultRunInputOpen = false,
+  assistantConversations = [],
+  defaultAssistantOpen = false,
 }: {
   workflow: Workflow;
   /** Recent work orders, newest first. */
@@ -98,6 +106,10 @@ export default function WorkflowEditorTemplate({
   /** Start with a dialog open (useful for stories). */
   defaultEditInSandboxOpen?: boolean;
   defaultRunInputOpen?: boolean;
+  /** Saved AI Assistant conversations for this workflow. */
+  assistantConversations?: AssistantConversation[];
+  /** Start with the AI Assistant tray open (useful for stories). */
+  defaultAssistantOpen?: boolean;
 }) {
   const [selectedId, setSelectedId] = useState<string | undefined>(initialSelectedId);
   const [expandedId, setExpandedId] = useState<string | undefined>(initialExpandedId);
@@ -121,6 +133,19 @@ export default function WorkflowEditorTemplate({
 
   const [runInputOpen, setRunInputOpen] = useState(defaultRunInputOpen);
   const [editInSandboxOpen, setEditInSandboxOpen] = useState(defaultEditInSandboxOpen);
+  const [assistantOpen, setAssistantOpen] = useState(defaultAssistantOpen);
+
+  // Ctrl/⌘ + K toggles the assistant, as in Lightning.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setAssistantOpen((o) => !o);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   // The graph on the canvas: the latest, or an earlier version being viewed.
   const graph = version === "latest" ? workflow : (graphForVersion?.(version) ?? workflow);
@@ -273,67 +298,80 @@ export default function WorkflowEditorTemplate({
   );
 
   return (
-    <div className="flex h-full flex-col bg-white">
-      <WorkflowTopBar
-        workflow={workflow}
-        retry={retryControl}
-        onRun={runFresh}
-        onRetry={retry}
-        onRunWithCustomInput={() => setRunInputOpen(true)}
-        url={url}
-        onSeeDetails={onSeeDetails}
-        onBack={onBack}
-        sandboxes={allSandboxes}
-        sandbox={sandbox}
-        onSelectSandbox={selectSandbox}
-        onViewAllSandboxes={onViewAllSandboxes}
-        versions={versions}
-        version={version}
-        onSelectVersion={setVersion}
-        onEditInSandbox={() => setEditInSandboxOpen(true)}
-        onPromote={promote}
+    <div className="flex h-full bg-white">
+      <div className="flex min-w-0 flex-1 flex-col">
+        <WorkflowTopBar
+          workflow={workflow}
+          retry={retryControl}
+          onRun={runFresh}
+          onRetry={retry}
+          onRunWithCustomInput={() => setRunInputOpen(true)}
+          url={url}
+          onSeeDetails={onSeeDetails}
+          onBack={onBack}
+          sandboxes={allSandboxes}
+          sandbox={sandbox}
+          onSelectSandbox={selectSandbox}
+          onViewAllSandboxes={onViewAllSandboxes}
+          versions={versions}
+          version={version}
+          onSelectVersion={setVersion}
+          onEditInSandbox={() => setEditInSandboxOpen(true)}
+          onPromote={promote}
+          assistantOpen={assistantOpen}
+          onToggleAssistant={() => setAssistantOpen((o) => !o)}
+        />
+
+        {expandedJob ? (
+          // Expanded job editor replaces the canvas; closing returns you to it.
+          <div className="min-h-0 flex-1">
+            <JobEditorView
+              job={expandedJob}
+              run={selectedRun}
+              dataclips={clips}
+              historyPanel={historyPanel}
+              onCloseRun={deselectRun}
+              onSelectStep={openStep}
+              onRun={runFresh}
+              onRetry={retry}
+              onClose={() => setExpandedId(undefined)}
+            />
+          </div>
+        ) : (
+          <div className="relative flex-1 overflow-hidden">
+            <WorkflowCanvas
+              workflow={graph}
+              selectedId={selectedId}
+              onSelect={handleSelect}
+              run={selectedRun}
+              height={760}
+            />
+
+            {/* Floating Recent History (top-left) */}
+            <div className="absolute left-4 top-4 z-40">{historyPanel}</div>
+
+            {/* Job inspector (right) */}
+            {selectedJob && (
+              <div className="absolute right-4 top-4 z-40">
+                <JobInspectorPanel
+                  job={selectedJob}
+                  onClose={() => setSelectedId(undefined)}
+                  onExpand={() => setExpandedId(selectedJob.id)}
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      <AIAssistantPanel
+        open={assistantOpen}
+        onClose={() => setAssistantOpen(false)}
+        conversations={assistantConversations}
+        jobLabel={expandedJob?.label}
+        runId={selectedRun?.runId}
+        author={CURRENT_USER}
       />
-
-      {expandedJob ? (
-        // Expanded job editor replaces the canvas; closing returns you to it.
-        <div className="min-h-0 flex-1">
-          <JobEditorView
-            job={expandedJob}
-            run={selectedRun}
-            dataclips={clips}
-            historyPanel={historyPanel}
-            onCloseRun={deselectRun}
-            onSelectStep={openStep}
-            onRun={runFresh}
-            onRetry={retry}
-            onClose={() => setExpandedId(undefined)}
-          />
-        </div>
-      ) : (
-        <div className="relative flex-1 overflow-hidden">
-          <WorkflowCanvas
-            workflow={graph}
-            selectedId={selectedId}
-            onSelect={handleSelect}
-            run={selectedRun}
-            height={760}
-          />
-
-          {/* Floating Recent History (top-left) */}
-          <div className="absolute left-4 top-4 z-40">{historyPanel}</div>
-
-          {/* Job inspector (right) */}
-          {selectedJob && (
-            <div className="absolute right-4 top-4 z-40">
-              <JobInspectorPanel
-                job={selectedJob}
-                onClose={() => setSelectedId(undefined)}
-                onExpand={() => setExpandedId(selectedJob.id)}
-              />
-            </div>
-          )}
-        </div>
-      )}
 
       <RunInputModal
         open={runInputOpen}

@@ -38,6 +38,8 @@ export interface JobNode {
   adaptorPackage: string;
   /** Source body shown in the code editor when this job is selected. */
   body: string;
+  /** The project credential the job connects with, if its adaptor needs one. */
+  credential?: string;
   x: number;
   y: number;
 }
@@ -384,4 +386,50 @@ export function versionOptions(versions: WorkflowVersion[]) {
       group: "Version history",
     })),
   ];
+}
+
+/** Display names for the adaptors a job can use. */
+export const adaptorNames: Record<AdaptorKind, string> = {
+  http: "HTTP",
+  common: "Common",
+  dhis2: "DHIS2",
+  salesforce: "Salesforce",
+  postgresql: "PostgreSQL",
+};
+
+/** The version of each adaptor jobs run on, e.g. "7.3.1". */
+export const adaptorVersions: Record<AdaptorKind, string> = {
+  http: "7.3.1",
+  common: "3.3.3",
+  dhis2: "6.1.0",
+  salesforce: "8.0.2",
+  postgresql: "5.1.4",
+};
+
+/** Credentials in the project, by the adaptor they work with. Common needs none. */
+export const credentialsByAdaptor: Record<AdaptorKind, string[]> = {
+  http: ["Identity API (production)", "Identity API (staging)"],
+  common: [],
+  dhis2: ["DHIS2 national instance"],
+  salesforce: ["Salesforce sandbox"],
+  postgresql: ["Reporting database"],
+};
+
+/** A workflow's jobs in the order a run reaches them: breadth-first from the trigger. */
+export function orderedJobs(workflow: Workflow): JobNode[] {
+  const jobs = workflow.nodes.filter((n): n is JobNode => n.type === "job");
+  const trigger = workflow.nodes.find((n) => n.type === "trigger");
+  const order: string[] = [];
+  const queue = trigger ? [trigger.id] : [];
+  while (queue.length) {
+    const id = queue.shift()!;
+    for (const e of workflow.edges.filter((e) => e.source === id)) {
+      if (!order.includes(e.target)) {
+        order.push(e.target);
+        queue.push(e.target);
+      }
+    }
+  }
+  const rank = (j: JobNode) => (order.includes(j.id) ? order.indexOf(j.id) : order.length);
+  return [...jobs].sort((a, b) => rank(a) - rank(b));
 }

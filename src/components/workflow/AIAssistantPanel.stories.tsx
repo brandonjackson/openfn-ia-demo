@@ -45,3 +45,6 @@ export const WithRunSelected: Story = {
 export const MenuOpen: Story = { args: { defaultMenuOpen: true } };
 
 export const About: Story = { args: { defaultAboutOpen: true } };
+
+/** As a card beside the editor, as in the redesigned workflow editor. */
+export const Card: Story = { args: { appearance: "card" } };

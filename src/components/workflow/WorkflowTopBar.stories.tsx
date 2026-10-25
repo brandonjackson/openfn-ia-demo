@@ -9,10 +9,13 @@ const sandboxes = projects[0].sandboxes;
 const retryStep = nationalIdWorkflow.nodes[1].label;
 const service = serviceForWorkflow("planning-application-workflow");
 
-/** Keeps sandbox and version in state so the pickers and actions respond. */
+/** Keeps sandbox, version, mode and panels in state so the controls respond. */
 function ControlledTopBar(args: ComponentProps<typeof WorkflowTopBar>) {
   const [sandbox, setSandbox] = useState(args.sandbox ?? "main");
   const [version, setVersion] = useState(args.version ?? "latest");
+  const [mode, setMode] = useState(args.mode ?? "canvas");
+  const [docks, setDocks] = useState(args.openDocks ?? { left: true, right: false, bottom: false });
+  const [live, setLive] = useState(args.live ?? true);
   return (
     <WorkflowTopBar
       {...args}
@@ -20,6 +23,12 @@ function ControlledTopBar(args: ComponentProps<typeof WorkflowTopBar>) {
       onSelectSandbox={setSandbox}
       version={version}
       onSelectVersion={setVersion}
+      mode={mode}
+      onModeChange={setMode}
+      openDocks={docks}
+      onToggleDock={(dock) => setDocks((d) => ({ ...d, [dock]: !d[dock] }))}
+      live={live}
+      onToggleLive={setLive}
       onEditInSandbox={() => setSandbox(sandboxes[1])}
       onPromote={() => setSandbox("main")}
     />
@@ -32,6 +41,7 @@ const meta: Meta<typeof WorkflowTopBar> = {
   parameters: { layout: "fullscreen" },
   args: {
     workflow: nationalIdWorkflow,
+    projectName: nationalIdWorkflow.project,
     sandboxes,
     versions: workflowVersions,
     url: service?.url,
@@ -39,7 +49,7 @@ const meta: Meta<typeof WorkflowTopBar> = {
   },
   decorators: [
     (Story) => (
-      <div className="h-96">
+      <div className="h-[560px] bg-gray-50">
         <Story />
       </div>
     ),
@@ -63,7 +73,16 @@ export const ViewingOlderVersion: Story = {
   args: { version: "v1", retry: { hint: "Runs this input on the latest version (v2), not v1" } },
 };
 
-export const WithBackButton: Story = { args: { onBack: () => {} } };
+/** The Fn file menu: back to the project, workflow actions, view and panels. */
+export const FileMenuOpen: Story = { args: { defaultFileMenuOpen: true, visibleTrays: ["history"] } };
+
+/** Code mode, with the steps and settings panels open. */
+export const CodeMode: Story = {
+  args: { mode: "code", openDocks: { left: true, right: true, bottom: false } },
+};
+
+/** Renaming from the file menu (or R) turns the name into a text field. */
+export const Renaming: Story = { args: { renaming: true } };
 
 export const VersionPickerOpen: Story = {
   play: async ({ canvasElement }) => {
@@ -78,11 +97,7 @@ export const SandboxPickerOpen: Story = {
   },
 };
 
-export const PromoteDialogOpen: Story = {
-  args: { sandbox: sandboxes[1], defaultPromoteOpen: true },
-};
-
-export const Disabled: Story = { args: { defaultLive: false } };
+export const Disabled: Story = { args: { live: false } };
 
 /** The chat button fills in while the AI Assistant tray is open. */
 export const AssistantOpen: Story = { args: { assistantOpen: true } };

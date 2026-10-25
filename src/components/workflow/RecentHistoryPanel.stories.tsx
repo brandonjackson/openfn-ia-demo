@@ -55,3 +55,9 @@ export const Collapsed: Story = {
 
 /** A brand-new workflow that hasn't run yet. */
 export const Empty: Story = { args: { workOrders: [] } };
+
+/** Without its card and header, to fill a tray in the editor. */
+export const Bare: Story = {
+  args: { selectedRunId: workOrders[0].runs[0].runId, bare: true },
+  decorators: [(Story) => <div style={{ width: 300 }}><Story /></div>],
+};

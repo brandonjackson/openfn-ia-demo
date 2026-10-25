@@ -15,18 +15,24 @@ export function TextArea({ className = "", ...rest }: TextareaHTMLAttributes<HTM
   return <textarea className={`${controlClasses} ${className}`} {...rest} />;
 }
 
+/** A plain string is both the value and the label. */
+export type SelectOption = string | { value: string; label: string };
+
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
-  options: string[];
+  options: SelectOption[];
 }
 
 export function Select({ options, className = "w-auto", ...rest }: SelectProps) {
   return (
     <select className={`${controlClasses} ${className}`} {...rest}>
-      {options.map((opt) => (
-        <option key={opt} value={opt}>
-          {opt}
-        </option>
-      ))}
+      {options.map((opt) => {
+        const { value, label } = typeof opt === "string" ? { value: opt, label: opt } : opt;
+        return (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        );
+      })}
     </select>
   );
 }

@@ -49,3 +49,8 @@ export const DangerZone: Story = {
 export const Success: Story = {
   args: { variant: "success", title: "GitHub account connected" },
 };
+
+/** Tighter, for narrow places such as an editor panel. */
+export const Compact: Story = {
+  args: { variant: "info", title: "Read-only: main is read-only", compact: true },
+};

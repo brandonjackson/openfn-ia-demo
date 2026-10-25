@@ -21,7 +21,9 @@ The app is built from a component library, and Storybook is its catalogue.
 - **Need something that doesn't exist yet? Create the component first**, add its story, then use it in the template. If an existing component is close, extend it (add a prop or variant) rather than copying it.
 - Settings pages use `SettingsLayout` (breadcrumbs, title, `SettingsNav` side menu, content). Reuse it for any new settings-style page.
 
-Existing building blocks to reach for: `PageHeader` (top of every page), `Button`, `Card`, `SectionHeading`, `FormField`, `FormControls` (`TextInput`, `TextArea`, `Select`, `RadioOption`), `ToggleSwitch`, `DataTable`, `ListRow`, `ChannelRow`, `SegmentedControl`, `Badge`, `Callout`, `EmptyState`, `ProgressBar`, `TextLink`, `SettingsNav`, `SettingsLayout`, `Breadcrumbs`. Button labels use sentence case ("New workflow", not "New Workflow").
+- The workflow editor (`WorkflowEditorTemplate`) has a Canvas / Code switch and a tray system: trays (Steps, History, Settings, Adaptor docs, Run) sit in left, right and bottom docks, defined in `src/components/workflow/trays.ts`. Add new editor panels as trays there rather than as one-off floating panels.
+
+Existing building blocks to reach for: `PageHeader` (top of every page), `Button`, `Card`, `SectionHeading`, `FormField`, `FormControls` (`TextInput`, `TextArea`, `Select`, `RadioOption`), `ToggleSwitch`, `DataTable`, `ListRow`, `ChannelRow`, `SegmentedControl`, `Badge`, `Callout`, `EmptyState`, `ProgressBar`, `TextLink`, `DropdownMenu`, `SettingsNav`, `SettingsLayout`, `Breadcrumbs`. Button labels use sentence case ("New workflow", not "New Workflow").
 
 ## Storybook
 

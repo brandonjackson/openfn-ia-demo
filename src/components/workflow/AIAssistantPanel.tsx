@@ -35,6 +35,9 @@ type View = "sessions" | "chat";
  * lists that job's conversations; otherwise it's about the whole workflow.
  * The ⋮ menu switches back to conversations and opens "About the AI Assistant".
  * When a run is selected (`runId`), its logs and data can be attached.
+ *
+ * `appearance="card"` draws the open tray as a rounded card with a margin,
+ * standing apart from the editor beside it.
  */
 export default function AIAssistantPanel({
   open,
@@ -46,6 +49,7 @@ export default function AIAssistantPanel({
   defaultConversationId,
   defaultAboutOpen = false,
   defaultMenuOpen = false,
+  appearance = "flush",
 }: {
   open: boolean;
   onClose?: () => void;
@@ -61,6 +65,7 @@ export default function AIAssistantPanel({
   defaultConversationId?: string;
   defaultAboutOpen?: boolean;
   defaultMenuOpen?: boolean;
+  appearance?: "flush" | "card";
 }) {
   const [conversations, setConversations] = useState(initialConversations);
   const [conversationId, setConversationId] = useState(defaultConversationId);
@@ -138,8 +143,10 @@ export default function AIAssistantPanel({
     <aside
       aria-label="AI Assistant"
       aria-hidden={!open}
-      className={`h-full flex-none overflow-hidden bg-white transition-[width] duration-300 ease-in-out ${
-        open ? `${PANEL_WIDTH} border-l border-gray-200` : "w-0"
+      className={`flex-none overflow-hidden bg-white transition-[width] duration-300 ease-in-out ${
+        appearance === "card"
+          ? `my-3 mr-3 rounded-xl ${open ? `${PANEL_WIDTH} border border-gray-200 shadow-sm` : "w-0"}`
+          : `h-full ${open ? `${PANEL_WIDTH} border-l border-gray-200` : "w-0"}`
       }`}
     >
       <div className={`relative flex h-full ${PANEL_WIDTH} flex-col`}>

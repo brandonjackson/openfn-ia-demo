@@ -30,6 +30,19 @@ export const Dropdown: Story = {
   render: () => <Select options={["7 Days", "14 Days", "30 Days"]} defaultValue="14 Days" />,
 };
 
+/** Options with a value that differs from the label shown. */
+export const DropdownWithValues: Story = {
+  render: () => (
+    <Select
+      options={[
+        { value: "http", label: "HTTP" },
+        { value: "postgresql", label: "PostgreSQL" },
+      ]}
+      defaultValue="postgresql"
+    />
+  ),
+};
+
 export const Radios: Story = {
   render: () => (
     <div className="space-y-2">

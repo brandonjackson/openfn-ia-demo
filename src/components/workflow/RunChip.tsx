@@ -24,7 +24,7 @@ export default function RunChip({
   const colors =
     tone === "warning" ? "border-amber-200 bg-amber-50 text-amber-800" : "border-blue-200 bg-blue-50 text-blue-700";
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium ${colors}`}>
+    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-1 text-xs font-medium ${colors}`}>
       <StatusPill status={run.status} variant="dot" />
       Run <code className="font-mono">{run.runId.slice(0, 6)}</code>
       {note && <span className="font-normal opacity-80">· {note}</span>}

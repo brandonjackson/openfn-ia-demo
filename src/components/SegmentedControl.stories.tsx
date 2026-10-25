@@ -11,7 +11,7 @@ const meta: Meta<typeof SegmentedControl> = {
 export default meta;
 type Story = StoryObj<typeof SegmentedControl>;
 
-function Stateful(args: { label?: string; options: string[] }) {
+function Stateful(args: { label?: string; options: string[]; appearance?: "joined" | "pill" }) {
   const [value, setValue] = useState(args.options[0]);
   return <SegmentedControl {...args} value={value} onChange={setValue} />;
 }
@@ -26,4 +26,9 @@ export const Access: Story = {
 
 export const WithoutLabel: Story = {
   render: () => <Stateful options={["Day", "Week", "Month"]} />,
+};
+
+/** Soft pills for switching views, as in the workflow editor's Canvas / Code toggle. */
+export const Pill: Story = {
+  render: () => <Stateful options={["Canvas", "Code"]} appearance="pill" />,
 };

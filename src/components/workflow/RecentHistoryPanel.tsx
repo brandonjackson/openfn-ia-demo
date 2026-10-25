@@ -16,6 +16,9 @@ import RunChip from "./RunChip";
  *
  * Collapsing the panel leaves just its header and a chip for the selected
  * run. `footer` sits at the bottom either way, e.g. a version mismatch banner.
+ *
+ * `bare` drops the card, header and height cap so the list can fill a tray
+ * in the editor, which brings its own header.
  */
 export default function RecentHistoryPanel({
   workOrders,
@@ -25,6 +28,7 @@ export default function RecentHistoryPanel({
   onDeselectRun,
   footer,
   defaultCollapsed = false,
+  bare = false,
 }: {
   workOrders: WorkOrder[];
   selectedRunId?: string;
@@ -34,6 +38,7 @@ export default function RecentHistoryPanel({
   onDeselectRun?: () => void;
   footer?: ReactNode;
   defaultCollapsed?: boolean;
+  bare?: boolean;
 }) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const [opened, setOpened] = useState<string[]>([]);
@@ -50,6 +55,45 @@ export default function RecentHistoryPanel({
     setOpened((ids) => [...ids, order.id]);
     if (order.runs.length === 1) onSelectRun?.(order.runs[0]);
   };
+
+  const list = (
+    <>
+      {workOrders.length === 0 && (
+        <p className="px-3 py-4 text-xs text-gray-400">No runs yet. Run the workflow to see it here.</p>
+      )}
+      <ul className={`divide-y divide-gray-50 ${bare ? "" : "max-h-[420px] overflow-y-auto"}`}>
+        {workOrders.map((order) => (
+          <li key={order.id}>
+            <WorkOrderRow workOrder={order} expanded={isOpen(order)} onToggle={toggle} />
+            {isOpen(order) && (
+              <ul className="pb-1">
+                {order.runs.map((run) => (
+                  <li key={run.runId}>
+                    <RunRow
+                      run={run}
+                      selected={run.runId === selectedRunId}
+                      latestVersion={latestVersion}
+                      onSelect={onSelectRun}
+                      onDeselect={onDeselectRun}
+                    />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+
+  if (bare) {
+    return (
+      <div>
+        {list}
+        {footer}
+      </div>
+    );
+  }
 
   return (
     <div className="w-80 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
@@ -73,35 +117,7 @@ export default function RecentHistoryPanel({
         </div>
       </div>
 
-      {!collapsed && (
-        <>
-          {workOrders.length === 0 && (
-            <p className="px-3 py-4 text-xs text-gray-400">No runs yet. Run the workflow to see it here.</p>
-          )}
-          <ul className="max-h-[420px] divide-y divide-gray-50 overflow-y-auto">
-            {workOrders.map((order) => (
-              <li key={order.id}>
-                <WorkOrderRow workOrder={order} expanded={isOpen(order)} onToggle={toggle} />
-                {isOpen(order) && (
-                  <ul className="pb-1">
-                    {order.runs.map((run) => (
-                      <li key={run.runId}>
-                        <RunRow
-                          run={run}
-                          selected={run.runId === selectedRunId}
-                          latestVersion={latestVersion}
-                          onSelect={onSelectRun}
-                          onDeselect={onDeselectRun}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+      {!collapsed && list}
 
       {footer}
     </div>

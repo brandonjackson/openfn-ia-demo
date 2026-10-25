@@ -28,3 +28,8 @@ export const Inline: Story = {
   ),
   args: { to: "/connected-systems", children: "system", variant: "inline" },
 };
+
+/** An external link, opened in a new tab, e.g. to adaptor docs. */
+export const External: Story = {
+  args: { href: "https://docs.openfn.org/adaptors", children: "Adaptor docs", variant: "action" },
+};

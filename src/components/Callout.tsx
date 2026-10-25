@@ -17,21 +17,23 @@ interface Props {
   /** Overrides the variant's default icon. */
   icon?: LucideIcon;
   children?: ReactNode;
+  /** Tighter padding, for narrow places like an editor panel. */
+  compact?: boolean;
 }
 
 /**
  * Highlighted message box: notices, warnings and danger zones.
  */
-export default function Callout({ variant = "info", title, icon, children }: Props) {
+export default function Callout({ variant = "info", title, icon, children, compact = false }: Props) {
   const s = styles[variant];
   const Icon = icon ?? s.Icon;
   return (
-    <div data-ui="callout" data-tone={variant} className={`rounded-lg px-5 py-4 ${s.box}`}>
-      <div className="flex items-start gap-3">
-        <Icon size={18} className={`flex-shrink-0 mt-0.5 ${s.icon}`} />
+    <div data-ui="callout" data-tone={variant} className={`rounded-lg ${compact ? "px-3 py-2.5" : "px-5 py-4"} ${s.box}`}>
+      <div className={`flex items-start ${compact ? "gap-2" : "gap-3"}`}>
+        <Icon size={compact ? 15 : 18} className={`flex-shrink-0 mt-0.5 ${s.icon}`} />
         <div className="flex-1 min-w-0">
           <h3 className={`text-sm font-semibold ${s.title}`}>{title}</h3>
-          {children && <div className={`mt-1 text-sm space-y-3 ${s.body}`}>{children}</div>}
+          {children && <div className={`mt-1 space-y-3 ${compact ? "text-xs" : "text-sm"} ${s.body}`}>{children}</div>}
         </div>
       </div>
     </div>

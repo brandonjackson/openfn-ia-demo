@@ -19,3 +19,6 @@ export default meta;
 type Story = StoryObj<typeof LogConsole>;
 
 export const Default: Story = { args: { lines: sampleRun.logs } };
+
+/** Header-less and light, as inside the editor's Run tray. */
+export const Light: Story = { args: { lines: sampleRun.logs, tone: "light" } };

@@ -60,8 +60,8 @@ function resolveWorkflow(workflowId?: string, version = "latest"): Workflow {
  * Full-screen route that drops the prototype's standard sidebar/chrome and
  * shows the workflow editor on its own, mirroring the real Lightning editor.
  * Opened from anywhere a workflow is opened (e.g. a project's components list)
- * via `/workflow-editor/:workflowId`, or blank via `/workflow-editor/new`. A back control in the top-left corner
- * returns you to the workflows list of the workflow's project.
+ * via `/workflow-editor/:workflowId`, or blank via `/workflow-editor/new`. "Back to …" in the editor's
+ * Fn menu returns you to the workflows list of the workflow's project.
  *
  * The selected run is kept in the URL as `?run=<id>`, so a link to a run opens
  * the editor with that run on the canvas.
@@ -93,6 +93,7 @@ export default function WorkflowEditorPage() {
   return (
     <div className="h-screen">
       <WorkflowEditorTemplate
+        key={isNew ? `new:${searchParams.get("project")}:${searchParams.get("channel")}` : workflow.id}
         workflow={workflow}
         workOrders={isNew ? [] : workOrders}
         dataclips={isNew ? [] : dataclips}

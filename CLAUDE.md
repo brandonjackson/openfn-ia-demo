@@ -21,7 +21,11 @@ The app is built from a component library, and Storybook is its catalogue.
 - **Need something that doesn't exist yet? Create the component first**, add its story, then use it in the template. If an existing component is close, extend it (add a prop or variant) rather than copying it.
 - Settings pages use `SettingsLayout` (breadcrumbs, title, `SettingsNav` side menu, content). Reuse it for any new settings-style page.
 
-Existing building blocks to reach for: `PageHeader` (top of every page), `Button`, `Card`, `SectionHeading`, `FormField`, `FormControls` (`TextInput`, `TextArea`, `Select`, `RadioOption`), `ToggleSwitch`, `DataTable`, `ListRow`, `ChannelRow`, `SegmentedControl`, `Badge`, `Callout`, `EmptyState`, `ProgressBar`, `TextLink`, `SettingsNav`, `SettingsLayout`, `Breadcrumbs`. Button labels use sentence case ("New workflow", not "New Workflow").
+Existing building blocks to reach for: `PageHeader` (top of every page), `Button`, `IconToggleButton`, `Card`, `SectionHeading`, `FormField`, `FormControls` (`TextInput`, `TextArea`, `Select`, `RadioOption`), `ToggleSwitch`, `DataTable`, `ListRow`, `ChannelRow`, `SegmentedControl` (`boxed` filters, `pill` view switchers), `DropdownMenu` (actions from any trigger), `MenuButton`, `Picker`, `Modal`, `ConfirmModal`, `Badge`, `Callout`, `EmptyState`, `ProgressBar`, `TextLink`, `SettingsNav`, `SettingsLayout`, `Breadcrumbs`. Button labels use sentence case ("New workflow", not "New Workflow").
+
+### Workflow editor
+
+The editor (`src/components/workflow/`) is built from `EditorShell` (toolbar + main surface + right and bottom tray docks), `EditorToolbar` (the `Fn` `WorkflowFileMenu`, `SandboxChip`, version `Picker`, Canvas/Code/Runs switcher, tray toggles, `RunMenuButton`) and `EditorTray`. **Anything that opens beside or under the canvas or code is a tray**: give it a `TrayId` in `WorkflowEditorTemplate`, a default placement, and render it inside `EditorTray` so it gets the shared header, tabs, dock control and close button. Code mode is `CodeWorkspace` (`EditorExplorer` on the left, `CodePaneHeader` + `CodeEditor` + `EditorStatusBar` in the middle, the open item's settings on the right: `StepConfigPanel`, `TriggerConfigPanel` or `WorkflowSettingsPanel`). Adaptor snippets live in `src/mock-data/adaptor-reference.ts` and surface through `StepConfigPanel` and `AdaptorReferencePanel`.
 
 ## Storybook
 

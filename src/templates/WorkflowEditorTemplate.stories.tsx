@@ -14,9 +14,13 @@ const meta: Meta<typeof WorkflowEditorTemplate> = {
     workOrders,
     dataclips,
     graphForVersion: nationalIdWorkflowAt,
+    projectName: "Project A",
     sandboxes: projects[0].sandboxes,
     versions: workflowVersions,
     assistantConversations,
+    url: "https://app.openfn.org/i/8f3c2a1e",
+    onBack: () => {},
+    onSeeDetails: () => {},
   },
   decorators: [
     (Story) => (
@@ -30,43 +34,78 @@ const meta: Meta<typeof WorkflowEditorTemplate> = {
 export default meta;
 type Story = StoryObj<typeof WorkflowEditorTemplate>;
 
+/** On main: the canvas, read-only, with "Edit in sandbox" as the main action. */
 export const Default: Story = {};
 
-export const WithBackButton: Story = {
-  args: { onBack: () => {} },
+/** A step selected on the canvas opens the step tray along the bottom. */
+export const StepSelected: Story = {
+  args: { initialSelectedId: "search", initialTrays: ["step"] },
 };
 
-export const WithJobSelected: Story = {
-  args: { initialSelectedId: "search" },
+/** The history tray docked on the right. */
+export const HistoryOpen: Story = {
+  args: { initialTrays: ["history"] },
 };
 
 /** A run selected from history, drawn on the canvas. */
 export const RunSelected: Story = {
-  args: { runId: sampleRun.runId },
+  args: { runId: sampleRun.runId, initialTrays: ["history"] },
 };
 
-export const FailedRunSelected: Story = {
-  args: { runId: failedRun.runId },
+/** A failed run, with the failed step's log in the step tray. */
+export const FailedRunStepOpen: Story = {
+  args: { runId: failedRun.runId, initialSelectedId: "create", initialTrays: ["step"] },
 };
 
 /** A v1 run shown on the latest graph, with the banner offering the version that ran. */
 export const OlderRunSelected: Story = {
-  args: { runId: olderRun.runId },
+  args: { runId: olderRun.runId, initialTrays: ["history"] },
 };
 
 /** The same v1 run, viewed as executed. */
 export const OlderRunAsExecuted: Story = {
-  args: { runId: olderRun.runId, initialVersion: olderRun.version },
+  args: { runId: olderRun.runId, initialVersion: olderRun.version, initialTrays: ["history"] },
 };
 
-export const JobExpanded: Story = {
-  name: "Job expanded (code editor)",
-  args: { initialSelectedId: "search", initialExpandedId: "search" },
+/** Code mode on main: explorer, read-only code and the step's settings. */
+export const CodeReadOnly: Story = {
+  args: { initialView: "code", initialFile: { stepId: "search" } },
 };
 
-/** The expanded job follows its step in the selected run. */
-export const JobExpandedFollowingRun: Story = {
-  args: { initialSelectedId: "create", initialExpandedId: "create", runId: failedRun.runId },
+/** Code mode in a sandbox: everything editable, with the assistant open. */
+export const CodeInSandbox: Story = {
+  args: {
+    sandbox: projects[0].sandboxes[1],
+    initialView: "code",
+    initialFile: { stepId: "create" },
+    initialTrays: ["assistant"],
+  },
+};
+
+/** Code mode following a run: the step's output sits under its code. */
+export const CodeFollowingRun: Story = {
+  args: {
+    sandbox: projects[0].sandboxes[1],
+    initialView: "code",
+    initialFile: { stepId: "create" },
+    runId: failedRun.runId,
+    initialTrays: ["step"],
+  },
+};
+
+/** The workflow's settings beside its YAML. */
+export const WorkflowSettings: Story = {
+  args: { initialView: "code", initialFile: "workflow", sandbox: projects[0].sandboxes[1] },
+};
+
+/** The adaptor reference tray beside the code. */
+export const AdaptorReference: Story = {
+  args: { initialView: "code", initialFile: { stepId: "search" }, initialTrays: ["docs"], sandbox: projects[0].sandboxes[1] },
+};
+
+/** The Runs view: every run in a table. */
+export const Runs: Story = {
+  args: { initialView: "runs", runId: sampleRun.runId },
 };
 
 export const InSandbox: Story = {
@@ -84,15 +123,10 @@ export const EditInSandboxFromRun: Story = {
 
 /** A brand-new workflow with no history. */
 export const NewWorkflow: Story = {
-  args: { workOrders: [], versions: [], graphForVersion: undefined },
+  args: { workOrders: [], versions: [], graphForVersion: undefined, sandbox: projects[0].sandboxes[1] },
 };
 
-/** The AI Assistant tray open beside the canvas, on the workflow's conversations. */
+/** The assistant tray open beside the canvas, on the workflow's conversations. */
 export const AssistantOpen: Story = {
-  args: { defaultAssistantOpen: true },
-};
-
-/** With a job expanded, the assistant is about that job's code. */
-export const AssistantOpenInJobEditor: Story = {
-  args: { defaultAssistantOpen: true, initialExpandedId: "search", runId: sampleRun.runId },
+  args: { initialTrays: ["assistant"] },
 };

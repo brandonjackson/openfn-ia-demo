@@ -13,12 +13,23 @@ interface Props<T> {
   getRowKey: (row: T) => string;
   /** Shown in place of the table body when there are no rows. */
   emptyMessage?: string;
+  /** Makes rows clickable, e.g. to select a run. */
+  onRowClick?: (row: T) => void;
+  /** Tints the selected row when rows are clickable. */
+  selectedKey?: string;
 }
 
 /**
  * Bordered table for lists of records (credentials, collaborators, tokens).
  */
-export default function DataTable<T>({ columns, rows, getRowKey, emptyMessage = "Nothing here yet." }: Props<T>) {
+export default function DataTable<T>({
+  columns,
+  rows,
+  getRowKey,
+  emptyMessage = "Nothing here yet.",
+  onRowClick,
+  selectedKey,
+}: Props<T>) {
   return (
     <div data-ui="table" className="overflow-hidden rounded-lg border border-gray-200 bg-white">
       <table className="w-full">
@@ -45,7 +56,14 @@ export default function DataTable<T>({ columns, rows, getRowKey, emptyMessage = 
             </tr>
           ) : (
             rows.map((row) => (
-              <tr key={getRowKey(row)} className="hover:bg-gray-50">
+              <tr
+                key={getRowKey(row)}
+                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                aria-selected={onRowClick ? getRowKey(row) === selectedKey : undefined}
+                className={`${onRowClick ? "cursor-pointer" : ""} ${
+                  getRowKey(row) === selectedKey ? "bg-blue-50" : "hover:bg-gray-50"
+                }`}
+              >
                 {columns.map((col) => (
                   <td
                     key={col.key}

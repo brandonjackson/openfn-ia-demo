@@ -1,0 +1,152 @@
+import type { ReactNode } from "react";
+import { Play, RotateCcw } from "lucide-react";
+import type { JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../mock-data/workflow";
+import { workflowToYaml } from "../../mock-data/workflow";
+import { adaptorInfo } from "../../mock-data/adaptor-reference";
+import type { Snippet } from "../../mock-data/adaptor-reference";
+import Button from "../Button";
+import EditorExplorer from "./EditorExplorer";
+import type { ExplorerFile } from "./EditorExplorer";
+import CodePaneHeader from "./CodePaneHeader";
+import CodeEditor from "./CodeEditor";
+import EditorStatusBar from "./EditorStatusBar";
+import StepConfigPanel from "./StepConfigPanel";
+import type { StepChanges } from "./StepConfigPanel";
+import TriggerConfigPanel from "./TriggerConfigPanel";
+import WorkflowSettingsPanel from "./WorkflowSettingsPanel";
+
+interface Props {
+  workflow: Workflow;
+  file: ExplorerFile;
+  onOpen: (file: ExplorerFile) => void;
+  /** The selected run; steps show how they went and can be retried from. */
+  run?: RunDetails;
+  /** On main nothing can be changed. */
+  readOnly?: boolean;
+  /** The URL that starts the workflow, shown on the trigger. */
+  url?: string;
+  live?: boolean;
+  onToggleLive?: (live: boolean) => void;
+  settings: WorkflowSettings;
+  onSettingsChange?: (settings: WorkflowSettings) => void;
+  /** Each step's credential, by step id. */
+  credentials?: Record<string, string | undefined>;
+  onStepChange?: (stepId: string, changes: StepChanges) => void;
+  onInsertSnippet?: (stepId: string, snippet: Snippet) => void;
+  onOpenReference?: () => void;
+  onDeleteStep?: (stepId: string) => void;
+  onAddStep?: () => void;
+  /** Start a fresh run from this step. */
+  onRunFromStep?: (stepId: string) => void;
+  /** Retry the selected run from this step; offered when the run reached it. */
+  onRetryFromStep?: (stepId: string) => void;
+  /** A tray inline under the code, e.g. the step's run output. */
+  bottomTray?: ReactNode;
+  /** A note for the status bar, e.g. "Tested by the assistant". */
+  statusNote?: string;
+}
+
+/**
+ * Code mode: the explorer on the left, the code in the middle under a path
+ * row (no file tabs: the explorer is the list of what can be opened), and
+ * the settings for what's open on the right. A step shows its code and its
+ * settings; the trigger and `workflow.yaml` show the YAML and their
+ * settings. A tray can sit inline under the code.
+ */
+export default function CodeWorkspace({
+  workflow,
+  file,
+  onOpen,
+  run,
+  readOnly = false,
+  url,
+  live = true,
+  onToggleLive,
+  settings,
+  onSettingsChange,
+  credentials = {},
+  onStepChange,
+  onInsertSnippet,
+  onOpenReference,
+  onDeleteStep,
+  onAddStep,
+  onRunFromStep,
+  onRetryFromStep,
+  bottomTray,
+  statusNote,
+}: Props) {
+  const step =
+    typeof file === "object" ? workflow.nodes.find((n): n is JobNode => n.type === "job" && n.id === file.stepId) : undefined;
+  const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
+  const yaml = workflowToYaml(workflow);
+  const triggerYaml = yaml.slice(yaml.indexOf("triggers:"), yaml.indexOf("edges:")).trimEnd();
+  const stepInRun = step ? run?.steps.find((s) => s.jobId === step.id) : undefined;
+  const canRetry = Boolean(step && stepInRun && run && run.status !== "running");
+
+  const path =
+    step !== undefined
+      ? [workflow.name, "Steps", step.label]
+      : file === "trigger" && trigger
+        ? [workflow.name, "Trigger", trigger.label]
+        : [workflow.name, "workflow.yaml"];
+
+  const actions = step && (
+    <>
+      {canRetry && onRetryFromStep ? (
+        <Button variant="secondary" size="xs" icon={RotateCcw} onClick={() => onRetryFromStep(step.id)} title="Run this step's input again, on the latest version">
+          Retry from here
+        </Button>
+      ) : (
+        onRunFromStep && (
+          <Button variant="secondary" size="xs" icon={Play} onClick={() => onRunFromStep(step.id)}>
+            Run from here
+          </Button>
+        )
+      )}
+    </>
+  );
+
+  const statusItems = step
+    ? [`${step.adaptor}@${adaptorInfo[step.adaptor].version}`, step.label]
+    : file === "trigger" && trigger
+      ? [trigger.triggerType, trigger.label]
+      : ["workflow.yaml"];
+  const statusTrailing = [statusNote, readOnly ? "Read-only" : "Saved"].filter(Boolean) as string[];
+
+  return (
+    <div className="flex h-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="w-64 flex-none border-r border-gray-100">
+        <EditorExplorer workflow={workflow} file={file} onOpen={onOpen} run={run} onAddStep={readOnly ? undefined : onAddStep} />
+      </div>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <CodePaneHeader path={path} actions={actions} />
+        <div className="min-h-0 flex-1 overflow-hidden">
+          <CodeEditor code={step ? step.body : file === "trigger" ? triggerYaml : yaml} />
+        </div>
+        {bottomTray}
+        <EditorStatusBar items={statusItems} trailing={statusTrailing} />
+      </div>
+
+      <div className="w-80 flex-none border-l border-gray-100">
+        {step ? (
+          <StepConfigPanel
+            key={step.id}
+            step={step}
+            workflow={workflow}
+            credentialId={credentials[step.id]}
+            readOnly={readOnly}
+            onChange={onStepChange ? (changes) => onStepChange(step.id, changes) : undefined}
+            onInsertSnippet={onInsertSnippet ? (s) => onInsertSnippet(step.id, s) : undefined}
+            onOpenReference={onOpenReference}
+            onDelete={onDeleteStep ? () => onDeleteStep(step.id) : undefined}
+          />
+        ) : file === "trigger" && trigger ? (
+          <TriggerConfigPanel trigger={trigger} url={url} readOnly={readOnly} live={live} onToggleLive={onToggleLive} />
+        ) : (
+          <WorkflowSettingsPanel workflow={workflow} settings={settings} readOnly={readOnly} onChange={onSettingsChange} />
+        )}
+      </div>
+    </div>
+  );
+}

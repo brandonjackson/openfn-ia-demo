@@ -44,6 +44,9 @@ export const AddedDoc: Story = {
   args: { docs: ["untitled.md"], file: { docName: "untitled.md" }, onAddDoc: () => {}, onAddStep: () => {}, onAddComponent: () => {} },
 };
 
+/** A workflow behind a published service lists its listing after the plan and spec. */
+export const ServiceListing: Story = { args: { hasService: true, file: "service" } };
+
 /** With a run selected, each step shows how it went. */
 export const FollowingRun: Story = { args: { run: failedRun, file: { stepId: "create" } } };
 

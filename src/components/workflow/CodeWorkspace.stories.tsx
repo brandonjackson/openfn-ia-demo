@@ -59,6 +59,9 @@ export const Trigger: Story = { args: { file: "trigger", onToggleLive: () => {} 
 
 export const PlanDocument: Story = { args: { file: "plan" } };
 
+/** The listing of the published service the workflow backs, after the plan and spec. */
+export const ServiceListing: Story = { args: { file: "service", service: projects[0].services[0], onOpenService: () => {} } };
+
 export const ExplorerHidden: Story = { args: { showExplorer: false } };
 
 /** The details column on its Reference view, with expanded snippets. */

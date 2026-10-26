@@ -119,6 +119,7 @@ export default function WorkflowEditorPage() {
         onViewAllSandboxes={project ? () => navigate(`/projects/${project.id}/sandboxes`) : undefined}
         versions={isNew ? [] : workflowVersions}
         url={service?.url}
+        service={service?.service}
         onSeeDetails={service ? () => navigate(service.path) : undefined}
         assistantConversations={isNew ? [] : assistantConversations}
       />

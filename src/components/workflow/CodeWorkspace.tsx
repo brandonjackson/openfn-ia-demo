@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
-import { BookOpen, Calendar, ExternalLink, FolderKanban, Play, RotateCcw, User } from "lucide-react";
+import { BookOpen, Calendar, ExternalLink, FolderKanban, Play, Radio, RotateCcw, User } from "lucide-react";
 import type { AdaptorKind, JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../mock-data/workflow";
 import type { DetailsViewId } from "../../editor-layout";
 import { workflowToYaml } from "../../mock-data/workflow";
 import { adaptorInfo } from "../../mock-data/adaptor-reference";
 import type { Snippet } from "../../mock-data/adaptor-reference";
-import type { ProjectComponent } from "../../mock-data/projects";
-import { componentPreview, workflowDocs } from "../../mock-data/workflow-files";
+import type { ProjectComponent, ProjectService } from "../../mock-data/projects";
+import { componentPreview, serviceListing, workflowDocs } from "../../mock-data/workflow-files";
 import { componentTypeIcons } from "../../component-types";
 import Button from "../Button";
 import Badge from "../Badge";
@@ -34,6 +34,10 @@ interface Props {
   components?: ProjectComponent[];
   /** Opens a component's page in the project. */
   onOpenComponent?: (componentId: string) => void;
+  /** The published service the workflow backs, listed as service.md. */
+  service?: ProjectService;
+  /** Opens the service's listing page. */
+  onOpenService?: () => void;
   /** On main nothing can be changed. */
   readOnly?: boolean;
   /** The URL that starts the workflow, shown on the trigger. */
@@ -92,6 +96,8 @@ export default function CodeWorkspace({
   run,
   components = [],
   onOpenComponent,
+  service,
+  onOpenService,
   readOnly = false,
   url,
   live = true,
@@ -126,6 +132,7 @@ export default function CodeWorkspace({
   const component =
     typeof file === "object" && "componentId" in file ? components.find((c) => c.id === file.componentId) : undefined;
   const doc = file === "plan" ? "plan" : file === "spec" ? "spec" : undefined;
+  const listing = file === "service" ? service : undefined;
   const addedDoc = typeof file === "object" && "docName" in file ? file.docName : undefined;
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
   const yaml = workflowToYaml(workflow);
@@ -140,7 +147,7 @@ export default function CodeWorkspace({
         ? [workflow.name, "Components", component.name]
         : file === "trigger" && trigger
           ? [workflow.name, "Steps", trigger.label]
-          : [workflow.name, addedDoc ?? (doc ? `${doc}.md` : "workflow.yaml")];
+          : [workflow.name, addedDoc ?? (doc ? `${doc}.md` : listing ? "service.md" : "workflow.yaml")];
 
   const code = step
     ? step.body
@@ -150,7 +157,9 @@ export default function CodeWorkspace({
         ? triggerYaml
         : doc
           ? workflowDocs[doc]
-          : addedDoc
+          : listing
+            ? serviceListing(listing)
+            : addedDoc
             ? `# ${addedDoc.replace(/\.md$/, "")}\n`
             : yaml;
 
@@ -232,6 +241,25 @@ export default function CodeWorkspace({
         ]}
         showHeader={false}
       />
+    ) : listing ? (
+      <FileDetailsPanel
+        title="service.md"
+        tag={<Badge label={listing.status} />}
+        description="The listing other teams see in the service catalog: how to call the service and what it returns."
+        properties={[
+          { icon: BookOpen, label: "Service", value: listing.name },
+          ...(listing.api ? [{ icon: Radio, label: "Trigger", value: listing.api.trigger === "webhook" ? "Webhook" : "Schedule" }] : []),
+          { icon: FolderKanban, label: "Project", value: workflow.project },
+        ]}
+        action={
+          onOpenService && (
+            <Button variant="secondary" size="sm" icon={ExternalLink} onClick={onOpenService}>
+              Open listing
+            </Button>
+          )
+        }
+        showHeader={false}
+      />
     ) : addedDoc ? (
       <FileDetailsPanel
         title={addedDoc}
@@ -254,10 +282,10 @@ export default function CodeWorkspace({
       ? [component.type.toLowerCase(), component.name]
       : file === "trigger" && trigger
         ? [trigger.triggerType, trigger.label]
-        : [addedDoc ?? (doc ? `${doc}.md` : "workflow.yaml")];
-  // Components belong to the project, so they're always read-only here.
+        : [addedDoc ?? (doc ? `${doc}.md` : listing ? "service.md" : "workflow.yaml")];
+  // Components and the service listing belong to the project, so they're always read-only here.
   const lineCount = `${code.split("\n").length} lines`;
-  const saveState = readOnly || component ? "Read-only" : step && dirtyStepIds.includes(step.id) ? "Unsaved changes" : "Saved";
+  const saveState = readOnly || component || listing ? "Read-only" : step && dirtyStepIds.includes(step.id) ? "Unsaved changes" : "Saved";
   const statusTrailing = [statusNote, lineCount, saveState].filter(Boolean) as string[];
 
   return (
@@ -270,6 +298,7 @@ export default function CodeWorkspace({
           onOpen={onOpen}
           run={run}
           components={components}
+          hasService={service !== undefined}
           docs={docs}
           onAddDoc={readOnly ? undefined : onAddDoc}
           onAddStep={readOnly ? undefined : onAddStep}
@@ -293,7 +322,7 @@ export default function CodeWorkspace({
             <SegmentedControl
               variant="pill"
               options={[
-                { id: "settings", label: step ? "Settings" : component || doc || addedDoc ? "Details" : "Settings" },
+                { id: "settings", label: step ? "Settings" : component || doc || listing || addedDoc ? "Details" : "Settings" },
                 { id: "reference", label: "Reference" },
               ]}
               value={detailsView}

@@ -1,4 +1,4 @@
-import type { ProjectComponent } from "./projects";
+import type { ProjectComponent, ProjectService } from "./projects";
 
 /**
  * The documents kept alongside a workflow, and previews of the project
@@ -79,4 +79,20 @@ export function componentPreview(component: ProjectComponent): string {
     default:
       return `# ${component.name}\n\n${component.description}`;
   }
+}
+
+/** A published service's listing, as service.md in the code explorer. */
+export function serviceListing(service: ProjectService): string {
+  const api = service.api;
+  const lines = [`# ${service.name}`, "", service.description, "", `Status: ${service.status}`];
+  if (!api) return [...lines, "", "No API published yet. Publishing the service generates one from the workflow.", ""].join("\n");
+  lines.push("", "## How to call it", api.trigger === "webhook" ? `\`${api.invocation}\`` : api.invocation);
+  if (api.auth) lines.push("", `Auth: ${api.auth}`);
+  if (api.inputFields?.length) {
+    lines.push("", "## Input", "| Field | Type | Required | Description |", "| --- | --- | --- | --- |");
+    for (const f of api.inputFields) lines.push(`| ${f.name} | ${f.type} | ${f.required ? "yes" : "no"} | ${f.description} |`);
+  }
+  if (api.requestExample) lines.push("", "## Example request", "```bash", api.requestExample, "```");
+  lines.push("", "## Output", api.outputDescription, "", "```json", api.outputExample, "```", "");
+  return lines.join("\n");
 }

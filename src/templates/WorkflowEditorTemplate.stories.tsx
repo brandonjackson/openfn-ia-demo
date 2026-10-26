@@ -23,6 +23,7 @@ const meta: Meta<typeof WorkflowEditorTemplate> = {
     assistantConversations,
     url: "https://app.openfn.org/i/8f3c2a1e",
     onBack: () => {},
+    service: projects[0].services[0],
     onSeeDetails: () => {},
   },
   decorators: [
@@ -116,6 +117,11 @@ export const CodeFollowingRun: Story = {
 /** The plan document kept with the workflow. */
 export const PlanDocument: Story = {
   args: { initialView: "code", initialFile: "plan" },
+};
+
+/** The listing of the published service the workflow backs, after the plan and spec. */
+export const ServiceListing: Story = {
+  args: { initialView: "code", initialFile: "service" },
 };
 
 /** A collection the workflow uses, opened from the explorer's Components group. */

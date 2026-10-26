@@ -66,6 +66,7 @@ export default function AdaptorReferencePanel({ adaptor, onInsert, stepLabel }: 
             Click a snippet to insert it at the cursor in <span className="font-medium text-gray-700">{stepLabel}</span>.
           </p>
         )}
+        {!onInsert && <p className="text-xs text-gray-500">Read-only. Edit in a sandbox to insert snippets.</p>}
         {snippets.map((s) => (
           <SnippetCard key={s.id} snippet={s} onInsert={onInsert} />
         ))}

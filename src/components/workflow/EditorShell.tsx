@@ -6,6 +6,8 @@ interface Props {
   children: ReactNode;
   /** A bar centred over the top of the main surface, e.g. the canvas's runs bar. */
   top?: ReactNode;
+  /** A bar pinned to the bottom of the main surface, e.g. main's read-only notice on the canvas. */
+  bottom?: ReactNode;
   /**
    * A tray docked to the right, full height beside everything else, the
    * toolbar included. Keep passing it while closed so it can slide out.
@@ -24,8 +26,8 @@ interface Props {
 
 /**
  * The editor's frame: the toolbar across the top, the main surface below it
- * on the dotted canvas background, with a bar centred over its top and a
- * card floating over its right. The right tray is the outermost column and
+ * on the dotted canvas background, with a bar centred over its top, one
+ * pinned to its bottom and a card floating over its right. The right tray is the outermost column and
  * runs the full height, so it sits to the right of the toolbar too; it
  * slides in and out rather than popping. The main surface and the tray are
  * plain slots, so canvas and code share one layout.
@@ -34,6 +36,7 @@ export default function EditorShell({
   toolbar,
   children,
   top,
+  bottom,
   rightTray,
   rightTrayOpen = true,
   rightTrayWidthClass = "w-[400px]",
@@ -55,6 +58,7 @@ export default function EditorShell({
           <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
           {rightOverlay && <div className="absolute bottom-4 right-4 top-3 z-30 flex items-start justify-end">{rightOverlay}</div>}
           {top && <div className="pointer-events-none absolute inset-x-4 top-3 z-40 flex justify-center [&>*]:pointer-events-auto">{top}</div>}
+          {bottom && <div className="pointer-events-none absolute inset-x-4 bottom-4 z-40 flex justify-center [&>*]:pointer-events-auto">{bottom}</div>}
         </div>
       </div>
       {rightTray !== undefined && (

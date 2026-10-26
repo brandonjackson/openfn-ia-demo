@@ -111,7 +111,7 @@ export default function CodeWorkspace({
   bottomTray,
   showExplorer = true,
   showDetails = true,
-  detailsView = "config",
+  detailsView = "snippets",
   onDetailsViewChange,
   layoutMenu,
   statusNote,

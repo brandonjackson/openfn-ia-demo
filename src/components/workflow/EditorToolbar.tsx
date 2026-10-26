@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
-import { FlaskConical, GitMerge, Lock, Sparkles } from "lucide-react";
+import { FlaskConical, GitMerge, Sparkles } from "lucide-react";
 import type { RunDetails, WorkflowVersion } from "../../mock-data/workflow";
 import { versionOptions } from "../../mock-data/workflow";
 import Button from "../Button";
@@ -72,7 +72,7 @@ interface Props {
  * history (renaming lives in the Fn menu, or press R in a sandbox). While a
  * run is loaded, the title is just the name and a light blue run chip follows
  * the sandbox; its X closes the run. In the middle the view switcher flips between
- * Canvas and Code; on main it's marked read-only. On the right sit the run
+ * Canvas and Code. On the right sit the run
  * button and the main action ("Edit in sandbox" on main, "Go live" in a
  * sandbox), then the assistant button in a group of its own. The button hands
  * over to the assistant tray: while the tray slides in from the right, the
@@ -233,14 +233,6 @@ export default function EditorToolbar({
 
       {/* View switcher */}
       <div className={`${group} flex-none px-1.5`}>
-        {onMain && (
-          <span
-            className="mr-1 inline-flex items-center gap-1 px-2 font-mono text-[11px] uppercase tracking-widest text-gray-400"
-            title="main is read-only. Edit in a sandbox to make changes."
-          >
-            <Lock size={11} /> Read-only
-          </span>
-        )}
         <SegmentedControl variant="pill" size="md" options={editorViews} value={view} onChange={(v) => onViewChange(v as EditorView)} />
       </div>
 

@@ -20,5 +20,5 @@ type Story = StoryObj<typeof SnippetCard>;
 
 export const Insertable: Story = {};
 
-/** On main, or with nothing editable open: just the reference. */
-export const ReadOnly: Story = { args: { onInsert: undefined } };
+/** On main, or with nothing editable open: greyed out, with a not-allowed cursor. */
+export const Disabled: Story = { args: { onInsert: undefined } };

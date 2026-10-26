@@ -17,6 +17,7 @@ import AdaptorReferencePanel from "./AdaptorReferencePanel";
 import EditorExplorer from "./EditorExplorer";
 import type { ExplorerFile } from "./EditorExplorer";
 import CodePaneHeader from "./CodePaneHeader";
+import ReadOnlyNotice from "./ReadOnlyNotice";
 import CodeEditor from "./CodeEditor";
 import type { CodeEditorHandle } from "./CodeEditor";
 import EditorStatusBar from "./EditorStatusBar";
@@ -281,7 +282,18 @@ export default function CodeWorkspace({
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <CodePaneHeader path={path} leading={adaptorPill} actions={!showDetails ? layoutMenu : undefined} />
+        <CodePaneHeader
+          path={path}
+          leading={adaptorPill}
+          actions={
+            readOnly || !showDetails ? (
+              <>
+                {readOnly && <ReadOnlyNotice variant="tag" />}
+                {!showDetails && layoutMenu}
+              </>
+            ) : undefined
+          }
+        />
         <div className="min-h-0 flex-1 overflow-hidden">
           <CodeEditor
             ref={editor}

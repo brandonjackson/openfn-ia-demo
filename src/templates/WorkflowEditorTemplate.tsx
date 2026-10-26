@@ -36,6 +36,7 @@ import StepRunDetails from "../components/workflow/StepRunDetails";
 import StepInspector from "../components/workflow/StepInspector";
 import type { InspectorSection } from "../components/workflow/StepInspector";
 import CanvasRunsBar from "../components/workflow/CanvasRunsBar";
+import ReadOnlyNotice from "../components/workflow/ReadOnlyNotice";
 import FailureBreakdown from "../components/workflow/FailureBreakdown";
 import type { FailureScope } from "../components/workflow/FailureBreakdown";
 import RunHistoryList from "../components/workflow/RunHistoryList";
@@ -825,6 +826,7 @@ export default function WorkflowEditorTemplate({
       toolbar={toolbar}
       sandboxed={!onMain}
       top={runsBar}
+      bottom={view === "canvas" && onMain ? <ReadOnlyNotice onEditInSandbox={() => setEditInSandboxOpen(true)} /> : undefined}
       rightTray={rightTray}
       rightTrayOpen={layout.assistant}
       rightOverlay={inspector}

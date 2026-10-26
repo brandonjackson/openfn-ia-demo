@@ -3,6 +3,7 @@ import { History } from "lucide-react";
 import EditorShell from "./EditorShell";
 import EditorTray from "./EditorTray";
 import WorkflowCanvas from "./WorkflowCanvas";
+import ReadOnlyNotice from "./ReadOnlyNotice";
 import CanvasRunsBar from "./CanvasRunsBar";
 import { nationalIdWorkflow } from "../../mock-data/workflow";
 import { runActivity, workOrders } from "../../mock-data/runs";
@@ -61,6 +62,11 @@ export const WithTop: Story = {
       />
     ),
   },
+};
+
+/** Main's read-only notice pinned to the bottom of the main surface. */
+export const WithBottom: Story = {
+  args: { bottom: <ReadOnlyNotice onEditInSandbox={() => {}} /> },
 };
 
 /**

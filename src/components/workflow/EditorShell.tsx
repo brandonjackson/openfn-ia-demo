@@ -17,6 +17,8 @@ interface Props {
   rightTrayWidthClass?: string;
   /** A tray floating over the bottom of the main surface. */
   bottomTray?: ReactNode;
+  /** A card floating over the right of the main surface, e.g. the inspector; it sizes itself. */
+  rightOverlay?: ReactNode;
   /** A small control pinned to the main surface's top-right corner, e.g. the layout menu. */
   corner?: ReactNode;
   /** Draws the amber edge along the top that marks a sandbox. */
@@ -28,7 +30,7 @@ interface Props {
 /**
  * The editor's frame: the toolbar across the top, the main surface below it
  * on the dotted canvas background, a right-docked panel that pushes the main
- * surface over, and a bottom tray floating over it. The right tray is the
+ * surface over, and a bottom tray or a right-hand card floating over it. The right tray is the
  * outermost column and runs the full height, so it sits to the right of the
  * toolbar too; it slides in and out rather than popping. The main surface and
  * both trays are plain slots, so canvas, code and runs views share one layout
@@ -43,6 +45,7 @@ export default function EditorShell({
   rightTrayOpen = true,
   rightTrayWidthClass = "w-[400px]",
   bottomTray,
+  rightOverlay,
   corner,
   sandboxed = false,
   overlays,
@@ -64,6 +67,7 @@ export default function EditorShell({
               <div className="absolute right-4 top-3 z-30 rounded-lg border border-gray-200 bg-white shadow-sm">{corner}</div>
             )}
             {bottomTray && <div className="absolute inset-x-4 bottom-4 z-30">{bottomTray}</div>}
+            {rightOverlay && <div className="absolute bottom-4 right-4 top-3 z-30 flex items-start justify-end">{rightOverlay}</div>}
           </div>
           {rightPanel && <aside className={`flex-none ${rightPanelWidthClass} min-h-0 pt-3`}>{rightPanel}</aside>}
         </div>

@@ -33,6 +33,7 @@ import CodeWorkspace from "../components/workflow/CodeWorkspace";
 import type { ExplorerFile } from "../components/workflow/EditorExplorer";
 import VersionMismatchBanner from "../components/workflow/VersionMismatchBanner";
 import StepRunDetails from "../components/workflow/StepRunDetails";
+import StepInspector from "../components/workflow/StepInspector";
 import RunHistoryList from "../components/workflow/RunHistoryList";
 import StepConfigPanel from "../components/workflow/StepConfigPanel";
 import type { StepChanges } from "../components/workflow/StepConfigPanel";
@@ -104,6 +105,12 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
  * canvas in the panel header (or the canvas corner while the panel is
  * closed). Ctrl/⌘ + B and J toggle the explorer and panel. The layout is
  * remembered across workflows.
+ *
+ * On the canvas, selecting a node brings up the inspector: a small card over
+ * the right edge with the step's name, adaptor and credential (or the
+ * trigger's type, URL and switch) and, with a run loaded, snippets of its
+ * log, input and output that expand to full width. It's the default side UI;
+ * the panel is for when more room is wanted and takes its place while open.
  *
  * The panel along the bottom carries the views that aren't canvas or code:
  * Runs (to load one), the selected Step's settings, its Log, Input and
@@ -307,8 +314,8 @@ export default function WorkflowEditorTemplate({
   const selectNode = (node: WorkflowNode) => {
     const next = selectedId === node.id ? undefined : node.id;
     setSelectedId(next);
-    // Selecting a step brings its settings up, or its log when a run is loaded.
-    if (next) showPanel(selectedRun?.steps.some((s) => s.jobId === next) ? "log" : "step");
+    // The inspector follows the selection; an open panel moves to the step's settings, or its log when a run is loaded.
+    if (next && layout.panel) showPanel(selectedRun?.steps.some((s) => s.jobId === next) ? "log" : "step");
   };
 
   const openInCode = (stepId?: string) => {
@@ -327,8 +334,8 @@ export default function WorkflowEditorTemplate({
     // Stay on an earlier version only if the new run ran on it too.
     if (version !== "latest" && version !== run.version) setVersion("latest");
     setRunId(run.runId);
-    // The panel follows the run for whatever's in focus.
-    if (focusJob && run.steps.some((s) => s.jobId === focusJob.id)) showPanel("log");
+    // An open panel follows the run for whatever's in focus; the inspector does on its own.
+    if (layout.panel && focusJob && run.steps.some((s) => s.jobId === focusJob.id)) showPanel("log");
   };
 
   const deselectRun = () => {
@@ -363,7 +370,7 @@ export default function WorkflowEditorTemplate({
     upsertRun(simulateRun({ ...args, inProgress: true }).run);
     setVersion("latest");
     setRunId(args.runId);
-    if (focusJob) showPanel("log");
+    if (layout.panel && focusJob) showPanel("log");
     setTimeout(() => {
       const done = simulateRun(args);
       upsertRun(done.run);
@@ -619,6 +626,30 @@ export default function WorkflowEditorTemplate({
 
   const layoutMenu = <LayoutMenu layout={layout} onChange={updateLayout} onReset={resetLayout} view={view} />;
 
+  // The inspector is the canvas's side UI while the panel is closed; the panel takes over when opened.
+  const inspector =
+    view === "canvas" && focusNode && !layout.panel ? (
+      <StepInspector
+        key={focusNode.id}
+        node={focusNode}
+        credentialId={focusJob ? edits.credentials[focusJob.id] : undefined}
+        readOnly={onMain}
+        run={selectedRun}
+        dataclips={clips}
+        url={url}
+        live={live}
+        onToggleLive={setLive}
+        onChange={focusJob && !onMain ? (c) => changeStep(focusJob.id, c) : undefined}
+        onOpenCode={focusJob ? () => openInCode(focusJob.id) : undefined}
+        onRunFromHere={focusJob ? () => runFresh(focusJob.id) : undefined}
+        onDelete={focusJob && !onMain ? () => deleteStep(focusJob.id) : undefined}
+        onOpenPanel={showPanel}
+        onBrowseRuns={() => showPanel("runs")}
+        onClose={() => setSelectedId(undefined)}
+        actions={layoutMenu}
+      />
+    ) : undefined;
+
   const panelOnRight = view === "canvas" && layout.canvasPanelDock === "right";
   const panel = layout.panel ? (
     <EditorPanel
@@ -697,7 +728,8 @@ export default function WorkflowEditorTemplate({
       rightTray={rightTray}
       rightTrayOpen={layout.assistant}
       bottomTray={view === "canvas" && !panelOnRight ? panel : undefined}
-      corner={view === "canvas" && !layout.panel ? layoutMenu : undefined}
+      rightOverlay={inspector}
+      corner={view === "canvas" && !layout.panel && !inspector ? layoutMenu : undefined}
       overlays={
         <>
           <RunInputModal open={runInputOpen} onClose={() => setRunInputOpen(false)} dataclips={clips} onRun={runWithInput} />

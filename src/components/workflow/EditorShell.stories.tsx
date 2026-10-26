@@ -78,6 +78,17 @@ export const WithAssistantTray: Story = {
   },
 };
 
+/** A card floating over the right of the canvas, e.g. the inspector. */
+export const WithRightOverlay: Story = {
+  args: {
+    rightOverlay: (
+      <div className="w-[380px] rounded-xl border border-gray-200 bg-white p-4 shadow-xl">
+        <p className="text-sm text-gray-500">Right overlay</p>
+      </div>
+    ),
+  },
+};
+
 export const WithCorner: Story = {
   args: { corner: <span className="block px-2 py-1 text-xs text-gray-500">⋯</span> },
 };

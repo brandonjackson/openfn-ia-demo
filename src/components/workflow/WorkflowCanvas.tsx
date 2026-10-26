@@ -1,5 +1,5 @@
 import type { RunDetails, Workflow, WorkflowNode } from "../../mock-data/workflow";
-import type { RunActivity } from "../../mock-data/runs";
+import type { ActivityPeriod, RunActivity } from "../../mock-data/runs";
 import WorkflowNodeCard, { NODE_HEIGHT, NODE_WIDTH } from "./WorkflowNodeCard";
 import type { NodeAction } from "./WorkflowNodeCard";
 import EdgeBadge from "./EdgeBadge";
@@ -30,9 +30,10 @@ const MAX_EDGE_WIDTH = 12;
  *
  * With `activity` and no run, the run history is laid over the workflow
  * instead: each card shows how many runs reached it and how many failed
- * there (a way into the last failure), and each connector's width is in
- * proportion to the busiest one and flows faster the more runs went along it, with its count beside the
- * badge. A chip at the top-left sums it up and opens the run history.
+ * there (a way into the failures view), and each connector's width is in
+ * proportion to the busiest one and flows faster the more runs went along
+ * it, with its count beside the badge. A chip at the top-left sums it up,
+ * picks the period and opens the run history.
  *
  * This is a static prototype layout — node coordinates come from the workflow
  * data, there is no real pan/zoom or drag yet.
@@ -45,6 +46,7 @@ export default function WorkflowCanvas({
   readOnly = false,
   run,
   activity,
+  onPeriodChange,
   onShowFailures,
   onViewRuns,
   width = 980,
@@ -63,8 +65,10 @@ export default function WorkflowCanvas({
   run?: RunDetails;
   /** The run history to lay over the workflow while no run is shown. */
   activity?: RunActivity;
-  /** Opens the runs that failed at a node, from its failed count. */
-  onShowFailures?: (nodeId: string) => void;
+  /** Changes how far back the activity looks. */
+  onPeriodChange?: (period: ActivityPeriod) => void;
+  /** Opens the failures at a node, from its failed count; without a node, the workflow's. */
+  onShowFailures?: (nodeId?: string) => void;
   /** Opens the run history, from the activity chip. */
   onViewRuns?: () => void;
   width?: number;
@@ -222,7 +226,12 @@ export default function WorkflowCanvas({
 
       {overlay && (
         <div className="absolute left-4 top-3 z-30">
-          <ActivitySummaryChip activity={overlay} onViewRuns={onViewRuns} />
+          <ActivitySummaryChip
+            activity={overlay}
+            onPeriodChange={onPeriodChange}
+            onViewRuns={onViewRuns}
+            onViewFailures={onShowFailures ? () => onShowFailures() : undefined}
+          />
         </div>
       )}
       {showControls && (

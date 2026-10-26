@@ -30,7 +30,7 @@ export const Bare: Story = {
 
 /** The run history laid over the workflow: counts on cards, volume on edges. */
 export const WithActivity: Story = {
-  args: { workflow: nationalIdWorkflow, activity, onShowFailures: () => {}, onViewRuns: () => {} },
+  args: { workflow: nationalIdWorkflow, activity, onPeriodChange: () => {}, onShowFailures: () => {}, onViewRuns: () => {} },
 };
 
 /** A run drawn on the canvas: the path it took, with each step's status. */

@@ -21,3 +21,6 @@ export const WithCount: Story = {
 export const Complete: Story = {
   args: { value: 10, max: 10, showCount: true },
 };
+
+/** A share of a total in red, as in the failures view. */
+export const FailureShare: Story = { args: { value: 2, max: 3, tone: "red" } };

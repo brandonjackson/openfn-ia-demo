@@ -154,6 +154,7 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
       label: label(jobId),
       status,
       duration: done ? duration : "",
+      error: done && failed ? spec.failAt!.error : undefined,
       inputId,
       outputId: done ? outputId : undefined,
     });
@@ -447,6 +448,35 @@ export function simulateRun({
 // Activity: what the run history adds up to, for the canvas overlay.
 // ---------------------------------------------------------------------------
 
+/** How far back the canvas's activity overlay looks. */
+export type ActivityPeriod = "24h" | "7d" | "30d";
+
+export const activityPeriods: { id: ActivityPeriod; label: string; shortLabel: string; hours: number }[] = [
+  { id: "24h", label: "Last 24 hours", shortLabel: "24h", hours: 24 },
+  { id: "7d", label: "Last 7 days", shortLabel: "7d", hours: 24 * 7 },
+  { id: "30d", label: "Last 30 days", shortLabel: "30d", hours: 24 * 30 },
+];
+
+export function activityPeriodLabel(period: ActivityPeriod): string {
+  return activityPeriods.find((p) => p.id === period)?.label ?? period;
+}
+
+/** "Now" for the mock history, the morning its newest runs happened. */
+const MOCK_NOW = new Date(2026, 9, 20, 10, 0, 0).getTime();
+
+/** When a run started, from its "dd/mm/yyyy, HH:MM:SS" stamp. */
+function startedAt(run: RunDetails): number {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})$/.exec(run.started);
+  if (!m) return MOCK_NOW;
+  return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5], +m[6]).getTime();
+}
+
+/** The runs in `workOrders` that started within `period`, newest first. Runs started after the mock's "now" count as just now. */
+export function runsInPeriod(workOrders: WorkOrder[], period: ActivityPeriod): RunDetails[] {
+  const hours = activityPeriods.find((p) => p.id === period)?.hours ?? Infinity;
+  return workOrders.flatMap((o) => o.runs).filter((r) => Math.max(0, MOCK_NOW - startedAt(r)) <= hours * 3600_000);
+}
+
 export interface NodeActivity {
   /** Runs that reached the node. */
   runs: number;
@@ -458,8 +488,7 @@ export interface NodeActivity {
 
 /** The run history summed up per node and edge of a workflow. */
 export interface RunActivity {
-  /** What period the numbers cover, e.g. "Last 7 days". */
-  period: string;
+  period: ActivityPeriod;
   runs: number;
   failed: number;
   /** Keyed by node id; the trigger counts every run that started from it. */
@@ -476,14 +505,14 @@ export interface RunActivity {
  * edge, taken from the order the steps ran in. Runs still going aren't
  * counted.
  */
-export function runActivity(workflow: Workflow, workOrders: WorkOrder[], period = "Last 7 days"): RunActivity {
+export function runActivity(workflow: Workflow, workOrders: WorkOrder[], period: ActivityPeriod = "7d"): RunActivity {
   const nodes: Record<string, NodeActivity> = {};
   const edges: Record<string, number> = {};
   for (const node of workflow.nodes) nodes[node.id] = { runs: 0, failed: 0 };
   for (const edge of workflow.edges) edges[edge.id] = 0;
   const trigger = workflow.nodes.find((n) => n.type === "trigger");
 
-  const runs = workOrders.flatMap((o) => o.runs).filter((r) => r.status !== "running");
+  const runs = runsInPeriod(workOrders, period).filter((r) => r.status !== "running");
   let failed = 0;
   for (const run of runs) {
     if (run.status === "failed") failed += 1;
@@ -515,4 +544,35 @@ export function runActivity(workflow: Workflow, workOrders: WorkOrder[], period 
     edges,
     busiest: Math.max(0, ...Object.values(edges)),
   };
+}
+
+/** One reason runs failed, with the runs it explains, for the failures view. */
+export interface FailureReason {
+  reason: string;
+  count: number;
+  /** Newest first. */
+  runs: RunDetails[];
+  /** The steps the failure happened at, e.g. "Create new citizen in Identity". */
+  steps: string[];
+}
+
+/**
+ * Why runs failed in `period`, grouped by the error their failing step
+ * raised and ranked by how often it happened. With `jobId`, only failures
+ * at that step; otherwise every failure in the workflow.
+ */
+export function failureReasons(workflow: Workflow, workOrders: WorkOrder[], period: ActivityPeriod, jobId?: string): FailureReason[] {
+  const label = (id: string) => workflow.nodes.find((n) => n.id === id)?.label ?? id;
+  const byReason = new Map<string, FailureReason>();
+  for (const run of runsInPeriod(workOrders, period)) {
+    const step = run.steps.find((s) => s.status === "failed" && (jobId === undefined || s.jobId === jobId));
+    if (!step) continue;
+    const reason = step.error ?? "Failed without an error message";
+    const entry = byReason.get(reason) ?? { reason, count: 0, runs: [], steps: [] };
+    entry.count += 1;
+    entry.runs.push(run);
+    if (!entry.steps.includes(label(step.jobId))) entry.steps.push(label(step.jobId));
+    byReason.set(reason, entry);
+  }
+  return [...byReason.values()].sort((a, b) => b.count - a.count);
 }

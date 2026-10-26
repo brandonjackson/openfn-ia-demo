@@ -5,7 +5,7 @@ import { useSyncExternalStore } from "react";
  * the bottom panel is on. It's remembered across workflows and reloads, so
  * the editor opens the way you left it.
  */
-export type PanelViewId = "runs" | "step" | "log" | "input" | "output";
+export type PanelViewId = "runs" | "failures" | "step" | "log" | "input" | "output";
 
 /** What the right-hand column in code mode shows. */
 export type DetailsViewId = "settings" | "reference";

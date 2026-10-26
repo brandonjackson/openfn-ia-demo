@@ -14,7 +14,8 @@ import type {
 } from "../mock-data/workflow";
 import { defaultWorkflowSettings, workflowToYaml } from "../mock-data/workflow";
 import type { WorkflowSettings } from "../mock-data/workflow";
-import { runActivity, shortId, simulateRun } from "../mock-data/runs";
+import { failureReasons, runActivity, shortId, simulateRun } from "../mock-data/runs";
+import type { ActivityPeriod } from "../mock-data/runs";
 import { adaptorInfo } from "../mock-data/adaptor-reference";
 import type { Snippet } from "../mock-data/adaptor-reference";
 import type { AssistantConversation, AssistantPlan, AssistantReference } from "../mock-data/assistant";
@@ -35,6 +36,8 @@ import type { ExplorerFile } from "../components/workflow/EditorExplorer";
 import VersionMismatchBanner from "../components/workflow/VersionMismatchBanner";
 import StepRunDetails from "../components/workflow/StepRunDetails";
 import StepInspector from "../components/workflow/StepInspector";
+import FailureBreakdown from "../components/workflow/FailureBreakdown";
+import type { FailureScope } from "../components/workflow/FailureBreakdown";
 import RunHistoryList from "../components/workflow/RunHistoryList";
 import StepConfigPanel from "../components/workflow/StepConfigPanel";
 import type { StepChanges } from "../components/workflow/StepConfigPanel";
@@ -118,12 +121,15 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
  * Each node card's ⋮ menu runs from that step, opens the inspector (Edit),
  * opens the assistant with the step loaded as context (Improve) or deletes
  * it. While no run is loaded the run history is laid over the canvas (run
- * and failure counts on cards, volume on edges; the ⋯ menu turns it off),
- * and a card's failed count loads the last run that failed there.
+ * and failure counts on cards, volume on edges; the ⋯ menu turns it off,
+ * and its chip picks the period), and a card's failed count opens the
+ * panel's Failures view: the step's failures by reason, with the runs
+ * behind each.
  *
  * The panel along the bottom carries the views that aren't canvas or code:
- * Runs (to load one), the selected Step's settings, its Log, Input and
- * Output in the loaded run, and the adaptor Reference. Its ⋯ menu chooses
+ * Runs (to load one), Failures (why runs failed, by reason), the selected
+ * Step's settings, its Log, Input and Output in the loaded run, and the
+ * adaptor Reference. Its ⋯ menu chooses
  * which views it shows. On the canvas it docks to the right by default (or
  * floats along the bottom, set from the ⋯ menu); in code mode it sits under
  * the code. The assistant takes the outermost right-hand column.
@@ -445,15 +451,19 @@ export default function WorkflowEditorTemplate({
         }
       : undefined;
 
+  // How far back the activity overlay and the failures view look.
+  const [period, setPeriod] = useState<ActivityPeriod>("7d");
   // The run history summed up over the graph, laid over the canvas while no run is loaded.
-  const activity = layout.canvasActivity && view === "canvas" ? runActivity(graph, orders) : undefined;
+  const activity = layout.canvasActivity && view === "canvas" ? runActivity(graph, orders, period) : undefined;
 
-  /** From a card's failed count: load the last run that failed at that step, with the step in focus. */
-  const showFailures = (nodeId: string) => {
-    const failure = activity?.nodes[nodeId]?.lastFailure;
-    if (!failure) return;
-    setSelectedId(nodeId);
-    selectRun(failure);
+  // Whose failures the Failures view shows: the step in focus or the whole workflow.
+  const [failureScope, setFailureScope] = useState<FailureScope>("workflow");
+
+  /** From a card's failed count (or the chip's): open the Failures view for that step, or the whole workflow. */
+  const showFailures = (nodeId?: string) => {
+    if (nodeId) setSelectedId(nodeId);
+    setFailureScope(nodeId ? "step" : "workflow");
+    showPanel("failures");
   };
 
   const openStep = (step: RunStep) => {
@@ -621,7 +631,7 @@ export default function WorkflowEditorTemplate({
     ...(focusJob && view === "canvas" ? [] : (["step"] as PanelViewId[])),
     ...(selectedRun ? [] : (["log", "input", "output"] as PanelViewId[])),
   ];
-  const visibleViews = (["runs", "step", "log", "input", "output"] as PanelViewId[]).filter(
+  const visibleViews = (["runs", "failures", "step", "log", "input", "output"] as PanelViewId[]).filter(
     (v) => !layout.hiddenViews.includes(v) && !disabledViews.includes(v)
   );
   const panelView = visibleViews.includes(layout.panelView) ? layout.panelView : (visibleViews[0] ?? "runs");
@@ -647,6 +657,9 @@ export default function WorkflowEditorTemplate({
       ) : (
         <span>No run loaded</span>
       );
+    }
+    if (panelView === "failures") {
+      return <span className="truncate">{failureScope === "step" && focusJob ? focusJob.label : "Whole workflow"}</span>;
     }
     if (panelView === "step" && focusNode) {
       return (
@@ -676,6 +689,24 @@ export default function WorkflowEditorTemplate({
             footer={runFooter}
           />
         );
+      case "failures": {
+        const scope: FailureScope = focusJob ? failureScope : "workflow";
+        return (
+          <FailureBreakdown
+            key={`${scope}-${focusJob?.id ?? ""}-${period}`}
+            reasons={failureReasons(graph, orders, period, scope === "step" ? focusJob?.id : undefined)}
+            period={period}
+            onPeriodChange={setPeriod}
+            stepLabel={focusJob?.label}
+            scope={scope}
+            onScopeChange={setFailureScope}
+            selectedRunId={runId}
+            latestVersion={latestVersion}
+            onSelectRun={selectRun}
+            onDeselectRun={deselectRun}
+          />
+        );
+      }
       case "step":
         return focusJob ? (
           <StepConfigPanel
@@ -875,6 +906,7 @@ export default function WorkflowEditorTemplate({
           readOnly={onMain}
           run={selectedRun}
           activity={activity}
+          onPeriodChange={setPeriod}
           onShowFailures={showFailures}
           onViewRuns={() => showPanel("runs")}
           height={760}

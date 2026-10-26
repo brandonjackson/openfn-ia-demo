@@ -29,7 +29,15 @@ const systemColumns: DataTableColumn<SystemStatus>[] = [
 ];
 
 const workflowColumns: DataTableColumn<WorkflowStatus>[] = [
-  { key: "name", header: "Workflow", render: (w) => <span className="font-mono text-gray-900">{w.name}</span> },
+  {
+    key: "name",
+    header: "Workflow",
+    render: (w) => (
+      <span className="font-mono">
+        <TextLink to={`/workflow-editor/${w.id}`}>{w.name}</TextLink>
+      </span>
+    ),
+  },
   {
     key: "project",
     header: "Project",

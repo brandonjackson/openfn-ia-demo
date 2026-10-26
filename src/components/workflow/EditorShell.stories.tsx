@@ -46,6 +46,10 @@ export const WithTrays: Story = {
   },
 };
 
+export const WithCorner: Story = {
+  args: { corner: <span className="block px-2 py-1 text-xs text-gray-500">⋯</span> },
+};
+
 export const Sandboxed: Story = {
   args: { sandboxed: true },
 };

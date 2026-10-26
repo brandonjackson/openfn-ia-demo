@@ -98,9 +98,12 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
  * The toolbar's Fn menu holds the workflow's file actions (rename, settings,
  * sandbox and promotion, export, pause, delete) and the way back to the
  * project. The view switcher flips between the canvas and code (explorer,
- * code and the open item's settings). Layout toggles at the right show or
- * hide the explorer (Ctrl/⌘ + B), the panel (Ctrl/⌘ + J) and the assistant
- * (Ctrl/⌘ + K); the layout is remembered across workflows.
+ * code and the open item's settings). The assistant toggle sits on its own
+ * at the far right (Ctrl/⌘ + K). Everything else about the layout is set
+ * from the ⋯ menu: at the top-right corner of the code area, or on the
+ * canvas in the panel header (or the canvas corner while the panel is
+ * closed). Ctrl/⌘ + B and J toggle the explorer and panel. The layout is
+ * remembered across workflows.
  *
  * The panel along the bottom carries the views that aren't canvas or code:
  * Runs (to load one), the selected Step's settings, its Log, Input and
@@ -672,10 +675,6 @@ export default function WorkflowEditorTemplate({
       onRun={() => runFresh()}
       onRetry={retry}
       onRunWithCustomInput={() => setRunInputOpen(true)}
-      explorerOpen={view === "code" ? layout.explorer : undefined}
-      onToggleExplorer={view === "code" ? toggleExplorer : undefined}
-      panelOpen={layout.panel}
-      onTogglePanel={togglePanel}
       assistantOpen={layout.assistant}
       onToggleAssistant={toggleAssistant}
     />
@@ -687,6 +686,7 @@ export default function WorkflowEditorTemplate({
       sandboxed={!onMain}
       rightTray={rightTray}
       bottomTray={view === "canvas" ? panel : undefined}
+      corner={view === "canvas" && !layout.panel ? layoutMenu : undefined}
       overlays={
         <>
           <RunInputModal open={runInputOpen} onClose={() => setRunInputOpen(false)} dataclips={clips} onRun={runWithInput} />

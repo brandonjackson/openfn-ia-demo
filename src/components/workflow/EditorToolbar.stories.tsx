@@ -11,8 +11,6 @@ function Stateful(args: ComponentProps<typeof EditorToolbar>) {
   const [name, setName] = useState(args.name);
   const [sandbox, setSandbox] = useState(args.sandbox ?? "main");
   const [assistantOpen, setAssistantOpen] = useState(args.assistantOpen ?? false);
-  const [panelOpen, setPanelOpen] = useState(args.panelOpen ?? false);
-  const [explorerOpen, setExplorerOpen] = useState(true);
   return (
     <EditorToolbar
       {...args}
@@ -24,10 +22,6 @@ function Stateful(args: ComponentProps<typeof EditorToolbar>) {
       onSelectSandbox={setSandbox}
       assistantOpen={assistantOpen}
       onToggleAssistant={() => setAssistantOpen((o) => !o)}
-      panelOpen={panelOpen}
-      onTogglePanel={() => setPanelOpen((o) => !o)}
-      explorerOpen={view === "code" ? explorerOpen : undefined}
-      onToggleExplorer={view === "code" ? () => setExplorerOpen((o) => !o) : undefined}
     />
   );
 }
@@ -52,7 +46,6 @@ const meta: Meta<typeof EditorToolbar> = {
     onMenuAction: () => {},
     onNewSandbox: () => {},
     onViewAllSandboxes: () => {},
-    onTogglePanel: () => {},
     onToggleAssistant: () => {},
   },
   render: (args) => <Stateful {...args} />,
@@ -78,9 +71,8 @@ export const RetryAvailable: Story = {
   args: { retry: { step: "Create new citizen in Identity" } },
 };
 
-/** The panel and assistant showing; in code mode the explorer toggle joins them. */
-export const AreasOpen: Story = {
-  args: { assistantOpen: true, panelOpen: true, view: "code" },
+export const AssistantOpen: Story = {
+  args: { assistantOpen: true, view: "code" },
 };
 
 export const Paused: Story = {

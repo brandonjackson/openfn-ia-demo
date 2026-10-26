@@ -9,6 +9,8 @@ interface Props {
   rightTrayWidthClass?: string;
   /** A tray floating over the bottom of the main surface. */
   bottomTray?: ReactNode;
+  /** A small control pinned to the main surface's top-right corner, e.g. the layout menu. */
+  corner?: ReactNode;
   /** Draws the amber edge along the top that marks a sandbox. */
   sandboxed?: boolean;
   /** Anything that sits over everything, e.g. dialogs. */
@@ -28,6 +30,7 @@ export default function EditorShell({
   rightTray,
   rightTrayWidthClass = "w-[400px]",
   bottomTray,
+  corner,
   sandboxed = false,
   overlays,
 }: Props) {
@@ -41,6 +44,9 @@ export default function EditorShell({
       <div className="flex min-h-0 flex-1">
         <div className="relative flex min-w-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 overflow-hidden">{children}</div>
+          {corner && (
+            <div className="absolute right-4 top-3 z-30 rounded-lg border border-gray-200 bg-white shadow-sm">{corner}</div>
+          )}
           {bottomTray && <div className="absolute inset-x-4 bottom-4 z-30">{bottomTray}</div>}
         </div>
         {rightTray && <aside className={`flex-none ${rightTrayWidthClass} min-h-0 pt-3`}>{rightTray}</aside>}

@@ -11,7 +11,6 @@ import WorkflowFileMenu from "./WorkflowFileMenu";
 import type { WorkflowMenuAction } from "./WorkflowFileMenu";
 import SandboxChip from "./SandboxChip";
 import RunMenuButton from "./RunMenuButton";
-import LayoutControls from "./LayoutControls";
 
 /** The editor's main surfaces. */
 export type EditorView = "canvas" | "code";
@@ -49,11 +48,7 @@ interface Props {
   onRun?: () => void;
   onRetry?: () => void;
   onRunWithCustomInput?: () => void;
-  /** Layout toggles: explorer (code mode only), panel and assistant. */
-  explorerOpen?: boolean;
-  onToggleExplorer?: () => void;
-  panelOpen?: boolean;
-  onTogglePanel?: () => void;
+  /** The assistant toggle, in its own group at the far right. */
   assistantOpen?: boolean;
   onToggleAssistant?: () => void;
 }
@@ -64,10 +59,10 @@ interface Props {
  * On the left, a pill holds the Fn file menu, the workflow's name (click it,
  * or press R, to rename in a sandbox), the sandbox chip and, when there is
  * history, the version picker. In the middle the view switcher flips between
- * Canvas and Code; on main it's marked read-only. On the right sit the
- * layout toggles (explorer, panel), the run button and the main action:
- * "Edit in sandbox" on main, "Go live" (promote) in a sandbox. The assistant
- * toggle stands apart at the far right.
+ * Canvas and Code; on main it's marked read-only. On the right sit the run
+ * button and the main action ("Edit in sandbox" on main, "Go live" in a
+ * sandbox), then the assistant toggle in a group of its own. Showing and
+ * hiding the other areas is the ⋯ layout menu's job, not the toolbar's.
  */
 export default function EditorToolbar({
   name,
@@ -92,10 +87,6 @@ export default function EditorToolbar({
   onRun,
   onRetry,
   onRunWithCustomInput,
-  explorerOpen,
-  onToggleExplorer,
-  panelOpen = false,
-  onTogglePanel,
   assistantOpen = false,
   onToggleAssistant,
 }: Props) {
@@ -222,19 +213,9 @@ export default function EditorToolbar({
         <SegmentedControl variant="pill" size="md" options={editorViews} value={view} onChange={(v) => onViewChange(v as EditorView)} />
       </div>
 
-      {/* Layout, run and the main action */}
+      {/* Run and the main action, then the assistant on its own */}
+      <div className="flex items-center gap-3">
       <div className={`${group} gap-1.5 px-1.5`}>
-        {onTogglePanel && (
-          <>
-            <LayoutControls
-              explorerOpen={explorerOpen}
-              onToggleExplorer={onToggleExplorer}
-              panelOpen={panelOpen}
-              onTogglePanel={onTogglePanel}
-            />
-            <span className="mx-0.5 h-6 w-px bg-gray-200" aria-hidden />
-          </>
-        )}
         <RunMenuButton retry={retry} onRun={onRun} onRetry={onRetry} onRunWithCustomInput={onRunWithCustomInput} />
         {onMain ? (
           <Button variant="dark" size="sm" icon={FlaskConical} className="ml-1 rounded-lg" onClick={() => onMenuAction("edit-in-sandbox")}>
@@ -245,12 +226,12 @@ export default function EditorToolbar({
             Go live
           </Button>
         )}
-        {onToggleAssistant && (
-          <>
-            <span className="mx-0.5 h-6 w-px bg-gray-200" aria-hidden />
-            <IconToggleButton icon={Sparkles} label="Assistant" hint="Ctrl/⌘ + K" pressed={assistantOpen} onClick={onToggleAssistant} />
-          </>
-        )}
+      </div>
+      {onToggleAssistant && (
+        <div className={`${group} px-1`}>
+          <IconToggleButton icon={Sparkles} label="Assistant" hint="Ctrl/⌘ + K" pressed={assistantOpen} onClick={onToggleAssistant} />
+        </div>
+      )}
       </div>
     </div>
   );

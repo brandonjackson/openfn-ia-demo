@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import type { RunDetails, Workflow, WorkflowNode } from "../../mock-data/workflow";
 import type { RunActivity } from "../../mock-data/runs";
 import WorkflowNodeCard, { NODE_HEIGHT, NODE_WIDTH } from "./WorkflowNodeCard";
@@ -14,6 +15,11 @@ const MENU_ROOM = 210;
 const TOP_MARGIN = 56;
 /** The busiest connector's width under the history overlay; the rest scale down from it. */
 const MAX_EDGE_WIDTH = 12;
+/** The header's height (e.g. the runs bar) and its gap above the top card. */
+const HEADER_HEIGHT = 40;
+const HEADER_GAP = 16;
+/** The least room the header keeps from the top of the canvas when it starts. */
+const HEADER_TOP = 12;
 
 /**
  * The diagram surface: an absolutely-positioned set of node cards with SVG
@@ -31,8 +37,9 @@ const MAX_EDGE_WIDTH = 12;
  * instead: each card shows how many runs reached it and how many failed
  * there (a way into the failures view), and each connector that runs went
  * along is light blue with slow-moving dots, its width in proportion to the
- * busiest one and its count beside the badge. The editor's runs bar, over
- * the top of the canvas, picks the period and sums it up.
+ * busiest one and its count beside the badge. The editor's runs bar, passed
+ * as the `header`, picks the period and sums it up; it sits just above the
+ * top card and moves with the workflow when the canvas pans.
  *
  * The canvas pans: scroll (mouse wheel or trackpad) or drag any empty part of
  * it to move around, and the controls' Center button puts it back. Node
@@ -50,6 +57,7 @@ export default function WorkflowCanvas({
   width = 980,
   height = 720,
   showControls = true,
+  header,
 }: {
   workflow: Workflow;
   selectedId?: string;
@@ -67,8 +75,15 @@ export default function WorkflowCanvas({
   width?: number;
   height?: number;
   showControls?: boolean;
+  /** Pinned just above the top card, centred on it, and panned with the workflow, e.g. the runs bar. */
+  header?: ReactNode;
 }) {
   const nodeById = (id: string) => workflow.nodes.find((n) => n.id === id);
+
+  // The header sits over the top card; the graph starts low enough to fit it.
+  const topNode = workflow.nodes.reduce<WorkflowNode | undefined>((top, n) => (!top || n.y < top.y ? n : top), undefined);
+  const headerTop = (topNode ? topNode.y - HALF_H : 0) - HEADER_GAP - HEADER_HEIGHT;
+  const marginTop = header ? Math.max(TOP_MARGIN, HEADER_TOP - headerTop) : TOP_MARGIN;
 
   // Panning: how far the graph has been moved from where it starts.
   const surfaceRef = useRef<HTMLDivElement>(null);
@@ -83,6 +98,7 @@ export default function WorkflowCanvas({
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
       if (e.ctrlKey) return; // pinch-zoom and ctrl+scroll stay with the browser
+      if ((e.target as Element).closest("[data-canvas-header]")) return; // the header's lists scroll themselves
       e.preventDefault();
       // Shift+wheel scrolls sideways on a plain mouse.
       const dx = e.shiftKey && e.deltaX === 0 ? e.deltaY : e.deltaX;
@@ -157,7 +173,7 @@ export default function WorkflowCanvas({
     >
       <div
         className="relative mx-auto"
-        style={{ width, height, marginTop: TOP_MARGIN, transform: `translate(${pan.x}px, ${pan.y}px)` }}
+        style={{ width, height, marginTop, transform: `translate(${pan.x}px, ${pan.y}px)` }}
       >
         {/* Edge layer */}
         <svg className="absolute inset-0 pointer-events-none" width={width} height={height}>
@@ -263,6 +279,17 @@ export default function WorkflowCanvas({
             />
           </div>
         ))}
+
+        {header && (
+          <div
+            data-canvas-item
+            data-canvas-header
+            className="absolute z-50 flex -translate-x-1/2 cursor-default justify-center"
+            style={{ left: topNode?.x ?? width / 2, top: headerTop }}
+          >
+            {header}
+          </div>
+        )}
       </div>
 
       {showControls && (

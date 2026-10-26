@@ -303,6 +303,7 @@ export default function CodeWorkspace({
           components={components}
           hasService={service !== undefined}
           docs={docs}
+          readOnly={readOnly}
           onAddDoc={readOnly ? undefined : onAddDoc}
           onAddStep={readOnly ? undefined : onAddStep}
           onAddComponent={readOnly ? undefined : onAddComponent}

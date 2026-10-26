@@ -31,8 +31,8 @@ const meta: Meta<typeof EditorExplorer> = {
 export default meta;
 type Story = StoryObj<typeof EditorExplorer>;
 
-/** On main: read-only, so no + beside the group headings. */
-export const ReadOnly: Story = {};
+/** On main: read-only, so each + beside the group headings is disabled. */
+export const ReadOnly: Story = { args: { readOnly: true } };
 
 /** In a sandbox, each group adds from the + beside its heading. */
 export const Editable: Story = {
@@ -52,8 +52,8 @@ export const FollowingRun: Story = { args: { run: failedRun, file: { stepId: "cr
 
 export const ComponentOpen: Story = { args: { file: { componentId: components[0].id } } };
 
-/** A workflow in a project with no other components: on main the group is left out. */
-export const NoComponents: Story = { args: { components: [] } };
+/** A workflow in a project with no other components, on main: the group stays with a disabled +. */
+export const NoComponents: Story = { args: { components: [], readOnly: true } };
 
 /** With no components yet, a sandbox still shows the group so one can be added. */
 export const NoComponentsEditable: Story = { args: { components: [], onAddStep: () => {}, onAddComponent: () => {} } };

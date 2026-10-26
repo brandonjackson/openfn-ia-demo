@@ -1,5 +1,5 @@
 import { MoreHorizontal } from "lucide-react";
-import type { EditorLayout, PanelDock } from "../../editor-layout";
+import type { EditorLayout } from "../../editor-layout";
 import DropdownMenu from "../DropdownMenu";
 import type { DropdownMenuItem } from "../DropdownMenu";
 
@@ -7,43 +7,26 @@ interface Props {
   layout: EditorLayout;
   onChange: (patch: Partial<EditorLayout>) => void;
   onReset?: () => void;
-  /** Which areas apply: the explorer and details column only exist in code mode. */
-  view: "canvas" | "code";
   defaultOpen?: boolean;
 }
 
 /**
  * The ⋯ button at the top-right corner of the code area that opens the
- * layout menu: in code mode a checkbox each for the bottom and right
- * panels, on the canvas the panel, where it docks and whether run activity
- * is laid over it, then a reset. The explorer (Ctrl/⌘ + B) and the
- * assistant (its toolbar button) have their own ways in.
+ * layout menu: a checkbox each for the bottom and right panels, then a
+ * reset. The explorer (Ctrl/⌘ + B) and the assistant (its toolbar button)
+ * have their own ways in. The canvas has no layout to set: its runs bar
+ * and inspector cover it.
  */
-export default function LayoutMenu({ layout, onChange, onReset, view, defaultOpen = false }: Props) {
-  const code = view === "code";
+export default function LayoutMenu({ layout, onChange, onReset, defaultOpen = false }: Props) {
   const items: DropdownMenuItem[] = [
-    { id: "panel", label: code ? "Bottom panel" : "Panel", description: "Runs, step, log, input and output", checked: layout.panel },
-    ...(code ? [{ id: "details", label: "Right panel", description: "Config and snippets", checked: layout.details }] : []),
-    ...(code
-      ? []
-      : [
-          { id: "dock:right", label: "Panel on the right", selected: layout.canvasPanelDock === "right", divider: true },
-          { id: "dock:bottom", label: "Panel along the bottom", selected: layout.canvasPanelDock === "bottom" },
-          {
-            id: "canvasActivity",
-            label: "Run activity",
-            description: "Run and failure counts on the canvas",
-            checked: layout.canvasActivity,
-            divider: true,
-          },
-        ]),
+    { id: "panel", label: "Bottom panel", description: "Runs, failures, log, input and output", checked: layout.panel },
+    { id: "details", label: "Right panel", description: "Config and snippets", checked: layout.details },
     ...(onReset ? [{ id: "reset", label: "Reset layout", divider: true }] : []),
   ];
 
   const select = (id: string) => {
     if (id === "reset") return onReset?.();
-    if (id.startsWith("dock:")) return onChange({ canvasPanelDock: id.slice(5) as PanelDock, panel: true });
-    const key = id as "panel" | "details" | "canvasActivity";
+    const key = id as "panel" | "details";
     onChange({ [key]: !layout[key] });
   };
 

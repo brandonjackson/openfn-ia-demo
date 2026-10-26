@@ -28,3 +28,8 @@ export const Inline: Story = {
   ),
   args: { to: "/connected-systems", children: "system", variant: "inline" },
 };
+
+/** An action rather than a route, e.g. the inspector's "See full code". */
+export const AsButton: Story = {
+  args: { onClick: () => {}, children: "See full code →", variant: "action" },
+};

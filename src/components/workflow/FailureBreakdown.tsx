@@ -12,11 +12,12 @@ import RunRow from "./RunRow";
 export type FailureScope = "step" | "workflow";
 
 /**
- * The panel's Failures view: why runs failed in a period, as the top
- * reasons ranked by how often each happened, with a share bar. Opening a
- * reason lists the runs behind it, and picking one loads it like any run.
- * With a step in focus the view can switch between that step's failures and
- * the whole workflow's; the period picker is the same as on the canvas.
+ * Why runs failed in a period, as the top reasons ranked by how often each
+ * happened, with a share bar. Opening a reason lists the runs behind it, and
+ * picking one loads it like any run. In the code view's panel it has a
+ * period picker and, with a step in focus, a switch between that step's
+ * failures and the whole workflow's; in the inspector it has neither, as
+ * the canvas sets the period and the selected node sets the scope.
  */
 export default function FailureBreakdown({
   reasons,
@@ -50,21 +51,23 @@ export default function FailureBreakdown({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex flex-none flex-wrap items-center gap-2 border-b border-gray-100 px-3 py-2">
-        {stepLabel && onScopeChange && (
-          <SegmentedControl
-            options={[
-              { id: "step", label: "This step" },
-              { id: "workflow", label: "Whole workflow" },
-            ]}
-            value={scope}
-            onChange={(v) => onScopeChange(v as FailureScope)}
-          />
-        )}
-        <span className="ml-auto">
-          {onPeriodChange ? <PeriodPicker value={period} onChange={onPeriodChange} /> : <span className="text-xs text-gray-500">{activityPeriodLabel(period)}</span>}
-        </span>
-      </div>
+      {((stepLabel && onScopeChange) || onPeriodChange) && (
+        <div className="flex flex-none flex-wrap items-center gap-2 border-b border-gray-100 px-3 py-2">
+          {stepLabel && onScopeChange && (
+            <SegmentedControl
+              options={[
+                { id: "step", label: "This step" },
+                { id: "workflow", label: "Whole workflow" },
+              ]}
+              value={scope}
+              onChange={(v) => onScopeChange(v as FailureScope)}
+            />
+          )}
+          <span className="ml-auto">
+            {onPeriodChange && <PeriodPicker value={period} onChange={onPeriodChange} />}
+          </span>
+        </div>
+      )}
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {total === 0 ? (

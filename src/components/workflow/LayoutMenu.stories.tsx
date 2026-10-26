@@ -22,12 +22,14 @@ const meta: Meta<typeof LayoutMenu> = {
       </div>
     ),
   ],
-  args: { layout: { ...defaultLayout, panel: true }, view: "code", defaultOpen: true },
+  args: { layout: { ...defaultLayout, panel: true }, defaultOpen: true },
   render: (args) => <Stateful {...args} />,
 };
 
 export default meta;
 type Story = StoryObj<typeof LayoutMenu>;
 
-export const Code: Story = {};
-export const Canvas: Story = { args: { view: "canvas" } };
+export const Default: Story = {};
+
+/** With nothing showing beside the code. */
+export const AllHidden: Story = { args: { layout: { ...defaultLayout, panel: false, details: false } } };

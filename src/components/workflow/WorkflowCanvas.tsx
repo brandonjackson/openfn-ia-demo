@@ -1,16 +1,15 @@
 import type { RunDetails, Workflow, WorkflowNode } from "../../mock-data/workflow";
-import type { ActivityPeriod, RunActivity } from "../../mock-data/runs";
+import type { RunActivity } from "../../mock-data/runs";
 import WorkflowNodeCard, { NODE_HEIGHT, NODE_WIDTH } from "./WorkflowNodeCard";
 import type { NodeAction } from "./WorkflowNodeCard";
 import EdgeBadge from "./EdgeBadge";
 import CanvasControls from "./CanvasControls";
-import ActivitySummaryChip from "./ActivitySummaryChip";
 
 const HALF_H = NODE_HEIGHT / 2;
 const HALF_W = NODE_WIDTH / 2;
 /** Room a card's menu needs to its right before it opens below instead. */
 const MENU_ROOM = 210;
-/** Space above the graph so the top card isn't pressed against the toolbar or the activity chip. */
+/** Space above the graph so the top card isn't pressed against the toolbar or the runs bar. */
 const TOP_MARGIN = 56;
 /** The busiest connector's width under the history overlay; the rest scale down from it. */
 const MAX_EDGE_WIDTH = 12;
@@ -31,8 +30,8 @@ const MAX_EDGE_WIDTH = 12;
  * instead: each card shows how many runs reached it and how many failed
  * there (a way into the failures view), and each connector that runs went
  * along is light blue with slow-moving dots, its width in proportion to the
- * busiest one and its count beside the badge. A chip at the top-left sums it up,
- * picks the period and opens the run history.
+ * busiest one and its count beside the badge. The editor's runs bar, over
+ * the top of the canvas, picks the period and sums it up.
  *
  * This is a static prototype layout — node coordinates come from the workflow
  * data, there is no real pan/zoom or drag yet.
@@ -45,9 +44,7 @@ export default function WorkflowCanvas({
   readOnly = false,
   run,
   activity,
-  onPeriodChange,
   onShowFailures,
-  onViewRuns,
   width = 980,
   height = 720,
   showControls = true,
@@ -63,12 +60,8 @@ export default function WorkflowCanvas({
   run?: RunDetails;
   /** The run history to lay over the workflow while no run is shown. */
   activity?: RunActivity;
-  /** Changes how far back the activity looks. */
-  onPeriodChange?: (period: ActivityPeriod) => void;
-  /** Opens the failures at a node, from its failed count; without a node, the workflow's. */
-  onShowFailures?: (nodeId?: string) => void;
-  /** Opens the run history, from the activity chip. */
-  onViewRuns?: () => void;
+  /** Opens the failures at a node, from its failed count. */
+  onShowFailures?: (nodeId: string) => void;
   width?: number;
   height?: number;
   showControls?: boolean;
@@ -219,16 +212,6 @@ export default function WorkflowCanvas({
         ))}
       </div>
 
-      {overlay && (
-        <div className="absolute left-4 top-3 z-30">
-          <ActivitySummaryChip
-            activity={overlay}
-            onPeriodChange={onPeriodChange}
-            onViewRuns={onViewRuns}
-            onViewFailures={onShowFailures ? () => onShowFailures() : undefined}
-          />
-        </div>
-      )}
       {showControls && (
         <div className="absolute bottom-4 left-4 z-30">
           <CanvasControls />

@@ -21,3 +21,24 @@ type Story = StoryObj<typeof PeriodPicker>;
 export const Default: Story = { args: { value: "7d" } };
 export const LastDay: Story = { args: { value: "24h" } };
 export const Compact: Story = { args: { value: "7d", compact: true } };
+
+function WithOffOption() {
+  const [value, setValue] = useState<ActivityPeriod>("7d");
+  const [off, setOff] = useState(false);
+  return (
+    <PeriodPicker
+      label="Runs"
+      value={value}
+      onChange={(p) => {
+        setValue(p);
+        setOff(false);
+      }}
+      off={off}
+      onOff={() => setOff(true)}
+      compact
+    />
+  );
+}
+
+/** As on the canvas's runs bar: named, with Off to show just the workflow. */
+export const WithOff: Story = { render: () => <WithOffOption /> };

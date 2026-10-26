@@ -54,35 +54,7 @@ const meta: Meta<typeof EditorPanel> = {
 export default meta;
 type Story = StoryObj<typeof EditorPanel>;
 
-/** Docked to the right of the canvas, the default there. */
-export const DockedRight: Story = {
-  args: { placement: "right" },
-  decorators: [
-    (Story) => (
-      <div className="flex h-[640px] justify-end bg-gray-50 bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] [background-size:22px_22px]">
-        <div className="w-[420px]">
-          <Story />
-        </div>
-      </div>
-    ),
-  ],
-};
-
-/** Floating along the bottom of the canvas. */
-export const Floating: Story = {
-  args: { floating: true },
-  decorators: [
-    (Story) => (
-      <div className="relative h-[640px] bg-gray-50 bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] [background-size:22px_22px]">
-        <div className="absolute inset-x-4 bottom-4">
-          <Story />
-        </div>
-      </div>
-    ),
-  ],
-};
-
-/** Inline under the code, on the Log view. */
+/** Under the code, on the Log view. */
 export const Inline: Story = {
   args: { view: "log" },
   decorators: [
@@ -102,6 +74,6 @@ export const Collapsed: Story = {
 
 /** Some views hidden through the layout menu. */
 export const ViewsHidden: Story = {
-  args: { hiddenViews: ["step", "input"] },
+  args: { hiddenViews: ["failures", "input"] },
   decorators: Inline.decorators,
 };

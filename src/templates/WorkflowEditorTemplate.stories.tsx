@@ -43,39 +43,44 @@ export const Default: Story = {
   args: { initialLayout: { panel: false, assistant: false, explorer: true } },
 };
 
-/** A step selected on the canvas brings up the inspector: its name, adaptor and credential. */
+/** A step selected with the runs bar Off: the inspector shows its config and what its code does. */
 export const StepSelected: Story = {
-  args: { initialSelectedId: "search", initialLayout: { panel: false } },
+  args: { initialSelectedId: "search", initialLayout: { canvasActivity: false } },
 };
 
-/** The trigger selected: its type, webhook URL and switch in the inspector. */
+/** The trigger selected with the runs bar Off: its type, webhook URL and switch. */
 export const TriggerSelected: Story = {
-  args: { initialSelectedId: "trigger", initialLayout: { panel: false } },
+  args: { initialSelectedId: "trigger", initialLayout: { canvasActivity: false } },
 };
 
-/** A run loaded with a step selected: snippets of its log, input and output in the inspector. */
-export const InspectorFollowingRun: Story = {
-  args: { runId: sampleRun.runId, initialSelectedId: "search", initialLayout: { panel: false } },
+/** Run history on the canvas with a step selected: its runs, failures and why they failed. */
+export const StepStats: Story = {
+  args: { initialSelectedId: "create", initialLayout: { canvasActivity: true } },
 };
 
-/** The step's settings in the full panel, opened from the inspector for more room. */
-export const StepInPanel: Story = {
-  args: { initialSelectedId: "search", initialLayout: { panel: true, panelView: "step" } },
+/** Run history with the trigger selected: the whole workflow's numbers. */
+export const WorkflowStats: Story = {
+  args: { initialSelectedId: "trigger", initialLayout: { canvasActivity: true } },
 };
 
-/** The panel on its Runs view, ready to load a run. */
-export const RunsPanel: Story = {
-  args: { initialLayout: { panel: true, panelView: "runs" } },
+/** The runs bar's Filter open over the canvas, ready to load a run. */
+export const RunsFilterOpen: Story = {
+  args: { defaultRunsFilterOpen: true, initialLayout: { canvasActivity: true } },
 };
 
-/** A run loaded from the run picker, drawn on the canvas. */
+/** A run loaded from the runs bar, drawn on the canvas. */
 export const RunLoaded: Story = {
   args: { runId: sampleRun.runId },
 };
 
-/** A failed run, with the failed step's log in the panel. */
-export const FailedRunStepOpen: Story = {
-  args: { runId: failedRun.runId, initialSelectedId: "create", initialLayout: { panel: true, panelView: "log" } },
+/** A run loaded with a step selected: its log, input and output in the inspector. */
+export const InspectorFollowingRun: Story = {
+  args: { runId: sampleRun.runId, initialSelectedId: "search" },
+};
+
+/** A failed run with the failed step selected. */
+export const FailedRunStepSelected: Story = {
+  args: { runId: failedRun.runId, initialSelectedId: "create" },
 };
 
 /** A v1 run shown on the latest graph, with the banner offering the version that ran. */
@@ -150,7 +155,7 @@ export const CustomLayout: Story = {
     initialView: "code",
     initialFile: { stepId: "search" },
     runId: sampleRun.runId,
-    initialLayout: { explorer: false, details: false, panel: true, panelView: "output", panelMaximized: true, hiddenViews: ["step"] },
+    initialLayout: { explorer: false, details: false, panel: true, panelView: "output", panelMaximized: true, hiddenViews: ["failures"] },
   },
 };
 

@@ -1,13 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import StepInspector from "./StepInspector";
-import LayoutMenu from "./LayoutMenu";
-import { defaultLayout } from "../../editor-layout";
 import { nationalIdWorkflow } from "../../mock-data/workflow";
 import type { JobNode } from "../../mock-data/workflow";
-import { dataclips, failedRun, sampleRun } from "../../mock-data/runs";
+import { dataclips, failedRun, failureReasons, runActivity, sampleRun, workOrders } from "../../mock-data/runs";
 
 const job = (id: string) => nationalIdWorkflow.nodes.find((n): n is JobNode => n.type === "job" && n.id === id)!;
 const trigger = nationalIdWorkflow.nodes.find((n) => n.type === "trigger")!;
+
+const activity = runActivity(nationalIdWorkflow, workOrders, "30d");
+const statsFor = (id?: string) => ({
+  period: "30d" as const,
+  runs: id ? activity.nodes[id].runs : activity.runs,
+  failed: id ? activity.nodes[id].failed : activity.failed,
+  reasons: failureReasons(nationalIdWorkflow, workOrders, "30d", id),
+});
 
 const meta: Meta<typeof StepInspector> = {
   title: "Workflow/StepInspector",
@@ -17,14 +23,15 @@ const meta: Meta<typeof StepInspector> = {
     node: job("search"),
     dataclips,
     url: "https://app.openfn.org/i/8f3c2a1e",
+    latestVersion: "v2",
     onChange: () => {},
     onOpenCode: () => {},
     onRunFromHere: () => {},
     onDelete: () => {},
-    onOpenPanel: () => {},
-    onBrowseRuns: () => {},
     onClose: () => {},
-    actions: <LayoutMenu layout={defaultLayout} onChange={() => {}} view="canvas" />,
+    onUnloadRun: () => {},
+    onExpand: () => {},
+    onSelectRun: () => {},
   },
   decorators: [
     (Story) => (
@@ -40,7 +47,7 @@ const meta: Meta<typeof StepInspector> = {
 export default meta;
 type Story = StoryObj<typeof StepInspector>;
 
-/** A step in a sandbox with no run loaded: its name, adaptor and a way to the runs. */
+/** No runs on the canvas: the step's config and what its code does, summarised by the assistant. */
 export const Default: Story = {};
 
 /** The step needs a credential it doesn't have yet. */
@@ -53,7 +60,34 @@ export const ReadOnly: Story = {
   args: { readOnly: true, credentialId: "cred-identity-prod", onChange: undefined, onDelete: undefined },
 };
 
-/** A run loaded: the step's log, input and output as snippets. */
+/** A step whose code has nothing in it yet: the summary says so. */
+export const EmptyStep: Story = {
+  args: {
+    node: { ...job("queue"), id: "step-new", label: "Untitled step", body: "// Start writing your step here" },
+  },
+};
+
+/** Run history on the canvas: the step's runs, failures and why they failed, over the canvas's period. */
+export const Stats: Story = {
+  args: { node: job("create"), stats: statsFor("create") },
+};
+
+/** A step that hasn't failed in the period. */
+export const StatsNoFailures: Story = {
+  args: { node: job("confirm"), stats: statsFor("confirm") },
+};
+
+/** No runs reached the step in the period. */
+export const StatsNoRuns: Story = {
+  args: { node: job("notify"), stats: { period: "24h", runs: 0, failed: 0, reasons: [] } },
+};
+
+/** The trigger under run history: the whole workflow's numbers. */
+export const TriggerStats: Story = {
+  args: { node: trigger, onOpenCode: undefined, onRunFromHere: undefined, onDelete: undefined, stats: statsFor() },
+};
+
+/** A run loaded: the step's log, input and output as snippets that open in the code view. */
 export const WithRun: Story = {
   args: { run: sampleRun, credentialId: "cred-identity-prod" },
 };
@@ -63,22 +97,12 @@ export const FailedStep: Story = {
   args: { node: job("create"), run: failedRun, credentialId: "cred-identity-prod" },
 };
 
-/** The log expanded to full width, the other sections folded. */
-export const LogExpanded: Story = {
-  args: { run: sampleRun, credentialId: "cred-identity-prod", defaultExpanded: "log" },
-};
-
-/** The output expanded to full width. */
-export const OutputExpanded: Story = {
-  args: { run: sampleRun, credentialId: "cred-identity-prod", defaultExpanded: "output" },
-};
-
 /** A step the loaded run never reached. */
 export const NotInRun: Story = {
   args: { node: job("notify"), run: failedRun },
 };
 
-/** The trigger: its type, webhook URL and switch. */
+/** The trigger with no runs on the canvas: its type, webhook URL and switch. */
 export const Trigger: Story = {
   args: { node: trigger, onOpenCode: undefined, onRunFromHere: undefined, onDelete: undefined, onToggleLive: () => {} },
 };

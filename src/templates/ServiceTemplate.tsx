@@ -71,8 +71,12 @@ export default function ServiceTemplate({ ancestors, data }: Props) {
       <div>
         <PageHeader
           breadcrumbs={{
-            ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-            current: service.name,
+            // The workflow comes last so it's one click back to editing it.
+            ancestors: [
+              ...ancestors.map((a) => ({ label: a.node.label, path: a.path })),
+              ...(workflow ? [{ label: workflow.name, path: `/workflow-editor/${workflow.id}` }] : []),
+            ],
+            current: "Service listing",
           }}
           icon={ClipboardList}
           title={service.name}

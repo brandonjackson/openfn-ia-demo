@@ -84,3 +84,20 @@ export const OlderVersionHighlighted: Story = {
     highlight: true,
   },
 };
+
+/** A custom trigger: the editor's workflow title opening its version history. */
+export const CustomTrigger: Story = {
+  args: {
+    ariaLabel: "Switch version",
+    options: versionOptions(workflowVersions),
+    value: "latest",
+    menuWidthClass: "w-80",
+    trigger: (selected) => (
+      <>
+        <span className="font-semibold text-gray-900">Register new citizen</span>
+        <span className="text-gray-300">•</span>
+        <span className="font-mono text-xs text-gray-500">{selected?.shortLabel}</span>
+      </>
+    ),
+  },
+};

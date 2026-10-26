@@ -37,7 +37,9 @@ interface Props {
   components?: ProjectComponent[];
   /** Docs added alongside plan.md and spec.md, by file name. */
   docs?: string[];
-  /** The + on each group; left out on main, where nothing can be added. */
+  /** On main: each group's + shows but is disabled, pointing to a sandbox. */
+  readOnly?: boolean;
+  /** The + on each group. */
   onAddDoc?: () => void;
   onAddStep?: () => void;
   onAddComponent?: () => void;
@@ -47,7 +49,7 @@ interface Props {
  * The left-hand explorer in code mode, in three groups: the workflow's own
  * files (its YAML, plan, spec and any added docs), its trigger and steps in
  * the order they run, and the project components it uses. Each group adds
- * from the + beside its heading. You move between them here rather than
+ * from the + beside its heading (disabled on main). You move between them here rather than
  * through tabs. With a run loaded, each step shows how it went.
  */
 export default function EditorExplorer({
@@ -57,6 +59,7 @@ export default function EditorExplorer({
   run,
   components = [],
   docs = [],
+  readOnly = false,
   onAddDoc,
   onAddStep,
   onAddComponent,
@@ -71,7 +74,7 @@ export default function EditorExplorer({
     <nav aria-label="Explorer" className="flex h-full flex-col overflow-y-auto px-3 py-3">
       <div className="mb-2 px-2 font-mono text-[11px] uppercase tracking-widest text-gray-400">Explorer</div>
 
-      <Section title="Workflow" addLabel="New doc" onAdd={onAddDoc}>
+      <Section title="Workflow" addLabel="New doc" onAdd={onAddDoc} readOnly={readOnly}>
         <ExplorerRow label="workflow.yaml" icon={WorkflowIcon} selected={current === "workflow"} onClick={() => onOpen("workflow")} />
         <ExplorerRow label="plan.md" icon={FileText} selected={current === "plan"} onClick={() => onOpen("plan")} />
         <ExplorerRow label="spec.md" icon={FileText} selected={current === "spec"} onClick={() => onOpen("spec")} />
@@ -86,7 +89,7 @@ export default function EditorExplorer({
         ))}
       </Section>
 
-      <Section title="Steps" addLabel="Add step" onAdd={onAddStep}>
+      <Section title="Steps" addLabel="Add step" onAdd={onAddStep} readOnly={readOnly}>
         {trigger && (
           <ExplorerRow
             label={trigger.label}
@@ -108,8 +111,8 @@ export default function EditorExplorer({
         ))}
       </Section>
 
-      {(components.length > 0 || onAddComponent) && (
-        <Section title="Components" addLabel="Add component" onAdd={onAddComponent}>
+      {(components.length > 0 || onAddComponent || readOnly) && (
+        <Section title="Components" addLabel="Add component" onAdd={onAddComponent} readOnly={readOnly}>
           {components.map((c) => (
             <ExplorerRow
               key={c.id}
@@ -130,24 +133,27 @@ function Section({
   title,
   addLabel,
   onAdd,
+  readOnly,
   children,
 }: {
   title: string;
   addLabel: string;
   onAdd?: () => void;
+  readOnly: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className="mb-4">
       <div className="mb-1 flex h-5 items-center justify-between px-2">
         <span className="font-mono text-[10px] uppercase tracking-widest text-gray-400">{title}</span>
-        {onAdd && (
+        {(onAdd || readOnly) && (
           <button
             type="button"
-            onClick={onAdd}
-            title={addLabel}
+            onClick={readOnly ? undefined : onAdd}
+            disabled={readOnly}
+            title={readOnly ? `${addLabel}: edit in a sandbox first` : addLabel}
             aria-label={addLabel}
-            className="rounded p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+            className="rounded p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:text-gray-300 disabled:hover:bg-transparent disabled:hover:text-gray-300"
           >
             <Plus size={14} />
           </button>

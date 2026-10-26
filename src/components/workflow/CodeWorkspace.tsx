@@ -271,6 +271,7 @@ export default function CodeWorkspace({
           run={run}
           components={components}
           docs={docs}
+          readOnly={readOnly}
           onAddDoc={readOnly ? undefined : onAddDoc}
           onAddStep={readOnly ? undefined : onAddStep}
           onAddComponent={readOnly ? undefined : onAddComponent}

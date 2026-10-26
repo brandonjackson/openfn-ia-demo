@@ -462,6 +462,8 @@ export default function WorkflowEditorTemplate({
     edit((e) => ({ bodies: { ...e.bodies, [stepId]: `${current.trimEnd()}\n\n${snippet.code}` } }));
   };
 
+  const changeCode = (stepId: string, body: string) => edit((e) => ({ bodies: { ...e.bodies, [stepId]: body } }));
+
   const addStep = () => {
     const id = `step-${shortId().slice(0, 4)}`;
     const last = graph.nodes.filter((n): n is JobNode => n.type === "job").at(-1);
@@ -827,6 +829,7 @@ export default function WorkflowEditorTemplate({
             credentials={edits.credentials}
             onStepChange={onMain ? undefined : changeStep}
             onInsertSnippet={onMain ? undefined : insertSnippet}
+            onCodeChange={onMain ? undefined : changeCode}
             onDeleteStep={onMain ? undefined : deleteStep}
             onAddStep={onMain ? undefined : addStep}
             docs={docs}

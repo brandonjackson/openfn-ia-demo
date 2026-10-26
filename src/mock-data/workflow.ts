@@ -371,19 +371,19 @@ export const workflowVersions: WorkflowVersion[] = [
   { id: "v1", message: "Initial go-live", author: "Brandon Jackson", date: "2 Sep 2026" },
 ];
 
-/** Picker options for a version switcher: "Latest", then the version history. */
+/**
+ * Picker options for a version switcher, newest first. The newest is the
+ * latest version, so it carries the "latest" id and a "Latest" tag.
+ */
 export function versionOptions(versions: WorkflowVersion[]) {
-  return [
-    { id: "latest", label: "Latest" },
-    ...versions.map((v, i) => ({
-      id: v.id,
-      label: v.message,
-      shortLabel: v.id,
-      description: `${v.author} · ${v.date}`,
-      badge: { label: v.id, tone: i === 0 ? ("green" as const) : ("gray" as const) },
-      group: "Version history",
-    })),
-  ];
+  return versions.map((v, i) => ({
+    id: i === 0 ? "latest" : v.id,
+    label: v.message,
+    shortLabel: v.id,
+    description: `${v.author} · ${v.date}`,
+    badge: { label: v.id, tone: i === 0 ? ("green" as const) : ("gray" as const) },
+    tag: i === 0 ? "Latest" : undefined,
+  }));
 }
 
 /** How an edge's condition reads in the step settings, e.g. "when it succeeds". */

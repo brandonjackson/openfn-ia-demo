@@ -263,29 +263,23 @@ export default function AddConnectedSystemFlow({
   onClose,
   preselectedSystem,
 }: Props) {
-  const [selectedAdaptor, setSelectedAdaptor] = useState<Adaptor | null>(() => {
-    if (preselectedSystem) {
-      return (
-        adaptors.find(
+  const findPreselected = () =>
+    preselectedSystem
+      ? adaptors.find(
           (a) => a.name.toLowerCase() === preselectedSystem.toLowerCase()
         ) ?? null
-      );
-    }
-    return null;
-  });
+      : null;
+  const [selectedAdaptor, setSelectedAdaptor] = useState<Adaptor | null>(findPreselected);
 
-  // Re-sync when preselectedSystem changes while modal opens
-  useEffect(() => {
-    if (open && preselectedSystem) {
-      const match = adaptors.find(
-        (a) => a.name.toLowerCase() === preselectedSystem.toLowerCase()
-      );
-      if (match) setSelectedAdaptor(match);
+  // Re-sync when the modal opens or preselectedSystem changes while open
+  const [synced, setSynced] = useState({ open, preselectedSystem });
+  if (synced.open !== open || synced.preselectedSystem !== preselectedSystem) {
+    setSynced({ open, preselectedSystem });
+    if (open) {
+      const match = findPreselected();
+      if (match || !preselectedSystem) setSelectedAdaptor(match);
     }
-    if (open && !preselectedSystem) {
-      setSelectedAdaptor(null);
-    }
-  }, [open, preselectedSystem]);
+  }
 
   if (!open) return null;
 

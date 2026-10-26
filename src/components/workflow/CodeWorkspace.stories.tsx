@@ -120,3 +120,8 @@ export const FollowingRun: Story = {
 export const RunLoadedIO: Story = {
   args: { file: { stepId: "create" }, run: failedRun, dataclips, detailsView: "io", onExpandRunData: () => {} },
 };
+
+/** A run loaded with the trigger open: I/O shows the run's input. */
+export const RunLoadedTriggerIO: Story = {
+  args: { file: "trigger", run: failedRun, dataclips, detailsView: "io", onExpandRunData: () => {} },
+};

@@ -4,7 +4,6 @@ import WorkflowNodeCard, { NODE_HEIGHT, NODE_WIDTH } from "./WorkflowNodeCard";
 import type { NodeAction } from "./WorkflowNodeCard";
 import EdgeBadge from "./EdgeBadge";
 import CanvasControls from "./CanvasControls";
-import Minimap from "./Minimap";
 import ActivitySummaryChip from "./ActivitySummaryChip";
 
 const HALF_H = NODE_HEIGHT / 2;
@@ -19,8 +18,8 @@ const MAX_EDGE_WIDTH = 12;
 /**
  * The diagram surface: an absolutely-positioned set of node cards with SVG
  * bezier connectors drawn between them (bottom edge to top edge), plus the
- * edge condition badges, zoom controls and minimap overlays. Node
- * coordinates are the cards' centres.
+ * edge condition badges and zoom controls. Node coordinates are the cards'
+ * centres.
  *
  * With a `run`, the canvas shows how that run went, live while it's going:
  * each step it reached shows its status and duration on its card, the
@@ -51,7 +50,6 @@ export default function WorkflowCanvas({
   onViewRuns,
   width = 980,
   height = 720,
-  showMinimap = true,
   showControls = true,
 }: {
   workflow: Workflow;
@@ -73,7 +71,6 @@ export default function WorkflowCanvas({
   onViewRuns?: () => void;
   width?: number;
   height?: number;
-  showMinimap?: boolean;
   showControls?: boolean;
 }) {
   const nodeById = (id: string) => workflow.nodes.find((n) => n.id === id);
@@ -235,11 +232,6 @@ export default function WorkflowCanvas({
       {showControls && (
         <div className="absolute bottom-4 left-4 z-30">
           <CanvasControls />
-        </div>
-      )}
-      {showMinimap && (
-        <div className="absolute bottom-4 right-4 z-30">
-          <Minimap workflow={workflow} />
         </div>
       )}
     </div>

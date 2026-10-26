@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import type { ReactNode } from "react";
 import { BookOpen, Calendar, ExternalLink, FolderKanban, Radio, User } from "lucide-react";
-import type { JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../mock-data/workflow";
+import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../mock-data/workflow";
 import type { DetailsViewId } from "../../editor-layout";
 import { workflowToYaml } from "../../mock-data/workflow";
 import { adaptorInfo } from "../../mock-data/adaptor-reference";
@@ -14,6 +14,7 @@ import SegmentedControl from "../SegmentedControl";
 import FileDetailsPanel from "./FileDetailsPanel";
 import AdaptorPill from "./AdaptorPill";
 import AdaptorReferencePanel from "./AdaptorReferencePanel";
+import RunIOPanel from "./RunIOPanel";
 import EditorExplorer from "./EditorExplorer";
 import type { ExplorerFile } from "./EditorExplorer";
 import CodePaneHeader from "./CodePaneHeader";
@@ -30,8 +31,11 @@ interface Props {
   workflow: Workflow;
   file: ExplorerFile;
   onOpen: (file: ExplorerFile) => void;
-  /** The selected run; steps show how they went in the explorer. */
+  /** The selected run; steps show how they went in the explorer, and a step's input and output show in I/O. */
   run?: RunDetails;
+  dataclips?: Dataclip[];
+  /** Opens the step's input or output from I/O in the panel under the code. */
+  onExpandRunData?: (section: "input" | "output") => void;
   /** Project components the workflow uses, listed in the explorer. */
   components?: ProjectComponent[];
   /** Opens a component's page in the project. */
@@ -64,7 +68,7 @@ interface Props {
   bottomTray?: ReactNode;
   /** Hide the explorer column (toggled from the toolbar). */
   showExplorer?: boolean;
-  /** The details column beside the code, and which of its views shows. */
+  /** The details column beside the code, and which of its views shows. I/O shows only while a run is loaded. */
   showDetails?: boolean;
   detailsView?: DetailsViewId;
   onDetailsViewChange?: (view: DetailsViewId) => void;
@@ -80,7 +84,8 @@ interface Props {
  * Code mode: the explorer on the left, the code in the middle under a path
  * row (no file tabs: the explorer is the list of what can be opened), and
  * the details column on the right with two views: the open item's config
- * and, for a step, its adaptor's snippets, which insert at the cursor. A step shows its code and its settings; the
+ * and, for a step, its adaptor's snippets, which insert at the cursor, and
+ * its input and output (I/O) while a run is loaded. A step shows its code and its settings; the
  * trigger and `workflow.yaml` show the YAML and their settings. The panel
  * sits inline under the code. The ⋯ layout menu takes the top-right corner
  * of whichever column is rightmost.
@@ -90,6 +95,8 @@ export default function CodeWorkspace({
   file,
   onOpen,
   run,
+  dataclips = [],
+  onExpandRunData,
   components = [],
   onOpenComponent,
   service,
@@ -165,8 +172,13 @@ export default function CodeWorkspace({
     />
   );
 
+  // I/O needs a loaded run; without one a step falls back to its snippets.
+  const view: DetailsViewId = step ? (detailsView === "io" && !run ? "snippets" : detailsView) : "config";
+
   const detailsBody =
-    detailsView === "snippets" && step ? (
+    view === "io" && step && run ? (
+      <RunIOPanel run={run} jobId={step.id} dataclips={dataclips} onExpand={onExpandRunData} />
+    ) : view === "snippets" && step ? (
       <AdaptorReferencePanel
         adaptor={step.adaptor}
         onInsert={editable ? (s) => editor.current?.insert(s.code) : undefined}
@@ -314,8 +326,9 @@ export default function CodeWorkspace({
               options={[
                 { id: "config", label: component || doc || listing || addedDoc ? "Details" : "Config" },
                 ...(step ? [{ id: "snippets", label: "Snippets" }] : []),
+                ...(step && run ? [{ id: "io", label: "I/O" }] : []),
               ]}
-              value={step ? detailsView : "config"}
+              value={view}
               onChange={(v) => onDetailsViewChange?.(v as DetailsViewId)}
             />
             {layoutMenu}

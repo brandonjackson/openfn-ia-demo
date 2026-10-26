@@ -346,6 +346,8 @@ export default function WorkflowEditorTemplate({
     // Stay on an earlier version only if the new run ran on it too.
     if (version !== "latest" && version !== run.version) setVersion("latest");
     setRunId(run.runId);
+    // The details column in code mode shows the step's input and output while a run is loaded.
+    updateLayout({ detailsView: "io" });
     // In code mode an open panel follows the run for the step in focus; the inspector does on its own.
     if (view === "code" && layout.panel && focusJob && run.steps.some((s) => s.jobId === focusJob.id)) showPanel("log");
   };
@@ -357,6 +359,7 @@ export default function WorkflowEditorTemplate({
     // Back to the run history: on the canvas it's laid over the workflow again, in code mode the panel lists it.
     updateLayout({
       canvasActivity: true,
+      ...(layout.detailsView === "io" ? { detailsView: "snippets" as const } : {}),
       ...(["log", "input", "output"].includes(layout.panelView) ? { panelView: "runs" as PanelViewId } : {}),
     });
   };
@@ -395,6 +398,7 @@ export default function WorkflowEditorTemplate({
     upsertRun(started.run);
     setVersion("latest");
     setRunId(args.runId);
+    updateLayout({ detailsView: "io" });
     if (view === "code" && layout.panel && focusJob) showPanel("log");
     let progress = 0;
     const timer = setInterval(() => {
@@ -902,6 +906,8 @@ export default function WorkflowEditorTemplate({
               }
             }}
             run={selectedRun}
+            dataclips={clips}
+            onExpandRunData={showPanel}
             components={components}
             onOpenComponent={onOpenComponent}
             service={service}

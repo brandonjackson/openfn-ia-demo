@@ -28,6 +28,11 @@ interface Props {
   tone?: "dark" | "light";
   /** Names what the expand control does, when it opens the section somewhere else. */
   expandLabel?: string;
+  /**
+   * Takes an even share of its container's height, sharing it with the
+   * sections beside it: every line, cut at the edge, scrolling within.
+   */
+  fill?: boolean;
 }
 
 /**
@@ -51,18 +56,19 @@ export default function DataSnippet({
   folded = false,
   tone = "light",
   expandLabel,
+  fill = false,
 }: Props) {
   const [open, setOpen] = useState(true);
   const showing = open && !folded;
   const dark = tone === "dark";
-  const shown = expanded ? lines : lines.slice(0, previewLines);
+  const shown = expanded || fill ? lines : lines.slice(0, previewLines);
   const hidden = lines.length - shown.length;
   const Chevron = showing ? ChevronDown : ChevronRight;
 
   return (
     <section
       aria-label={title}
-      className={`flex min-h-0 flex-col ${expanded && showing ? "flex-1" : "flex-none"}`}
+      className={`flex min-h-0 flex-col ${fill && showing ? "flex-1 basis-0" : expanded && showing ? "flex-1" : "flex-none"}`}
     >
       <div className="flex h-8 flex-none items-center gap-1">
         <button
@@ -85,7 +91,7 @@ export default function DataSnippet({
       {showing && (
         <div
           className={`flex min-h-0 flex-col overflow-hidden rounded-lg border ${
-            expanded ? "flex-1" : ""
+            expanded || fill ? "flex-1" : ""
           } ${dark ? "border-gray-800 bg-gray-900 text-gray-100" : "border-gray-200 bg-gray-50 text-gray-800"}`}
         >
           {lines.length === 0 ? (
@@ -93,7 +99,7 @@ export default function DataSnippet({
           ) : (
             <pre
               className={`min-h-0 font-mono text-xs leading-5 ${
-                expanded ? "flex-1 overflow-auto px-3 py-2" : "overflow-hidden px-3 py-2"
+                expanded ? "flex-1 overflow-auto px-3 py-2" : fill ? "flex-1 overflow-y-auto overflow-x-hidden px-3 py-2" : "overflow-hidden px-3 py-2"
               }`}
             >
               {shown.map((line, i) => (
@@ -103,7 +109,13 @@ export default function DataSnippet({
                       {tags[i] ?? ""}
                     </span>
                   )}
-                  <code className={expanded ? "whitespace-pre" : "block min-w-0 truncate"}>{line}</code>
+                  <code
+                    className={
+                      expanded ? "whitespace-pre" : fill ? "block min-w-0 overflow-hidden text-ellipsis whitespace-pre" : "block min-w-0 truncate"
+                    }
+                  >
+                    {line}
+                  </code>
                 </div>
               ))}
             </pre>

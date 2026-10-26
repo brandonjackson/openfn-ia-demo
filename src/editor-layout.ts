@@ -9,8 +9,11 @@ export type PanelViewId = "runs" | "failures" | "log" | "input" | "output";
 
 const panelViewIds: PanelViewId[] = ["runs", "failures", "log", "input", "output"];
 
-/** What the right-hand column in code mode shows: the open item's config, or a step's adaptor snippets. */
-export type DetailsViewId = "config" | "snippets";
+/**
+ * What the right-hand column in code mode shows: the open item's config, a
+ * step's adaptor snippets or, while a run is loaded, the step's input and output.
+ */
+export type DetailsViewId = "config" | "snippets" | "io";
 
 export interface EditorLayout {
   /** The code explorer on the left (code mode). */
@@ -54,7 +57,7 @@ function load(): EditorLayout {
     // Views saved under an older name, or since removed, fall back to the default.
     return {
       ...saved,
-      detailsView: ["config", "snippets"].includes(saved.detailsView) ? saved.detailsView : defaultLayout.detailsView,
+      detailsView: ["config", "snippets", "io"].includes(saved.detailsView) ? saved.detailsView : defaultLayout.detailsView,
       hiddenViews: saved.hiddenViews.filter((v) => panelViewIds.includes(v)),
     };
   } catch {

@@ -115,3 +115,8 @@ export const FollowingRun: Story = {
     ),
   },
 };
+
+/** A run loaded: the details column shows the step's input over its output. */
+export const RunLoadedIO: Story = {
+  args: { file: { stepId: "create" }, run: failedRun, dataclips, detailsView: "io", onExpandRunData: () => {} },
+};

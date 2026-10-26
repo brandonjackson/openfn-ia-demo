@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
-import { ListFilter, X } from "lucide-react";
+import { ListFilter } from "lucide-react";
 import type { RunDetails, WorkOrder } from "../../mock-data/workflow";
 import type { ActivityPeriod, RunActivity, RunStatusFilter } from "../../mock-data/runs";
 import { activityPeriodLabel, filterWorkOrders, runStatusFilters } from "../../mock-data/runs";
@@ -8,7 +8,7 @@ import Button from "../Button";
 import SegmentedControl from "../SegmentedControl";
 import PeriodPicker from "./PeriodPicker";
 import RunHistoryList from "./RunHistoryList";
-import StatusPill from "./StatusPill";
+import LoadedRunBar from "./LoadedRunBar";
 
 interface Props {
   /** How far back the canvas looks. */
@@ -41,8 +41,8 @@ interface Props {
  * With no run loaded it picks the period of run history laid over the
  * canvas (or Off, for just the workflow) and sums it up: how many runs and
  * how many failed. With a run loaded it names the run, with a clear way to
- * unload it and go back to the history. Filter opens the run list over the
- * canvas, for the period, with a status filter that the canvas follows too;
+ * unload it and go back to the history (and no Filter). Filter opens the run
+ * list over the canvas, for the period, with a status filter that the canvas follows too;
  * picking a run loads it. The failed count opens the list on failed runs.
  */
 export default function CanvasRunsBar({
@@ -92,67 +92,53 @@ export default function CanvasRunsBar({
 
   return (
     <div ref={ref} className="relative flex flex-col items-center">
-      <div className="inline-flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-1.5 text-xs shadow-sm">
-        {run ? (
-          <>
-            <span className="inline-flex items-center gap-2 pl-1.5 text-gray-600">
-              <StatusPill status={run.status} variant="dot" />
-              <span className="whitespace-nowrap">
-                Run <code className="font-mono font-medium text-gray-900">{run.runId.slice(0, 6)}</code> · {run.when}
+      {run ? (
+        <LoadedRunBar run={run} detail={run.when} onUnload={onUnloadRun} />
+      ) : (
+        <div className="inline-flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-1.5 text-xs shadow-sm">
+          <PeriodPicker
+            label="Runs"
+            value={period}
+            onChange={(p) => {
+              onPeriodChange(p);
+              if (!showing) onShowingChange(true);
+            }}
+            off={!showing}
+            onOff={() => onShowingChange(false)}
+            compact
+          />
+          {showing && activity && (
+            <>
+              <span className="text-gray-300">·</span>
+              <span className="whitespace-nowrap font-medium text-gray-800">
+                {activity.runs} {activity.runs === 1 ? "run" : "runs"}
               </span>
-            </span>
-            {onUnloadRun && (
-              <Button variant="secondary" size="xs" icon={X} onClick={onUnloadRun}>
-                Unload run
-              </Button>
-            )}
-          </>
-        ) : (
-          <>
-            <PeriodPicker
-              label="Runs"
-              value={period}
-              onChange={(p) => {
-                onPeriodChange(p);
-                if (!showing) onShowingChange(true);
-              }}
-              off={!showing}
-              onOff={() => onShowingChange(false)}
-              compact
-            />
-            {showing && activity && (
-              <>
-                <span className="text-gray-300">·</span>
-                <span className="whitespace-nowrap font-medium text-gray-800">
-                  {activity.runs} {activity.runs === 1 ? "run" : "runs"}
-                </span>
-                {activity.failed > 0 && (
-                  <button
-                    type="button"
-                    onClick={showFailed}
-                    title="See the failed runs"
-                    className="inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-md px-1.5 font-medium text-red-600 hover:bg-red-50"
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                    {activity.failed} failed
-                  </button>
-                )}
-              </>
-            )}
-          </>
-        )}
-        <span className="h-5 w-px bg-gray-200" aria-hidden />
-        <Button
-          variant={filtered || open ? "outline-primary" : "ghost"}
-          size="xs"
-          icon={ListFilter}
-          onClick={() => onOpenChange(!open)}
-          aria-expanded={open}
-          aria-haspopup="dialog"
-        >
-          {filtered ? `Filter · ${statusLabel}` : "Filter"}
-        </Button>
-      </div>
+              {activity.failed > 0 && (
+                <button
+                  type="button"
+                  onClick={showFailed}
+                  title="See the failed runs"
+                  className="inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-md px-1.5 font-medium text-red-600 hover:bg-red-50"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                  {activity.failed} failed
+                </button>
+              )}
+            </>
+          )}
+          <span className="h-5 w-px bg-gray-200" aria-hidden />
+          <Button
+            variant={filtered || open ? "outline-primary" : "ghost"}
+            size="xs"
+            icon={ListFilter}
+            onClick={() => onOpenChange(!open)}
+            aria-expanded={open}
+            aria-haspopup="dialog"
+          >
+            {filtered ? `Filter · ${statusLabel}` : "Filter"}
+          </Button>
+        </div>
+      )}
 
       {open && (
         <section

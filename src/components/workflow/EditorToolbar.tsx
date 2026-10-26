@@ -11,7 +11,7 @@ import WorkflowFileMenu from "./WorkflowFileMenu";
 import type { WorkflowMenuAction } from "./WorkflowFileMenu";
 import SandboxChip from "./SandboxChip";
 import RunMenuButton from "./RunMenuButton";
-import RunChip from "./RunChip";
+import LoadedRunBar from "./LoadedRunBar";
 
 /** The editor's main surfaces. */
 export type EditorView = "canvas" | "code";
@@ -41,7 +41,7 @@ interface Props {
   /** "latest" or a version id such as "v1". */
   version?: string;
   onSelectVersion?: (version: string) => void;
-  /** A loaded run takes the version slot, with an X to close it. */
+  /** A loaded run; in code mode it shows next to the view switcher, with "Unload run". */
   run?: RunDetails;
   onCloseRun?: () => void;
   /** Whether triggers start runs; the sandbox chip reads this way on main. */
@@ -70,9 +70,10 @@ interface Props {
  * On the left, a pill holds the Fn file menu, the workflow's title and the
  * sandbox chip. The title reads "Name • v4": click it to open the version
  * history (renaming lives in the Fn menu, or press R in a sandbox). While a
- * run is loaded, the title is just the name and a light blue run chip follows
- * the sandbox; its X closes the run. In the middle the view switcher flips between
- * Canvas and Code; on main it's marked read-only. On the right sit the run
+ * run is loaded, the title is just the name. In the middle the view switcher
+ * flips between Canvas and Code; on main it's marked read-only. In code mode a
+ * loaded run sits to its right, styled like the canvas runs bar, with
+ * "Unload run". On the right sit the run
  * button and the main action ("Edit in sandbox" on main, "Go live" in a
  * sandbox), then the assistant button in a group of its own. The button hands
  * over to the assistant tray: while the tray slides in from the right, the
@@ -224,15 +225,11 @@ export default function EditorToolbar({
           onNewSandbox={onNewSandbox}
           onViewAll={onViewAllSandboxes}
         />
-        {run && (
-          <span className="ml-1.5">
-            <RunChip run={run} size="md" note={run.version} onClear={onCloseRun} />
-          </span>
-        )}
       </div>
 
-      {/* View switcher */}
-      <div className={`${group} flex-none px-1.5`}>
+      {/* View switcher, then the loaded run in code mode (the canvas has its own runs bar) */}
+      <div className="flex flex-none items-center gap-3">
+      <div className={`${group} px-1.5`}>
         {onMain && (
           <span
             className="mr-1 inline-flex items-center gap-1 px-2 font-mono text-[11px] uppercase tracking-widest text-gray-400"
@@ -242,6 +239,8 @@ export default function EditorToolbar({
           </span>
         )}
         <SegmentedControl variant="pill" size="md" options={editorViews} value={view} onChange={(v) => onViewChange(v as EditorView)} />
+      </div>
+      {run && view === "code" && <LoadedRunBar run={run} detail={run.version} onUnload={onCloseRun} />}
       </div>
 
       {/* Run and the main action, then the assistant on its own; these never shrink, the name and sandbox truncate instead */}

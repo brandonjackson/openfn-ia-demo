@@ -1,4 +1,5 @@
 import { shortId } from "./runs";
+import type { AdaptorKind } from "./workflow";
 
 /**
  * Mock data for the AI Assistant tray in the workflow editor. Conversations
@@ -32,10 +33,24 @@ export interface AssistantResult {
   items: { label: string; outcome: "ok" | "skipped" | "failed" }[];
 }
 
+/**
+ * Something in the editor a message is about, attached to the chat input as
+ * context: a step or the trigger, with the adaptor for the chip's icon.
+ */
+export interface AssistantReference {
+  kind: "step" | "trigger";
+  /** The node's id in the workflow. */
+  id: string;
+  label: string;
+  adaptor?: AdaptorKind;
+}
+
 export interface AssistantMessage {
   id: string;
   role: AssistantMessageRole;
   content: string;
+  /** What the message was about, when it was sent with a reference attached. */
+  reference?: AssistantReference;
   /** Job code or workflow YAML the assistant suggested, shown as a code block. */
   code?: string;
   plan?: AssistantPlan;

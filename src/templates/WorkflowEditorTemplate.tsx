@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Code2, Sparkles } from "lucide-react";
 import type {
   AdaptorKind,
@@ -14,10 +14,10 @@ import type {
 } from "../mock-data/workflow";
 import { defaultWorkflowSettings, workflowToYaml } from "../mock-data/workflow";
 import type { WorkflowSettings } from "../mock-data/workflow";
-import { shortId, simulateRun } from "../mock-data/runs";
+import { runActivity, shortId, simulateRun } from "../mock-data/runs";
 import { adaptorInfo } from "../mock-data/adaptor-reference";
 import type { Snippet } from "../mock-data/adaptor-reference";
-import type { AssistantConversation, AssistantPlan } from "../mock-data/assistant";
+import type { AssistantConversation, AssistantPlan, AssistantReference } from "../mock-data/assistant";
 import type { ProjectComponent, ProjectService } from "../mock-data/projects";
 import EditorShell from "../components/workflow/EditorShell";
 import EditorToolbar from "../components/workflow/EditorToolbar";
@@ -29,6 +29,7 @@ import LayoutMenu from "../components/workflow/LayoutMenu";
 import { useEditorLayout, resetLayout } from "../editor-layout";
 import type { EditorLayout, PanelViewId } from "../editor-layout";
 import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
+import type { NodeAction } from "../components/workflow/WorkflowNodeCard";
 import CodeWorkspace from "../components/workflow/CodeWorkspace";
 import type { ExplorerFile } from "../components/workflow/EditorExplorer";
 import VersionMismatchBanner from "../components/workflow/VersionMismatchBanner";
@@ -54,8 +55,8 @@ import Button from "../components/Button";
 /** Who starts runs and retries in the prototype. */
 const CURRENT_USER = "Jane Doe";
 
-/** How long a simulated run takes before its results come in. */
-const RUN_TIME_MS = 1500;
+/** How long each step of a simulated run takes, so the run can be watched going. */
+const STEP_TIME_MS = 700;
 
 /** Edits made in this session, on top of the workflow as loaded. */
 interface Edits {
@@ -114,6 +115,11 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
  * trigger's type, URL and switch) and, with a run loaded, snippets of its
  * log, input and output that expand to full width. It's the default side UI;
  * the panel is for when more room is wanted and takes its place while open.
+ * Each node card's ⋮ menu runs from that step, opens the inspector (Edit),
+ * opens the assistant with the step loaded as context (Improve) or deletes
+ * it. While no run is loaded the run history is laid over the canvas (run
+ * and failure counts on cards, volume on edges; the ⋯ menu turns it off),
+ * and a card's failed count loads the last run that failed there.
  *
  * The panel along the bottom carries the views that aren't canvas or code:
  * Runs (to load one), the selected Step's settings, its Log, Input and
@@ -129,7 +135,7 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
  *
  * Loading a run from the Runs view draws it on the canvas, marks each step in
  * the explorer and fills the Log, Input and Output views for the step in
- * focus.
+ * focus. A run started from the editor is drawn live, one step at a time.
  * When the run took place on an older version, a banner offers to view the
  * version that ran. With a run selected the run button becomes Retry.
  *
@@ -365,7 +371,15 @@ export default function WorkflowEditorTemplate({
     });
   };
 
-  /** Start a run on the latest version, follow it, and fill in its results shortly after. */
+  /** Dataclips a running run has produced so far join the project as they arrive. */
+  const addClips = (incoming: Dataclip[]) =>
+    setClips((current) => [...current, ...incoming.filter((d) => !current.some((c) => c.id === d.id))]);
+
+  // Timers advancing simulated runs, stopped if the editor goes away mid-run.
+  const runTimers = useRef<ReturnType<typeof setInterval>[]>([]);
+  useEffect(() => () => runTimers.current.forEach(clearInterval), []);
+
+  /** Start a run on the latest version and follow it live, a step at a time, until its results are in. */
   const startRun = ({ workOrderId, input, fromJobId }: { workOrderId: string; input: Dataclip; fromJobId?: string }) => {
     const latest = applyEdits(workflow, edits, name);
     const args = {
@@ -377,15 +391,23 @@ export default function WorkflowEditorTemplate({
       fromJobId: latest.nodes.some((n) => n.id === fromJobId) ? fromJobId : undefined,
       startedBy: CURRENT_USER,
     };
-    upsertRun(simulateRun({ ...args, inProgress: true }).run);
+    const started = simulateRun({ ...args, progress: 0 });
+    upsertRun(started.run);
     setVersion("latest");
     setRunId(args.runId);
     if (layout.panel && focusJob) showPanel("log");
-    setTimeout(() => {
-      const done = simulateRun(args);
-      upsertRun(done.run);
-      setClips((current) => [...current, ...done.dataclips]);
-    }, RUN_TIME_MS);
+    let progress = 0;
+    const timer = setInterval(() => {
+      progress += 1;
+      const next = progress < started.run.steps.length ? simulateRun({ ...args, progress }) : simulateRun(args);
+      upsertRun(next.run);
+      addClips(next.dataclips);
+      if (next.run.status !== "running") {
+        clearInterval(timer);
+        runTimers.current = runTimers.current.filter((t) => t !== timer);
+      }
+    }, STEP_TIME_MS);
+    runTimers.current.push(timer);
   };
 
   /** Keep a new input in the project so it can be picked again. */
@@ -422,6 +444,17 @@ export default function WorkflowEditorTemplate({
               : undefined,
         }
       : undefined;
+
+  // The run history summed up over the graph, laid over the canvas while no run is loaded.
+  const activity = layout.canvasActivity && view === "canvas" ? runActivity(graph, orders) : undefined;
+
+  /** From a card's failed count: load the last run that failed at that step, with the step in focus. */
+  const showFailures = (nodeId: string) => {
+    const failure = activity?.nodes[nodeId]?.lastFailure;
+    if (!failure) return;
+    setSelectedId(nodeId);
+    selectRun(failure);
+  };
 
   const openStep = (step: RunStep) => {
     if (!graph.nodes.some((n) => n.id === step.jobId)) return;
@@ -477,7 +510,7 @@ export default function WorkflowEditorTemplate({
       adaptor: "common",
       adaptorPackage: adaptorInfo.common.package,
       body: "// Start writing your step here\nfn(state => state);",
-      x: last?.x ?? 360,
+      x: last?.x ?? 490,
       y: (last?.y ?? 70) + 170,
     };
     edit((e) => ({ added: [...e.added, job] }));
@@ -500,6 +533,34 @@ export default function WorkflowEditorTemplate({
     if (selectedId === stepId) setSelectedId(undefined);
     if (typeof file === "object" && "stepId" in file && file.stepId === stepId) setFile("workflow");
     if (layout.panelView === "step") updateLayout({ panelView: "runs" });
+  };
+
+  // What the assistant's chat input is about, loaded from a card's Improve.
+  const [assistantReference, setAssistantReference] = useState<AssistantReference>();
+
+  /** An item picked from a node card's ⋮ menu. */
+  const onNodeAction = (node: WorkflowNode, action: NodeAction) => {
+    const job = node.type === "job" ? node : undefined;
+    switch (action) {
+      case "run":
+        return runFresh(job?.id);
+      case "edit":
+        // The inspector is the canvas's side UI while the panel is closed.
+        setSelectedId(node.id);
+        if (layout.panel) updateLayout({ panel: false });
+        return;
+      case "improve":
+        setSelectedId(node.id);
+        setAssistantReference(
+          job
+            ? { kind: "step", id: job.id, label: job.label, adaptor: job.adaptor }
+            : { kind: "trigger", id: node.id, label: node.label }
+        );
+        if (!layout.assistant) updateLayout({ assistant: true });
+        return;
+      case "delete":
+        return job && !onMain ? deleteStep(job.id) : undefined;
+    }
   };
 
   /** A plan the assistant carried out: note it on the step it was about. */
@@ -702,6 +763,8 @@ export default function WorkflowEditorTemplate({
         onOpenRuns={() => showPanel("runs")}
         onAskToMerge={onMain ? undefined : () => setPromoteOpen(true)}
         onPlanAccepted={onMain ? undefined : applyPlan}
+        reference={assistantReference}
+        onClearReference={() => setAssistantReference(undefined)}
       />
     </EditorTray>
   );
@@ -804,7 +867,18 @@ export default function WorkflowEditorTemplate({
       }
     >
       {view === "canvas" && (
-        <WorkflowCanvas workflow={graph} selectedId={selectedId} onSelect={selectNode} run={selectedRun} height={760} />
+        <WorkflowCanvas
+          workflow={graph}
+          selectedId={selectedId}
+          onSelect={selectNode}
+          onNodeAction={onNodeAction}
+          readOnly={onMain}
+          run={selectedRun}
+          activity={activity}
+          onShowFailures={showFailures}
+          onViewRuns={() => showPanel("runs")}
+          height={760}
+        />
       )}
       {view === "code" && (
         <div className="h-full p-4 pt-3">

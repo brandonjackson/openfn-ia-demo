@@ -25,6 +25,12 @@ export interface TriggerNode {
   triggerType: "webhook" | "cron" | "kafka";
   label: string;
   subtitle: string;
+  /**
+   * One line saying what the node does, shown on its canvas card. Text in
+   * `**double asterisks**` is the bold lead, e.g. "**Starts a run** for each
+   * request received."; without one the label is used.
+   */
+  summary?: string;
   x: number;
   y: number;
 }
@@ -33,6 +39,8 @@ export interface JobNode {
   id: string;
   type: "job";
   label: string;
+  /** See {@link TriggerNode.summary}. */
+  summary?: string;
   adaptor: AdaptorKind;
   /** Adaptor version string shown under the icon, e.g. "@openfn/language-http". */
   adaptorPackage: string;
@@ -43,6 +51,15 @@ export interface JobNode {
 }
 
 export type WorkflowNode = TriggerNode | JobNode;
+
+/**
+ * Splits a node summary such as "**Searches Identity** for citizens" into
+ * its bold lead and the rest. Without a marked lead the whole text is the lead.
+ */
+export function splitSummary(summary: string): { lead: string; rest: string } {
+  const match = /^\*\*(.+?)\*\*\s*(.*)$/s.exec(summary);
+  return match ? { lead: match[1], rest: match[2] } : { lead: summary, rest: "" };
+}
 
 export interface WorkflowEdge {
   id: string;
@@ -195,57 +212,63 @@ export const nationalIdWorkflow: Workflow = {
       triggerType: "webhook",
       label: "Webhook trigger",
       subtitle: "On each request received",
-      x: 360,
+      summary: "**Starts a run** for each application posted to the webhook.",
+      x: 490,
       y: 70,
     },
     {
       id: "search",
       type: "job",
       label: "Search for duplicate citizens in Identity",
+      summary: "**Searches Identity** for citizens matching the application.",
       adaptor: "http",
       adaptorPackage: "@openfn/language-http",
       body: searchBody,
-      x: 360,
+      x: 490,
       y: 230,
     },
     {
       id: "notify",
       type: "job",
       label: "Notify applicant of existing national ID",
+      summary: "**Tells the applicant** a national ID already exists for them.",
       adaptor: "http",
       adaptorPackage: "@openfn/language-http",
       body: "// Notify the applicant that a national ID already exists\npost('https://.../notify', state => ({ body: state.match }));",
-      x: 130,
+      x: 190,
       y: 410,
     },
     {
       id: "create",
       type: "job",
       label: "Create new citizen in Identity",
+      summary: "**Registers the citizen** in Identity and captures the issued ID.",
       adaptor: "http",
       adaptorPackage: "@openfn/language-http",
       body: "// Register the new citizen and capture the issued national ID\npost('https://.../citizens', state => ({ body: state.application }));",
-      x: 360,
+      x: 490,
       y: 410,
     },
     {
       id: "queue",
       type: "job",
       label: "Queue application for retry",
+      summary: "**Parks the application** so it can be retried once Identity is back.",
       adaptor: "common",
       adaptorPackage: "@openfn/language-common",
       body: "// Park the application so it can be retried later\nfn(state => state);",
-      x: 600,
+      x: 790,
       y: 410,
     },
     {
       id: "confirm",
       type: "job",
       label: "Send confirmation notification with national ID",
+      summary: "**Sends the applicant** their new national ID.",
       adaptor: "http",
       adaptorPackage: "@openfn/language-http",
       body: "// Send the applicant their new national ID\npost('https://.../notify', state => ({ body: state.nationalId }));",
-      x: 360,
+      x: 490,
       y: 580,
     },
   ],
@@ -282,8 +305,8 @@ export const nationalIdWorkflowV1: Workflow = {
     .filter((n) => n.id !== "search" && n.id !== "notify")
     .map((n) => {
       if (n.id === "create") return { ...n, y: 230 };
-      if (n.id === "confirm") return { ...n, x: 240, y: 410 };
-      if (n.id === "queue") return { ...n, x: 480, y: 410 };
+      if (n.id === "confirm") return { ...n, x: 340, y: 410 };
+      if (n.id === "queue") return { ...n, x: 640, y: 410 };
       return n;
     }),
   edges: [
@@ -342,7 +365,8 @@ export function buildStarterWorkflow({
         triggerType: "webhook",
         label: channel ? channel.name : "Webhook trigger",
         subtitle: channel ? `On each ${channel.system} event` : "On each request received",
-        x: 360,
+        summary: channel ? `**Starts a run** for each ${channel.system} event.` : "**Starts a run** for each request received.",
+        x: 490,
         y: 70,
       },
       {
@@ -352,7 +376,7 @@ export function buildStarterWorkflow({
         adaptor: "common",
         adaptorPackage: "@openfn/language-common",
         body: "// Start writing your job here\nfn(state => state);",
-        x: 360,
+        x: 490,
         y: 230,
       },
     ],

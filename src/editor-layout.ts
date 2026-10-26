@@ -29,6 +29,8 @@ export interface EditorLayout {
   detailsView: DetailsViewId;
   /** The assistant on the right. */
   assistant: boolean;
+  /** The run history laid over the canvas while no run is loaded. */
+  canvasActivity: boolean;
 }
 
 export const defaultLayout: EditorLayout = {
@@ -41,6 +43,7 @@ export const defaultLayout: EditorLayout = {
   details: true,
   detailsView: "settings",
   assistant: false,
+  canvasActivity: true,
 };
 
 const STORAGE_KEY = "openfn-ia-demo:editor-layout";

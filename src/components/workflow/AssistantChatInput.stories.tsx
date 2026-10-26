@@ -35,3 +35,8 @@ export const WithRun: Story = { args: { runId: sampleRun.runId } };
 export const BuildMode: Story = { args: { mode: "build" } };
 
 export const Sending: Story = { args: { loading: true } };
+
+/** A step loaded as context from a card's Improve. */
+export const WithReference: Story = {
+  args: { reference: { kind: "step", id: "search", label: "Search for duplicate citizens in Identity", adaptor: "http" }, onRemoveReference: () => {} },
+};

@@ -3,3 +3,10 @@
 /* Theme tokens + the data-theme overrides that drive the Style Picker.
    Imported AFTER tailwindcss so its variable redefinitions win. */
 @import "./theme/theme.css";
+
+/* Motion along a canvas edge: dots travelling in the run's direction. */
+@keyframes edge-flow {
+  to {
+    stroke-dashoffset: -30;
+  }
+}

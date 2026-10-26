@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { ArrowUp, ChevronDown, Loader2, Plus } from "lucide-react";
-import type { AssistantMode } from "../../mock-data/assistant";
+import type { AssistantMode, AssistantReference } from "../../mock-data/assistant";
 import { assistantModes } from "../../mock-data/assistant";
 import DropdownMenu from "../DropdownMenu";
+import ReferenceChip from "./ReferenceChip";
 
 export interface AssistantAttachments {
   logs: boolean;
@@ -14,7 +15,9 @@ export interface AssistantAttachments {
  * The message box at the foot of the assistant tray. Enter sends,
  * Shift + Enter adds a new line. The mode picker chooses how the assistant
  * works on the request (plan first, build straight away, or just answer).
- * While a run is open, the + button attaches its logs and data.
+ * While a run is open, the + button attaches its logs and data. A
+ * `reference`, e.g. the step picked from a card's Improve, sits above the
+ * text as a chip until the message is sent or it's removed.
  */
 export default function AssistantChatInput({
   onSend,
@@ -24,6 +27,8 @@ export default function AssistantChatInput({
   autoFocus = false,
   mode = "plan",
   onModeChange,
+  reference,
+  onRemoveReference,
 }: {
   onSend?: (message: string, attachments: AssistantAttachments, mode: AssistantMode) => void;
   placeholder?: string;
@@ -34,6 +39,9 @@ export default function AssistantChatInput({
   autoFocus?: boolean;
   mode?: AssistantMode;
   onModeChange?: (mode: AssistantMode) => void;
+  /** What the message is about, shown as a chip in the box. */
+  reference?: AssistantReference;
+  onRemoveReference?: () => void;
 }) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<AssistantAttachments>({ logs: false, data: false });
@@ -45,6 +53,11 @@ export default function AssistantChatInput({
   useEffect(() => {
     if (autoFocus) ref.current?.focus();
   }, [autoFocus]);
+
+  // A reference arriving means someone asked about it: put the cursor in the box.
+  useEffect(() => {
+    if (reference) ref.current?.focus();
+  }, [reference]);
 
   const send = () => {
     if (!canSend) return;
@@ -66,6 +79,12 @@ export default function AssistantChatInput({
           text.trim() ? "border-gray-400" : "border-gray-200 hover:border-gray-300"
         }`}
       >
+        {reference && (
+          <div className="flex items-center gap-1.5 px-3 pt-2.5 text-xs text-gray-500">
+            <span>About</span>
+            <ReferenceChip reference={reference} onRemove={onRemoveReference} />
+          </div>
+        )}
         <textarea
           ref={ref}
           value={text}

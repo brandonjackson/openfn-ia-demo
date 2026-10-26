@@ -1,6 +1,5 @@
 import { MoreHorizontal } from "lucide-react";
-import type { EditorLayout, PanelDock, PanelViewId } from "../../editor-layout";
-import { panelViews } from "./panel-views";
+import type { EditorLayout, PanelDock } from "../../editor-layout";
 import DropdownMenu from "../DropdownMenu";
 import type { DropdownMenuItem } from "../DropdownMenu";
 
@@ -16,8 +15,7 @@ interface Props {
 /**
  * The ⋯ button at the top-right corner of the code area that opens the
  * layout menu: checkboxes for each area (explorer, panel, details,
- * assistant), on the canvas where the panel docks, and for each view the
- * panel shows, then a reset. It's the
+ * assistant), on the canvas where the panel docks, then a reset. It's the
  * one place that lists everything the layout can show or hide.
  */
 export default function LayoutMenu({ layout, onChange, onReset, view, defaultOpen = false }: Props) {
@@ -33,24 +31,12 @@ export default function LayoutMenu({ layout, onChange, onReset, view, defaultOpe
           { id: "dock:right", label: "Panel on the right", selected: layout.canvasPanelDock === "right", divider: true },
           { id: "dock:bottom", label: "Panel along the bottom", selected: layout.canvasPanelDock === "bottom" },
         ]),
-    ...panelViews.map((v, i) => ({
-      id: `view:${v.id}`,
-      label: v.label,
-      description: v.description,
-      checked: !layout.hiddenViews.includes(v.id),
-      divider: i === 0,
-    })),
     ...(onReset ? [{ id: "reset", label: "Reset layout", divider: true }] : []),
   ];
 
   const select = (id: string) => {
     if (id === "reset") return onReset?.();
     if (id.startsWith("dock:")) return onChange({ canvasPanelDock: id.slice(5) as PanelDock, panel: true });
-    if (id.startsWith("view:")) {
-      const v = id.slice(5) as PanelViewId;
-      const hidden = layout.hiddenViews.includes(v) ? layout.hiddenViews.filter((h) => h !== v) : [...layout.hiddenViews, v];
-      return onChange({ hiddenViews: hidden });
-    }
     const key = id as "explorer" | "panel" | "details" | "assistant";
     onChange({ [key]: !layout[key] });
   };
@@ -71,7 +57,7 @@ export default function LayoutMenu({ layout, onChange, onReset, view, defaultOpe
           aria-haspopup="menu"
           aria-expanded={open}
           aria-label="Layout"
-          title="Layout: show or hide areas and panel views"
+          title="Layout: show or hide areas"
           className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 ${
             open ? "bg-gray-100 text-gray-700" : ""
           }`}

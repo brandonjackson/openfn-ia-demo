@@ -53,8 +53,6 @@ export const WithTop: Story = {
         onPeriodChange={() => {}}
         showing
         onShowingChange={() => {}}
-        status="all"
-        onStatusChange={() => {}}
         activity={runActivity(nationalIdWorkflow, workOrders)}
         workOrders={workOrders}
         open={false}

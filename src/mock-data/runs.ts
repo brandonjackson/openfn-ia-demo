@@ -477,24 +477,14 @@ export function runsInPeriod(workOrders: WorkOrder[], period: ActivityPeriod): R
   return workOrders.flatMap((o) => o.runs).filter((r) => Math.max(0, MOCK_NOW - startedAt(r)) <= hours * 3600_000);
 }
 
-/** Which runs the canvas counts, picked from its run filter. */
-export type RunStatusFilter = "all" | "failed" | "success";
-
-export const runStatusFilters: { id: RunStatusFilter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "failed", label: "Failed" },
-  { id: "success", label: "Succeeded" },
-];
-
 /**
- * The work orders with only the runs that pass the filter: started within
- * `period` and, unless `status` is "all", ending that way. Work orders left
- * with no runs are dropped.
+ * The work orders with only the runs started within `period`. Work orders
+ * left with no runs are dropped.
  */
-export function filterWorkOrders(workOrders: WorkOrder[], period: ActivityPeriod, status: RunStatusFilter = "all"): WorkOrder[] {
+export function filterWorkOrders(workOrders: WorkOrder[], period: ActivityPeriod): WorkOrder[] {
   const inPeriod = new Set(runsInPeriod(workOrders, period).map((r) => r.runId));
   return workOrders
-    .map((o) => ({ ...o, runs: o.runs.filter((r) => inPeriod.has(r.runId) && (status === "all" || r.status === status)) }))
+    .map((o) => ({ ...o, runs: o.runs.filter((r) => inPeriod.has(r.runId)) }))
     .filter((o) => o.runs.length > 0);
 }
 

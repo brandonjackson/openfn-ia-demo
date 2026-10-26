@@ -2,10 +2,9 @@ import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { ListFilter } from "lucide-react";
 import type { RunDetails, WorkOrder } from "../../mock-data/workflow";
-import type { ActivityPeriod, RunActivity, RunStatusFilter } from "../../mock-data/runs";
-import { activityPeriodLabel, filterWorkOrders, runStatusFilters } from "../../mock-data/runs";
+import type { ActivityPeriod, RunActivity } from "../../mock-data/runs";
+import { activityPeriodLabel, filterWorkOrders } from "../../mock-data/runs";
 import Button from "../Button";
-import SegmentedControl from "../SegmentedControl";
 import PeriodPicker from "./PeriodPicker";
 import RunHistoryList from "./RunHistoryList";
 import LoadedRunBar from "./LoadedRunBar";
@@ -17,12 +16,9 @@ interface Props {
   /** Whether run history is laid over the canvas; "Off" in the picker turns it off. */
   showing: boolean;
   onShowingChange: (showing: boolean) => void;
-  /** Which runs count: all of them, or only those that failed or succeeded. */
-  status: RunStatusFilter;
-  onStatusChange: (status: RunStatusFilter) => void;
-  /** The run history summed up for the period and filter, for the counts. */
+  /** The run history summed up for the period, for the counts. */
   activity?: RunActivity;
-  /** Every work order, newest first; the list shows those in the period and filter. */
+  /** Every work order, newest first; the list shows those in the period. */
   workOrders: WorkOrder[];
   /** The loaded run, which takes the counts' place with a way to unload it. */
   run?: RunDetails;
@@ -42,16 +38,14 @@ interface Props {
  * canvas (or Off, for just the workflow) and sums it up: how many runs and
  * how many failed. With a run loaded it names the run, with a clear way to
  * unload it and go back to the history (and no Filter). Filter opens the run
- * list over the canvas, for the period, with a status filter that the canvas follows too;
- * picking a run loads it. The failed count opens the list on failed runs.
+ * list over the canvas, for the period; picking a run loads it. The failed
+ * count opens the list too.
  */
 export default function CanvasRunsBar({
   period,
   onPeriodChange,
   showing,
   onShowingChange,
-  status,
-  onStatusChange,
   activity,
   workOrders,
   run,
@@ -80,15 +74,7 @@ export default function CanvasRunsBar({
     };
   }, [open, onOpenChange]);
 
-  const listed = filterWorkOrders(workOrders, period, status);
-  const count = (s: RunStatusFilter) => filterWorkOrders(workOrders, period, s).reduce((n, o) => n + o.runs.length, 0);
-  const filtered = status !== "all";
-  const statusLabel = runStatusFilters.find((s) => s.id === status)?.label;
-
-  const showFailed = () => {
-    onStatusChange("failed");
-    onOpenChange(true);
-  };
+  const listed = filterWorkOrders(workOrders, period);
 
   return (
     <div ref={ref} className="relative flex flex-col items-center">
@@ -116,8 +102,8 @@ export default function CanvasRunsBar({
               {activity.failed > 0 && (
                 <button
                   type="button"
-                  onClick={showFailed}
-                  title="See the failed runs"
+                  onClick={() => onOpenChange(true)}
+                  title="See the runs"
                   className="inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-md px-1.5 font-medium text-red-600 hover:bg-red-50"
                 >
                   <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
@@ -128,14 +114,14 @@ export default function CanvasRunsBar({
           )}
           <span className="h-5 w-px bg-gray-200" aria-hidden />
           <Button
-            variant={filtered || open ? "outline-primary" : "ghost"}
+            variant={open ? "outline-primary" : "ghost"}
             size="xs"
             icon={ListFilter}
             onClick={() => onOpenChange(!open)}
             aria-expanded={open}
             aria-haspopup="dialog"
           >
-            {filtered ? `Filter · ${statusLabel}` : "Filter"}
+            Filter
           </Button>
         </div>
       )}
@@ -146,13 +132,8 @@ export default function CanvasRunsBar({
           aria-label="Runs"
           className="absolute top-full z-40 mt-2 flex max-h-[min(480px,60vh)] w-[440px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl"
         >
-          <header className="flex flex-none items-center justify-between gap-3 border-b border-gray-100 px-3 py-2">
+          <header className="flex flex-none items-center border-b border-gray-100 px-3 py-2">
             <span className="text-xs text-gray-500">{activityPeriodLabel(period)}</span>
-            <SegmentedControl
-              options={runStatusFilters.map((s) => ({ id: s.id, label: s.label, count: count(s.id) }))}
-              value={status}
-              onChange={(v) => onStatusChange(v as RunStatusFilter)}
-            />
           </header>
           <div className="min-h-0 flex-1 overflow-y-auto">
             <RunHistoryList
@@ -168,7 +149,7 @@ export default function CanvasRunsBar({
               empty={
                 workOrders.length === 0
                   ? "No runs yet. Run the workflow to see it here."
-                  : `No ${filtered ? `${statusLabel?.toLowerCase()} ` : ""}runs in the ${activityPeriodLabel(period).toLowerCase()}.`
+                  : `No runs in the ${activityPeriodLabel(period).toLowerCase()}.`
               }
             />
           </div>

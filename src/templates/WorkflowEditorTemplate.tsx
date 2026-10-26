@@ -14,7 +14,7 @@ import type {
 import { defaultWorkflowSettings, workflowToYaml } from "../mock-data/workflow";
 import type { WorkflowSettings } from "../mock-data/workflow";
 import { failureReasons, filterWorkOrders, runActivity, shortId, simulateRun } from "../mock-data/runs";
-import type { ActivityPeriod, RunStatusFilter } from "../mock-data/runs";
+import type { ActivityPeriod } from "../mock-data/runs";
 import { adaptorInfo } from "../mock-data/adaptor-reference";
 import type { AssistantConversation, AssistantPlan, AssistantReference } from "../mock-data/assistant";
 import type { ProjectComponent, ProjectService } from "../mock-data/projects";
@@ -114,8 +114,8 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
  * On the canvas, the runs bar over the top sets what the workflow shows: run
  * history over a period (run and failure counts on cards, volume on edges),
  * nothing but the workflow (Off), or a loaded run, with a clear way to
- * unload it. Its Filter opens the run list over the canvas, with a status
- * filter the canvas follows too; picking a run loads it. Selecting a node
+ * unload it. Its Filter opens the run list over the canvas; picking a run
+ * loads it. Selecting a node
  * brings up the inspector, a card over the right edge that follows the
  * same three states: the node's config and the assistant's summary of its
  * code; its runs, failures and why they failed (the whole workflow's, on
@@ -447,10 +447,8 @@ export default function WorkflowEditorTemplate({
 
   // How far back the canvas's run history and the failures view look.
   const [period, setPeriod] = useState<ActivityPeriod>("7d");
-  // Which runs the canvas counts, from the runs bar's filter.
-  const [runStatus, setRunStatus] = useState<RunStatusFilter>("all");
   const [runsFilterOpen, setRunsFilterOpen] = useState(defaultRunsFilterOpen);
-  const canvasOrders = filterWorkOrders(orders, period, runStatus);
+  const canvasOrders = filterWorkOrders(orders, period);
   // The run history summed up over the graph, laid over the canvas while no run is loaded.
   const activity = layout.canvasActivity && view === "canvas" ? runActivity(graph, canvasOrders, period) : undefined;
 
@@ -755,8 +753,6 @@ export default function WorkflowEditorTemplate({
         onPeriodChange={setPeriod}
         showing={layout.canvasActivity}
         onShowingChange={(showing) => updateLayout({ canvasActivity: showing })}
-        status={runStatus}
-        onStatusChange={setRunStatus}
         activity={activity}
         workOrders={orders}
         run={selectedRun}

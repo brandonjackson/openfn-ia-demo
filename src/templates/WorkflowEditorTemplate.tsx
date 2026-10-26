@@ -821,7 +821,6 @@ export default function WorkflowEditorTemplate({
     <EditorShell
       toolbar={toolbar}
       sandboxed={!onMain}
-      top={runsBar}
       bottom={view === "canvas" && onMain ? <ReadOnlyNotice onEditInSandbox={() => setEditInSandboxOpen(true)} /> : undefined}
       rightTray={rightTray}
       rightTrayOpen={layout.assistant}
@@ -888,6 +887,7 @@ export default function WorkflowEditorTemplate({
           activity={activity}
           onShowFailures={setSelectedId}
           height={760}
+          header={runsBar}
         />
       )}
       {view === "code" && (

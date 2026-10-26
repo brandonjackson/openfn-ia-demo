@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowCanvas from "./WorkflowCanvas";
+import CanvasRunsBar from "./CanvasRunsBar";
 import { nationalIdWorkflow, nationalIdWorkflowV1 } from "../../mock-data/workflow";
 import { failedRun, olderRun, runActivity, sampleRun, workOrders } from "../../mock-data/runs";
 
@@ -31,6 +32,27 @@ export const Bare: Story = {
 /** The run history laid over the workflow: counts on cards, volume on edges. */
 export const WithActivity: Story = {
   args: { workflow: nationalIdWorkflow, activity, onShowFailures: () => {} },
+};
+
+/** The runs bar as the header: pinned above the top card, it pans with the workflow. */
+export const WithRunsBar: Story = {
+  args: {
+    workflow: nationalIdWorkflow,
+    activity,
+    onShowFailures: () => {},
+    header: (
+      <CanvasRunsBar
+        period="7d"
+        onPeriodChange={() => {}}
+        showing
+        onShowingChange={() => {}}
+        activity={activity}
+        workOrders={workOrders}
+        open={false}
+        onOpenChange={() => {}}
+      />
+    ),
+  },
 };
 
 /** A run drawn on the canvas: the path it took, with each step's status. */

@@ -33,3 +33,6 @@ export const Failed: Story = {
 
 /** A step the run never reached. */
 export const NotInRun: Story = { args: { jobId: "not-a-step" } };
+
+/** On the trigger: the run's input, at full height. */
+export const Trigger: Story = { args: { jobId: undefined } };

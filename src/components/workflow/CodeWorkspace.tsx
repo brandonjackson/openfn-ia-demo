@@ -172,12 +172,15 @@ export default function CodeWorkspace({
     />
   );
 
-  // I/O needs a loaded run; without one a step falls back to its snippets.
-  const view: DetailsViewId = step ? (detailsView === "io" && !run ? "snippets" : detailsView) : "config";
+  // I/O needs a loaded run; without one a step falls back to its snippets, the trigger to its config.
+  const hasIO = Boolean(run && (step || file === "trigger"));
+  const view: DetailsViewId = step
+    ? detailsView === "io" && !run ? "snippets" : detailsView
+    : detailsView === "io" && hasIO ? "io" : "config";
 
   const detailsBody =
-    view === "io" && step && run ? (
-      <RunIOPanel run={run} jobId={step.id} dataclips={dataclips} onExpand={onExpandRunData} />
+    view === "io" && run ? (
+      <RunIOPanel run={run} jobId={step?.id} dataclips={dataclips} onExpand={onExpandRunData} />
     ) : view === "snippets" && step ? (
       <AdaptorReferencePanel
         adaptor={step.adaptor}
@@ -326,7 +329,7 @@ export default function CodeWorkspace({
               options={[
                 { id: "config", label: component || doc || listing || addedDoc ? "Details" : "Config" },
                 ...(step ? [{ id: "snippets", label: "Snippets" }] : []),
-                ...(step && run ? [{ id: "io", label: "I/O" }] : []),
+                ...(hasIO ? [{ id: "io", label: "I/O" }] : []),
               ]}
               value={view}
               onChange={(v) => onDetailsViewChange?.(v as DetailsViewId)}

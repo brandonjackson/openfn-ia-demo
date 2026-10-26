@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BookOpen, Code2, History, Sparkles } from "lucide-react";
+import { BookOpen, Code2, Sparkles } from "lucide-react";
 import type {
   AdaptorKind,
   Dataclip,
@@ -20,15 +20,13 @@ import type { Snippet } from "../mock-data/adaptor-reference";
 import type { AssistantConversation, AssistantPlan } from "../mock-data/assistant";
 import EditorShell from "../components/workflow/EditorShell";
 import EditorToolbar from "../components/workflow/EditorToolbar";
-import type { EditorView, TrayToggle } from "../components/workflow/EditorToolbar";
+import type { EditorView } from "../components/workflow/EditorToolbar";
 import type { WorkflowMenuAction } from "../components/workflow/WorkflowFileMenu";
 import EditorTray from "../components/workflow/EditorTray";
 import type { TrayPlacement } from "../components/workflow/EditorTray";
 import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
 import CodeWorkspace from "../components/workflow/CodeWorkspace";
 import type { ExplorerFile } from "../components/workflow/EditorExplorer";
-import RunHistoryList from "../components/workflow/RunHistoryList";
-import RunHistoryTable from "../components/workflow/RunHistoryTable";
 import VersionMismatchBanner from "../components/workflow/VersionMismatchBanner";
 import StepRunDetails from "../components/workflow/StepRunDetails";
 import { stepRunTabs } from "../components/workflow/step-run-tabs";
@@ -54,12 +52,15 @@ const CURRENT_USER = "Jane Doe";
 const RUN_TIME_MS = 1500;
 
 /** The trays the editor can show. */
-export type TrayId = "history" | "step" | "docs" | "assistant";
+export type TrayId = "step" | "docs" | "assistant";
 
-const defaultPlacements: Record<TrayId, TrayPlacement> = {
-  history: "right",
+/**
+ * Where each tray docks. The assistant has the right-hand dock to itself;
+ * the step tray and the adaptor reference share the bottom dock.
+ */
+const placements: Record<TrayId, TrayPlacement> = {
   step: "bottom",
-  docs: "right",
+  docs: "bottom",
   assistant: "right",
 };
 
@@ -102,26 +103,27 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
 }
 
 /**
- * The workflow editor: one toolbar, three views and a set of dockable trays.
+ * The workflow editor: one toolbar, two views and a set of trays.
  *
  * The toolbar's Fn menu holds the workflow's file actions (rename, settings,
  * sandbox and promotion, export, pause, delete) and the way back to the
- * project. The view switcher flips between the canvas, code (explorer, code
- * and the open item's settings) and the run history table.
+ * project. The view switcher flips between the canvas and code (explorer,
+ * code and the open item's settings). The run picker loads a run into
+ * whichever view is showing.
  *
- * Trays open from the toolbar (history, adaptor reference, assistant) or by
- * selecting something (the step tray). Each docks to the right or the
- * bottom and can be moved between the two; one tray per dock at a time. On
- * the canvas the bottom tray floats over it; in code mode it sits under the
- * code.
+ * The assistant is the only tray on the right, toggled from the toolbar or
+ * Ctrl/⌘ + K. The bottom dock holds the step tray (opened by selecting a
+ * step) or the adaptor reference (opened from a step's settings), one at a
+ * time. On the canvas the bottom tray floats over it; in code mode it sits
+ * under the code.
  *
  * On main everything is read-only and the main action is "Edit in sandbox".
  * In a sandbox steps can be renamed, re-adaptored, given credentials, have
  * snippets inserted, be added and deleted, and "Go live" promotes the sandbox
  * to main as a new version.
  *
- * Selecting a run in history draws it on the canvas, marks each step in the
- * explorer and fills the step tray with that step's log, input and output.
+ * Loading a run draws it on the canvas, marks each step in the explorer and
+ * fills the step tray with that step's log, input and output.
  * When the run took place on an older version, a banner offers to view the
  * version that ran. With a run selected the run button becomes Retry.
  *
@@ -250,7 +252,6 @@ export default function WorkflowEditorTemplate({
   // ---- Trays ----------------------------------------------------------------
 
   const [openTrays, setOpenTrays] = useState<TrayId[]>(initialTrays);
-  const [placements, setPlacements] = useState(defaultPlacements);
   const [stepTab, setStepTab] = useState<"configure" | StepRunTab>("configure");
   const [docsAdaptor, setDocsAdaptor] = useState<AdaptorKind | undefined>();
 
@@ -260,13 +261,10 @@ export default function WorkflowEditorTemplate({
     setOpenTrays((open) => [...open.filter((t) => placements[t] !== placements[id] && t !== id), id]);
   const closeTray = (id: TrayId) => setOpenTrays((open) => open.filter((t) => t !== id));
   const toggleTray = (id: TrayId) => (isOpen(id) ? closeTray(id) : openTray(id));
-  const moveTray = (id: TrayId, placement: TrayPlacement) => {
-    setPlacements((p) => ({ ...p, [id]: placement }));
-    setOpenTrays((open) => [...open.filter((t) => t !== id && placements[t] !== placement), id]);
-  };
-  // The step tray only makes sense where a step is in focus: the canvas and code.
-  const trayIn = (placement: TrayPlacement) =>
-    openTrays.find((t) => placements[t] === placement && !(t === "step" && view === "runs"));
+  // In code mode the step's settings are already beside its code, so the step
+  // tray only has something to show once a run is loaded.
+  const showable = (id: TrayId) => !(id === "step" && view === "code" && !selectedRun);
+  const trayIn = (placement: TrayPlacement) => openTrays.find((t) => placements[t] === placement && showable(t));
 
   // Ctrl/⌘ + K toggles the assistant, as in Lightning.
   useEffect(() => {
@@ -279,7 +277,7 @@ export default function WorkflowEditorTemplate({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openTrays, placements]);
+  }, [openTrays]);
 
   const selectNode = (node: WorkflowNode) => {
     const next = selectedId === node.id ? undefined : node.id;
@@ -503,12 +501,6 @@ export default function WorkflowEditorTemplate({
 
   // ---- Trays: content -------------------------------------------------------
 
-  const trayToggles: TrayToggle[] = [
-    { id: "history", label: "Run history", icon: History, open: isOpen("history") },
-    { id: "docs", label: "Adaptor reference", icon: BookOpen, open: isOpen("docs") },
-    { id: "assistant", label: "Assistant", icon: Sparkles, open: isOpen("assistant"), hint: "Ctrl/⌘ + K" },
-  ];
-
   const stepTabs = [
     ...(view === "canvas" ? [{ id: "configure", label: "Configure" }] : []),
     ...(focusStep !== undefined || (selectedRun && view === "code")
@@ -518,37 +510,12 @@ export default function WorkflowEditorTemplate({
   const effectiveStepTab = stepTabs.some((t) => t.id === stepTab) ? stepTab : (stepTabs[0]?.id ?? "configure");
 
   const renderTray = (id: TrayId) => {
-    const placement = placements[id];
     const common = {
-      placement,
+      placement: placements[id],
       floating: view === "canvas",
-      onMove: (p: TrayPlacement) => moveTray(id, p),
       onClose: () => closeTray(id),
     };
     switch (id) {
-      case "history":
-        return (
-          <EditorTray key={id} title="Run history" icon={History} meta={`${orders.length} work orders`} {...common}>
-            <RunHistoryList
-              workOrders={orders}
-              selectedRunId={runId}
-              latestVersion={latestVersion}
-              onSelectRun={selectRun}
-              onDeselectRun={deselectRun}
-              footer={
-                showMismatch && (
-                  <VersionMismatchBanner
-                    runVersion={selectedRun!.version}
-                    viewingVersion={viewingVersion!}
-                    onViewAsExecuted={
-                      graphForVersion?.(selectedRun!.version) ? () => setVersion(selectedRun!.version) : undefined
-                    }
-                  />
-                )
-              }
-            />
-          </EditorTray>
-        );
       case "docs": {
         const adaptor = docsAdaptor ?? focusJob?.adaptor ?? "common";
         return (
@@ -570,7 +537,10 @@ export default function WorkflowEditorTemplate({
               jobLabel={focusJob?.label}
               runId={selectedRun?.runId}
               author={CURRENT_USER}
-              onOpenRuns={() => setView("runs")}
+              onOpenRuns={() => {
+                const latest = orders[0]?.runs[0];
+                if (latest) selectRun(latest);
+              }}
               onAskToMerge={onMain ? undefined : () => setPromoteOpen(true)}
               onPlanAccepted={onMain ? undefined : applyPlan}
             />
@@ -634,11 +604,18 @@ export default function WorkflowEditorTemplate({
     }
   };
 
-  const rightTrayId = trayIn("right");
+  const rightTray = isOpen("assistant") ? renderTray("assistant") : undefined;
+  // In code mode, the bottom tray sits under the code; on the canvas it floats.
   const bottomTrayId = trayIn("bottom");
-  const rightTray = rightTrayId ? renderTray(rightTrayId) : undefined;
-  // In code mode, the step tray follows the open step under its code; on the canvas it floats.
   const bottomTray = bottomTrayId ? renderTray(bottomTrayId) : undefined;
+
+  const runFooter = showMismatch && (
+    <VersionMismatchBanner
+      runVersion={selectedRun!.version}
+      viewingVersion={viewingVersion!}
+      onViewAsExecuted={graphForVersion?.(selectedRun!.version) ? () => setVersion(selectedRun!.version) : undefined}
+    />
+  );
 
   // ---- Layout ---------------------------------------------------------------
 
@@ -665,8 +642,13 @@ export default function WorkflowEditorTemplate({
       onRun={() => runFresh()}
       onRetry={retry}
       onRunWithCustomInput={() => setRunInputOpen(true)}
-      trays={trayToggles}
-      onToggleTray={(id) => toggleTray(id as TrayId)}
+      workOrders={orders}
+      selectedRun={selectedRun}
+      onSelectRun={selectRun}
+      onDeselectRun={deselectRun}
+      runFooter={runFooter}
+      assistantOpen={isOpen("assistant")}
+      onToggleAssistant={() => toggleTray("assistant")}
     />
   );
 
@@ -675,7 +657,6 @@ export default function WorkflowEditorTemplate({
       toolbar={toolbar}
       sandboxed={!onMain}
       rightTray={rightTray}
-      rightTrayWidthClass={rightTrayId === "assistant" ? "w-[400px]" : "w-[380px]"}
       bottomTray={view === "canvas" ? bottomTray : undefined}
       overlays={
         <>
@@ -753,21 +734,6 @@ export default function WorkflowEditorTemplate({
             bottomTray={bottomTray}
             statusNote={statusNote}
           />
-        </div>
-      )}
-      {view === "runs" && (
-        <div className="h-full overflow-y-auto p-4 pt-3">
-          <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <RunHistoryTable
-              workOrders={orders}
-              selectedRunId={runId}
-              latestVersion={latestVersion}
-              onSelectRun={(run) => {
-                selectRun(run);
-                setView("canvas");
-              }}
-            />
-          </div>
         </div>
       )}
     </EditorShell>

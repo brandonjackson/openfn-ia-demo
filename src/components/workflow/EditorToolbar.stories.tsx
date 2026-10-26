@@ -1,17 +1,19 @@
 import { useState } from "react";
 import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { BookOpen, History, Sparkles } from "lucide-react";
 import EditorToolbar from "./EditorToolbar";
 import type { EditorView } from "./EditorToolbar";
+import type { RunDetails } from "../../mock-data/workflow";
 import { nationalIdWorkflow, workflowVersions } from "../../mock-data/workflow";
 import { projects } from "../../mock-data/projects";
+import { sampleRun, workOrders } from "../../mock-data/runs";
 
 function Stateful(args: ComponentProps<typeof EditorToolbar>) {
   const [view, setView] = useState<EditorView>(args.view);
   const [name, setName] = useState(args.name);
   const [sandbox, setSandbox] = useState(args.sandbox ?? "main");
-  const [open, setOpen] = useState<string | undefined>(args.trays?.find((t) => t.open)?.id);
+  const [assistantOpen, setAssistantOpen] = useState(args.assistantOpen ?? false);
+  const [run, setRun] = useState<RunDetails | undefined>(args.selectedRun);
   return (
     <EditorToolbar
       {...args}
@@ -21,8 +23,12 @@ function Stateful(args: ComponentProps<typeof EditorToolbar>) {
       onViewChange={setView}
       sandbox={sandbox}
       onSelectSandbox={setSandbox}
-      trays={args.trays?.map((t) => ({ ...t, open: t.id === open }))}
-      onToggleTray={(id) => setOpen((o) => (o === id ? undefined : id))}
+      assistantOpen={assistantOpen}
+      onToggleAssistant={() => setAssistantOpen((o) => !o)}
+      selectedRun={run}
+      onSelectRun={setRun}
+      onDeselectRun={() => setRun(undefined)}
+      retry={run ? { step: args.retry?.step } : undefined}
     />
   );
 }
@@ -47,11 +53,7 @@ const meta: Meta<typeof EditorToolbar> = {
     onMenuAction: () => {},
     onNewSandbox: () => {},
     onViewAllSandboxes: () => {},
-    trays: [
-      { id: "history", label: "Run history", icon: History, open: false },
-      { id: "docs", label: "Adaptor reference", icon: BookOpen, open: false },
-      { id: "assistant", label: "Assistant", icon: Sparkles, open: false, hint: "Ctrl/⌘ + K" },
-    ],
+    workOrders,
   },
   render: (args) => <Stateful {...args} />,
 };
@@ -71,9 +73,13 @@ export const Renaming: Story = {
   args: { sandbox: projects[0].sandboxes[1], defaultRenaming: true },
 };
 
-/** With a run selected, the run button retries it. */
-export const RetryAvailable: Story = {
-  args: { retry: { step: "Create new citizen in Identity" }, trays: undefined },
+/** With a run loaded, the run picker names it and the run button retries it. */
+export const RunLoaded: Story = {
+  args: { selectedRun: sampleRun, retry: { step: "Create new citizen in Identity" } },
+};
+
+export const AssistantOpen: Story = {
+  args: { assistantOpen: true },
 };
 
 export const Paused: Story = {

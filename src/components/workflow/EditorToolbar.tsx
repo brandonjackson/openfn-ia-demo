@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
-import { Clock, FlaskConical, GitMerge, Lock } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import type { WorkflowVersion } from "../../mock-data/workflow";
+import type { ReactNode } from "react";
+import { Clock, FlaskConical, GitMerge, Lock, Sparkles } from "lucide-react";
+import type { RunDetails, WorkflowVersion, WorkOrder } from "../../mock-data/workflow";
 import { versionOptions } from "../../mock-data/workflow";
 import Button from "../Button";
 import Picker from "../Picker";
@@ -12,23 +12,15 @@ import WorkflowFileMenu from "./WorkflowFileMenu";
 import type { WorkflowMenuAction } from "./WorkflowFileMenu";
 import SandboxChip from "./SandboxChip";
 import RunMenuButton from "./RunMenuButton";
+import RunPicker from "./RunPicker";
 
 /** The editor's main surfaces. */
-export type EditorView = "canvas" | "code" | "runs";
+export type EditorView = "canvas" | "code";
 
 const editorViews: { id: EditorView; label: string }[] = [
   { id: "canvas", label: "Canvas" },
   { id: "code", label: "Code" },
-  { id: "runs", label: "Runs" },
 ];
-
-export interface TrayToggle {
-  id: string;
-  label: string;
-  icon: LucideIcon;
-  open: boolean;
-  hint?: string;
-}
 
 interface Props {
   name: string;
@@ -58,9 +50,15 @@ interface Props {
   onRun?: () => void;
   onRetry?: () => void;
   onRunWithCustomInput?: () => void;
-  /** Trays that can be toggled from the toolbar, in order. */
-  trays?: TrayToggle[];
-  onToggleTray?: (id: string) => void;
+  /** Run history, for loading a run into the canvas or code. */
+  workOrders?: WorkOrder[];
+  selectedRun?: RunDetails;
+  onSelectRun?: (run: RunDetails) => void;
+  onDeselectRun?: () => void;
+  /** Shown under the run list, e.g. a version mismatch banner. */
+  runFooter?: ReactNode;
+  assistantOpen?: boolean;
+  onToggleAssistant?: () => void;
 }
 
 /**
@@ -69,9 +67,10 @@ interface Props {
  * On the left, a pill holds the Fn file menu, the workflow's name (click it,
  * or press R, to rename in a sandbox), the sandbox chip and, when there is
  * history, the version picker. In the middle the view switcher flips between
- * Canvas, Code and Runs; on main it's marked read-only. On the right sit the
- * tray toggles, the run button and the main action: "Edit in sandbox" on
- * main, "Go live" (promote) in a sandbox.
+ * Canvas and Code; on main it's marked read-only. On the right sit the
+ * assistant toggle, the run picker (loads a run into whichever mode is
+ * showing), the run button and the main action: "Edit in sandbox" on main,
+ * "Go live" (promote) in a sandbox.
  */
 export default function EditorToolbar({
   name,
@@ -96,8 +95,13 @@ export default function EditorToolbar({
   onRun,
   onRetry,
   onRunWithCustomInput,
-  trays = [],
-  onToggleTray,
+  workOrders = [],
+  selectedRun,
+  onSelectRun,
+  onDeselectRun,
+  runFooter,
+  assistantOpen = false,
+  onToggleAssistant,
 }: Props) {
   const onMain = sandbox === "main";
   const canRename = !onMain && onRename !== undefined;
@@ -222,19 +226,28 @@ export default function EditorToolbar({
         <SegmentedControl variant="pill" size="md" options={editorViews} value={view} onChange={(v) => onViewChange(v as EditorView)} />
       </div>
 
-      {/* Trays, run and the main action */}
-      <div className={`${group} gap-1 px-1.5`}>
-        {trays.map((t) => (
-          <IconToggleButton
-            key={t.id}
-            icon={t.icon}
-            label={t.label}
-            hint={t.hint}
-            pressed={t.open}
-            onClick={() => onToggleTray?.(t.id)}
-          />
-        ))}
-        {trays.length > 0 && <span className="mx-1 h-6 w-px bg-gray-200" aria-hidden />}
+      {/* Assistant, runs and the main action */}
+      <div className={`${group} gap-1.5 px-1.5`}>
+        {onToggleAssistant && (
+          <>
+            <IconToggleButton
+              icon={Sparkles}
+              label="Assistant"
+              hint="Ctrl/⌘ + K"
+              pressed={assistantOpen}
+              onClick={onToggleAssistant}
+            />
+            <span className="mx-0.5 h-6 w-px bg-gray-200" aria-hidden />
+          </>
+        )}
+        <RunPicker
+          workOrders={workOrders}
+          selectedRun={selectedRun}
+          latestVersion={versions[0]?.id}
+          onSelectRun={onSelectRun}
+          onDeselectRun={onDeselectRun}
+          footer={runFooter}
+        />
         <RunMenuButton retry={retry} onRun={onRun} onRetry={onRetry} onRunWithCustomInput={onRunWithCustomInput} />
         {onMain ? (
           <Button variant="dark" size="sm" icon={FlaskConical} className="ml-1 rounded-lg" onClick={() => onMenuAction("edit-in-sandbox")}>

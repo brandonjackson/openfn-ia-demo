@@ -42,14 +42,9 @@ export const StepSelected: Story = {
   args: { initialSelectedId: "search", initialTrays: ["step"] },
 };
 
-/** The history tray docked on the right. */
-export const HistoryOpen: Story = {
-  args: { initialTrays: ["history"] },
-};
-
-/** A run selected from history, drawn on the canvas. */
-export const RunSelected: Story = {
-  args: { runId: sampleRun.runId, initialTrays: ["history"] },
+/** A run loaded from the run picker, drawn on the canvas. */
+export const RunLoaded: Story = {
+  args: { runId: sampleRun.runId },
 };
 
 /** A failed run, with the failed step's log in the step tray. */
@@ -58,13 +53,13 @@ export const FailedRunStepOpen: Story = {
 };
 
 /** A v1 run shown on the latest graph, with the banner offering the version that ran. */
-export const OlderRunSelected: Story = {
-  args: { runId: olderRun.runId, initialTrays: ["history"] },
+export const OlderRunLoaded: Story = {
+  args: { runId: olderRun.runId },
 };
 
 /** The same v1 run, viewed as executed. */
 export const OlderRunAsExecuted: Story = {
-  args: { runId: olderRun.runId, initialVersion: olderRun.version, initialTrays: ["history"] },
+  args: { runId: olderRun.runId, initialVersion: olderRun.version },
 };
 
 /** Code mode on main: explorer, read-only code and the step's settings. */
@@ -98,14 +93,9 @@ export const WorkflowSettings: Story = {
   args: { initialView: "code", initialFile: "workflow", sandbox: projects[0].sandboxes[1] },
 };
 
-/** The adaptor reference tray beside the code. */
+/** The adaptor reference tray under the code. */
 export const AdaptorReference: Story = {
   args: { initialView: "code", initialFile: { stepId: "search" }, initialTrays: ["docs"], sandbox: projects[0].sandboxes[1] },
-};
-
-/** The Runs view: every run in a table. */
-export const Runs: Story = {
-  args: { initialView: "runs", runId: sampleRun.runId },
 };
 
 export const InSandbox: Story = {

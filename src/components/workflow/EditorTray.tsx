@@ -80,7 +80,7 @@ export default function EditorTray({
       <header className={`flex-none border-b border-gray-100 ${stacked ? "" : "flex h-12 items-center gap-3 px-4"}`}>
         <div className={`flex min-w-0 items-center gap-2 ${stacked ? "h-12 px-4" : ""}`}>
           {Icon && <Icon size={15} className="flex-shrink-0 text-gray-400" />}
-          <h2 className="truncate text-sm font-semibold text-gray-900">{title}</h2>
+          <h2 className="min-w-[5rem] truncate text-sm font-semibold text-gray-900">{title}</h2>
           {badge}
           {stacked && (
             <div className="ml-auto flex flex-shrink-0 items-center gap-1">

@@ -21,8 +21,8 @@ type Story = StoryObj<typeof FileDetailsPanel>;
 
 export const Document: Story = {
   args: {
-    title: "plan.md",
-    description: "Why the workflow exists and how it's meant to work. The assistant reads it before proposing changes.",
+    title: "context.md",
+    description: "The legislation behind the workflow and the groups of citizens it affects. The assistant reads it before proposing changes.",
     properties: [
       { icon: User, label: "Last edited by", value: "Brandon Jackson" },
       { icon: Calendar, label: "Updated", value: "14 Oct 2026" },

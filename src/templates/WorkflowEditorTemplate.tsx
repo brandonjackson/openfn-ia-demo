@@ -515,7 +515,7 @@ export default function WorkflowEditorTemplate({
   // Docs added from the explorer, kept for this session.
   const [docs, setDocs] = useState<string[]>([]);
   const addDoc = () => {
-    const taken = new Set(["plan.md", "spec.md", ...docs]);
+    const taken = new Set(["context.md", "spec.md", ...docs]);
     let name = "untitled.md";
     for (let n = 2; taken.has(name); n++) name = `untitled-${n}.md`;
     setDocs([...docs, name]);

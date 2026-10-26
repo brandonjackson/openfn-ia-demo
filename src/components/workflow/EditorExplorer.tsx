@@ -12,7 +12,7 @@ import { AdaptorIcon } from "./AdaptorIcon";
  */
 export type ExplorerFile =
   | "workflow"
-  | "plan"
+  | "context"
   | "spec"
   | "service"
   | "trigger"
@@ -38,7 +38,7 @@ interface Props {
   components?: ProjectComponent[];
   /** Lists service.md, the listing of the published service the workflow backs. */
   hasService?: boolean;
-  /** Docs added alongside plan.md and spec.md, by file name. */
+  /** Docs added alongside context.md and spec.md, by file name. */
   docs?: string[];
   /** On main: each group's + shows but is disabled, pointing to a sandbox. */
   readOnly?: boolean;
@@ -50,7 +50,7 @@ interface Props {
 
 /**
  * The left-hand explorer in code mode, in three groups: the workflow's own
- * files (its YAML, plan, spec, service listing and any added docs), its trigger and steps in
+ * files (its YAML, context, spec, service listing and any added docs), its trigger and steps in
  * the order they run, and the project components it uses. Each group adds
  * from the + beside its heading (disabled on main). You move between them here rather than
  * through tabs. With a run loaded, each step shows how it went.
@@ -80,7 +80,7 @@ export default function EditorExplorer({
 
       <Section title="Workflow" addLabel="New doc" onAdd={onAddDoc} readOnly={readOnly}>
         <ExplorerRow label="workflow.yaml" icon={WorkflowIcon} selected={current === "workflow"} onClick={() => onOpen("workflow")} />
-        <ExplorerRow label="plan.md" icon={FileText} selected={current === "plan"} onClick={() => onOpen("plan")} />
+        <ExplorerRow label="context.md" icon={FileText} selected={current === "context"} onClick={() => onOpen("context")} />
         <ExplorerRow label="spec.md" icon={FileText} selected={current === "spec"} onClick={() => onOpen("spec")} />
         {hasService && (
           <ExplorerRow label="service.md" icon={BookOpen} selected={current === "service"} onClick={() => onOpen("service")} />

@@ -119,12 +119,12 @@ export const CodeFollowingRun: Story = {
   },
 };
 
-/** The plan document kept with the workflow. */
+/** The context document kept with the workflow: the law behind it and who it affects. */
 export const PlanDocument: Story = {
-  args: { initialView: "code", initialFile: "plan" },
+  args: { initialView: "code", initialFile: "context" },
 };
 
-/** The listing of the published service the workflow backs, after the plan and spec. */
+/** The listing of the published service the workflow backs, after the context and spec. */
 export const ServiceListing: Story = {
   args: { initialView: "code", initialFile: "service" },
 };

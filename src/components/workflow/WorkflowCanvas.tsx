@@ -161,8 +161,7 @@ export default function WorkflowCanvas({
                     <path
                       d={d}
                       fill="none"
-                      stroke="#1d4ed8"
-                      strokeOpacity={0.9}
+                      stroke="#769ced"
                       strokeWidth={3}
                       strokeLinecap="round"
                       strokeDasharray="1 14"

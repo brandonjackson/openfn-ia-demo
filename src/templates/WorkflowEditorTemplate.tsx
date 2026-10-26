@@ -292,8 +292,8 @@ export default function WorkflowEditorTemplate({
   const [override, setOverride] = useState<Partial<EditorLayout>>(initialLayout ?? {});
   const layout: EditorLayout = { ...savedLayout, ...override };
   const updateLayout = (requested: Partial<EditorLayout>) => {
-    // The panel always opens at its smaller size; it's maximised only on request.
-    const patch = requested.panel && !layout.panel ? { panelMaximized: false, ...requested } : requested;
+    // The panel always opens at its smaller size on the runs tab; it's maximised, or on another view, only on request.
+    const patch = requested.panel && !layout.panel ? { panelMaximized: false, panelView: "runs" as const, ...requested } : requested;
     setLayout(patch);
     setOverride((o) => {
       const next = { ...o };

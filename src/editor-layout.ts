@@ -47,13 +47,14 @@ const STORAGE_KEY = "openfn-ia-demo:editor-layout";
 function load(): EditorLayout {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    // The panel's maximised state isn't carried over: it always opens at its smaller size.
-    const saved = raw ? { ...defaultLayout, ...(JSON.parse(raw) as Partial<EditorLayout>), panelMaximized: false } : defaultLayout;
+    // The panel's size and view aren't carried over: it always opens at its smaller size on the runs tab.
+    const saved = raw
+      ? { ...defaultLayout, ...(JSON.parse(raw) as Partial<EditorLayout>), panelMaximized: false, panelView: defaultLayout.panelView }
+      : defaultLayout;
     // Views saved under an older name, or since removed, fall back to the default.
     return {
       ...saved,
       detailsView: ["config", "snippets"].includes(saved.detailsView) ? saved.detailsView : defaultLayout.detailsView,
-      panelView: panelViewIds.includes(saved.panelView) ? saved.panelView : defaultLayout.panelView,
       hiddenViews: saved.hiddenViews.filter((v) => panelViewIds.includes(v)),
     };
   } catch {

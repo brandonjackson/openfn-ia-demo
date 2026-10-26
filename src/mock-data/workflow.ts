@@ -385,3 +385,81 @@ export function versionOptions(versions: WorkflowVersion[]) {
     })),
   ];
 }
+
+/** How an edge's condition reads in the step settings, e.g. "when it succeeds". */
+export const edgeConditionLabel: Record<EdgeCondition, string> = {
+  always: "always",
+  on_success: "when it succeeds",
+  on_failure: "when it fails",
+  js_expression: "when a condition is met",
+};
+
+/** The edge that leads into a job: what it runs after, and when. */
+export function incomingEdge(workflow: Workflow, jobId: string): WorkflowEdge | undefined {
+  return workflow.edges.find((e) => e.target === jobId);
+}
+
+/**
+ * The workflow as the YAML the CLI and GitHub sync use, so the editor's
+ * `workflow.yaml` reads like a real project file. Job bodies are elided to
+ * their first line to keep the file short.
+ */
+export function workflowToYaml(workflow: Workflow): string {
+  const slug = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+  const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
+  const jobs = workflow.nodes.filter((n): n is JobNode => n.type === "job");
+  const lines: string[] = [`name: ${workflow.name}`, "jobs:"];
+  for (const job of jobs) {
+    const firstLine = job.body.split("\n").find((l) => l.trim() && !l.trim().startsWith("//")) ?? "";
+    lines.push(`  ${slug(job.label)}:`);
+    lines.push(`    name: ${job.label}`);
+    lines.push(`    adaptor: '${job.adaptorPackage}@latest'`);
+    lines.push(`    body: |`);
+    lines.push(`      ${firstLine.trim()}`);
+    lines.push(`      # ...`);
+  }
+  lines.push("triggers:");
+  if (trigger) {
+    lines.push(`  ${trigger.triggerType}:`);
+    lines.push(`    type: ${trigger.triggerType}`);
+    lines.push(`    enabled: true`);
+  }
+  lines.push("edges:");
+  for (const edge of workflow.edges) {
+    const source = workflow.nodes.find((n) => n.id === edge.source);
+    const target = workflow.nodes.find((n) => n.id === edge.target);
+    if (!source || !target) continue;
+    const from = source.type === "trigger" ? source.triggerType : slug(source.label);
+    const to = slug(target.label);
+    lines.push(`  ${from}->${to}:`);
+    lines.push(`    ${source.type === "trigger" ? "source_trigger" : "source_job"}: ${from}`);
+    lines.push(`    target_job: ${to}`);
+    lines.push(`    condition_type: ${edge.condition}`);
+    if (edge.expression) lines.push(`    condition_expression: ${edge.expression}`);
+    lines.push(`    enabled: true`);
+  }
+  return lines.join("\n");
+}
+
+/** The settings shown beside `workflow.yaml` in the editor. */
+export interface WorkflowSettings {
+  name: string;
+  description: string;
+  concurrency: string;
+  retention: string;
+  logOutput: boolean;
+}
+
+export function defaultWorkflowSettings(workflow: Workflow): WorkflowSettings {
+  return {
+    name: workflow.name,
+    description: "",
+    concurrency: "Unlimited",
+    retention: "Project default (90 days)",
+    logOutput: true,
+  };
+}

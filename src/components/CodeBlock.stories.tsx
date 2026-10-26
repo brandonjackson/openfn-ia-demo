@@ -23,3 +23,7 @@ export const Json: Story = {
 export const NoLabel: Story = {
   args: { code: api.outputExample },
 };
+
+export const Light: Story = {
+  args: { code: "fn(state => {\n  state.total = state.data.length;\n  return state;\n});", tone: "light" },
+};

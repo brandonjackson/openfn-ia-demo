@@ -1,57 +1,47 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  ArrowLeft,
-  Check,
-  ExternalLink,
-  FileText,
-  Info,
-  MessagesSquare,
-  MoreVertical,
-  Plus,
-  Search,
-  Sparkles,
-  X,
-} from "lucide-react";
-import type { AssistantConversation, AssistantMessage } from "../../mock-data/assistant";
-import { assistantReply, assistantSuggestions } from "../../mock-data/assistant";
+import { ArrowLeft, FileText, Info, MessagesSquare, MoreVertical, Plus, Search, Sparkles, X } from "lucide-react";
+import type { AssistantConversation, AssistantMessage, AssistantMode, AssistantPlan } from "../../mock-data/assistant";
+import { assistantPlanResult, assistantReply, assistantSuggestions } from "../../mock-data/assistant";
 import { shortId } from "../../mock-data/runs";
 import CodeBlock from "../CodeBlock";
+import DropdownMenu from "../DropdownMenu";
 import AssistantChatInput from "./AssistantChatInput";
+import AssistantPlanCard from "./AssistantPlanCard";
+import AssistantResultCard from "./AssistantResultCard";
 
 /** How long the prototype "thinks" before replying. */
 const REPLY_DELAY_MS = 900;
 
-const PANEL_WIDTH = "w-[400px]";
-
 type View = "sessions" | "chat";
 
 /**
- * The AI Assistant tray, as in Lightning's collaborative editor: a full-height
- * panel on the right of the editor that slides in and pushes the canvas (or the
- * job editor) to the left rather than covering it.
+ * The assistant's body, shown inside an {@link EditorTray}: saved
+ * conversations for the workflow (or for the open step), and the open one.
  *
  * It opens on the list of saved conversations; typing a message starts a new
- * one. With a job open (`jobLabel`) the assistant is about that job's code and
- * lists that job's conversations; otherwise it's about the whole workflow.
- * The ⋮ menu switches back to conversations and opens "About the AI Assistant".
- * When a run is selected (`runId`), its logs and data can be attached.
+ * one. With a step open (`jobLabel`) the assistant is about that step's code
+ * and lists that step's conversations; otherwise it's about the whole
+ * workflow. In Plan mode the assistant proposes a plan to approve; in Build
+ * mode it makes the change and reports the result, from which the test runs
+ * can be opened and a merge requested. The ⋮ menu switches back to
+ * conversations and opens "About the assistant". When a run is selected
+ * (`runId`), its logs and data can be attached.
  */
 export default function AIAssistantPanel({
-  open,
-  onClose,
   conversations: initialConversations = [],
   jobLabel,
   runId,
   author = "Jane Doe",
   defaultConversationId,
   defaultAboutOpen = false,
-  defaultMenuOpen = false,
+  defaultMode = "plan",
+  onOpenRuns,
+  onAskToMerge,
+  onPlanAccepted,
 }: {
-  open: boolean;
-  onClose?: () => void;
   /** Saved conversations for this workflow, newest first. */
   conversations?: AssistantConversation[];
-  /** The job open in the editor, if any. */
+  /** The step open in the editor, if any. */
   jobLabel?: string;
   /** The run selected in history, if any. */
   runId?: string;
@@ -60,16 +50,21 @@ export default function AIAssistantPanel({
   /** Open straight into a conversation (useful for stories). */
   defaultConversationId?: string;
   defaultAboutOpen?: boolean;
-  defaultMenuOpen?: boolean;
+  defaultMode?: AssistantMode;
+  /** "Open runs" on a result card. */
+  onOpenRuns?: () => void;
+  /** "Ask to merge" on a result card; unset on main. */
+  onAskToMerge?: () => void;
+  /** A plan was accepted; the editor can reflect the change. */
+  onPlanAccepted?: (plan: AssistantPlan) => void;
 }) {
   const [conversations, setConversations] = useState(initialConversations);
   const [conversationId, setConversationId] = useState(defaultConversationId);
   const [view, setView] = useState<View>(defaultConversationId ? "chat" : "sessions");
-  const [menuOpen, setMenuOpen] = useState(defaultMenuOpen);
   const [aboutOpen, setAboutOpen] = useState(defaultAboutOpen);
+  const [mode, setMode] = useState<AssistantMode>(defaultMode);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
   const threadRef = useRef<HTMLDivElement>(null);
 
   // Opening a different job leaves a conversation about another one.
@@ -78,16 +73,7 @@ export default function AIAssistantPanel({
   const forContext = conversations.filter((c) => c.jobLabel === jobLabel);
   const listed = forContext.filter((c) => c.title.toLowerCase().includes(query.trim().toLowerCase()));
   const suggestions = jobLabel ? assistantSuggestions.job : assistantSuggestions.workflow;
-  const placeholder = jobLabel ? "Ask me anything about this job..." : "Ask me anything about this workflow...";
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onPointer = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
-    };
-    document.addEventListener("mousedown", onPointer);
-    return () => document.removeEventListener("mousedown", onPointer);
-  }, [menuOpen]);
+  const placeholder = jobLabel ? `Ask for a change to ${jobLabel}…` : "Ask for a change, or describe what to build…";
 
   useEffect(() => {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight });
@@ -97,6 +83,27 @@ export default function AIAssistantPanel({
     setConversations((current) =>
       current.map((c) => (c.id === id ? { ...c, updated: "just now", messages: [...c.messages, message] } : c))
     );
+
+  /** Mark a plan accepted or declined, and reply with the result when accepted. */
+  const resolvePlan = (messageId: string, status: "accepted" | "declined") => {
+    if (!conversation) return;
+    const message = conversation.messages.find((m) => m.id === messageId);
+    if (!message?.plan) return;
+    const plan = { ...message.plan, status };
+    setConversations((current) =>
+      current.map((c) =>
+        c.id === conversation.id ? { ...c, messages: c.messages.map((m) => (m.id === messageId ? { ...m, plan } : m)) } : c
+      )
+    );
+    if (status !== "accepted") return;
+    onPlanAccepted?.(plan);
+    setLoading(true);
+    const id = conversation.id;
+    setTimeout(() => {
+      addMessage(id, assistantPlanResult(plan));
+      setLoading(false);
+    }, REPLY_DELAY_MS);
+  };
 
   const send = (text: string) => {
     const userMessage: AssistantMessage = { id: shortId(), role: "user", content: text.trim() };
@@ -120,7 +127,7 @@ export default function AIAssistantPanel({
     setLoading(true);
     const replyTo = id;
     setTimeout(() => {
-      addMessage(replyTo, assistantReply(text, jobLabel));
+      addMessage(replyTo, assistantReply(text, jobLabel, mode));
       setLoading(false);
     }, REPLY_DELAY_MS);
   };
@@ -128,106 +135,48 @@ export default function AIAssistantPanel({
   const showSessions = () => {
     setConversationId(undefined);
     setView("sessions");
-    setMenuOpen(false);
   };
 
-  // Like Lightning, ✕ first leaves the conversation, then closes the tray.
-  const close = () => (inChat ? showSessions() : onClose?.());
-
   return (
-    <aside
-      aria-label="AI Assistant"
-      aria-hidden={!open}
-      className={`h-full flex-none overflow-hidden bg-white transition-[width] duration-300 ease-in-out ${
-        open ? `${PANEL_WIDTH} border-l border-gray-200` : "w-0"
-      }`}
-    >
-      <div className={`relative flex h-full ${PANEL_WIDTH} flex-col`}>
-        {/* Header */}
-        <div className="flex h-14 flex-none items-center justify-between gap-2 border-b border-gray-200 px-4">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-600 text-white">
-              <Sparkles size={14} />
-            </span>
-            <h2 className="text-base font-semibold text-gray-900">Assistant</h2>
-            {jobLabel && (
-              <span className="truncate rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600" title={jobLabel}>
-                {jobLabel}
-              </span>
+    <div className="relative flex h-full flex-col bg-white">
+        {/* Context: what the assistant is about, and the ⋮ menu */}
+        <div className="flex h-9 flex-none items-center justify-between gap-2 px-4">
+          <span className="truncate text-xs text-gray-500" title={jobLabel}>
+            {jobLabel ? (
+              <>
+                About <span className="font-medium text-gray-700">{jobLabel}</span>
+              </>
+            ) : (
+              "About this workflow"
             )}
-          </div>
-          <div className="flex items-center gap-1">
-            <div ref={menuRef} className="relative">
+          </span>
+          <DropdownMenu
+            ariaLabel="Assistant options"
+            align="right"
+            items={[
+              { id: "sessions", label: "Conversations", icon: MessagesSquare, selected: !inChat },
+              { id: "about", label: "About the assistant", icon: Info, divider: true },
+              { id: "policy", label: "Responsible AI policy", icon: FileText },
+            ]}
+            onSelect={(id) => {
+              if (id === "sessions") showSessions();
+              else if (id === "about") setAboutOpen(true);
+              else window.open("https://www.openfn.org/ai", "_blank", "noopener,noreferrer");
+            }}
+            trigger={({ open, toggle }) => (
               <button
                 type="button"
-                onClick={() => setMenuOpen((o) => !o)}
+                onClick={toggle}
                 aria-label="More options"
-                aria-expanded={menuOpen}
-                className={`inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-700 ${
-                  menuOpen ? "bg-gray-100 text-gray-700" : ""
+                aria-expanded={open}
+                className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 ${
+                  open ? "bg-gray-100 text-gray-700" : ""
                 }`}
               >
-                <MoreVertical size={18} />
-              </button>
-              {menuOpen && (
-                <div
-                  role="menu"
-                  className="absolute right-0 z-50 mt-2 w-64 divide-y divide-gray-100 rounded-lg bg-white shadow-xl ring-1 ring-gray-900/10"
-                >
-                  <div className="py-1.5">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={showSessions}
-                      className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium hover:bg-gray-50 ${
-                        !inChat ? "bg-blue-50 text-blue-700" : "text-gray-700"
-                      }`}
-                    >
-                      <MessagesSquare size={18} className={!inChat ? "text-blue-600" : "text-gray-400"} />
-                      <span className="flex-1 text-left">Conversations</span>
-                      {!inChat && <Check size={16} className="text-blue-600" />}
-                    </button>
-                  </div>
-                  <div className="py-1.5">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setAboutOpen(true);
-                        setMenuOpen(false);
-                      }}
-                      className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                    >
-                      <Info size={18} className="text-gray-400" />
-                      <span>About the AI Assistant</span>
-                    </button>
-                    <a
-                      href="https://www.openfn.org/ai"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      role="menuitem"
-                      className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
-                    >
-                      <FileText size={18} className="text-gray-400" />
-                      <span className="flex-1">Responsible AI policy</span>
-                      <ExternalLink size={14} className="text-gray-400" />
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
-            {onClose && (
-              <button
-                type="button"
-                onClick={close}
-                title={inChat ? "Close current conversation" : "Close assistant"}
-                aria-label={inChat ? "Close current conversation" : "Close assistant"}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-              >
-                <X size={18} />
+                <MoreVertical size={16} />
               </button>
             )}
-          </div>
+          />
         </div>
 
         {/* Body: saved conversations, or the open one */}
@@ -286,7 +235,14 @@ export default function AIAssistantPanel({
                 <ArrowLeft size={14} /> All conversations
               </button>
               {conversation.messages.map((m) => (
-                <Message key={m.id} message={m} />
+                <Message
+                  key={m.id}
+                  message={m}
+                  onAcceptPlan={() => resolvePlan(m.id, "accepted")}
+                  onDeclinePlan={() => resolvePlan(m.id, "declined")}
+                  onOpenRuns={onOpenRuns}
+                  onAskToMerge={onAskToMerge}
+                />
               ))}
               {loading && (
                 <div className="flex items-center gap-2 text-sm text-gray-400">
@@ -310,34 +266,40 @@ export default function AIAssistantPanel({
           placeholder={placeholder}
           runId={runId}
           loading={loading}
-          autoFocus={open}
+          autoFocus
+          mode={mode}
+          onModeChange={setMode}
         />
 
         {aboutOpen && <About onClose={() => setAboutOpen(false)} />}
-      </div>
-    </aside>
+    </div>
   );
 }
 
-function Message({ message }: { message: AssistantMessage }) {
+function Message({
+  message,
+  onAcceptPlan,
+  onDeclinePlan,
+  onOpenRuns,
+  onAskToMerge,
+}: {
+  message: AssistantMessage;
+  onAcceptPlan?: () => void;
+  onDeclinePlan?: () => void;
+  onOpenRuns?: () => void;
+  onAskToMerge?: () => void;
+}) {
   if (message.role === "user") {
     return (
-      <div className="flex justify-end">
-        <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-blue-600 px-3.5 py-2 text-sm text-white">
-          {message.content}
-        </div>
-      </div>
+      <div className="whitespace-pre-wrap rounded-xl bg-green-50 px-3.5 py-2.5 text-sm text-gray-900">{message.content}</div>
     );
   }
   return (
-    <div className="flex gap-2">
-      <span className="mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-md bg-blue-50 text-blue-600">
-        <Sparkles size={14} />
-      </span>
-      <div className="min-w-0 flex-1 space-y-2 text-sm leading-relaxed text-gray-800">
-        <p className="whitespace-pre-wrap">{message.content}</p>
-        {message.code && <CodeBlock code={message.code} label="Suggested code" />}
-      </div>
+    <div className="space-y-3 text-sm leading-relaxed text-gray-800">
+      <p className="whitespace-pre-wrap">{message.content}</p>
+      {message.code && <CodeBlock code={message.code} label="Suggested code" />}
+      {message.plan && <AssistantPlanCard plan={message.plan} onAccept={onAcceptPlan} onEdit={onDeclinePlan} />}
+      {message.result && <AssistantResultCard result={message.result} onOpenRuns={onOpenRuns} onAskToMerge={onAskToMerge} />}
     </div>
   );
 }

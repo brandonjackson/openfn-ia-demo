@@ -8,12 +8,38 @@ import { shortId } from "./runs";
 
 export type AssistantMessageRole = "user" | "assistant";
 
+/**
+ * How the assistant works on a request: answer in words, propose a plan to
+ * approve first, or make the change straight away.
+ */
+export type AssistantMode = "ask" | "plan" | "build";
+
+export const assistantModes: { id: AssistantMode; label: string; description: string }[] = [
+  { id: "plan", label: "Plan", description: "Proposes the changes and waits for you to approve them." },
+  { id: "build", label: "Build", description: "Makes the change and tests it, then shows you the result." },
+  { id: "ask", label: "Ask", description: "Answers in words, without touching the workflow." },
+];
+
+/** A plan the assistant proposes before changing anything. */
+export interface AssistantPlan {
+  steps: string[];
+  /** Set once the plan has been carried out or turned down. */
+  status?: "accepted" | "declined";
+}
+
+/** The outcome of changes the assistant made and tested. */
+export interface AssistantResult {
+  items: { label: string; outcome: "ok" | "skipped" | "failed" }[];
+}
+
 export interface AssistantMessage {
   id: string;
   role: AssistantMessageRole;
   content: string;
   /** Job code or workflow YAML the assistant suggested, shown as a code block. */
   code?: string;
+  plan?: AssistantPlan;
+  result?: AssistantResult;
 }
 
 export interface AssistantConversation {
@@ -28,6 +54,45 @@ export interface AssistantConversation {
 }
 
 export const assistantConversations: AssistantConversation[] = [
+  {
+    id: "conv-consent",
+    title: "Only save submissions where the person gave consent",
+    jobLabel: "Create new citizen in Identity",
+    updated: "10 minutes ago",
+    author: "Jane Doe",
+    messages: [
+      {
+        id: "m1",
+        role: "user",
+        content: "Only save submissions where the person gave consent. Skip the rest.",
+      },
+      {
+        id: "m2",
+        role: "assistant",
+        content: "Here's what I'll change. Nothing is edited until you say so.",
+        plan: {
+          steps: [
+            "Check consent at the start of Create new citizen in Identity",
+            "Skip Send confirmation notification when there's no consent",
+            "Test with the last 3 applications",
+          ],
+          status: "accepted",
+        },
+      },
+      {
+        id: "m3",
+        role: "assistant",
+        content:
+          "Changes accepted.\n\nI tested it with the last 3 applications: 2 were saved, and 1 was skipped because consent was \"no\". Identity wasn't called for that one.",
+        result: {
+          items: [
+            { label: "2 saved", outcome: "ok" },
+            { label: "1 skipped", outcome: "skipped" },
+          ],
+        },
+      },
+    ],
+  },
   {
     id: "conv-duplicates",
     title: "Why does the duplicate search miss some citizens?",
@@ -101,11 +166,44 @@ export const assistantSuggestions = {
 };
 
 /** A canned reply for the prototype, so a sent message gets an answer. */
-export function assistantReply(prompt: string, jobLabel?: string): AssistantMessage {
-  const about = jobLabel ? `the "${jobLabel}" job` : "this workflow";
+export function assistantReply(prompt: string, jobLabel?: string, mode: AssistantMode = "plan"): AssistantMessage {
+  const about = jobLabel ? `the "${jobLabel}" step` : "this workflow";
+  const ask = prompt.trim().replace(/[.?!]+$/, "");
+  if (mode === "plan") {
+    return {
+      id: shortId(),
+      role: "assistant",
+      content: "Here's what I'll change. Nothing is edited until you say so.",
+      plan: {
+        steps: [
+          jobLabel ? `Update ${jobLabel} so that it will ${ask.toLowerCase()}` : `Add a step that will ${ask.toLowerCase()}`,
+          "Keep the rest of the workflow as it is",
+          "Test with the last 3 runs' inputs",
+        ],
+      },
+    };
+  }
+  if (mode === "build") {
+    return {
+      id: shortId(),
+      role: "assistant",
+      content: `Done. I changed ${about} to ${ask.toLowerCase()} and tested it with the last 3 runs' inputs.`,
+      result: { items: [{ label: "3 passed", outcome: "ok" }] },
+    };
+  }
   return {
     id: shortId(),
     role: "assistant",
     content: `Here's what I'd suggest for ${about}: "${prompt.trim()}" is a good place to start. In the real editor I'd read the job code, the adaptor docs and, if you attached them, the run's logs and data before answering.`,
+  };
+}
+
+/** The result message once a proposed plan is carried out. */
+export function assistantPlanResult(plan: AssistantPlan): AssistantMessage {
+  return {
+    id: shortId(),
+    role: "assistant",
+    content: `Changes accepted.\n\nI made the ${plan.steps.length} changes and tested them with the last 3 runs' inputs: all 3 passed.`,
+    result: { items: [{ label: "3 passed", outcome: "ok" }] },
   };
 }

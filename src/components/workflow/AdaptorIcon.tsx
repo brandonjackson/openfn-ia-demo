@@ -3,9 +3,10 @@ import type { AdaptorKind } from "../../mock-data/workflow";
 import { hasAdaptorLogo } from "../../adaptor-lookup";
 import AdaptorLogo from "../AdaptorLogo";
 
-type Size = "sm" | "md" | "lg";
+type Size = "xs" | "sm" | "md" | "lg";
 
 const boxSize: Record<Size, string> = {
+  xs: "w-4 h-4 text-[7px] rounded",
   sm: "w-7 h-7 text-[9px] rounded-md",
   md: "w-10 h-10 text-[11px] rounded-lg",
   lg: "w-14 h-14 text-sm rounded-xl",
@@ -24,7 +25,7 @@ const adaptorStyle: Record<AdaptorKind, { label: string; classes: string }> = {
   postgresql: { label: "pg", classes: "bg-indigo-600 text-white" },
 };
 
-const logoSize: Record<Size, "sm" | "md" | "lg"> = { sm: "sm", md: "md", lg: "lg" };
+const logoSize: Record<Size, "2xs" | "sm" | "md" | "lg"> = { xs: "2xs", sm: "sm", md: "md", lg: "lg" };
 
 export function AdaptorIcon({
   adaptor,
@@ -60,8 +61,8 @@ export function TriggerIcon({
   size?: Size;
 }) {
   const Icon = triggerIconMap[triggerType];
-  const dims = size === "lg" ? "w-14 h-14" : size === "sm" ? "w-7 h-7" : "w-10 h-10";
-  const iconSize = size === "lg" ? 24 : size === "sm" ? 13 : 18;
+  const dims = size === "lg" ? "w-14 h-14" : size === "sm" ? "w-7 h-7" : size === "xs" ? "w-4 h-4" : "w-10 h-10";
+  const iconSize = size === "lg" ? 24 : size === "sm" ? 13 : size === "xs" ? 10 : 18;
   return (
     <span
       className={`inline-flex items-center justify-center rounded-full bg-white border border-gray-300 text-gray-500 ${dims}`}

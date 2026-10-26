@@ -46,6 +46,9 @@ import EditInSandboxModal from "../components/EditInSandboxModal";
 import type { SandboxStart } from "../components/EditInSandboxModal";
 import PromoteSandboxModal from "../components/PromoteSandboxModal";
 import ConfirmModal from "../components/ConfirmModal";
+import Modal from "../components/Modal";
+import AddComponentPanel from "../components/AddComponentPanel";
+import { componentTypes } from "../component-types";
 import Button from "../components/Button";
 
 /** Who starts runs and retries in the prototype. */
@@ -150,6 +153,7 @@ export default function WorkflowEditorTemplate({
   projectName,
   components = [],
   onOpenComponent,
+  onAddComponent,
   sandboxes = ["main"],
   sandbox: controlledSandbox,
   onSelectSandbox,
@@ -190,6 +194,8 @@ export default function WorkflowEditorTemplate({
   components?: ProjectComponent[];
   /** Opens a component's page in the project. */
   onOpenComponent?: (componentId: string) => void;
+  /** Starts a new project component of this type, picked from the code explorer. */
+  onAddComponent?: (type: string) => void;
   /** Sandboxes of the workflow's project, "main" first. */
   sandboxes?: string[];
   sandbox?: string;
@@ -327,6 +333,7 @@ export default function WorkflowEditorTemplate({
   const [editInSandboxOpen, setEditInSandboxOpen] = useState(defaultEditInSandboxOpen);
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [addComponentOpen, setAddComponentOpen] = useState(false);
 
   // ---- Running --------------------------------------------------------------
 
@@ -471,6 +478,16 @@ export default function WorkflowEditorTemplate({
     edit((e) => ({ added: [...e.added, job] }));
     setFile({ stepId: id });
     setView("code");
+  };
+
+  // Docs added from the explorer, kept for this session.
+  const [docs, setDocs] = useState<string[]>([]);
+  const addDoc = () => {
+    const taken = new Set(["plan.md", "spec.md", ...docs]);
+    let name = "untitled.md";
+    for (let n = 2; taken.has(name); n++) name = `untitled-${n}.md`;
+    setDocs([...docs, name]);
+    setFile({ docName: name });
   };
 
   const deleteStep = (stepId: string) => {
@@ -752,6 +769,17 @@ export default function WorkflowEditorTemplate({
             nextVersion={`v${versions.length + 1}`}
             onPromote={promote}
           />
+          <Modal open={addComponentOpen} title="Add component" onClose={() => setAddComponentOpen(false)} widthClass="max-w-2xl">
+            <AddComponentPanel
+              options={componentTypes.filter((t) => t.type !== "Workflow")}
+              columns={2}
+              bare
+              onSelect={(type) => {
+                setAddComponentOpen(false);
+                onAddComponent?.(type);
+              }}
+            />
+          </Modal>
           <ConfirmModal
             open={deleteOpen}
             title="Delete workflow?"
@@ -801,6 +829,9 @@ export default function WorkflowEditorTemplate({
             onInsertSnippet={onMain ? undefined : insertSnippet}
             onDeleteStep={onMain ? undefined : deleteStep}
             onAddStep={onMain ? undefined : addStep}
+            docs={docs}
+            onAddDoc={onMain ? undefined : addDoc}
+            onAddComponent={onMain ? undefined : () => setAddComponentOpen(true)}
             onRunFromStep={(id) => runFresh(id)}
             onRetryFromStep={() => retry()}
             bottomTray={panel}

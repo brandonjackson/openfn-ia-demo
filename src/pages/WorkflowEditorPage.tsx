@@ -104,6 +104,15 @@ export default function WorkflowEditorPage() {
         projectName={project?.name}
         components={project?.components.filter((c) => c.type !== "Workflow")}
         onOpenComponent={project ? (id) => navigate(`/projects/${project.id}/components/${id}`) : undefined}
+        // Like the project's Components page: drafted from a plain-words description on Create.
+        onAddComponent={
+          project
+            ? (type) =>
+                navigate(`/projects/${project.id}/create`, {
+                  state: { draft: `Add ${/^[aeiou]/i.test(type) ? "an" : "a"} ${type.toLowerCase()} to this project that ` },
+                })
+            : undefined
+        }
         sandboxes={project?.sandboxes ?? ["main"]}
         sandbox={sandbox}
         onSelectSandbox={setSandbox}

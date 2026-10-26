@@ -48,6 +48,11 @@ interface Props {
   onInsertSnippet?: (stepId: string, snippet: Snippet) => void;
   onDeleteStep?: (stepId: string) => void;
   onAddStep?: () => void;
+  /** Docs added alongside plan.md and spec.md, by file name. */
+  docs?: string[];
+  onAddDoc?: () => void;
+  /** Opens the picker for a new project component. */
+  onAddComponent?: () => void;
   /** Start a fresh run from this step. */
   onRunFromStep?: (stepId: string) => void;
   /** Retry the selected run from this step; offered when the run reached it. */
@@ -98,6 +103,9 @@ export default function CodeWorkspace({
   onInsertSnippet,
   onDeleteStep,
   onAddStep,
+  docs = [],
+  onAddDoc,
+  onAddComponent,
   onRunFromStep,
   onRetryFromStep,
   bottomTray,
@@ -118,6 +126,7 @@ export default function CodeWorkspace({
   const component =
     typeof file === "object" && "componentId" in file ? components.find((c) => c.id === file.componentId) : undefined;
   const doc = file === "plan" ? "plan" : file === "spec" ? "spec" : undefined;
+  const addedDoc = typeof file === "object" && "docName" in file ? file.docName : undefined;
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
   const yaml = workflowToYaml(workflow);
   const triggerYaml = yaml.slice(yaml.indexOf("triggers:"), yaml.indexOf("edges:")).trimEnd();
@@ -131,7 +140,7 @@ export default function CodeWorkspace({
         ? [workflow.name, "Components", component.name]
         : file === "trigger" && trigger
           ? [workflow.name, "Steps", trigger.label]
-          : [workflow.name, doc ? `${doc}.md` : "workflow.yaml"];
+          : [workflow.name, addedDoc ?? (doc ? `${doc}.md` : "workflow.yaml")];
 
   const code = step
     ? step.body
@@ -141,7 +150,9 @@ export default function CodeWorkspace({
         ? triggerYaml
         : doc
           ? workflowDocs[doc]
-          : yaml;
+          : addedDoc
+            ? `# ${addedDoc.replace(/\.md$/, "")}\n`
+            : yaml;
 
   const openReference = () => onDetailsViewChange?.("reference");
   const actions = (
@@ -221,6 +232,16 @@ export default function CodeWorkspace({
         ]}
         showHeader={false}
       />
+    ) : addedDoc ? (
+      <FileDetailsPanel
+        title={addedDoc}
+        description="A new doc kept alongside the workflow. The assistant reads it with the plan and spec."
+        properties={[
+          { icon: User, label: "Created by", value: "You" },
+          { icon: Calendar, label: "Updated", value: "Just now" },
+        ]}
+        showHeader={false}
+      />
     ) : file === "trigger" && trigger ? (
       <TriggerConfigPanel trigger={trigger} url={url} readOnly={readOnly} live={live} onToggleLive={onToggleLive} showHeader={false} />
     ) : (
@@ -233,7 +254,7 @@ export default function CodeWorkspace({
       ? [component.type.toLowerCase(), component.name]
       : file === "trigger" && trigger
         ? [trigger.triggerType, trigger.label]
-        : [doc ? `${doc}.md` : "workflow.yaml"];
+        : [addedDoc ?? (doc ? `${doc}.md` : "workflow.yaml")];
   // Components belong to the project, so they're always read-only here.
   const lineCount = `${code.split("\n").length} lines`;
   const saveState = readOnly || component ? "Read-only" : step && dirtyStepIds.includes(step.id) ? "Unsaved changes" : "Saved";
@@ -249,7 +270,10 @@ export default function CodeWorkspace({
           onOpen={onOpen}
           run={run}
           components={components}
+          docs={docs}
+          onAddDoc={readOnly ? undefined : onAddDoc}
           onAddStep={readOnly ? undefined : onAddStep}
+          onAddComponent={readOnly ? undefined : onAddComponent}
         />
       </div>
       )}
@@ -269,7 +293,7 @@ export default function CodeWorkspace({
             <SegmentedControl
               variant="pill"
               options={[
-                { id: "settings", label: step ? "Settings" : component ? "Details" : doc ? "Details" : "Settings" },
+                { id: "settings", label: step ? "Settings" : component || doc || addedDoc ? "Details" : "Settings" },
                 { id: "reference", label: "Reference" },
               ]}
               value={detailsView}

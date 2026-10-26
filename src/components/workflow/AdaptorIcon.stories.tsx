@@ -28,6 +28,7 @@ export const AllAdaptors: Story = {
 export const Sizes: Story = {
   render: () => (
     <div className="flex items-center gap-4">
+      <AdaptorIcon adaptor="http" size="xs" />
       <AdaptorIcon adaptor="http" size="sm" />
       <AdaptorIcon adaptor="http" size="md" />
       <AdaptorIcon adaptor="http" size="lg" />

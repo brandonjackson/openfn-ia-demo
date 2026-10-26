@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { History } from "lucide-react";
 import EditorShell from "./EditorShell";
+import EditorPanel from "./EditorPanel";
 import EditorTray from "./EditorTray";
 import WorkflowCanvas from "./WorkflowCanvas";
 import { nationalIdWorkflow } from "../../mock-data/workflow";
@@ -41,6 +42,22 @@ export const WithTrays: Story = {
     bottomTray: (
       <EditorTray title="Step" placement="bottom" floating heightClass="h-40">
         <p className="p-4 text-sm text-gray-500">Bottom tray</p>
+      </EditorTray>
+    ),
+  },
+};
+
+/** The panel docked right of the canvas, with the assistant tray outermost. */
+export const WithRightPanel: Story = {
+  args: {
+    rightPanel: (
+      <EditorPanel view="runs" onViewChange={() => {}} placement="right">
+        <p className="p-4 text-sm text-gray-500">Right panel</p>
+      </EditorPanel>
+    ),
+    rightTray: (
+      <EditorTray title="Assistant" placement="right">
+        <p className="p-4 text-sm text-gray-500">Right tray</p>
       </EditorTray>
     ),
   },

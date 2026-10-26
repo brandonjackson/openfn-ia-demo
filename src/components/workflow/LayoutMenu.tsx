@@ -1,5 +1,5 @@
 import { MoreHorizontal } from "lucide-react";
-import type { EditorLayout, PanelViewId } from "../../editor-layout";
+import type { EditorLayout, PanelDock, PanelViewId } from "../../editor-layout";
 import { panelViews } from "./panel-views";
 import DropdownMenu from "../DropdownMenu";
 import type { DropdownMenuItem } from "../DropdownMenu";
@@ -16,7 +16,8 @@ interface Props {
 /**
  * The ⋯ button at the top-right corner of the code area that opens the
  * layout menu: checkboxes for each area (explorer, panel, details,
- * assistant) and for each view the panel shows, then a reset. It's the
+ * assistant), on the canvas where the panel docks, and for each view the
+ * panel shows, then a reset. It's the
  * one place that lists everything the layout can show or hide.
  */
 export default function LayoutMenu({ layout, onChange, onReset, view, defaultOpen = false }: Props) {
@@ -26,6 +27,12 @@ export default function LayoutMenu({ layout, onChange, onReset, view, defaultOpe
     { id: "panel", label: "Panel", description: "Runs, step, log, input and output", checked: layout.panel },
     ...(code ? [{ id: "details", label: "Details", description: "Settings and adaptor reference", checked: layout.details }] : []),
     { id: "assistant", label: "Assistant", checked: layout.assistant },
+    ...(code
+      ? []
+      : [
+          { id: "dock:right", label: "Panel on the right", selected: layout.canvasPanelDock === "right", divider: true },
+          { id: "dock:bottom", label: "Panel along the bottom", selected: layout.canvasPanelDock === "bottom" },
+        ]),
     ...panelViews.map((v, i) => ({
       id: `view:${v.id}`,
       label: v.label,
@@ -38,6 +45,7 @@ export default function LayoutMenu({ layout, onChange, onReset, view, defaultOpe
 
   const select = (id: string) => {
     if (id === "reset") return onReset?.();
+    if (id.startsWith("dock:")) return onChange({ canvasPanelDock: id.slice(5) as PanelDock, panel: true });
     if (id.startsWith("view:")) {
       const v = id.slice(5) as PanelViewId;
       const hidden = layout.hiddenViews.includes(v) ? layout.hiddenViews.filter((h) => h !== v) : [...layout.hiddenViews, v];

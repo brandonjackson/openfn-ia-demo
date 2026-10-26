@@ -4,6 +4,9 @@ interface Props {
   toolbar: ReactNode;
   /** The main surface: canvas, code workspace or runs. */
   children: ReactNode;
+  /** A panel docked to the right of the main surface, inside the right tray. */
+  rightPanel?: ReactNode;
+  rightPanelWidthClass?: string;
   /** A tray docked to the right, full height beside the main surface. */
   rightTray?: ReactNode;
   rightTrayWidthClass?: string;
@@ -19,14 +22,17 @@ interface Props {
 
 /**
  * The editor's frame: the toolbar across the top, the main surface below it
- * on the dotted canvas background, a right-docked tray that pushes the main
- * surface over, and a bottom tray floating over it. The main surface and both
+ * on the dotted canvas background, a right-docked panel and tray (in that
+ * order, the tray outermost) that push the main surface over, and a bottom
+ * tray floating over it. The main surface and both
  * trays are plain slots, so canvas, code and runs views share one layout and
  * one way of docking trays.
  */
 export default function EditorShell({
   toolbar,
   children,
+  rightPanel,
+  rightPanelWidthClass = "w-[420px]",
   rightTray,
   rightTrayWidthClass = "w-[400px]",
   bottomTray,
@@ -49,6 +55,7 @@ export default function EditorShell({
           )}
           {bottomTray && <div className="absolute inset-x-4 bottom-4 z-30">{bottomTray}</div>}
         </div>
+        {rightPanel && <aside className={`flex-none ${rightPanelWidthClass} min-h-0 pt-3`}>{rightPanel}</aside>}
         {rightTray && <aside className={`flex-none ${rightTrayWidthClass} min-h-0 pt-3`}>{rightTray}</aside>}
       </div>
       {overlays}

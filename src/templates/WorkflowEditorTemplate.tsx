@@ -108,8 +108,9 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
  * The panel along the bottom carries the views that aren't canvas or code:
  * Runs (to load one), the selected Step's settings, its Log, Input and
  * Output in the loaded run, and the adaptor Reference. Its ⋯ menu chooses
- * which views it shows. On the canvas it floats; in code mode it sits under
- * the code. The assistant has the right-hand side to itself.
+ * which views it shows. On the canvas it docks to the right by default (or
+ * floats along the bottom, set from the ⋯ menu); in code mode it sits under
+ * the code. The assistant takes the outermost right-hand column.
  *
  * On main everything is read-only and the main action is "Edit in sandbox".
  * In a sandbox steps can be renamed, re-adaptored, given credentials, have
@@ -618,6 +619,7 @@ export default function WorkflowEditorTemplate({
 
   const layoutMenu = <LayoutMenu layout={layout} onChange={updateLayout} onReset={resetLayout} view={view} />;
 
+  const panelOnRight = view === "canvas" && layout.canvasPanelDock === "right";
   const panel = layout.panel ? (
     <EditorPanel
       view={panelView}
@@ -629,7 +631,8 @@ export default function WorkflowEditorTemplate({
       onToggleMaximized={() => updateLayout({ panelMaximized: !layout.panelMaximized })}
       onClose={togglePanel}
       context={panelContext}
-      floating={view === "canvas"}
+      floating={view === "canvas" && !panelOnRight}
+      placement={panelOnRight ? "right" : "bottom"}
     >
       {panelBody}
     </EditorPanel>
@@ -688,8 +691,10 @@ export default function WorkflowEditorTemplate({
     <EditorShell
       toolbar={toolbar}
       sandboxed={!onMain}
+      rightPanel={panelOnRight ? panel : undefined}
+      rightPanelWidthClass={layout.panelMaximized ? "w-[min(760px,60vw)]" : "w-[420px]"}
       rightTray={rightTray}
-      bottomTray={view === "canvas" ? panel : undefined}
+      bottomTray={view === "canvas" && !panelOnRight ? panel : undefined}
       corner={view === "canvas" && !layout.panel ? layoutMenu : undefined}
       overlays={
         <>

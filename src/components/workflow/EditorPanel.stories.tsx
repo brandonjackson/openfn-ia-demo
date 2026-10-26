@@ -54,7 +54,21 @@ const meta: Meta<typeof EditorPanel> = {
 export default meta;
 type Story = StoryObj<typeof EditorPanel>;
 
-/** Floating over the canvas. */
+/** Docked to the right of the canvas, the default there. */
+export const DockedRight: Story = {
+  args: { placement: "right" },
+  decorators: [
+    (Story) => (
+      <div className="flex h-[640px] justify-end bg-gray-50 bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] [background-size:22px_22px]">
+        <div className="w-[420px]">
+          <Story />
+        </div>
+      </div>
+    ),
+  ],
+};
+
+/** Floating along the bottom of the canvas. */
 export const Floating: Story = {
   args: { floating: true },
   decorators: [

@@ -10,6 +10,9 @@ export type PanelViewId = "runs" | "step" | "log" | "input" | "output";
 /** What the right-hand column in code mode shows. */
 export type DetailsViewId = "settings" | "reference";
 
+/** Where the panel docks on the canvas; in code mode it always sits under the code. */
+export type PanelDock = "right" | "bottom";
+
 export interface EditorLayout {
   /** The code explorer on the left (code mode). */
   explorer: boolean;
@@ -17,6 +20,8 @@ export interface EditorLayout {
   panel: boolean;
   panelView: PanelViewId;
   panelMaximized: boolean;
+  /** On the canvas, a column on the right or a card floating along the bottom. */
+  canvasPanelDock: PanelDock;
   /** Views taken out of the panel's tab bar. */
   hiddenViews: PanelViewId[];
   /** The details column beside the code: the open item's settings or the adaptor reference. */
@@ -31,6 +36,7 @@ export const defaultLayout: EditorLayout = {
   panel: false,
   panelView: "runs",
   panelMaximized: false,
+  canvasPanelDock: "right",
   hiddenViews: [],
   details: true,
   detailsView: "settings",

@@ -77,7 +77,7 @@ export const RetryFromStep: Story = {
   args: { retry: { step: "Create new citizen in Identity" }, fromStep: "Create new citizen in Identity" },
 };
 
-/** A run loaded: it takes the version slot, with an X to close it. */
+/** A run loaded: it follows the sandbox chip, with an X to close it. */
 export const RunLoaded: Story = {
   args: { run: sampleRun, onCloseRun: () => {} },
 };
@@ -97,4 +97,9 @@ export const Paused: Story = {
 /** A new workflow: no versions yet. */
 export const NoHistory: Story = {
   args: { versions: [], name: "Untitled workflow", sandbox: projects[0].sandboxes[1] },
+};
+
+/** Viewing an older version: the version in the title turns amber. */
+export const OlderVersion: Story = {
+  args: { version: "v1" },
 };

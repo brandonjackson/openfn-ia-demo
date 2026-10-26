@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
 
 export interface PickerOption {
   id: string;
@@ -38,13 +39,19 @@ interface Props {
   defaultOpen?: boolean;
   /** Tints the trigger yellow, e.g. while viewing an older version. */
   highlight?: boolean;
+  /**
+   * Draws the trigger's content in place of the chip, e.g. a title, as plain
+   * text with a hover background. Given the selected option.
+   */
+  trigger?: (selected: PickerOption | undefined) => ReactNode;
 }
 
 /**
  * Select-style chip that opens a dropdown on click. Used for the project,
  * sandbox and version switchers in the project top bar and the workflow
  * editor. Options can carry a badge and a description, and be grouped under
- * headings (e.g. "Version history").
+ * headings (e.g. "Version history"). With `trigger`, the menu opens from
+ * custom content instead of the chip, e.g. the editor's workflow title.
  */
 export default function Picker({
   icon: Icon,
@@ -57,6 +64,7 @@ export default function Picker({
   menuWidthClass = "w-72",
   defaultOpen = false,
   highlight = false,
+  trigger,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
   const ref = useRef<HTMLDivElement>(null);
@@ -90,18 +98,30 @@ export default function Picker({
         aria-label={ariaLabel}
         title={selected?.label}
         onClick={() => setOpen((o) => !o)}
-        className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-sm transition-colors ${maxWidthClass} ${
-          highlight
-            ? "border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100"
-            : open
-              ? "border-gray-300 bg-gray-50 text-gray-700"
-              : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-        }`}
+        className={
+          trigger
+            ? `inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-0.5 text-sm ${maxWidthClass} ${
+                open ? "bg-gray-100" : "hover:bg-gray-100"
+              }`
+            : `inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-sm transition-colors ${maxWidthClass} ${
+                highlight
+                  ? "border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                  : open
+                    ? "border-gray-300 bg-gray-50 text-gray-700"
+                    : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+              }`
+        }
       >
-        {TriggerIcon && <TriggerIcon size={14} className="flex-shrink-0 text-gray-500" />}
-        <span className="truncate font-medium">{selected?.shortLabel ?? selected?.label ?? value}</span>
-        {selected?.tag && <OptionTag label={selected.tag} />}
-        <ChevronDown size={14} className="flex-shrink-0 text-gray-400" />
+        {trigger ? (
+          trigger(selected)
+        ) : (
+          <>
+            {TriggerIcon && <TriggerIcon size={14} className="flex-shrink-0 text-gray-500" />}
+            <span className="truncate font-medium">{selected?.shortLabel ?? selected?.label ?? value}</span>
+            {selected?.tag && <OptionTag label={selected.tag} />}
+            <ChevronDown size={14} className="flex-shrink-0 text-gray-400" />
+          </>
+        )}
       </button>
 
       {open && (

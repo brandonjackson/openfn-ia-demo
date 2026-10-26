@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
-import { Clock, FlaskConical, GitMerge, Lock, Sparkles } from "lucide-react";
+import { FlaskConical, GitMerge, Lock, Sparkles } from "lucide-react";
 import type { RunDetails, WorkflowVersion } from "../../mock-data/workflow";
 import { versionOptions } from "../../mock-data/workflow";
 import Button from "../Button";
@@ -67,10 +67,11 @@ interface Props {
 /**
  * The editor toolbar, in three groups over the canvas.
  *
- * On the left, a pill holds the Fn file menu, the workflow's name (click it,
- * or press R, to rename in a sandbox), the sandbox chip and, when there is
- * history, the version picker. While a run is loaded, a light blue run chip
- * takes the picker's place; its X closes the run. In the middle the view switcher flips between
+ * On the left, a pill holds the Fn file menu, the workflow's title and the
+ * sandbox chip. The title reads "Name • v4": click it to open the version
+ * history (renaming lives in the Fn menu, or press R in a sandbox). While a
+ * run is loaded, the title is just the name and a light blue run chip follows
+ * the sandbox; its X closes the run. In the middle the view switcher flips between
  * Canvas and Code; on main it's marked read-only. On the right sit the run
  * button and the main action ("Edit in sandbox" on main, "Go live" in a
  * sandbox), then the assistant button in a group of its own. The button hands
@@ -184,17 +185,36 @@ export default function EditorToolbar({
             aria-label="Workflow name"
             className="mx-2 h-7 w-56 rounded-md border border-blue-300 bg-blue-50/40 px-2 text-sm text-gray-900 outline-none ring-2 ring-blue-100"
           />
+        ) : versions.length > 0 && !run ? (
+          <span className="mx-1.5 min-w-0">
+            <Picker
+              ariaLabel="Switch version"
+              options={versionOptions(versions)}
+              value={version}
+              onChange={onSelectVersion}
+              menuWidthClass="w-80"
+              maxWidthClass="max-w-[20rem]"
+              trigger={(selected) => (
+                <>
+                  <span className="truncate font-semibold text-gray-900">{name}</span>
+                  <span className="text-gray-300" aria-hidden>
+                    •
+                  </span>
+                  <span
+                    className={`flex-none font-mono text-xs ${
+                      version !== "latest" ? "rounded bg-amber-100 px-1 text-amber-800" : "text-gray-500"
+                    }`}
+                  >
+                    {selected?.shortLabel ?? version}
+                  </span>
+                </>
+              )}
+            />
+          </span>
         ) : (
-          <button
-            type="button"
-            onClick={canRename ? startRenaming : undefined}
-            title={canRename ? "Rename (R)" : name}
-            className={`mx-2 min-w-[4rem] max-w-[16rem] truncate rounded-md px-1.5 py-0.5 text-sm font-medium text-gray-900 ${
-              canRename ? "hover:bg-gray-100" : "cursor-default"
-            }`}
-          >
+          <span className="mx-2 min-w-[4rem] max-w-[16rem] truncate px-1.5 text-sm font-semibold text-gray-900" title={name}>
             {name}
-          </button>
+          </span>
         )}
         <SandboxChip
           sandboxes={sandboxes}
@@ -204,21 +224,9 @@ export default function EditorToolbar({
           onNewSandbox={onNewSandbox}
           onViewAll={onViewAllSandboxes}
         />
-        {run ? (
+        {run && (
           <span className="ml-1.5">
             <RunChip run={run} size="md" note={run.version} onClear={onCloseRun} />
-          </span>
-        ) : versions.length > 0 && (
-          <span className="ml-1.5">
-            <Picker
-              icon={Clock}
-              ariaLabel="Switch version"
-              options={versionOptions(versions)}
-              value={version}
-              onChange={onSelectVersion}
-              menuWidthClass="w-80"
-              highlight={version !== "latest"}
-            />
           </span>
         )}
       </div>

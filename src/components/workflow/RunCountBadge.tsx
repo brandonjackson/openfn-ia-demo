@@ -3,15 +3,15 @@ import type { NodeActivity } from "../../mock-data/runs";
 /**
  * A node's share of the run history, on its canvas card: how many runs
  * reached it and, in red, how many failed there. The failed count is a
- * button that opens the last failure; with nothing failed the badge is
- * plain text.
+ * button that opens the failures view, broken down by reason; with nothing
+ * failed the badge is plain text.
  */
 export default function RunCountBadge({
   activity,
   onShowFailures,
 }: {
   activity: NodeActivity;
-  /** Opens the runs that failed at this node. */
+  /** Opens the failures at this node, by reason. */
   onShowFailures?: () => void;
 }) {
   const runs = `${activity.runs} ${activity.runs === 1 ? "run" : "runs"}`;
@@ -39,7 +39,7 @@ export default function RunCountBadge({
     <button
       type="button"
       onClick={onShowFailures}
-      title={`${failed} here; open the last failure`}
+      title={`${failed} here; see why`}
       className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-md px-1.5 py-0.5 text-[11px] font-medium hover:bg-red-50"
     >
       {inner}

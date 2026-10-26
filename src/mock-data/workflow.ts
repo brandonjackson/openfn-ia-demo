@@ -115,6 +115,8 @@ export interface RunStep {
   status: RunStatus;
   /** Pre-formatted duration, e.g. "179 ms" or "3 s". */
   duration: string;
+  /** Why the step failed, e.g. "Identity returned 502 Bad Gateway". */
+  error?: string;
   /** Dataclip the step received. */
   inputId?: string;
   /** Dataclip the step produced. */

@@ -11,6 +11,10 @@ const HALF_H = NODE_HEIGHT / 2;
 const HALF_W = NODE_WIDTH / 2;
 /** Room a card's menu needs to its right before it opens below instead. */
 const MENU_ROOM = 210;
+/** Space above the graph so the top card isn't pressed against the toolbar or the activity chip. */
+const TOP_MARGIN = 56;
+/** The busiest connector's width under the history overlay; the rest scale down from it. */
+const MAX_EDGE_WIDTH = 12;
 
 /**
  * The diagram surface: an absolutely-positioned set of node cards with SVG
@@ -26,10 +30,10 @@ const MENU_ROOM = 210;
  *
  * With `activity` and no run, the run history is laid over the workflow
  * instead: each card shows how many runs reached it and how many failed
- * there (a way into the failures view), and each connector is drawn thicker
- * and flows faster the more runs went along it, with its count beside the
- * badge. A chip at the top-left sums it up, picks the period and opens the
- * run history.
+ * there (a way into the failures view), and each connector's width is in
+ * proportion to the busiest one and flows faster the more runs went along
+ * it, with its count beside the badge. A chip at the top-left sums it up,
+ * picks the period and opens the run history.
  *
  * This is a static prototype layout — node coordinates come from the workflow
  * data, there is no real pan/zoom or drag yet.
@@ -112,7 +116,7 @@ export default function WorkflowCanvas({
       className="relative overflow-hidden bg-gray-50 bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] [background-size:22px_22px]"
       style={{ width: "100%", height }}
     >
-      <div className="relative mx-auto" style={{ width, height }}>
+      <div className="relative mx-auto" style={{ width, height, marginTop: TOP_MARGIN }}>
         {/* Edge layer */}
         <svg className="absolute inset-0 pointer-events-none" width={width} height={height}>
           {workflow.edges.map((edge) => {
@@ -141,15 +145,14 @@ export default function WorkflowCanvas({
             }
             if (overlay) {
               const n = volume(edge.id);
-              const weight = share(edge.id);
-              const failurePath = edge.condition === "on_failure" && n > 0;
+              const strokeWidth = n === 0 ? 1.5 : Math.max(1.5, share(edge.id) * MAX_EDGE_WIDTH);
               return (
                 <g key={edge.id}>
                   <path
                     d={d}
                     fill="none"
-                    stroke={n === 0 ? "#e2e8f0" : failurePath ? "#fca5a5" : "#94a3b8"}
-                    strokeWidth={n === 0 ? 2 : 2 + weight * 4}
+                    stroke={n === 0 ? "#e2e8f0" : "#cbd5e1"}
+                    strokeWidth={strokeWidth}
                     strokeLinecap="round"
                   >
                     <title>{`${n} ${n === 1 ? "run" : "runs"}`}</title>
@@ -158,13 +161,13 @@ export default function WorkflowCanvas({
                     <path
                       d={d}
                       fill="none"
-                      stroke={failurePath ? "#ef4444" : "#3b82f6"}
-                      strokeOpacity={0.35 + weight * 0.45}
-                      strokeWidth={2}
+                      stroke="#1d4ed8"
+                      strokeOpacity={0.9}
+                      strokeWidth={Math.max(3, strokeWidth * 0.5)}
                       strokeLinecap="round"
-                      strokeDasharray="2 13"
+                      strokeDasharray="1 14"
                       className="motion-reduce:animate-none"
-                      style={{ animation: `edge-flow ${(3.2 - weight * 2.2).toFixed(1)}s linear infinite` }}
+                      style={{ animation: `edge-flow ${(3.2 - share(edge.id) * 2.2).toFixed(1)}s linear infinite` }}
                     />
                   )}
                 </g>

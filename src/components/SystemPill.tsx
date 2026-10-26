@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import type { ReactNode } from "react";
 import { Plus } from "lucide-react";
 import AdaptorLogo from "./AdaptorLogo";
 
@@ -16,6 +17,8 @@ interface Props {
   title?: string;
   /** `sm` for tight spots like cards; `md` (default) for rows of pills. */
   size?: "sm" | "md";
+  /** Shown in place of the logo, e.g. a trigger's glyph. */
+  icon?: ReactNode;
 }
 
 /**
@@ -31,6 +34,7 @@ export default function SystemPill({
   suggested = false,
   title,
   size = "md",
+  icon,
 }: Props) {
   const interactive = Boolean(to || onClick);
   const sizing =
@@ -44,7 +48,7 @@ export default function SystemPill({
 
   const content = (
     <>
-      <AdaptorLogo adaptor={adaptor} name={name} size={size === "sm" ? "2xs" : "xs"} />
+      {icon ?? <AdaptorLogo adaptor={adaptor} name={name} size={size === "sm" ? "2xs" : "xs"} />}
       {name}
       {suggested && <Plus size={13} className="text-gray-400" />}
     </>

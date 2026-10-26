@@ -1,15 +1,10 @@
 import type { TriggerNode } from "../../mock-data/workflow";
+import { triggerNames } from "../../mock-data/workflow";
 import { TriggerIcon } from "./AdaptorIcon";
-
-const names: Record<TriggerNode["triggerType"], string> = {
-  webhook: "Webhook trigger",
-  cron: "Cron trigger",
-  kafka: "Kafka trigger",
-};
 
 /**
  * The trigger's counterpart to {@link AdaptorPill}: a small bordered pill
- * with the trigger's glyph and kind, for the head of its canvas card.
+ * with the trigger's glyph and kind.
  */
 export default function TriggerPill({ triggerType, compact = false }: { triggerType: TriggerNode["triggerType"]; compact?: boolean }) {
   return (
@@ -19,7 +14,7 @@ export default function TriggerPill({ triggerType, compact = false }: { triggerT
       }`}
     >
       <TriggerIcon triggerType={triggerType} size={compact ? "xs" : "sm"} />
-      {names[triggerType]}
+      {triggerNames[triggerType]}
     </span>
   );
 }

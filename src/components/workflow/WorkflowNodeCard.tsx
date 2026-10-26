@@ -1,11 +1,12 @@
 import { Maximize2, MoreVertical, Play, Sparkles, Trash2 } from "lucide-react";
 import type { RunStep, WorkflowNode } from "../../mock-data/workflow";
-import { splitSummary } from "../../mock-data/workflow";
+import { triggerNames } from "../../mock-data/workflow";
 import type { NodeActivity } from "../../mock-data/runs";
 import DropdownMenu from "../DropdownMenu";
 import type { DropdownMenuItem } from "../DropdownMenu";
-import AdaptorPill from "./AdaptorPill";
-import TriggerPill from "./TriggerPill";
+import SystemPill from "../SystemPill";
+import { adaptorInfo } from "../../mock-data/adaptor-reference";
+import { TriggerIcon } from "./AdaptorIcon";
 import StatusPill from "./StatusPill";
 import RunCountBadge from "./RunCountBadge";
 
@@ -18,8 +19,7 @@ export type NodeAction = "run" | "edit" | "improve" | "delete";
 
 /**
  * A node on the workflow canvas: a card with the step's adaptor (or the
- * trigger's kind) as a pill in its head, a one-line summary of what it does
- * with its lead in bold, and a ⋮ menu of actions: run from here, edit
+ * trigger's kind) as a pill in its head, the step's name in bold, and a ⋮ menu of actions: run from here, edit
  * (which opens the inspector), improve (which opens the assistant about this
  * step) and delete. Clicking the card selects it; selecting toggles a blue
  * ring.
@@ -58,11 +58,10 @@ export default function WorkflowNodeCard({
   activity?: NodeActivity;
   /** Opens the runs that failed at this node. */
   onShowFailures?: () => void;
-  /** Extra line under the summary, e.g. "Started by webhook trigger". */
+  /** Extra line under the name, e.g. "Started by webhook trigger". */
   note?: string;
 }) {
   const job = node.type === "job" ? node : undefined;
-  const { lead, rest } = splitSummary(node.summary ?? node.label);
 
   const ringClasses = selected
     ? "ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-50"
@@ -97,7 +96,15 @@ export default function WorkflowNodeCard({
 
       <div className="pointer-events-none relative flex h-full flex-col p-3">
         <div className="flex h-7 items-center gap-2">
-          {node.type === "job" ? <AdaptorPill adaptor={node.adaptor} /> : <TriggerPill triggerType={node.triggerType} />}
+          {node.type === "job" ? (
+            <SystemPill name={adaptorInfo[node.adaptor].name} adaptor={node.adaptor} size="sm" />
+          ) : (
+            <SystemPill
+              name={triggerNames[node.triggerType]}
+              size="sm"
+              icon={<TriggerIcon triggerType={node.triggerType} size="xs" />}
+            />
+          )}
           <span className="pointer-events-auto ml-auto flex items-center gap-1">
             {step ? (
               <StatusPill status={step.status} variant="icon" detail={step.duration || undefined} />
@@ -132,11 +139,10 @@ export default function WorkflowNodeCard({
         </div>
 
         <p
-          className={`mt-1.5 text-[13px] leading-[18px] text-gray-500 ${note ? "truncate" : "line-clamp-2"}`}
-          title={node.summary ? node.label : undefined}
+          className={`mt-1.5 text-sm leading-[18px] font-semibold text-gray-900 ${note ? "truncate" : "line-clamp-2"}`}
+          title={node.label}
         >
-          <span className="font-semibold text-gray-900">{lead}</span>
-          {rest && <> {rest}</>}
+          {node.label}
         </p>
         {note && <span className="mt-1 block truncate text-[11px] text-gray-400">{note}</span>}
       </div>

@@ -17,6 +17,7 @@ const meta: Meta<typeof WorkflowEditorTemplate> = {
     projectName: "Project A",
     components: projects[0].components.filter((c) => c.type !== "Workflow"),
     onOpenComponent: () => {},
+    onAddComponent: () => {},
     sandboxes: projects[0].sandboxes,
     versions: workflowVersions,
     assistantConversations,

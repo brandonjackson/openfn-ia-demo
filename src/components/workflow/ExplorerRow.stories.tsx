@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Globe, Workflow } from "lucide-react";
+import { Database, Globe, Workflow } from "lucide-react";
 import ExplorerRow from "./ExplorerRow";
-import AdaptorPill from "./AdaptorPill";
+import { AdaptorIcon } from "./AdaptorIcon";
 
 const meta: Meta<typeof ExplorerRow> = {
   title: "Workflow/ExplorerRow",
@@ -19,21 +19,26 @@ export default meta;
 type Story = StoryObj<typeof ExplorerRow>;
 
 export const WorkflowFile: Story = {
-  args: { label: "workflow.yaml", icon: Workflow, trailing: <span className="text-xs text-gray-400">settings</span> },
+  args: { label: "workflow.yaml", icon: Workflow },
 };
 
 export const Trigger: Story = {
-  args: { label: "Webhook trigger", icon: Globe, trailing: <span className="text-xs text-gray-400">webhook</span> },
+  args: { label: "Webhook trigger", icon: Globe },
 };
 
 export const Step: Story = {
-  args: { label: "Search for duplicate citizens", trailing: <AdaptorPill adaptor="http" compact /> },
+  args: { label: "Search for duplicate citizens", leading: <AdaptorIcon adaptor="http" size="xs" /> },
 };
 
 export const SelectedWithStatus: Story = {
-  args: { label: "Create new citizen in Identity", trailing: <AdaptorPill adaptor="http" />, selected: true, status: "success" },
+  args: { label: "Create new citizen in Identity", leading: <AdaptorIcon adaptor="http" size="xs" />, selected: true, status: "success" },
 };
 
 export const Failed: Story = {
-  args: { label: "Create new citizen in Identity", trailing: <AdaptorPill adaptor="http" />, status: "failed" },
+  args: { label: "Create new citizen in Identity", leading: <AdaptorIcon adaptor="http" size="xs" />, status: "failed" },
+};
+
+/** A project component keeps its kind at the right. */
+export const Component: Story = {
+  args: { label: "District codes", icon: Database, trailing: <span className="text-xs text-gray-400">collection</span> },
 };

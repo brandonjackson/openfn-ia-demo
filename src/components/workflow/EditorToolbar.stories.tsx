@@ -82,6 +82,10 @@ export const RunLoaded: Story = {
   args: { run: sampleRun, onCloseRun: () => {} },
 };
 
+/**
+ * With the assistant open, its button folds away; the tray's close button
+ * brings it back. Click the button in the default story to watch it go.
+ */
 export const AssistantOpen: Story = {
   args: { assistantOpen: true, view: "code" },
 };

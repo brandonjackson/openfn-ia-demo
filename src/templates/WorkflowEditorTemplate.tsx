@@ -17,7 +17,6 @@ import type { WorkflowSettings } from "../mock-data/workflow";
 import { failureReasons, runActivity, shortId, simulateRun } from "../mock-data/runs";
 import type { ActivityPeriod } from "../mock-data/runs";
 import { adaptorInfo } from "../mock-data/adaptor-reference";
-import type { Snippet } from "../mock-data/adaptor-reference";
 import type { AssistantConversation, AssistantPlan, AssistantReference } from "../mock-data/assistant";
 import type { ProjectComponent, ProjectService } from "../mock-data/projects";
 import EditorShell from "../components/workflow/EditorShell";
@@ -128,8 +127,7 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
  *
  * The panel along the bottom carries the views that aren't canvas or code:
  * Runs (to load one), Failures (why runs failed, by reason), the selected
- * Step's settings, its Log, Input and Output in the loaded run, and the
- * adaptor Reference. Its ⋯ menu chooses
+ * Step's settings, and its Log, Input and Output in the loaded run. Its ⋯ menu chooses
  * which views it shows. On the canvas it docks to the right by default (or
  * floats along the bottom, set from the ⋯ menu); in code mode it sits under
  * the code. The assistant takes the outermost right-hand column.
@@ -302,16 +300,9 @@ export default function WorkflowEditorTemplate({
       return next;
     });
   };
-  const [docsAdaptor, setDocsAdaptor] = useState<AdaptorKind | undefined>();
 
   /** Show the panel on a view, e.g. a step's log when a run is loaded. */
   const showPanel = (panelView: PanelViewId) => updateLayout({ panel: true, panelView });
-  /** Open a step's adaptor reference in code mode's details column. */
-  const openReference = (stepId: string) => {
-    setFile({ stepId });
-    setView("code");
-    updateLayout({ details: true, detailsView: "reference" });
-  };
   const togglePanel = () => updateLayout({ panel: !layout.panel });
   const toggleAssistant = () => updateLayout({ assistant: !layout.assistant });
   const toggleExplorer = () => updateLayout({ explorer: !layout.explorer });
@@ -502,11 +493,6 @@ export default function WorkflowEditorTemplate({
       adaptors: changes.adaptor !== undefined ? { ...e.adaptors, [stepId]: changes.adaptor } : e.adaptors,
       credentials: "credentialId" in changes ? { ...e.credentials, [stepId]: changes.credentialId } : e.credentials,
     }));
-
-  const insertSnippet = (stepId: string, snippet: Snippet) => {
-    const current = graph.nodes.find((n): n is JobNode => n.type === "job" && n.id === stepId)?.body ?? "";
-    edit((e) => ({ bodies: { ...e.bodies, [stepId]: `${current.trimEnd()}\n\n${snippet.code}` } }));
-  };
 
   const changeCode = (stepId: string, body: string) => edit((e) => ({ bodies: { ...e.bodies, [stepId]: body } }));
 
@@ -712,12 +698,9 @@ export default function WorkflowEditorTemplate({
           <StepConfigPanel
             key={focusJob.id}
             step={focusJob}
-            workflow={graph}
             credentialId={edits.credentials[focusJob.id]}
             readOnly={onMain}
             onChange={(c) => changeStep(focusJob.id, c)}
-            onInsertSnippet={(s) => insertSnippet(focusJob.id, s)}
-            onOpenReference={() => openReference(focusJob.id)}
             onDelete={() => deleteStep(focusJob.id)}
             showHeader={false}
           />
@@ -939,22 +922,17 @@ export default function WorkflowEditorTemplate({
             }}
             credentials={edits.credentials}
             onStepChange={onMain ? undefined : changeStep}
-            onInsertSnippet={onMain ? undefined : insertSnippet}
             onCodeChange={onMain ? undefined : changeCode}
             onDeleteStep={onMain ? undefined : deleteStep}
             onAddStep={onMain ? undefined : addStep}
             docs={docs}
             onAddDoc={onMain ? undefined : addDoc}
             onAddComponent={onMain ? undefined : () => setAddComponentOpen(true)}
-            onRunFromStep={(id) => runFresh(id)}
-            onRetryFromStep={() => retry()}
             bottomTray={panel}
             showExplorer={layout.explorer}
             showDetails={layout.details}
             detailsView={layout.detailsView}
             onDetailsViewChange={(v) => updateLayout({ details: true, detailsView: v })}
-            referenceAdaptor={docsAdaptor}
-            onReferenceAdaptorChange={setDocsAdaptor}
             layoutMenu={layoutMenu}
             statusNote={statusNote}
             dirtyStepIds={[

@@ -16,14 +16,14 @@ const meta: Meta<typeof StepConfigPanel> = {
       </div>
     ),
   ],
-  args: { step: search, workflow: nationalIdWorkflow, credentialId: "cred-identity-prod", onOpenReference: () => {} },
+  args: { step: search, credentialId: "cred-identity-prod" },
 };
 
 export default meta;
 type Story = StoryObj<typeof StepConfigPanel>;
 
 export const Editable: Story = {
-  args: { onChange: () => {}, onInsertSnippet: () => {}, onDelete: () => {} },
+  args: { onChange: () => {}, onDelete: () => {} },
 };
 
 export const ReadOnly: Story = { args: { readOnly: true } };

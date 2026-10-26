@@ -1,13 +1,10 @@
-import { BookOpen, Trash2 } from "lucide-react";
-import type { AdaptorKind, JobNode, Workflow } from "../../mock-data/workflow";
-import { edgeConditionLabel, incomingEdge } from "../../mock-data/workflow";
-import { adaptorChoices, adaptorInfo, adaptorSnippets, credentialsFor } from "../../mock-data/adaptor-reference";
-import type { Snippet } from "../../mock-data/adaptor-reference";
+import { Trash2 } from "lucide-react";
+import type { AdaptorKind, JobNode } from "../../mock-data/workflow";
+import { adaptorChoices, adaptorInfo, credentialsFor } from "../../mock-data/adaptor-reference";
 import FormField from "../FormField";
 import { Select, TextInput } from "../FormControls";
 import Button from "../Button";
 import AdaptorPill from "./AdaptorPill";
-import SnippetRow from "./SnippetRow";
 
 export interface StepChanges {
   label?: string;
@@ -17,42 +14,29 @@ export interface StepChanges {
 
 interface Props {
   step: JobNode;
-  workflow: Workflow;
   credentialId?: string;
   /** On main nothing can be changed. */
   readOnly?: boolean;
   onChange?: (changes: StepChanges) => void;
-  /** Appends a snippet to the step's code. */
-  onInsertSnippet?: (snippet: Snippet) => void;
-  /** Opens the full adaptor reference tray. */
-  onOpenReference?: () => void;
   onDelete?: () => void;
   /** Hide the name row when the panel sits in a tray that already names the step. */
   showHeader?: boolean;
 }
 
 /**
- * The step's settings beside its code: name, adaptor, credential and what it
- * runs after. Under those sit the adaptor's most-used operations as
- * snippets, so the reference is one click from the code; the full reference
- * opens in its own tray.
+ * The step's config beside its code: name, adaptor and credential. The
+ * adaptor's snippets live in their own view next to this one.
  */
 export default function StepConfigPanel({
   step,
-  workflow,
   credentialId,
   readOnly = false,
   onChange,
-  onInsertSnippet,
-  onOpenReference,
   onDelete,
   showHeader = true,
 }: Props) {
   const info = adaptorInfo[step.adaptor];
   const credentials = credentialsFor(step.adaptor);
-  const edge = incomingEdge(workflow, step.id);
-  const upstream = edge ? workflow.nodes.find((n) => n.id === edge.source) : undefined;
-  const runsAfter = upstream ? `${upstream.label} · ${edgeConditionLabel[edge!.condition]}` : "Nothing (start of workflow)";
   const credentialOptions = ["No credential", ...credentials.map((c) => c.name)];
   const credentialValue = credentials.find((c) => c.id === credentialId)?.name ?? "No credential";
 
@@ -99,30 +83,6 @@ export default function StepConfigPanel({
             <Select className="w-full" options={["No credential"]} value="No credential" disabled />
           )}
         </FormField>
-
-        <FormField label="Runs after">
-          <Select className="w-full" options={[runsAfter]} value={runsAfter} disabled />
-        </FormField>
-
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">{info.name} snippets</span>
-            {onOpenReference && (
-              <button
-                type="button"
-                onClick={onOpenReference}
-                className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700"
-              >
-                <BookOpen size={12} /> Full reference
-              </button>
-            )}
-          </div>
-          <div className="space-y-1.5">
-            {adaptorSnippets[step.adaptor].slice(0, 4).map((s) => (
-              <SnippetRow key={s.id} snippet={s} onInsert={readOnly ? undefined : onInsertSnippet} />
-            ))}
-          </div>
-        </div>
       </div>
       {!readOnly && onDelete && (
         <div className="flex-none border-t border-gray-100 px-4 py-3">

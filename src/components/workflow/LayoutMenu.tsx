@@ -14,18 +14,16 @@ interface Props {
 
 /**
  * The ⋯ button at the top-right corner of the code area that opens the
- * layout menu: checkboxes for each area (explorer, panel, details,
- * assistant), on the canvas where the panel docks and whether the run
- * history is laid over it, then a reset. It's the one place that lists
- * everything the layout can show or hide.
+ * layout menu: in code mode a checkbox each for the bottom and right
+ * panels, on the canvas the panel, where it docks and whether run activity
+ * is laid over it, then a reset. The explorer (Ctrl/⌘ + B) and the
+ * assistant (its toolbar button) have their own ways in.
  */
 export default function LayoutMenu({ layout, onChange, onReset, view, defaultOpen = false }: Props) {
   const code = view === "code";
   const items: DropdownMenuItem[] = [
-    ...(code ? [{ id: "explorer", label: "Explorer", description: "Files, steps and components", checked: layout.explorer }] : []),
-    { id: "panel", label: "Panel", description: "Runs, step, log, input and output", checked: layout.panel },
-    ...(code ? [{ id: "details", label: "Details", description: "Settings and adaptor reference", checked: layout.details }] : []),
-    { id: "assistant", label: "Assistant", checked: layout.assistant },
+    { id: "panel", label: code ? "Bottom panel" : "Panel", description: "Runs, step, log, input and output", checked: layout.panel },
+    ...(code ? [{ id: "details", label: "Right panel", description: "Config and snippets", checked: layout.details }] : []),
     ...(code
       ? []
       : [
@@ -45,7 +43,7 @@ export default function LayoutMenu({ layout, onChange, onReset, view, defaultOpe
   const select = (id: string) => {
     if (id === "reset") return onReset?.();
     if (id.startsWith("dock:")) return onChange({ canvasPanelDock: id.slice(5) as PanelDock, panel: true });
-    const key = id as "explorer" | "panel" | "details" | "assistant" | "canvasActivity";
+    const key = id as "panel" | "details" | "canvasActivity";
     onChange({ [key]: !layout[key] });
   };
 

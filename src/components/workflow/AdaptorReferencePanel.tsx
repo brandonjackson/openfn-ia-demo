@@ -1,28 +1,27 @@
 import { useState } from "react";
 import { ExternalLink, Search } from "lucide-react";
 import type { AdaptorKind } from "../../mock-data/workflow";
-import { adaptorChoices, adaptorInfo, adaptorSnippets } from "../../mock-data/adaptor-reference";
+import { adaptorInfo, adaptorSnippets } from "../../mock-data/adaptor-reference";
 import type { Snippet } from "../../mock-data/adaptor-reference";
-import { Select } from "../FormControls";
-import SnippetRow from "./SnippetRow";
+import SnippetCard from "./SnippetCard";
 import { AdaptorIcon } from "./AdaptorIcon";
 
 interface Props {
+  /** The open step's adaptor; the snippets are always for it. */
   adaptor: AdaptorKind;
-  /** Lets the reader browse another adaptor's reference without switching the step. */
-  onChangeAdaptor?: (adaptor: AdaptorKind) => void;
-  /** Inserts a snippet into the open step; unset when nothing editable is open. */
+  /** Inserts a snippet at the cursor in the open step; unset when nothing editable is open. */
   onInsert?: (snippet: Snippet) => void;
   /** The step the snippets would go into, named in the hint. */
   stepLabel?: string;
 }
 
 /**
- * The adaptor reference tray: what the adaptor is for, a link to its docs,
- * and its operations as snippets you can search, expand and insert into the
- * open step. It follows the open step's adaptor, but you can browse others.
+ * The Snippets view beside the code: what the open step's adaptor is for, a
+ * link to its docs, and its operations as snippets you can search and insert
+ * at the cursor. It always follows the step's adaptor; changing the adaptor
+ * is the Config view's job.
  */
-export default function AdaptorReferencePanel({ adaptor, onChangeAdaptor, onInsert, stepLabel }: Props) {
+export default function AdaptorReferencePanel({ adaptor, onInsert, stepLabel }: Props) {
   const [query, setQuery] = useState("");
   const info = adaptorInfo[adaptor];
   const q = query.trim().toLowerCase();
@@ -51,17 +50,6 @@ export default function AdaptorReferencePanel({ adaptor, onChangeAdaptor, onInse
             </a>
           </div>
         </div>
-        {onChangeAdaptor && (
-          <label className="flex items-center gap-2 text-xs text-gray-500">
-            Browse
-            <Select
-              options={adaptorChoices.map((a) => adaptorInfo[a].name)}
-              value={info.name}
-              onChange={(e) => onChangeAdaptor(adaptorChoices.find((a) => adaptorInfo[a].name === e.target.value) ?? adaptor)}
-              className="w-auto py-1 text-xs"
-            />
-          </label>
-        )}
         <label className="flex items-center gap-2 rounded-md border border-gray-200 px-2.5 py-1.5 text-sm text-gray-400 focus-within:border-blue-300">
           <Search size={14} />
           <input
@@ -72,14 +60,14 @@ export default function AdaptorReferencePanel({ adaptor, onChangeAdaptor, onInse
           />
         </label>
       </div>
-      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
         {onInsert && stepLabel && (
           <p className="text-xs text-gray-500">
-            Insert adds the snippet to the end of <span className="font-medium text-gray-700">{stepLabel}</span>.
+            Click a snippet to insert it at the cursor in <span className="font-medium text-gray-700">{stepLabel}</span>.
           </p>
         )}
         {snippets.map((s) => (
-          <SnippetRow key={s.id} snippet={s} onInsert={onInsert} variant="card" />
+          <SnippetCard key={s.id} snippet={s} onInsert={onInsert} />
         ))}
         {snippets.length === 0 && <p className="text-sm text-gray-500">No operations match.</p>}
       </div>

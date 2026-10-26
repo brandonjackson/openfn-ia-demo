@@ -189,7 +189,7 @@ export default function EditorToolbar({
             type="button"
             onClick={canRename ? startRenaming : undefined}
             title={canRename ? "Rename (R)" : name}
-            className={`mx-2 max-w-[16rem] truncate rounded-md px-1.5 py-0.5 text-sm font-medium text-gray-900 ${
+            className={`mx-2 min-w-[4rem] max-w-[16rem] truncate rounded-md px-1.5 py-0.5 text-sm font-medium text-gray-900 ${
               canRename ? "hover:bg-gray-100" : "cursor-default"
             }`}
           >
@@ -224,7 +224,7 @@ export default function EditorToolbar({
       </div>
 
       {/* View switcher */}
-      <div className={`${group} px-1.5`}>
+      <div className={`${group} flex-none px-1.5`}>
         {onMain && (
           <span
             className="mr-1 inline-flex items-center gap-1 px-2 font-mono text-[11px] uppercase tracking-widest text-gray-400"
@@ -236,8 +236,8 @@ export default function EditorToolbar({
         <SegmentedControl variant="pill" size="md" options={editorViews} value={view} onChange={(v) => onViewChange(v as EditorView)} />
       </div>
 
-      {/* Run and the main action, then the assistant on its own */}
-      <div className="flex items-center gap-3">
+      {/* Run and the main action, then the assistant on its own; these never shrink, the name and sandbox truncate instead */}
+      <div className="flex flex-none items-center gap-3">
       <div className={`${group} gap-1.5 px-1.5`}>
         <RunMenuButton
           retry={retry}

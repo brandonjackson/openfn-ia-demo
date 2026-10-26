@@ -7,8 +7,8 @@ import { useSyncExternalStore } from "react";
  */
 export type PanelViewId = "runs" | "failures" | "step" | "log" | "input" | "output";
 
-/** What the right-hand column in code mode shows. */
-export type DetailsViewId = "settings" | "reference";
+/** What the right-hand column in code mode shows: the open item's config, or a step's adaptor snippets. */
+export type DetailsViewId = "config" | "snippets";
 
 /** Where the panel docks on the canvas; in code mode it always sits under the code. */
 export type PanelDock = "right" | "bottom";
@@ -24,7 +24,7 @@ export interface EditorLayout {
   canvasPanelDock: PanelDock;
   /** Views taken out of the panel's tab bar. */
   hiddenViews: PanelViewId[];
-  /** The details column beside the code: the open item's settings or the adaptor reference. */
+  /** The details column beside the code: the open item's config or a step's snippets. */
   details: boolean;
   detailsView: DetailsViewId;
   /** The assistant on the right. */
@@ -41,7 +41,7 @@ export const defaultLayout: EditorLayout = {
   canvasPanelDock: "right",
   hiddenViews: [],
   details: true,
-  detailsView: "settings",
+  detailsView: "config",
   assistant: false,
   canvasActivity: true,
 };
@@ -51,7 +51,9 @@ const STORAGE_KEY = "openfn-ia-demo:editor-layout";
 function load(): EditorLayout {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? { ...defaultLayout, ...(JSON.parse(raw) as Partial<EditorLayout>) } : defaultLayout;
+    const saved = raw ? { ...defaultLayout, ...(JSON.parse(raw) as Partial<EditorLayout>) } : defaultLayout;
+    // Views saved under an older name fall back to the default.
+    return ["config", "snippets"].includes(saved.detailsView) ? saved : { ...saved, detailsView: defaultLayout.detailsView };
   } catch {
     return defaultLayout;
   }

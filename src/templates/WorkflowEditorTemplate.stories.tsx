@@ -134,12 +134,12 @@ export const WorkflowSettings: Story = {
   args: { initialView: "code", initialFile: "workflow", sandbox: projects[0].sandboxes[1] },
 };
 
-/** The adaptor reference beside the code, in the details column. */
-export const AdaptorReference: Story = {
+/** The step's adaptor snippets beside the code, ready to insert at the cursor. */
+export const Snippets: Story = {
   args: {
     initialView: "code",
     initialFile: { stepId: "search" },
-    initialLayout: { panel: false, details: true, detailsView: "reference" },
+    initialLayout: { panel: false, details: true, detailsView: "snippets" },
     sandbox: projects[0].sandboxes[1],
   },
 };

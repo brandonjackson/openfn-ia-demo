@@ -1,4 +1,4 @@
-import { Fragment, useRef, type KeyboardEvent } from "react";
+import { Fragment, useImperativeHandle, useRef, type KeyboardEvent, type Ref } from "react";
 
 const KEYWORDS = new Set([
   "const",
@@ -61,10 +61,17 @@ function highlightLine(line: string) {
 
 const INDENT = "  ";
 
+/** What the editor lets its parent do, e.g. drop a snippet in from beside it. */
+export interface CodeEditorHandle {
+  /** Inserts text at the cursor (or the end, if the cursor was never placed), on lines of its own. */
+  insert: (text: string) => void;
+}
+
 interface Props {
   code: string;
   /** Called with the new text on every edit. Leave it out for a read-only view. */
   onChange?: (code: string) => void;
+  ref?: Ref<CodeEditorHandle>;
 }
 
 /**
@@ -73,9 +80,46 @@ interface Props {
  * own and the colours stay underneath. Tab indents, Shift+Tab outdents.
  * Without `onChange` it's a read-only view.
  */
-export default function CodeEditor({ code, onChange }: Props) {
+export default function CodeEditor({ code, onChange, ref }: Props) {
   const lines = code.split("\n");
   const textarea = useRef<HTMLTextAreaElement>(null);
+  // Until you click or type in the code, inserts go at the end rather than line 1.
+  const caretPlaced = useRef(false);
+
+  useImperativeHandle(ref, () => ({
+    insert: (text) => {
+      const el = textarea.current;
+      if (!el || !onChange) return;
+      const { value } = el;
+      let start = caretPlaced.current ? el.selectionStart : value.length;
+      let end = caretPlaced.current ? el.selectionEnd : value.length;
+      // Snippets are whole statements: one landing partway along a line goes after it, not into the middle of it.
+      const lineStart = value.lastIndexOf("\n", start - 1) + 1;
+      const lineEnd = value.indexOf("\n", end) === -1 ? value.length : value.indexOf("\n", end);
+      if (!value.slice(lineStart, start).trim()) start = lineStart;
+      else if (start === end && value.slice(end, lineEnd).trim()) start = end = lineEnd;
+      // Indent it like the line it lands on and keep a blank line either side.
+      const indent = value.slice(lineStart).match(/^ */)![0];
+      const before = value.slice(0, start);
+      const after = value.slice(end);
+      const body = text
+        .trim()
+        .split("\n")
+        .map((l) => (l ? indent + l : l))
+        .join("\n");
+      const lead = !before.trim() || before.endsWith("\n\n") ? "" : before.endsWith("\n") ? "\n" : "\n\n";
+      const trail = !after.trim() ? "\n" : after.startsWith("\n\n") ? "" : after.startsWith("\n") ? "\n" : "\n\n";
+      const inserted = lead + body + trail;
+      el.focus();
+      el.setSelectionRange(start, end);
+      // execCommand keeps the browser's undo stack intact; fall back to a plain change where it's unsupported.
+      if (!document.execCommand("insertText", false, inserted)) {
+        onChange(before + inserted + after);
+        requestAnimationFrame(() => el.setSelectionRange(start + inserted.length, start + inserted.length));
+      }
+      caretPlaced.current = true;
+    },
+  }));
 
   // Replace the selected lines' text and keep the selection on the same lines.
   const indentLines = (outdent: boolean) => {
@@ -139,6 +183,7 @@ export default function CodeEditor({ code, onChange }: Props) {
             value={code}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={onKeyDown}
+            onSelect={() => (caretPlaced.current = true)}
             spellCheck={false}
             autoCapitalize="off"
             autoComplete="off"

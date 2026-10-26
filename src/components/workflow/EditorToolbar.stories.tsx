@@ -77,9 +77,9 @@ export const RetryFromStep: Story = {
   args: { retry: { step: "Create new citizen in Identity" }, fromStep: "Create new citizen in Identity" },
 };
 
-/** A run loaded: it follows the sandbox chip, with an X to close it. */
+/** A run loaded in code mode: it sits right of the view switcher, with "Unload run". */
 export const RunLoaded: Story = {
-  args: { run: sampleRun, onCloseRun: () => {} },
+  args: { run: sampleRun, onCloseRun: () => {}, view: "code" },
 };
 
 /**

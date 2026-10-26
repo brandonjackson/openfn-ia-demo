@@ -30,9 +30,9 @@ const MAX_EDGE_WIDTH = 12;
  *
  * With `activity` and no run, the run history is laid over the workflow
  * instead: each card shows how many runs reached it and how many failed
- * there (a way into the failures view), and each connector's width is in
- * proportion to the busiest one and flows faster the more runs went along
- * it, with its count beside the badge. A chip at the top-left sums it up,
+ * there (a way into the failures view), and each connector that runs went
+ * along is light blue with slow-moving dots, its width in proportion to the
+ * busiest one and its count beside the badge. A chip at the top-left sums it up,
  * picks the period and opens the run history.
  *
  * This is a static prototype layout — node coordinates come from the workflow
@@ -151,7 +151,7 @@ export default function WorkflowCanvas({
                   <path
                     d={d}
                     fill="none"
-                    stroke={n === 0 ? "#e2e8f0" : "#cbd5e1"}
+                    stroke={n === 0 ? "#e2e8f0" : "#bfdbfe"}
                     strokeWidth={strokeWidth}
                     strokeLinecap="round"
                   >
@@ -163,11 +163,10 @@ export default function WorkflowCanvas({
                       fill="none"
                       stroke="#1d4ed8"
                       strokeOpacity={0.9}
-                      strokeWidth={Math.max(3, strokeWidth * 0.5)}
+                      strokeWidth={3}
                       strokeLinecap="round"
                       strokeDasharray="1 14"
-                      className="motion-reduce:animate-none"
-                      style={{ animation: `edge-flow ${(3.2 - share(edge.id) * 2.2).toFixed(1)}s linear infinite` }}
+                      className="animate-[edge-flow_3.2s_linear_infinite] motion-reduce:animate-none"
                     />
                   )}
                 </g>

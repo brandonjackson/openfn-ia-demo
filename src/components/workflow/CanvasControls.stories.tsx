@@ -5,6 +5,7 @@ const meta: Meta<typeof CanvasControls> = {
   title: "Workflow/CanvasControls",
   component: CanvasControls,
   parameters: { layout: "centered" },
+  argTypes: { onCenter: { action: "center" }, onZoomIn: { action: "zoom in" }, onZoomOut: { action: "zoom out" } },
 };
 
 export default meta;

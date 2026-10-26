@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import type { RunDetails, Workflow, WorkflowNode } from "../../mock-data/workflow";
 import type { RunActivity } from "../../mock-data/runs";
 import WorkflowNodeCard, { NODE_HEIGHT, NODE_WIDTH } from "./WorkflowNodeCard";
@@ -33,8 +34,9 @@ const MAX_EDGE_WIDTH = 12;
  * busiest one and its count beside the badge. The editor's runs bar, over
  * the top of the canvas, picks the period and sums it up.
  *
- * This is a static prototype layout — node coordinates come from the workflow
- * data, there is no real pan/zoom or drag yet.
+ * The canvas pans: scroll (mouse wheel or trackpad) or drag any empty part of
+ * it to move around, and the controls' Center button puts it back. Node
+ * coordinates come from the workflow data; there is no zoom or node drag yet.
  */
 export default function WorkflowCanvas({
   workflow,
@@ -67,6 +69,46 @@ export default function WorkflowCanvas({
   showControls?: boolean;
 }) {
   const nodeById = (id: string) => workflow.nodes.find((n) => n.id === id);
+
+  // Panning: how far the graph has been moved from where it starts.
+  const surfaceRef = useRef<HTMLDivElement>(null);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const dragFrom = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
+
+  // Wheel and trackpad scrolling pan the canvas instead of the page. Bound
+  // natively because React's wheel listener is passive and can't prevent it.
+  useEffect(() => {
+    const el = surfaceRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) return; // pinch-zoom and ctrl+scroll stay with the browser
+      e.preventDefault();
+      // Shift+wheel scrolls sideways on a plain mouse.
+      const dx = e.shiftKey && e.deltaX === 0 ? e.deltaY : e.deltaX;
+      const dy = e.shiftKey && e.deltaX === 0 ? 0 : e.deltaY;
+      setPan((p) => ({ x: p.x - dx, y: p.y - dy }));
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
+  // Dragging an empty part of the canvas pans it; cards, badges and the controls keep their own clicks.
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0 || (e.target as Element).closest("[data-canvas-item]")) return;
+    dragFrom.current = { x: e.clientX, y: e.clientY, panX: pan.x, panY: pan.y };
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDragging(true);
+  };
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const from = dragFrom.current;
+    if (!from) return;
+    setPan({ x: from.panX + e.clientX - from.x, y: from.panY + e.clientY - from.y });
+  };
+  const endDrag = () => {
+    dragFrom.current = null;
+    setDragging(false);
+  };
 
   // Which nodes the run reached: every step's job, plus the trigger when the
   // run started from it rather than being retried from a later step.
@@ -103,10 +145,20 @@ export default function WorkflowCanvas({
 
   return (
     <div
-      className="relative overflow-hidden bg-gray-50 bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] [background-size:22px_22px]"
-      style={{ width: "100%", height }}
+      ref={surfaceRef}
+      className={`relative touch-none select-none overflow-hidden bg-gray-50 bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] [background-size:22px_22px] ${
+        dragging ? "cursor-grabbing" : "cursor-grab"
+      }`}
+      style={{ width: "100%", height: "100%", minHeight: height, backgroundPosition: `${pan.x}px ${pan.y}px` }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={endDrag}
+      onPointerCancel={endDrag}
     >
-      <div className="relative mx-auto" style={{ width, height, marginTop: TOP_MARGIN }}>
+      <div
+        className="relative mx-auto"
+        style={{ width, height, marginTop: TOP_MARGIN, transform: `translate(${pan.x}px, ${pan.y}px)` }}
+      >
         {/* Edge layer */}
         <svg className="absolute inset-0 pointer-events-none" width={width} height={height}>
           {workflow.edges.map((edge) => {
@@ -174,7 +226,8 @@ export default function WorkflowCanvas({
           return (
             <div
               key={edge.id}
-              className={`absolute z-10 flex items-center gap-1 ${run && !travelled(edge.source, edge.target) ? "opacity-40" : ""}`}
+              data-canvas-item
+              className={`absolute z-10 cursor-default flex items-center gap-1 ${run && !travelled(edge.source, edge.target) ? "opacity-40" : ""}`}
               style={{ left: cx - 14, top: cy - 14 }}
             >
               <EdgeBadge condition={edge.condition} />
@@ -194,7 +247,7 @@ export default function WorkflowCanvas({
 
         {/* Nodes. A card comes forward while hovered or holding focus so its open menu clears the other cards and the inspector. */}
         {workflow.nodes.map((node) => (
-          <div key={node.id} className="absolute z-20 hover:z-40 focus-within:z-40" style={{ left: node.x - HALF_W, top: node.y - HALF_H }}>
+          <div key={node.id} data-canvas-item className="absolute z-20 cursor-default hover:z-40 focus-within:z-40" style={{ left: node.x - HALF_W, top: node.y - HALF_H }}>
             <WorkflowNodeCard
               node={node}
               selected={node.id === selectedId}
@@ -213,8 +266,8 @@ export default function WorkflowCanvas({
       </div>
 
       {showControls && (
-        <div className="absolute bottom-4 left-4 z-30">
-          <CanvasControls />
+        <div data-canvas-item className="absolute bottom-4 left-4 z-30 cursor-default">
+          <CanvasControls onCenter={() => setPan({ x: 0, y: 0 })} />
         </div>
       )}
     </div>

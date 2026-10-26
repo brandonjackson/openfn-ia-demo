@@ -2,20 +2,24 @@ import { Plus, Minus, Maximize, Crosshair, LayoutGrid, Undo2, Redo2 } from "luci
 
 /**
  * The vertical zoom / fit / layout control stack pinned to the bottom-left of
- * the canvas. Buttons are non-functional placeholders for the prototype.
+ * the canvas. Center puts a panned canvas back where it started; the rest are
+ * placeholders for the prototype unless given a handler.
  */
 export default function CanvasControls({
   onZoomIn,
   onZoomOut,
+  onCenter,
 }: {
   onZoomIn?: () => void;
   onZoomOut?: () => void;
+  /** Puts the canvas back where it started. */
+  onCenter?: () => void;
 }) {
   const buttons: { icon: React.ElementType; title: string; onClick?: () => void }[] = [
     { icon: Plus, title: "Zoom in", onClick: onZoomIn },
     { icon: Minus, title: "Zoom out", onClick: onZoomOut },
     { icon: Maximize, title: "Fit to view" },
-    { icon: Crosshair, title: "Center" },
+    { icon: Crosshair, title: "Center", onClick: onCenter },
     { icon: LayoutGrid, title: "Auto layout" },
     { icon: Undo2, title: "Undo" },
     { icon: Redo2, title: "Redo" },

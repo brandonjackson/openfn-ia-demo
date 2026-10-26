@@ -668,6 +668,8 @@ export default function WorkflowEditorTemplate({
       versions={versions}
       version={version}
       onSelectVersion={setVersion}
+      run={selectedRun}
+      onCloseRun={deselectRun}
       live={live}
       view={view}
       onViewChange={setView}

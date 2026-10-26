@@ -5,6 +5,7 @@ import EditorToolbar from "./EditorToolbar";
 import type { EditorView } from "./EditorToolbar";
 import { nationalIdWorkflow, workflowVersions } from "../../mock-data/workflow";
 import { projects } from "../../mock-data/projects";
+import { sampleRun } from "../../mock-data/runs";
 
 function Stateful(args: ComponentProps<typeof EditorToolbar>) {
   const [view, setView] = useState<EditorView>(args.view);
@@ -74,6 +75,11 @@ export const StepOpen: Story = {
 /** A step open and a run loaded that reached it. */
 export const RetryFromStep: Story = {
   args: { retry: { step: "Create new citizen in Identity" }, fromStep: "Create new citizen in Identity" },
+};
+
+/** A run loaded: it takes the version slot, with an X to close it. */
+export const RunLoaded: Story = {
+  args: { run: sampleRun, onCloseRun: () => {} },
 };
 
 export const AssistantOpen: Story = {

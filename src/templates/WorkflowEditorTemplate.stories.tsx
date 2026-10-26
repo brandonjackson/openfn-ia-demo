@@ -42,8 +42,23 @@ export const Default: Story = {
   args: { initialLayout: { panel: false, assistant: false, explorer: true } },
 };
 
-/** A step selected on the canvas brings its settings up in the panel. */
+/** A step selected on the canvas brings up the inspector: its name, adaptor and credential. */
 export const StepSelected: Story = {
+  args: { initialSelectedId: "search", initialLayout: { panel: false } },
+};
+
+/** The trigger selected: its type, webhook URL and switch in the inspector. */
+export const TriggerSelected: Story = {
+  args: { initialSelectedId: "trigger", initialLayout: { panel: false } },
+};
+
+/** A run loaded with a step selected: snippets of its log, input and output in the inspector. */
+export const InspectorFollowingRun: Story = {
+  args: { runId: sampleRun.runId, initialSelectedId: "search", initialLayout: { panel: false } },
+};
+
+/** The step's settings in the full panel, opened from the inspector for more room. */
+export const StepInPanel: Story = {
   args: { initialSelectedId: "search", initialLayout: { panel: true, panelView: "step" } },
 };
 

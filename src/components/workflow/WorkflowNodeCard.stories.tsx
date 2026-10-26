@@ -24,9 +24,6 @@ export const HttpJob: Story = { args: { node: httpJob } };
 export const CommonJob: Story = { args: { node: commonJob } };
 export const Selected: Story = { args: { node: httpJob, selected: true } };
 
-/** Without a summary the step's name stands in as the lead. */
-export const WithoutSummary: Story = { args: { node: { ...httpJob, summary: undefined } } };
-
 /** On main the delete item is disabled. */
 export const ReadOnly: Story = { args: { node: httpJob, readOnly: true } };
 

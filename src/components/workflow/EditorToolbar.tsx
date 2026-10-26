@@ -55,7 +55,11 @@ interface Props {
   onRunFromStep?: () => void;
   onRetry?: () => void;
   onRunWithCustomInput?: () => void;
-  /** The assistant toggle, in its own group at the far right. */
+  /**
+   * The assistant button, in its own group at the far right. It opens the
+   * assistant and steps aside while it is open; the tray's close button
+   * closes it.
+   */
   assistantOpen?: boolean;
   onToggleAssistant?: () => void;
 }
@@ -69,7 +73,10 @@ interface Props {
  * takes the picker's place; its X closes the run. In the middle the view switcher flips between
  * Canvas and Code; on main it's marked read-only. On the right sit the run
  * button and the main action ("Edit in sandbox" on main, "Go live" in a
- * sandbox), then the assistant toggle in a group of its own. Showing and
+ * sandbox), then the assistant button in a group of its own. The button hands
+ * over to the assistant tray: while the tray slides in from the right, the
+ * button folds away in step with it, and it comes back as the tray leaves, so
+ * the tray's own close button is the way to close the assistant. Showing and
  * hiding the other areas is the ⋯ layout menu's job, not the toolbar's.
  */
 export default function EditorToolbar({
@@ -251,8 +258,18 @@ export default function EditorToolbar({
         )}
       </div>
       {onToggleAssistant && (
-        <div className={`${group} px-1`}>
-          <IconToggleButton icon={Sparkles} label="Assistant" hint="Ctrl/⌘ + K" pressed={assistantOpen} onClick={onToggleAssistant} />
+        // Folds to nothing (taking the gap before it along) on the same
+        // timing as the tray's slide, so the toolbar's right edge glides.
+        <div
+          inert={assistantOpen}
+          aria-hidden={assistantOpen}
+          className={`flex-none overflow-hidden transition-[max-width,margin,opacity] duration-300 ease-out motion-reduce:transition-none ${
+            assistantOpen ? "-ml-3 max-w-0 opacity-0" : "max-w-16 opacity-100"
+          }`}
+        >
+          <div className={`${group} px-1`}>
+            <IconToggleButton icon={Sparkles} label="Assistant" hint="Ctrl/⌘ + K" onClick={onToggleAssistant} />
+          </div>
         </div>
       )}
       </div>

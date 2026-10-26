@@ -15,8 +15,23 @@ const components = projects[0].components.filter((c) => c.type !== "Workflow");
 
 function Stateful(args: ComponentProps<typeof CodeWorkspace>) {
   const [file, setFile] = useState<ExplorerFile>(args.file);
-  const [detailsView, setDetailsView] = useState<DetailsViewId>(args.detailsView ?? "settings");
-  return <CodeWorkspace {...args} file={file} onOpen={setFile} detailsView={detailsView} onDetailsViewChange={setDetailsView} />;
+  const [detailsView, setDetailsView] = useState<DetailsViewId>(args.detailsView ?? "config");
+  const [bodies, setBodies] = useState<Record<string, string>>({});
+  const workflow = {
+    ...args.workflow,
+    nodes: args.workflow.nodes.map((n) => (n.type === "job" && bodies[n.id] !== undefined ? { ...n, body: bodies[n.id] } : n)),
+  };
+  return (
+    <CodeWorkspace
+      {...args}
+      workflow={workflow}
+      file={file}
+      onOpen={setFile}
+      detailsView={detailsView}
+      onDetailsViewChange={setDetailsView}
+      onCodeChange={args.onCodeChange ? (id, code) => setBodies((b) => ({ ...b, [id]: code })) : undefined}
+    />
+  );
 }
 
 const meta: Meta<typeof CodeWorkspace> = {
@@ -50,7 +65,7 @@ export const ReadOnly: Story = { args: { readOnly: true } };
 
 /** In a sandbox: everything can be changed. */
 export const Editable: Story = {
-  args: { onStepChange: () => {}, onInsertSnippet: () => {}, onDeleteStep: () => {}, onAddStep: () => {}, onRunFromStep: () => {} },
+  args: { onStepChange: () => {}, onCodeChange: () => {}, onDeleteStep: () => {}, onAddStep: () => {} },
 };
 
 export const WorkflowFile: Story = { args: { file: "workflow", onSettingsChange: () => {} } };
@@ -64,9 +79,9 @@ export const ServiceListing: Story = { args: { file: "service", service: project
 
 export const ExplorerHidden: Story = { args: { showExplorer: false } };
 
-/** The details column on its Reference view, with expanded snippets. */
-export const Reference: Story = {
-  args: { detailsView: "reference", onInsertSnippet: () => {}, onStepChange: () => {} },
+/** The details column on its Snippets view: click one to insert it at the cursor. */
+export const Snippets: Story = {
+  args: { detailsView: "snippets", onCodeChange: () => {}, onStepChange: () => {} },
 };
 
 export const DetailsHidden: Story = { args: { showDetails: false } };
@@ -84,7 +99,6 @@ export const FollowingRun: Story = {
   args: {
     file: { stepId: "create" },
     run: failedRun,
-    onRetryFromStep: () => {},
     statusNote: "Tested by the assistant",
     bottomTray: (
       <EditorTray

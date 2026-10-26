@@ -1,10 +1,10 @@
+import { useRef } from "react";
 import type { ReactNode } from "react";
-import { BookOpen, Calendar, ExternalLink, FolderKanban, Play, Radio, RotateCcw, User } from "lucide-react";
-import type { AdaptorKind, JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../mock-data/workflow";
+import { BookOpen, Calendar, ExternalLink, FolderKanban, Radio, User } from "lucide-react";
+import type { JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../mock-data/workflow";
 import type { DetailsViewId } from "../../editor-layout";
 import { workflowToYaml } from "../../mock-data/workflow";
 import { adaptorInfo } from "../../mock-data/adaptor-reference";
-import type { Snippet } from "../../mock-data/adaptor-reference";
 import type { ProjectComponent, ProjectService } from "../../mock-data/projects";
 import { componentPreview, serviceListing, workflowDocs } from "../../mock-data/workflow-files";
 import { componentTypeIcons } from "../../component-types";
@@ -18,6 +18,7 @@ import EditorExplorer from "./EditorExplorer";
 import type { ExplorerFile } from "./EditorExplorer";
 import CodePaneHeader from "./CodePaneHeader";
 import CodeEditor from "./CodeEditor";
+import type { CodeEditorHandle } from "./CodeEditor";
 import EditorStatusBar from "./EditorStatusBar";
 import StepConfigPanel from "./StepConfigPanel";
 import type { StepChanges } from "./StepConfigPanel";
@@ -28,7 +29,7 @@ interface Props {
   workflow: Workflow;
   file: ExplorerFile;
   onOpen: (file: ExplorerFile) => void;
-  /** The selected run; steps show how they went and can be retried from. */
+  /** The selected run; steps show how they went in the explorer. */
   run?: RunDetails;
   /** Project components the workflow uses, listed in the explorer. */
   components?: ProjectComponent[];
@@ -49,8 +50,7 @@ interface Props {
   /** Each step's credential, by step id. */
   credentials?: Record<string, string | undefined>;
   onStepChange?: (stepId: string, changes: StepChanges) => void;
-  onInsertSnippet?: (stepId: string, snippet: Snippet) => void;
-  /** A step's code was edited in the editor. Without it, the code is read-only. */
+  /** A step's code was edited in the editor (or a snippet inserted). Without it, the code is read-only. */
   onCodeChange?: (stepId: string, code: string) => void;
   onDeleteStep?: (stepId: string) => void;
   onAddStep?: () => void;
@@ -59,10 +59,6 @@ interface Props {
   onAddDoc?: () => void;
   /** Opens the picker for a new project component. */
   onAddComponent?: () => void;
-  /** Start a fresh run from this step. */
-  onRunFromStep?: (stepId: string) => void;
-  /** Retry the selected run from this step; offered when the run reached it. */
-  onRetryFromStep?: (stepId: string) => void;
   /** The panel inline under the code. */
   bottomTray?: ReactNode;
   /** Hide the explorer column (toggled from the toolbar). */
@@ -71,9 +67,6 @@ interface Props {
   showDetails?: boolean;
   detailsView?: DetailsViewId;
   onDetailsViewChange?: (view: DetailsViewId) => void;
-  /** The adaptor the reference view is browsing, when not the open step's. */
-  referenceAdaptor?: AdaptorKind;
-  onReferenceAdaptorChange?: (adaptor: AdaptorKind) => void;
   /** The ⋯ layout menu, shown at the top-right corner of the code area. */
   layoutMenu?: ReactNode;
   /** A note for the status bar, e.g. "Tested by the assistant". */
@@ -85,8 +78,8 @@ interface Props {
 /**
  * Code mode: the explorer on the left, the code in the middle under a path
  * row (no file tabs: the explorer is the list of what can be opened), and
- * the details column on the right with two views, the open item's settings
- * and the adaptor reference. A step shows its code and its settings; the
+ * the details column on the right with two views: the open item's config
+ * and, for a step, its adaptor's snippets, which insert at the cursor. A step shows its code and its settings; the
  * trigger and `workflow.yaml` show the YAML and their settings. The panel
  * sits inline under the code. The ⋯ layout menu takes the top-right corner
  * of whichever column is rightmost.
@@ -108,22 +101,17 @@ export default function CodeWorkspace({
   onSettingsChange,
   credentials = {},
   onStepChange,
-  onInsertSnippet,
   onCodeChange,
   onDeleteStep,
   onAddStep,
   docs = [],
   onAddDoc,
   onAddComponent,
-  onRunFromStep,
-  onRetryFromStep,
   bottomTray,
   showExplorer = true,
   showDetails = true,
-  detailsView = "settings",
+  detailsView = "config",
   onDetailsViewChange,
-  referenceAdaptor,
-  onReferenceAdaptorChange,
   layoutMenu,
   statusNote,
   dirtyStepIds = [],
@@ -140,16 +128,16 @@ export default function CodeWorkspace({
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
   const yaml = workflowToYaml(workflow);
   const triggerYaml = yaml.slice(yaml.indexOf("triggers:"), yaml.indexOf("edges:")).trimEnd();
-  const stepInRun = step ? run?.steps.find((s) => s.jobId === step.id) : undefined;
-  const canRetry = Boolean(step && stepInRun && run && run.status !== "running");
+  const editor = useRef<CodeEditorHandle>(null);
+  const editable = Boolean(step && !readOnly && onCodeChange);
 
   const path =
     step !== undefined
-      ? [workflow.name, "Steps", step.label]
+      ? [step.label]
       : component !== undefined
         ? [workflow.name, "Components", component.name]
         : file === "trigger" && trigger
-          ? [workflow.name, "Steps", trigger.label]
+          ? [trigger.label]
           : [workflow.name, addedDoc ?? (doc ? `${doc}.md` : listing ? "service.md" : "workflow.yaml")];
 
   const code = step
@@ -166,49 +154,30 @@ export default function CodeWorkspace({
             ? `# ${addedDoc.replace(/\.md$/, "")}\n`
             : yaml;
 
-  const openReference = () => onDetailsViewChange?.("reference");
-  const actions = (
-    <>
-      {step && <AdaptorPill adaptor={step.adaptor} showVersion compact />}
-      {step && onDetailsViewChange && (
-        <Button variant="ghost" size="xs" icon={BookOpen} onClick={openReference} title="Adaptor reference">
-          Docs
-        </Button>
-      )}
-      {step && canRetry && onRetryFromStep ? (
-        <Button variant="secondary" size="xs" icon={RotateCcw} onClick={() => onRetryFromStep(step.id)} title="Run this step's input again, on the latest version">
-          Retry from here
-        </Button>
-      ) : (
-        step &&
-        onRunFromStep && (
-          <Button variant="secondary" size="xs" icon={Play} onClick={() => onRunFromStep(step.id)}>
-            Run from here
-          </Button>
-        )
-      )}
-      {!showDetails && layoutMenu}
-    </>
+  const adaptorPill = step && (
+    <AdaptorPill
+      adaptor={step.adaptor}
+      showVersion
+      compact
+      title="Open the step's config"
+      onClick={onDetailsViewChange ? () => onDetailsViewChange("config") : undefined}
+    />
   );
 
   const detailsBody =
-    detailsView === "reference" ? (
+    detailsView === "snippets" && step ? (
       <AdaptorReferencePanel
-        adaptor={referenceAdaptor ?? step?.adaptor ?? "common"}
-        onChangeAdaptor={onReferenceAdaptorChange}
-        onInsert={!readOnly && step && onInsertSnippet ? (s) => onInsertSnippet(step.id, s) : undefined}
-        stepLabel={step?.label}
+        adaptor={step.adaptor}
+        onInsert={editable ? (s) => editor.current?.insert(s.code) : undefined}
+        stepLabel={step.label}
       />
     ) : step ? (
       <StepConfigPanel
         key={step.id}
         step={step}
-        workflow={workflow}
         credentialId={credentials[step.id]}
         readOnly={readOnly}
         onChange={onStepChange ? (changes) => onStepChange(step.id, changes) : undefined}
-        onInsertSnippet={onInsertSnippet ? (s) => onInsertSnippet(step.id, s) : undefined}
-        onOpenReference={onDetailsViewChange ? openReference : undefined}
         onDelete={onDeleteStep ? () => onDeleteStep(step.id) : undefined}
         showHeader={false}
       />
@@ -312,12 +281,13 @@ export default function CodeWorkspace({
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <CodePaneHeader path={path} actions={actions} />
+        <CodePaneHeader path={path} leading={adaptorPill} actions={!showDetails ? layoutMenu : undefined} />
         <div className="min-h-0 flex-1 overflow-hidden">
           <CodeEditor
+            ref={editor}
             key={step?.id ?? path.join("/")}
             code={code}
-            onChange={step && !readOnly && onCodeChange ? (next) => onCodeChange(step.id, next) : undefined}
+            onChange={step && editable ? (next) => onCodeChange!(step.id, next) : undefined}
           />
         </div>
         {bottomTray}
@@ -330,10 +300,10 @@ export default function CodeWorkspace({
             <SegmentedControl
               variant="pill"
               options={[
-                { id: "settings", label: step ? "Settings" : component || doc || listing || addedDoc ? "Details" : "Settings" },
-                { id: "reference", label: "Reference" },
+                { id: "config", label: component || doc || listing || addedDoc ? "Details" : "Config" },
+                ...(step ? [{ id: "snippets", label: "Snippets" }] : []),
               ]}
-              value={detailsView}
+              value={step ? detailsView : "config"}
               onChange={(v) => onDetailsViewChange?.(v as DetailsViewId)}
             />
             {layoutMenu}

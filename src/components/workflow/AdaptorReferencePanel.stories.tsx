@@ -1,7 +1,5 @@
-import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import AdaptorReferencePanel from "./AdaptorReferencePanel";
-import type { AdaptorKind } from "../../mock-data/workflow";
 
 const meta: Meta<typeof AdaptorReferencePanel> = {
   title: "Workflow/AdaptorReferencePanel",
@@ -26,9 +24,4 @@ export const Insertable: Story = {
   args: { onInsert: () => {}, stepLabel: "Search for duplicate citizens in Identity" },
 };
 
-function Browser() {
-  const [adaptor, setAdaptor] = useState<AdaptorKind>("postgresql");
-  return <AdaptorReferencePanel adaptor={adaptor} onChangeAdaptor={setAdaptor} />;
-}
-
-export const Browsable: Story = { render: () => <Browser /> };
+export const Postgres: Story = { args: { adaptor: "postgresql" } };

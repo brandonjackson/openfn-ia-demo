@@ -638,7 +638,8 @@ export default function WorkflowEditorTemplate({
     </EditorPanel>
   ) : undefined;
 
-  const rightTray = layout.assistant ? (
+  // Always rendered so the shell can slide it out; `rightTrayOpen` shows it.
+  const rightTray = (
     <EditorTray title="Assistant" icon={Sparkles} placement="right" onClose={toggleAssistant}>
       <AIAssistantPanel
         conversations={assistantConversations}
@@ -650,7 +651,7 @@ export default function WorkflowEditorTemplate({
         onPlanAccepted={onMain ? undefined : applyPlan}
       />
     </EditorTray>
-  ) : undefined;
+  );
 
 
   // ---- Layout ---------------------------------------------------------------
@@ -694,6 +695,7 @@ export default function WorkflowEditorTemplate({
       rightPanel={panelOnRight ? panel : undefined}
       rightPanelWidthClass={layout.panelMaximized ? "w-[min(760px,60vw)]" : "w-[420px]"}
       rightTray={rightTray}
+      rightTrayOpen={layout.assistant}
       bottomTray={view === "canvas" && !panelOnRight ? panel : undefined}
       corner={view === "canvas" && !layout.panel ? layoutMenu : undefined}
       overlays={

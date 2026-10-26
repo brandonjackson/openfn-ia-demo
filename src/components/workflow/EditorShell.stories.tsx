@@ -63,6 +63,21 @@ export const WithRightPanel: Story = {
   },
 };
 
+/**
+ * The assistant tray runs the full height, to the right of the toolbar too.
+ * Toggle `rightTrayOpen` in the controls to watch it slide in and out.
+ */
+export const WithAssistantTray: Story = {
+  args: {
+    rightTrayOpen: true,
+    rightTray: (
+      <EditorTray title="Assistant" placement="right">
+        <p className="p-4 text-sm text-gray-500">Right tray</p>
+      </EditorTray>
+    ),
+  },
+};
+
 export const WithCorner: Story = {
   args: { corner: <span className="block px-2 py-1 text-xs text-gray-500">⋯</span> },
 };

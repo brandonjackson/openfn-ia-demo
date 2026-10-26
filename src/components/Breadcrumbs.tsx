@@ -28,7 +28,8 @@ export default function Breadcrumbs({
     return (
       <ProjectContextBar
         project={project}
-        trail={ancestors.filter((a) => a.path.startsWith(base + "/"))}
+        // The workflow editor sits outside the project's URLs but belongs to it.
+        trail={ancestors.filter((a) => a.path.startsWith(base + "/") || a.path.startsWith("/workflow-editor/"))}
         current={pathname === base ? undefined : current}
       />
     );

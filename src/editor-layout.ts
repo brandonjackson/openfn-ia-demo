@@ -37,7 +37,7 @@ export const defaultLayout: EditorLayout = {
   panelMaximized: false,
   hiddenViews: [],
   details: true,
-  detailsView: "config",
+  detailsView: "snippets",
   assistant: false,
   canvasActivity: true,
 };

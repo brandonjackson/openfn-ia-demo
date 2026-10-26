@@ -15,7 +15,7 @@ const components = projects[0].components.filter((c) => c.type !== "Workflow");
 
 function Stateful(args: ComponentProps<typeof CodeWorkspace>) {
   const [file, setFile] = useState<ExplorerFile>(args.file);
-  const [detailsView, setDetailsView] = useState<DetailsViewId>(args.detailsView ?? "config");
+  const [detailsView, setDetailsView] = useState<DetailsViewId>(args.detailsView ?? "snippets");
   const [bodies, setBodies] = useState<Record<string, string>>({});
   const workflow = {
     ...args.workflow,
@@ -79,9 +79,9 @@ export const ServiceListing: Story = { args: { file: "service", service: project
 
 export const ExplorerHidden: Story = { args: { showExplorer: false } };
 
-/** The details column on its Snippets view: click one to insert it at the cursor. */
-export const Snippets: Story = {
-  args: { detailsView: "snippets", onCodeChange: () => {}, onStepChange: () => {} },
+/** The details column on its Config view; a step opens on Snippets by default. */
+export const StepConfig: Story = {
+  args: { detailsView: "config", onCodeChange: () => {}, onStepChange: () => {} },
 };
 
 export const DetailsHidden: Story = { args: { showDetails: false } };

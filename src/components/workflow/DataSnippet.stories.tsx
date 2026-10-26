@@ -63,3 +63,13 @@ export const Empty: Story = {
 export const Folded: Story = {
   args: { folded: true },
 };
+
+/** Filling its share of a fixed-height column, as in the code view's I/O: every line, scrolling within. */
+export const Fill: Story = {
+  args: { fill: true, onExpand: () => {} },
+  render: (args) => (
+    <div className="flex h-[360px] w-[320px] flex-col rounded-xl border border-gray-200 bg-white p-4">
+      <DataSnippet {...args} />
+    </div>
+  ),
+};

@@ -68,6 +68,9 @@ export const Reference: Story = {
 
 export const DetailsHidden: Story = { args: { showDetails: false } };
 
+/** A step edited in this session, not yet promoted. */
+export const UnsavedChanges: Story = { args: { dirtyStepIds: ["search"], onStepChange: () => {} } };
+
 /** A collection the workflow uses, opened from the Components group. */
 export const CollectionOpen: Story = {
   args: { file: { componentId: components.find((c) => c.type === "Collection")!.id } },

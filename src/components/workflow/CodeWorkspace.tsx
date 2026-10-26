@@ -67,6 +67,8 @@ interface Props {
   layoutMenu?: ReactNode;
   /** A note for the status bar, e.g. "Tested by the assistant". */
   statusNote?: string;
+  /** Steps changed in this session and not yet promoted, by id. */
+  dirtyStepIds?: string[];
 }
 
 /**
@@ -107,6 +109,7 @@ export default function CodeWorkspace({
   onReferenceAdaptorChange,
   layoutMenu,
   statusNote,
+  dirtyStepIds = [],
 }: Props) {
   const step =
     typeof file === "object" && "stepId" in file
@@ -232,7 +235,9 @@ export default function CodeWorkspace({
         ? [trigger.triggerType, trigger.label]
         : [doc ? `${doc}.md` : "workflow.yaml"];
   // Components belong to the project, so they're always read-only here.
-  const statusTrailing = [statusNote, readOnly || component ? "Read-only" : "Saved"].filter(Boolean) as string[];
+  const lineCount = `${code.split("\n").length} lines`;
+  const saveState = readOnly || component ? "Read-only" : step && dirtyStepIds.includes(step.id) ? "Unsaved changes" : "Saved";
+  const statusTrailing = [statusNote, lineCount, saveState].filter(Boolean) as string[];
 
   return (
     <div className="flex h-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">

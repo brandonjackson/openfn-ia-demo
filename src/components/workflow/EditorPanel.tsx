@@ -1,19 +1,18 @@
 import type { ReactNode } from "react";
-import { ChevronDown, ChevronUp, Maximize2, Minimize2, MoreHorizontal, RotateCcw, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Maximize2, Minimize2, X } from "lucide-react";
 import type { PanelViewId } from "../../editor-layout";
 import { panelViews } from "./panel-views";
 import SegmentedControl from "../SegmentedControl";
-import DropdownMenu from "../DropdownMenu";
 
 interface Props {
   view: PanelViewId;
   onViewChange: (view: PanelViewId) => void;
   /** Views that can't show anything right now, e.g. Log with no run loaded. */
   disabledViews?: PanelViewId[];
-  /** Views the reader has taken out of the tab bar. */
+  /** Views the reader has taken out of the tab bar (through the layout menu). */
   hiddenViews?: PanelViewId[];
-  onToggleView?: (view: PanelViewId) => void;
-  onResetViews?: () => void;
+  /** Extra header controls, e.g. the layout menu when the panel is the rightmost area. */
+  actions?: ReactNode;
   /** Collapsed shows just the tab bar. */
   collapsed?: boolean;
   onToggleCollapsed?: () => void;
@@ -30,19 +29,18 @@ interface Props {
 
 /**
  * The bottom panel, as in an IDE: a bar of view tabs that's always there,
- * with the active view's body under it. Views can be hidden from the bar
- * through the ⋯ menu, the panel collapses to the bar, maximises, or closes
- * and comes back from the toolbar's layout toggle. Runs, the selected step,
- * its log, input and output, and the adaptor reference all live here, so
- * there's one place to look for anything that isn't the canvas or the code.
+ * with the active view's body under it. The panel collapses to the bar,
+ * maximises, or closes and comes back from the toolbar's layout toggle;
+ * which views it shows is set in the layout menu. Runs, the selected step,
+ * and its log, input and output in the loaded run all live here, so there's
+ * one place to look for anything about runs.
  */
 export default function EditorPanel({
   view,
   onViewChange,
   disabledViews = [],
   hiddenViews = [],
-  onToggleView,
-  onResetViews,
+  actions,
   collapsed = false,
   onToggleCollapsed,
   maximized = false,
@@ -67,40 +65,7 @@ export default function EditorPanel({
         <SegmentedControl variant="pill" options={tabs} value={view} onChange={(v) => onViewChange(v as PanelViewId)} />
         <div className="ml-auto flex min-w-0 flex-shrink items-center gap-1">
           {context && <div className="mr-2 flex min-w-0 items-center gap-2 text-xs text-gray-500">{context}</div>}
-          {onToggleView && (
-            <DropdownMenu
-              ariaLabel="Panel views"
-              title="Views in this panel"
-              align="right"
-              widthClass="w-64"
-              items={[
-                ...panelViews.map((v) => ({
-                  id: v.id,
-                  label: v.label,
-                  description: v.description,
-                  icon: v.icon,
-                  selected: !hiddenViews.includes(v.id),
-                })),
-                ...(onResetViews ? [{ id: "reset", label: "Reset panel", icon: RotateCcw, divider: true }] : []),
-              ]}
-              onSelect={(id) => (id === "reset" ? onResetViews?.() : onToggleView(id as PanelViewId))}
-              trigger={({ open, toggle }) => (
-                <button
-                  type="button"
-                  onClick={toggle}
-                  aria-haspopup="menu"
-                  aria-expanded={open}
-                  aria-label="Panel views"
-                  title="Choose which views the panel shows"
-                  className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 ${
-                    open ? "bg-gray-100 text-gray-700" : ""
-                  }`}
-                >
-                  <MoreHorizontal size={16} />
-                </button>
-              )}
-            />
-          )}
+          {actions}
           {onToggleMaximized && !collapsed && (
             <HeaderButton
               label={maximized ? "Restore panel size" : "Maximise panel"}

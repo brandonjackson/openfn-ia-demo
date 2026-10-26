@@ -13,8 +13,8 @@ function Stateful(args: ComponentProps<typeof LayoutControls>) {
       onToggleExplorer={args.onToggleExplorer ? () => setExplorer((e) => !e) : undefined}
       panelOpen={panel}
       onTogglePanel={() => setPanel((p) => !p)}
-      assistantOpen={assistant}
-      onToggleAssistant={() => setAssistant((a) => !a)}
+      assistantOpen={args.onToggleAssistant ? assistant : undefined}
+      onToggleAssistant={args.onToggleAssistant ? () => setAssistant((a) => !a) : undefined}
     />
   );
 }
@@ -22,7 +22,7 @@ function Stateful(args: ComponentProps<typeof LayoutControls>) {
 const meta: Meta<typeof LayoutControls> = {
   title: "Workflow/LayoutControls",
   component: LayoutControls,
-  args: { panelOpen: true, assistantOpen: false, onTogglePanel: () => {}, onToggleAssistant: () => {} },
+  args: { panelOpen: true, onTogglePanel: () => {} },
   render: (args) => <Stateful {...args} />,
 };
 
@@ -34,3 +34,6 @@ export const Canvas: Story = {};
 
 /** In code mode the explorer toggle joins the others. */
 export const Code: Story = { args: { explorerOpen: true, onToggleExplorer: () => {} } };
+
+/** With the assistant toggle included, when it isn't placed apart. */
+export const WithAssistant: Story = { args: { assistantOpen: false, onToggleAssistant: () => {} } };

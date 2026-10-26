@@ -613,18 +613,15 @@ export default function WorkflowEditorTemplate({
     }
   })();
 
+  const layoutMenu = <LayoutMenu layout={layout} onChange={updateLayout} onReset={resetLayout} view={view} />;
+
   const panel = layout.panel ? (
     <EditorPanel
       view={panelView}
       onViewChange={(v) => updateLayout({ panelView: v })}
       disabledViews={disabledViews}
       hiddenViews={layout.hiddenViews}
-      onToggleView={(v) =>
-        updateLayout({
-          hiddenViews: layout.hiddenViews.includes(v) ? layout.hiddenViews.filter((h) => h !== v) : [...layout.hiddenViews, v],
-        })
-      }
-      onResetViews={resetLayout}
+      actions={view === "canvas" ? layoutMenu : undefined}
       maximized={layout.panelMaximized}
       onToggleMaximized={() => updateLayout({ panelMaximized: !layout.panelMaximized })}
       onClose={togglePanel}
@@ -634,8 +631,6 @@ export default function WorkflowEditorTemplate({
       {panelBody}
     </EditorPanel>
   ) : undefined;
-
-  const layoutMenu = <LayoutMenu layout={layout} onChange={updateLayout} onReset={resetLayout} view={view} />;
 
   const rightTray = layout.assistant ? (
     <EditorTray title="Assistant" icon={Sparkles} placement="right" onClose={toggleAssistant}>
@@ -774,6 +769,9 @@ export default function WorkflowEditorTemplate({
             onReferenceAdaptorChange={setDocsAdaptor}
             layoutMenu={layoutMenu}
             statusNote={statusNote}
+            dirtyStepIds={[
+              ...new Set([...Object.keys(edits.bodies), ...Object.keys(edits.labels), ...Object.keys(edits.adaptors), ...edits.added.map((j) => j.id)]),
+            ]}
           />
         </div>
       )}

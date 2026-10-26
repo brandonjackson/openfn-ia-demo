@@ -12,7 +12,6 @@ function Stateful(args: ComponentProps<typeof EditorPanel>) {
   const [view, setView] = useState<PanelViewId>(args.view);
   const [collapsed, setCollapsed] = useState(args.collapsed ?? false);
   const [maximized, setMaximized] = useState(args.maximized ?? false);
-  const [hidden, setHidden] = useState<PanelViewId[]>(args.hiddenViews ?? []);
   return (
     <EditorPanel
       {...args}
@@ -22,9 +21,7 @@ function Stateful(args: ComponentProps<typeof EditorPanel>) {
       onToggleCollapsed={() => setCollapsed((c) => !c)}
       maximized={maximized}
       onToggleMaximized={() => setMaximized((m) => !m)}
-      hiddenViews={hidden}
-      onToggleView={(v) => setHidden((h) => (h.includes(v) ? h.filter((x) => x !== v) : [...h, v]))}
-      onResetViews={() => setHidden([])}
+      hiddenViews={args.hiddenViews}
       onClose={() => {}}
     >
       {view === "runs" ? (
@@ -89,7 +86,7 @@ export const Collapsed: Story = {
   decorators: Inline.decorators,
 };
 
-/** Some views hidden through the ⋯ menu. */
+/** Some views hidden through the layout menu. */
 export const ViewsHidden: Story = {
   args: { hiddenViews: ["step", "input"] },
   decorators: Inline.decorators,

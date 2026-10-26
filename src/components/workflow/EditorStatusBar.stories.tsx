@@ -11,13 +11,17 @@ const meta: Meta<typeof EditorStatusBar> = {
       </div>
     ),
   ],
-  args: { items: ["common@2.1", "Map fields"], trailing: ["Ln 7, Col 22", "Saved"] },
+  args: { items: ["common@2.1", "Map fields"], trailing: ["7 lines", "Saved"] },
 };
 
 export default meta;
 type Story = StoryObj<typeof EditorStatusBar>;
 
 export const Default: Story = {};
+
+export const Unsaved: Story = {
+  args: { trailing: ["Tested by the assistant", "12 lines", "Unsaved changes"] },
+};
 
 export const ReadOnly: Story = {
   args: { items: ["http@7.3", "Search for duplicate citizens"], trailing: ["Read-only"] },

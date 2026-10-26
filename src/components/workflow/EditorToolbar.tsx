@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
-import { Clock, FlaskConical, GitMerge, Lock } from "lucide-react";
+import { Clock, FlaskConical, GitMerge, Lock, Sparkles } from "lucide-react";
 import type { WorkflowVersion } from "../../mock-data/workflow";
 import { versionOptions } from "../../mock-data/workflow";
 import Button from "../Button";
 import Picker from "../Picker";
 import SegmentedControl from "../SegmentedControl";
+import IconToggleButton from "../IconToggleButton";
 import WorkflowFileMenu from "./WorkflowFileMenu";
 import type { WorkflowMenuAction } from "./WorkflowFileMenu";
 import SandboxChip from "./SandboxChip";
@@ -64,8 +65,9 @@ interface Props {
  * or press R, to rename in a sandbox), the sandbox chip and, when there is
  * history, the version picker. In the middle the view switcher flips between
  * Canvas and Code; on main it's marked read-only. On the right sit the
- * layout toggles (explorer, panel, assistant), the run button and the main
- * action: "Edit in sandbox" on main, "Go live" (promote) in a sandbox.
+ * layout toggles (explorer, panel), the run button and the main action:
+ * "Edit in sandbox" on main, "Go live" (promote) in a sandbox. The assistant
+ * toggle stands apart at the far right.
  */
 export default function EditorToolbar({
   name,
@@ -222,15 +224,13 @@ export default function EditorToolbar({
 
       {/* Layout, run and the main action */}
       <div className={`${group} gap-1.5 px-1.5`}>
-        {onTogglePanel && onToggleAssistant && (
+        {onTogglePanel && (
           <>
             <LayoutControls
               explorerOpen={explorerOpen}
               onToggleExplorer={onToggleExplorer}
               panelOpen={panelOpen}
               onTogglePanel={onTogglePanel}
-              assistantOpen={assistantOpen}
-              onToggleAssistant={onToggleAssistant}
             />
             <span className="mx-0.5 h-6 w-px bg-gray-200" aria-hidden />
           </>
@@ -244,6 +244,12 @@ export default function EditorToolbar({
           <Button variant="dark" size="sm" icon={GitMerge} className="ml-1 rounded-lg" onClick={() => onMenuAction("promote")}>
             Go live
           </Button>
+        )}
+        {onToggleAssistant && (
+          <>
+            <span className="mx-0.5 h-6 w-px bg-gray-200" aria-hidden />
+            <IconToggleButton icon={Sparkles} label="Assistant" hint="Ctrl/⌘ + K" pressed={assistantOpen} onClick={onToggleAssistant} />
+          </>
         )}
       </div>
     </div>

@@ -21,7 +21,9 @@ export default function EditorStatusBar({ items, trailing = [] }: Props) {
       </div>
       <div className="flex flex-shrink-0 items-center gap-4">
         {trailing.map((item) => (
-          <span key={item}>{item}</span>
+          <span key={item} className={item === "Unsaved changes" ? "font-medium text-amber-700" : undefined}>
+            {item}
+          </span>
         ))}
       </div>
     </div>

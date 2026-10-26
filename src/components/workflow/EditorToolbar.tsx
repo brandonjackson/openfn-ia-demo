@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { Clock, FlaskConical, GitMerge, Lock, Sparkles } from "lucide-react";
-import type { WorkflowVersion } from "../../mock-data/workflow";
+import type { RunDetails, WorkflowVersion } from "../../mock-data/workflow";
 import { versionOptions } from "../../mock-data/workflow";
 import Button from "../Button";
 import Picker from "../Picker";
@@ -11,6 +11,7 @@ import WorkflowFileMenu from "./WorkflowFileMenu";
 import type { WorkflowMenuAction } from "./WorkflowFileMenu";
 import SandboxChip from "./SandboxChip";
 import RunMenuButton from "./RunMenuButton";
+import RunChip from "./RunChip";
 
 /** The editor's main surfaces. */
 export type EditorView = "canvas" | "code";
@@ -40,6 +41,9 @@ interface Props {
   /** "latest" or a version id such as "v1". */
   version?: string;
   onSelectVersion?: (version: string) => void;
+  /** A loaded run takes the version slot, with an X to close it. */
+  run?: RunDetails;
+  onCloseRun?: () => void;
   /** Whether triggers start runs; the sandbox chip reads this way on main. */
   live?: boolean;
   view: EditorView;
@@ -61,7 +65,8 @@ interface Props {
  *
  * On the left, a pill holds the Fn file menu, the workflow's name (click it,
  * or press R, to rename in a sandbox), the sandbox chip and, when there is
- * history, the version picker. In the middle the view switcher flips between
+ * history, the version picker. While a run is loaded, a light blue run chip
+ * takes the picker's place; its X closes the run. In the middle the view switcher flips between
  * Canvas and Code; on main it's marked read-only. On the right sit the run
  * button and the main action ("Edit in sandbox" on main, "Go live" in a
  * sandbox), then the assistant toggle in a group of its own. Showing and
@@ -83,6 +88,8 @@ export default function EditorToolbar({
   versions = [],
   version = "latest",
   onSelectVersion,
+  run,
+  onCloseRun,
   live = true,
   view,
   onViewChange,
@@ -190,7 +197,11 @@ export default function EditorToolbar({
           onNewSandbox={onNewSandbox}
           onViewAll={onViewAllSandboxes}
         />
-        {versions.length > 0 && (
+        {run ? (
+          <span className="ml-1.5">
+            <RunChip run={run} size="md" note={run.version} onClear={onCloseRun} />
+          </span>
+        ) : versions.length > 0 && (
           <span className="ml-1.5">
             <Picker
               icon={Clock}

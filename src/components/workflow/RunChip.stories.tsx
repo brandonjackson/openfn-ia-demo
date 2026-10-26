@@ -18,3 +18,6 @@ export const Failed: Story = { args: { run: failedRun } };
 
 /** The open step wasn't part of the followed run. */
 export const StepNotInRun: Story = { args: { tone: "warning", note: "Step not in this run" } };
+
+/** In the toolbar's version slot, sized to match the version picker. */
+export const Toolbar: Story = { args: { size: "md", note: sampleRun.version } };

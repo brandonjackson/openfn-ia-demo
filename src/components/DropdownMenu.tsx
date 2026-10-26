@@ -45,6 +45,8 @@ interface Props {
   widthClass?: string;
   /** Start with the menu open (useful for stories and screenshots). */
   defaultOpen?: boolean;
+  /** Lets the trigger shrink in a tight row, e.g. a chip whose label truncates. */
+  shrink?: boolean;
 }
 
 /**
@@ -66,6 +68,7 @@ export default function DropdownMenu({
   placement = "below",
   widthClass = "w-60",
   defaultOpen = false,
+  shrink = false,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen);
   const ref = useRef<HTMLDivElement>(null);
@@ -87,7 +90,7 @@ export default function DropdownMenu({
   }, [open]);
 
   return (
-    <div ref={ref} className="relative inline-block">
+    <div ref={ref} className={`relative inline-block ${shrink ? "min-w-0 max-w-full" : ""}`}>
       {trigger({ open, toggle: () => setOpen((o) => !o) })}
       {open && (
         <div

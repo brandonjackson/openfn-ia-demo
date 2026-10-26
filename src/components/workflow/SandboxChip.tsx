@@ -17,7 +17,7 @@ interface Props {
 /**
  * The chip after the workflow name that says where you are: on main it reads
  * "Live" (or "Paused") with a status dot, in a sandbox it shows the sandbox's
- * name in amber. Clicking it lists the project's sandboxes to switch between,
+ * name in amber, truncating when the toolbar is tight. Clicking it lists the project's sandboxes to switch between,
  * with a way to start a new one or see them all.
  */
 export default function SandboxChip({
@@ -49,10 +49,10 @@ export default function SandboxChip({
   };
 
   const trigger = onMain
-    ? `inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-xs font-medium ${
+    ? `inline-flex h-7 max-w-full items-center gap-1.5 rounded-full px-2.5 text-xs font-medium ${
         live ? "bg-green-50 text-green-800 hover:bg-green-100" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
       }`
-    : "inline-flex h-7 items-center gap-1.5 rounded-full bg-amber-50 px-2.5 font-mono text-xs text-amber-800 hover:bg-amber-100";
+    : "inline-flex h-7 max-w-full items-center gap-1.5 rounded-full bg-amber-50 px-2.5 font-mono text-xs text-amber-800 hover:bg-amber-100";
 
   return (
     <DropdownMenu
@@ -62,6 +62,7 @@ export default function SandboxChip({
       onSelect={select}
       widthClass="w-64"
       defaultOpen={defaultOpen}
+      shrink
       trigger={({ open, toggle }) => (
         <button
           type="button"
@@ -72,12 +73,12 @@ export default function SandboxChip({
           className={trigger}
         >
           {onMain ? (
-            <span className={`h-1.5 w-1.5 rounded-full ${live ? "bg-green-500" : "bg-gray-400"}`} aria-hidden />
+            <span className={`h-1.5 w-1.5 flex-none rounded-full ${live ? "bg-green-500" : "bg-gray-400"}`} aria-hidden />
           ) : (
-            <FlaskConical size={12} className="text-amber-600" />
+            <FlaskConical size={12} className="flex-none text-amber-600" />
           )}
-          <span className="max-w-[12rem] truncate">{onMain ? (live ? "Live" : "Paused") : value}</span>
-          <ChevronDown size={12} className="opacity-60" />
+          <span className="min-w-0 max-w-[12rem] truncate">{onMain ? (live ? "Live" : "Paused") : value}</span>
+          <ChevronDown size={12} className="flex-none opacity-60" />
         </button>
       )}
     />

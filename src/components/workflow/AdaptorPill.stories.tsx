@@ -26,3 +26,6 @@ export const All: Story = {
     </div>
   ),
 };
+
+/** As a button, as in the code pane header where it opens the step's config. */
+export const Clickable: Story = { args: { showVersion: true, compact: true, onClick: () => {} } };

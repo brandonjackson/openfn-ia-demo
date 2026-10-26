@@ -102,6 +102,8 @@ export default function WorkflowEditorPage() {
         onRunChange={setRunId}
         onBack={() => (project ? navigate(`/projects/${project.id}/workflows`) : navigate(-1))}
         projectName={project?.name}
+        components={project?.components.filter((c) => c.type !== "Workflow")}
+        onOpenComponent={project ? (id) => navigate(`/projects/${project.id}/components/${id}`) : undefined}
         sandboxes={project?.sandboxes ?? ["main"]}
         sandbox={sandbox}
         onSelectSandbox={setSandbox}

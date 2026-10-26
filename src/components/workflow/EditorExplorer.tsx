@@ -1,13 +1,19 @@
-import { Clock, Globe, Plus, Radio, Workflow as WorkflowIcon } from "lucide-react";
+import { Clock, FileText, Globe, Plus, Radio, Workflow as WorkflowIcon } from "lucide-react";
 import type { JobNode, RunDetails, TriggerNode, Workflow } from "../../mock-data/workflow";
+import type { ProjectComponent } from "../../mock-data/projects";
+import { componentTypeIcons } from "../../component-types";
 import ExplorerRow from "./ExplorerRow";
 import AdaptorPill from "./AdaptorPill";
 
-/** What the code view can have open: the workflow file, the trigger or a step. */
-export type ExplorerFile = "workflow" | "trigger" | { stepId: string };
+/**
+ * What the code view can have open: one of the workflow's files, the
+ * trigger, a step, or a project component the workflow uses.
+ */
+export type ExplorerFile = "workflow" | "plan" | "spec" | "trigger" | { stepId: string } | { componentId: string };
 
 function explorerFileId(file: ExplorerFile): string {
-  return typeof file === "string" ? file : `step:${file.stepId}`;
+  if (typeof file === "string") return file;
+  return "stepId" in file ? `step:${file.stepId}` : `component:${file.componentId}`;
 }
 
 const triggerIcon = { webhook: Globe, cron: Clock, kafka: Radio };
@@ -18,16 +24,19 @@ interface Props {
   onOpen: (file: ExplorerFile) => void;
   /** The selected run; each step shows how it went. */
   run?: RunDetails;
+  /** Project components the workflow uses: artifacts, forms, collections, channels. */
+  components?: ProjectComponent[];
   /** Hidden on main, where steps can't be added. */
   onAddStep?: () => void;
 }
 
 /**
- * The left-hand explorer in code mode: the workflow's file, its trigger and
- * its steps as a list, so you move between them here rather than through
- * tabs. With a run selected, each step shows how it went.
+ * The left-hand explorer in code mode, in three groups: the workflow's own
+ * files (its YAML, plan and spec), its trigger and steps in the order they
+ * run, and the project components it uses. You move between them here
+ * rather than through tabs. With a run loaded, each step shows how it went.
  */
-export default function EditorExplorer({ workflow, file, onOpen, run, onAddStep }: Props) {
+export default function EditorExplorer({ workflow, file, onOpen, run, components = [], onAddStep }: Props) {
   const current = explorerFileId(file);
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
   const steps = workflow.nodes.filter((n): n is JobNode => n.type === "job");
@@ -59,10 +68,12 @@ export default function EditorExplorer({ workflow, file, onOpen, run, onAddStep 
           selected={current === "workflow"}
           onClick={() => onOpen("workflow")}
         />
+        <ExplorerRow label="plan.md" icon={FileText} selected={current === "plan"} onClick={() => onOpen("plan")} />
+        <ExplorerRow label="spec.md" icon={FileText} selected={current === "spec"} onClick={() => onOpen("spec")} />
       </Section>
 
-      {trigger && (
-        <Section title="Trigger">
+      <Section title="Steps">
+        {trigger && (
           <ExplorerRow
             label={trigger.label}
             icon={triggerIcon[trigger.triggerType]}
@@ -71,10 +82,7 @@ export default function EditorExplorer({ workflow, file, onOpen, run, onAddStep 
             selected={current === "trigger"}
             onClick={() => onOpen("trigger")}
           />
-        </Section>
-      )}
-
-      <Section title="Steps">
+        )}
         {steps.map((step) => (
           <ExplorerRow
             key={step.id}
@@ -95,6 +103,21 @@ export default function EditorExplorer({ workflow, file, onOpen, run, onAddStep 
           </button>
         )}
       </Section>
+
+      {components.length > 0 && (
+        <Section title="Components">
+          {components.map((c) => (
+            <ExplorerRow
+              key={c.id}
+              label={c.name}
+              icon={componentTypeIcons[c.type]}
+              trailing={<span className="text-xs text-gray-400">{c.type.toLowerCase()}</span>}
+              selected={current === `component:${c.id}`}
+              onClick={() => onOpen({ componentId: c.id })}
+            />
+          ))}
+        </Section>
+      )}
     </nav>
   );
 }

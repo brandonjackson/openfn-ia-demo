@@ -15,6 +15,8 @@ const meta: Meta<typeof WorkflowEditorTemplate> = {
     dataclips,
     graphForVersion: nationalIdWorkflowAt,
     projectName: "Project A",
+    components: projects[0].components.filter((c) => c.type !== "Workflow"),
+    onOpenComponent: () => {},
     sandboxes: projects[0].sandboxes,
     versions: workflowVersions,
     assistantConversations,
@@ -86,6 +88,16 @@ export const CodeFollowingRun: Story = {
     runId: failedRun.runId,
     initialTrays: ["step"],
   },
+};
+
+/** The plan document kept with the workflow. */
+export const PlanDocument: Story = {
+  args: { initialView: "code", initialFile: "plan" },
+};
+
+/** A collection the workflow uses, opened from the explorer's Components group. */
+export const ComponentOpen: Story = {
+  args: { initialView: "code", initialFile: { componentId: "planning-authority-codes" } },
 };
 
 /** The workflow's settings beside its YAML. */

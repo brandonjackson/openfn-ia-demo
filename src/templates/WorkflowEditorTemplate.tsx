@@ -18,6 +18,7 @@ import { shortId, simulateRun } from "../mock-data/runs";
 import { adaptorInfo } from "../mock-data/adaptor-reference";
 import type { Snippet } from "../mock-data/adaptor-reference";
 import type { AssistantConversation, AssistantPlan } from "../mock-data/assistant";
+import type { ProjectComponent } from "../mock-data/projects";
 import EditorShell from "../components/workflow/EditorShell";
 import EditorToolbar from "../components/workflow/EditorToolbar";
 import type { EditorView } from "../components/workflow/EditorToolbar";
@@ -145,6 +146,8 @@ export default function WorkflowEditorTemplate({
   onBack,
   onDelete,
   projectName,
+  components = [],
+  onOpenComponent,
   sandboxes = ["main"],
   sandbox: controlledSandbox,
   onSelectSandbox,
@@ -181,6 +184,10 @@ export default function WorkflowEditorTemplate({
   onDelete?: () => void;
   /** Named in the file menu's "Back to …" item. */
   projectName?: string;
+  /** Project components the workflow uses, listed in the code explorer. */
+  components?: ProjectComponent[];
+  /** Opens a component's page in the project. */
+  onOpenComponent?: (componentId: string) => void;
   /** Sandboxes of the workflow's project, "main" first. */
   sandboxes?: string[];
   sandbox?: string;
@@ -243,7 +250,16 @@ export default function WorkflowEditorTemplate({
   const showMismatch = runVersionKnown && viewingVersion !== undefined && selectedRun!.version !== viewingVersion;
 
   // The step in focus: the selected node on the canvas, or the open file in code mode.
-  const focusId = view === "code" ? (typeof file === "object" ? file.stepId : file === "trigger" ? "trigger" : undefined) : selectedId;
+  const focusId =
+    view === "code"
+      ? typeof file === "object"
+        ? "stepId" in file
+          ? file.stepId
+          : undefined
+        : file === "trigger"
+          ? "trigger"
+          : undefined
+      : selectedId;
   const focusNode = graph.nodes.find((n) => n.id === focusId);
   const focusJob = focusNode?.type === "job" ? focusNode : undefined;
   const focusTrigger = focusNode?.type === "trigger" ? (focusNode as TriggerNode) : undefined;
@@ -452,7 +468,7 @@ export default function WorkflowEditorTemplate({
   const deleteStep = (stepId: string) => {
     edit((e) => ({ removed: [...e.removed, stepId] }));
     if (selectedId === stepId) setSelectedId(undefined);
-    if (typeof file === "object" && file.stepId === stepId) setFile("workflow");
+    if (typeof file === "object" && "stepId" in file && file.stepId === stepId) setFile("workflow");
     closeTray("step");
   };
 
@@ -708,12 +724,14 @@ export default function WorkflowEditorTemplate({
             file={file}
             onOpen={(f) => {
               setFile(f);
-              if (typeof f === "object" && selectedRun) {
+              if (typeof f === "object" && "stepId" in f && selectedRun) {
                 setStepTab((t) => (t === "configure" ? "log" : t));
                 openTray("step");
               }
             }}
             run={selectedRun}
+            components={components}
+            onOpenComponent={onOpenComponent}
             readOnly={onMain}
             url={url}
             live={live}

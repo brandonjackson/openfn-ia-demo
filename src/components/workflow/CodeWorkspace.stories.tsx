@@ -8,6 +8,9 @@ import StepRunDetails from "./StepRunDetails";
 import StatusPill from "./StatusPill";
 import { defaultWorkflowSettings, nationalIdWorkflow } from "../../mock-data/workflow";
 import { dataclips, failedRun } from "../../mock-data/runs";
+import { projects } from "../../mock-data/projects";
+
+const components = projects[0].components.filter((c) => c.type !== "Workflow");
 
 function Stateful(args: ComponentProps<typeof CodeWorkspace>) {
     const [file, setFile] = useState<ExplorerFile>(args.file);
@@ -31,6 +34,8 @@ const meta: Meta<typeof CodeWorkspace> = {
     settings: defaultWorkflowSettings(nationalIdWorkflow),
     credentials: { search: "cred-identity-prod" },
     url: "https://app.openfn.org/i/8f3c2a1e",
+    components,
+    onOpenComponent: () => {},
     onOpenReference: () => {},
   },
   render: (args) => <Stateful {...args} />,
@@ -50,6 +55,13 @@ export const Editable: Story = {
 export const WorkflowFile: Story = { args: { file: "workflow", onSettingsChange: () => {} } };
 
 export const Trigger: Story = { args: { file: "trigger", onToggleLive: () => {} } };
+
+export const PlanDocument: Story = { args: { file: "plan" } };
+
+/** A collection the workflow uses, opened from the Components group. */
+export const CollectionOpen: Story = {
+  args: { file: { componentId: components.find((c) => c.type === "Collection")!.id } },
+};
 
 /** Following a failed run, with the step's output in an inline tray. */
 export const FollowingRun: Story = {

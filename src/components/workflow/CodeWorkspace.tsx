@@ -1,10 +1,15 @@
 import type { ReactNode } from "react";
-import { Play, RotateCcw } from "lucide-react";
+import { Calendar, ExternalLink, FolderKanban, Play, RotateCcw, User } from "lucide-react";
 import type { JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../mock-data/workflow";
 import { workflowToYaml } from "../../mock-data/workflow";
 import { adaptorInfo } from "../../mock-data/adaptor-reference";
 import type { Snippet } from "../../mock-data/adaptor-reference";
+import type { ProjectComponent } from "../../mock-data/projects";
+import { componentPreview, workflowDocs } from "../../mock-data/workflow-files";
+import { componentTypeIcons } from "../../component-types";
 import Button from "../Button";
+import Badge from "../Badge";
+import FileDetailsPanel from "./FileDetailsPanel";
 import EditorExplorer from "./EditorExplorer";
 import type { ExplorerFile } from "./EditorExplorer";
 import CodePaneHeader from "./CodePaneHeader";
@@ -21,6 +26,10 @@ interface Props {
   onOpen: (file: ExplorerFile) => void;
   /** The selected run; steps show how they went and can be retried from. */
   run?: RunDetails;
+  /** Project components the workflow uses, listed in the explorer. */
+  components?: ProjectComponent[];
+  /** Opens a component's page in the project. */
+  onOpenComponent?: (componentId: string) => void;
   /** On main nothing can be changed. */
   readOnly?: boolean;
   /** The URL that starts the workflow, shown on the trigger. */
@@ -58,6 +67,8 @@ export default function CodeWorkspace({
   file,
   onOpen,
   run,
+  components = [],
+  onOpenComponent,
   readOnly = false,
   url,
   live = true,
@@ -76,7 +87,12 @@ export default function CodeWorkspace({
   statusNote,
 }: Props) {
   const step =
-    typeof file === "object" ? workflow.nodes.find((n): n is JobNode => n.type === "job" && n.id === file.stepId) : undefined;
+    typeof file === "object" && "stepId" in file
+      ? workflow.nodes.find((n): n is JobNode => n.type === "job" && n.id === file.stepId)
+      : undefined;
+  const component =
+    typeof file === "object" && "componentId" in file ? components.find((c) => c.id === file.componentId) : undefined;
+  const doc = file === "plan" ? "plan" : file === "spec" ? "spec" : undefined;
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
   const yaml = workflowToYaml(workflow);
   const triggerYaml = yaml.slice(yaml.indexOf("triggers:"), yaml.indexOf("edges:")).trimEnd();
@@ -86,9 +102,21 @@ export default function CodeWorkspace({
   const path =
     step !== undefined
       ? [workflow.name, "Steps", step.label]
-      : file === "trigger" && trigger
-        ? [workflow.name, "Trigger", trigger.label]
-        : [workflow.name, "workflow.yaml"];
+      : component !== undefined
+        ? [workflow.name, "Components", component.name]
+        : file === "trigger" && trigger
+          ? [workflow.name, "Steps", trigger.label]
+          : [workflow.name, doc ? `${doc}.md` : "workflow.yaml"];
+
+  const code = step
+    ? step.body
+    : component
+      ? componentPreview(component)
+      : file === "trigger"
+        ? triggerYaml
+        : doc
+          ? workflowDocs[doc]
+          : yaml;
 
   const actions = step && (
     <>
@@ -108,21 +136,31 @@ export default function CodeWorkspace({
 
   const statusItems = step
     ? [`${step.adaptor}@${adaptorInfo[step.adaptor].version}`, step.label]
-    : file === "trigger" && trigger
-      ? [trigger.triggerType, trigger.label]
-      : ["workflow.yaml"];
-  const statusTrailing = [statusNote, readOnly ? "Read-only" : "Saved"].filter(Boolean) as string[];
+    : component
+      ? [component.type.toLowerCase(), component.name]
+      : file === "trigger" && trigger
+        ? [trigger.triggerType, trigger.label]
+        : [doc ? `${doc}.md` : "workflow.yaml"];
+  // Components belong to the project, so they're always read-only here.
+  const statusTrailing = [statusNote, readOnly || component ? "Read-only" : "Saved"].filter(Boolean) as string[];
 
   return (
     <div className="flex h-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
       <div className="w-64 flex-none border-r border-gray-100">
-        <EditorExplorer workflow={workflow} file={file} onOpen={onOpen} run={run} onAddStep={readOnly ? undefined : onAddStep} />
+        <EditorExplorer
+          workflow={workflow}
+          file={file}
+          onOpen={onOpen}
+          run={run}
+          components={components}
+          onAddStep={readOnly ? undefined : onAddStep}
+        />
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <CodePaneHeader path={path} actions={actions} />
         <div className="min-h-0 flex-1 overflow-hidden">
-          <CodeEditor code={step ? step.body : file === "trigger" ? triggerYaml : yaml} />
+          <CodeEditor code={code} />
         </div>
         {bottomTray}
         <EditorStatusBar items={statusItems} trailing={statusTrailing} />
@@ -140,6 +178,36 @@ export default function CodeWorkspace({
             onInsertSnippet={onInsertSnippet ? (s) => onInsertSnippet(step.id, s) : undefined}
             onOpenReference={onOpenReference}
             onDelete={onDeleteStep ? () => onDeleteStep(step.id) : undefined}
+          />
+        ) : component ? (
+          <FileDetailsPanel
+            title={component.name}
+            tag={<Badge label={component.type} />}
+            description={component.description}
+            properties={[
+              { icon: componentTypeIcons[component.type], label: "Type", value: component.type },
+              { icon: FolderKanban, label: "Project", value: workflow.project },
+            ]}
+            action={
+              onOpenComponent && (
+                <Button variant="secondary" size="sm" icon={ExternalLink} onClick={() => onOpenComponent(component.id)}>
+                  Open in project
+                </Button>
+              )
+            }
+          />
+        ) : doc ? (
+          <FileDetailsPanel
+            title={`${doc}.md`}
+            description={
+              doc === "plan"
+                ? "Why the workflow exists and how it's meant to work. The assistant reads it before proposing changes."
+                : "What goes in, what each step writes, and when a run counts as done."
+            }
+            properties={[
+              { icon: User, label: "Edited by", value: "Brandon Jackson" },
+              { icon: Calendar, label: "Updated", value: doc === "plan" ? "14 Oct 2026" : "2 Sep 2026" },
+            ]}
           />
         ) : file === "trigger" && trigger ? (
           <TriggerConfigPanel trigger={trigger} url={url} readOnly={readOnly} live={live} onToggleLive={onToggleLive} />

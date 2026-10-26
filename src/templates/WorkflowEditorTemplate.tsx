@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { Code2, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import type {
   AdaptorKind,
   Dataclip,
   JobNode,
   RunDetails,
   RunStep,
-  TriggerNode,
   Workflow,
   WorkflowNode,
   WorkflowVersion,
@@ -14,8 +13,8 @@ import type {
 } from "../mock-data/workflow";
 import { defaultWorkflowSettings, workflowToYaml } from "../mock-data/workflow";
 import type { WorkflowSettings } from "../mock-data/workflow";
-import { failureReasons, runActivity, shortId, simulateRun } from "../mock-data/runs";
-import type { ActivityPeriod } from "../mock-data/runs";
+import { failureReasons, filterWorkOrders, runActivity, shortId, simulateRun } from "../mock-data/runs";
+import type { ActivityPeriod, RunStatusFilter } from "../mock-data/runs";
 import { adaptorInfo } from "../mock-data/adaptor-reference";
 import type { AssistantConversation, AssistantPlan, AssistantReference } from "../mock-data/assistant";
 import type { ProjectComponent, ProjectService } from "../mock-data/projects";
@@ -35,12 +34,12 @@ import type { ExplorerFile } from "../components/workflow/EditorExplorer";
 import VersionMismatchBanner from "../components/workflow/VersionMismatchBanner";
 import StepRunDetails from "../components/workflow/StepRunDetails";
 import StepInspector from "../components/workflow/StepInspector";
+import type { InspectorSection } from "../components/workflow/StepInspector";
+import CanvasRunsBar from "../components/workflow/CanvasRunsBar";
 import FailureBreakdown from "../components/workflow/FailureBreakdown";
 import type { FailureScope } from "../components/workflow/FailureBreakdown";
 import RunHistoryList from "../components/workflow/RunHistoryList";
-import StepConfigPanel from "../components/workflow/StepConfigPanel";
 import type { StepChanges } from "../components/workflow/StepConfigPanel";
-import TriggerConfigPanel from "../components/workflow/TriggerConfigPanel";
 import AIAssistantPanel from "../components/workflow/AIAssistantPanel";
 import StatusPill from "../components/workflow/StatusPill";
 import RunInputModal from "../components/RunInputModal";
@@ -52,7 +51,6 @@ import ConfirmModal from "../components/ConfirmModal";
 import Modal from "../components/Modal";
 import AddComponentPanel from "../components/AddComponentPanel";
 import { componentTypes } from "../component-types";
-import Button from "../components/Button";
 
 /** Who starts runs and retries in the prototype. */
 const CURRENT_USER = "Jane Doe";
@@ -112,32 +110,31 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
  * closed). Ctrl/⌘ + B and J toggle the explorer and panel. The layout is
  * remembered across workflows.
  *
- * On the canvas, selecting a node brings up the inspector: a small card over
- * the right edge with the step's name, adaptor and credential (or the
- * trigger's type, URL and switch) and, with a run loaded, snippets of its
- * log, input and output that expand to full width. It's the default side UI;
- * the panel is for when more room is wanted and takes its place while open.
- * Each node card's ⋮ menu runs from that step, opens the inspector (Edit),
- * opens the assistant with the step loaded as context (Improve) or deletes
- * it. While no run is loaded the run history is laid over the canvas (run
- * and failure counts on cards, volume on edges; the ⋯ menu turns it off,
- * and its chip picks the period), and a card's failed count opens the
- * panel's Failures view: the step's failures by reason, with the runs
- * behind each.
+ * On the canvas, the runs bar over the top sets what the workflow shows: run
+ * history over a period (run and failure counts on cards, volume on edges),
+ * nothing but the workflow (Off), or a loaded run, with a clear way to
+ * unload it. Its Filter opens the run list over the canvas, with a status
+ * filter the canvas follows too; picking a run loads it. Selecting a node
+ * brings up the inspector, a card over the right edge that follows the
+ * same three states: the node's config and the assistant's summary of its
+ * code; its runs, failures and why they failed (the whole workflow's, on
+ * the trigger); or its log, input and output in the loaded run, which open
+ * in full in the code view's panel. A card's failed count selects it. Each
+ * node card's ⋮ menu runs from that step, opens the inspector (Edit), opens
+ * the assistant with the step loaded as context (Improve) or deletes it.
  *
- * The panel along the bottom carries the views that aren't canvas or code:
- * Runs (to load one), Failures (why runs failed, by reason), the selected
- * Step's settings, and its Log, Input and Output in the loaded run. Its ⋯ menu chooses
- * which views it shows. On the canvas it docks to the right by default (or
- * floats along the bottom, set from the ⋯ menu); in code mode it sits under
- * the code. The assistant takes the outermost right-hand column.
+ * In code mode the panel under the code carries the views that aren't code:
+ * Runs (to load one), Failures (why runs failed, by reason), and the step's
+ * Log, Input and Output in the loaded run. Its ⋯ menu chooses which views it
+ * shows. The canvas has no panel. The assistant takes the outermost
+ * right-hand column.
  *
  * On main everything is read-only and the main action is "Edit in sandbox".
  * In a sandbox steps can be renamed, re-adaptored, given credentials, have
  * snippets inserted, be added and deleted, and "Go live" promotes the sandbox
  * to main as a new version.
  *
- * Loading a run from the Runs view draws it on the canvas, marks each step in
+ * Loading a run draws it on the canvas, marks each step in
  * the explorer and fills the Log, Input and Output views for the step in
  * focus. A run started from the editor is drawn live, one step at a time.
  * When the run took place on an older version, a banner offers to view the
@@ -174,6 +171,7 @@ export default function WorkflowEditorTemplate({
   onSeeDetails,
   defaultEditInSandboxOpen = false,
   defaultRunInputOpen = false,
+  defaultRunsFilterOpen = false,
   assistantConversations = [],
 }: {
   workflow: Workflow;
@@ -223,6 +221,8 @@ export default function WorkflowEditorTemplate({
   /** Start with a dialog open (useful for stories). */
   defaultEditInSandboxOpen?: boolean;
   defaultRunInputOpen?: boolean;
+  /** Start with the canvas's run list open (useful for stories). */
+  defaultRunsFilterOpen?: boolean;
   /** Saved assistant conversations for this workflow. */
   assistantConversations?: AssistantConversation[];
 }) {
@@ -283,7 +283,6 @@ export default function WorkflowEditorTemplate({
       : selectedId;
   const focusNode = graph.nodes.find((n) => n.id === focusId);
   const focusJob = focusNode?.type === "job" ? focusNode : undefined;
-  const focusTrigger = focusNode?.type === "trigger" ? (focusNode as TriggerNode) : undefined;
   const focusStep = focusJob ? selectedRun?.steps.find((s) => s.jobId === focusJob.id) : undefined;
 
   // ---- Layout ---------------------------------------------------------------
@@ -325,15 +324,12 @@ export default function WorkflowEditorTemplate({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layout, view]);
 
-  const selectNode = (node: WorkflowNode) => {
-    const next = selectedId === node.id ? undefined : node.id;
-    setSelectedId(next);
-    // The inspector follows the selection; an open panel moves to the step's settings, or its log when a run is loaded.
-    if (next && layout.panel) showPanel(selectedRun?.steps.some((s) => s.jobId === next) ? "log" : "step");
-  };
+  const selectNode = (node: WorkflowNode) => setSelectedId(selectedId === node.id ? undefined : node.id);
 
-  const openInCode = (stepId?: string) => {
-    setFile(stepId ? { stepId } : "workflow");
+  /** Open a step's code, the trigger's settings, or the workflow's YAML. */
+  const openInCode = (nodeId?: string) => {
+    const node = graph.nodes.find((n) => n.id === nodeId);
+    setFile(node ? (node.type === "trigger" ? "trigger" : { stepId: node.id }) : "workflow");
     setView("code");
   };
 
@@ -349,15 +345,19 @@ export default function WorkflowEditorTemplate({
     // Stay on an earlier version only if the new run ran on it too.
     if (version !== "latest" && version !== run.version) setVersion("latest");
     setRunId(run.runId);
-    // An open panel follows the run for whatever's in focus; the inspector does on its own.
-    if (layout.panel && focusJob && run.steps.some((s) => s.jobId === focusJob.id)) showPanel("log");
+    // In code mode an open panel follows the run for the step in focus; the inspector does on its own.
+    if (view === "code" && layout.panel && focusJob && run.steps.some((s) => s.jobId === focusJob.id)) showPanel("log");
   };
 
   const deselectRun = () => {
     // Leaving a run you were viewing as executed returns to the latest.
     if (selectedRun && version === selectedRun.version) setVersion("latest");
     setRunId(undefined);
-    if (["log", "input", "output"].includes(layout.panelView)) updateLayout({ panelView: "runs" });
+    // Back to the run history: on the canvas it's laid over the workflow again, in code mode the panel lists it.
+    updateLayout({
+      canvasActivity: true,
+      ...(["log", "input", "output"].includes(layout.panelView) ? { panelView: "runs" as PanelViewId } : {}),
+    });
   };
 
   /** Put a run at the top of its work order, and its work order at the top. */
@@ -394,7 +394,7 @@ export default function WorkflowEditorTemplate({
     upsertRun(started.run);
     setVersion("latest");
     setRunId(args.runId);
-    if (layout.panel && focusJob) showPanel("log");
+    if (view === "code" && layout.panel && focusJob) showPanel("log");
     let progress = 0;
     const timer = setInterval(() => {
       progress += 1;
@@ -444,20 +444,17 @@ export default function WorkflowEditorTemplate({
         }
       : undefined;
 
-  // How far back the activity overlay and the failures view look.
+  // How far back the canvas's run history and the failures view look.
   const [period, setPeriod] = useState<ActivityPeriod>("7d");
+  // Which runs the canvas counts, from the runs bar's filter.
+  const [runStatus, setRunStatus] = useState<RunStatusFilter>("all");
+  const [runsFilterOpen, setRunsFilterOpen] = useState(defaultRunsFilterOpen);
+  const canvasOrders = filterWorkOrders(orders, period, runStatus);
   // The run history summed up over the graph, laid over the canvas while no run is loaded.
-  const activity = layout.canvasActivity && view === "canvas" ? runActivity(graph, orders, period) : undefined;
+  const activity = layout.canvasActivity && view === "canvas" ? runActivity(graph, canvasOrders, period) : undefined;
 
-  // Whose failures the Failures view shows: the step in focus or the whole workflow.
+  // Whose failures the code view's Failures view shows: the step in focus or the whole workflow.
   const [failureScope, setFailureScope] = useState<FailureScope>("workflow");
-
-  /** From a card's failed count (or the chip's): open the Failures view for that step, or the whole workflow. */
-  const showFailures = (nodeId?: string) => {
-    if (nodeId) setSelectedId(nodeId);
-    setFailureScope(nodeId ? "step" : "workflow");
-    showPanel("failures");
-  };
 
   const openStep = (step: RunStep) => {
     if (!graph.nodes.some((n) => n.id === step.jobId)) return;
@@ -530,7 +527,6 @@ export default function WorkflowEditorTemplate({
     edit((e) => ({ removed: [...e.removed, stepId] }));
     if (selectedId === stepId) setSelectedId(undefined);
     if (typeof file === "object" && "stepId" in file && file.stepId === stepId) setFile("workflow");
-    if (layout.panelView === "step") updateLayout({ panelView: "runs" });
   };
 
   // What the assistant's chat input is about, loaded from a card's Improve.
@@ -543,10 +539,7 @@ export default function WorkflowEditorTemplate({
       case "run":
         return runFresh(job?.id);
       case "edit":
-        // The inspector is the canvas's side UI while the panel is closed.
-        setSelectedId(node.id);
-        if (layout.panel) updateLayout({ panel: false });
-        return;
+        return setSelectedId(node.id);
       case "improve":
         setSelectedId(node.id);
         setAssistantReference(
@@ -614,12 +607,8 @@ export default function WorkflowEditorTemplate({
 
   // ---- Panel and assistant --------------------------------------------------
 
-  // In code mode the step's settings are already beside its code.
-  const disabledViews: PanelViewId[] = [
-    ...(focusJob && view === "canvas" ? [] : (["step"] as PanelViewId[])),
-    ...(selectedRun ? [] : (["log", "input", "output"] as PanelViewId[])),
-  ];
-  const visibleViews = (["runs", "failures", "step", "log", "input", "output"] as PanelViewId[]).filter(
+  const disabledViews: PanelViewId[] = selectedRun ? [] : ["log", "input", "output"];
+  const visibleViews = (["runs", "failures", "log", "input", "output"] as PanelViewId[]).filter(
     (v) => !layout.hiddenViews.includes(v) && !disabledViews.includes(v)
   );
   const panelView = visibleViews.includes(layout.panelView) ? layout.panelView : (visibleViews[0] ?? "runs");
@@ -648,18 +637,6 @@ export default function WorkflowEditorTemplate({
     }
     if (panelView === "failures") {
       return <span className="truncate">{failureScope === "step" && focusJob ? focusJob.label : "Whole workflow"}</span>;
-    }
-    if (panelView === "step" && focusNode) {
-      return (
-        <>
-          <span className="truncate">{focusNode.label}</span>
-          {focusJob && (
-            <Button variant="ghost" size="xs" icon={Code2} onClick={() => openInCode(focusJob.id)}>
-              Open code
-            </Button>
-          )}
-        </>
-      );
     }
     return undefined;
   })();
@@ -695,20 +672,6 @@ export default function WorkflowEditorTemplate({
           />
         );
       }
-      case "step":
-        return focusJob ? (
-          <StepConfigPanel
-            key={focusJob.id}
-            step={focusJob}
-            credentialId={edits.credentials[focusJob.id]}
-            readOnly={onMain}
-            onChange={(c) => changeStep(focusJob.id, c)}
-            onDelete={() => deleteStep(focusJob.id)}
-            showHeader={false}
-          />
-        ) : focusTrigger ? (
-          <TriggerConfigPanel trigger={focusTrigger} url={url} readOnly={onMain} live={live} onToggleLive={setLive} />
-        ) : null;
       default:
         return selectedRun ? (
           <StepRunDetails
@@ -723,18 +686,33 @@ export default function WorkflowEditorTemplate({
     }
   })();
 
-  const layoutMenu = <LayoutMenu layout={layout} onChange={updateLayout} onReset={resetLayout} view={view} />;
+  const layoutMenu = <LayoutMenu layout={layout} onChange={updateLayout} onReset={resetLayout} />;
 
-  // The inspector is the canvas's side UI while the panel is closed; the panel takes over when opened.
+  /** From a snippet in the inspector: open the node in the code view, with that section in the panel. */
+  const expandInCode = (section: InspectorSection) => {
+    openInCode(focusNode?.id);
+    showPanel(section);
+  };
+
+  // What the inspector says about the node's run history: the step's, or the whole workflow's on the trigger.
+  const inspectorStats =
+    activity && focusNode
+      ? {
+          period,
+          runs: focusJob ? (activity.nodes[focusJob.id]?.runs ?? 0) : activity.runs,
+          failed: focusJob ? (activity.nodes[focusJob.id]?.failed ?? 0) : activity.failed,
+          reasons: failureReasons(graph, canvasOrders, period, focusJob?.id),
+        }
+      : undefined;
+
+  // The canvas's side UI for the selected node: config, run history or the loaded run.
   const inspector =
-    view === "canvas" && focusNode && !layout.panel ? (
+    view === "canvas" && focusNode ? (
       <StepInspector
         key={focusNode.id}
         node={focusNode}
         credentialId={focusJob ? edits.credentials[focusJob.id] : undefined}
         readOnly={onMain}
-        run={selectedRun}
-        dataclips={clips}
         url={url}
         live={live}
         onToggleLive={setLive}
@@ -742,31 +720,53 @@ export default function WorkflowEditorTemplate({
         onOpenCode={focusJob ? () => openInCode(focusJob.id) : undefined}
         onRunFromHere={focusJob ? () => runFresh(focusJob.id) : undefined}
         onDelete={focusJob && !onMain ? () => deleteStep(focusJob.id) : undefined}
-        onOpenPanel={showPanel}
-        onBrowseRuns={() => showPanel("runs")}
         onClose={() => setSelectedId(undefined)}
-        actions={layoutMenu}
+        stats={inspectorStats}
+        run={selectedRun}
+        dataclips={clips}
+        onUnloadRun={deselectRun}
+        onExpand={expandInCode}
+        onSelectRun={selectRun}
+        latestVersion={latestVersion}
       />
     ) : undefined;
 
-  const panelOnRight = view === "canvas" && layout.canvasPanelDock === "right";
+  // The panel lives under the code; the canvas has none.
   const panel = layout.panel ? (
     <EditorPanel
       view={panelView}
       onViewChange={(v) => updateLayout({ panelView: v })}
       disabledViews={disabledViews}
       hiddenViews={layout.hiddenViews}
-      actions={view === "canvas" ? layoutMenu : undefined}
       maximized={layout.panelMaximized}
       onToggleMaximized={() => updateLayout({ panelMaximized: !layout.panelMaximized })}
       onClose={togglePanel}
       context={panelContext}
-      floating={view === "canvas" && !panelOnRight}
-      placement={panelOnRight ? "right" : "bottom"}
     >
       {panelBody}
     </EditorPanel>
   ) : undefined;
+
+  const runsBar =
+    view === "canvas" ? (
+      <CanvasRunsBar
+        period={period}
+        onPeriodChange={setPeriod}
+        showing={layout.canvasActivity}
+        onShowingChange={(showing) => updateLayout({ canvasActivity: showing })}
+        status={runStatus}
+        onStatusChange={setRunStatus}
+        activity={activity}
+        workOrders={orders}
+        run={selectedRun}
+        onUnloadRun={deselectRun}
+        latestVersion={latestVersion}
+        onSelectRun={selectRun}
+        open={runsFilterOpen}
+        onOpenChange={setRunsFilterOpen}
+        footer={runFooter}
+      />
+    ) : undefined;
 
   // Always rendered so the shell can slide it out; `rightTrayOpen` shows it.
   const rightTray = (
@@ -776,7 +776,7 @@ export default function WorkflowEditorTemplate({
         jobLabel={focusJob?.label}
         runId={selectedRun?.runId}
         author={CURRENT_USER}
-        onOpenRuns={() => showPanel("runs")}
+        onOpenRuns={() => (view === "canvas" ? setRunsFilterOpen(true) : showPanel("runs"))}
         onAskToMerge={onMain ? undefined : () => setPromoteOpen(true)}
         onPlanAccepted={onMain ? undefined : applyPlan}
         reference={assistantReference}
@@ -824,13 +824,10 @@ export default function WorkflowEditorTemplate({
     <EditorShell
       toolbar={toolbar}
       sandboxed={!onMain}
-      rightPanel={panelOnRight ? panel : undefined}
-      rightPanelWidthClass={layout.panelMaximized ? "w-[min(760px,60vw)]" : "w-[420px]"}
+      top={runsBar}
       rightTray={rightTray}
       rightTrayOpen={layout.assistant}
-      bottomTray={view === "canvas" && !panelOnRight ? panel : undefined}
       rightOverlay={inspector}
-      corner={view === "canvas" && !layout.panel && !inspector ? layoutMenu : undefined}
       overlays={
         <>
           <RunInputModal open={runInputOpen} onClose={() => setRunInputOpen(false)} dataclips={clips} onRun={runWithInput} />
@@ -891,9 +888,7 @@ export default function WorkflowEditorTemplate({
           readOnly={onMain}
           run={selectedRun}
           activity={activity}
-          onPeriodChange={setPeriod}
-          onShowFailures={showFailures}
-          onViewRuns={() => showPanel("runs")}
+          onShowFailures={setSelectedId}
           height={760}
         />
       )}

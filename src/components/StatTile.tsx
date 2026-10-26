@@ -7,6 +7,10 @@ import Sparkline from "./Sparkline";
 interface Props extends StatTileData {
   /** Line colour for the sparkline, as a text colour class. */
   trendClassName?: string;
+  /** Smaller, for a row of tiles in a narrow card such as the inspector. */
+  compact?: boolean;
+  /** Draws the value in red, e.g. a failure count. */
+  danger?: boolean;
 }
 
 /**
@@ -21,11 +25,13 @@ export default function StatTile({
   badge,
   linkTo,
   trendClassName = "text-indigo-500",
+  compact = false,
+  danger = false,
 }: Props) {
   const body = (
     <>
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm text-gray-500">{label}</p>
+        <p className={`${compact ? "text-xs" : "text-sm"} text-gray-500`}>{label}</p>
         {badge ? (
           <Badge label={badge.label} tone={badge.tone} />
         ) : (
@@ -37,7 +43,7 @@ export default function StatTile({
           )
         )}
       </div>
-      <p className="mt-1 text-2xl font-semibold text-gray-900">{value}</p>
+      <p className={`mt-1 font-semibold ${compact ? "text-lg" : "text-2xl"} ${danger ? "text-red-600" : "text-gray-900"}`}>{value}</p>
       {detail && <p className="mt-0.5 text-xs text-gray-500">{detail}</p>}
       {trend && (
         <Sparkline
@@ -49,7 +55,7 @@ export default function StatTile({
     </>
   );
 
-  const base = "block rounded-lg border border-gray-200 bg-white p-5";
+  const base = `block rounded-lg border border-gray-200 bg-white ${compact ? "px-3 py-2.5" : "p-5"}`;
   return linkTo ? (
     <Link to={linkTo} className={`group ${base} hover:border-gray-300 hover:shadow-sm transition`}>
       {body}

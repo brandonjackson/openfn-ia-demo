@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { History } from "lucide-react";
 import EditorShell from "./EditorShell";
-import EditorPanel from "./EditorPanel";
 import EditorTray from "./EditorTray";
 import WorkflowCanvas from "./WorkflowCanvas";
+import CanvasRunsBar from "./CanvasRunsBar";
 import { nationalIdWorkflow } from "../../mock-data/workflow";
+import { runActivity, workOrders } from "../../mock-data/runs";
 
 const meta: Meta<typeof EditorShell> = {
   title: "Workflow/EditorShell",
@@ -32,33 +33,32 @@ type Story = StoryObj<typeof EditorShell>;
 
 export const Default: Story = {};
 
-export const WithTrays: Story = {
+export const WithTray: Story = {
   args: {
     rightTray: (
       <EditorTray title="Run history" icon={History} placement="right">
         <p className="p-4 text-sm text-gray-500">Right tray</p>
       </EditorTray>
     ),
-    bottomTray: (
-      <EditorTray title="Step" placement="bottom" floating heightClass="h-40">
-        <p className="p-4 text-sm text-gray-500">Bottom tray</p>
-      </EditorTray>
-    ),
   },
 };
 
-/** The panel docked right of the canvas, with the assistant tray outermost. */
-export const WithRightPanel: Story = {
+/** The canvas's runs bar centred over the top of the main surface. */
+export const WithTop: Story = {
   args: {
-    rightPanel: (
-      <EditorPanel view="runs" onViewChange={() => {}} placement="right">
-        <p className="p-4 text-sm text-gray-500">Right panel</p>
-      </EditorPanel>
-    ),
-    rightTray: (
-      <EditorTray title="Assistant" placement="right">
-        <p className="p-4 text-sm text-gray-500">Right tray</p>
-      </EditorTray>
+    top: (
+      <CanvasRunsBar
+        period="7d"
+        onPeriodChange={() => {}}
+        showing
+        onShowingChange={() => {}}
+        status="all"
+        onStatusChange={() => {}}
+        activity={runActivity(nationalIdWorkflow, workOrders)}
+        workOrders={workOrders}
+        open={false}
+        onOpenChange={() => {}}
+      />
     ),
   },
 };
@@ -87,10 +87,6 @@ export const WithRightOverlay: Story = {
       </div>
     ),
   },
-};
-
-export const WithCorner: Story = {
-  args: { corner: <span className="block px-2 py-1 text-xs text-gray-500">⋯</span> },
 };
 
 export const Sandboxed: Story = {

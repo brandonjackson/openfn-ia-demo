@@ -20,6 +20,7 @@ export default function RunHistoryList({
   onSelectRun,
   onDeselectRun,
   footer,
+  empty = "No runs yet. Run the workflow to see it here.",
 }: {
   workOrders: WorkOrder[];
   selectedRunId?: string;
@@ -28,6 +29,8 @@ export default function RunHistoryList({
   onSelectRun?: (run: RunDetails) => void;
   onDeselectRun?: () => void;
   footer?: ReactNode;
+  /** Shown when there are no work orders, e.g. when a filter leaves none. */
+  empty?: string;
 }) {
   const [opened, setOpened] = useState<string[]>([]);
 
@@ -46,7 +49,7 @@ export default function RunHistoryList({
   return (
     <div className="flex h-full flex-col">
       {workOrders.length === 0 && (
-        <p className="px-4 py-6 text-sm text-gray-400">No runs yet. Run the workflow to see it here.</p>
+        <p className="px-4 py-6 text-sm text-gray-400">{empty}</p>
       )}
       <ul className="min-h-0 flex-1 divide-y divide-gray-50 overflow-y-auto">
         {workOrders.map((order) => (

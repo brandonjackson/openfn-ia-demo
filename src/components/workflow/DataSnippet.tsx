@@ -26,6 +26,8 @@ interface Props {
   folded?: boolean;
   /** Dark for logs; light for data that sits among form controls. */
   tone?: "dark" | "light";
+  /** Names what the expand control does, when it opens the section somewhere else. */
+  expandLabel?: string;
 }
 
 /**
@@ -48,6 +50,7 @@ export default function DataSnippet({
   onCollapse,
   folded = false,
   tone = "light",
+  expandLabel,
 }: Props) {
   const [open, setOpen] = useState(true);
   const showing = open && !folded;
@@ -76,7 +79,7 @@ export default function DataSnippet({
           {expanded
             ? onCollapse && <SizeButton label={`Collapse ${title.toLowerCase()}`} icon={Minimize2} onClick={onCollapse} />
             : onExpand &&
-              lines.length > 0 && <SizeButton label={`Expand ${title.toLowerCase()} to full width`} icon={Maximize2} onClick={onExpand} />}
+              lines.length > 0 && <SizeButton label={expandLabel ?? `Expand ${title.toLowerCase()} to full width`} icon={Maximize2} onClick={onExpand} />}
         </span>
       </div>
       {showing && (

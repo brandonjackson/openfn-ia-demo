@@ -5,23 +5,20 @@ import { useSyncExternalStore } from "react";
  * the bottom panel is on. It's remembered across workflows and reloads, so
  * the editor opens the way you left it.
  */
-export type PanelViewId = "runs" | "failures" | "step" | "log" | "input" | "output";
+export type PanelViewId = "runs" | "failures" | "log" | "input" | "output";
+
+const panelViewIds: PanelViewId[] = ["runs", "failures", "log", "input", "output"];
 
 /** What the right-hand column in code mode shows: the open item's config, or a step's adaptor snippets. */
 export type DetailsViewId = "config" | "snippets";
 
-/** Where the panel docks on the canvas; in code mode it always sits under the code. */
-export type PanelDock = "right" | "bottom";
-
 export interface EditorLayout {
   /** The code explorer on the left (code mode). */
   explorer: boolean;
-  /** The bottom panel: showing, or collapsed to its tab bar. */
+  /** The panel under the code: showing, or closed. The canvas has no panel; its inspector covers runs. */
   panel: boolean;
   panelView: PanelViewId;
   panelMaximized: boolean;
-  /** On the canvas, a column on the right or a card floating along the bottom. */
-  canvasPanelDock: PanelDock;
   /** Views taken out of the panel's tab bar. */
   hiddenViews: PanelViewId[];
   /** The details column beside the code: the open item's config or a step's snippets. */
@@ -29,7 +26,7 @@ export interface EditorLayout {
   detailsView: DetailsViewId;
   /** The assistant on the right. */
   assistant: boolean;
-  /** The run history laid over the canvas while no run is loaded. */
+  /** The run history laid over the canvas while no run is loaded; Off in the runs bar turns it off. */
   canvasActivity: boolean;
 }
 
@@ -38,7 +35,6 @@ export const defaultLayout: EditorLayout = {
   panel: false,
   panelView: "runs",
   panelMaximized: false,
-  canvasPanelDock: "right",
   hiddenViews: [],
   details: true,
   detailsView: "config",
@@ -53,8 +49,13 @@ function load(): EditorLayout {
     const raw = localStorage.getItem(STORAGE_KEY);
     // The panel's maximised state isn't carried over: it always opens at its smaller size.
     const saved = raw ? { ...defaultLayout, ...(JSON.parse(raw) as Partial<EditorLayout>), panelMaximized: false } : defaultLayout;
-    // Views saved under an older name fall back to the default.
-    return ["config", "snippets"].includes(saved.detailsView) ? saved : { ...saved, detailsView: defaultLayout.detailsView };
+    // Views saved under an older name, or since removed, fall back to the default.
+    return {
+      ...saved,
+      detailsView: ["config", "snippets"].includes(saved.detailsView) ? saved.detailsView : defaultLayout.detailsView,
+      panelView: panelViewIds.includes(saved.panelView) ? saved.panelView : defaultLayout.panelView,
+      hiddenViews: saved.hiddenViews.filter((v) => panelViewIds.includes(v)),
+    };
   } catch {
     return defaultLayout;
   }

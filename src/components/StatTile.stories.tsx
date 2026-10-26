@@ -32,3 +32,9 @@ export const ErrorTrend: Story = {
 
 /** No link: just a number and a supporting line. */
 export const Plain: Story = { args: insightsData.tiles[3] };
+
+/** Smaller, for a row of tiles in a narrow card such as the inspector. */
+export const Compact: Story = { args: { label: "Runs", value: 214, compact: true } };
+
+/** A failure count, drawn in red. */
+export const Danger: Story = { args: { label: "Failed", value: 12, compact: true, danger: true } };

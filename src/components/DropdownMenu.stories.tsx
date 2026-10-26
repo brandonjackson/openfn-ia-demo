@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { ChevronDown, Download, FlaskConical, Pause, Pencil, Settings, Trash2 } from "lucide-react";
+import { ChevronDown, Download, FlaskConical, Maximize2, Pause, Pencil, Play, Settings, Sparkles, Trash2 } from "lucide-react";
 import DropdownMenu from "./DropdownMenu";
 import Button from "./Button";
 
@@ -65,6 +65,21 @@ export const WithSelection: Story = {
       { id: "intake", label: "intake-validation-v2", description: "You, 2 hours ago" },
       { id: "sync", label: "decision-sync-fix", description: "Amara Okafor, yesterday" },
       { id: "new", label: "New sandbox…", icon: FlaskConical, divider: true },
+    ],
+  },
+};
+
+/** Opened to the right of its trigger, level with its top, as from a canvas card's ⋮. */
+export const Beside: Story = {
+  args: {
+    placement: "beside",
+    widthClass: "w-48",
+    defaultOpen: true,
+    items: [
+      { id: "run", label: "Run from here", icon: Play },
+      { id: "edit", label: "Edit", icon: Maximize2 },
+      { id: "improve", label: "Improve", icon: Sparkles },
+      { id: "delete", label: "Delete", icon: Trash2, tone: "danger" },
     ],
   },
 };

@@ -40,6 +40,8 @@ interface Props {
   title?: string;
   /** Which edge of the trigger the menu lines up with. */
   align?: "left" | "right";
+  /** Under the trigger (the default), or to its right, level with its top, as from a card's ⋮. */
+  placement?: "below" | "beside";
   widthClass?: string;
   /** Start with the menu open (useful for stories and screenshots). */
   defaultOpen?: boolean;
@@ -61,6 +63,7 @@ export default function DropdownMenu({
   ariaLabel,
   title,
   align = "left",
+  placement = "below",
   widthClass = "w-60",
   defaultOpen = false,
 }: Props) {
@@ -90,8 +93,8 @@ export default function DropdownMenu({
         <div
           role="menu"
           aria-label={ariaLabel}
-          className={`absolute top-full z-50 mt-1.5 ${widthClass} rounded-lg border border-gray-200 bg-white p-1.5 shadow-lg ${
-            align === "right" ? "right-0" : "left-0"
+          className={`absolute z-50 ${widthClass} rounded-lg border border-gray-200 bg-white p-1.5 shadow-lg ${
+            placement === "beside" ? "left-full top-0 ml-2" : align === "right" ? "right-0 top-full mt-1.5" : "left-0 top-full mt-1.5"
           }`}
         >
           {title && <p className="px-2.5 pb-1.5 pt-1 text-xs text-gray-500">{title}</p>}

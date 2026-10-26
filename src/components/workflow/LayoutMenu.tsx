@@ -15,8 +15,9 @@ interface Props {
 /**
  * The ⋯ button at the top-right corner of the code area that opens the
  * layout menu: checkboxes for each area (explorer, panel, details,
- * assistant), on the canvas where the panel docks, then a reset. It's the
- * one place that lists everything the layout can show or hide.
+ * assistant), on the canvas where the panel docks and whether the run
+ * history is laid over it, then a reset. It's the one place that lists
+ * everything the layout can show or hide.
  */
 export default function LayoutMenu({ layout, onChange, onReset, view, defaultOpen = false }: Props) {
   const code = view === "code";
@@ -30,6 +31,13 @@ export default function LayoutMenu({ layout, onChange, onReset, view, defaultOpe
       : [
           { id: "dock:right", label: "Panel on the right", selected: layout.canvasPanelDock === "right", divider: true },
           { id: "dock:bottom", label: "Panel along the bottom", selected: layout.canvasPanelDock === "bottom" },
+          {
+            id: "canvasActivity",
+            label: "Run activity",
+            description: "Run and failure counts on the canvas",
+            checked: layout.canvasActivity,
+            divider: true,
+          },
         ]),
     ...(onReset ? [{ id: "reset", label: "Reset layout", divider: true }] : []),
   ];
@@ -37,7 +45,7 @@ export default function LayoutMenu({ layout, onChange, onReset, view, defaultOpe
   const select = (id: string) => {
     if (id === "reset") return onReset?.();
     if (id.startsWith("dock:")) return onChange({ canvasPanelDock: id.slice(5) as PanelDock, panel: true });
-    const key = id as "explorer" | "panel" | "details" | "assistant";
+    const key = id as "explorer" | "panel" | "details" | "assistant" | "canvasActivity";
     onChange({ [key]: !layout[key] });
   };
 

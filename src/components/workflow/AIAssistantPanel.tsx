@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, FileText, Info, MessagesSquare, MoreVertical, Plus, Search, Sparkles, X } from "lucide-react";
-import type { AssistantConversation, AssistantMessage, AssistantMode, AssistantPlan } from "../../mock-data/assistant";
+import type { AssistantConversation, AssistantMessage, AssistantMode, AssistantPlan, AssistantReference } from "../../mock-data/assistant";
 import { assistantPlanResult, assistantReply, assistantSuggestions } from "../../mock-data/assistant";
 import { shortId } from "../../mock-data/runs";
 import CodeBlock from "../CodeBlock";
@@ -8,6 +8,7 @@ import DropdownMenu from "../DropdownMenu";
 import AssistantChatInput from "./AssistantChatInput";
 import AssistantPlanCard from "./AssistantPlanCard";
 import AssistantResultCard from "./AssistantResultCard";
+import ReferenceChip from "./ReferenceChip";
 
 /** How long the prototype "thinks" before replying. */
 const REPLY_DELAY_MS = 900;
@@ -25,7 +26,9 @@ type View = "sessions" | "chat";
  * mode it makes the change and reports the result, from which the test runs
  * can be opened and a merge requested. The ⋮ menu switches back to
  * conversations and opens "About the assistant". When a run is selected
- * (`runId`), its logs and data can be attached.
+ * (`runId`), its logs and data can be attached. A `reference`, e.g. the step
+ * whose card's Improve opened the assistant, is loaded into the chat input
+ * and goes out with the next message.
  */
 export default function AIAssistantPanel({
   conversations: initialConversations = [],
@@ -38,6 +41,8 @@ export default function AIAssistantPanel({
   onOpenRuns,
   onAskToMerge,
   onPlanAccepted,
+  reference,
+  onClearReference,
 }: {
   /** Saved conversations for this workflow, newest first. */
   conversations?: AssistantConversation[];
@@ -57,6 +62,10 @@ export default function AIAssistantPanel({
   onAskToMerge?: () => void;
   /** A plan was accepted; the editor can reflect the change. */
   onPlanAccepted?: (plan: AssistantPlan) => void;
+  /** Context loaded into the chat input, e.g. a step picked on the canvas. */
+  reference?: AssistantReference;
+  /** The reference was sent or removed. */
+  onClearReference?: () => void;
 }) {
   const [conversations, setConversations] = useState(initialConversations);
   const [conversationId, setConversationId] = useState(defaultConversationId);
@@ -73,7 +82,11 @@ export default function AIAssistantPanel({
   const forContext = conversations.filter((c) => c.jobLabel === jobLabel);
   const listed = forContext.filter((c) => c.title.toLowerCase().includes(query.trim().toLowerCase()));
   const suggestions = jobLabel ? assistantSuggestions.job : assistantSuggestions.workflow;
-  const placeholder = jobLabel ? `Ask for a change to ${jobLabel}…` : "Ask for a change, or describe what to build…";
+  const placeholder = reference
+    ? `What should be better about this ${reference.kind}?`
+    : jobLabel
+      ? `Ask for a change to ${jobLabel}…`
+      : "Ask for a change, or describe what to build…";
 
   useEffect(() => {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight });
@@ -106,7 +119,8 @@ export default function AIAssistantPanel({
   };
 
   const send = (text: string) => {
-    const userMessage: AssistantMessage = { id: shortId(), role: "user", content: text.trim() };
+    const userMessage: AssistantMessage = { id: shortId(), role: "user", content: text.trim(), reference };
+    if (reference) onClearReference?.();
     let id = conversation?.id;
     if (!id) {
       id = shortId();
@@ -269,6 +283,8 @@ export default function AIAssistantPanel({
           autoFocus
           mode={mode}
           onModeChange={setMode}
+          reference={reference}
+          onRemoveReference={onClearReference}
         />
 
         {aboutOpen && <About onClose={() => setAboutOpen(false)} />}
@@ -291,7 +307,14 @@ function Message({
 }) {
   if (message.role === "user") {
     return (
-      <div className="whitespace-pre-wrap rounded-xl bg-green-50 px-3.5 py-2.5 text-sm text-gray-900">{message.content}</div>
+      <div className="rounded-xl bg-green-50 px-3.5 py-2.5 text-sm text-gray-900">
+        {message.reference && (
+          <div className="mb-1.5">
+            <ReferenceChip reference={message.reference} />
+          </div>
+        )}
+        <div className="whitespace-pre-wrap">{message.content}</div>
+      </div>
     );
   }
   return (

@@ -37,3 +37,15 @@ export const Dots: Story = {
     </div>
   ),
 };
+
+/** The icon with a detail, as on a canvas card while a run is loaded. */
+export const Icons: Story = {
+  render: () => (
+    <div className="flex items-center gap-4">
+      <StatusPill status="success" variant="icon" detail="179 ms" />
+      <StatusPill status="failed" variant="icon" detail="30 s" />
+      <StatusPill status="running" variant="icon" />
+      <StatusPill status="pending" variant="icon" />
+    </div>
+  ),
+};

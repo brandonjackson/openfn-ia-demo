@@ -108,8 +108,11 @@ interface RunSpec {
   outputs?: Record<string, State>;
   /** Graph to take step labels from. */
   workflow?: Workflow;
-  /** Step statuses for a run that is still going (defaults to final). */
-  inProgress?: boolean;
+  /**
+   * For a run still going: how many steps have finished. The next step is
+   * running and the rest are pending. Unset means the run is over.
+   */
+  progress?: number;
 }
 
 /**
@@ -129,17 +132,20 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
   let state = JSON.parse(spec.input.body) as State;
   let inputId = spec.input.id;
 
+  const inProgress = spec.progress !== undefined;
   spec.path.forEach((jobId, i) => {
     const stepId = `${spec.runId}-${jobId}`;
     const failed = spec.failAt?.jobId === jobId;
-    const status = spec.inProgress ? (i === 0 ? "running" : "pending") : failed ? "failed" : "success";
+    // Whether this step is over yet; in a finished run every step is.
+    const done = !inProgress || i < spec.progress!;
+    const status = !done ? (i === spec.progress ? "running" : "pending") : failed ? "failed" : "success";
     const output = failed
       ? { ...state, error: spec.failAt!.error }
       : spec.outputs?.[jobId] ?? stepOutput(jobId, state, spec.runId);
     const duration = failed ? "30 s" : DEFAULT_DURATION[jobId] ?? "12 ms";
 
     const outputId = `${stepId}-out`;
-    if (!spec.inProgress) {
+    if (done) {
       dataclips.push({ id: outputId, type: "step_result", body: json(output), created: spec.when });
     }
     steps.push({
@@ -147,12 +153,13 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
       jobId,
       label: label(jobId),
       status,
-      duration: spec.inProgress ? "" : duration,
+      duration: done ? duration : "",
       inputId,
-      outputId: spec.inProgress ? undefined : outputId,
+      outputId: done ? outputId : undefined,
     });
 
-    if (!spec.inProgress) {
+    if (status === "running") logs.push({ source: "R/T", message: `Starting step ${label(jobId)}`, stepId });
+    if (done) {
       logs.push({ source: "R/T", message: `Starting step ${label(jobId)}`, stepId });
       const request = requestLog(jobId, state, failed);
       if (request) logs.push({ ...request, stepId });
@@ -168,7 +175,7 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
     inputId = outputId;
   });
 
-  if (!spec.inProgress) {
+  if (!inProgress) {
     logs.push({ source: "R/T", message: `Run ${spec.failAt ? "failed" : "complete"} in ${spec.duration}` });
   }
 
@@ -176,8 +183,8 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
     run: {
       workOrderId: spec.workOrderId,
       runId: spec.runId,
-      status: spec.inProgress ? "running" : spec.failAt ? "failed" : "success",
-      duration: spec.inProgress ? "" : spec.duration,
+      status: inProgress ? "running" : spec.failAt ? "failed" : "success",
+      duration: inProgress ? "" : spec.duration,
       started: spec.started,
       when: spec.when,
       startedBy: spec.startedBy ?? "webhook trigger",
@@ -394,7 +401,9 @@ export const olderRun: RunDetails = workOrders.find((o) => o.id === "2f11d4f1")!
 /**
  * A new run of `workflow` from `input`, along every step it would take when
  * all goes well: from `fromJobId` when retrying from a step, otherwise from
- * the start. With `inProgress`, the run has only just started.
+ * the start. With `progress`, the run is still going and that many steps
+ * have finished (0 means it has only just started); the editor calls this
+ * once per step to show the run advancing live.
  */
 export function simulateRun({
   workflow,
@@ -404,7 +413,7 @@ export function simulateRun({
   runId,
   fromJobId,
   startedBy,
-  inProgress = false,
+  progress,
 }: {
   workflow: Workflow;
   version: string;
@@ -413,7 +422,7 @@ export function simulateRun({
   runId: string;
   fromJobId?: string;
   startedBy: string;
-  inProgress?: boolean;
+  progress?: number;
 }): { run: RunDetails; dataclips: Dataclip[] } {
   const now = new Date();
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -430,6 +439,80 @@ export function simulateRun({
     input,
     path: happyPath(workflow, fromJobId),
     workflow,
-    inProgress,
+    progress,
   });
+}
+
+// ---------------------------------------------------------------------------
+// Activity: what the run history adds up to, for the canvas overlay.
+// ---------------------------------------------------------------------------
+
+export interface NodeActivity {
+  /** Runs that reached the node. */
+  runs: number;
+  /** Runs where the node's step failed. */
+  failed: number;
+  /** The run the step last failed in, to open from a failure count. */
+  lastFailure?: RunDetails;
+}
+
+/** The run history summed up per node and edge of a workflow. */
+export interface RunActivity {
+  /** What period the numbers cover, e.g. "Last 7 days". */
+  period: string;
+  runs: number;
+  failed: number;
+  /** Keyed by node id; the trigger counts every run that started from it. */
+  nodes: Record<string, NodeActivity>;
+  /** Keyed by edge id: how many runs went along it. */
+  edges: Record<string, number>;
+  /** The most runs along any one edge, to scale the others against. */
+  busiest: number;
+}
+
+/**
+ * Sum up `workOrders` over the nodes and edges of `workflow`: how many runs
+ * reached each step and how many failed there, and how many went along each
+ * edge, taken from the order the steps ran in. Runs still going aren't
+ * counted.
+ */
+export function runActivity(workflow: Workflow, workOrders: WorkOrder[], period = "Last 7 days"): RunActivity {
+  const nodes: Record<string, NodeActivity> = {};
+  const edges: Record<string, number> = {};
+  for (const node of workflow.nodes) nodes[node.id] = { runs: 0, failed: 0 };
+  for (const edge of workflow.edges) edges[edge.id] = 0;
+  const trigger = workflow.nodes.find((n) => n.type === "trigger");
+
+  const runs = workOrders.flatMap((o) => o.runs).filter((r) => r.status !== "running");
+  let failed = 0;
+  for (const run of runs) {
+    if (run.status === "failed") failed += 1;
+    const path = run.steps.map((s) => s.jobId);
+    // The trigger started the run when the first step follows it.
+    const fromTrigger = trigger !== undefined && workflow.edges.some((e) => e.source === trigger.id && e.target === path[0]);
+    const visited = fromTrigger && trigger ? [trigger.id, ...path] : path;
+    for (const step of run.steps) {
+      const node = nodes[step.jobId];
+      if (!node) continue;
+      node.runs += 1;
+      if (step.status === "failed") {
+        node.failed += 1;
+        node.lastFailure ??= run;
+      }
+    }
+    if (fromTrigger && trigger) nodes[trigger.id].runs += 1;
+    for (let i = 1; i < visited.length; i++) {
+      const edge = workflow.edges.find((e) => e.source === visited[i - 1] && e.target === visited[i]);
+      if (edge) edges[edge.id] += 1;
+    }
+  }
+
+  return {
+    period,
+    runs: runs.length,
+    failed,
+    nodes,
+    edges,
+    busiest: Math.max(0, ...Object.values(edges)),
+  };
 }

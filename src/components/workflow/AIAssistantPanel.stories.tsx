@@ -40,3 +40,12 @@ export const NewStepConversation: Story = {
 };
 
 export const About: Story = { args: { defaultAboutOpen: true } };
+
+/** Opened from a card's Improve: the step is loaded into the chat input. */
+export const ImproveStep: Story = {
+  args: {
+    jobLabel: "Search for duplicate citizens in Identity",
+    reference: { kind: "step", id: "search", label: "Search for duplicate citizens in Identity", adaptor: "http" },
+    onClearReference: () => {},
+  },
+};

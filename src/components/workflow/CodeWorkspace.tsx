@@ -46,6 +46,8 @@ interface Props {
   credentials?: Record<string, string | undefined>;
   onStepChange?: (stepId: string, changes: StepChanges) => void;
   onInsertSnippet?: (stepId: string, snippet: Snippet) => void;
+  /** A step's code was edited in the editor. Without it, the code is read-only. */
+  onCodeChange?: (stepId: string, code: string) => void;
   onDeleteStep?: (stepId: string) => void;
   onAddStep?: () => void;
   /** Docs added alongside plan.md and spec.md, by file name. */
@@ -101,6 +103,7 @@ export default function CodeWorkspace({
   credentials = {},
   onStepChange,
   onInsertSnippet,
+  onCodeChange,
   onDeleteStep,
   onAddStep,
   docs = [],
@@ -281,7 +284,11 @@ export default function CodeWorkspace({
       <div className="flex min-w-0 flex-1 flex-col">
         <CodePaneHeader path={path} actions={actions} />
         <div className="min-h-0 flex-1 overflow-hidden">
-          <CodeEditor code={code} />
+          <CodeEditor
+            key={step?.id ?? path.join("/")}
+            code={code}
+            onChange={step && !readOnly && onCodeChange ? (next) => onCodeChange(step.id, next) : undefined}
+          />
         </div>
         {bottomTray}
         <EditorStatusBar items={statusItems} trailing={statusTrailing} />

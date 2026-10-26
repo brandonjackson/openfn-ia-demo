@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import CodeEditor from "./CodeEditor";
 import { nationalIdWorkflow, type JobNode } from "../../mock-data/workflow";
@@ -21,6 +22,14 @@ export default meta;
 type Story = StoryObj<typeof CodeEditor>;
 
 export const Default: Story = { args: { code: searchJob.body } };
+
+function EditableEditor() {
+  const [code, setCode] = useState(searchJob.body);
+  return <CodeEditor code={code} onChange={setCode} />;
+}
+
+/** Type, paste and undo as normal; Tab indents and Enter keeps the indent. */
+export const Editable: Story = { render: () => <EditableEditor /> };
 
 export const ShortJob: Story = {
   args: {

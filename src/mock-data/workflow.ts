@@ -9,6 +9,13 @@
 /** The kind of adaptor a job uses — drives the icon shown on the node. */
 export type AdaptorKind = "http" | "common" | "dhis2" | "salesforce" | "postgresql";
 
+/** How a trigger's kind is named on its pill. */
+export const triggerNames: Record<TriggerNode["triggerType"], string> = {
+  webhook: "Webhook trigger",
+  cron: "Cron trigger",
+  kafka: "Kafka trigger",
+};
+
 /** What makes an edge fire. Drives the little badge drawn on the connector. */
 export type EdgeCondition =
   | "always"
@@ -51,15 +58,6 @@ export interface JobNode {
 }
 
 export type WorkflowNode = TriggerNode | JobNode;
-
-/**
- * Splits a node summary such as "**Searches Identity** for citizens" into
- * its bold lead and the rest. Without a marked lead the whole text is the lead.
- */
-export function splitSummary(summary: string): { lead: string; rest: string } {
-  const match = /^\*\*(.+?)\*\*\s*(.*)$/s.exec(summary);
-  return match ? { lead: match[1], rest: match[2] } : { lead: summary, rest: "" };
-}
 
 export interface WorkflowEdge {
   id: string;

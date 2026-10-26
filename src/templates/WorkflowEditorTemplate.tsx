@@ -292,7 +292,9 @@ export default function WorkflowEditorTemplate({
   // Stories pin a layout; the app remembers the reader's.
   const [override, setOverride] = useState<Partial<EditorLayout>>(initialLayout ?? {});
   const layout: EditorLayout = { ...savedLayout, ...override };
-  const updateLayout = (patch: Partial<EditorLayout>) => {
+  const updateLayout = (requested: Partial<EditorLayout>) => {
+    // The panel always opens at its smaller size; it's maximised only on request.
+    const patch = requested.panel && !layout.panel ? { panelMaximized: false, ...requested } : requested;
     setLayout(patch);
     setOverride((o) => {
       const next = { ...o };

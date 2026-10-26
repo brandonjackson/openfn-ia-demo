@@ -25,7 +25,7 @@ export const WithSelection: Story = {
 
 export const Bare: Story = {
   name: "No overlays",
-  args: { workflow: nationalIdWorkflow, showMinimap: false, showControls: false, onNodeAction: undefined },
+  args: { workflow: nationalIdWorkflow, showControls: false, onNodeAction: undefined },
 };
 
 /** The run history laid over the workflow: counts on cards, volume on edges. */

@@ -809,7 +809,7 @@ export default function WorkflowEditorTemplate({
       onCloseRun={deselectRun}
       live={live}
       view={view}
-      onViewChange={setView}
+      onViewChange={(next) => (next === "code" && view === "canvas" && focusNode ? openInCode(focusNode.id) : setView(next))}
       retry={retryControl}
       fromStep={focusJob?.label}
       onRun={() => runFresh()}

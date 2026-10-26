@@ -72,9 +72,9 @@ export const WorkflowFile: Story = { args: { file: "workflow", onSettingsChange:
 
 export const Trigger: Story = { args: { file: "trigger", onToggleLive: () => {} } };
 
-export const PlanDocument: Story = { args: { file: "plan" } };
+export const ContextDocument: Story = { args: { file: "context" } };
 
-/** The listing of the published service the workflow backs, after the plan and spec. */
+/** The listing of the published service the workflow backs, after the context and spec. */
 export const ServiceListing: Story = { args: { file: "service", service: projects[0].services[0], onOpenService: () => {} } };
 
 export const ExplorerHidden: Story = { args: { showExplorer: false } };

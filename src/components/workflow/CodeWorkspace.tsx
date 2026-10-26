@@ -59,7 +59,7 @@ interface Props {
   onCodeChange?: (stepId: string, code: string) => void;
   onDeleteStep?: (stepId: string) => void;
   onAddStep?: () => void;
-  /** Docs added alongside plan.md and spec.md, by file name. */
+  /** Docs added alongside context.md and spec.md, by file name. */
   docs?: string[];
   onAddDoc?: () => void;
   /** Opens the picker for a new project component. */
@@ -130,7 +130,7 @@ export default function CodeWorkspace({
       : undefined;
   const component =
     typeof file === "object" && "componentId" in file ? components.find((c) => c.id === file.componentId) : undefined;
-  const doc = file === "plan" ? "plan" : file === "spec" ? "spec" : undefined;
+  const doc = file === "context" ? "context" : file === "spec" ? "spec" : undefined;
   const listing = file === "service" ? service : undefined;
   const addedDoc = typeof file === "object" && "docName" in file ? file.docName : undefined;
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
@@ -219,13 +219,13 @@ export default function CodeWorkspace({
       <FileDetailsPanel
         title={`${doc}.md`}
         description={
-          doc === "plan"
-            ? "Why the workflow exists and how it's meant to work. The assistant reads it before proposing changes."
+          doc === "context"
+            ? "The legislation behind the workflow and the groups of citizens it affects. The assistant reads it before proposing changes."
             : "What goes in, what each step writes, and when a run counts as done."
         }
         properties={[
           { icon: User, label: "Edited by", value: "Brandon Jackson" },
-          { icon: Calendar, label: "Updated", value: doc === "plan" ? "14 Oct 2026" : "2 Sep 2026" },
+          { icon: Calendar, label: "Updated", value: doc === "context" ? "14 Oct 2026" : "2 Sep 2026" },
         ]}
         showHeader={false}
       />
@@ -251,7 +251,7 @@ export default function CodeWorkspace({
     ) : addedDoc ? (
       <FileDetailsPanel
         title={addedDoc}
-        description="A new doc kept alongside the workflow. The assistant reads it with the plan and spec."
+        description="A new doc kept alongside the workflow. The assistant reads it with the context and spec."
         properties={[
           { icon: User, label: "Created by", value: "You" },
           { icon: Calendar, label: "Updated", value: "Just now" },

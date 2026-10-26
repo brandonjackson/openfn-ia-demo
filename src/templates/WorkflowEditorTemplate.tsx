@@ -18,7 +18,7 @@ import { shortId, simulateRun } from "../mock-data/runs";
 import { adaptorInfo } from "../mock-data/adaptor-reference";
 import type { Snippet } from "../mock-data/adaptor-reference";
 import type { AssistantConversation, AssistantPlan } from "../mock-data/assistant";
-import type { ProjectComponent } from "../mock-data/projects";
+import type { ProjectComponent, ProjectService } from "../mock-data/projects";
 import EditorShell from "../components/workflow/EditorShell";
 import EditorToolbar from "../components/workflow/EditorToolbar";
 import type { EditorView } from "../components/workflow/EditorToolbar";
@@ -160,6 +160,7 @@ export default function WorkflowEditorTemplate({
   onViewAllSandboxes,
   versions: initialVersions = [],
   url,
+  service,
   onSeeDetails,
   defaultEditInSandboxOpen = false,
   defaultRunInputOpen = false,
@@ -205,6 +206,8 @@ export default function WorkflowEditorTemplate({
   versions?: WorkflowVersion[];
   /** The URL that starts the workflow, for "Copy webhook URL". */
   url?: string;
+  /** The published service the workflow backs; its listing shows as service.md in code mode. */
+  service?: ProjectService;
   /** Opens the service listing where the workflow is documented. */
   onSeeDetails?: () => void;
   /** Start with a dialog open (useful for stories). */
@@ -817,6 +820,8 @@ export default function WorkflowEditorTemplate({
             run={selectedRun}
             components={components}
             onOpenComponent={onOpenComponent}
+            service={service}
+            onOpenService={onSeeDetails}
             readOnly={onMain}
             url={url}
             live={live}

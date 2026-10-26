@@ -1,4 +1,4 @@
-import { Clock, FileText, Globe, Plus, Radio, Workflow as WorkflowIcon } from "lucide-react";
+import { BookOpen, Clock, FileText, Globe, Plus, Radio, Workflow as WorkflowIcon } from "lucide-react";
 import type { JobNode, RunDetails, TriggerNode, Workflow } from "../../mock-data/workflow";
 import type { ProjectComponent } from "../../mock-data/projects";
 import { componentTypeIcons } from "../../component-types";
@@ -14,6 +14,7 @@ export type ExplorerFile =
   | "workflow"
   | "plan"
   | "spec"
+  | "service"
   | "trigger"
   | { docName: string }
   | { stepId: string }
@@ -35,6 +36,8 @@ interface Props {
   run?: RunDetails;
   /** Project components the workflow uses: artifacts, forms, collections, channels. */
   components?: ProjectComponent[];
+  /** Lists service.md, the listing of the published service the workflow backs. */
+  hasService?: boolean;
   /** Docs added alongside plan.md and spec.md, by file name. */
   docs?: string[];
   /** The + on each group; left out on main, where nothing can be added. */
@@ -45,7 +48,7 @@ interface Props {
 
 /**
  * The left-hand explorer in code mode, in three groups: the workflow's own
- * files (its YAML, plan, spec and any added docs), its trigger and steps in
+ * files (its YAML, plan, spec, service listing and any added docs), its trigger and steps in
  * the order they run, and the project components it uses. Each group adds
  * from the + beside its heading. You move between them here rather than
  * through tabs. With a run loaded, each step shows how it went.
@@ -56,6 +59,7 @@ export default function EditorExplorer({
   onOpen,
   run,
   components = [],
+  hasService = false,
   docs = [],
   onAddDoc,
   onAddStep,
@@ -75,6 +79,9 @@ export default function EditorExplorer({
         <ExplorerRow label="workflow.yaml" icon={WorkflowIcon} selected={current === "workflow"} onClick={() => onOpen("workflow")} />
         <ExplorerRow label="plan.md" icon={FileText} selected={current === "plan"} onClick={() => onOpen("plan")} />
         <ExplorerRow label="spec.md" icon={FileText} selected={current === "spec"} onClick={() => onOpen("spec")} />
+        {hasService && (
+          <ExplorerRow label="service.md" icon={BookOpen} selected={current === "service"} onClick={() => onOpen("service")} />
+        )}
         {docs.map((name) => (
           <ExplorerRow
             key={name}

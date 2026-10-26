@@ -1,18 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
-import type { ReactNode } from "react";
-import { Clock, FlaskConical, GitMerge, Lock, Sparkles } from "lucide-react";
-import type { RunDetails, WorkflowVersion, WorkOrder } from "../../mock-data/workflow";
+import { Clock, FlaskConical, GitMerge, Lock } from "lucide-react";
+import type { WorkflowVersion } from "../../mock-data/workflow";
 import { versionOptions } from "../../mock-data/workflow";
 import Button from "../Button";
 import Picker from "../Picker";
 import SegmentedControl from "../SegmentedControl";
-import IconToggleButton from "../IconToggleButton";
 import WorkflowFileMenu from "./WorkflowFileMenu";
 import type { WorkflowMenuAction } from "./WorkflowFileMenu";
 import SandboxChip from "./SandboxChip";
 import RunMenuButton from "./RunMenuButton";
-import RunPicker from "./RunPicker";
+import LayoutControls from "./LayoutControls";
 
 /** The editor's main surfaces. */
 export type EditorView = "canvas" | "code";
@@ -50,13 +48,11 @@ interface Props {
   onRun?: () => void;
   onRetry?: () => void;
   onRunWithCustomInput?: () => void;
-  /** Run history, for loading a run into the canvas or code. */
-  workOrders?: WorkOrder[];
-  selectedRun?: RunDetails;
-  onSelectRun?: (run: RunDetails) => void;
-  onDeselectRun?: () => void;
-  /** Shown under the run list, e.g. a version mismatch banner. */
-  runFooter?: ReactNode;
+  /** Layout toggles: explorer (code mode only), panel and assistant. */
+  explorerOpen?: boolean;
+  onToggleExplorer?: () => void;
+  panelOpen?: boolean;
+  onTogglePanel?: () => void;
   assistantOpen?: boolean;
   onToggleAssistant?: () => void;
 }
@@ -68,9 +64,8 @@ interface Props {
  * or press R, to rename in a sandbox), the sandbox chip and, when there is
  * history, the version picker. In the middle the view switcher flips between
  * Canvas and Code; on main it's marked read-only. On the right sit the
- * assistant toggle, the run picker (loads a run into whichever mode is
- * showing), the run button and the main action: "Edit in sandbox" on main,
- * "Go live" (promote) in a sandbox.
+ * layout toggles (explorer, panel, assistant), the run button and the main
+ * action: "Edit in sandbox" on main, "Go live" (promote) in a sandbox.
  */
 export default function EditorToolbar({
   name,
@@ -95,11 +90,10 @@ export default function EditorToolbar({
   onRun,
   onRetry,
   onRunWithCustomInput,
-  workOrders = [],
-  selectedRun,
-  onSelectRun,
-  onDeselectRun,
-  runFooter,
+  explorerOpen,
+  onToggleExplorer,
+  panelOpen = false,
+  onTogglePanel,
   assistantOpen = false,
   onToggleAssistant,
 }: Props) {
@@ -226,28 +220,21 @@ export default function EditorToolbar({
         <SegmentedControl variant="pill" size="md" options={editorViews} value={view} onChange={(v) => onViewChange(v as EditorView)} />
       </div>
 
-      {/* Assistant, runs and the main action */}
+      {/* Layout, run and the main action */}
       <div className={`${group} gap-1.5 px-1.5`}>
-        {onToggleAssistant && (
+        {onTogglePanel && onToggleAssistant && (
           <>
-            <IconToggleButton
-              icon={Sparkles}
-              label="Assistant"
-              hint="Ctrl/⌘ + K"
-              pressed={assistantOpen}
-              onClick={onToggleAssistant}
+            <LayoutControls
+              explorerOpen={explorerOpen}
+              onToggleExplorer={onToggleExplorer}
+              panelOpen={panelOpen}
+              onTogglePanel={onTogglePanel}
+              assistantOpen={assistantOpen}
+              onToggleAssistant={onToggleAssistant}
             />
             <span className="mx-0.5 h-6 w-px bg-gray-200" aria-hidden />
           </>
         )}
-        <RunPicker
-          workOrders={workOrders}
-          selectedRun={selectedRun}
-          latestVersion={versions[0]?.id}
-          onSelectRun={onSelectRun}
-          onDeselectRun={onDeselectRun}
-          footer={runFooter}
-        />
         <RunMenuButton retry={retry} onRun={onRun} onRetry={onRetry} onRunWithCustomInput={onRunWithCustomInput} />
         {onMain ? (
           <Button variant="dark" size="sm" icon={FlaskConical} className="ml-1 rounded-lg" onClick={() => onMenuAction("edit-in-sandbox")}>

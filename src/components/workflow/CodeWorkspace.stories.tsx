@@ -58,6 +58,8 @@ export const Trigger: Story = { args: { file: "trigger", onToggleLive: () => {} 
 
 export const PlanDocument: Story = { args: { file: "plan" } };
 
+export const ExplorerHidden: Story = { args: { showExplorer: false } };
+
 /** A collection the workflow uses, opened from the Components group. */
 export const CollectionOpen: Story = {
   args: { file: { componentId: components.find((c) => c.type === "Collection")!.id } },

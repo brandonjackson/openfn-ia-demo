@@ -26,3 +26,7 @@ export const Output: Story = { args: { tab: "output" } };
 export const Run: Story = { args: { tab: "run" } };
 export const FailedStep: Story = { args: { run: failedRun, step: failedRun.steps.find((s) => s.jobId === "create") } };
 export const StepNotInRun: Story = { args: { step: undefined } };
+
+/** Nothing in focus: the whole run's log. */
+export const WholeRunLog: Story = { args: { step: undefined, wholeRun: true } };
+export const WholeRunOutput: Story = { args: { step: undefined, wholeRun: true, tab: "output" } };

@@ -49,8 +49,10 @@ interface Props {
   onRunFromStep?: (stepId: string) => void;
   /** Retry the selected run from this step; offered when the run reached it. */
   onRetryFromStep?: (stepId: string) => void;
-  /** A tray inline under the code, e.g. the step's run output. */
+  /** The panel inline under the code. */
   bottomTray?: ReactNode;
+  /** Hide the explorer column (toggled from the toolbar). */
+  showExplorer?: boolean;
   /** A note for the status bar, e.g. "Tested by the assistant". */
   statusNote?: string;
 }
@@ -84,6 +86,7 @@ export default function CodeWorkspace({
   onRunFromStep,
   onRetryFromStep,
   bottomTray,
+  showExplorer = true,
   statusNote,
 }: Props) {
   const step =
@@ -146,6 +149,7 @@ export default function CodeWorkspace({
 
   return (
     <div className="flex h-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      {showExplorer && (
       <div className="w-64 flex-none border-r border-gray-100">
         <EditorExplorer
           workflow={workflow}
@@ -156,6 +160,7 @@ export default function CodeWorkspace({
           onAddStep={readOnly ? undefined : onAddStep}
         />
       </div>
+      )}
 
       <div className="flex min-w-0 flex-1 flex-col">
         <CodePaneHeader path={path} actions={actions} />

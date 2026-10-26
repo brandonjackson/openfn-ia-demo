@@ -37,11 +37,18 @@ export default meta;
 type Story = StoryObj<typeof WorkflowEditorTemplate>;
 
 /** On main: the canvas, read-only, with "Edit in sandbox" as the main action. */
-export const Default: Story = {};
+export const Default: Story = {
+  args: { initialLayout: { panel: false, assistant: false, explorer: true } },
+};
 
-/** A step selected on the canvas opens the step tray along the bottom. */
+/** A step selected on the canvas brings its settings up in the panel. */
 export const StepSelected: Story = {
-  args: { initialSelectedId: "search", initialTrays: ["step"] },
+  args: { initialSelectedId: "search", initialLayout: { panel: true, panelView: "step" } },
+};
+
+/** The panel on its Runs view, ready to load a run. */
+export const RunsPanel: Story = {
+  args: { initialLayout: { panel: true, panelView: "runs" } },
 };
 
 /** A run loaded from the run picker, drawn on the canvas. */
@@ -49,9 +56,9 @@ export const RunLoaded: Story = {
   args: { runId: sampleRun.runId },
 };
 
-/** A failed run, with the failed step's log in the step tray. */
+/** A failed run, with the failed step's log in the panel. */
 export const FailedRunStepOpen: Story = {
-  args: { runId: failedRun.runId, initialSelectedId: "create", initialTrays: ["step"] },
+  args: { runId: failedRun.runId, initialSelectedId: "create", initialLayout: { panel: true, panelView: "log" } },
 };
 
 /** A v1 run shown on the latest graph, with the banner offering the version that ran. */
@@ -75,7 +82,7 @@ export const CodeInSandbox: Story = {
     sandbox: projects[0].sandboxes[1],
     initialView: "code",
     initialFile: { stepId: "create" },
-    initialTrays: ["assistant"],
+    initialLayout: { assistant: true, panel: false },
   },
 };
 
@@ -86,7 +93,7 @@ export const CodeFollowingRun: Story = {
     initialView: "code",
     initialFile: { stepId: "create" },
     runId: failedRun.runId,
-    initialTrays: ["step"],
+    initialLayout: { panel: true, panelView: "log" },
   },
 };
 
@@ -105,9 +112,24 @@ export const WorkflowSettings: Story = {
   args: { initialView: "code", initialFile: "workflow", sandbox: projects[0].sandboxes[1] },
 };
 
-/** The adaptor reference tray under the code. */
+/** The adaptor reference in the panel under the code. */
 export const AdaptorReference: Story = {
-  args: { initialView: "code", initialFile: { stepId: "search" }, initialTrays: ["docs"], sandbox: projects[0].sandboxes[1] },
+  args: {
+    initialView: "code",
+    initialFile: { stepId: "search" },
+    initialLayout: { panel: true, panelView: "reference" },
+    sandbox: projects[0].sandboxes[1],
+  },
+};
+
+/** Explorer hidden and the panel maximised, as a reader might set it. */
+export const CustomLayout: Story = {
+  args: {
+    initialView: "code",
+    initialFile: { stepId: "search" },
+    runId: sampleRun.runId,
+    initialLayout: { explorer: false, panel: true, panelView: "output", panelMaximized: true, hiddenViews: ["reference"] },
+  },
 };
 
 export const InSandbox: Story = {
@@ -128,7 +150,7 @@ export const NewWorkflow: Story = {
   args: { workOrders: [], versions: [], graphForVersion: undefined, sandbox: projects[0].sandboxes[1] },
 };
 
-/** The assistant tray open beside the canvas, on the workflow's conversations. */
+/** The assistant open beside the canvas, on the workflow's conversations. */
 export const AssistantOpen: Story = {
-  args: { initialTrays: ["assistant"] },
+  args: { initialLayout: { assistant: true } },
 };

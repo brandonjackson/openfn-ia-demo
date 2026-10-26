@@ -3,17 +3,16 @@ import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import EditorToolbar from "./EditorToolbar";
 import type { EditorView } from "./EditorToolbar";
-import type { RunDetails } from "../../mock-data/workflow";
 import { nationalIdWorkflow, workflowVersions } from "../../mock-data/workflow";
 import { projects } from "../../mock-data/projects";
-import { sampleRun, workOrders } from "../../mock-data/runs";
 
 function Stateful(args: ComponentProps<typeof EditorToolbar>) {
   const [view, setView] = useState<EditorView>(args.view);
   const [name, setName] = useState(args.name);
   const [sandbox, setSandbox] = useState(args.sandbox ?? "main");
   const [assistantOpen, setAssistantOpen] = useState(args.assistantOpen ?? false);
-  const [run, setRun] = useState<RunDetails | undefined>(args.selectedRun);
+  const [panelOpen, setPanelOpen] = useState(args.panelOpen ?? false);
+  const [explorerOpen, setExplorerOpen] = useState(true);
   return (
     <EditorToolbar
       {...args}
@@ -25,10 +24,10 @@ function Stateful(args: ComponentProps<typeof EditorToolbar>) {
       onSelectSandbox={setSandbox}
       assistantOpen={assistantOpen}
       onToggleAssistant={() => setAssistantOpen((o) => !o)}
-      selectedRun={run}
-      onSelectRun={setRun}
-      onDeselectRun={() => setRun(undefined)}
-      retry={run ? { step: args.retry?.step } : undefined}
+      panelOpen={panelOpen}
+      onTogglePanel={() => setPanelOpen((o) => !o)}
+      explorerOpen={view === "code" ? explorerOpen : undefined}
+      onToggleExplorer={view === "code" ? () => setExplorerOpen((o) => !o) : undefined}
     />
   );
 }
@@ -53,7 +52,8 @@ const meta: Meta<typeof EditorToolbar> = {
     onMenuAction: () => {},
     onNewSandbox: () => {},
     onViewAllSandboxes: () => {},
-    workOrders,
+    onTogglePanel: () => {},
+    onToggleAssistant: () => {},
   },
   render: (args) => <Stateful {...args} />,
 };
@@ -73,13 +73,14 @@ export const Renaming: Story = {
   args: { sandbox: projects[0].sandboxes[1], defaultRenaming: true },
 };
 
-/** With a run loaded, the run picker names it and the run button retries it. */
-export const RunLoaded: Story = {
-  args: { selectedRun: sampleRun, retry: { step: "Create new citizen in Identity" } },
+/** With a run loaded, the run button retries it. */
+export const RetryAvailable: Story = {
+  args: { retry: { step: "Create new citizen in Identity" } },
 };
 
-export const AssistantOpen: Story = {
-  args: { assistantOpen: true },
+/** The panel and assistant showing; in code mode the explorer toggle joins them. */
+export const AreasOpen: Story = {
+  args: { assistantOpen: true, panelOpen: true, view: "code" },
 };
 
 export const Paused: Story = {

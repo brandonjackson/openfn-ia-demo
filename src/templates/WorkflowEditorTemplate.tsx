@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BookOpen, Code2, Sparkles } from "lucide-react";
+import { Code2, Sparkles } from "lucide-react";
 import type {
   AdaptorKind,
   Dataclip,
@@ -24,14 +24,15 @@ import EditorToolbar from "../components/workflow/EditorToolbar";
 import type { EditorView } from "../components/workflow/EditorToolbar";
 import type { WorkflowMenuAction } from "../components/workflow/WorkflowFileMenu";
 import EditorTray from "../components/workflow/EditorTray";
-import type { TrayPlacement } from "../components/workflow/EditorTray";
+import EditorPanel from "../components/workflow/EditorPanel";
+import { useEditorLayout, resetLayout } from "../editor-layout";
+import type { EditorLayout, PanelViewId } from "../editor-layout";
 import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
 import CodeWorkspace from "../components/workflow/CodeWorkspace";
 import type { ExplorerFile } from "../components/workflow/EditorExplorer";
 import VersionMismatchBanner from "../components/workflow/VersionMismatchBanner";
 import StepRunDetails from "../components/workflow/StepRunDetails";
-import { stepRunTabs } from "../components/workflow/step-run-tabs";
-import type { StepRunTab } from "../components/workflow/step-run-tabs";
+import RunHistoryList from "../components/workflow/RunHistoryList";
 import StepConfigPanel from "../components/workflow/StepConfigPanel";
 import type { StepChanges } from "../components/workflow/StepConfigPanel";
 import TriggerConfigPanel from "../components/workflow/TriggerConfigPanel";
@@ -51,19 +52,6 @@ const CURRENT_USER = "Jane Doe";
 
 /** How long a simulated run takes before its results come in. */
 const RUN_TIME_MS = 1500;
-
-/** The trays the editor can show. */
-export type TrayId = "step" | "docs" | "assistant";
-
-/**
- * Where each tray docks. The assistant has the right-hand dock to itself;
- * the step tray and the adaptor reference share the bottom dock.
- */
-const placements: Record<TrayId, TrayPlacement> = {
-  step: "bottom",
-  docs: "bottom",
-  assistant: "right",
-};
 
 /** Edits made in this session, on top of the workflow as loaded. */
 interface Edits {
@@ -104,27 +92,30 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
 }
 
 /**
- * The workflow editor: one toolbar, two views and a set of trays.
+ * The workflow editor: one toolbar, two views, and an IDE-style layout of
+ * explorer, panel and assistant.
  *
  * The toolbar's Fn menu holds the workflow's file actions (rename, settings,
  * sandbox and promotion, export, pause, delete) and the way back to the
  * project. The view switcher flips between the canvas and code (explorer,
- * code and the open item's settings). The run picker loads a run into
- * whichever view is showing.
+ * code and the open item's settings). Layout toggles at the right show or
+ * hide the explorer (Ctrl/⌘ + B), the panel (Ctrl/⌘ + J) and the assistant
+ * (Ctrl/⌘ + K); the layout is remembered across workflows.
  *
- * The assistant is the only tray on the right, toggled from the toolbar or
- * Ctrl/⌘ + K. The bottom dock holds the step tray (opened by selecting a
- * step) or the adaptor reference (opened from a step's settings), one at a
- * time. On the canvas the bottom tray floats over it; in code mode it sits
- * under the code.
+ * The panel along the bottom carries the views that aren't canvas or code:
+ * Runs (to load one), the selected Step's settings, its Log, Input and
+ * Output in the loaded run, and the adaptor Reference. Its ⋯ menu chooses
+ * which views it shows. On the canvas it floats; in code mode it sits under
+ * the code. The assistant has the right-hand side to itself.
  *
  * On main everything is read-only and the main action is "Edit in sandbox".
  * In a sandbox steps can be renamed, re-adaptored, given credentials, have
  * snippets inserted, be added and deleted, and "Go live" promotes the sandbox
  * to main as a new version.
  *
- * Loading a run draws it on the canvas, marks each step in the explorer and
- * fills the step tray with that step's log, input and output.
+ * Loading a run from the Runs view draws it on the canvas, marks each step in
+ * the explorer and fills the Log, Input and Output views for the step in
+ * focus.
  * When the run took place on an older version, a banner offers to view the
  * version that ran. With a run selected the run button becomes Retry.
  *
@@ -142,7 +133,7 @@ export default function WorkflowEditorTemplate({
   initialSelectedId,
   initialFile,
   initialVersion = "latest",
-  initialTrays = [],
+  initialLayout,
   onBack,
   onDelete,
   projectName,
@@ -176,8 +167,8 @@ export default function WorkflowEditorTemplate({
   initialFile?: ExplorerFile;
   /** "latest" or a version id (useful for stories). */
   initialVersion?: string;
-  /** Trays open to start with (useful for stories). */
-  initialTrays?: TrayId[];
+  /** Overrides the remembered layout (useful for stories). */
+  initialLayout?: Partial<EditorLayout>;
   /** Back to the project's workflows. */
   onBack?: () => void;
   /** The workflow was deleted. */
@@ -265,43 +256,49 @@ export default function WorkflowEditorTemplate({
   const focusTrigger = focusNode?.type === "trigger" ? (focusNode as TriggerNode) : undefined;
   const focusStep = focusJob ? selectedRun?.steps.find((s) => s.jobId === focusJob.id) : undefined;
 
-  // ---- Trays ----------------------------------------------------------------
+  // ---- Layout ---------------------------------------------------------------
 
-  const [openTrays, setOpenTrays] = useState<TrayId[]>(initialTrays);
-  const [stepTab, setStepTab] = useState<"configure" | StepRunTab>("configure");
+  const [savedLayout, setLayout] = useEditorLayout();
+  // Stories pin a layout; the app remembers the reader's.
+  const [override, setOverride] = useState<Partial<EditorLayout>>(initialLayout ?? {});
+  const layout: EditorLayout = { ...savedLayout, ...override };
+  const updateLayout = (patch: Partial<EditorLayout>) => {
+    setLayout(patch);
+    setOverride((o) => {
+      const next = { ...o };
+      for (const key of Object.keys(patch) as (keyof EditorLayout)[]) delete next[key];
+      return next;
+    });
+  };
   const [docsAdaptor, setDocsAdaptor] = useState<AdaptorKind | undefined>();
 
-  const isOpen = (id: TrayId) => openTrays.includes(id);
-  /** Open a tray in its dock, closing whatever was there. */
-  const openTray = (id: TrayId) =>
-    setOpenTrays((open) => [...open.filter((t) => placements[t] !== placements[id] && t !== id), id]);
-  const closeTray = (id: TrayId) => setOpenTrays((open) => open.filter((t) => t !== id));
-  const toggleTray = (id: TrayId) => (isOpen(id) ? closeTray(id) : openTray(id));
-  // In code mode the step's settings are already beside its code, so the step
-  // tray only has something to show once a run is loaded.
-  const showable = (id: TrayId) => !(id === "step" && view === "code" && !selectedRun);
-  const trayIn = (placement: TrayPlacement) => openTrays.find((t) => placements[t] === placement && showable(t));
+  /** Show the panel on a view, e.g. a step's log when a run is loaded. */
+  const showPanel = (panelView: PanelViewId) => updateLayout({ panel: true, panelView });
+  const togglePanel = () => updateLayout({ panel: !layout.panel });
+  const toggleAssistant = () => updateLayout({ assistant: !layout.assistant });
+  const toggleExplorer = () => updateLayout({ explorer: !layout.explorer });
 
-  // Ctrl/⌘ + K toggles the assistant, as in Lightning.
+  // IDE-style shortcuts: Ctrl/⌘ + B explorer, J panel, K assistant.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        toggleTray("assistant");
-      }
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const key = e.key.toLowerCase();
+      if (key === "k") toggleAssistant();
+      else if (key === "j") togglePanel();
+      else if (key === "b" && view === "code") toggleExplorer();
+      else return;
+      e.preventDefault();
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openTrays]);
+  }, [layout, view]);
 
   const selectNode = (node: WorkflowNode) => {
     const next = selectedId === node.id ? undefined : node.id;
     setSelectedId(next);
-    if (next) {
-      setStepTab("configure");
-      openTray("step");
-    } else closeTray("step");
+    // Selecting a step brings its settings up, or its log when a run is loaded.
+    if (next) showPanel(selectedRun?.steps.some((s) => s.jobId === next) ? "log" : "step");
   };
 
   const openInCode = (stepId?: string) => {
@@ -320,18 +317,15 @@ export default function WorkflowEditorTemplate({
     // Stay on an earlier version only if the new run ran on it too.
     if (version !== "latest" && version !== run.version) setVersion("latest");
     setRunId(run.runId);
-    // The step tray follows the run for whatever's in focus.
-    if (focusJob) {
-      if (stepTab === "configure") setStepTab("log");
-      openTray("step");
-    }
+    // The panel follows the run for whatever's in focus.
+    if (focusJob && run.steps.some((s) => s.jobId === focusJob.id)) showPanel("log");
   };
 
   const deselectRun = () => {
     // Leaving a run you were viewing as executed returns to the latest.
     if (selectedRun && version === selectedRun.version) setVersion("latest");
     setRunId(undefined);
-    if (stepTab !== "configure") setStepTab("configure");
+    if (["log", "input", "output"].includes(layout.panelView)) updateLayout({ panelView: "runs" });
   };
 
   /** Put a run at the top of its work order, and its work order at the top. */
@@ -359,10 +353,7 @@ export default function WorkflowEditorTemplate({
     upsertRun(simulateRun({ ...args, inProgress: true }).run);
     setVersion("latest");
     setRunId(args.runId);
-    if (focusJob) {
-      setStepTab("log");
-      openTray("step");
-    }
+    if (focusJob) showPanel("log");
     setTimeout(() => {
       const done = simulateRun(args);
       upsertRun(done.run);
@@ -469,7 +460,7 @@ export default function WorkflowEditorTemplate({
     edit((e) => ({ removed: [...e.removed, stepId] }));
     if (selectedId === stepId) setSelectedId(undefined);
     if (typeof file === "object" && "stepId" in file && file.stepId === stepId) setFile("workflow");
-    closeTray("step");
+    if (layout.panelView === "step") updateLayout({ panelView: "runs" });
   };
 
   /** A plan the assistant carried out: note it on the step it was about. */
@@ -515,116 +506,6 @@ export default function WorkflowEditorTemplate({
     }
   };
 
-  // ---- Trays: content -------------------------------------------------------
-
-  const stepTabs = [
-    ...(view === "canvas" ? [{ id: "configure", label: "Configure" }] : []),
-    ...(focusStep !== undefined || (selectedRun && view === "code")
-      ? stepRunTabs.map((t) => ({ ...t, disabled: !focusStep && t.id !== "run" }))
-      : []),
-  ];
-  const effectiveStepTab = stepTabs.some((t) => t.id === stepTab) ? stepTab : (stepTabs[0]?.id ?? "configure");
-
-  const renderTray = (id: TrayId) => {
-    const common = {
-      placement: placements[id],
-      floating: view === "canvas",
-      onClose: () => closeTray(id),
-    };
-    switch (id) {
-      case "docs": {
-        const adaptor = docsAdaptor ?? focusJob?.adaptor ?? "common";
-        return (
-          <EditorTray key={id} title="Adaptor reference" icon={BookOpen} {...common}>
-            <AdaptorReferencePanel
-              adaptor={adaptor}
-              onChangeAdaptor={setDocsAdaptor}
-              onInsert={!onMain && focusJob ? (s) => insertSnippet(focusJob.id, s) : undefined}
-              stepLabel={focusJob?.label}
-            />
-          </EditorTray>
-        );
-      }
-      case "assistant":
-        return (
-          <EditorTray key={id} title="Assistant" icon={Sparkles} {...common}>
-            <AIAssistantPanel
-              conversations={assistantConversations}
-              jobLabel={focusJob?.label}
-              runId={selectedRun?.runId}
-              author={CURRENT_USER}
-              onOpenRuns={() => {
-                const latest = orders[0]?.runs[0];
-                if (latest) selectRun(latest);
-              }}
-              onAskToMerge={onMain ? undefined : () => setPromoteOpen(true)}
-              onPlanAccepted={onMain ? undefined : applyPlan}
-            />
-          </EditorTray>
-        );
-      case "step": {
-        if (!focusNode) return null;
-        const inRun = selectedRun !== undefined && focusStep !== undefined;
-        return (
-          <EditorTray
-            key={id}
-            title={focusNode.label}
-            badge={inRun ? <StatusPill status={focusStep!.status} /> : undefined}
-            tabs={
-              stepTabs.length > 1 ? { options: stepTabs, value: effectiveStepTab, onChange: (t) => setStepTab(t as typeof stepTab) } : undefined
-            }
-            meta={selectedRun ? `Run ${selectedRun.runId.slice(0, 6)}${focusStep?.duration ? ` · ${focusStep.duration}` : ""}` : undefined}
-            actions={
-              view === "canvas" && focusJob ? (
-                <Button variant="ghost" size="xs" icon={Code2} onClick={() => openInCode(focusJob.id)}>
-                  Open code
-                </Button>
-              ) : undefined
-            }
-            heightClass={view === "canvas" ? "h-72" : "h-56"}
-            {...common}
-          >
-            {effectiveStepTab === "configure" ? (
-              focusJob ? (
-                <StepConfigPanel
-                  key={focusJob.id}
-                  step={focusJob}
-                  workflow={graph}
-                  credentialId={edits.credentials[focusJob.id]}
-                  readOnly={onMain}
-                  onChange={(c) => changeStep(focusJob.id, c)}
-                  onInsertSnippet={(s) => insertSnippet(focusJob.id, s)}
-                  onOpenReference={() => openTray("docs")}
-                  onDelete={() => deleteStep(focusJob.id)}
-                  showHeader={false}
-                />
-              ) : (
-                focusTrigger && (
-                  <TriggerConfigPanel trigger={focusTrigger} url={url} readOnly={onMain} live={live} onToggleLive={setLive} />
-                )
-              )
-            ) : (
-              selectedRun && (
-                <StepRunDetails
-                  run={selectedRun}
-                  step={focusStep}
-                  dataclips={clips}
-                  tab={effectiveStepTab as StepRunTab}
-                  onSelectStep={openStep}
-                />
-              )
-            )}
-          </EditorTray>
-        );
-      }
-    }
-  };
-
-  const rightTray = isOpen("assistant") ? renderTray("assistant") : undefined;
-  // In code mode, the bottom tray sits under the code; on the canvas it floats.
-  const bottomTrayId = trayIn("bottom");
-  const bottomTray = bottomTrayId ? renderTray(bottomTrayId) : undefined;
-
   const runFooter = showMismatch && (
     <VersionMismatchBanner
       runVersion={selectedRun!.version}
@@ -632,6 +513,145 @@ export default function WorkflowEditorTemplate({
       onViewAsExecuted={graphForVersion?.(selectedRun!.version) ? () => setVersion(selectedRun!.version) : undefined}
     />
   );
+
+  // ---- Panel and assistant --------------------------------------------------
+
+  // In code mode the step's settings are already beside its code.
+  const disabledViews: PanelViewId[] = [
+    ...(focusJob && view === "canvas" ? [] : (["step"] as PanelViewId[])),
+    ...(selectedRun ? [] : (["log", "input", "output"] as PanelViewId[])),
+  ];
+  const visibleViews = (["runs", "step", "log", "input", "output", "reference"] as PanelViewId[]).filter(
+    (v) => !layout.hiddenViews.includes(v) && !disabledViews.includes(v)
+  );
+  const panelView = visibleViews.includes(layout.panelView) ? layout.panelView : (visibleViews[0] ?? "runs");
+
+  const panelContext = (() => {
+    if (panelView === "runs" || panelView === "log" || panelView === "input" || panelView === "output") {
+      return selectedRun ? (
+        <>
+          <StatusPill status={selectedRun.status} variant="dot" />
+          <span className="truncate">
+            Run <code className="font-mono">{selectedRun.runId.slice(0, 6)}</code>
+            {focusJob && panelView !== "runs" ? ` · ${focusJob.label}` : panelView !== "runs" ? " · whole run" : ` · ${selectedRun.when}`}
+            {focusStep?.duration && panelView !== "runs" ? ` · ${focusStep.duration}` : ""}
+          </span>
+          <button
+            type="button"
+            onClick={deselectRun}
+            className="rounded px-1 text-xs font-medium text-blue-600 hover:bg-blue-50"
+          >
+            Unload
+          </button>
+        </>
+      ) : (
+        <span>No run loaded</span>
+      );
+    }
+    if (panelView === "step" && focusNode) {
+      return (
+        <>
+          <span className="truncate">{focusNode.label}</span>
+          {focusJob && (
+            <Button variant="ghost" size="xs" icon={Code2} onClick={() => openInCode(focusJob.id)}>
+              Open code
+            </Button>
+          )}
+        </>
+      );
+    }
+    return undefined;
+  })();
+
+  const panelBody = (() => {
+    switch (panelView) {
+      case "runs":
+        return (
+          <RunHistoryList
+            workOrders={orders}
+            selectedRunId={runId}
+            latestVersion={latestVersion}
+            onSelectRun={selectRun}
+            onDeselectRun={deselectRun}
+            footer={runFooter}
+          />
+        );
+      case "step":
+        return focusJob ? (
+          <StepConfigPanel
+            key={focusJob.id}
+            step={focusJob}
+            workflow={graph}
+            credentialId={edits.credentials[focusJob.id]}
+            readOnly={onMain}
+            onChange={(c) => changeStep(focusJob.id, c)}
+            onInsertSnippet={(s) => insertSnippet(focusJob.id, s)}
+            onOpenReference={() => showPanel("reference")}
+            onDelete={() => deleteStep(focusJob.id)}
+            showHeader={false}
+          />
+        ) : focusTrigger ? (
+          <TriggerConfigPanel trigger={focusTrigger} url={url} readOnly={onMain} live={live} onToggleLive={setLive} />
+        ) : null;
+      case "reference":
+        return (
+          <AdaptorReferencePanel
+            adaptor={docsAdaptor ?? focusJob?.adaptor ?? "common"}
+            onChangeAdaptor={setDocsAdaptor}
+            onInsert={!onMain && focusJob ? (s) => insertSnippet(focusJob.id, s) : undefined}
+            stepLabel={focusJob?.label}
+          />
+        );
+      default:
+        return selectedRun ? (
+          <StepRunDetails
+            run={selectedRun}
+            step={focusStep}
+            wholeRun={!focusJob}
+            dataclips={clips}
+            tab={panelView}
+            onSelectStep={openStep}
+          />
+        ) : null;
+    }
+  })();
+
+  const panel = layout.panel ? (
+    <EditorPanel
+      view={panelView}
+      onViewChange={(v) => updateLayout({ panelView: v })}
+      disabledViews={disabledViews}
+      hiddenViews={layout.hiddenViews}
+      onToggleView={(v) =>
+        updateLayout({
+          hiddenViews: layout.hiddenViews.includes(v) ? layout.hiddenViews.filter((h) => h !== v) : [...layout.hiddenViews, v],
+        })
+      }
+      onResetViews={resetLayout}
+      maximized={layout.panelMaximized}
+      onToggleMaximized={() => updateLayout({ panelMaximized: !layout.panelMaximized })}
+      onClose={togglePanel}
+      context={panelContext}
+      floating={view === "canvas"}
+    >
+      {panelBody}
+    </EditorPanel>
+  ) : undefined;
+
+  const rightTray = layout.assistant ? (
+    <EditorTray title="Assistant" icon={Sparkles} placement="right" onClose={toggleAssistant}>
+      <AIAssistantPanel
+        conversations={assistantConversations}
+        jobLabel={focusJob?.label}
+        runId={selectedRun?.runId}
+        author={CURRENT_USER}
+        onOpenRuns={() => showPanel("runs")}
+        onAskToMerge={onMain ? undefined : () => setPromoteOpen(true)}
+        onPlanAccepted={onMain ? undefined : applyPlan}
+      />
+    </EditorTray>
+  ) : undefined;
+
 
   // ---- Layout ---------------------------------------------------------------
 
@@ -658,13 +678,12 @@ export default function WorkflowEditorTemplate({
       onRun={() => runFresh()}
       onRetry={retry}
       onRunWithCustomInput={() => setRunInputOpen(true)}
-      workOrders={orders}
-      selectedRun={selectedRun}
-      onSelectRun={selectRun}
-      onDeselectRun={deselectRun}
-      runFooter={runFooter}
-      assistantOpen={isOpen("assistant")}
-      onToggleAssistant={() => toggleTray("assistant")}
+      explorerOpen={view === "code" ? layout.explorer : undefined}
+      onToggleExplorer={view === "code" ? toggleExplorer : undefined}
+      panelOpen={layout.panel}
+      onTogglePanel={togglePanel}
+      assistantOpen={layout.assistant}
+      onToggleAssistant={toggleAssistant}
     />
   );
 
@@ -673,7 +692,7 @@ export default function WorkflowEditorTemplate({
       toolbar={toolbar}
       sandboxed={!onMain}
       rightTray={rightTray}
-      bottomTray={view === "canvas" ? bottomTray : undefined}
+      bottomTray={view === "canvas" ? panel : undefined}
       overlays={
         <>
           <RunInputModal open={runInputOpen} onClose={() => setRunInputOpen(false)} dataclips={clips} onRun={runWithInput} />
@@ -724,9 +743,8 @@ export default function WorkflowEditorTemplate({
             file={file}
             onOpen={(f) => {
               setFile(f);
-              if (typeof f === "object" && "stepId" in f && selectedRun) {
-                setStepTab((t) => (t === "configure" ? "log" : t));
-                openTray("step");
+              if (typeof f === "object" && "stepId" in f && selectedRun?.steps.some((s) => s.jobId === f.stepId)) {
+                if (!["input", "output"].includes(layout.panelView)) showPanel("log");
               }
             }}
             run={selectedRun}
@@ -744,12 +762,13 @@ export default function WorkflowEditorTemplate({
             credentials={edits.credentials}
             onStepChange={onMain ? undefined : changeStep}
             onInsertSnippet={onMain ? undefined : insertSnippet}
-            onOpenReference={() => openTray("docs")}
+            onOpenReference={() => showPanel("reference")}
             onDeleteStep={onMain ? undefined : deleteStep}
             onAddStep={onMain ? undefined : addStep}
             onRunFromStep={(id) => runFresh(id)}
             onRetryFromStep={() => retry()}
-            bottomTray={bottomTray}
+            bottomTray={panel}
+            showExplorer={layout.explorer}
             statusNote={statusNote}
           />
         </div>

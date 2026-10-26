@@ -6,6 +6,9 @@ interface Props {
   /** A fresh run of the whole workflow. */
   onRun?: () => void;
   onRunWithCustomInput?: () => void;
+  /** The step in focus; the main action becomes a fresh run from it. */
+  fromStep?: string;
+  onRunFromStep?: () => void;
   /**
    * Set while an earlier run is selected: the main action becomes retrying
    * it, from `step` when a step is open. `hint` adds a note to the tooltip,
@@ -19,13 +22,17 @@ interface Props {
 }
 
 /**
- * The toolbar's run control: a button that starts a run, with a menu for
- * the other ways to run (with a chosen input, or retrying the selected run).
- * While a run is selected the main action reads "Retry" instead.
+ * The toolbar's run control. Its main action follows what's in focus:
+ * "Run" with nothing loaded, "Run from here" with a step open, "Retry" with
+ * a run loaded, and "Retry from here" with both. The menu keeps the other
+ * ways to run: the whole workflow, from the step, with a chosen input, or
+ * retrying the loaded run.
  */
 export default function RunMenuButton({
   onRun,
   onRunWithCustomInput,
+  fromStep,
+  onRunFromStep,
   retry,
   onRetry,
   disabled = false,
@@ -34,29 +41,37 @@ export default function RunMenuButton({
   const retryLabel = retry ? (retry.step ? `Retry from ${retry.step}` : "Retry this run") : undefined;
   const items: DropdownMenuItem[] = [
     { id: "run", label: "Run", description: "Start a fresh run of the whole workflow", icon: Play },
+    ...(fromStep
+      ? [{ id: "from-step", label: `Run from ${fromStep}`, description: "A fresh run starting at this step", icon: Play }]
+      : []),
     { id: "custom", label: "Run with custom input", description: "Choose or write the input for this run", icon: FileJson },
     ...(retry
-      ? [{ id: "retry", label: retryLabel!, description: retry.hint ?? "Runs the selected run's input again", icon: RotateCcw }]
+      ? [{ id: "retry", label: retryLabel!, description: retry.hint ?? "Runs the loaded run's input again", icon: RotateCcw }]
       : []),
   ];
 
   const select = (id: string) => {
     if (id === "run") onRun?.();
+    else if (id === "from-step") onRunFromStep?.();
     else if (id === "custom") onRunWithCustomInput?.();
     else onRetry?.();
   };
+
+  const mainLabel = retry ? (retry.step ? "Retry from here" : "Retry") : fromStep ? "Run from here" : "Run";
+  const mainAction = retry ? onRetry : fromStep ? onRunFromStep : onRun;
+  const mainTitle = retry ? [retryLabel, retry.hint].filter(Boolean).join(". ") : fromStep ? `Run from ${fromStep}` : "Run the workflow";
 
   return (
     <div className="inline-flex h-8 items-stretch rounded-md border border-gray-200 bg-white text-sm font-medium text-gray-800">
       <button
         type="button"
         disabled={disabled}
-        onClick={retry ? onRetry : onRun}
-        title={retry ? [retryLabel, retry.hint].filter(Boolean).join(". ") : "Run the workflow"}
-        className="inline-flex items-center gap-1.5 rounded-l-md px-3 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+        onClick={mainAction}
+        title={mainTitle}
+        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-l-md px-3 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {retry ? <RotateCcw size={13} className="text-gray-500" /> : <Play size={13} className="text-gray-500" />}
-        {retry ? "Retry" : "Run"}
+        {mainLabel}
       </button>
       <DropdownMenu
         ariaLabel="Run options"

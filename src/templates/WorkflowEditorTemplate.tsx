@@ -672,7 +672,9 @@ export default function WorkflowEditorTemplate({
       view={view}
       onViewChange={setView}
       retry={retryControl}
+      fromStep={focusJob?.label}
       onRun={() => runFresh()}
+      onRunFromStep={focusJob ? () => runFresh(focusJob.id) : undefined}
       onRetry={retry}
       onRunWithCustomInput={() => setRunInputOpen(true)}
       assistantOpen={layout.assistant}

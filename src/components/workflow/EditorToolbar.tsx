@@ -45,7 +45,10 @@ interface Props {
   view: EditorView;
   onViewChange: (view: EditorView) => void;
   retry?: { step?: string; hint?: string };
+  /** The step in focus, for "Run from here". */
+  fromStep?: string;
   onRun?: () => void;
+  onRunFromStep?: () => void;
   onRetry?: () => void;
   onRunWithCustomInput?: () => void;
   /** The assistant toggle, in its own group at the far right. */
@@ -84,7 +87,9 @@ export default function EditorToolbar({
   view,
   onViewChange,
   retry,
+  fromStep,
   onRun,
+  onRunFromStep,
   onRetry,
   onRunWithCustomInput,
   assistantOpen = false,
@@ -216,7 +221,14 @@ export default function EditorToolbar({
       {/* Run and the main action, then the assistant on its own */}
       <div className="flex items-center gap-3">
       <div className={`${group} gap-1.5 px-1.5`}>
-        <RunMenuButton retry={retry} onRun={onRun} onRetry={onRetry} onRunWithCustomInput={onRunWithCustomInput} />
+        <RunMenuButton
+          retry={retry}
+          fromStep={fromStep}
+          onRun={onRun}
+          onRunFromStep={onRunFromStep}
+          onRetry={onRetry}
+          onRunWithCustomInput={onRunWithCustomInput}
+        />
         {onMain ? (
           <Button variant="dark" size="sm" icon={FlaskConical} className="ml-1 rounded-lg" onClick={() => onMenuAction("edit-in-sandbox")}>
             Edit in sandbox

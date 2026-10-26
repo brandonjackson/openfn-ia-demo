@@ -66,9 +66,14 @@ export const Renaming: Story = {
   args: { sandbox: projects[0].sandboxes[1], defaultRenaming: true },
 };
 
-/** With a run loaded, the run button retries it. */
-export const RetryAvailable: Story = {
-  args: { retry: { step: "Create new citizen in Identity" } },
+/** A step open: the run button runs from it. */
+export const StepOpen: Story = {
+  args: { fromStep: "Create new citizen in Identity", onRunFromStep: () => {} },
+};
+
+/** A step open and a run loaded that reached it. */
+export const RetryFromStep: Story = {
+  args: { retry: { step: "Create new citizen in Identity" }, fromStep: "Create new citizen in Identity" },
 };
 
 export const AssistantOpen: Story = {

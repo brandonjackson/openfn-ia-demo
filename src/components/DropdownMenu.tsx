@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { Check } from "lucide-react";
+import { Check, CheckSquare2, Square } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 export interface DropdownMenuItem {
@@ -19,6 +19,8 @@ export interface DropdownMenuItem {
   divider?: boolean;
   /** Shows a check mark, for menus that pick one of several. */
   selected?: boolean;
+  /** Shows a checkbox, for menus that turn things on and off independently. */
+  checked?: boolean;
   disabled?: boolean;
 }
 
@@ -111,6 +113,12 @@ export default function DropdownMenu({
                       danger ? "text-red-600 hover:bg-red-50" : "text-gray-800 hover:bg-gray-100"
                     }`}
                   >
+                    {item.checked !== undefined &&
+                      (item.checked ? (
+                        <CheckSquare2 size={15} className="mt-0.5 flex-shrink-0 text-blue-600" />
+                      ) : (
+                        <Square size={15} className="mt-0.5 flex-shrink-0 text-gray-300" />
+                      ))}
                     {Icon && (
                       <Icon size={14} className={`mt-0.5 flex-shrink-0 ${danger ? "text-red-500" : "text-gray-400"}`} />
                     )}

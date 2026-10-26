@@ -8,6 +8,7 @@ interface Props {
   settings: WorkflowSettings;
   readOnly?: boolean;
   onChange?: (settings: WorkflowSettings) => void;
+  showHeader?: boolean;
 }
 
 /**
@@ -15,14 +16,16 @@ interface Props {
  * opened by "Settings" in the file menu: name, description, concurrency,
  * how long run data is kept, and whether step output is logged.
  */
-export default function WorkflowSettingsPanel({ workflow, settings, readOnly = false, onChange }: Props) {
+export default function WorkflowSettingsPanel({ workflow, settings, readOnly = false, onChange, showHeader = true }: Props) {
   const set = (patch: Partial<WorkflowSettings>) => onChange?.({ ...settings, ...patch });
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-10 flex-none items-center gap-2 border-b border-gray-100 px-4">
-        <span className="text-sm font-semibold text-gray-900">Workflow settings</span>
-        <span className="text-xs text-gray-400">{workflow.project}</span>
-      </div>
+      {showHeader && (
+        <div className="flex h-10 flex-none items-center gap-2 border-b border-gray-100 px-4">
+          <span className="text-sm font-semibold text-gray-900">Workflow settings</span>
+          <span className="text-xs text-gray-400">{workflow.project}</span>
+        </div>
+      )}
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4">
         <FormField label="Name" htmlFor="wf-name">
           <TextInput id="wf-name" value={settings.name} disabled={readOnly} onChange={(e) => set({ name: e.target.value })} />

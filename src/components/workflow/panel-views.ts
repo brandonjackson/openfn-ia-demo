@@ -1,4 +1,4 @@
-import { BookOpen, FileInput, FileOutput, History, ScrollText, Settings2 } from "lucide-react";
+import { FileInput, FileOutput, History, ScrollText, Settings2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { PanelViewId } from "../../editor-layout";
 
@@ -9,5 +9,4 @@ export const panelViews: { id: PanelViewId; label: string; icon: LucideIcon; des
   { id: "log", label: "Log", icon: ScrollText, description: "What the step wrote in the loaded run" },
   { id: "input", label: "Input", icon: FileInput, description: "The data the step received" },
   { id: "output", label: "Output", icon: FileOutput, description: "The data the step produced" },
-  { id: "reference", label: "Reference", icon: BookOpen, description: "The adaptor's operations and snippets" },
 ];

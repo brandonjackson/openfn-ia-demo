@@ -72,14 +72,14 @@ export default function AdaptorReferencePanel({ adaptor, onChangeAdaptor, onInse
           />
         </label>
       </div>
-      <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto p-4">
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-4">
         {onInsert && stepLabel && (
-          <p className="pb-1 text-xs text-gray-500">
+          <p className="text-xs text-gray-500">
             Insert adds the snippet to the end of <span className="font-medium text-gray-700">{stepLabel}</span>.
           </p>
         )}
         {snippets.map((s) => (
-          <SnippetRow key={s.id} snippet={s} onInsert={onInsert} />
+          <SnippetRow key={s.id} snippet={s} onInsert={onInsert} variant="card" />
         ))}
         {snippets.length === 0 && <p className="text-sm text-gray-500">No operations match.</p>}
       </div>

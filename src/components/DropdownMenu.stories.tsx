@@ -41,6 +41,20 @@ export const Default: Story = {
   },
 };
 
+/** Turning things on and off: each item carries a checkbox. */
+export const WithCheckboxes: Story = {
+  args: {
+    defaultOpen: true,
+    title: "Show",
+    items: [
+      { id: "explorer", label: "Explorer", checked: true },
+      { id: "panel", label: "Panel", checked: false },
+      { id: "details", label: "Details", checked: true },
+      { id: "reset", label: "Reset layout", divider: true },
+    ],
+  },
+};
+
 /** Picking one of several: the current choice carries a check mark. */
 export const WithSelection: Story = {
   args: {

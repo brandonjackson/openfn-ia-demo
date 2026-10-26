@@ -5,7 +5,10 @@ import { useSyncExternalStore } from "react";
  * the bottom panel is on. It's remembered across workflows and reloads, so
  * the editor opens the way you left it.
  */
-export type PanelViewId = "runs" | "step" | "log" | "input" | "output" | "reference";
+export type PanelViewId = "runs" | "step" | "log" | "input" | "output";
+
+/** What the right-hand column in code mode shows. */
+export type DetailsViewId = "settings" | "reference";
 
 export interface EditorLayout {
   /** The code explorer on the left (code mode). */
@@ -16,6 +19,9 @@ export interface EditorLayout {
   panelMaximized: boolean;
   /** Views taken out of the panel's tab bar. */
   hiddenViews: PanelViewId[];
+  /** The details column beside the code: the open item's settings or the adaptor reference. */
+  details: boolean;
+  detailsView: DetailsViewId;
   /** The assistant on the right. */
   assistant: boolean;
 }
@@ -26,6 +32,8 @@ export const defaultLayout: EditorLayout = {
   panelView: "runs",
   panelMaximized: false,
   hiddenViews: [],
+  details: true,
+  detailsView: "settings",
   assistant: false,
 };
 

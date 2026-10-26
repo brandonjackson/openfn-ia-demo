@@ -23,3 +23,6 @@ export const Default: Story = {};
 export const Expanded: Story = { args: { defaultExpanded: true } };
 
 export const ReadOnly: Story = { args: { onInsert: undefined, defaultExpanded: true } };
+
+/** The reference column shows the code straight away on a light background. */
+export const Card: Story = { args: { variant: "card" } };

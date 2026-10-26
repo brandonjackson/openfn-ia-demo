@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
-import { Calendar, ExternalLink, FolderKanban, Play, RotateCcw, User } from "lucide-react";
-import type { JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../mock-data/workflow";
+import { BookOpen, Calendar, ExternalLink, FolderKanban, Play, RotateCcw, User } from "lucide-react";
+import type { AdaptorKind, JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../mock-data/workflow";
+import type { DetailsViewId } from "../../editor-layout";
 import { workflowToYaml } from "../../mock-data/workflow";
 import { adaptorInfo } from "../../mock-data/adaptor-reference";
 import type { Snippet } from "../../mock-data/adaptor-reference";
@@ -9,7 +10,10 @@ import { componentPreview, workflowDocs } from "../../mock-data/workflow-files";
 import { componentTypeIcons } from "../../component-types";
 import Button from "../Button";
 import Badge from "../Badge";
+import SegmentedControl from "../SegmentedControl";
 import FileDetailsPanel from "./FileDetailsPanel";
+import AdaptorPill from "./AdaptorPill";
+import AdaptorReferencePanel from "./AdaptorReferencePanel";
 import EditorExplorer from "./EditorExplorer";
 import type { ExplorerFile } from "./EditorExplorer";
 import CodePaneHeader from "./CodePaneHeader";
@@ -42,7 +46,6 @@ interface Props {
   credentials?: Record<string, string | undefined>;
   onStepChange?: (stepId: string, changes: StepChanges) => void;
   onInsertSnippet?: (stepId: string, snippet: Snippet) => void;
-  onOpenReference?: () => void;
   onDeleteStep?: (stepId: string) => void;
   onAddStep?: () => void;
   /** Start a fresh run from this step. */
@@ -53,6 +56,15 @@ interface Props {
   bottomTray?: ReactNode;
   /** Hide the explorer column (toggled from the toolbar). */
   showExplorer?: boolean;
+  /** The details column beside the code, and which of its views shows. */
+  showDetails?: boolean;
+  detailsView?: DetailsViewId;
+  onDetailsViewChange?: (view: DetailsViewId) => void;
+  /** The adaptor the reference view is browsing, when not the open step's. */
+  referenceAdaptor?: AdaptorKind;
+  onReferenceAdaptorChange?: (adaptor: AdaptorKind) => void;
+  /** The ⋯ layout menu, shown at the top-right corner of the code area. */
+  layoutMenu?: ReactNode;
   /** A note for the status bar, e.g. "Tested by the assistant". */
   statusNote?: string;
 }
@@ -60,9 +72,11 @@ interface Props {
 /**
  * Code mode: the explorer on the left, the code in the middle under a path
  * row (no file tabs: the explorer is the list of what can be opened), and
- * the settings for what's open on the right. A step shows its code and its
- * settings; the trigger and `workflow.yaml` show the YAML and their
- * settings. A tray can sit inline under the code.
+ * the details column on the right with two views, the open item's settings
+ * and the adaptor reference. A step shows its code and its settings; the
+ * trigger and `workflow.yaml` show the YAML and their settings. The panel
+ * sits inline under the code. The ⋯ layout menu takes the top-right corner
+ * of whichever column is rightmost.
  */
 export default function CodeWorkspace({
   workflow,
@@ -80,13 +94,18 @@ export default function CodeWorkspace({
   credentials = {},
   onStepChange,
   onInsertSnippet,
-  onOpenReference,
   onDeleteStep,
   onAddStep,
   onRunFromStep,
   onRetryFromStep,
   bottomTray,
   showExplorer = true,
+  showDetails = true,
+  detailsView = "settings",
+  onDetailsViewChange,
+  referenceAdaptor,
+  onReferenceAdaptorChange,
+  layoutMenu,
   statusNote,
 }: Props) {
   const step =
@@ -121,21 +140,89 @@ export default function CodeWorkspace({
           ? workflowDocs[doc]
           : yaml;
 
-  const actions = step && (
+  const openReference = () => onDetailsViewChange?.("reference");
+  const actions = (
     <>
-      {canRetry && onRetryFromStep ? (
+      {step && <AdaptorPill adaptor={step.adaptor} showVersion compact />}
+      {step && onDetailsViewChange && (
+        <Button variant="ghost" size="xs" icon={BookOpen} onClick={openReference} title="Adaptor reference">
+          Docs
+        </Button>
+      )}
+      {step && canRetry && onRetryFromStep ? (
         <Button variant="secondary" size="xs" icon={RotateCcw} onClick={() => onRetryFromStep(step.id)} title="Run this step's input again, on the latest version">
           Retry from here
         </Button>
       ) : (
+        step &&
         onRunFromStep && (
           <Button variant="secondary" size="xs" icon={Play} onClick={() => onRunFromStep(step.id)}>
             Run from here
           </Button>
         )
       )}
+      {!showDetails && layoutMenu}
     </>
   );
+
+  const detailsBody =
+    detailsView === "reference" ? (
+      <AdaptorReferencePanel
+        adaptor={referenceAdaptor ?? step?.adaptor ?? "common"}
+        onChangeAdaptor={onReferenceAdaptorChange}
+        onInsert={!readOnly && step && onInsertSnippet ? (s) => onInsertSnippet(step.id, s) : undefined}
+        stepLabel={step?.label}
+      />
+    ) : step ? (
+      <StepConfigPanel
+        key={step.id}
+        step={step}
+        workflow={workflow}
+        credentialId={credentials[step.id]}
+        readOnly={readOnly}
+        onChange={onStepChange ? (changes) => onStepChange(step.id, changes) : undefined}
+        onInsertSnippet={onInsertSnippet ? (s) => onInsertSnippet(step.id, s) : undefined}
+        onOpenReference={onDetailsViewChange ? openReference : undefined}
+        onDelete={onDeleteStep ? () => onDeleteStep(step.id) : undefined}
+        showHeader={false}
+      />
+    ) : component ? (
+      <FileDetailsPanel
+        title={component.name}
+        tag={<Badge label={component.type} />}
+        description={component.description}
+        properties={[
+          { icon: componentTypeIcons[component.type], label: "Type", value: component.type },
+          { icon: FolderKanban, label: "Project", value: workflow.project },
+        ]}
+        action={
+          onOpenComponent && (
+            <Button variant="secondary" size="sm" icon={ExternalLink} onClick={() => onOpenComponent(component.id)}>
+              Open in project
+            </Button>
+          )
+        }
+        showHeader={false}
+      />
+    ) : doc ? (
+      <FileDetailsPanel
+        title={`${doc}.md`}
+        description={
+          doc === "plan"
+            ? "Why the workflow exists and how it's meant to work. The assistant reads it before proposing changes."
+            : "What goes in, what each step writes, and when a run counts as done."
+        }
+        properties={[
+          { icon: User, label: "Edited by", value: "Brandon Jackson" },
+          { icon: Calendar, label: "Updated", value: doc === "plan" ? "14 Oct 2026" : "2 Sep 2026" },
+        ]}
+        showHeader={false}
+      />
+    ) : file === "trigger" && trigger ? (
+      <TriggerConfigPanel trigger={trigger} url={url} readOnly={readOnly} live={live} onToggleLive={onToggleLive} showHeader={false} />
+    ) : (
+      <WorkflowSettingsPanel workflow={workflow} settings={settings} readOnly={readOnly} onChange={onSettingsChange} showHeader={false} />
+    );
 
   const statusItems = step
     ? [`${step.adaptor}@${adaptorInfo[step.adaptor].version}`, step.label]
@@ -171,55 +258,23 @@ export default function CodeWorkspace({
         <EditorStatusBar items={statusItems} trailing={statusTrailing} />
       </div>
 
-      <div className="w-80 flex-none border-l border-gray-100">
-        {step ? (
-          <StepConfigPanel
-            key={step.id}
-            step={step}
-            workflow={workflow}
-            credentialId={credentials[step.id]}
-            readOnly={readOnly}
-            onChange={onStepChange ? (changes) => onStepChange(step.id, changes) : undefined}
-            onInsertSnippet={onInsertSnippet ? (s) => onInsertSnippet(step.id, s) : undefined}
-            onOpenReference={onOpenReference}
-            onDelete={onDeleteStep ? () => onDeleteStep(step.id) : undefined}
-          />
-        ) : component ? (
-          <FileDetailsPanel
-            title={component.name}
-            tag={<Badge label={component.type} />}
-            description={component.description}
-            properties={[
-              { icon: componentTypeIcons[component.type], label: "Type", value: component.type },
-              { icon: FolderKanban, label: "Project", value: workflow.project },
-            ]}
-            action={
-              onOpenComponent && (
-                <Button variant="secondary" size="sm" icon={ExternalLink} onClick={() => onOpenComponent(component.id)}>
-                  Open in project
-                </Button>
-              )
-            }
-          />
-        ) : doc ? (
-          <FileDetailsPanel
-            title={`${doc}.md`}
-            description={
-              doc === "plan"
-                ? "Why the workflow exists and how it's meant to work. The assistant reads it before proposing changes."
-                : "What goes in, what each step writes, and when a run counts as done."
-            }
-            properties={[
-              { icon: User, label: "Edited by", value: "Brandon Jackson" },
-              { icon: Calendar, label: "Updated", value: doc === "plan" ? "14 Oct 2026" : "2 Sep 2026" },
-            ]}
-          />
-        ) : file === "trigger" && trigger ? (
-          <TriggerConfigPanel trigger={trigger} url={url} readOnly={readOnly} live={live} onToggleLive={onToggleLive} />
-        ) : (
-          <WorkflowSettingsPanel workflow={workflow} settings={settings} readOnly={readOnly} onChange={onSettingsChange} />
-        )}
-      </div>
+      {showDetails && (
+        <div className="flex w-80 flex-none flex-col border-l border-gray-100">
+          <div className="flex h-10 flex-none items-center justify-between gap-2 border-b border-gray-100 px-2">
+            <SegmentedControl
+              variant="pill"
+              options={[
+                { id: "settings", label: step ? "Settings" : component ? "Details" : doc ? "Details" : "Settings" },
+                { id: "reference", label: "Reference" },
+              ]}
+              value={detailsView}
+              onChange={(v) => onDetailsViewChange?.(v as DetailsViewId)}
+            />
+            {layoutMenu}
+          </div>
+          <div className="min-h-0 flex-1">{detailsBody}</div>
+        </div>
+      )}
     </div>
   );
 }

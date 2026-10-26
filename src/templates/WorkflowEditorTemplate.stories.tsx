@@ -112,12 +112,12 @@ export const WorkflowSettings: Story = {
   args: { initialView: "code", initialFile: "workflow", sandbox: projects[0].sandboxes[1] },
 };
 
-/** The adaptor reference in the panel under the code. */
+/** The adaptor reference beside the code, in the details column. */
 export const AdaptorReference: Story = {
   args: {
     initialView: "code",
     initialFile: { stepId: "search" },
-    initialLayout: { panel: true, panelView: "reference" },
+    initialLayout: { panel: false, details: true, detailsView: "reference" },
     sandbox: projects[0].sandboxes[1],
   },
 };
@@ -128,7 +128,7 @@ export const CustomLayout: Story = {
     initialView: "code",
     initialFile: { stepId: "search" },
     runId: sampleRun.runId,
-    initialLayout: { explorer: false, panel: true, panelView: "output", panelMaximized: true, hiddenViews: ["reference"] },
+    initialLayout: { explorer: false, details: false, panel: true, panelView: "output", panelMaximized: true, hiddenViews: ["step"] },
   },
 };
 

@@ -25,6 +25,7 @@ import type { EditorView } from "../components/workflow/EditorToolbar";
 import type { WorkflowMenuAction } from "../components/workflow/WorkflowFileMenu";
 import EditorTray from "../components/workflow/EditorTray";
 import EditorPanel from "../components/workflow/EditorPanel";
+import LayoutMenu from "../components/workflow/LayoutMenu";
 import { useEditorLayout, resetLayout } from "../editor-layout";
 import type { EditorLayout, PanelViewId } from "../editor-layout";
 import WorkflowCanvas from "../components/workflow/WorkflowCanvas";
@@ -36,7 +37,6 @@ import RunHistoryList from "../components/workflow/RunHistoryList";
 import StepConfigPanel from "../components/workflow/StepConfigPanel";
 import type { StepChanges } from "../components/workflow/StepConfigPanel";
 import TriggerConfigPanel from "../components/workflow/TriggerConfigPanel";
-import AdaptorReferencePanel from "../components/workflow/AdaptorReferencePanel";
 import AIAssistantPanel from "../components/workflow/AIAssistantPanel";
 import StatusPill from "../components/workflow/StatusPill";
 import RunInputModal from "../components/RunInputModal";
@@ -274,6 +274,12 @@ export default function WorkflowEditorTemplate({
 
   /** Show the panel on a view, e.g. a step's log when a run is loaded. */
   const showPanel = (panelView: PanelViewId) => updateLayout({ panel: true, panelView });
+  /** Open a step's adaptor reference in code mode's details column. */
+  const openReference = (stepId: string) => {
+    setFile({ stepId });
+    setView("code");
+    updateLayout({ details: true, detailsView: "reference" });
+  };
   const togglePanel = () => updateLayout({ panel: !layout.panel });
   const toggleAssistant = () => updateLayout({ assistant: !layout.assistant });
   const toggleExplorer = () => updateLayout({ explorer: !layout.explorer });
@@ -521,7 +527,7 @@ export default function WorkflowEditorTemplate({
     ...(focusJob && view === "canvas" ? [] : (["step"] as PanelViewId[])),
     ...(selectedRun ? [] : (["log", "input", "output"] as PanelViewId[])),
   ];
-  const visibleViews = (["runs", "step", "log", "input", "output", "reference"] as PanelViewId[]).filter(
+  const visibleViews = (["runs", "step", "log", "input", "output"] as PanelViewId[]).filter(
     (v) => !layout.hiddenViews.includes(v) && !disabledViews.includes(v)
   );
   const panelView = visibleViews.includes(layout.panelView) ? layout.panelView : (visibleViews[0] ?? "runs");
@@ -586,22 +592,13 @@ export default function WorkflowEditorTemplate({
             readOnly={onMain}
             onChange={(c) => changeStep(focusJob.id, c)}
             onInsertSnippet={(s) => insertSnippet(focusJob.id, s)}
-            onOpenReference={() => showPanel("reference")}
+            onOpenReference={() => openReference(focusJob.id)}
             onDelete={() => deleteStep(focusJob.id)}
             showHeader={false}
           />
         ) : focusTrigger ? (
           <TriggerConfigPanel trigger={focusTrigger} url={url} readOnly={onMain} live={live} onToggleLive={setLive} />
         ) : null;
-      case "reference":
-        return (
-          <AdaptorReferencePanel
-            adaptor={docsAdaptor ?? focusJob?.adaptor ?? "common"}
-            onChangeAdaptor={setDocsAdaptor}
-            onInsert={!onMain && focusJob ? (s) => insertSnippet(focusJob.id, s) : undefined}
-            stepLabel={focusJob?.label}
-          />
-        );
       default:
         return selectedRun ? (
           <StepRunDetails
@@ -637,6 +634,8 @@ export default function WorkflowEditorTemplate({
       {panelBody}
     </EditorPanel>
   ) : undefined;
+
+  const layoutMenu = <LayoutMenu layout={layout} onChange={updateLayout} onReset={resetLayout} view={view} />;
 
   const rightTray = layout.assistant ? (
     <EditorTray title="Assistant" icon={Sparkles} placement="right" onClose={toggleAssistant}>
@@ -762,13 +761,18 @@ export default function WorkflowEditorTemplate({
             credentials={edits.credentials}
             onStepChange={onMain ? undefined : changeStep}
             onInsertSnippet={onMain ? undefined : insertSnippet}
-            onOpenReference={() => showPanel("reference")}
             onDeleteStep={onMain ? undefined : deleteStep}
             onAddStep={onMain ? undefined : addStep}
             onRunFromStep={(id) => runFresh(id)}
             onRetryFromStep={() => retry()}
             bottomTray={panel}
             showExplorer={layout.explorer}
+            showDetails={layout.details}
+            detailsView={layout.detailsView}
+            onDetailsViewChange={(v) => updateLayout({ details: true, detailsView: v })}
+            referenceAdaptor={docsAdaptor}
+            onReferenceAdaptorChange={setDocsAdaptor}
+            layoutMenu={layoutMenu}
             statusNote={statusNote}
           />
         </div>

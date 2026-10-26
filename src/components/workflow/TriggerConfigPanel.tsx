@@ -13,18 +13,22 @@ interface Props {
   readOnly?: boolean;
   live?: boolean;
   onToggleLive?: (live: boolean) => void;
+  /** Hide the name row when a column header already names the trigger. */
+  showHeader?: boolean;
 }
 
 /**
  * The trigger's settings in code mode: its type, the webhook URL to copy,
  * and whether it's enabled.
  */
-export default function TriggerConfigPanel({ trigger, url, readOnly = false, live = true, onToggleLive }: Props) {
+export default function TriggerConfigPanel({ trigger, url, readOnly = false, live = true, onToggleLive, showHeader = true }: Props) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-10 flex-none items-center gap-2 border-b border-gray-100 px-4">
-        <span className="truncate text-sm font-semibold text-gray-900">{trigger.label}</span>
-      </div>
+      {showHeader && (
+        <div className="flex h-10 flex-none items-center gap-2 border-b border-gray-100 px-4">
+          <span className="truncate text-sm font-semibold text-gray-900">{trigger.label}</span>
+        </div>
+      )}
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4">
         <FormField label="Type">
           <Select

@@ -3,6 +3,7 @@ import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import CodeWorkspace from "./CodeWorkspace";
 import type { ExplorerFile } from "./EditorExplorer";
+import type { DetailsViewId } from "../../editor-layout";
 import EditorTray from "./EditorTray";
 import StepRunDetails from "./StepRunDetails";
 import StatusPill from "./StatusPill";
@@ -13,8 +14,9 @@ import { projects } from "../../mock-data/projects";
 const components = projects[0].components.filter((c) => c.type !== "Workflow");
 
 function Stateful(args: ComponentProps<typeof CodeWorkspace>) {
-    const [file, setFile] = useState<ExplorerFile>(args.file);
-    return <CodeWorkspace {...args} file={file} onOpen={setFile} />;
+  const [file, setFile] = useState<ExplorerFile>(args.file);
+  const [detailsView, setDetailsView] = useState<DetailsViewId>(args.detailsView ?? "settings");
+  return <CodeWorkspace {...args} file={file} onOpen={setFile} detailsView={detailsView} onDetailsViewChange={setDetailsView} />;
 }
 
 const meta: Meta<typeof CodeWorkspace> = {
@@ -36,7 +38,6 @@ const meta: Meta<typeof CodeWorkspace> = {
     url: "https://app.openfn.org/i/8f3c2a1e",
     components,
     onOpenComponent: () => {},
-    onOpenReference: () => {},
   },
   render: (args) => <Stateful {...args} />,
 };
@@ -59,6 +60,13 @@ export const Trigger: Story = { args: { file: "trigger", onToggleLive: () => {} 
 export const PlanDocument: Story = { args: { file: "plan" } };
 
 export const ExplorerHidden: Story = { args: { showExplorer: false } };
+
+/** The details column on its Reference view, with expanded snippets. */
+export const Reference: Story = {
+  args: { detailsView: "reference", onInsertSnippet: () => {}, onStepChange: () => {} },
+};
+
+export const DetailsHidden: Story = { args: { showDetails: false } };
 
 /** A collection the workflow uses, opened from the Components group. */
 export const CollectionOpen: Story = {

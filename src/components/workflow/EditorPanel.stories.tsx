@@ -91,6 +91,6 @@ export const Collapsed: Story = {
 
 /** Some views hidden through the ⋯ menu. */
 export const ViewsHidden: Story = {
-  args: { hiddenViews: ["step", "reference"] },
+  args: { hiddenViews: ["step", "input"] },
   decorators: Inline.decorators,
 };

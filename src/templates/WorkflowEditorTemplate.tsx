@@ -935,6 +935,7 @@ export default function WorkflowEditorTemplate({
             detailsView={layout.detailsView}
             onDetailsViewChange={(v) => updateLayout({ details: true, detailsView: v })}
             layoutMenu={layoutMenu}
+            onClose={() => setView("canvas")}
             statusNote={statusNote}
             dirtyStepIds={[
               ...new Set([...Object.keys(edits.bodies), ...Object.keys(edits.labels), ...Object.keys(edits.adaptors), ...edits.added.map((j) => j.id)]),

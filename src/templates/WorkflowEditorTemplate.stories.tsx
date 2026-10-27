@@ -93,6 +93,11 @@ export const OlderRunAsExecuted: Story = {
   args: { runId: olderRun.runId, initialVersion: olderRun.version },
 };
 
+/** The Health tab: the workflow's run history summed up for the period, on any version. */
+export const Health: Story = {
+  args: { initialView: "health" },
+};
+
 /** Code mode on main: explorer, read-only code and the step's settings. */
 export const CodeReadOnly: Story = {
   args: { initialView: "code", initialFile: { stepId: "search" } },

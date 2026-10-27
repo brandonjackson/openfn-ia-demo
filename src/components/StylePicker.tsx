@@ -8,8 +8,8 @@ import type { ThemeMeta } from "../theme/themes";
  * the `data-theme` attribute on <html>. It re-skins every component
  * without touching their markup — functionality is never altered.
  *
- * The control's own chrome is styled with explicit (theme-independent)
- * colors so it stays legible no matter which theme is active; only the
+ * The control's own chrome is styled with the theme-independent
+ * --picker-* tokens so it stays legible no matter which theme is active; only the
  * preview swatches reflect each theme's real palette.
  */
 export default function StylePicker({
@@ -107,8 +107,8 @@ function ThemeRow({
       onMouseLeave={() => setHover(false)}
       style={{
         ...styles.row,
-        background: active ? "#f0fdfb" : hover ? "#f4f4f5" : "transparent",
-        borderColor: active ? "#0d9488" : "transparent",
+        background: active ? "var(--picker-accent-soft)" : hover ? "var(--picker-hover)" : "transparent",
+        borderColor: active ? "var(--picker-accent)" : "transparent",
       }}
     >
       <span style={styles.swatches} aria-hidden="true">
@@ -125,8 +125,8 @@ function ThemeRow({
           <span
             style={{
               ...styles.modeDot,
-              background: theme.mode === "dark" ? "#111827" : "#e5e7eb",
-              borderColor: theme.mode === "dark" ? "#111827" : "#cbd5e1",
+              background: theme.mode === "dark" ? "var(--picker-dark-dot)" : "var(--picker-border)",
+              borderColor: theme.mode === "dark" ? "var(--picker-dark-dot)" : "var(--picker-light-dot-border)",
             }}
             title={theme.mode === "dark" ? "Dark" : "Light"}
           />
@@ -138,8 +138,9 @@ function ThemeRow({
   );
 }
 
-/* Explicit, theme-independent styling so the control reads the same in
-   every theme. (Tailwind utilities here would themselves be re-skinned.) */
+/* Theme-independent styling so the control reads the same in every theme:
+   its colours are the --picker-* tokens in theme.css, which no theme
+   redefines. (Tailwind utilities here would themselves be re-skinned.) */
 const styles: Record<string, CSSProperties> = {
   root: {
     position: "fixed",
@@ -157,22 +158,22 @@ const styles: Record<string, CSSProperties> = {
     width: 48,
     height: 48,
     borderRadius: 9999,
-    border: "1px solid rgba(255,255,255,0.12)",
-    background: "#121212",
-    color: "#ffffff",
+    border: "1px solid var(--picker-trigger-border)",
+    background: "var(--picker-trigger-bg)",
+    color: "var(--picker-trigger-fg)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     cursor: "pointer",
-    boxShadow: "0 6px 20px rgba(0,0,0,0.25)",
+    boxShadow: "0 6px 20px var(--picker-shadow)",
   },
   panel: {
     width: 320,
-    background: "#ffffff",
-    color: "#111827",
-    border: "1px solid #e5e7eb",
+    background: "var(--picker-surface)",
+    color: "var(--picker-fg)",
+    border: "1px solid var(--picker-border)",
     borderRadius: 16,
-    boxShadow: "0 20px 50px rgba(0,0,0,0.22)",
+    boxShadow: "0 20px 50px var(--picker-panel-shadow)",
     padding: 14,
     overflow: "hidden",
   },
@@ -185,13 +186,13 @@ const styles: Record<string, CSSProperties> = {
   closeBtn: {
     border: "none",
     background: "transparent",
-    color: "#6b7280",
+    color: "var(--picker-muted)",
     cursor: "pointer",
     padding: 4,
     borderRadius: 8,
     display: "flex",
   },
-  subtitle: { margin: "2px 0 12px", fontSize: 12, color: "#6b7280" },
+  subtitle: { margin: "2px 0 12px", fontSize: 12, color: "var(--picker-muted)" },
   list: {
     listStyle: "none",
     margin: 0,
@@ -218,8 +219,8 @@ const styles: Record<string, CSSProperties> = {
     flexShrink: 0,
     padding: 3,
     borderRadius: 9,
-    background: "#f3f4f6",
-    border: "1px solid #e5e7eb",
+    background: "var(--picker-well)",
+    border: "1px solid var(--picker-border)",
   },
   swatch: { width: 13, height: 13, borderRadius: 3 },
   rowText: { display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 },
@@ -229,7 +230,7 @@ const styles: Record<string, CSSProperties> = {
     gap: 6,
     fontSize: 13.5,
     fontWeight: 600,
-    color: "#111827",
+    color: "var(--picker-fg)",
   },
   modeDot: {
     width: 8,
@@ -238,6 +239,6 @@ const styles: Record<string, CSSProperties> = {
     border: "1px solid",
     display: "inline-block",
   },
-  rowDesc: { fontSize: 11.5, color: "#6b7280", lineHeight: 1.35 },
-  check: { color: "#0d9488", display: "flex", flexShrink: 0, width: 16 },
+  rowDesc: { fontSize: 11.5, color: "var(--picker-muted)", lineHeight: 1.35 },
+  check: { color: "var(--picker-accent)", display: "flex", flexShrink: 0, width: 16 },
 };

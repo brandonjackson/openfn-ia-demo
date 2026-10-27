@@ -7,6 +7,7 @@
  * failed) so its steps, logs and dataclips stay consistent with each other.
  */
 import type {
+  AdaptorKind,
   Dataclip,
   LogLine,
   RunDetails,
@@ -511,10 +512,37 @@ export interface RunActivity {
 }
 
 /**
+ * The steps of `run` that it reached along `workflow`'s connectors from the
+ * trigger, in order. A run that didn't start at the trigger, such as one on
+ * an older version whose first step isn't next to the trigger here, walked
+ * none of this graph; one that leaves the graph part-way stops there.
+ */
+function walkedSteps(workflow: Workflow, run: RunDetails): RunStep[] {
+  const trigger = workflow.nodes.find((n) => n.type === "trigger");
+  if (!trigger) return [];
+  const walked: RunStep[] = [];
+  let from = trigger.id;
+  for (const step of run.steps) {
+    if (!workflow.edges.some((e) => e.source === from && e.target === step.jobId)) break;
+    walked.push(step);
+    from = step.jobId;
+  }
+  return walked;
+}
+
+/**
  * Sum up `workOrders` over the nodes and edges of `workflow`: how many runs
  * reached each step and how many failed there, and how many went along each
  * edge, taken from the order the steps ran in. Runs still going aren't
  * counted.
+ *
+ * A run counts only along the path it walked from the trigger (see
+ * `walkedSteps`), so the numbers add up down the graph: the trigger counts
+ * every run, each connector carries no more runs than reached the step it
+ * leaves, and each step counts exactly the runs its incoming connectors
+ * carried. Counts never grow as the workflow goes on. Runs that didn't walk
+ * this graph from its trigger, such as runs on an older version, are left
+ * out of every number here, the totals included.
  */
 export function runActivity(workflow: Workflow, workOrders: WorkOrder[], period: ActivityPeriod = "7d"): RunActivity {
   const nodes: Record<string, NodeActivity> = {};
@@ -523,33 +551,32 @@ export function runActivity(workflow: Workflow, workOrders: WorkOrder[], period:
   for (const edge of workflow.edges) edges[edge.id] = 0;
   const trigger = workflow.nodes.find((n) => n.type === "trigger");
 
-  const runs = runsInPeriod(workOrders, period).filter((r) => r.status !== "running");
+  let runs = 0;
   let failed = 0;
-  for (const run of runs) {
+  for (const run of runsInPeriod(workOrders, period)) {
+    if (run.status === "running") continue;
+    const walked = walkedSteps(workflow, run);
+    if (!trigger || walked.length === 0) continue;
+    runs += 1;
     if (run.status === "failed") failed += 1;
-    const path = run.steps.map((s) => s.jobId);
-    // The trigger started the run when the first step follows it.
-    const fromTrigger = trigger !== undefined && workflow.edges.some((e) => e.source === trigger.id && e.target === path[0]);
-    const visited = fromTrigger && trigger ? [trigger.id, ...path] : path;
-    for (const step of run.steps) {
+    nodes[trigger.id].runs += 1;
+    let from = trigger.id;
+    for (const step of walked) {
+      const edge = workflow.edges.find((e) => e.source === from && e.target === step.jobId);
+      if (edge) edges[edge.id] += 1;
       const node = nodes[step.jobId];
-      if (!node) continue;
       node.runs += 1;
       if (step.status === "failed") {
         node.failed += 1;
         node.lastFailure ??= run;
       }
-    }
-    if (fromTrigger && trigger) nodes[trigger.id].runs += 1;
-    for (let i = 1; i < visited.length; i++) {
-      const edge = workflow.edges.find((e) => e.source === visited[i - 1] && e.target === visited[i]);
-      if (edge) edges[edge.id] += 1;
+      from = step.jobId;
     }
   }
 
   return {
     period,
-    runs: runs.length,
+    runs,
     failed,
     nodes,
     edges,
@@ -570,13 +597,15 @@ export interface FailureReason {
 /**
  * Why runs failed in `period`, grouped by the error their failing step
  * raised and ranked by how often it happened. With `jobId`, only failures
- * at that step; otherwise every failure in the workflow.
+ * at that step; otherwise every failure in the workflow. Like
+ * `runActivity`, only runs that walked this graph from its trigger count,
+ * so these add up to the failed counts on the canvas.
  */
 export function failureReasons(workflow: Workflow, workOrders: WorkOrder[], period: ActivityPeriod, jobId?: string): FailureReason[] {
   const label = (id: string) => workflow.nodes.find((n) => n.id === id)?.label ?? id;
   const byReason = new Map<string, FailureReason>();
   for (const run of runsInPeriod(workOrders, period)) {
-    const step = run.steps.find((s) => s.status === "failed" && (jobId === undefined || s.jobId === jobId));
+    const step = walkedSteps(workflow, run).find((s) => s.status === "failed" && (jobId === undefined || s.jobId === jobId));
     if (!step) continue;
     const reason = step.error ?? "Failed without an error message";
     const entry = byReason.get(reason) ?? { reason, count: 0, runs: [], steps: [] };
@@ -586,4 +615,130 @@ export function failureReasons(workflow: Workflow, workOrders: WorkOrder[], peri
     byReason.set(reason, entry);
   }
   return [...byReason.values()].sort((a, b) => b.count - a.count);
+}
+
+// ---------------------------------------------------------------------------
+// Health: the workflow's run history summed up over a period, for the
+// editor's Health tab.
+// ---------------------------------------------------------------------------
+
+/** How many runs started in one slice of the period, and how many of those failed. */
+export interface HealthBucket {
+  /** Names the slice in a tooltip, e.g. "Oct 14" or "Oct 19, 10:00 – 12:00". */
+  label: string;
+  /** Under the bar on the axis; "" where it would crowd its neighbours. */
+  tick: string;
+  runs: number;
+  failed: number;
+}
+
+/** A step and how many runs failed there. */
+export interface StepFailures {
+  jobId: string;
+  label: string;
+  adaptor?: AdaptorKind;
+  failed: number;
+}
+
+/** The workflow's health over a period: every run of it, on any version. */
+export interface WorkflowHealth {
+  period: ActivityPeriod;
+  /** Work orders by the outcome of their latest run in the period. */
+  workOrders: { total: number; succeeded: number; failed: number; running: number };
+  runs: { total: number; failed: number };
+  /** What each bucket covers, e.g. "2 hours" or "day". */
+  per: string;
+  buckets: HealthBucket[];
+  /** Steps with failures, most first. */
+  steps: StepFailures[];
+  /** Why runs failed, most common first. */
+  reasons: FailureReason[];
+}
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const dayLabel = (t: number) => {
+  const d = new Date(t);
+  return `${MONTHS[d.getMonth()]} ${d.getDate()}`;
+};
+const hourLabel = (t: number) => `${String(new Date(t).getHours()).padStart(2, "0")}:00`;
+
+/**
+ * Sum up every run of the workflow in `period`, whatever version it ran on
+ * and wherever it started: work orders by outcome, runs over time, the steps
+ * runs failed at and why. Unlike the canvas's counts (`runActivity`), which
+ * follow one version's graph, this is the whole workflow's history, so its
+ * totals match the run history list.
+ */
+export function workflowHealth(workflow: Workflow, workOrders: WorkOrder[], period: ActivityPeriod): WorkflowHealth {
+  const orders = filterWorkOrders(workOrders, period);
+  const runs = orders.flatMap((o) => o.runs);
+  const latest = orders.map((o) => o.runs[0].status);
+
+  // 24 hours in 2-hour bars, 7 days in days, 30 days in days with a tick every fifth.
+  const hours = activityPeriods.find((p) => p.id === period)!.hours;
+  const size = period === "24h" ? 2 : 24;
+  const count = hours / size;
+  const hour = 3600_000;
+  // Bars end at the mock's "now", rounded up to a whole bar.
+  const end = period === "24h" ? Math.ceil(MOCK_NOW / (size * hour)) * size * hour : new Date(MOCK_NOW).setHours(24, 0, 0, 0);
+  const buckets: HealthBucket[] = Array.from({ length: count }, (_, i) => {
+    const from = end - (count - i) * size * hour;
+    return period === "24h"
+      ? {
+          label: `${dayLabel(from)}, ${hourLabel(from)} – ${hourLabel(from + size * hour)}`,
+          tick: i % 2 === 0 ? hourLabel(from) : "",
+          runs: 0,
+          failed: 0,
+        }
+      : { label: dayLabel(from), tick: period === "30d" && (count - 1 - i) % 5 !== 0 ? "" : dayLabel(from), runs: 0, failed: 0 };
+  });
+  for (const run of runs) {
+    const i = Math.floor((Math.min(startedAt(run), end - 1) - (end - count * size * hour)) / (size * hour));
+    const bucket = buckets[Math.max(0, i)];
+    bucket.runs += 1;
+    if (run.status === "failed") bucket.failed += 1;
+  }
+
+  const steps = new Map<string, StepFailures>();
+  for (const run of runs) {
+    for (const step of run.steps.filter((s) => s.status === "failed")) {
+      const node = workflow.nodes.find((n) => n.id === step.jobId);
+      const entry = steps.get(step.jobId) ?? {
+        jobId: step.jobId,
+        label: node?.label ?? step.label,
+        adaptor: node?.type === "job" ? node.adaptor : undefined,
+        failed: 0,
+      };
+      entry.failed += 1;
+      steps.set(step.jobId, entry);
+    }
+  }
+
+  const byReason = new Map<string, FailureReason>();
+  for (const run of runs) {
+    const step = run.steps.find((s) => s.status === "failed");
+    if (!step) continue;
+    const reason = step.error ?? "Failed without an error message";
+    const entry = byReason.get(reason) ?? { reason, count: 0, runs: [], steps: [] };
+    entry.count += 1;
+    entry.runs.push(run);
+    const label = workflow.nodes.find((n) => n.id === step.jobId)?.label ?? step.label;
+    if (!entry.steps.includes(label)) entry.steps.push(label);
+    byReason.set(reason, entry);
+  }
+
+  return {
+    period,
+    workOrders: {
+      total: orders.length,
+      succeeded: latest.filter((s) => s === "success").length,
+      failed: latest.filter((s) => s === "failed").length,
+      running: latest.filter((s) => s === "running").length,
+    },
+    runs: { total: runs.length, failed: runs.filter((r) => r.status === "failed").length },
+    per: period === "24h" ? "2 hours" : "day",
+    buckets,
+    steps: [...steps.values()].sort((a, b) => b.failed - a.failed || a.label.localeCompare(b.label)),
+    reasons: [...byReason.values()].sort((a, b) => b.count - a.count),
+  };
 }

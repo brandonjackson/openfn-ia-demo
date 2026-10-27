@@ -13,7 +13,7 @@ import type {
 } from "../mock-data/workflow";
 import { defaultWorkflowSettings, workflowToYaml } from "../mock-data/workflow";
 import type { WorkflowSettings } from "../mock-data/workflow";
-import { failureReasons, filterWorkOrders, runActivity, shortId, simulateRun } from "../mock-data/runs";
+import { failureReasons, filterWorkOrders, runActivity, shortId, simulateRun, workflowHealth } from "../mock-data/runs";
 import type { ActivityPeriod } from "../mock-data/runs";
 import { adaptorInfo } from "../mock-data/adaptor-reference";
 import type { AssistantConversation, AssistantPlan, AssistantReference } from "../mock-data/assistant";
@@ -52,6 +52,7 @@ import PromoteSandboxModal from "../components/PromoteSandboxModal";
 import ConfirmModal from "../components/ConfirmModal";
 import Modal from "../components/Modal";
 import AddComponentPanel from "../components/AddComponentPanel";
+import WorkflowHealth from "../components/workflow/WorkflowHealth";
 import { componentTypes } from "../component-types";
 
 /** Who starts runs and retries in the prototype. */
@@ -99,13 +100,16 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
 }
 
 /**
- * The workflow editor: one toolbar, two views, and an IDE-style layout of
+ * The workflow editor: one toolbar, three views, and an IDE-style layout of
  * explorer, panel and assistant.
  *
  * The toolbar's Fn menu holds the workflow's file actions (rename, settings,
  * sandbox and promotion, export, pause, delete) and the way back to the
- * project. The view switcher flips between the canvas and code (explorer,
- * code and the open item's settings). The assistant toggle sits on its own
+ * project. The view switcher flips between the canvas, code (explorer,
+ * code and the open item's settings) and Health, the workflow's run history
+ * summed up over the canvas's period: outcomes, runs and failures over
+ * time, the steps runs fail at, and failures by reason, where picking a run
+ * loads it on the canvas. The assistant toggle sits on its own
  * at the far right (Ctrl/⌘ + K). Everything else about the layout is set
  * from the ⋯ menu: at the top-right corner of the code area, or on the
  * canvas in the panel header (or the canvas corner while the panel is
@@ -848,7 +852,7 @@ export default function WorkflowEditorTemplate({
             nextVersion={`v${versions.length + 1}`}
             onPromote={promote}
           />
-          <Modal open={addComponentOpen} title="Add component" onClose={() => setAddComponentOpen(false)} widthClass="max-w-2xl">
+          <Modal open={addComponentOpen} title="Add project component" onClose={() => setAddComponentOpen(false)} widthClass="max-w-2xl">
             <AddComponentPanel
               options={componentTypes.filter((t) => t.type !== "Workflow")}
               columns={2}
@@ -889,6 +893,18 @@ export default function WorkflowEditorTemplate({
           onShowFailures={setSelectedId}
           height={760}
           header={runsBar}
+        />
+      )}
+      {view === "health" && (
+        <WorkflowHealth
+          health={workflowHealth(graph, orders, period)}
+          onPeriodChange={setPeriod}
+          selectedRunId={runId}
+          latestVersion={latestVersion}
+          onSelectRun={(r) => {
+            selectRun(r);
+            setView("canvas");
+          }}
         />
       )}
       {view === "code" && (

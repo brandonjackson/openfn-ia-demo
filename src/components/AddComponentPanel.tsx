@@ -21,7 +21,7 @@ interface Props {
  * Every kind of component laid out as tiles, so all the options are visible
  * at once rather than tucked inside a dropdown.
  */
-export default function AddComponentPanel({ options, onSelect, title = "Add new component", columns = 4, bare = false }: Props) {
+export default function AddComponentPanel({ options, onSelect, title = "Add project component", columns = 4, bare = false }: Props) {
   const grid = (
     <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${columns === 4 ? "lg:grid-cols-4" : ""} ${bare ? "" : "p-3"}`}>
       {options.map(({ type, icon: Icon, description }) => (

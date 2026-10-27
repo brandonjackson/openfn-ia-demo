@@ -39,7 +39,9 @@ interface Props {
  * how many failed. With a run loaded it names the run, with a clear way to
  * unload it and go back to the history (and no Filter). Filter opens the run
  * list over the canvas, for the period; picking a run loads it. The failed
- * count opens the list too.
+ * count opens the list too. The counts take only runs that walked this
+ * version from its trigger, so they add up down the graph; the list notes
+ * how many of its runs that leaves out.
  */
 export default function CanvasRunsBar({
   period,
@@ -75,6 +77,10 @@ export default function CanvasRunsBar({
   }, [open, onOpenChange]);
 
   const listed = filterWorkOrders(workOrders, period);
+  // Finished runs in the list that the counts leave out: they didn't walk this graph from its trigger.
+  const uncounted = activity
+    ? listed.flatMap((o) => o.runs).filter((r) => r.status !== "running").length - activity.runs
+    : 0;
 
   return (
     <div ref={ref} className="relative flex flex-col items-center">
@@ -134,6 +140,11 @@ export default function CanvasRunsBar({
         >
           <header className="flex flex-none items-center border-b border-gray-100 px-3 py-2">
             <span className="text-xs text-gray-500">{activityPeriodLabel(period)}</span>
+            {uncounted > 0 && (
+              <span className="ml-auto text-xs text-gray-400">
+                {uncounted} not counted: another version or a retry from a step
+              </span>
+            )}
           </header>
           <div className="min-h-0 flex-1 overflow-y-auto">
             <RunHistoryList

@@ -53,6 +53,7 @@ const meta: Meta<typeof CodeWorkspace> = {
     url: "https://app.openfn.org/i/8f3c2a1e",
     components,
     onOpenComponent: () => {},
+    onClose: () => {},
   },
   render: (args) => <Stateful {...args} />,
 };

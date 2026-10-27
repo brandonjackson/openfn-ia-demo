@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { ReactNode } from "react";
-import { BookOpen, Calendar, ExternalLink, FolderKanban, Radio, User } from "lucide-react";
+import { BookOpen, Calendar, ExternalLink, FolderKanban, Radio, User, X } from "lucide-react";
 import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../mock-data/workflow";
 import type { DetailsViewId } from "../../editor-layout";
 import { workflowToYaml } from "../../mock-data/workflow";
@@ -10,6 +10,7 @@ import { componentPreview, serviceListing, workflowDocs } from "../../mock-data/
 import { componentTypeIcons } from "../../component-types";
 import Button from "../Button";
 import Badge from "../Badge";
+import IconToggleButton from "../IconToggleButton";
 import SegmentedControl from "../SegmentedControl";
 import FileDetailsPanel from "./FileDetailsPanel";
 import AdaptorPill from "./AdaptorPill";
@@ -74,6 +75,8 @@ interface Props {
   onDetailsViewChange?: (view: DetailsViewId) => void;
   /** The ⋯ layout menu, shown at the top-right corner of the code area. */
   layoutMenu?: ReactNode;
+  /** Closes the code view (back to the canvas), from the X at the top-right corner, right of the ⋯. */
+  onClose?: () => void;
   /** A note for the status bar, e.g. "Tested by the assistant". */
   statusNote?: string;
   /** Steps changed in this session and not yet promoted, by id. */
@@ -87,8 +90,8 @@ interface Props {
  * and, for a step, its adaptor's snippets, which insert at the cursor, and
  * its input and output (I/O) while a run is loaded. A step shows its code and its settings; the
  * trigger and `workflow.yaml` show the YAML and their settings. The panel
- * sits inline under the code. The ⋯ layout menu takes the top-right corner
- * of whichever column is rightmost.
+ * sits inline under the code. The ⋯ layout menu and the close button take
+ * the top-right corner of whichever column is rightmost.
  */
 export default function CodeWorkspace({
   workflow,
@@ -121,6 +124,7 @@ export default function CodeWorkspace({
   detailsView = "snippets",
   onDetailsViewChange,
   layoutMenu,
+  onClose,
   statusNote,
   dirtyStepIds = [],
 }: Props) {
@@ -264,6 +268,14 @@ export default function CodeWorkspace({
       <WorkflowSettingsPanel workflow={workflow} settings={settings} readOnly={readOnly} onChange={onSettingsChange} showHeader={false} />
     );
 
+  // The top-right corner: the ⋯ layout menu, then the close button.
+  const cornerControls = (layoutMenu || onClose) && (
+    <div className="flex flex-none items-center gap-1">
+      {layoutMenu}
+      {onClose && <IconToggleButton icon={X} label="Close code view" size="sm" onClick={onClose} />}
+    </div>
+  );
+
   const statusItems = step
     ? [`${step.adaptor}@${adaptorInfo[step.adaptor].version}`, step.label]
     : component
@@ -304,7 +316,7 @@ export default function CodeWorkspace({
             readOnly || !showDetails ? (
               <>
                 {readOnly && <ReadOnlyNotice variant="tag" />}
-                {!showDetails && layoutMenu}
+                {!showDetails && cornerControls}
               </>
             ) : undefined
           }
@@ -334,7 +346,7 @@ export default function CodeWorkspace({
               value={view}
               onChange={(v) => onDetailsViewChange?.(v as DetailsViewId)}
             />
-            {layoutMenu}
+            {cornerControls}
           </div>
           <div className="min-h-0 flex-1">{detailsBody}</div>
         </div>

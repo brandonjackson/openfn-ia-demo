@@ -51,3 +51,21 @@ export const ForAStep: Story = { render: (args) => <ForStep {...args} /> };
 export const NoFailures: Story = {
   args: { reasons: [], period: "24h", stepLabel: "Send confirmation notification with national ID", scope: "step", onScopeChange: () => {} },
 };
+
+/** In the inspector: no intro line, the share tinting each row, under the inspector's own heading. */
+export const Compact: Story = {
+  args: {
+    reasons: failureReasons(nationalIdWorkflow, workOrders, "30d", "create"),
+    period: "30d",
+    stepLabel: "Create new citizen in Identity",
+    scope: "step",
+    compact: true,
+  },
+  decorators: [
+    (Story) => (
+      <div className="w-[348px] px-4 py-3">
+        <Story />
+      </div>
+    ),
+  ],
+};

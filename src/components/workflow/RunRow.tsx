@@ -16,6 +16,7 @@ export default function RunRow({
   latestVersion,
   onSelect,
   onDeselect,
+  compact = false,
 }: {
   run: RunDetails;
   selected?: boolean;
@@ -23,12 +24,14 @@ export default function RunRow({
   latestVersion?: string;
   onSelect?: (run: RunDetails) => void;
   onDeselect?: () => void;
+  /** On the inspector's text axis, for its failure list. */
+  compact?: boolean;
 }) {
   const older = latestVersion !== undefined && run.version !== latestVersion;
   return (
     <div
-      className={`group flex items-center gap-2 py-1.5 pl-8 pr-3 text-xs ${
-        selected ? "border-l-2 border-blue-500 bg-blue-50 pl-[30px]" : "hover:bg-gray-50"
+      className={`group flex items-center gap-2 py-1.5 text-xs ${compact ? "pl-5 pr-5" : "pl-8 pr-3"} ${
+        selected ? `border-l-2 border-blue-500 bg-blue-50 ${compact ? "pl-[18px]" : "pl-[30px]"}` : "hover:bg-gray-50"
       }`}
     >
       <button

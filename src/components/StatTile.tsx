@@ -11,6 +11,8 @@ interface Props extends StatTileData {
   compact?: boolean;
   /** Draws the value in red, e.g. a failure count. */
   danger?: boolean;
+  /** No box: a large number over its small label, for a row of figures in a narrow card. Implies `compact`. */
+  bare?: boolean;
 }
 
 /**
@@ -27,8 +29,16 @@ export default function StatTile({
   trendClassName = "text-indigo-500",
   compact = false,
   danger = false,
+  bare = false,
 }: Props) {
-  const body = (
+  compact = compact || bare;
+  const body = bare ? (
+    <>
+      <p className={`text-2xl font-semibold leading-none tracking-tight tabular-nums ${danger ? "text-red-600" : "text-gray-900"}`}>{value}</p>
+      <p className="mt-1.5 text-[11px] text-gray-500">{label}</p>
+      {detail && <p className="mt-0.5 text-[11px] text-gray-400">{detail}</p>}
+    </>
+  ) : (
     <>
       <div className="flex items-center justify-between gap-2">
         <p className={`${compact ? "text-xs" : "text-sm"} text-gray-500`}>{label}</p>
@@ -55,7 +65,7 @@ export default function StatTile({
     </>
   );
 
-  const base = `block rounded-lg border border-gray-200 bg-white ${compact ? "px-3 py-2.5" : "p-5"}`;
+  const base = bare ? "block min-w-0" : `block rounded-lg border border-gray-200 bg-white ${compact ? "px-3 py-2.5" : "p-5"}`;
   return linkTo ? (
     <Link to={linkTo} className={`group ${base} hover:border-gray-300 hover:shadow-sm transition`}>
       {body}

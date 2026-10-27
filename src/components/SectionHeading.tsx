@@ -10,20 +10,24 @@ interface Props {
    * heading that groups rows on a list page.
    */
   variant?: "default" | "label";
+  /** A smaller `label`, for the sections of a narrow card such as the inspector. */
+  compact?: boolean;
 }
 
 /**
  * Heading at the top of a settings section or content panel.
  */
-export default function SectionHeading({ title, description, action, variant = "default" }: Props) {
+export default function SectionHeading({ title, description, action, variant = "default", compact = false }: Props) {
   const isLabel = variant === "label";
   return (
-    <div className={`flex items-start justify-between gap-4 ${isLabel ? "mb-3" : "mb-6"}`}>
-      <div>
+    <div className={`flex justify-between gap-4 ${compact ? "items-baseline" : "items-start"} ${isLabel ? (compact ? "mb-2" : "mb-3") : "mb-6"}`}>
+      <div className="min-w-0">
         <h2
           className={
             isLabel
-              ? "text-sm font-semibold text-gray-500 uppercase tracking-wider"
+              ? compact
+                ? "text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-900"
+                : "text-sm font-semibold text-gray-500 uppercase tracking-wider"
               : "text-lg font-semibold text-gray-900"
           }
         >

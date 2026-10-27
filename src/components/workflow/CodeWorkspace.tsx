@@ -10,7 +10,7 @@ import { componentPreview, serviceListing, workflowDocs } from "../../mock-data/
 import { componentTypeIcons } from "../../component-types";
 import Button from "../Button";
 import Badge from "../Badge";
-import IconToggleButton from "../IconToggleButton";
+import IconButton from "../IconButton";
 import SegmentedControl from "../SegmentedControl";
 import FileDetailsPanel from "./FileDetailsPanel";
 import AdaptorPill from "./AdaptorPill";
@@ -27,6 +27,7 @@ import StepConfigPanel from "./StepConfigPanel";
 import type { StepChanges } from "./StepConfigPanel";
 import TriggerConfigPanel from "./TriggerConfigPanel";
 import WorkflowSettingsPanel from "./WorkflowSettingsPanel";
+import Surface from "../Surface";
 
 interface Props {
   workflow: Workflow;
@@ -293,7 +294,7 @@ export default function CodeWorkspace({
   const cornerControls = (layoutMenu || onClose) && (
     <div className="flex flex-none items-center gap-1">
       {layoutMenu}
-      {onClose && <IconToggleButton icon={X} label="Close code view" size="sm" onClick={onClose} />}
+      {onClose && <IconButton icon={X} label="Close code view" onClick={onClose} />}
     </div>
   );
 
@@ -310,7 +311,7 @@ export default function CodeWorkspace({
   const statusTrailing = [statusNote, lineCount, saveState].filter(Boolean) as string[];
 
   return (
-    <div className="flex h-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <Surface className="flex h-full overflow-hidden">
       {showExplorer && (
       <div className="w-64 flex-none border-r border-gray-100">
         <EditorExplorer
@@ -374,6 +375,6 @@ export default function CodeWorkspace({
           <div className="min-h-0 flex-1">{detailsBody}</div>
         </div>
       )}
-    </div>
+    </Surface>
   );
 }

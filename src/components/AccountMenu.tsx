@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronsUpDown, GitCompare, LogOut, Settings, Wrench } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import Surface from "./Surface";
+import { usePopover } from "../use-popover";
 
 interface Props {
   user: { firstName: string; lastName: string; email: string };
@@ -43,33 +44,18 @@ function MenuItem({
  * settings.
  */
 export default function AccountMenu({ user, instance, onLogOut, defaultOpen = false }: Props) {
-  const [open, setOpen] = useState(defaultOpen);
-  const ref = useRef<HTMLDivElement>(null);
+  const { open, setOpen, ref } = usePopover(defaultOpen);
   const close = () => setOpen(false);
 
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("mousedown", onPointer);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onPointer);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
 
   return (
     <div ref={ref} className="relative">
       {open && (
-        <div
+        <Surface
+          variant="popover"
           role="menu"
           data-ui="popover"
-          className="absolute bottom-full left-0 right-0 mb-2 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg"
+          className="absolute bottom-full left-0 right-0 mb-2 p-1.5"
         >
           <p className="truncate px-2 pt-1 pb-1.5 text-xs text-gray-500">{user.email}</p>
           <MenuItem to="/user-settings" icon={Settings} label="Settings" onSelect={close} />
@@ -94,7 +80,7 @@ export default function AccountMenu({ user, instance, onLogOut, defaultOpen = fa
             <LogOut size={16} className="flex-shrink-0 text-gray-500" />
             Log out
           </button>
-        </div>
+        </Surface>
       )}
 
       <button

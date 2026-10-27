@@ -1,9 +1,10 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { X, Search, ChevronRight, Check } from "lucide-react";
+import { X, ChevronRight, Check } from "lucide-react";
 import { adaptors, type Adaptor } from "../mock-data/adaptors";
 import AdaptorLogo from "./AdaptorLogo";
 import Button from "./Button";
 import EmptyState from "./EmptyState";
+import SearchInput from "./SearchInput";
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -58,18 +59,12 @@ function AdaptorSearchList({
   return (
     <div className="flex flex-col h-full">
       {/* Search input */}
-      <div className="relative px-5 pt-1 pb-3">
-        <Search
-          size={16}
-          className="absolute left-8 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-        />
-        <input
+      <div className="px-5 pt-1 pb-3">
+        <SearchInput
           ref={inputRef}
-          type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search systems (e.g. DHIS2, Salesforce, PostgreSQL...)"
-          className="w-full rounded-md border border-gray-300 pl-9 pr-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
         />
       </div>
 

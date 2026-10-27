@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Button from "./Button";
 import type { ButtonSize, ButtonVariant } from "./Button";
+import Surface from "./Surface";
+import { usePopover } from "../use-popover";
 
 export interface MenuButtonItem {
   id: string;
@@ -48,24 +49,8 @@ export default function MenuButton({
   align = "left",
   defaultOpen = false,
 }: Props) {
-  const [open, setOpen] = useState(defaultOpen);
-  const ref = useRef<HTMLDivElement>(null);
+  const { open, setOpen, ref } = usePopover(defaultOpen);
 
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("mousedown", onPointer);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onPointer);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
 
   const toggle = () => setOpen((o) => !o);
   const LinkIcon = icon;
@@ -99,9 +84,10 @@ export default function MenuButton({
       )}
 
       {open && (
-        <div
+        <Surface
+          variant="popover"
           role="menu"
-          className={`absolute top-full z-50 mt-1 w-72 rounded-lg border border-gray-200 bg-white p-1.5 shadow-lg ${
+          className={`absolute top-full z-50 mt-1 w-72 p-1.5 ${
             align === "right" ? "right-0" : "left-0"
           }`}
         >
@@ -134,7 +120,7 @@ export default function MenuButton({
               );
             })}
           </ul>
-        </div>
+        </Surface>
       )}
     </div>
   );

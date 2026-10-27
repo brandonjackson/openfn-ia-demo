@@ -20,7 +20,6 @@ import {
 import SettingsNav from "../SettingsNav";
 import SectionHeading from "../SectionHeading";
 import EmptyState from "../EmptyState";
-import { TextInput } from "../FormControls";
 import ConnectOptionRow from "./ConnectOptionRow";
 import {
   adaptorCatalog,
@@ -31,6 +30,7 @@ import {
   catalogCategories,
 } from "../../mock-data/adaptor-catalog";
 import type { AiAction, CatalogGroup } from "../../mock-data/adaptor-catalog";
+import SearchInput from "../SearchInput";
 
 /** What was picked: an adaptor to connect, or an AI action to run on the data. */
 export type ConnectChoice = { kind: "adaptor"; adaptor: string } | { kind: "ai"; action: AiAction };
@@ -158,17 +158,13 @@ export default function ConnectSystemPicker({
 
   return (
     <div className="flex h-[min(520px,60vh)] flex-col gap-4">
-      <div className="relative">
-        <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-        <TextInput
-          autoFocus
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={`Search ${adaptorCatalog.length} systems and tools...`}
-          aria-label="Search systems and tools"
-          className="pl-9"
-        />
-      </div>
+      <SearchInput
+        autoFocus
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        placeholder={`Search ${adaptorCatalog.length} systems and tools...`}
+        aria-label="Search systems and tools"
+      />
       <div className="flex min-h-0 flex-1 gap-4">
         <SettingsNav
           items={navItems}

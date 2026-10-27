@@ -3,6 +3,7 @@ import { PanelBottom, PanelRight, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import SegmentedControl from "../SegmentedControl";
 import type { SegmentedOption } from "../SegmentedControl";
+import IconButton from "../IconButton";
 
 /** Where a tray is docked. */
 export type TrayPlacement = "right" | "bottom";
@@ -112,23 +113,11 @@ export default function EditorTray({
   );
 }
 
-const headerButton =
-  "inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700";
-
 function MoveButton({ other, onMove }: { other: TrayPlacement; onMove: (placement: TrayPlacement) => void }) {
-  const MoveIcon = other === "right" ? PanelRight : PanelBottom;
   const label = other === "right" ? "Dock to the right" : "Dock to the bottom";
-  return (
-    <button type="button" onClick={() => onMove(other)} title={label} aria-label={label} className={headerButton}>
-      <MoveIcon size={15} />
-    </button>
-  );
+  return <IconButton icon={other === "right" ? PanelRight : PanelBottom} label={label} onClick={() => onMove(other)} />;
 }
 
 function CloseButton({ onClose }: { onClose: () => void }) {
-  return (
-    <button type="button" onClick={onClose} aria-label="Close" title="Close" className={headerButton}>
-      <X size={16} />
-    </button>
-  );
+  return <IconButton icon={X} label="Close" onClick={onClose} />;
 }

@@ -19,6 +19,8 @@ import StatusPill from "./StatusPill";
 import DataSnippet from "./DataSnippet";
 import FailureBreakdown from "./FailureBreakdown";
 import type { StepChanges } from "./StepConfigPanel";
+import IconButton from "../IconButton";
+import Surface from "../Surface";
 
 /** The run data sections the inspector shows, each of which opens in the code view's panel. */
 export type InspectorSection = "log" | "input" | "output";
@@ -111,9 +113,11 @@ export default function StepInspector({
   const period = stats && activityPeriodLabel(stats.period);
 
   return (
-    <section
+    <Surface
+      as="section"
+      variant="floating"
       aria-label="Inspector"
-      className="flex max-h-full w-[380px] max-w-[calc(100vw-2rem)] flex-col rounded-xl border border-gray-200 bg-white shadow-xl"
+      className="flex max-h-full w-[380px] max-w-[calc(100vw-2rem)] flex-col"
     >
       <header className="flex h-12 flex-none items-center gap-2 border-b border-gray-200 pl-5 pr-2">
         <div className="flex min-w-0 flex-1 items-center">
@@ -127,8 +131,8 @@ export default function StepInspector({
         </div>
         {step && <StatusPill status={step.status} />}
         <div className="flex flex-shrink-0 items-center gap-0.5">
-          {job && onOpenCode && <HeaderButton label="Open code" icon={Code2} onClick={onOpenCode} />}
-          {onClose && <HeaderButton label="Close inspector" icon={X} onClick={onClose} />}
+          {job && onOpenCode && <IconButton label="Open code" icon={Code2} onClick={onOpenCode} />}
+          {onClose && <IconButton label="Close inspector" icon={X} onClick={onClose} />}
         </div>
       </header>
 
@@ -204,7 +208,7 @@ export default function StepInspector({
           )}
         </footer>
       )}
-    </section>
+    </Surface>
   );
 }
 
@@ -437,15 +441,7 @@ function TriggerConfig({
                 <code className="min-w-0 flex-1 truncate font-mono text-xs text-gray-900" title={`POST ${url}`}>
                   {url}
                 </code>
-                <button
-                  type="button"
-                  onClick={() => void navigator.clipboard?.writeText(url)}
-                  title="Copy URL"
-                  aria-label="Copy URL"
-                  className="flex-shrink-0 rounded p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-                >
-                  <Copy size={13} />
-                </button>
+                <IconButton size="xs" icon={Copy} label="Copy URL" onClick={() => void navigator.clipboard?.writeText(url)} />
               </>
             ) : (
               <span className="text-gray-500">Available once the workflow is live</span>
@@ -461,16 +457,3 @@ function TriggerConfig({
   return <PropertyList variant="plain" properties={properties} />;
 }
 
-function HeaderButton({ label, icon: Icon, onClick }: { label: string; icon: LucideIcon; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-    >
-      <Icon size={15} />
-    </button>
-  );
-}

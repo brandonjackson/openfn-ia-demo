@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, FileText, Info, MessagesSquare, MoreVertical, Plus, Search, Sparkles, X } from "lucide-react";
+import { ArrowLeft, FileText, Info, MessagesSquare, MoreVertical, Plus, Sparkles, X } from "lucide-react";
 import type { AssistantConversation, AssistantMessage, AssistantMode, AssistantPlan, AssistantReference } from "../../mock-data/assistant";
 import { assistantPlanResult, assistantReply, assistantSuggestions } from "../../mock-data/assistant";
 import { shortId } from "../../mock-data/runs";
@@ -9,6 +9,8 @@ import AssistantChatInput from "./AssistantChatInput";
 import AssistantPlanCard from "./AssistantPlanCard";
 import AssistantResultCard from "./AssistantResultCard";
 import ReferenceChip from "./ReferenceChip";
+import IconButton from "../IconButton";
+import SearchInput from "../SearchInput";
 
 /** How long the prototype "thinks" before replying. */
 const REPLY_DELAY_MS = 900;
@@ -178,17 +180,14 @@ export default function AIAssistantPanel({
               else window.open("https://www.openfn.org/ai", "_blank", "noopener,noreferrer");
             }}
             trigger={({ open, toggle }) => (
-              <button
-                type="button"
+              <IconButton
+                icon={MoreVertical}
+                label="More options"
                 onClick={toggle}
-                aria-label="More options"
+                aria-haspopup="menu"
                 aria-expanded={open}
-                className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 ${
-                  open ? "bg-gray-100 text-gray-700" : ""
-                }`}
-              >
-                <MoreVertical size={16} />
-              </button>
+                active={open}
+              />
             )}
           />
         </div>
@@ -198,15 +197,7 @@ export default function AIAssistantPanel({
           {!inChat || !conversation ? (
             <div className="space-y-4 p-4">
               {forContext.length > 0 && (
-                <label className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-400 focus-within:border-indigo-300">
-                  <Search size={16} />
-                  <input
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search conversations"
-                    className="w-full border-0 bg-transparent text-gray-900 outline-none placeholder:text-gray-400"
-                  />
-                </label>
+                <SearchInput value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search conversations" />
               )}
               {listed.length > 0 ? (
                 <ul className="space-y-1">
@@ -364,14 +355,7 @@ function About({ onClose }: { onClose: () => void }) {
     <div role="dialog" aria-modal="true" aria-label="About the AI Assistant" className="absolute inset-0 z-50 flex flex-col bg-white">
       <div className="flex h-14 flex-none items-center justify-between border-b border-gray-200 px-4">
         <h3 className="text-base font-semibold text-gray-900">About the AI Assistant</h3>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-600"
-        >
-          <X size={18} />
-        </button>
+        <IconButton size="md" icon={X} label="Close" onClick={onClose} />
       </div>
       <div className="flex-1 space-y-4 overflow-y-auto px-6 py-4 text-sm text-gray-800">
         <p>The OpenFn AI Assistant helps you build workflows and write job code. It can:</p>

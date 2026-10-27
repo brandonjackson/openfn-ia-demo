@@ -61,3 +61,8 @@ export const InFormFields: Story = {
     </div>
   ),
 };
+
+/** The height of a `sm` Button, for a search beside one in a page header. */
+export const CompactTextInput: Story = {
+  render: () => <TextInput type="search" placeholder="Search projects…" compact className="w-56" />,
+};

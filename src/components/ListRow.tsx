@@ -27,6 +27,8 @@ interface Props {
   selected?: boolean;
   /** Renders the title in a monospace font (names like branches or slugs). */
   monoTitle?: boolean;
+  /** A dashed border, for something you could add rather than one that exists. */
+  dashed?: boolean;
 }
 
 /**
@@ -46,11 +48,12 @@ export default function ListRow({
   actions,
   selected = false,
   monoTitle = false,
+  dashed = false,
 }: Props) {
   const interactive = Boolean(to || onClick);
   const frame = `group flex w-full items-center rounded-lg border text-left transition-all ${
-    selected ? "border-blue-300 bg-blue-50/40" : "border-gray-200 bg-white"
-  } ${interactive ? "hover:border-blue-300 hover:shadow-sm" : ""}`;
+    dashed ? "border-dashed" : ""
+  } ${selected ? "border-blue-300 bg-blue-50/40" : "border-gray-200 bg-white"} ${interactive ? "hover:border-blue-300 hover:shadow-sm" : ""}`;
   // With actions, the frame wraps both the row and the action buttons, and
   // only the inner part is the link or button.
   const className = actions
@@ -91,8 +94,9 @@ export default function ListRow({
           </div>
         )}
       </div>
+      {/* With actions, the buttons hold the right edge, so the chevron steps aside. */}
       {trailing ??
-        (interactive && (
+        (interactive && !actions && (
           <ChevronRight size={16} className="text-gray-300 group-hover:text-blue-400 flex-shrink-0" />
         ))}
     </>

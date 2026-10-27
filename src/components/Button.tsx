@@ -14,13 +14,13 @@ export type ButtonVariant =
 export type ButtonSize = "xs" | "sm" | "md";
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: "bg-blue-600 text-white hover:bg-blue-700",
+  primary: "border border-transparent bg-blue-600 text-white hover:bg-blue-700",
   secondary: "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50",
-  danger: "bg-red-600 text-white hover:bg-red-700",
-  dark: "bg-gray-900 text-white hover:bg-gray-800",
+  danger: "border border-transparent bg-red-600 text-white hover:bg-red-700",
+  dark: "border border-transparent bg-gray-900 text-white hover:bg-gray-800",
   "outline-primary": "border border-blue-300 text-blue-600 hover:bg-blue-50",
   "outline-danger": "border border-red-200 text-red-600 hover:bg-red-50",
-  ghost: "text-gray-500 hover:bg-gray-100 hover:text-gray-700",
+  ghost: "border border-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700",
   "link-danger": "text-red-500 hover:text-red-700",
 };
 
@@ -50,6 +50,8 @@ export default function Button({
   children,
   ...rest
 }: Props) {
+  // Every padded variant has a border (transparent when filled), so buttons of
+  // one size are the same height whatever their variant, and match inputs.
   // Link-style buttons sit inline with text, so they skip padding.
   const sizing = variant === "link-danger" ? "text-xs" : sizeClasses[size];
   return (

@@ -195,7 +195,7 @@ export default function Sidebar() {
 
       <div className="p-3 space-y-3">
         <SidebarSection label="Support">
-          <SidebarLink href={openfnDocsUrl} icon={BookMarked} label="OpenFn Docs" />
+          <SidebarLink href={openfnDocsUrl} icon={BookMarked} label="OpenFn docs" />
           <SidebarLink
             to={"/" + getHelp.id}
             icon={LifeBuoy}

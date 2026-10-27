@@ -33,3 +33,8 @@ export const Inline: Story = {
 export const AsButton: Story = {
   args: { onClick: () => {}, children: "See full code →", variant: "action" },
 };
+
+/** An external URL, e.g. a system's API docs: opens in a new tab. */
+export const External: Story = {
+  args: { href: "https://docs.dhis2.org", children: "https://docs.dhis2.org", variant: "inline" },
+};

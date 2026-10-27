@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import DataTable from "./DataTable";
 import type { DataTableColumn } from "./DataTable";
 import EnvironmentBadge from "./EnvironmentBadge";
+import { Trash2 } from "lucide-react";
 import Button from "./Button";
 import { userCredentials } from "../mock-data/user";
 import type { UserCredential } from "../page-data";
@@ -19,7 +20,11 @@ const columns: DataTableColumn<UserCredential>[] = [
     key: "actions",
     header: "",
     align: "right",
-    render: () => <Button variant="link-danger">Delete</Button>,
+    render: () => (
+      <Button variant="outline-danger" size="xs" icon={Trash2}>
+        Delete
+      </Button>
+    ),
   },
 ];
 

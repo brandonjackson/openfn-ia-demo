@@ -31,7 +31,7 @@ export const mockEntries: HistoryEntry[] = [
 export const historyData: TablePageData = {
   pageType: "table",
   filters: [
-    { label: "Project", options: ["All Projects", ...projects.map((p) => p.name)] },
+    { label: "Project", options: ["All projects", ...projects.map((p) => p.name)] },
     { label: "Type", options: ["All", "Work Order", "Channel Request"] },
     { label: "Status", options: ["All", "Success", "Failed", "Pending"] },
   ],

@@ -76,7 +76,7 @@ export default function AccountMenu({ user, instance, onLogOut, defaultOpen = fa
           <MenuItem
             to="/instance-settings"
             icon={Wrench}
-            label="Instance Settings"
+            label="Instance settings"
             onSelect={close}
           />
           <div className="my-1.5 border-t border-gray-200" />

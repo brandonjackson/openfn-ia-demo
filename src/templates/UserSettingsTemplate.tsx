@@ -43,7 +43,7 @@ const BASE_PATH = "/user-settings";
 const navItems: SettingsNavItem[] = [
   { id: "profile", label: "Profile", icon: UserCircle, to: `${BASE_PATH}/profile` },
   { id: "credentials", label: "Credentials", icon: KeyRound, to: `${BASE_PATH}/credentials` },
-  { id: "api-tokens", label: "API Tokens", icon: Terminal, to: `${BASE_PATH}/api-tokens` },
+  { id: "api-tokens", label: "API tokens", icon: Terminal, to: `${BASE_PATH}/api-tokens` },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -99,7 +99,7 @@ function ProfileSection({ profile }: { profile: UserProfile }) {
         </div>
       </Card>
 
-      <Card title="Change password">
+      <Card title="Change password" description="Confirm your current password to set a new one.">
         <div className="space-y-4">
           <FormField label="New password" htmlFor="new-password">
             <TextInput id="new-password" type="password" autoComplete="new-password" />
@@ -174,7 +174,11 @@ const credentialColumns: DataTableColumn<UserCredential>[] = [
     key: "actions",
     header: "",
     align: "right",
-    render: () => <Button variant="link-danger">Delete</Button>,
+    render: () => (
+      <Button variant="outline-danger" size="xs" icon={Trash2}>
+        Delete
+      </Button>
+    ),
   },
 ];
 
@@ -186,7 +190,11 @@ const oauthColumns: DataTableColumn<OAuthClient>[] = [
     key: "actions",
     header: "",
     align: "right",
-    render: () => <Button variant="link-danger">Delete</Button>,
+    render: () => (
+      <Button variant="outline-danger" size="xs" icon={Trash2}>
+        Delete
+      </Button>
+    ),
   },
 ];
 
@@ -204,8 +212,8 @@ function CredentialsSection({ data }: { data: UserSettingsPageData }) {
           }
         />
 
-        <Callout variant="info" title="Organisation credentials live in Systems">
-          Credentials your whole organisation shares are managed on each{" "}
+        <Callout variant="info" title="Organization credentials live in Systems">
+          Credentials your whole organization shares are managed on each{" "}
           <Link to="/connected-systems" className="underline font-medium">
             connected system
           </Link>
@@ -274,7 +282,8 @@ function ApiTokensSection({ data }: { data: UserSettingsPageData }) {
       align: "right",
       render: (t) => (
         <Button
-          variant="link-danger"
+          variant="outline-danger"
+          size="xs"
           icon={Trash2}
           aria-label="Delete token"
           onClick={() => setTokens(tokens.filter((x) => x.id !== t.id))}
@@ -347,7 +356,7 @@ export default function UserSettingsTemplate({ node, ancestors, data }: Props) {
         ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
         current: node.label,
       }}
-      title="User Settings"
+      title="User settings"
       description="Manage your profile, personal credentials and API tokens."
       navItems={navItems}
       activeId={activeId}

@@ -6,6 +6,7 @@ import { useSandbox } from "../sandbox-state";
 import Badge from "../components/Badge";
 import PageHeader from "../components/PageHeader";
 import Button from "../components/Button";
+import ConfirmModal from "../components/ConfirmModal";
 import EmptyState from "../components/EmptyState";
 import ListRow from "../components/ListRow";
 import SectionHeading from "../components/SectionHeading";
@@ -71,18 +72,19 @@ function SandboxRow({
 export default function ProjectSandboxesTemplate({ node, ancestors, data }: Props) {
   const [selectedName, setSelected] = useSandbox(data.projectId);
   const [deleted, setDeleted] = useState<string[]>([]);
+  const [pendingDelete, setPendingDelete] = useState<SandboxItem | null>(null);
   const sandboxes = data.sandboxes.filter((s) => !deleted.includes(s.name));
   const main = sandboxes.find((s) => s.isMain);
   const selected =
     sandboxes.find((s) => s.name === selectedName) ?? main ?? sandboxes[0];
   const others = sandboxes.filter((s) => s !== selected);
 
-  const remove = (sandbox: SandboxItem) => {
-    if (!window.confirm(`Delete sandbox "${sandbox.name}"? This can't be undone.`)) return;
-    setDeleted((d) => [...d, sandbox.name]);
+  const confirmDelete = () => {
+    if (pendingDelete) setDeleted((d) => [...d, pendingDelete.name]);
+    setPendingDelete(null);
   };
   const deleteHandler = (sandbox: SandboxItem) =>
-    sandbox.isMain ? undefined : () => remove(sandbox);
+    sandbox.isMain ? undefined : () => setPendingDelete(sandbox);
 
   return (
     <div className="space-y-8">
@@ -128,6 +130,19 @@ export default function ProjectSandboxesTemplate({ node, ancestors, data }: Prop
           />
         )}
       </section>
+
+      <ConfirmModal
+        open={pendingDelete !== null}
+        title="Delete sandbox"
+        confirmLabel="Delete sandbox"
+        onConfirm={confirmDelete}
+        onClose={() => setPendingDelete(null)}
+      >
+        <p>
+          Delete <code className="font-mono text-gray-900">{pendingDelete?.name}</code>? Its changes
+          that haven't been merged into main will be lost. This can't be undone.
+        </p>
+      </ConfirmModal>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import {
   Download,
   Trash2,
   Lock,
+  UserMinus,
 } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { Collaborator, OrgCredential, ProjectSettingsPageData } from "../page-data";
@@ -36,12 +37,12 @@ import SystemLabel from "../components/SystemLabel";
 const navItems: SettingsNavItem[] = [
   { id: "setup", label: "Setup", icon: Settings },
   { id: "credentials", label: "Credentials", icon: KeyRound },
-  { id: "webhook-security", label: "Webhook Security", icon: ShieldAlert },
+  { id: "webhook-security", label: "Webhook security", icon: ShieldAlert },
   { id: "collaboration", label: "Collaboration", icon: Users },
   { id: "security", label: "Security", icon: ShieldCheck },
-  { id: "sync-to-github", label: "Sync to Github", icon: GitBranch },
-  { id: "data-storage", label: "Data Storage", icon: Database },
-  { id: "history-exports", label: "History Exports", icon: Download },
+  { id: "sync-to-github", label: "Sync to GitHub", icon: GitBranch },
+  { id: "data-storage", label: "Data storage", icon: Database },
+  { id: "history-exports", label: "History exports", icon: Download },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -57,7 +58,7 @@ function SetupSection({ data }: { data: ProjectSettingsPageData }) {
       />
 
       <Card
-        title="Project Identity"
+        title="Project identity"
         description="This metadata helps you identify the types of workflows managed in this project and the people that have access."
       >
         <div className="space-y-4">
@@ -88,7 +89,7 @@ function SetupSection({ data }: { data: ProjectSettingsPageData }) {
       </Card>
 
       <Card
-        title="Concurrency Override"
+        title="Concurrency override"
         description={
           <>
             <p>
@@ -112,7 +113,7 @@ function SetupSection({ data }: { data: ProjectSettingsPageData }) {
       </Card>
 
       <Card
-        title="Export your Project"
+        title="Export your project"
         description="Export your project as code, to save this version or edit your project locally."
       >
         <Button variant="secondary">Export project</Button>
@@ -179,15 +180,15 @@ function CredentialsSection({ data }: { data: ProjectSettingsPageData }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Webhook Security section                                           */
+/*  Webhook security section                                           */
 /* ------------------------------------------------------------------ */
 
 function WebhookSecuritySection() {
   return (
     <div className="space-y-6">
-      <SectionHeading title="Webhook Security" />
+      <SectionHeading title="Webhook security" />
 
-      <Callout variant="warning" title="Deprecation Notice">
+      <Callout variant="warning" title="Deprecation notice">
         Webhook security settings have moved to your personal vault. Please configure webhook secrets there instead.
       </Callout>
     </div>
@@ -217,7 +218,11 @@ const collaboratorColumns: DataTableColumn<Collaborator>[] = [
     key: "actions",
     header: "",
     align: "right",
-    render: () => <Button variant="link-danger">Remove collaborator</Button>,
+    render: () => (
+      <Button variant="outline-danger" size="xs" icon={UserMinus}>
+        Remove
+      </Button>
+    ),
   },
 ];
 
@@ -248,7 +253,7 @@ function SecuritySection({ data }: { data: ProjectSettingsPageData }) {
       />
 
       <Card
-        title="Multi-Factor Authentication"
+        title="Multi-factor authentication"
         description="Requiring multi-factor authentication (MFA) adds an additional layer of security by requiring users to enable MFA on their accounts before they are allowed access this project."
       >
         <ToggleSwitch
@@ -261,7 +266,7 @@ function SecuritySection({ data }: { data: ProjectSettingsPageData }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Sync to Github section                                             */
+/*  Sync to GitHub section                                             */
 /* ------------------------------------------------------------------ */
 
 function SyncToGithubSection({ data }: { data: ProjectSettingsPageData }) {
@@ -293,7 +298,7 @@ function SyncToGithubSection({ data }: { data: ProjectSettingsPageData }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Data Storage section                                               */
+/*  Data storage section                                               */
 /* ------------------------------------------------------------------ */
 
 const retentionOptions = ["7 Days", "14 Days", "30 Days", "90 Days", "180 Days", "1 Year"];
@@ -309,7 +314,7 @@ function DataStorageSection({ data }: { data: ProjectSettingsPageData }) {
       />
 
       <Card
-        title="History Retention Period"
+        title="History retention period"
         description="Select how long your run history is stored in OpenFn before being removed from the servers. This includes all Work Orders, Runs, and Logs."
       >
         <Select options={retentionOptions} defaultValue={data.retentionPeriod} />
@@ -318,7 +323,7 @@ function DataStorageSection({ data }: { data: ProjectSettingsPageData }) {
         </p>
       </Card>
 
-      <Card title="Input/Output Data Storage Policy" description="Should OpenFn store input/output data for workflow runs?">
+      <Card title="Input/output data storage policy" description="Should OpenFn store input/output data for workflow runs?">
         <div className="space-y-2">
           <RadioOption
             name="io-policy"
@@ -339,7 +344,7 @@ function DataStorageSection({ data }: { data: ProjectSettingsPageData }) {
 
       {ioPolicy === "retain" && (
         <Card
-          title="Input/Output Data Retention Period"
+          title="Input/output data retention period"
           description="Select how long input/output data is stored. Once input/output data is removed for a given run, you will no longer be able to retry that run."
         >
           <Select options={retentionOptions} defaultValue={data.ioRetentionPeriod} />
@@ -355,7 +360,7 @@ function DataStorageSection({ data }: { data: ProjectSettingsPageData }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  History Exports section                                            */
+/*  History exports section                                            */
 /* ------------------------------------------------------------------ */
 
 function HistoryExportsSection() {
@@ -400,7 +405,7 @@ export default function ProjectSettingsTemplate({ node, ancestors, data }: Props
         ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
         current: node.label,
       }}
-      title={`${projectLabel} Settings`}
+      title={`${projectLabel} settings`}
       description="Manage settings and configuration for this project."
       navItems={navItems}
       activeId={activeTab}

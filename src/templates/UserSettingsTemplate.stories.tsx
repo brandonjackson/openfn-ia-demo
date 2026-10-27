@@ -4,7 +4,7 @@ import { withRouter } from "../stories/decorators";
 import type { IANode } from "../ia-tree";
 import { userSettingsData } from "../mock-data/user";
 
-const root: IANode = { id: "user-settings", label: "User Settings", pageType: "user-settings" };
+const root: IANode = { id: "user-settings", label: "User settings", pageType: "user-settings" };
 const ancestors = [{ node: root, path: "/user-settings" }];
 
 const section = (id: string, label: string): IANode => ({ id, label, pageType: "user-settings" });
@@ -56,9 +56,9 @@ export const NoCredentials: Story = {
 };
 
 export const ApiTokens: Story = {
-  name: "API Tokens",
+  name: "API tokens",
   args: {
-    node: section("api-tokens", "API Tokens"),
+    node: section("api-tokens", "API tokens"),
     ancestors,
     currentPath: "/user-settings/api-tokens",
     data: userSettingsData,
@@ -66,7 +66,7 @@ export const ApiTokens: Story = {
 };
 
 export const NoApiTokens: Story = {
-  name: "API Tokens (empty)",
+  name: "API tokens (empty)",
   args: {
     ...ApiTokens.args,
     data: { ...userSettingsData, apiTokens: [] },

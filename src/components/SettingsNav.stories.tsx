@@ -38,7 +38,7 @@ export const RouteLinks: Story = {
     items: [
       { id: "profile", label: "Profile", icon: UserCircle, to: "/user-settings/profile" },
       { id: "credentials", label: "Credentials", icon: KeyRound, to: "/user-settings/credentials" },
-      { id: "api-tokens", label: "API Tokens", icon: Terminal, to: "/user-settings/api-tokens" },
+      { id: "api-tokens", label: "API tokens", icon: Terminal, to: "/user-settings/api-tokens" },
     ],
   },
 };

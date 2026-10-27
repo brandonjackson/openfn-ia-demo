@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import type {
   AdaptorKind,
   Dataclip,
@@ -35,6 +35,7 @@ import VersionMismatchBanner from "../components/workflow/VersionMismatchBanner"
 import StepRunDetails from "../components/workflow/StepRunDetails";
 import StepInspector from "../components/workflow/StepInspector";
 import type { InspectorSection } from "../components/workflow/StepInspector";
+import Button from "../components/Button";
 import CanvasRunsBar from "../components/workflow/CanvasRunsBar";
 import ReadOnlyNotice from "../components/workflow/ReadOnlyNotice";
 import FailureBreakdown from "../components/workflow/FailureBreakdown";
@@ -626,13 +627,9 @@ export default function WorkflowEditorTemplate({
             {focusJob && panelView !== "runs" ? ` · ${focusJob.label}` : panelView !== "runs" ? " · whole run" : ` · ${selectedRun.when}`}
             {focusStep?.duration && panelView !== "runs" ? ` · ${focusStep.duration}` : ""}
           </span>
-          <button
-            type="button"
-            onClick={deselectRun}
-            className="rounded px-1 text-xs font-medium text-blue-600 hover:bg-blue-50"
-          >
-            Unload
-          </button>
+          <Button variant="secondary" size="xs" icon={X} onClick={deselectRun}>
+            Unload run
+          </Button>
         </>
       ) : (
         <span>No run loaded</span>

@@ -41,7 +41,8 @@ export default function PageHeader({ breadcrumbs, title, description, icon: Icon
             {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
           </div>
         </div>
-        {actions && <div className="flex flex-shrink-0 items-center gap-2">{actions}</div>}
+        {/* Centred on the title line, so a badge or small button lines up with it. */}
+        {actions && <div className="flex min-h-8 flex-shrink-0 items-center gap-2">{actions}</div>}
       </div>
     </div>
   );

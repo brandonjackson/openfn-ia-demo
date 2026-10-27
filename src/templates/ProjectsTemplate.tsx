@@ -53,9 +53,10 @@ export default function ProjectsTemplate({ node, ancestors, data }: Props) {
               aria-label="Search projects"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              compact
               className="w-56"
             />
-            <Button icon={Plus} onClick={() => setCreateOpen(true)}>
+            <Button icon={Plus} size="sm" onClick={() => setCreateOpen(true)}>
               New project
             </Button>
           </>
@@ -80,7 +81,7 @@ export default function ProjectsTemplate({ node, ancestors, data }: Props) {
             description={needle ? undefined : "Create a project to start building workflows."}
             action={
               needle ? undefined : (
-                <Button icon={Plus} onClick={() => setCreateOpen(true)}>
+                <Button icon={Plus} size="sm" onClick={() => setCreateOpen(true)}>
                   New project
                 </Button>
               )

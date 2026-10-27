@@ -154,7 +154,7 @@ export const mainNavTree: IANode[] = [
     children: [
       {
         id: "connected-system",
-        label: "Connected System",
+        label: "Connected system",
         description: "View details of a specific connected system.",
         pageType: "detail",
         dynamic: true,
@@ -174,12 +174,12 @@ export const mainNavTree: IANode[] = [
         children: [
           {
             id: "org-credentials",
-            label: "Org Credentials",
+            label: "Org credentials",
             description: "Organization-wide shared credentials.",
           },
           {
             id: "user-credentials",
-            label: "User Credentials",
+            label: "User credentials",
             description: "Credentials scoped to individual users.",
           },
         ],
@@ -194,7 +194,7 @@ export const mainNavTree: IANode[] = [
     children: [
       {
         id: "live-services",
-        label: "Live Services",
+        label: "Live services",
         description:
           "All live services published from projects across the organization.",
         linkedFrom: "/projects",
@@ -228,7 +228,7 @@ export const mainNavTree: IANode[] = [
     description: "View historical work orders and channel requests across all projects.",
     pageType: "table",
     filters: [
-      { label: "Project", options: ["All Projects", ...projects.map((p) => p.name)] },
+      { label: "Project", options: ["All projects", ...projects.map((p) => p.name)] },
       { label: "Type", options: ["All", "Work Order", "Channel Request"] },
       { label: "Status", options: ["All", "Success", "Failed", "Pending"] },
     ],
@@ -266,7 +266,7 @@ export const mainNavGroups: NavGroup[] = [
 export const supportTree: IANode[] = [
   {
     id: "get-help",
-    label: "Get Help Now",
+    label: "Get help now",
     description: "Talk to someone at OpenFn about a problem you're stuck on.",
   },
 ];
@@ -279,7 +279,7 @@ export const openfnDocsUrl = "https://docs.openfn.org";
 export const settingsTree: IANode[] = [
   {
     id: "user-settings",
-    label: "User Settings",
+    label: "User settings",
     description: "Configure your personal account settings.",
     pageType: "user-settings",
     children: [
@@ -297,7 +297,7 @@ export const settingsTree: IANode[] = [
       },
       {
         id: "api-tokens",
-        label: "API Tokens",
+        label: "API tokens",
         description: "Personal access tokens for the OpenFn CLI and API.",
         pageType: "user-settings",
       },
@@ -305,7 +305,7 @@ export const settingsTree: IANode[] = [
   },
   {
     id: "instance-settings",
-    label: "Instance Settings",
+    label: "Instance settings",
     description: "Manage who's in this instance, billing, and the context layers it draws on.",
     pageType: "instance-settings",
     children: [

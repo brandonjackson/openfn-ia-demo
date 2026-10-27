@@ -71,3 +71,13 @@ export const WithActions: Story = {
     ),
   },
 };
+
+/** Something you could add rather than one that exists, e.g. a suggested system. */
+export const Dashed: Story = {
+  args: {
+    ...Clickable.args,
+    badges: undefined,
+    meta: undefined,
+    dashed: true,
+  },
+};

@@ -4,7 +4,7 @@ import { withRouter } from "../stories/decorators";
 import type { IANode } from "../ia-tree";
 import { instanceSettingsData } from "../mock-data/instance";
 
-const root: IANode = { id: "instance-settings", label: "Instance Settings", pageType: "instance-settings" };
+const root: IANode = { id: "instance-settings", label: "Instance settings", pageType: "instance-settings" };
 const ancestors = [{ node: root, path: "/instance-settings" }];
 
 const section = (id: string, label: string): IANode => ({ id, label, pageType: "instance-settings" });

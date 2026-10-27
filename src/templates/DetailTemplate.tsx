@@ -1,4 +1,4 @@
-import { BookOpen, ExternalLink, FolderOpen, Globe, Lock, ShieldX, User, Users } from "lucide-react";
+import { BookOpen, FolderOpen, Globe, Lock, ShieldX, User, Users } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { AccessGrant, DetailPageData, DetailSectionItem } from "../page-data";
 import AdaptorLogo from "../components/AdaptorLogo";
@@ -13,6 +13,7 @@ import PropertyList from "../components/PropertyList";
 import type { Property } from "../components/PropertyList";
 import SectionHeading from "../components/SectionHeading";
 import SystemEnvironments from "../components/SystemEnvironments";
+import TextLink from "../components/TextLink";
 import { connectedSystems } from "../mock-data/connected-systems";
 
 interface Props {
@@ -104,17 +105,11 @@ export default function DetailTemplate({ node, ancestors, data }: Props) {
     if (system.apiDocsUrl) {
       properties.push({
         icon: BookOpen,
-        label: "API Docs",
+        label: "API docs",
         value: (
-          <a
-            href={system.apiDocsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-w-0 items-center gap-1 text-blue-600 hover:text-blue-700 hover:underline"
-          >
+          <TextLink href={system.apiDocsUrl} variant="inline">
             {system.apiDocsUrl}
-            <ExternalLink size={12} className="flex-shrink-0" />
-          </a>
+          </TextLink>
         ),
       });
     }

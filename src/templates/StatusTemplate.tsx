@@ -33,7 +33,7 @@ const workflowColumns: DataTableColumn<WorkflowStatus>[] = [
     key: "name",
     header: "Workflow",
     render: (w) => (
-      <span className="font-mono">
+      <span className="whitespace-nowrap font-mono">
         <TextLink to={`/workflow-editor/${w.id}`}>{w.name}</TextLink>
       </span>
     ),
@@ -48,7 +48,7 @@ const workflowColumns: DataTableColumn<WorkflowStatus>[] = [
     ),
   },
   { key: "status", header: "Status", render: (w) => <StatusBadge status={w.status} /> },
-  { key: "lastRun", header: "Last run", render: (w) => <span className="text-gray-500">{w.lastRun}</span> },
+  { key: "lastRun", header: "Last run", render: (w) => <span className="whitespace-nowrap text-gray-500">{w.lastRun}</span> },
   { key: "note", header: "Details", render: (w) => <span className="text-gray-500">{w.note}</span> },
 ];
 

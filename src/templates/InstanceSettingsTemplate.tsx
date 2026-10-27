@@ -253,7 +253,7 @@ export default function InstanceSettingsTemplate({ node, ancestors, data }: Prop
         ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
         current: node.label,
       }}
-      title="Instance Settings"
+      title="Instance settings"
       description="Manage who's in this instance, billing, and the context layers it draws on."
       navItems={navItems}
       activeId={activeId}

@@ -25,11 +25,11 @@ interface Props {
 
 const fieldColumns: DataTableColumn<ServiceApiField>[] = [
   { key: "name", header: "Field", render: (f) => <code className="font-mono text-sm text-gray-900">{f.name}</code> },
-  { key: "type", header: "Type", render: (f) => <span className="font-mono text-xs text-gray-500">{f.type}</span> },
+  { key: "type", header: "Type", render: (f) => <code className="font-mono text-sm text-gray-500">{f.type}</code> },
   {
     key: "required",
     header: "Required",
-    render: (f) => (f.required ? <Badge label="Required" tone="blue" /> : <span className="text-xs text-gray-400">Optional</span>),
+    render: (f) => (f.required ? <Badge label="Required" tone="blue" /> : <Badge label="Optional" />),
   },
   { key: "description", header: "Description", render: (f) => <span className="text-sm text-gray-600">{f.description}</span> },
 ];
@@ -61,7 +61,7 @@ export default function ServiceTemplate({ ancestors, data }: Props) {
     {
       icon: isWebhook ? Webhook : Clock,
       label: isWebhook ? "Endpoint" : "Runs",
-      value: isWebhook ? <code className="font-mono text-xs">{api.invocation}</code> : api.invocation,
+      value: isWebhook ? <code className="font-mono">{api.invocation}</code> : api.invocation,
     },
   ];
   if (api.auth) properties.push({ icon: KeyRound, label: "Auth", value: api.auth });

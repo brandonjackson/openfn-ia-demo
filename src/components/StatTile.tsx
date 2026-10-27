@@ -11,7 +11,7 @@ interface Props extends StatTileData {
   compact?: boolean;
   /** Draws the value in red, e.g. a failure count. */
   danger?: boolean;
-  /** No border or padding: for a row of numbers separated by dividers rather than a row of boxes. Implies `compact`. */
+  /** No box: a large number over its small label, for a row of figures in a narrow card. Implies `compact`. */
   bare?: boolean;
 }
 
@@ -32,7 +32,13 @@ export default function StatTile({
   bare = false,
 }: Props) {
   compact = compact || bare;
-  const body = (
+  const body = bare ? (
+    <>
+      <p className={`text-2xl font-semibold leading-none tracking-tight tabular-nums ${danger ? "text-red-600" : "text-gray-900"}`}>{value}</p>
+      <p className="mt-1.5 text-[11px] text-gray-500">{label}</p>
+      {detail && <p className="mt-0.5 text-[11px] text-gray-400">{detail}</p>}
+    </>
+  ) : (
     <>
       <div className="flex items-center justify-between gap-2">
         <p className={`${compact ? "text-xs" : "text-sm"} text-gray-500`}>{label}</p>
@@ -47,7 +53,7 @@ export default function StatTile({
           )
         )}
       </div>
-      <p className={`${bare ? "mt-0 text-base leading-6" : compact ? "mt-1 text-lg" : "mt-1 text-2xl"} font-semibold ${danger ? "text-red-600" : "text-gray-900"}`}>{value}</p>
+      <p className={`mt-1 font-semibold ${compact ? "text-lg" : "text-2xl"} ${danger ? "text-red-600" : "text-gray-900"}`}>{value}</p>
       {detail && <p className="mt-0.5 text-xs text-gray-500">{detail}</p>}
       {trend && (
         <Sparkline

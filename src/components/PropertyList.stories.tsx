@@ -27,3 +27,22 @@ export const Default: Story = {
     ],
   },
 };
+
+/** Plain: the same pairs on a bare grid, as the inspector lays out a step's config. */
+export const Plain: Story = {
+  args: {
+    variant: "plain",
+    properties: [
+      { label: "Project", value: <TextLink to={`/projects/${project.id}`}>{project.name}</TextLink> },
+      { label: "Endpoint", value: <code className="font-mono text-xs">{service.api!.invocation}</code> },
+      { label: "Auth", value: service.api!.auth },
+    ],
+  },
+  decorators: [
+    (Story) => (
+      <div className="w-80">
+        <Story />
+      </div>
+    ),
+  ],
+};

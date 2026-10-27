@@ -28,12 +28,3 @@ export const WithHint: Story = {
   },
 };
 
-/** The inspector's small uppercase label, so fields sit at the same level as its section headings. */
-export const Compact: Story = {
-  args: {
-    label: "Name",
-    htmlFor: "step-name",
-    compact: true,
-    children: <TextInput id="step-name" defaultValue="Create new citizen in Identity" />,
-  },
-};

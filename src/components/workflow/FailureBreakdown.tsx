@@ -18,8 +18,8 @@ export type FailureScope = "step" | "workflow";
  * period picker and, with a step in focus, a switch between that step's
  * failures and the whole workflow's; in the inspector it has neither, as
  * the canvas sets the period and the selected node sets the scope, and it
- * is `compact`: no intro line, and each reason's share is drawn as a tint
- * behind its row instead of a bar under it.
+ * is `compact`: no intro line, no chevrons, and each reason's share is a
+ * thin red rule under its row.
  */
 export default function FailureBreakdown({
   reasons,
@@ -89,7 +89,7 @@ export default function FailureBreakdown({
                 at {where}, for {reasons.length} {reasons.length === 1 ? "reason" : "reasons"}. Most common first.
               </p>
             )}
-            <ul className={compact ? "-mx-2" : "divide-y divide-gray-50"}>
+            <ul className={compact ? "divide-y divide-gray-100" : "divide-y divide-gray-50"}>
               {reasons.map((r) => {
                 const expanded = open.includes(r.reason);
                 const share = Math.round((r.count / total) * 100);
@@ -101,14 +101,16 @@ export default function FailureBreakdown({
                         onClick={() => toggle(r.reason)}
                         aria-expanded={expanded}
                         title={`${r.reason} · ${r.count} ${r.count === 1 ? "run" : "runs"}, ${share}%${scope !== "step" ? ` · at ${r.steps.join(", ")}` : ""}`}
-                        className="relative flex w-full items-center gap-1.5 overflow-hidden rounded-md px-2 py-1.5 text-left hover:bg-gray-50"
+                        className="group block w-full py-2 text-left"
                       >
-                        <span aria-hidden className="absolute inset-y-0 left-0 bg-red-50" style={{ width: `${share}%` }} />
-                        <Chevron expanded={expanded} className="relative flex-shrink-0 text-gray-400" />
-                        <span className="relative min-w-0 flex-1 truncate font-mono text-[11px] text-gray-800">{r.reason}</span>
-                        <span className="relative flex-shrink-0 text-[11px] tabular-nums text-gray-400">
-                          <span className="font-semibold text-red-600">{r.count}</span> · {share}%
+                        <span className="flex items-baseline gap-2">
+                          <span className="min-w-0 flex-1 truncate font-mono text-xs text-gray-900 group-hover:text-blue-700">{r.reason}</span>
+                          <span className="flex-shrink-0 text-xs tabular-nums">
+                            <span className="font-semibold text-red-600">{r.count}</span>
+                            <span className="ml-1.5 text-gray-400">{share}%</span>
+                          </span>
                         </span>
+                        <span aria-hidden className="mt-1.5 block h-0.5 bg-red-500" style={{ width: `${share}%` }} />
                       </button>
                     ) : (
                       <button
@@ -135,7 +137,7 @@ export default function FailureBreakdown({
                       </button>
                     )}
                     {expanded && (
-                      <ul className={compact ? "mb-1 ml-5 border-l border-gray-100" : "pb-1"}>
+                      <ul className={compact ? "-mx-5 mb-1" : "pb-1"}>
                         {r.runs.map((run) => (
                           <li key={run.runId}>
                             <RunRow

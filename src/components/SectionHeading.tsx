@@ -20,13 +20,13 @@ interface Props {
 export default function SectionHeading({ title, description, action, variant = "default", compact = false }: Props) {
   const isLabel = variant === "label";
   return (
-    <div className={`flex justify-between gap-4 ${compact ? "items-center" : "items-start"} ${isLabel ? (compact ? "mb-2" : "mb-3") : "mb-6"}`}>
+    <div className={`flex justify-between gap-4 ${compact ? "items-baseline" : "items-start"} ${isLabel ? (compact ? "mb-2" : "mb-3") : "mb-6"}`}>
       <div className="min-w-0">
         <h2
           className={
             isLabel
               ? compact
-                ? "text-[11px] font-semibold uppercase tracking-wider text-gray-400"
+                ? "text-[11px] font-semibold uppercase tracking-[0.08em] text-gray-900"
                 : "text-sm font-semibold text-gray-500 uppercase tracking-wider"
               : "text-lg font-semibold text-gray-900"
           }

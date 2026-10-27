@@ -6,10 +6,10 @@ import type { ActivityPeriod, FailureReason } from "../../mock-data/runs";
 import { activityPeriodLabel } from "../../mock-data/runs";
 import { adaptorInfo, credentialsFor } from "../../mock-data/adaptor-reference";
 import { codeSummary } from "../../mock-data/code-summaries";
-import FormField from "../FormField";
 import Button from "../Button";
 import EditableTitle from "../EditableTitle";
 import Badge from "../Badge";
+import PropertyList from "../PropertyList";
 import SectionHeading from "../SectionHeading";
 import StatTile from "../StatTile";
 import TextLink from "../TextLink";
@@ -115,13 +115,14 @@ export default function StepInspector({
       aria-label="Inspector"
       className="flex max-h-full w-[380px] max-w-[calc(100vw-2rem)] flex-col rounded-xl border border-gray-200 bg-white shadow-xl"
     >
-      <header className="flex h-12 flex-none items-center gap-2 border-b border-gray-100 pl-4 pr-2">
+      <header className="flex h-12 flex-none items-center gap-2 border-b border-gray-200 pl-5 pr-2">
         <div className="flex min-w-0 flex-1 items-center">
           <EditableTitle
             value={node.label}
             label="Step name"
             readOnly={readOnly || !job}
             onChange={job && onChange ? (label) => onChange({ label }) : undefined}
+            className="text-base tracking-tight"
           />
         </div>
         {step && <StatusPill status={step.status} />}
@@ -132,11 +133,11 @@ export default function StepInspector({
       </header>
 
       {run ? (
-        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-3">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-4">
           <RunData run={run} job={job} dataclips={dataclips} onUnload={onUnloadRun} onExpand={onExpand} />
         </div>
       ) : (
-        <div className="min-h-0 flex-1 divide-y divide-gray-100 overflow-y-auto">
+        <div className="min-h-0 flex-1 divide-y divide-gray-200 overflow-y-auto">
           <InspectorSection>
             {job && (
               <AdaptorRow
@@ -146,31 +147,23 @@ export default function StepInspector({
                 onConnect={(id) => onChange?.({ credentialId: id })}
               />
             )}
-            {trigger && (
-              <>
-                <TriggerTypeRow trigger={trigger} />
-                {trigger.triggerType === "webhook" && <WebhookUrl url={url} />}
-                <FormField compact label="Enabled" hint="When off, the trigger won't start runs. You can still run manually.">
-                  <ToggleSwitch key={String(live)} checked={live} onChange={readOnly ? undefined : onToggleLive} label={live ? "Live" : "Paused"} />
-                </FormField>
-              </>
-            )}
+            {trigger && <TriggerConfig trigger={trigger} url={url} live={live} readOnly={readOnly} onToggleLive={onToggleLive} />}
           </InspectorSection>
 
           {job && (
             <InspectorSection
               heading="What this step does"
               aside={
-                onOpenCode ? (
-                  <TextLink variant="action" onClick={onOpenCode}>
-                    <span className="text-xs">See full code →</span>
-                  </TextLink>
-                ) : undefined
+                <span className="inline-flex items-center gap-1">
+                  <Sparkles size={11} />
+                  AI summary
+                </span>
               }
             >
-              <CodeSummary job={job} />
+              <CodeSummary job={job} onOpenCode={onOpenCode} />
             </InspectorSection>
           )}
+
           {stats && (
             <InspectorSection heading={job ? "Runs" : "Workflow runs"} aside={period}>
               <RunStrip stats={stats} job={job} />
@@ -196,7 +189,7 @@ export default function StepInspector({
       )}
 
       {!run && (onRunFromHere || (onDelete && !readOnly)) && (
-        <footer className="flex flex-none items-center justify-between gap-2 border-t border-gray-100 px-4 py-3">
+        <footer className="flex flex-none items-center justify-between gap-2 border-t border-gray-200 px-5 py-3">
           <div>
             {onDelete && !readOnly && (
               <Button variant="outline-danger" size="xs" icon={Trash2} onClick={onDelete} aria-label="Delete step">
@@ -218,14 +211,14 @@ export default function StepInspector({
 /** One section of the inspector: an optional small heading, with something to its right, over its content. */
 function InspectorSection({ heading, aside, children }: { heading?: string; aside?: ReactNode; children: ReactNode }) {
   return (
-    <section aria-label={heading} className="flex flex-col gap-3 px-4 py-3">
+    <section aria-label={heading} className="flex flex-col gap-3 px-5 py-4">
       {heading && (
         <div className="-mb-3">
           <SectionHeading
             variant="label"
             compact
             title={heading}
-            action={aside && <span className="text-[11px] text-gray-400">{aside}</span>}
+            action={aside && <span className="text-[11px] tabular-nums text-gray-400">{aside}</span>}
           />
         </div>
       )}
@@ -247,19 +240,26 @@ function withCode(text: string): ReactNode {
   );
 }
 
-/** The assistant's summary of what the step's code does, as a short list with a note that an AI wrote it. */
-function CodeSummary({ job }: { job: JobNode }) {
+/** The assistant's summary of what the step's code does: numbered points on the text axis, then the way to the full code. */
+function CodeSummary({ job, onOpenCode }: { job: JobNode; onOpenCode?: () => void }) {
+  const points = codeSummary(job);
   return (
     <div>
-      <ul className="list-disc space-y-1 pl-4 text-xs leading-5 text-gray-700 marker:text-violet-300">
-        {codeSummary(job).map((point) => (
-          <li key={point}>{withCode(point)}</li>
+      <ol className="grid grid-cols-[16px_minmax(0,1fr)] gap-x-1 gap-y-1.5 text-xs leading-5 text-gray-800">
+        {points.map((point, i) => (
+          <li key={point} className="contents">
+            <span className="tabular-nums text-gray-400">{i + 1}</span>
+            <span>{withCode(point)}</span>
+          </li>
         ))}
-      </ul>
-      <p className="mt-2 flex items-center gap-1 text-[11px] text-violet-600/80">
-        <Sparkles size={11} />
-        Summarised by AI
-      </p>
+      </ol>
+      {onOpenCode && (
+        <div className="mt-2.5">
+          <TextLink variant="action" onClick={onOpenCode}>
+            <span className="text-xs">See full code →</span>
+          </TextLink>
+        </div>
+      )}
     </div>
   );
 }
@@ -269,13 +269,13 @@ function RunStrip({ stats, job }: { stats: InspectorStats; job?: JobNode }) {
   const { runs, failed } = stats;
   if (runs === 0)
     return (
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-gray-500">
         No runs {job ? "reached this step" : "started"} in the {activityPeriodLabel(stats.period).toLowerCase()}.
       </p>
     );
   const rate = `${Math.round(((runs - failed) / runs) * 100)}%`;
   return (
-    <div className="grid grid-cols-3 divide-x divide-gray-100 [&>*+*]:pl-3">
+    <div className="grid grid-cols-3 gap-3">
       <StatTile bare label={job ? "Reached" : "Runs"} value={runs} />
       <StatTile bare label="Failed" value={failed} danger={failed > 0} />
       <StatTile bare label="Succeeded" value={rate} />
@@ -361,7 +361,7 @@ function RunData({
   );
 }
 
-/** The adaptor and its credential on one row, with Connect when the step needs one. */
+/** The adaptor and its credential as label/value rows, with Connect when the step needs one. */
 function AdaptorRow({
   adaptor,
   credentialId,
@@ -376,63 +376,89 @@ function AdaptorRow({
   const info = adaptorInfo[adaptor];
   const credentials = credentialsFor(adaptor);
   const credential = credentials.find((c) => c.id === credentialId);
-  const needs = info.needsCredential && !credential;
   return (
-    <FormField compact label="Adaptor">
-      <div
-        className={`flex items-center gap-2 rounded-md border px-2 py-1.5 ${
-          needs && !readOnly ? "border-blue-200 bg-blue-50/40" : "border-gray-200"
-        }`}
-      >
-        <AdaptorPill adaptor={adaptor} showVersion />
-        <span className="ml-auto min-w-0 truncate text-xs text-gray-500">
-          {credential ? credential.name : info.needsCredential ? (readOnly ? "No credential" : "") : "No credential needed"}
-        </span>
-        {needs && !readOnly && (
-          <Button size="xs" onClick={() => onConnect(credentials[0]?.id)} className="flex-shrink-0">
-            Connect
-          </Button>
-        )}
-      </div>
-    </FormField>
+    <PropertyList
+      variant="plain"
+      properties={[
+        { label: "Adaptor", value: <AdaptorPill adaptor={adaptor} showVersion /> },
+        {
+          label: "Credential",
+          value: credential ? (
+            <span className="truncate">{credential.name}</span>
+          ) : !info.needsCredential ? (
+            <span className="text-gray-500">Not needed</span>
+          ) : readOnly ? (
+            <span className="text-gray-500">None</span>
+          ) : (
+            <>
+              <span className="text-gray-500">None yet</span>
+              <TextLink variant="action" onClick={() => onConnect(credentials[0]?.id)}>
+                <span className="text-xs">Connect →</span>
+              </TextLink>
+            </>
+          ),
+        },
+      ]}
+    />
   );
 }
 
-function TriggerTypeRow({ trigger }: { trigger: TriggerNode }) {
+/** The trigger's type, its URL for a webhook, and its switch, as label/value rows. */
+function TriggerConfig({
+  trigger,
+  url,
+  live,
+  readOnly,
+  onToggleLive,
+}: {
+  trigger: TriggerNode;
+  url?: string;
+  live: boolean;
+  readOnly: boolean;
+  onToggleLive?: (live: boolean) => void;
+}) {
   const { label, icon } = triggerType[trigger.triggerType];
-  return (
-    <FormField compact label="Trigger">
-      <div className="flex items-center gap-2 rounded-md border border-gray-200 px-2 py-1.5">
-        <Badge label={label} tone="green" icon={icon} />
-        <span className="ml-auto truncate text-xs text-gray-500">{trigger.subtitle}</span>
-      </div>
-    </FormField>
-  );
-}
-
-/** The webhook's URL with its method and a copy control. */
-function WebhookUrl({ url }: { url?: string }) {
-  return (
-    <FormField compact label="Webhook URL" hint={url ? "POST a JSON body to this URL to start a run." : undefined}>
-      <div className="flex items-start gap-2 rounded-md border border-gray-200 px-2 py-2">
-        <Badge label="POST" tone="green" />
-        <code className="min-w-0 flex-1 break-all font-mono text-xs leading-5 text-gray-700">
-          {url ?? "Available once the workflow is live"}
-        </code>
-        {url && (
-          <button
-            type="button"
-            onClick={() => void navigator.clipboard?.writeText(url)}
-            title="Copy URL"
-            aria-label="Copy URL"
-            className="flex-shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-          >
-            <Copy size={13} />
-          </button>
-        )}
-      </div>
-    </FormField>
-  );
+  const properties = [
+    {
+      label: "Type",
+      value: (
+        <>
+          <Badge label={label} tone="green" icon={icon} />
+          <span className="truncate text-gray-500">{trigger.subtitle}</span>
+        </>
+      ),
+    },
+    ...(trigger.triggerType === "webhook"
+      ? [
+          {
+            label: "URL",
+            value: url ? (
+              <>
+                <code className="min-w-0 flex-1 truncate font-mono text-xs text-gray-900" title={`POST ${url}`}>
+                  {url}
+                </code>
+                <button
+                  type="button"
+                  onClick={() => void navigator.clipboard?.writeText(url)}
+                  title="Copy URL"
+                  aria-label="Copy URL"
+                  className="flex-shrink-0 rounded p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                >
+                  <Copy size={13} />
+                </button>
+              </>
+            ) : (
+              <span className="text-gray-500">Available once the workflow is live</span>
+            ),
+          },
+        ]
+      : []),
+    {
+      label: "Enabled",
+      value: <ToggleSwitch key={String(live)} checked={live} onChange={readOnly ? undefined : onToggleLive} label={live ? "Live" : "Paused"} />,
+    },
+  ];
+  return <PropertyList variant="plain" properties={properties} />;
 }
 
 function HeaderButton({ label, icon: Icon, onClick }: { label: string; icon: LucideIcon; onClick: () => void }) {

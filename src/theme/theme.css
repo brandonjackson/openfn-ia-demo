@@ -34,6 +34,24 @@
     "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
     "Liberation Mono", monospace;
+
+  /* The theme picker's own chrome. No theme redefines these, so the picker
+     reads the same whichever theme is active. */
+  --picker-trigger-bg: #121212;
+  --picker-trigger-fg: #ffffff;
+  --picker-trigger-border: rgb(255 255 255 / 0.12);
+  --picker-surface: #ffffff;
+  --picker-fg: #111827;
+  --picker-muted: #6b7280;
+  --picker-border: #e5e7eb;
+  --picker-well: #f3f4f6;
+  --picker-hover: #f4f4f5;
+  --picker-accent: #0d9488;
+  --picker-accent-soft: #f0fdfb;
+  --picker-dark-dot: #111827;
+  --picker-light-dot-border: #cbd5e1;
+  --picker-shadow: rgb(0 0 0 / 0.25);
+  --picker-panel-shadow: rgb(0 0 0 / 0.22);
 }
 
 body {

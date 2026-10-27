@@ -1,8 +1,11 @@
 import { useState } from "react";
 
 export interface BarDatum {
+  /** Names the bar in its tooltip, e.g. "Oct 14". */
   label: string;
   value: number;
+  /** What the axis shows under the bar, when it differs from the label; "" leaves it blank so dense charts stay legible. */
+  tick?: string;
 }
 
 interface Props {
@@ -11,6 +14,8 @@ interface Props {
   unit: string;
   /** Bar colour, as a background class. */
   barClassName?: string;
+  /** What each bar covers, for screen readers, e.g. "day" or "2 hours". */
+  per?: string;
 }
 
 /** Rounds up to a tidy axis maximum (1, 2, 5 × 10ⁿ). */
@@ -27,7 +32,7 @@ function niceMax(max: number) {
  * card around it names the series, so there's no legend. A visually hidden
  * table carries the same values for screen readers and keyboard users.
  */
-export default function BarChart({ data, unit, barClassName = "bg-indigo-500" }: Props) {
+export default function BarChart({ data, unit, barClassName = "bg-indigo-500", per = "day" }: Props) {
   const [active, setActive] = useState<number | null>(null);
   const max = niceMax(Math.max(...data.map((d) => d.value)));
   // Counts are whole numbers, so skip a half-way tick that isn't one.
@@ -93,8 +98,8 @@ export default function BarChart({ data, unit, barClassName = "bg-indigo-500" }:
 
           <div className="mt-2 flex gap-1 text-[11px] text-gray-500" aria-hidden>
             {data.map((d) => (
-              <span key={d.label} className="flex-1 text-center">
-                {d.label}
+              <span key={d.label} className="flex-1 whitespace-nowrap text-center">
+                {d.tick ?? d.label}
               </span>
             ))}
           </div>
@@ -102,7 +107,9 @@ export default function BarChart({ data, unit, barClassName = "bg-indigo-500" }:
       </div>
 
       <table className="sr-only">
-        <caption>{unit} per day</caption>
+        <caption>
+          {unit} per {per}
+        </caption>
         <tbody>
           {data.map((d) => (
             <tr key={d.label}>

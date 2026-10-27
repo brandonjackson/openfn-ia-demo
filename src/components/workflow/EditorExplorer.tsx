@@ -119,7 +119,7 @@ export default function EditorExplorer({
       </Section>
 
       {(components.length > 0 || onAddComponent || readOnly) && (
-        <Section title="Components" addLabel="Add component" onAdd={onAddComponent} readOnly={readOnly}>
+        <Section title="Components" addLabel="Add project component" onAdd={onAddComponent} readOnly={readOnly}>
           {components.map((c) => (
             <ExplorerRow
               key={c.id}

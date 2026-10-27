@@ -192,16 +192,15 @@ export default function WorkflowCanvas({
               const live = flowing(edge.source, edge.target);
               return (
                 <g key={edge.id}>
-                  <path d={d} fill="none" stroke={ran ? "#64748b" : "#e2e8f0"} strokeWidth={ran ? 2.5 : 2} />
+                  <path d={d} fill="none" className={ran ? "stroke-slate-500" : "stroke-slate-200"} strokeWidth={ran ? 2.5 : 2} />
                   {live && (
                     <path
                       d={d}
                       fill="none"
-                      stroke="#3b82f6"
                       strokeWidth={3}
                       strokeLinecap="round"
                       strokeDasharray="4 11"
-                      className="animate-[edge-flow_0.8s_linear_infinite] motion-reduce:animate-none"
+                      className="stroke-blue-500 animate-[edge-flow_0.8s_linear_infinite] motion-reduce:animate-none"
                     />
                   )}
                 </g>
@@ -215,7 +214,7 @@ export default function WorkflowCanvas({
                   <path
                     d={d}
                     fill="none"
-                    stroke={n === 0 ? "#e2e8f0" : "#bfdbfe"}
+                    className={n === 0 ? "stroke-slate-200" : "stroke-blue-200"}
                     strokeWidth={strokeWidth}
                     strokeLinecap="round"
                   >
@@ -225,17 +224,16 @@ export default function WorkflowCanvas({
                     <path
                       d={d}
                       fill="none"
-                      stroke="#769ced"
                       strokeWidth={3}
                       strokeLinecap="round"
                       strokeDasharray="1 14"
-                      className="animate-[edge-flow_3.2s_linear_infinite] motion-reduce:animate-none"
+                      className="stroke-blue-400 animate-[edge-flow_3.2s_linear_infinite] motion-reduce:animate-none"
                     />
                   )}
                 </g>
               );
             }
-            return <path key={edge.id} d={d} fill="none" stroke="#cbd5e1" strokeWidth={2} />;
+            return <path key={edge.id} d={d} fill="none" className="stroke-slate-300" strokeWidth={2} />;
           })}
         </svg>
 

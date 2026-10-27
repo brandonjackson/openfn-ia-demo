@@ -1,4 +1,5 @@
 import type { AdaptorKind } from "./workflow";
+import { adaptorCatalog } from "./adaptor-catalog";
 
 /**
  * What the editor knows about each adaptor a step can use: its display name
@@ -24,7 +25,24 @@ export interface Snippet {
   code: string;
 }
 
+/** The rest of the catalog, with what the catalog knows; the adaptors below override it. */
+const catalogInfo: Record<AdaptorKind, AdaptorInfo> = Object.fromEntries(
+  adaptorCatalog.map((a) => [
+    a.id,
+    {
+      id: a.id,
+      name: a.name,
+      version: a.version.split(".").slice(0, 2).join("."),
+      package: `@openfn/language-${a.id}`,
+      docsUrl: `https://docs.openfn.org/adaptors/packages/${a.id}-docs`,
+      needsCredential: true,
+      description: `${a.description}.`,
+    },
+  ])
+);
+
 export const adaptorInfo: Record<AdaptorKind, AdaptorInfo> = {
+  ...catalogInfo,
   common: {
     id: "common",
     name: "Common",
@@ -75,7 +93,11 @@ export const adaptorInfo: Record<AdaptorKind, AdaptorInfo> = {
 /** Every adaptor a step can be switched to, in picker order. */
 export const adaptorChoices: AdaptorKind[] = ["common", "http", "postgresql", "dhis2", "salesforce"];
 
+/** Adaptors without snippets of their own have none. */
+const noSnippets: Record<AdaptorKind, Snippet[]> = Object.fromEntries(adaptorCatalog.map((a) => [a.id, []]));
+
 export const adaptorSnippets: Record<AdaptorKind, Snippet[]> = {
+  ...noSnippets,
   common: [
     {
       id: "fn",

@@ -17,7 +17,7 @@ const boxSize: Record<Size, string> = {
  * coloured tile with the package shortname (e.g. red "http"); the "common"
  * adaptor uses the bordered "Fn" tile.
  */
-const adaptorStyle: Record<AdaptorKind, { label: string; classes: string }> = {
+const adaptorStyle: Partial<Record<AdaptorKind, { label: string; classes: string }>> = {
   http: { label: "http", classes: "bg-red-600 text-white" },
   common: { label: "Fn", classes: "bg-gray-100 text-gray-700 border border-gray-300" },
   dhis2: { label: "d2", classes: "bg-emerald-600 text-white" },
@@ -36,7 +36,7 @@ export function AdaptorIcon({
 }) {
   // Prefer the adaptor's real logo; the lettered tile is the fallback.
   if (hasAdaptorLogo(adaptor)) return <AdaptorLogo adaptor={adaptor} size={logoSize[size]} />;
-  const style = adaptorStyle[adaptor];
+  const style = adaptorStyle[adaptor] ?? { label: adaptor.slice(0, 2), classes: "bg-gray-600 text-white" };
   return (
     <span
       className={`inline-flex items-center justify-center font-semibold leading-none ${boxSize[size]} ${style.classes}`}

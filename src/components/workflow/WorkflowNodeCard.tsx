@@ -1,4 +1,4 @@
-import { Maximize2, MoreVertical, Play, Sparkles, Trash2 } from "lucide-react";
+import { Maximize2, MoreVertical, Play, Plus, Sparkles, Trash2 } from "lucide-react";
 import type { RunStep, WorkflowNode } from "../../mock-data/workflow";
 import { triggerNames } from "../../mock-data/workflow";
 import type { NodeActivity } from "../../mock-data/runs";
@@ -27,6 +27,9 @@ export type NodeAction = "run" | "edit" | "improve" | "delete";
  * The slot before the menu shows the run history (`activity`: how many runs
  * reached the node and how many failed there) or, while a run is loaded, the
  * step's status and duration. Nodes the loaded run never reached are dimmed.
+ *
+ * With `onAddAfter`, hovering the card (or tabbing to it) shows a + on its
+ * bottom edge that adds a step after it.
  */
 export default function WorkflowNodeCard({
   node,
@@ -40,6 +43,7 @@ export default function WorkflowNodeCard({
   activity,
   onShowFailures,
   note,
+  onAddAfter,
 }: {
   node: WorkflowNode;
   selected?: boolean;
@@ -60,6 +64,8 @@ export default function WorkflowNodeCard({
   onShowFailures?: () => void;
   /** Extra line under the name, e.g. "Started by webhook trigger". */
   note?: string;
+  /** Adds a step after this node, from the + on its bottom edge. Without it there's no +. */
+  onAddAfter?: (node: WorkflowNode) => void;
 }) {
   const job = node.type === "job" ? node : undefined;
 
@@ -80,7 +86,7 @@ export default function WorkflowNodeCard({
 
   return (
     <div
-      className={`relative rounded-xl border border-gray-200 bg-white shadow-sm transition-[opacity,box-shadow] ${ringClasses} ${
+      className={`group relative rounded-xl border border-gray-200 bg-white shadow-sm transition-[opacity,box-shadow] ${ringClasses} ${
         dimmed ? "opacity-40 hover:opacity-70" : ""
       }`}
       style={{ width: NODE_WIDTH, height: NODE_HEIGHT }}
@@ -146,6 +152,18 @@ export default function WorkflowNodeCard({
         </p>
         {note && <span className="mt-1 block truncate text-[11px] text-gray-400">{note}</span>}
       </div>
+
+      {onAddAfter && (
+        <button
+          type="button"
+          onClick={() => onAddAfter(node)}
+          aria-label={`Add a step after ${node.label}`}
+          title="Add a step"
+          className="absolute -bottom-3 left-1/2 inline-flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-md bg-blue-600 text-white opacity-0 shadow-sm transition-opacity hover:bg-blue-700 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 group-hover:opacity-100"
+        >
+          <Plus size={14} strokeWidth={2.5} />
+        </button>
+      )}
     </div>
   );
 }

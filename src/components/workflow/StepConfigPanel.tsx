@@ -36,6 +36,8 @@ export default function StepConfigPanel({
   showHeader = true,
 }: Props) {
   const info = adaptorInfo[step.adaptor];
+  // A step added from the picker may be on an adaptor outside the usual choices.
+  const choices = adaptorChoices.includes(step.adaptor) ? adaptorChoices : [step.adaptor, ...adaptorChoices];
   const credentials = credentialsFor(step.adaptor);
   const credentialOptions = ["No credential", ...credentials.map((c) => c.name)];
   const credentialValue = credentials.find((c) => c.id === credentialId)?.name ?? "No credential";
@@ -61,11 +63,11 @@ export default function StepConfigPanel({
         <FormField label="Adaptor" hint={`${info.package}@${info.version}`}>
           <Select
             className="w-full"
-            options={adaptorChoices.map((a) => adaptorInfo[a].name)}
+            options={choices.map((a) => adaptorInfo[a].name)}
             value={info.name}
             disabled={readOnly}
             onChange={(e) =>
-              onChange?.({ adaptor: adaptorChoices.find((a) => adaptorInfo[a].name === e.target.value) })
+              onChange?.({ adaptor: choices.find((a) => adaptorInfo[a].name === e.target.value) })
             }
           />
         </FormField>

@@ -5,7 +5,7 @@ import Card from "../../components/Card";
 import ProgressBar from "../../components/ProgressBar";
 import SectionHeading from "../../components/SectionHeading";
 import SuggestedSystemsToAdd from "../../components/SuggestedSystemsToAdd";
-import SystemPill from "../../components/SystemPill";
+import EntityPill from "../../components/EntityPill";
 import TextLink from "../../components/TextLink";
 
 interface Props {
@@ -44,7 +44,7 @@ export default function ConnectedSystemsSetupSection({
 
         <div className="flex flex-wrap items-center gap-2">
           {systems.map((system) => (
-            <SystemPill
+            <EntityPill
               key={system.id}
               name={system.name}
               adaptor={system.adaptor}

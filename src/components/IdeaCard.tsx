@@ -1,6 +1,6 @@
 import { Lightbulb } from "lucide-react";
 import type { BuildIdea } from "../page-data";
-import SystemPill from "./SystemPill";
+import EntityPill from "./EntityPill";
 
 interface Props {
   idea: BuildIdea;
@@ -23,7 +23,7 @@ export default function IdeaCard({ idea, onSelect }: Props) {
       <p className="mt-1.5 flex-1 text-xs leading-relaxed text-gray-500">{idea.description}</p>
       <div className="mt-3 flex flex-wrap gap-1.5">
         {idea.systems.map((s) => (
-          <SystemPill key={s} name={s} size="sm" />
+          <EntityPill key={s} name={s} size="sm" />
         ))}
       </div>
     </button>

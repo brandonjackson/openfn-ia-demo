@@ -17,6 +17,7 @@ export const Default: Story = {};
 export const Sizes: Story = {
   render: () => (
     <div className="flex items-center gap-2">
+      <IconButton size="2xs" icon={X} label="Remove" />
       <IconButton size="xs" icon={Copy} label="Copy URL" />
       <IconButton size="sm" icon={Maximize2} label="Maximise panel" />
       <IconButton size="md" icon={X} label="Close" />

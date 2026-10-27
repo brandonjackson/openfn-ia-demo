@@ -4,7 +4,7 @@ import { triggerTypes } from "../../mock-data/workflow";
 import type { NodeActivity } from "../../mock-data/runs";
 import DropdownMenu from "../DropdownMenu";
 import type { DropdownMenuItem } from "../DropdownMenu";
-import SystemPill from "../SystemPill";
+import EntityPill from "../EntityPill";
 import { adaptorInfo } from "../../mock-data/adaptor-reference";
 import { TriggerIcon } from "./AdaptorIcon";
 import StatusPill from "./StatusPill";
@@ -105,9 +105,9 @@ export default function WorkflowNodeCard({
       <div className="pointer-events-none relative flex h-full flex-col p-3">
         <div className="flex h-7 items-center gap-2">
           {node.type === "job" ? (
-            <SystemPill name={adaptorInfo[node.adaptor].name} adaptor={node.adaptor} size="sm" />
+            <EntityPill name={adaptorInfo[node.adaptor].name} adaptor={node.adaptor} size="sm" />
           ) : (
-            <SystemPill
+            <EntityPill
               name={triggerTypes[node.triggerType].label}
               size="sm"
               icon={<TriggerIcon triggerType={node.triggerType} size="xs" />}

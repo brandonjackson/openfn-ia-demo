@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { Code2, Copy, Play, Sparkles, Trash2, X } from "lucide-react";
-import type { Dataclip, JobNode, RunDetails, TriggerNode, WorkflowNode } from "../../mock-data/workflow";
+import type { AdaptorKind, Dataclip, JobNode, RunDetails, TriggerNode, WorkflowNode } from "../../mock-data/workflow";
 import { triggerTypes } from "../../mock-data/workflow";
 import type { ActivityPeriod, FailureReason } from "../../mock-data/runs";
 import { activityPeriodLabel } from "../../mock-data/runs";
@@ -14,7 +14,7 @@ import SectionHeading from "../SectionHeading";
 import StatTile from "../StatTile";
 import TextLink from "../TextLink";
 import ToggleSwitch from "../ToggleSwitch";
-import AdaptorPill from "./AdaptorPill";
+import EntityPill from "../EntityPill";
 import StatusPill from "./StatusPill";
 import RunLabel from "./RunLabel";
 import DataSnippet from "./DataSnippet";
@@ -356,7 +356,7 @@ function AdaptorRow({
   readOnly,
   onConnect,
 }: {
-  adaptor: Parameters<typeof AdaptorPill>[0]["adaptor"];
+  adaptor: AdaptorKind;
   credentialId?: string;
   readOnly: boolean;
   onConnect: (credentialId?: string) => void;
@@ -368,7 +368,7 @@ function AdaptorRow({
     <PropertyList
       variant="plain"
       properties={[
-        { label: "Adaptor", value: <AdaptorPill adaptor={adaptor} showVersion /> },
+        { label: "Adaptor", value: <EntityPill name={info.name} adaptor={adaptor} suffix={info.version} size="sm" /> },
         {
           label: "Credential",
           value: credential ? (

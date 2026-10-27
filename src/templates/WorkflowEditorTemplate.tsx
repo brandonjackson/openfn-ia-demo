@@ -921,6 +921,7 @@ export default function WorkflowEditorTemplate({
   return (
     <EditorShell
       toolbar={toolbar}
+      floatToolbar={view === "canvas"}
       sandboxed={!onMain}
       bottom={view === "canvas" && onMain ? <ReadOnlyNotice onEditInSandbox={() => setEditInSandboxOpen(true)} /> : undefined}
       rightTray={rightTray}

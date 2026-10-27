@@ -34,6 +34,11 @@ type Story = StoryObj<typeof EditorShell>;
 
 export const Default: Story = {};
 
+/** The toolbar floats over the canvas, which runs the full height and pans beneath it. */
+export const FloatingToolbar: Story = {
+  args: { floatToolbar: true },
+};
+
 export const WithTray: Story = {
   args: {
     rightTray: (

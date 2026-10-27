@@ -1,5 +1,5 @@
 import type { TriggerNode } from "../../mock-data/workflow";
-import { triggerNames } from "../../mock-data/workflow";
+import { triggerTypes } from "../../mock-data/workflow";
 import { TriggerIcon } from "./AdaptorIcon";
 
 /**
@@ -14,7 +14,7 @@ export default function TriggerPill({ triggerType, compact = false }: { triggerT
       }`}
     >
       <TriggerIcon triggerType={triggerType} size={compact ? "xs" : "sm"} />
-      {triggerNames[triggerType]}
+      {triggerTypes[triggerType].label}
     </span>
   );
 }

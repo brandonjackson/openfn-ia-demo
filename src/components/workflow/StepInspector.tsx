@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { Clock, Code2, Copy, Globe, Play, Radio, Sparkles, Trash2, X } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Code2, Copy, Play, Sparkles, Trash2, X } from "lucide-react";
 import type { Dataclip, JobNode, RunDetails, TriggerNode, WorkflowNode } from "../../mock-data/workflow";
+import { triggerTypes } from "../../mock-data/workflow";
 import type { ActivityPeriod, FailureReason } from "../../mock-data/runs";
 import { activityPeriodLabel } from "../../mock-data/runs";
 import { adaptorInfo, credentialsFor } from "../../mock-data/adaptor-reference";
@@ -16,14 +16,13 @@ import TextLink from "../TextLink";
 import ToggleSwitch from "../ToggleSwitch";
 import AdaptorPill from "./AdaptorPill";
 import StatusPill from "./StatusPill";
+import RunLabel from "./RunLabel";
 import DataSnippet from "./DataSnippet";
 import FailureBreakdown from "./FailureBreakdown";
 import type { StepChanges } from "./StepConfigPanel";
+import type { RunDataSection } from "./panel-views";
 import IconButton from "../IconButton";
 import Surface from "../Surface";
-
-/** The run data sections the inspector shows, each of which opens in the code view's panel. */
-export type InspectorSection = "log" | "input" | "output";
 
 /** The node's run history over the canvas's period: the step's, or the whole workflow's for the trigger. */
 export interface InspectorStats {
@@ -35,12 +34,6 @@ export interface InspectorStats {
   /** Why they failed, most common first. */
   reasons: FailureReason[];
 }
-
-const triggerType: Record<TriggerNode["triggerType"], { label: string; icon: LucideIcon }> = {
-  webhook: { label: "Webhook", icon: Globe },
-  cron: { label: "Schedule", icon: Clock },
-  kafka: { label: "Kafka topic", icon: Radio },
-};
 
 interface Props {
   node: WorkflowNode;
@@ -64,7 +57,7 @@ interface Props {
   dataclips?: Dataclip[];
   onUnloadRun?: () => void;
   /** Opens a section of the run in the code view's panel, for the room a snippet can't give. */
-  onExpand?: (section: InspectorSection) => void;
+  onExpand?: (section: RunDataSection) => void;
   /** Loads a run picked from the failure breakdown. */
   onSelectRun?: (run: RunDetails) => void;
   /** The workflow's latest version; runs on older ones get a yellow tag. */
@@ -299,7 +292,7 @@ function RunData({
   job?: JobNode;
   dataclips: Dataclip[];
   onUnload?: () => void;
-  onExpand?: (section: InspectorSection) => void;
+  onExpand?: (section: RunDataSection) => void;
 }) {
   const step = job ? run.steps.find((s) => s.jobId === job.id) : undefined;
   const clip = (id?: string) => dataclips.find((d) => d.id === id);
@@ -314,7 +307,7 @@ function RunData({
       }
     : { logs: run.logs.filter((l) => !l.stepId), input: clip(run.inputId), output: undefined, outputMissing: "" };
 
-  const section = (id: InspectorSection, title: string, lines: string[], extra: Partial<Parameters<typeof DataSnippet>[0]>) => (
+  const section = (id: RunDataSection, title: string, lines: string[], extra: Partial<Parameters<typeof DataSnippet>[0]>) => (
     <DataSnippet
       key={id}
       title={title}
@@ -327,17 +320,8 @@ function RunData({
 
   return (
     <>
-      <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-3 pr-1.5">
-        <StatusPill status={run.status} variant="dot" />
-        <span className="min-w-0 flex-1 truncate text-xs text-gray-600">
-          Run <code className="font-mono font-medium text-gray-900">{run.runId.slice(0, 6)}</code>
-          {step?.duration ? ` · ${step.duration}` : ` · ${run.when}`}
-        </span>
-        {onUnload && (
-          <Button variant="secondary" size="xs" icon={X} onClick={onUnload}>
-            Unload run
-          </Button>
-        )}
+      <div className="rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-3 pr-1.5">
+        <RunLabel run={run} detail={step?.duration || run.when} onUnload={onUnload} />
       </div>
 
       {data ? (
@@ -421,13 +405,13 @@ function TriggerConfig({
   readOnly: boolean;
   onToggleLive?: (live: boolean) => void;
 }) {
-  const { label, icon } = triggerType[trigger.triggerType];
+  const { shortLabel, icon } = triggerTypes[trigger.triggerType];
   const properties = [
     {
       label: "Type",
       value: (
         <>
-          <Badge label={label} tone="green" icon={icon} />
+          <Badge label={shortLabel} tone="green" icon={icon} />
           <span className="truncate text-gray-500">{trigger.subtitle}</span>
         </>
       ),

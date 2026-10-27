@@ -1,11 +1,12 @@
 import { useSyncExternalStore } from "react";
+import type { RunDataSection } from "./components/workflow/panel-views";
 
 /**
  * The editor's layout, as in an IDE: which areas are showing and which view
  * the bottom panel is on. It's remembered across workflows and reloads, so
  * the editor opens the way you left it.
  */
-export type PanelViewId = "runs" | "failures" | "log" | "input" | "output";
+export type PanelViewId = "runs" | "failures" | RunDataSection;
 
 const panelViewIds: PanelViewId[] = ["runs", "failures", "log", "input", "output"];
 

@@ -1,10 +1,10 @@
 import { Copy } from "lucide-react";
 import type { TriggerNode } from "../../mock-data/workflow";
+import { triggerTypes } from "../../mock-data/workflow";
 import FormField from "../FormField";
 import { Select, TextInput } from "../FormControls";
 import ToggleSwitch from "../ToggleSwitch";
 
-const triggerTypeLabel = { webhook: "Webhook", cron: "Schedule (cron)", kafka: "Kafka topic" };
 
 interface Props {
   trigger: TriggerNode;
@@ -33,8 +33,8 @@ export default function TriggerConfigPanel({ trigger, url, readOnly = false, liv
         <FormField label="Type">
           <Select
             className="w-full"
-            options={Object.values(triggerTypeLabel)}
-            value={triggerTypeLabel[trigger.triggerType]}
+            options={Object.values(triggerTypes).map((t) => t.shortLabel)}
+            value={triggerTypes[trigger.triggerType].shortLabel}
             disabled={readOnly}
             onChange={() => {}}
           />

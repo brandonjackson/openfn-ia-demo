@@ -1,5 +1,6 @@
-import { BookOpen, Clock, FileText, Globe, HeartPulse, Plus, Radio, Workflow as WorkflowIcon } from "lucide-react";
+import { BookOpen, FileText, HeartPulse, Plus, Workflow as WorkflowIcon } from "lucide-react";
 import type { JobNode, RunDetails, TriggerNode, Workflow } from "../../mock-data/workflow";
+import { triggerTypes } from "../../mock-data/workflow";
 import type { ProjectComponent } from "../../mock-data/projects";
 import { componentTypeIcons } from "../../component-types";
 import ExplorerRow from "./ExplorerRow";
@@ -27,7 +28,6 @@ function explorerFileId(file: ExplorerFile): string {
   return "stepId" in file ? `step:${file.stepId}` : `component:${file.componentId}`;
 }
 
-const triggerIcon = { webhook: Globe, cron: Clock, kafka: Radio };
 
 interface Props {
   workflow: Workflow;
@@ -103,7 +103,7 @@ export default function EditorExplorer({
         {trigger && (
           <ExplorerRow
             label={trigger.label}
-            icon={triggerIcon[trigger.triggerType]}
+            icon={triggerTypes[trigger.triggerType].icon}
             status={startedAtTrigger ? "success" : undefined}
             selected={current === "trigger"}
             onClick={() => onOpen("trigger")}

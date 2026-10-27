@@ -1,5 +1,5 @@
-import { Globe, Clock, Radio } from "lucide-react";
-import type { AdaptorKind } from "../../mock-data/workflow";
+import type { AdaptorKind, TriggerType } from "../../mock-data/workflow";
+import { triggerTypes } from "../../mock-data/workflow";
 import { hasAdaptorLogo } from "../../adaptor-lookup";
 import AdaptorLogo from "../AdaptorLogo";
 
@@ -46,21 +46,15 @@ export function AdaptorIcon({
   );
 }
 
-const triggerIconMap = {
-  webhook: Globe,
-  cron: Clock,
-  kafka: Radio,
-};
-
-/** Circular trigger glyph (webhook = globe) shown at the top of a workflow. */
+/** Circular trigger glyph (its icon from `triggerTypes`) shown at the top of a workflow. */
 export function TriggerIcon({
   triggerType,
   size = "md",
 }: {
-  triggerType: "webhook" | "cron" | "kafka";
+  triggerType: TriggerType;
   size?: Size;
 }) {
-  const Icon = triggerIconMap[triggerType];
+  const Icon = triggerTypes[triggerType].icon;
   const dims = size === "lg" ? "w-14 h-14" : size === "sm" ? "w-7 h-7" : size === "xs" ? "w-4 h-4" : "w-10 h-10";
   const iconSize = size === "lg" ? 24 : size === "sm" ? 13 : size === "xs" ? 10 : 18;
   return (

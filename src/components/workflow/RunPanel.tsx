@@ -1,19 +1,6 @@
-import { CheckCircle2, XCircle, Loader2, Circle, Info } from "lucide-react";
-import type { RunDetails, RunStatus, RunStep } from "../../mock-data/workflow";
+import { Info } from "lucide-react";
+import type { RunDetails, RunStep } from "../../mock-data/workflow";
 import StatusPill from "./StatusPill";
-
-function StepIcon({ status }: { status: RunStatus }) {
-  switch (status) {
-    case "success":
-      return <CheckCircle2 size={16} className="text-green-500" />;
-    case "failed":
-      return <XCircle size={16} className="text-red-500" />;
-    case "running":
-      return <Loader2 size={16} className="animate-spin text-indigo-500" />;
-    default:
-      return <Circle size={16} className="text-gray-300" />;
-  }
-}
 
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -78,7 +65,7 @@ export default function RunPanel({
                   step.id === selectedStepId ? "bg-indigo-50" : ""
                 }`}
               >
-                <StepIcon status={step.status} />
+                <StatusPill status={step.status} variant="icon" />
                 <span className="flex-1 truncate text-sm text-gray-700">
                   {step.label}
                 </span>

@@ -1,7 +1,5 @@
-import { X } from "lucide-react";
 import type { RunDetails } from "../../mock-data/workflow";
-import Button from "../Button";
-import StatusPill from "./StatusPill";
+import RunLabel from "./RunLabel";
 import Surface from "../Surface";
 
 /**
@@ -21,19 +19,8 @@ export default function LoadedRunBar({
   onUnload?: () => void;
 }) {
   return (
-    <Surface className="inline-flex h-10 items-center gap-2 px-1.5 text-xs">
-      <span className="inline-flex items-center gap-2 pl-1.5 text-gray-600">
-        <StatusPill status={run.status} variant="dot" />
-        <span className="whitespace-nowrap">
-          Run <code className="font-mono font-medium text-gray-900">{run.runId.slice(0, 6)}</code>
-          {detail && <> · {detail}</>}
-        </span>
-      </span>
-      {onUnload && (
-        <Button variant="secondary" size="xs" icon={X} onClick={onUnload}>
-          Unload run
-        </Button>
-      )}
+    <Surface className="inline-flex h-10 items-center px-1.5 pl-3">
+      <RunLabel run={run} detail={detail} onUnload={onUnload} />
     </Surface>
   );
 }

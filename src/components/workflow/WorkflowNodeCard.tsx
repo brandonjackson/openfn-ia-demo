@@ -1,6 +1,6 @@
 import { Maximize2, MoreVertical, Play, Plus, Sparkles, Trash2 } from "lucide-react";
 import type { RunStep, WorkflowNode } from "../../mock-data/workflow";
-import { triggerNames } from "../../mock-data/workflow";
+import { triggerTypes } from "../../mock-data/workflow";
 import type { NodeActivity } from "../../mock-data/runs";
 import DropdownMenu from "../DropdownMenu";
 import type { DropdownMenuItem } from "../DropdownMenu";
@@ -108,7 +108,7 @@ export default function WorkflowNodeCard({
             <SystemPill name={adaptorInfo[node.adaptor].name} adaptor={node.adaptor} size="sm" />
           ) : (
             <SystemPill
-              name={triggerNames[node.triggerType]}
+              name={triggerTypes[node.triggerType].label}
               size="sm"
               icon={<TriggerIcon triggerType={node.triggerType} size="xs" />}
             />

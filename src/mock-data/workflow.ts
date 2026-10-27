@@ -6,17 +6,27 @@
  * the canvas can lay things out with simple absolute positioning.
  */
 
+import { Clock, Globe, Radio } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+
 /**
  * The adaptor a job uses, by package id (e.g. "http" or "dhis2"): any adaptor
  * in `adaptorCatalog`. Drives the icon shown on the node.
  */
 export type AdaptorKind = string;
 
-/** How a trigger's kind is named on its pill. */
-export const triggerNames: Record<TriggerNode["triggerType"], string> = {
-  webhook: "Webhook trigger",
-  cron: "Cron trigger",
-  kafka: "Kafka trigger",
+/** What starts a workflow. */
+export type TriggerType = "webhook" | "cron" | "kafka";
+
+/**
+ * How each kind of trigger is named and drawn, everywhere: `label` on its
+ * card and pill, `shortLabel` where the word "trigger" is already implied
+ * (a Type field, a property row) and `icon` for its glyph.
+ */
+export const triggerTypes: Record<TriggerType, { label: string; shortLabel: string; icon: LucideIcon }> = {
+  webhook: { label: "Webhook trigger", shortLabel: "Webhook", icon: Globe },
+  cron: { label: "Cron trigger", shortLabel: "Cron", icon: Clock },
+  kafka: { label: "Kafka trigger", shortLabel: "Kafka", icon: Radio },
 };
 
 /** What makes an edge fire. Drives the little badge drawn on the connector. */
@@ -32,7 +42,7 @@ export interface TriggerNode {
   id: string;
   type: "trigger";
   /** Webhook / cron / kafka — only webhook is modelled visually for now. */
-  triggerType: "webhook" | "cron" | "kafka";
+  triggerType: TriggerType;
   label: string;
   subtitle: string;
   /**

@@ -15,7 +15,7 @@ interface Props {
 
 const kinds: Record<HandbookFileKind, { label: string; icon: LucideIcon; color: string }> = {
   pdf: { label: "PDF", icon: FileType, color: "text-red-500" },
-  doc: { label: "DOC", icon: FileText, color: "text-blue-500" },
+  doc: { label: "DOC", icon: FileText, color: "text-violet-500" },
   sheet: { label: "SHEET", icon: FileSpreadsheet, color: "text-green-600" },
   text: { label: "TEXT", icon: FileText, color: "text-gray-500" },
   image: { label: "IMAGE", icon: FileImage, color: "text-purple-500" },

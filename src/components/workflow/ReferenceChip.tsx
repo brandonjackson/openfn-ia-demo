@@ -9,13 +9,13 @@ import { AdaptorIcon } from "./AdaptorIcon";
  */
 export default function ReferenceChip({ reference, onRemove }: { reference: AssistantReference; onRemove?: () => void }) {
   return (
-    <span className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-blue-200 bg-blue-50 py-0.5 pl-1 pr-1.5 text-xs font-medium text-blue-800">
+    <span className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-violet-200 bg-violet-50 py-0.5 pl-1 pr-1.5 text-xs font-medium text-violet-800">
       {reference.adaptor ? (
         <span className="inline-flex [&>*]:h-4! [&>*]:w-4! [&>*]:rounded! [&>*]:text-[7px]!">
           <AdaptorIcon adaptor={reference.adaptor} size="xs" />
         </span>
       ) : (
-        <Zap size={12} className="text-blue-500" />
+        <Zap size={12} className="text-violet-500" />
       )}
       <span className="truncate">{reference.label}</span>
       {onRemove && (
@@ -24,7 +24,7 @@ export default function ReferenceChip({ reference, onRemove }: { reference: Assi
           onClick={onRemove}
           aria-label={`Remove ${reference.label}`}
           title="Remove"
-          className="-mr-0.5 rounded p-0.5 text-blue-500 hover:bg-blue-100 hover:text-blue-800"
+          className="-mr-0.5 rounded p-0.5 text-violet-500 hover:bg-violet-100 hover:text-violet-800"
         >
           <X size={11} />
         </button>

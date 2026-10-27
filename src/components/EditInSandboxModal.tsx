@@ -247,7 +247,7 @@ function EditInSandboxForm({
                     monoTitle
                     onClick={() => onJoin(sandbox)}
                     trailing={
-                      <span className="inline-flex items-center gap-1 text-sm font-medium text-gray-400 group-hover:text-blue-600">
+                      <span className="inline-flex items-center gap-1 text-sm font-medium text-gray-400 group-hover:text-violet-600">
                         Join <ArrowRight size={14} />
                       </span>
                     }

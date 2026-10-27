@@ -16,7 +16,7 @@ interface Props {
   /** Icon shown before the label. */
   icon?: LucideIcon;
   /**
-   * `button` renders a {@link Button}; `link` renders a small blue text link,
+   * `button` renders a {@link Button}; `link` renders a small violet text link,
    * for actions that sit inside a card.
    */
   appearance?: "button" | "link";
@@ -90,7 +90,7 @@ export default function MenuButton({
           aria-haspopup="menu"
           aria-expanded={open}
           onClick={toggle}
-          className="inline-flex items-center gap-1 text-xs font-medium text-blue-600 hover:text-blue-700"
+          className="inline-flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700"
         >
           {LinkIcon && <LinkIcon size={12} />}
           {label}

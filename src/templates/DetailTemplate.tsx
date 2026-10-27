@@ -36,7 +36,7 @@ const grantColumns: DataTableColumn<AccessGrant>[] = [
         <span className="flex items-center gap-2">
           <Icon size={14} className="flex-shrink-0 text-gray-400" />
           <span className="font-medium text-gray-900">{g.grantedTo}</span>
-          <Badge label={isProject ? "Project" : "User"} tone={isProject ? "purple" : "blue"} />
+          <Badge label={isProject ? "Project" : "User"} tone={isProject ? "pink" : "violet"} />
         </span>
       );
     },
@@ -132,7 +132,7 @@ export default function DetailTemplate({ node, ancestors, data }: Props) {
             headerBadge && (
               <Badge
                 label={headerBadge.label}
-                tone={headerBadge.variant === "shared" ? "blue" : "gray"}
+                tone={headerBadge.variant === "shared" ? "violet" : "gray"}
                 icon={headerBadge.variant === "shared" ? Users : Lock}
               />
             )

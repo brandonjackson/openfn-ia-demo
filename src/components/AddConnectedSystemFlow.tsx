@@ -69,7 +69,7 @@ function AdaptorSearchList({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search systems (e.g. DHIS2, Salesforce, PostgreSQL...)"
-          className="w-full rounded-md border border-gray-300 pl-9 pr-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+          className="w-full rounded-md border border-gray-300 pl-9 pr-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
         />
       </div>
 
@@ -90,11 +90,11 @@ function AdaptorSearchList({
                   <button
                     type="button"
                     onClick={() => onSelect(adaptor)}
-                    className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-blue-50 transition-colors group"
+                    className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-left hover:bg-violet-50 transition-colors group"
                   >
                     <AdaptorLogo adaptor={adaptor.id} name={adaptor.name} size="sm" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 group-hover:text-blue-700">
+                      <p className="text-sm font-medium text-gray-800 group-hover:text-violet-700">
                         {adaptor.name}
                       </p>
                       <p className="text-xs text-gray-400 truncate">
@@ -103,7 +103,7 @@ function AdaptorSearchList({
                     </div>
                     <ChevronRight
                       size={14}
-                      className="text-gray-300 group-hover:text-blue-400 flex-shrink-0"
+                      className="text-gray-300 group-hover:text-violet-400 flex-shrink-0"
                     />
                   </button>
                 </li>
@@ -158,17 +158,17 @@ function ConfigForm({
       <button
         type="button"
         onClick={onBack}
-        className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-700 font-medium mb-4 transition-colors"
+        className="flex items-center gap-2 text-xs text-violet-600 hover:text-violet-700 font-medium mb-4 transition-colors"
       >
         <ChevronRight size={12} className="rotate-180" />
         Change system type
       </button>
 
-      <div className="flex items-center gap-3 rounded-lg bg-blue-50 border border-blue-100 px-4 py-3 mb-6">
+      <div className="flex items-center gap-3 rounded-lg bg-violet-50 border border-violet-100 px-4 py-3 mb-6">
         <AdaptorLogo adaptor={adaptor.id} name={adaptor.name} />
         <div>
-          <p className="text-sm font-semibold text-blue-900">{adaptor.name}</p>
-          <p className="text-xs text-blue-600">{adaptor.description}</p>
+          <p className="text-sm font-semibold text-violet-900">{adaptor.name}</p>
+          <p className="text-xs text-violet-600">{adaptor.description}</p>
         </div>
       </div>
 
@@ -183,7 +183,7 @@ function ConfigForm({
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
           />
           <p className="mt-1 text-xs text-gray-400">
             A display name for this connected system.
@@ -201,7 +201,7 @@ function ConfigForm({
             placeholder="Describe what this system is used for..."
             rows={3}
             maxLength={240}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
           />
           <p className="mt-1 text-xs text-gray-400">
             {description.length}/240 characters
@@ -218,7 +218,7 @@ function ConfigForm({
             value={endpointUrl}
             onChange={(e) => setEndpointUrl(e.target.value)}
             placeholder="https://"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
           />
           <p className="mt-1 text-xs text-gray-400">
             The base URL of the system's API.
@@ -235,7 +235,7 @@ function ConfigForm({
             value={docsUrl}
             onChange={(e) => setDocsUrl(e.target.value)}
             placeholder="https://"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
           />
           <p className="mt-1 text-xs text-gray-400">
             Where to find the system's API documentation.

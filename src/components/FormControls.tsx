@@ -5,7 +5,7 @@ import type {
 } from "react";
 
 const controlClasses =
-  "w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-50 disabled:text-gray-500";
+  "w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-violet-500 focus:ring-1 focus:ring-violet-500 disabled:bg-gray-50 disabled:text-gray-500";
 
 interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
   /** The height of a `sm` Button, for an input beside one, e.g. a search in a page header. */
@@ -46,7 +46,7 @@ export function RadioOption({ label, hint, ...rest }: RadioOptionProps) {
   if (hint) {
     return (
       <label className="flex items-start gap-2 cursor-pointer">
-        <input type="radio" className="mt-1 text-blue-600" {...rest} />
+        <input type="radio" className="mt-1 text-violet-600" {...rest} />
         <span>
           <span className="block text-sm text-gray-700">{label}</span>
           <span className="block text-xs text-gray-500">{hint}</span>
@@ -56,7 +56,7 @@ export function RadioOption({ label, hint, ...rest }: RadioOptionProps) {
   }
   return (
     <label className="flex items-center gap-2 cursor-pointer">
-      <input type="radio" className="text-blue-600" {...rest} />
+      <input type="radio" className="text-violet-600" {...rest} />
       <span className="text-sm text-gray-700">{label}</span>
     </label>
   );

@@ -42,8 +42,8 @@ export const historyData: TablePageData = {
       key: "type",
       label: "Type",
       toneMap: {
-        "Work Order": "blue",
-        "Channel Request": "purple",
+        "Work Order": "violet",
+        "Channel Request": "pink",
       },
     },
     { key: "project", label: "Project" },

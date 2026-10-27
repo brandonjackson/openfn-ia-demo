@@ -105,7 +105,7 @@ export default function AssistantChatInput({
               title={runId ? `Attach from run ${runId.slice(0, 6)}` : "Select a run to attach its logs or data"}
               aria-expanded={attachOpen}
               className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 ${
-                attached.length > 0 ? "bg-blue-50 text-blue-600" : ""
+                attached.length > 0 ? "bg-violet-50 text-violet-600" : ""
               }`}
             >
               <Plus size={16} />
@@ -124,7 +124,7 @@ export default function AssistantChatInput({
                       type="checkbox"
                       checked={attachments[key]}
                       onChange={() => setAttachments((a) => ({ ...a, [key]: !a[key] }))}
-                      className="h-3.5 w-3.5 rounded border-gray-300 text-blue-600"
+                      className="h-3.5 w-3.5 rounded border-gray-300 text-violet-600"
                     />
                     {label}
                   </label>

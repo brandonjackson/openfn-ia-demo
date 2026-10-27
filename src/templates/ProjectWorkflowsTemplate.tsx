@@ -22,7 +22,7 @@ const columns: DataTableColumn<ProjectComponentItem>[] = [
     render: (w) => (
       <Link
         to={`/workflow-editor/${w.id}`}
-        className="inline-flex items-center gap-2 font-mono text-gray-900 hover:text-blue-600"
+        className="inline-flex items-center gap-2 font-mono text-gray-900 hover:text-violet-600"
       >
         <Workflow size={14} className="text-gray-400" />
         {w.name}

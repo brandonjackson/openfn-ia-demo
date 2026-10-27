@@ -26,7 +26,7 @@ export default function StatTile({
   trend,
   badge,
   linkTo,
-  trendClassName = "text-indigo-500",
+  trendClassName = "text-violet-500",
   compact = false,
   danger = false,
   bare = false,

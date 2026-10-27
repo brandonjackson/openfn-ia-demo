@@ -34,7 +34,7 @@ export default function DataclipList({
         <li key={dataclip.id}>
           <label
             className={`flex cursor-pointer items-center gap-2.5 px-3 py-2 hover:bg-gray-50 ${
-              dataclip.id === selectedId ? "bg-blue-50/60" : ""
+              dataclip.id === selectedId ? "bg-violet-50/60" : ""
             }`}
           >
             <input
@@ -42,7 +42,7 @@ export default function DataclipList({
               name={groupName}
               checked={dataclip.id === selectedId}
               onChange={() => onSelect?.(dataclip)}
-              className="text-blue-600"
+              className="text-violet-600"
             />
             <span className="min-w-0 flex-1">
               {dataclip.name ? (

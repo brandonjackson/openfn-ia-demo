@@ -23,7 +23,7 @@ export default function ToggleSwitch({ checked = false, onChange, label }: Props
       aria-label={label}
       onClick={toggle}
       className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-        on ? "bg-blue-600" : "bg-gray-200"
+        on ? "bg-violet-600" : "bg-gray-200"
       }`}
     >
       <span

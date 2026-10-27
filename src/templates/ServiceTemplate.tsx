@@ -29,7 +29,7 @@ const fieldColumns: DataTableColumn<ServiceApiField>[] = [
   {
     key: "required",
     header: "Required",
-    render: (f) => (f.required ? <Badge label="Required" tone="blue" /> : <Badge label="Optional" />),
+    render: (f) => (f.required ? <Badge label="Required" tone="violet" /> : <Badge label="Optional" />),
   },
   { key: "description", header: "Description", render: (f) => <span className="text-sm text-gray-600">{f.description}</span> },
 ];

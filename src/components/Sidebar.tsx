@@ -184,7 +184,7 @@ export default function Sidebar() {
       {/* Logo: always a clear way back to the root. */}
       <div data-ui="sidebar-logo" className="px-4 py-4">
         <Link to="/" className="flex items-center gap-2" title="Back to Overview">
-          <div className="w-7 h-7 bg-indigo-600 rounded-md flex items-center justify-center">
+          <div className="w-7 h-7 bg-violet-600 rounded-md flex items-center justify-center">
             <span className="text-white text-xs font-bold">{currentInstance.initials}</span>
           </div>
           <span className="text-lg font-semibold text-gray-900">{currentInstance.name}</span>

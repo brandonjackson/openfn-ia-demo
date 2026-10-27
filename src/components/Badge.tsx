@@ -11,13 +11,11 @@ const toneClasses: Record<BadgeTone, string> = {
   gray: "bg-gray-100 text-gray-700",
 };
 
-// Known labels pick their own tone so callers can just pass a status.
+// Known labels pick their own tone so callers can just pass a status. Run
+// statuses are drawn by `StatusPill`, not here.
 const labelTones: Record<string, BadgeTone> = {
   Live: "green",
   Draft: "yellow",
-  Success: "green",
-  Failed: "red",
-  Pending: "yellow",
 };
 
 interface Props {

@@ -51,8 +51,6 @@ export const AllVariants: Story = {
       <Badge label="Granted" tone="green" />
       <Badge label="Expired" tone="red" />
       <Badge label="Event" tone="pink" />
-      <Badge label="Success" />
-      <Badge label="Failed" />
       <Badge label="Locked" icon={Lock} />
     </div>
   ),

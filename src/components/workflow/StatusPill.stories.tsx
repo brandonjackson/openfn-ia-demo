@@ -49,3 +49,15 @@ export const Icons: Story = {
     </div>
   ),
 };
+
+/** The bare mark at the end of a step's row in the code explorer. */
+export const Marks: Story = {
+  render: () => (
+    <div className="flex items-center gap-4">
+      <StatusPill status="success" variant="mark" />
+      <StatusPill status="failed" variant="mark" />
+      <StatusPill status="running" variant="mark" />
+      <StatusPill status="pending" variant="mark" />
+    </div>
+  ),
+};

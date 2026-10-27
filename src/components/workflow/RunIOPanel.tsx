@@ -1,5 +1,6 @@
 import type { Dataclip, RunDetails } from "../../mock-data/workflow";
 import DataSnippet from "./DataSnippet";
+import type { RunDataSection } from "./panel-views";
 
 interface Props {
   run: RunDetails;
@@ -7,7 +8,7 @@ interface Props {
   jobId?: string;
   dataclips?: Dataclip[];
   /** Opens the input or output in the panel under the code. */
-  onExpand?: (section: "input" | "output") => void;
+  onExpand?: (section: Exclude<RunDataSection, "log">) => void;
 }
 
 /**

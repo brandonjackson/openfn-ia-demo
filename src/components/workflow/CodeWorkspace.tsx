@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { BookOpen, Calendar, ExternalLink, FolderKanban, History, Layers, Radio, User, X } from "lucide-react";
 import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../mock-data/workflow";
 import type { DetailsViewId } from "../../editor-layout";
-import { workflowToYaml } from "../../mock-data/workflow";
+import { triggerTypes, workflowToYaml } from "../../mock-data/workflow";
 import { adaptorInfo } from "../../mock-data/adaptor-reference";
 import type { ProjectComponent, ProjectService } from "../../mock-data/projects";
 import { componentPreview, serviceListing, workflowDocs } from "../../mock-data/workflow-files";
@@ -26,6 +26,7 @@ import EditorStatusBar from "./EditorStatusBar";
 import StepConfigPanel from "./StepConfigPanel";
 import type { StepChanges } from "./StepConfigPanel";
 import TriggerConfigPanel from "./TriggerConfigPanel";
+import type { RunDataSection } from "./panel-views";
 import WorkflowSettingsPanel from "./WorkflowSettingsPanel";
 import Surface from "../Surface";
 
@@ -37,7 +38,7 @@ interface Props {
   run?: RunDetails;
   dataclips?: Dataclip[];
   /** Opens the step's input or output from I/O in the panel under the code. */
-  onExpandRunData?: (section: "input" | "output") => void;
+  onExpandRunData?: (section: Exclude<RunDataSection, "log">) => void;
   /** Project components the workflow uses, listed in the explorer. */
   components?: ProjectComponent[];
   /** Opens a component's page in the project. */
@@ -251,7 +252,7 @@ export default function CodeWorkspace({
         description="The listing other teams see in the service catalog: how to call the service and what it returns."
         properties={[
           { icon: BookOpen, label: "Service", value: listing.name },
-          ...(listing.api ? [{ icon: Radio, label: "Trigger", value: listing.api.trigger === "webhook" ? "Webhook" : "Schedule" }] : []),
+          ...(listing.api ? [{ icon: Radio, label: "Trigger", value: triggerTypes[listing.api.trigger === "webhook" ? "webhook" : "cron"].shortLabel }] : []),
           { icon: FolderKanban, label: "Project", value: workflow.project },
         ]}
         action={

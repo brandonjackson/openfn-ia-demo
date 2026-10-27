@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import type {
   AdaptorKind,
   Dataclip,
@@ -37,8 +37,7 @@ import type { ExplorerFile } from "../components/workflow/EditorExplorer";
 import VersionMismatchBanner from "../components/workflow/VersionMismatchBanner";
 import StepRunDetails from "../components/workflow/StepRunDetails";
 import StepInspector from "../components/workflow/StepInspector";
-import type { InspectorSection } from "../components/workflow/StepInspector";
-import Button from "../components/Button";
+import type { RunDataSection } from "../components/workflow/panel-views";
 import CanvasRunsBar from "../components/workflow/CanvasRunsBar";
 import ReadOnlyNotice from "../components/workflow/ReadOnlyNotice";
 import FailureBreakdown from "../components/workflow/FailureBreakdown";
@@ -46,7 +45,7 @@ import type { FailureScope } from "../components/workflow/FailureBreakdown";
 import RunHistoryList from "../components/workflow/RunHistoryList";
 import type { StepChanges } from "../components/workflow/StepConfigPanel";
 import AIAssistantPanel from "../components/workflow/AIAssistantPanel";
-import StatusPill from "../components/workflow/StatusPill";
+import RunLabel from "../components/workflow/RunLabel";
 import RunInputModal from "../components/RunInputModal";
 import type { RunInput } from "../components/RunInputModal";
 import EditInSandboxModal from "../components/EditInSandboxModal";
@@ -700,17 +699,15 @@ export default function WorkflowEditorTemplate({
   const panelContext = (() => {
     if (panelView === "runs" || panelView === "log" || panelView === "input" || panelView === "output") {
       return selectedRun ? (
-        <>
-          <StatusPill status={selectedRun.status} variant="dot" />
-          <span className="truncate">
-            Run <code className="font-mono">{selectedRun.runId.slice(0, 6)}</code>
-            {focusJob && panelView !== "runs" ? ` · ${focusJob.label}` : panelView !== "runs" ? " · whole run" : ` · ${selectedRun.when}`}
-            {focusStep?.duration && panelView !== "runs" ? ` · ${focusStep.duration}` : ""}
-          </span>
-          <Button variant="secondary" size="xs" icon={X} onClick={deselectRun}>
-            Unload run
-          </Button>
-        </>
+        <RunLabel
+          run={selectedRun}
+          detail={
+            panelView === "runs"
+              ? selectedRun.when
+              : [focusJob?.label ?? "whole run", focusStep?.duration].filter(Boolean).join(" · ")
+          }
+          onUnload={deselectRun}
+        />
       ) : (
         <span>No run loaded</span>
       );
@@ -789,7 +786,7 @@ export default function WorkflowEditorTemplate({
   const layoutMenu = <LayoutMenu layout={shownLayout} onChange={changeLayout} onReset={resetLayout} />;
 
   /** From a snippet in the inspector: open the node in the code view, with that section in the panel. */
-  const expandInCode = (section: InspectorSection) => {
+  const expandInCode = (section: RunDataSection) => {
     openInCode(focusNode?.id);
     showPanel(section);
   };

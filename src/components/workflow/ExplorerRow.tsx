@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { Check, Loader2, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { RunStatus } from "../../mock-data/workflow";
+import StatusPill from "./StatusPill";
 
 interface Props {
   label: string;
@@ -14,20 +14,6 @@ interface Props {
   status?: RunStatus;
   selected?: boolean;
   onClick?: () => void;
-}
-
-/** The mark a step gets in the explorer for how it went in the selected run. */
-function StatusMark({ status }: { status: RunStatus }) {
-  switch (status) {
-    case "success":
-      return <Check size={14} className="text-green-600" aria-label="Succeeded" />;
-    case "failed":
-      return <X size={14} className="text-red-500" aria-label="Failed" />;
-    case "running":
-      return <Loader2 size={14} className="animate-spin text-indigo-500" aria-label="Running" />;
-    default:
-      return <span className="h-1.5 w-1.5 rounded-full bg-gray-300" aria-label="Pending" />;
-  }
 }
 
 /**
@@ -56,7 +42,7 @@ export default function ExplorerRow({ label, icon: Icon, leading, trailing, stat
       {trailing && <span className="flex-shrink-0">{trailing}</span>}
       {status && (
         <span className="inline-flex w-4 flex-shrink-0 justify-center">
-          <StatusMark status={status} />
+          <StatusPill status={status} variant="mark" />
         </span>
       )}
     </button>

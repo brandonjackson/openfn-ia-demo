@@ -5,7 +5,7 @@ import Badge from "./Badge";
 const config = {
   production: { label: "Production", tone: "green", icon: Radio },
   staging: { label: "Staging", tone: "yellow", icon: FlaskConical },
-  mock: { label: "Mock", tone: "violet", icon: ToyBrick },
+  mock: { label: "Mock", tone: "indigo", icon: ToyBrick },
 } as const;
 
 /** The environment a credential or system endpoint belongs to: production, staging or mock. */

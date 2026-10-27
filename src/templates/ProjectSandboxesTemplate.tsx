@@ -45,7 +45,7 @@ function SandboxRow({
       }
       badges={
         <>
-          {selected && <Badge label="Selected" tone="violet" icon={Check} />}
+          {selected && <Badge label="Selected" tone="indigo" icon={Check} />}
           {sandbox.isMain && <Badge label="Main" />}
         </>
       }

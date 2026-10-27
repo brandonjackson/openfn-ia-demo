@@ -174,7 +174,7 @@ export default function Picker({
                       )}
                     </span>
                     {option.tag && <OptionTag label={option.tag} />}
-                    {isSelected && <Check size={14} className="flex-shrink-0 text-violet-600" />}
+                    {isSelected && <Check size={14} className="flex-shrink-0 text-indigo-600" />}
                   </button>
                 </li>
               );

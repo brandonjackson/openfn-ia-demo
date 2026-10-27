@@ -57,7 +57,7 @@ export const Selected: Story = {
     ...Clickable.args,
     onClick: undefined,
     selected: true,
-    badges: <Badge label="Selected" tone="violet" icon={Check} />,
+    badges: <Badge label="Selected" tone="indigo" icon={Check} />,
   },
 };
 

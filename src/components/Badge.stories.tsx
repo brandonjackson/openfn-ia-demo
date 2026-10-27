@@ -12,7 +12,7 @@ const meta: Meta<typeof Badge> = {
     },
     tone: {
       control: "select",
-      options: [undefined, "green", "yellow", "red", "violet", "pink", "gray"],
+      options: [undefined, "green", "yellow", "red", "indigo", "pink", "gray"],
       description: "Explicit color; overrides the label map.",
     },
   },

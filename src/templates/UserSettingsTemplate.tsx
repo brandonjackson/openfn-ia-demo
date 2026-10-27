@@ -185,7 +185,7 @@ const credentialColumns: DataTableColumn<UserCredential>[] = [
 const oauthColumns: DataTableColumn<OAuthClient>[] = [
   { key: "name", header: "Name", render: (c) => <span className="font-medium text-gray-900">{c.name}</span> },
   { key: "system", header: "System", render: (c) => <SystemLabel name={c.system} /> },
-  { key: "scope", header: "Available to", render: (c) => <Badge label={c.scope} tone={c.scope === "Global" ? "violet" : "gray"} /> },
+  { key: "scope", header: "Available to", render: (c) => <Badge label={c.scope} tone={c.scope === "Global" ? "indigo" : "gray"} /> },
   {
     key: "actions",
     header: "",

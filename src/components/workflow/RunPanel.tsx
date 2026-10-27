@@ -9,7 +9,7 @@ function StepIcon({ status }: { status: RunStatus }) {
     case "failed":
       return <XCircle size={16} className="text-red-500" />;
     case "running":
-      return <Loader2 size={16} className="animate-spin text-violet-500" />;
+      return <Loader2 size={16} className="animate-spin text-indigo-500" />;
     default:
       return <Circle size={16} className="text-gray-300" />;
   }
@@ -75,7 +75,7 @@ export default function RunPanel({
                 type="button"
                 onClick={() => onSelectStep?.(step)}
                 className={`flex w-full items-center gap-2 rounded-md px-2 py-2 text-left hover:bg-gray-50 ${
-                  step.id === selectedStepId ? "bg-violet-50" : ""
+                  step.id === selectedStepId ? "bg-indigo-50" : ""
                 }`}
               >
                 <StepIcon status={step.status} />

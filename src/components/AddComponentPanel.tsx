@@ -29,11 +29,11 @@ export default function AddComponentPanel({ options, onSelect, title = "Add proj
           key={type}
           type="button"
           onClick={() => onSelect?.(type)}
-          className="group flex items-start gap-2.5 rounded-lg border border-gray-200 p-3 text-left transition-all hover:border-violet-300 hover:bg-violet-50"
+          className="group flex items-start gap-2.5 rounded-lg border border-gray-200 p-3 text-left transition-all hover:border-indigo-300 hover:bg-indigo-50"
         >
-          <Icon size={16} className="mt-0.5 flex-shrink-0 text-gray-400 group-hover:text-violet-500" />
+          <Icon size={16} className="mt-0.5 flex-shrink-0 text-gray-400 group-hover:text-indigo-500" />
           <div>
-            <div className="text-sm font-medium text-gray-700 group-hover:text-violet-700">{type}</div>
+            <div className="text-sm font-medium text-gray-700 group-hover:text-indigo-700">{type}</div>
             <div className="mt-0.5 text-xs leading-snug text-gray-400">{description}</div>
           </div>
         </button>

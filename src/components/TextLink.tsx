@@ -18,9 +18,9 @@ interface Props {
 }
 
 const variantClasses = {
-  default: "font-medium text-gray-900 hover:text-violet-600 hover:underline",
-  action: "text-sm font-medium text-violet-600 hover:text-violet-700",
-  inline: "text-violet-600 hover:text-violet-700 hover:underline",
+  default: "font-medium text-gray-900 hover:text-indigo-600 hover:underline",
+  action: "text-sm font-medium text-indigo-600 hover:text-indigo-700",
+  inline: "text-indigo-600 hover:text-indigo-700 hover:underline",
 };
 
 /**

@@ -5,7 +5,7 @@ import type { LucideIcon } from "lucide-react";
 export type CalloutVariant = "info" | "warning" | "danger" | "success";
 
 const styles: Record<CalloutVariant, { box: string; icon: string; title: string; body: string; Icon: LucideIcon }> = {
-  info: { box: "border border-violet-200 bg-violet-50", icon: "text-violet-500", title: "text-violet-800", body: "text-violet-700", Icon: Info },
+  info: { box: "border border-indigo-200 bg-indigo-50", icon: "text-indigo-500", title: "text-indigo-800", body: "text-indigo-700", Icon: Info },
   warning: { box: "border border-amber-200 bg-amber-50", icon: "text-amber-500", title: "text-amber-800", body: "text-amber-700", Icon: Info },
   danger: { box: "border-2 border-red-200 bg-red-50", icon: "text-red-500", title: "text-red-700", body: "text-red-600", Icon: AlertTriangle },
   success: { box: "border border-green-200 bg-green-50", icon: "text-green-500", title: "text-green-800", body: "text-green-700", Icon: CheckCircle2 },

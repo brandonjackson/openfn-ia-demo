@@ -61,7 +61,7 @@ export default function DataTable<T>({
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
                 aria-selected={onRowClick ? getRowKey(row) === selectedKey : undefined}
                 className={`${onRowClick ? "cursor-pointer" : ""} ${
-                  getRowKey(row) === selectedKey ? "bg-violet-50" : "hover:bg-gray-50"
+                  getRowKey(row) === selectedKey ? "bg-indigo-50" : "hover:bg-gray-50"
                 }`}
               >
                 {columns.map((col) => (

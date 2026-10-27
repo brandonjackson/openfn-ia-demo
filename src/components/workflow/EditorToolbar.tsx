@@ -186,7 +186,7 @@ export default function EditorToolbar({
             onBlur={commitRename}
             onKeyDown={onRenameKey}
             aria-label="Workflow name"
-            className="mx-2 h-7 w-56 rounded-md border border-violet-300 bg-violet-50/40 px-2 text-sm text-gray-900 outline-none ring-2 ring-violet-100"
+            className="mx-2 h-7 w-56 rounded-md border border-indigo-300 bg-indigo-50/40 px-2 text-sm text-gray-900 outline-none ring-2 ring-indigo-100"
           />
         ) : versions.length > 0 && !run ? (
           <span className="mx-1.5 min-w-0">

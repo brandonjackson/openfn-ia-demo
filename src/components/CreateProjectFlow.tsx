@@ -79,13 +79,13 @@ function CreateProjectModal({
         {/* Body */}
         <form onSubmit={handleSubmit} className="px-5 pb-5 pt-4 overflow-y-auto flex-1">
           {/* Intro */}
-          <div className="flex items-center gap-3 rounded-lg bg-violet-50 border border-violet-100 px-4 py-3 mb-6">
-            <div className="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
-              <FolderPlus size={18} className="text-violet-600" />
+          <div className="flex items-center gap-3 rounded-lg bg-indigo-50 border border-indigo-100 px-4 py-3 mb-6">
+            <div className="w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+              <FolderPlus size={18} className="text-indigo-600" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-violet-900">New project</p>
-              <p className="text-xs text-violet-600">
+              <p className="text-sm font-semibold text-indigo-900">New project</p>
+              <p className="text-xs text-indigo-600">
                 Projects are isolated workspaces that contain workflows.
               </p>
             </div>
@@ -104,7 +104,7 @@ function CreateProjectModal({
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Planning Application Intake"
                 autoFocus
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
               <p className="mt-1 text-xs text-gray-400">
                 A unique name to identify this project.
@@ -120,7 +120,7 @@ function CreateProjectModal({
                 type="text"
                 value={environment}
                 onChange={(e) => setEnvironment(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
               <p className="mt-1 text-xs text-gray-400">
                 Credentials will be loaded with values from this environment.
@@ -138,7 +138,7 @@ function CreateProjectModal({
                 placeholder="Describe what this project is used for..."
                 rows={3}
                 maxLength={240}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-violet-500 focus:ring-1 focus:ring-violet-500"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
               <p className="mt-1 text-xs text-gray-400">
                 {description.length}/240 characters

@@ -28,12 +28,12 @@ export default function SettingsNav({ items, activeId, onSelect, ariaLabel = "Se
           const isActive = activeId === item.id;
           const className = `w-full flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors text-left ${
             isActive
-              ? "bg-violet-50 text-violet-700"
+              ? "bg-indigo-50 text-indigo-700"
               : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
           }`;
           const content = (
             <>
-              <Icon size={14} className={isActive ? "text-violet-500" : "text-gray-400"} />
+              <Icon size={14} className={isActive ? "text-indigo-500" : "text-gray-400"} />
               {item.label}
             </>
           );

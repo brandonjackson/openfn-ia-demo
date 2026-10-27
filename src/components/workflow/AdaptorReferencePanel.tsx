@@ -44,13 +44,13 @@ export default function AdaptorReferencePanel({ adaptor, onInsert, stepLabel }: 
               href={info.docsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-violet-600 hover:text-violet-700"
+              className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700"
             >
               Full docs <ExternalLink size={11} />
             </a>
           </div>
         </div>
-        <label className="flex items-center gap-2 rounded-md border border-gray-200 px-2.5 py-1.5 text-sm text-gray-400 focus-within:border-violet-300">
+        <label className="flex items-center gap-2 rounded-md border border-gray-200 px-2.5 py-1.5 text-sm text-gray-400 focus-within:border-indigo-300">
           <Search size={14} />
           <input
             value={query}

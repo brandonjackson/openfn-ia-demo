@@ -57,13 +57,13 @@ export default function SidebarLink(props: SidebarLinkProps) {
       data-ui="nav-link"
       className={`${base} ${
         active
-          ? "text-violet-600 font-medium"
+          ? "text-indigo-600 font-medium"
           : "text-gray-700 hover:bg-gray-100 hover:text-gray-900"
       }`}
     >
       <Icon
         size={16}
-        className={`flex-shrink-0 ${active ? "text-violet-600" : "text-gray-500"}`}
+        className={`flex-shrink-0 ${active ? "text-indigo-600" : "text-gray-500"}`}
       />
       <span className="truncate" title={label}>{label}</span>
     </Link>

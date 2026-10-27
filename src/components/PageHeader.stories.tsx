@@ -50,7 +50,7 @@ export const RecordPage: Story = {
     badges: (
       <>
         <Badge label="Live" />
-        <Badge label="Org-shared" tone="violet" icon={Users} />
+        <Badge label="Org-shared" tone="indigo" icon={Users} />
       </>
     ),
     description: "Registers a new birth with the civil registry and notifies the health ministry.",

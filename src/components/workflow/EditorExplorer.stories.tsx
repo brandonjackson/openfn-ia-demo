@@ -48,6 +48,9 @@ export const AddedDoc: Story = {
 export const ServiceListing: Story = { args: { hasService: true, file: "service" } };
 
 /** With a run selected, each step shows how it went. */
+/** Health open: it sits under service.md and opens a page rather than a file. */
+export const HealthOpen: Story = { args: { hasService: true, file: "health" } };
+
 export const FollowingRun: Story = { args: { run: failedRun, file: { stepId: "create" } } };
 
 export const ComponentOpen: Story = { args: { file: { componentId: components[0].id } } };

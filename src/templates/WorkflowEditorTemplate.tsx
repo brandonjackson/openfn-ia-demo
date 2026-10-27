@@ -117,16 +117,17 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
 }
 
 /**
- * The workflow editor: one toolbar, three views, and an IDE-style layout of
+ * The workflow editor: one toolbar, two views, and an IDE-style layout of
  * explorer, panel and assistant.
  *
  * The toolbar's Fn menu holds the workflow's file actions (rename, settings,
  * sandbox and promotion, export, pause, delete) and the way back to the
- * project. The view switcher flips between the canvas, code (explorer,
- * code and the open item's settings) and Health, the workflow's run history
- * summed up over the canvas's period: outcomes, runs and failures over
- * time, the steps runs fail at, and failures by reason, where picking a run
- * loads it on the canvas. The assistant toggle sits on its own
+ * project. The view switcher flips between the canvas and code (explorer,
+ * code and the open item's settings). In code mode the explorer also lists
+ * Health under service.md: the workflow's run history summed up over the
+ * canvas's period (outcomes, runs and failures over time, the steps runs
+ * fail at, and failures by reason), shown in the main pane in place of the
+ * code. Picking a run there loads it and opens the step it failed at. The assistant toggle sits on its own
  * at the far right (Ctrl/⌘ + K). Everything else about the layout is set
  * from the ⋯ menu: at the top-right corner of the code area, or on the
  * canvas in the panel header (or the canvas corner while the panel is
@@ -746,6 +747,25 @@ export default function WorkflowEditorTemplate({
     }
   })();
 
+  // Health, opened from the explorer, takes the code's place in the main pane. Picking a run
+  // loads it and opens the step it failed at, with its log in the panel.
+  const healthPane = (
+    <WorkflowHealth
+      health={workflowHealth(graph, orders, period)}
+      onPeriodChange={setPeriod}
+      selectedRunId={runId}
+      latestVersion={latestVersion}
+      onSelectRun={(r) => {
+        selectRun(r);
+        const failed = r.steps.find((s) => s.status === "failed");
+        if (failed && graph.nodes.some((n) => n.id === failed.jobId)) {
+          setFile({ stepId: failed.jobId });
+          showPanel("log");
+        }
+      }}
+    />
+  );
+
   const layoutMenu = <LayoutMenu layout={layout} onChange={updateLayout} onReset={resetLayout} />;
 
   /** From a snippet in the inspector: open the node in the code view, with that section in the panel. */
@@ -958,18 +978,6 @@ export default function WorkflowEditorTemplate({
           onAddAfter={onMain || version !== "latest" || selectedRun ? undefined : setAddAfterId}
         />
       )}
-      {view === "health" && (
-        <WorkflowHealth
-          health={workflowHealth(graph, orders, period)}
-          onPeriodChange={setPeriod}
-          selectedRunId={runId}
-          latestVersion={latestVersion}
-          onSelectRun={(r) => {
-            selectRun(r);
-            setView("canvas");
-          }}
-        />
-      )}
       {view === "code" && (
         <div className="h-full p-4 pt-3">
           <CodeWorkspace
@@ -1005,6 +1013,7 @@ export default function WorkflowEditorTemplate({
             docs={docs}
             onAddDoc={onMain ? undefined : addDoc}
             onAddComponent={onMain ? undefined : () => setAddComponentOpen(true)}
+            pane={file === "health" ? healthPane : undefined}
             bottomTray={panel}
             showExplorer={layout.explorer}
             showDetails={layout.details}

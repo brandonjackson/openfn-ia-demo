@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { ReactNode } from "react";
-import { BookOpen, Calendar, ExternalLink, FolderKanban, Radio, User, X } from "lucide-react";
+import { BookOpen, Calendar, ExternalLink, FolderKanban, History, Layers, Radio, User, X } from "lucide-react";
 import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../mock-data/workflow";
 import type { DetailsViewId } from "../../editor-layout";
 import { workflowToYaml } from "../../mock-data/workflow";
@@ -65,6 +65,12 @@ interface Props {
   onAddDoc?: () => void;
   /** Opens the picker for a new project component. */
   onAddComponent?: () => void;
+  /**
+   * Shown in the main pane in place of the code editor, for an open item
+   * that isn't text, such as the workflow's Health page. The path row,
+   * panel, status bar and details column stay as they are.
+   */
+  pane?: ReactNode;
   /** The panel inline under the code. */
   bottomTray?: ReactNode;
   /** Hide the explorer column (toggled from the toolbar). */
@@ -89,8 +95,9 @@ interface Props {
  * the details column on the right with two views: the open item's config
  * and, for a step, its adaptor's snippets, which insert at the cursor, and
  * its input and output (I/O) while a run is loaded. A step shows its code and its settings; the
- * trigger and `workflow.yaml` show the YAML and their settings. The panel
- * sits inline under the code. The ⋯ layout menu and the close button take
+ * trigger and `workflow.yaml` show the YAML and their settings. An item that
+ * isn't text, such as Health, passes its own `pane` to show in the code's
+ * place. The panel sits inline under the code. The ⋯ layout menu and the close button take
  * the top-right corner of whichever column is rightmost.
  */
 export default function CodeWorkspace({
@@ -127,6 +134,7 @@ export default function CodeWorkspace({
   onClose,
   statusNote,
   dirtyStepIds = [],
+  pane,
 }: Props) {
   const step =
     typeof file === "object" && "stepId" in file
@@ -137,6 +145,8 @@ export default function CodeWorkspace({
   const doc = file === "context" ? "context" : file === "spec" ? "spec" : undefined;
   const listing = file === "service" ? service : undefined;
   const addedDoc = typeof file === "object" && "docName" in file ? file.docName : undefined;
+  const health = file === "health";
+  const fileName = addedDoc ?? (doc ? `${doc}.md` : listing ? "service.md" : health ? "Health" : "workflow.yaml");
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
   const yaml = workflowToYaml(workflow);
   const triggerYaml = yaml.slice(yaml.indexOf("triggers:"), yaml.indexOf("edges:")).trimEnd();
@@ -150,7 +160,7 @@ export default function CodeWorkspace({
         ? [workflow.name, "Components", component.name]
         : file === "trigger" && trigger
           ? [trigger.label]
-          : [workflow.name, addedDoc ?? (doc ? `${doc}.md` : listing ? "service.md" : "workflow.yaml")];
+          : [workflow.name, fileName];
 
   const code = step
     ? step.body
@@ -252,6 +262,17 @@ export default function CodeWorkspace({
         }
         showHeader={false}
       />
+    ) : health ? (
+      <FileDetailsPanel
+        title="Health"
+        description="How the workflow has been doing: every run of it in the period, on any version and however it started. Pick a run from Triage to load it."
+        properties={[
+          { icon: Layers, label: "Versions", value: "All" },
+          { icon: History, label: "Source", value: "Run history" },
+          { icon: FolderKanban, label: "Project", value: workflow.project },
+        ]}
+        showHeader={false}
+      />
     ) : addedDoc ? (
       <FileDetailsPanel
         title={addedDoc}
@@ -282,10 +303,10 @@ export default function CodeWorkspace({
       ? [component.type.toLowerCase(), component.name]
       : file === "trigger" && trigger
         ? [trigger.triggerType, trigger.label]
-        : [addedDoc ?? (doc ? `${doc}.md` : listing ? "service.md" : "workflow.yaml")];
+        : [fileName];
   // Components and the service listing belong to the project, so they're always read-only here.
-  const lineCount = `${code.split("\n").length} lines`;
-  const saveState = readOnly || component || listing ? "Read-only" : step && dirtyStepIds.includes(step.id) ? "Unsaved changes" : "Saved";
+  const lineCount = pane ? undefined : `${code.split("\n").length} lines`;
+  const saveState = pane ? undefined : readOnly || component || listing ? "Read-only" : step && dirtyStepIds.includes(step.id) ? "Unsaved changes" : "Saved";
   const statusTrailing = [statusNote, lineCount, saveState].filter(Boolean) as string[];
 
   return (
@@ -315,19 +336,21 @@ export default function CodeWorkspace({
           actions={
             readOnly || !showDetails ? (
               <>
-                {readOnly && <ReadOnlyNotice variant="tag" />}
+                {readOnly && !pane && <ReadOnlyNotice variant="tag" />}
                 {!showDetails && cornerControls}
               </>
             ) : undefined
           }
         />
         <div className="min-h-0 flex-1 overflow-hidden">
-          <CodeEditor
-            ref={editor}
-            key={step?.id ?? path.join("/")}
-            code={code}
-            onChange={step && editable ? (next) => onCodeChange!(step.id, next) : undefined}
-          />
+          {pane ?? (
+            <CodeEditor
+              ref={editor}
+              key={step?.id ?? path.join("/")}
+              code={code}
+              onChange={step && editable ? (next) => onCodeChange!(step.id, next) : undefined}
+            />
+          )}
         </div>
         {bottomTray}
         <EditorStatusBar items={statusItems} trailing={statusTrailing} />
@@ -339,7 +362,7 @@ export default function CodeWorkspace({
             <SegmentedControl
               variant="pill"
               options={[
-                { id: "config", label: component || doc || listing || addedDoc ? "Details" : "Config" },
+                { id: "config", label: component || doc || listing || addedDoc || health ? "Details" : "Config" },
                 ...(step ? [{ id: "snippets", label: "Snippets" }] : []),
                 ...(hasIO ? [{ id: "io", label: "I/O" }] : []),
               ]}

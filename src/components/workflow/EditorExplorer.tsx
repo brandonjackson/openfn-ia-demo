@@ -1,4 +1,4 @@
-import { BookOpen, Clock, FileText, Globe, Plus, Radio, Workflow as WorkflowIcon } from "lucide-react";
+import { BookOpen, Clock, FileText, Globe, HeartPulse, Plus, Radio, Workflow as WorkflowIcon } from "lucide-react";
 import type { JobNode, RunDetails, TriggerNode, Workflow } from "../../mock-data/workflow";
 import type { ProjectComponent } from "../../mock-data/projects";
 import { componentTypeIcons } from "../../component-types";
@@ -7,14 +7,15 @@ import { AdaptorIcon } from "./AdaptorIcon";
 
 /**
  * What the code view can have open: one of the workflow's files (a doc added
- * this session goes by its file name), the trigger, a step, or a project
- * component the workflow uses.
+ * this session goes by its file name), the workflow's health (a page, not a
+ * file), the trigger, a step, or a project component the workflow uses.
  */
 export type ExplorerFile =
   | "workflow"
   | "context"
   | "spec"
   | "service"
+  | "health"
   | "trigger"
   | { docName: string }
   | { stepId: string }
@@ -50,7 +51,8 @@ interface Props {
 
 /**
  * The left-hand explorer in code mode, in three groups: the workflow's own
- * files (its YAML, context, spec, service listing and any added docs), its trigger and steps in
+ * files (its YAML, context, spec, service listing, its Health page and any
+ * added docs), its trigger and steps in
  * the order they run, and the project components it uses. Each group adds
  * from the + beside its heading (disabled on main). You move between them here rather than
  * through tabs. With a run loaded, each step shows how it went.
@@ -85,6 +87,7 @@ export default function EditorExplorer({
         {hasService && (
           <ExplorerRow label="service.md" icon={BookOpen} selected={current === "service"} onClick={() => onOpen("service")} />
         )}
+        <ExplorerRow label="Health" icon={HeartPulse} selected={current === "health"} onClick={() => onOpen("health")} />
         {docs.map((name) => (
           <ExplorerRow
             key={name}

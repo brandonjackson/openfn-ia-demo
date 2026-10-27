@@ -8,7 +8,8 @@ import EditorTray from "./EditorTray";
 import StepRunDetails from "./StepRunDetails";
 import StatusPill from "./StatusPill";
 import { defaultWorkflowSettings, nationalIdWorkflow } from "../../mock-data/workflow";
-import { dataclips, failedRun } from "../../mock-data/runs";
+import { dataclips, failedRun, workflowHealth, workOrders } from "../../mock-data/runs";
+import WorkflowHealth from "./WorkflowHealth";
 import { projects } from "../../mock-data/projects";
 
 const components = projects[0].components.filter((c) => c.type !== "Workflow");
@@ -30,6 +31,7 @@ function Stateful(args: ComponentProps<typeof CodeWorkspace>) {
       detailsView={detailsView}
       onDetailsViewChange={setDetailsView}
       onCodeChange={args.onCodeChange ? (id, code) => setBodies((b) => ({ ...b, [id]: code })) : undefined}
+      pane={file === "health" ? args.pane : undefined}
     />
   );
 }
@@ -77,6 +79,14 @@ export const ContextDocument: Story = { args: { file: "context" } };
 
 /** The listing of the published service the workflow backs, after the context and spec. */
 export const ServiceListing: Story = { args: { file: "service", service: projects[0].services[0], onOpenService: () => {} } };
+
+/** Health, from the explorer under service.md: a page in the main pane in place of the code editor. */
+export const HealthPane: Story = {
+  args: {
+    file: "health",
+    pane: <WorkflowHealth health={workflowHealth(nationalIdWorkflow, workOrders, "30d")} onPeriodChange={() => {}} latestVersion="v2" />,
+  },
+};
 
 export const ExplorerHidden: Story = { args: { showExplorer: false } };
 

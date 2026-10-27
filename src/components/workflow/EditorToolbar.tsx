@@ -14,12 +14,11 @@ import RunMenuButton from "./RunMenuButton";
 import LoadedRunBar from "./LoadedRunBar";
 
 /** The editor's main surfaces. */
-export type EditorView = "canvas" | "code" | "health";
+export type EditorView = "canvas" | "code";
 
 const editorViews: { id: EditorView; label: string }[] = [
   { id: "canvas", label: "Canvas" },
   { id: "code", label: "Code" },
-  { id: "health", label: "Health" },
 ];
 
 interface Props {
@@ -72,8 +71,7 @@ interface Props {
  * sandbox chip. The title reads "Name • v4": click it to open the version
  * history (renaming lives in the Fn menu, or press R in a sandbox). While a
  * run is loaded, the title is just the name. In the middle the view switcher
- * flips between Canvas, Code and Health (the workflow's run history summed
- * up). In code mode a
+ * flips between Canvas and Code. In code mode a
  * loaded run sits to its right, styled like the canvas runs bar, with
  * "Unload run". On the right sit the run
  * button and the main action ("Edit in sandbox" on main, "Go live" in a

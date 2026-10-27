@@ -12,8 +12,9 @@ interface Props {
 
 function Marker() {
   return (
-    <span className="inline-flex flex-none items-center gap-1 font-mono text-[11px] uppercase tracking-widest text-gray-500">
-      <Lock size={11} /> Read-only
+    <span className="inline-flex flex-none items-center gap-1.5 font-mono text-[11px] uppercase leading-none tracking-widest text-gray-500">
+      <Lock size={12} className="flex-none" />
+      <span className="translate-y-px">Read-only</span>
     </span>
   );
 }
@@ -32,21 +33,20 @@ export default function ReadOnlyNotice({ variant = "banner", onEditInSandbox }: 
     );
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs text-gray-600 shadow-sm">
+    <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs leading-none text-gray-600 shadow-sm">
       <Marker />
-      <span className="h-4 w-px bg-gray-200" aria-hidden />
-      <span>
-        To make changes, please edit in a sandbox.
-        {onEditInSandbox && (
-          <button
-            type="button"
-            onClick={onEditInSandbox}
-            className="ml-1.5 inline-flex items-center gap-1 font-medium text-indigo-600 hover:text-indigo-700 hover:underline"
-          >
-            <FlaskConical size={12} /> Edit in sandbox
-          </button>
-        )}
-      </span>
+      <span className="h-4 w-px flex-none bg-gray-200" aria-hidden />
+      <span>To make changes, please edit in a sandbox.</span>
+      {onEditInSandbox && (
+        <button
+          type="button"
+          onClick={onEditInSandbox}
+          className="-ml-1 inline-flex flex-none items-center gap-1 font-medium leading-none text-indigo-600 hover:text-indigo-700 hover:underline"
+        >
+          <FlaskConical size={12} className="flex-none" />
+          <span>Edit in sandbox</span>
+        </button>
+      )}
     </div>
   );
 }

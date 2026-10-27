@@ -6,8 +6,11 @@
  * the canvas can lay things out with simple absolute positioning.
  */
 
-/** The kind of adaptor a job uses — drives the icon shown on the node. */
-export type AdaptorKind = "http" | "common" | "dhis2" | "salesforce" | "postgresql";
+/**
+ * The adaptor a job uses, by package id (e.g. "http" or "dhis2"): any adaptor
+ * in `adaptorCatalog`. Drives the icon shown on the node.
+ */
+export type AdaptorKind = string;
 
 /** How a trigger's kind is named on its pill. */
 export const triggerNames: Record<TriggerNode["triggerType"], string> = {

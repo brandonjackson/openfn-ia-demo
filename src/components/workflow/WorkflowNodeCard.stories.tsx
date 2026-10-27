@@ -33,6 +33,9 @@ export const MenuBelow: Story = { args: { node: commonJob, menuPlacement: "below
 /** Without an action handler the card has no menu. */
 export const NoMenu: Story = { args: { node: httpJob, onAction: undefined } };
 
+/** Hover the card to see the + that adds a step after it. */
+export const WithAddStep: Story = { args: { node: httpJob, onAddAfter: () => {} } };
+
 /** The run history on the card: runs that reached it and failures there. */
 export const WithActivity: Story = { args: { node: createJob, activity: activity.nodes.create, onShowFailures: () => {} } };
 export const WithActivityNoFailures: Story = { args: { node: httpJob, activity: activity.nodes.confirm } };

@@ -9,6 +9,8 @@ import { adaptorInfo } from "../../mock-data/adaptor-reference";
 import { TriggerIcon } from "./AdaptorIcon";
 import StatusPill from "./StatusPill";
 import RunCountBadge from "./RunCountBadge";
+import IconButton from "../IconButton";
+import Surface from "../Surface";
 
 /** The card's size, exported so the canvas can place it and anchor edges to it. */
 export const NODE_WIDTH = 280;
@@ -85,8 +87,8 @@ export default function WorkflowNodeCard({
   ];
 
   return (
-    <div
-      className={`group relative rounded-xl border border-gray-200 bg-white shadow-sm transition-[opacity,box-shadow] ${ringClasses} ${
+    <Surface
+      className={`group relative transition-[opacity,box-shadow] ${ringClasses} ${
         dimmed ? "opacity-40 hover:opacity-70" : ""
       }`}
       style={{ width: NODE_WIDTH, height: NODE_HEIGHT }}
@@ -126,18 +128,14 @@ export default function WorkflowNodeCard({
                 items={items}
                 onSelect={(id) => onAction(node, id as NodeAction)}
                 trigger={({ open, toggle }) => (
-                  <button
-                    type="button"
+                  <IconButton
+                    icon={MoreVertical}
+                    label="More actions"
                     onClick={toggle}
                     aria-haspopup="menu"
                     aria-expanded={open}
-                    aria-label="More actions"
-                    className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-800 ${
-                      open ? "bg-gray-100 text-gray-800" : ""
-                    }`}
-                  >
-                    <MoreVertical size={16} />
-                  </button>
+                    active={open}
+                  />
                 )}
               />
             )}
@@ -164,6 +162,6 @@ export default function WorkflowNodeCard({
           <Plus size={14} strokeWidth={2.5} />
         </button>
       )}
-    </div>
+    </Surface>
   );
 }

@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import { Palette, Check, X } from "lucide-react";
 import { useTheme } from "../theme/theme-context";
 import type { ThemeMeta } from "../theme/themes";
+import { usePopover } from "../use-popover";
 
 /**
  * Floating control that swaps the whole app's look and feel by changing
@@ -19,27 +20,8 @@ export default function StylePicker({
   defaultOpen?: boolean;
 }) {
   const { themeId, setTheme, themes } = useTheme();
-  const [open, setOpen] = useState(defaultOpen);
-  const rootRef = useRef<HTMLDivElement>(null);
+  const { open, setOpen, ref: rootRef } = usePopover(defaultOpen);
 
-  // Close on outside click or Escape.
-  useEffect(() => {
-    if (!open) return;
-    function onPointerDown(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
 
   return (
     <div ref={rootRef} style={styles.root}>

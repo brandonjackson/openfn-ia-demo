@@ -1,4 +1,3 @@
-import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { ListFilter } from "lucide-react";
 import type { RunDetails, WorkOrder } from "../../mock-data/workflow";
@@ -8,6 +7,8 @@ import Button from "../Button";
 import PeriodPicker from "./PeriodPicker";
 import RunHistoryList from "./RunHistoryList";
 import LoadedRunBar from "./LoadedRunBar";
+import Surface from "../Surface";
+import { useDismiss } from "../../use-popover";
 
 interface Props {
   /** How far back the canvas looks. */
@@ -58,23 +59,7 @@ export default function CanvasRunsBar({
   onOpenChange,
   footer,
 }: Props) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onOpenChange(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onOpenChange(false);
-    };
-    document.addEventListener("mousedown", onPointer);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onPointer);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open, onOpenChange]);
+  const ref = useDismiss(open, () => onOpenChange(false));
 
   const listed = filterWorkOrders(workOrders, period);
   // Finished runs in the list that the counts leave out: they didn't walk this graph from its trigger.
@@ -87,7 +72,7 @@ export default function CanvasRunsBar({
       {run ? (
         <LoadedRunBar run={run} detail={run.when} onUnload={onUnloadRun} />
       ) : (
-        <div className="inline-flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-1.5 text-xs shadow-sm">
+        <Surface className="inline-flex h-10 items-center gap-2 px-1.5 text-xs">
           <PeriodPicker
             label="Runs"
             value={period}
@@ -129,14 +114,16 @@ export default function CanvasRunsBar({
           >
             Filter
           </Button>
-        </div>
+        </Surface>
       )}
 
       {open && (
-        <section
+        <Surface
+          as="section"
+          variant="floating"
           role="dialog"
           aria-label="Runs"
-          className="absolute top-full z-40 mt-2 flex max-h-[min(480px,60vh)] w-[440px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl"
+          className="absolute top-full z-40 mt-2 flex max-h-[min(480px,60vh)] w-[440px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden"
         >
           <header className="flex flex-none items-center border-b border-gray-100 px-3 py-2">
             <span className="text-xs text-gray-500">{activityPeriodLabel(period)}</span>
@@ -164,7 +151,7 @@ export default function CanvasRunsBar({
               }
             />
           </div>
-        </section>
+        </Surface>
       )}
     </div>
   );

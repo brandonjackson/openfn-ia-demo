@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import type { RunDetails } from "../../mock-data/workflow";
 import Badge from "../Badge";
 import StatusPill from "./StatusPill";
+import IconButton from "../IconButton";
 
 /**
  * One run inside a work order in the history panel: its status, when it
@@ -50,15 +51,7 @@ export default function RunRow({
         </span>
       </button>
       {selected && onDeselect && (
-        <button
-          type="button"
-          onClick={onDeselect}
-          aria-label="Deselect run"
-          title="Deselect run"
-          className="flex-shrink-0 rounded p-0.5 text-gray-400 hover:bg-indigo-100 hover:text-gray-700"
-        >
-          <X size={12} />
-        </button>
+        <IconButton size="xs" icon={X} label="Deselect run" onClick={onDeselect} />
       )}
     </div>
   );

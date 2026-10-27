@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Check, CheckSquare2, Square } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import Surface from "./Surface";
+import { usePopover } from "../use-popover";
 
 export interface DropdownMenuItem {
   id: string;
@@ -70,33 +71,18 @@ export default function DropdownMenu({
   defaultOpen = false,
   shrink = false,
 }: Props) {
-  const [open, setOpen] = useState(defaultOpen);
-  const ref = useRef<HTMLDivElement>(null);
+  const { open, setOpen, ref } = usePopover(defaultOpen);
 
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("mousedown", onPointer);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onPointer);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
 
   return (
     <div ref={ref} className={`relative inline-block ${shrink ? "min-w-0 max-w-full" : ""}`}>
       {trigger({ open, toggle: () => setOpen((o) => !o) })}
       {open && (
-        <div
+        <Surface
+          variant="popover"
           role="menu"
           aria-label={ariaLabel}
-          className={`absolute z-50 ${widthClass} rounded-lg border border-gray-200 bg-white p-1.5 shadow-lg ${
+          className={`absolute z-50 ${widthClass} p-1.5 ${
             placement === "beside" ? "left-full top-0 ml-2" : align === "right" ? "right-0 top-full mt-1.5" : "left-0 top-full mt-1.5"
           }`}
         >
@@ -150,7 +136,7 @@ export default function DropdownMenu({
               );
             })}
           </ul>
-        </div>
+        </Surface>
       )}
     </div>
   );

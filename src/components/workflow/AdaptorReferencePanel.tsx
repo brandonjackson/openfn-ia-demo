@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { ExternalLink, Search } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import type { AdaptorKind } from "../../mock-data/workflow";
 import { adaptorInfo, adaptorSnippets } from "../../mock-data/adaptor-reference";
 import type { Snippet } from "../../mock-data/adaptor-reference";
 import SnippetCard from "./SnippetCard";
 import { AdaptorIcon } from "./AdaptorIcon";
+import SearchInput from "../SearchInput";
 
 interface Props {
   /** The open step's adaptor; the snippets are always for it. */
@@ -50,15 +51,7 @@ export default function AdaptorReferencePanel({ adaptor, onInsert, stepLabel }: 
             </a>
           </div>
         </div>
-        <label className="flex items-center gap-2 rounded-md border border-gray-200 px-2.5 py-1.5 text-sm text-gray-400 focus-within:border-indigo-300">
-          <Search size={14} />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={`Search ${info.name} operations`}
-            className="w-full border-0 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
-          />
-        </label>
+        <SearchInput compact value={query} onChange={(e) => setQuery(e.target.value)} placeholder={`Search ${info.name} operations`} />
       </div>
       <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
         {onInsert && stepLabel && (

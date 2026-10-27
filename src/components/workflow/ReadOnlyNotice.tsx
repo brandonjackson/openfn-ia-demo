@@ -1,4 +1,5 @@
 import { FlaskConical, Lock } from "lucide-react";
+import Surface from "../Surface";
 
 interface Props {
   /**
@@ -33,7 +34,7 @@ export default function ReadOnlyNotice({ variant = "banner", onEditInSandbox }: 
     );
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs leading-none text-gray-600 shadow-sm">
+    <Surface className="flex items-center gap-3 px-4 py-2 text-xs leading-none text-gray-600">
       <Marker />
       <span className="h-4 w-px flex-none bg-gray-200" aria-hidden />
       <span>To make changes, please edit in a sandbox.</span>
@@ -47,6 +48,6 @@ export default function ReadOnlyNotice({ variant = "banner", onEditInSandbox }: 
           <span>Edit in sandbox</span>
         </button>
       )}
-    </div>
+    </Surface>
   );
 }

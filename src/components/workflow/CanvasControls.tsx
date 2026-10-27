@@ -1,4 +1,5 @@
 import { Plus, Minus, Maximize, Crosshair, LayoutGrid, Undo2, Redo2 } from "lucide-react";
+import Surface from "../Surface";
 
 /**
  * The vertical zoom / fit / layout control stack pinned to the bottom-left of
@@ -26,7 +27,7 @@ export default function CanvasControls({
   ];
 
   return (
-    <div className="flex flex-col rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <Surface className="flex flex-col overflow-hidden">
       {buttons.map(({ icon: Icon, title, onClick }) => (
         <button
           key={title}
@@ -38,6 +39,6 @@ export default function CanvasControls({
           <Icon size={16} />
         </button>
       ))}
-    </div>
+    </Surface>
   );
 }

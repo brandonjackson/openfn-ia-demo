@@ -5,6 +5,9 @@ import type { AssistantMode, AssistantReference } from "../../mock-data/assistan
 import { assistantModes } from "../../mock-data/assistant";
 import DropdownMenu from "../DropdownMenu";
 import ReferenceChip from "./ReferenceChip";
+import IconButton from "../IconButton";
+import Surface from "../Surface";
+import { usePopover } from "../../use-popover";
 
 export interface AssistantAttachments {
   logs: boolean;
@@ -45,7 +48,7 @@ export default function AssistantChatInput({
 }) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<AssistantAttachments>({ logs: false, data: false });
-  const [attachOpen, setAttachOpen] = useState(false);
+  const { open: attachOpen, setOpen: setAttachOpen, ref: attachRef } = usePopover();
   const ref = useRef<HTMLTextAreaElement>(null);
   const canSend = text.trim() !== "" && !loading;
   const attached = [attachments.logs && "logs", attachments.data && "data"].filter(Boolean) as string[];
@@ -96,22 +99,19 @@ export default function AssistantChatInput({
         />
 
         <div className="flex items-center gap-1.5 px-2 pb-2">
-          <div className="relative">
-            <button
-              type="button"
+          <div ref={attachRef} className="relative">
+            <IconButton
+              icon={Plus}
+              label={runId ? "Attach run logs or data" : "Select a run to attach its logs or data"}
+              title={runId ? `Attach from run ${runId.slice(0, 6)}` : "Select a run to attach its logs or data"}
               onClick={() => runId && setAttachOpen((o) => !o)}
               disabled={!runId}
-              aria-label={runId ? "Attach run logs or data" : "Select a run to attach its logs or data"}
-              title={runId ? `Attach from run ${runId.slice(0, 6)}` : "Select a run to attach its logs or data"}
               aria-expanded={attachOpen}
-              className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-900 disabled:cursor-not-allowed disabled:opacity-40 ${
-                attached.length > 0 ? "bg-indigo-50 text-indigo-600" : ""
-              }`}
-            >
-              <Plus size={16} />
-            </button>
+              active={attachOpen || attached.length > 0}
+              tone={attached.length > 0 ? "accent" : "gray"}
+            />
             {attachOpen && runId && (
-              <div className="absolute bottom-full left-0 z-50 mb-1 w-56 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+              <Surface variant="popover" className="absolute bottom-full left-0 z-50 mb-1 w-56 p-2">
                 <p className="px-1 pb-1 text-xs text-gray-500">Attach from run {runId.slice(0, 6)}</p>
                 {(
                   [
@@ -129,7 +129,7 @@ export default function AssistantChatInput({
                     {label}
                   </label>
                 ))}
-              </div>
+              </Surface>
             )}
           </div>
           <DropdownMenu

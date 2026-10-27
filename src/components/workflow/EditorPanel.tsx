@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Maximize2, Minimize2, X } from "lucide-react";
 import type { PanelViewId } from "../../editor-layout";
 import { panelViews } from "./panel-views";
 import SegmentedControl from "../SegmentedControl";
+import IconButton from "../IconButton";
 
 interface Props {
   view: PanelViewId;
@@ -64,20 +65,20 @@ export default function EditorPanel({
             {context && <div className="mr-2 flex min-w-0 items-center gap-2 text-xs text-gray-500">{context}</div>}
             {actions}
             {onToggleMaximized && !collapsed && (
-              <HeaderButton
+              <IconButton
                 label={maximized ? "Restore panel size" : "Maximise panel"}
                 icon={maximized ? Minimize2 : Maximize2}
                 onClick={onToggleMaximized}
               />
             )}
             {onToggleCollapsed && (
-              <HeaderButton
+              <IconButton
                 label={collapsed ? "Expand panel" : "Collapse panel"}
                 icon={collapsed ? ChevronUp : ChevronDown}
                 onClick={onToggleCollapsed}
               />
             )}
-            {onClose && <HeaderButton label="Close panel" icon={X} onClick={onClose} />}
+            {onClose && <IconButton label="Close panel" icon={X} onClick={onClose} />}
           </div>
         </div>
       </header>
@@ -86,16 +87,3 @@ export default function EditorPanel({
   );
 }
 
-function HeaderButton({ label, icon: Icon, onClick }: { label: string; icon: typeof X; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      className="inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-    >
-      <Icon size={15} />
-    </button>
-  );
-}

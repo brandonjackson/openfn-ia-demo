@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import Surface from "./Surface";
+import { usePopover } from "../use-popover";
 
 export interface PickerOption {
   id: string;
@@ -66,25 +67,9 @@ export default function Picker({
   highlight = false,
   trigger,
 }: Props) {
-  const [open, setOpen] = useState(defaultOpen);
-  const ref = useRef<HTMLDivElement>(null);
+  const { open, setOpen, ref } = usePopover(defaultOpen);
   const selected = options.find((o) => o.id === value);
 
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("mousedown", onPointer);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onPointer);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
 
   const FooterIcon = footerAction?.icon;
   const TriggerIcon = selected?.icon ?? Icon;
@@ -125,7 +110,7 @@ export default function Picker({
       </button>
 
       {open && (
-        <div className={`absolute left-0 top-full z-50 mt-1 ${menuWidthClass} rounded-lg border border-gray-200 bg-white p-1.5 shadow-lg`}>
+        <Surface variant="popover" className={`absolute left-0 top-full z-50 mt-1 ${menuWidthClass} p-1.5`}>
           <ul role="listbox" aria-label={ariaLabel} className="max-h-72 overflow-y-auto">
             {options.map((option, i) => {
               const isSelected = option.id === value;
@@ -196,7 +181,7 @@ export default function Picker({
               </button>
             </>
           )}
-        </div>
+        </Surface>
       )}
     </div>
   );

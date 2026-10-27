@@ -6,7 +6,8 @@ import { versionOptions } from "../../mock-data/workflow";
 import Button from "../Button";
 import Picker from "../Picker";
 import SegmentedControl from "../SegmentedControl";
-import IconToggleButton from "../IconToggleButton";
+import IconButton from "../IconButton";
+import Surface from "../Surface";
 import WorkflowFileMenu from "./WorkflowFileMenu";
 import type { WorkflowMenuAction } from "./WorkflowFileMenu";
 import SandboxChip from "./SandboxChip";
@@ -161,12 +162,12 @@ export default function EditorToolbar({
     onMenuAction(action);
   };
 
-  const group = "flex h-10 items-center rounded-xl border border-gray-200 bg-white shadow-sm";
+  const group = "flex h-10 items-center";
 
   return (
     <div className="flex items-center justify-between gap-3">
       {/* Workflow: file menu, name, sandbox, version */}
-      <div className={`${group} min-w-0 pr-2`}>
+      <Surface className={`${group} min-w-0 pr-2`}>
         <WorkflowFileMenu
           onSelect={menuAction}
           onMain={onMain}
@@ -225,19 +226,19 @@ export default function EditorToolbar({
           onNewSandbox={onNewSandbox}
           onViewAll={onViewAllSandboxes}
         />
-      </div>
+      </Surface>
 
       {/* View switcher, then the loaded run in code mode (the canvas has its own runs bar) */}
       <div className="flex flex-none items-center gap-3">
-      <div className={`${group} px-1.5`}>
+      <Surface className={`${group} px-1.5`}>
         <SegmentedControl variant="pill" size="md" options={editorViews} value={view} onChange={(v) => onViewChange(v as EditorView)} />
-      </div>
+      </Surface>
       {run && view === "code" && <LoadedRunBar run={run} detail={run.version} onUnload={onCloseRun} />}
       </div>
 
       {/* Run and the main action, then the assistant on its own; these never shrink, the name and sandbox truncate instead */}
       <div className="flex flex-none items-center gap-3">
-      <div className={`${group} gap-1.5 px-1.5`}>
+      <Surface className={`${group} gap-1.5 px-1.5`}>
         <RunMenuButton
           retry={retry}
           fromStep={fromStep}
@@ -255,7 +256,7 @@ export default function EditorToolbar({
             Go live
           </Button>
         )}
-      </div>
+      </Surface>
       {onToggleAssistant && (
         // Folds to nothing (taking the gap before it along) on the same
         // timing as the tray's slide, so the toolbar's right edge glides.
@@ -266,9 +267,9 @@ export default function EditorToolbar({
             assistantOpen ? "-ml-3 max-w-0 opacity-0" : "max-w-16 opacity-100"
           }`}
         >
-          <div className={`${group} px-1`}>
-            <IconToggleButton icon={Sparkles} label="Assistant" hint="Ctrl/⌘ + K" onClick={onToggleAssistant} />
-          </div>
+          <Surface className={`${group} px-1`}>
+            <IconButton variant="toggle" size="md" icon={Sparkles} label="Assistant" hint="Ctrl/⌘ + K" onClick={onToggleAssistant} />
+          </Surface>
         </div>
       )}
       </div>

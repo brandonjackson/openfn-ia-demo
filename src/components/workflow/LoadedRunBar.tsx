@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import type { RunDetails } from "../../mock-data/workflow";
 import Button from "../Button";
 import StatusPill from "./StatusPill";
+import Surface from "../Surface";
 
 /**
  * A bar naming the loaded run (its status dot, short id and a detail such as
@@ -20,7 +21,7 @@ export default function LoadedRunBar({
   onUnload?: () => void;
 }) {
   return (
-    <div className="inline-flex h-10 items-center gap-2 rounded-lg border border-gray-200 bg-white px-1.5 text-xs shadow-sm">
+    <Surface className="inline-flex h-10 items-center gap-2 px-1.5 text-xs">
       <span className="inline-flex items-center gap-2 pl-1.5 text-gray-600">
         <StatusPill status={run.status} variant="dot" />
         <span className="whitespace-nowrap">
@@ -33,6 +34,6 @@ export default function LoadedRunBar({
           Unload run
         </Button>
       )}
-    </div>
+    </Surface>
   );
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { ChevronDown, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
+import IconButton from "../IconButton";
 
 interface Props {
   title: string;
@@ -83,9 +84,9 @@ export default function DataSnippet({
         {meta && <span className="ml-1 truncate text-xs text-gray-400">{meta}</span>}
         <span className="ml-auto flex flex-shrink-0 items-center">
           {expanded
-            ? onCollapse && <SizeButton label={`Collapse ${title.toLowerCase()}`} icon={Minimize2} onClick={onCollapse} />
+            ? onCollapse && <IconButton size="xs" label={`Collapse ${title.toLowerCase()}`} icon={Minimize2} onClick={onCollapse} />
             : onExpand &&
-              lines.length > 0 && <SizeButton label={expandLabel ?? `Expand ${title.toLowerCase()} to full width`} icon={Maximize2} onClick={onExpand} />}
+              lines.length > 0 && <IconButton size="xs" label={expandLabel ?? `Expand ${title.toLowerCase()} to full width`} icon={Maximize2} onClick={onExpand} />}
         </span>
       </div>
       {showing && (
@@ -139,16 +140,3 @@ export default function DataSnippet({
   );
 }
 
-function SizeButton({ label, icon: Icon, onClick }: { label: string; icon: typeof Maximize2; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      className="inline-flex h-6 w-6 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700"
-    >
-      <Icon size={13} />
-    </button>
-  );
-}

@@ -2,6 +2,7 @@ import { MoreHorizontal } from "lucide-react";
 import type { EditorLayout } from "../../editor-layout";
 import DropdownMenu from "../DropdownMenu";
 import type { DropdownMenuItem } from "../DropdownMenu";
+import IconButton from "../IconButton";
 
 interface Props {
   layout: EditorLayout;
@@ -40,19 +41,15 @@ export default function LayoutMenu({ layout, onChange, onReset, defaultOpen = fa
       onSelect={select}
       defaultOpen={defaultOpen}
       trigger={({ open, toggle }) => (
-        <button
-          type="button"
+        <IconButton
+          icon={MoreHorizontal}
+          label="Layout"
+          title="Layout: show or hide areas"
           onClick={toggle}
           aria-haspopup="menu"
           aria-expanded={open}
-          aria-label="Layout"
-          title="Layout: show or hide areas"
-          className={`inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 hover:bg-gray-100 hover:text-gray-700 ${
-            open ? "bg-gray-100 text-gray-700" : ""
-          }`}
-        >
-          <MoreHorizontal size={16} />
-        </button>
+          active={open}
+        />
       )}
     />
   );

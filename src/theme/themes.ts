@@ -25,9 +25,9 @@ export const THEMES: ThemeMeta[] = [
   {
     id: "default",
     name: "Basic",
-    description: "The original product UI — violet on cool grays.",
+    description: "The original product UI — indigo on cool grays.",
     mode: "light",
-    swatches: ["#7c3aed", "#6d28d9", "#111827", "#f9fafb"],
+    swatches: ["#4f46e5", "#4338ca", "#111827", "#f9fafb"],
   },
   {
     id: "lightning-v2",

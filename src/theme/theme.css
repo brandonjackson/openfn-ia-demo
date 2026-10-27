@@ -78,20 +78,9 @@ html[data-theme="lightning-v2"] {
   --font-mono: "Fira Code VF", "Fira Code", ui-monospace, SFMono-Regular, Menlo,
     Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-  /* Lightning's primary is indigo (--color-primary-* = indigo). The
-     demo's one accent is violet, so violet steps onto indigo. Sky
-     stays sky for info, as in Lightning. */
-  --color-violet-50: var(--color-indigo-50);
-  --color-violet-100: var(--color-indigo-100);
-  --color-violet-200: var(--color-indigo-200);
-  --color-violet-300: var(--color-indigo-300);
-  --color-violet-400: var(--color-indigo-400);
-  --color-violet-500: var(--color-indigo-500);
-  --color-violet-600: var(--color-indigo-600);
-  --color-violet-700: var(--color-indigo-700);
-  --color-violet-800: var(--color-indigo-800);
-  --color-violet-900: var(--color-indigo-900);
-  --color-violet-950: var(--color-indigo-950);
+  /* Lightning's primary is indigo (--color-primary-* = indigo), which is
+     already the demo's one accent, so it needs no remapping. Sky stays
+     sky for info, as in Lightning. */
 
   /* Lightning's card shadow (tailwind.config.ts boxShadow.card). */
   --shadow-card: 0 4px 16px 0 rgba(0, 0, 0, 0.06);
@@ -316,7 +305,7 @@ html[data-theme="gds"] {
   --color-gray-950: #0b0c0c;
 
   /* Primary — GOV.UK blue: brand #1d70b8, link #1a65a6,
-     link-hover #0f385c, surface #f4f8fb. Drives the violet accent
+     link-hover #0f385c, surface #f4f8fb. Drives the indigo accent
      (plus any stray blue or indigo) across the app. */
   --color-blue-50: #f4f8fb;   --color-indigo-50: #f4f8fb;  --color-violet-50: #f4f8fb;
   --color-blue-100: #d2e2f1;  --color-indigo-100: #d2e2f1; --color-violet-100: #d2e2f1;
@@ -519,7 +508,7 @@ html[data-theme="gds"] {
 
   /* Callout: a heavy tone-coloured border on a plain surface. */
   [data-ui="callout"] {
-    border: var(--ui-callout-border-width) solid var(--color-violet-500);
+    border: var(--ui-callout-border-width) solid var(--color-indigo-500);
     background-color: #ffffff;
     &[data-tone="success"] { border-color: var(--color-green-500); }
     &[data-tone="warning"] { border-color: var(--color-orange-500); }

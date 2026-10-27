@@ -32,7 +32,7 @@ function niceMax(max: number) {
  * card around it names the series, so there's no legend. A visually hidden
  * table carries the same values for screen readers and keyboard users.
  */
-export default function BarChart({ data, unit, barClassName = "bg-violet-500", per = "day" }: Props) {
+export default function BarChart({ data, unit, barClassName = "bg-indigo-500", per = "day" }: Props) {
   const [active, setActive] = useState<number | null>(null);
   const max = niceMax(Math.max(...data.map((d) => d.value)));
   // Counts are whole numbers, so skip a half-way tick that isn't one.

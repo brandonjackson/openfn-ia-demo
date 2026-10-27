@@ -198,7 +198,7 @@ export default function AIAssistantPanel({
           {!inChat || !conversation ? (
             <div className="space-y-4 p-4">
               {forContext.length > 0 && (
-                <label className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-400 focus-within:border-violet-300">
+                <label className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-400 focus-within:border-indigo-300">
                   <Search size={16} />
                   <input
                     value={query}
@@ -260,7 +260,7 @@ export default function AIAssistantPanel({
               ))}
               {loading && (
                 <div className="flex items-center gap-2 text-sm text-gray-400">
-                  <Sparkles size={14} className="animate-pulse text-violet-500" /> Thinking...
+                  <Sparkles size={14} className="animate-pulse text-indigo-500" /> Thinking...
                 </div>
               )}
             </div>
@@ -338,7 +338,7 @@ function Suggestions({
 }) {
   return (
     <div className="pt-6 text-center">
-      <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-violet-50 text-violet-600">
+      <span className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
         <Sparkles size={20} />
       </span>
       <h3 className="mt-3 text-sm font-semibold text-gray-900">{title}</h3>
@@ -349,7 +349,7 @@ function Suggestions({
             key={s}
             type="button"
             onClick={() => onPick(s)}
-            className="rounded-lg border border-gray-200 px-3 py-2 text-left text-sm text-gray-700 hover:border-violet-300 hover:bg-violet-50"
+            className="rounded-lg border border-gray-200 px-3 py-2 text-left text-sm text-gray-700 hover:border-indigo-300 hover:bg-indigo-50"
           >
             {s}
           </button>

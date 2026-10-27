@@ -7,7 +7,7 @@ import StatusPill from "./StatusPill";
  * One run inside a work order in the history panel: its status, when it
  * started and how long it took, and the version of the workflow it ran on.
  *
- * Clicking the row selects the run. A selected run is indented with a violet
+ * Clicking the row selects the run. A selected run is indented with a indigo
  * edge and gets an X to deselect it.
  */
 export default function RunRow({
@@ -31,7 +31,7 @@ export default function RunRow({
   return (
     <div
       className={`group flex items-center gap-2 py-1.5 text-xs ${compact ? "pl-5 pr-5" : "pl-8 pr-3"} ${
-        selected ? `border-l-2 border-violet-500 bg-violet-50 ${compact ? "pl-[18px]" : "pl-[30px]"}` : "hover:bg-gray-50"
+        selected ? `border-l-2 border-indigo-500 bg-indigo-50 ${compact ? "pl-[18px]" : "pl-[30px]"}` : "hover:bg-gray-50"
       }`}
     >
       <button
@@ -55,7 +55,7 @@ export default function RunRow({
           onClick={onDeselect}
           aria-label="Deselect run"
           title="Deselect run"
-          className="flex-shrink-0 rounded p-0.5 text-gray-400 hover:bg-violet-100 hover:text-gray-700"
+          className="flex-shrink-0 rounded p-0.5 text-gray-400 hover:bg-indigo-100 hover:text-gray-700"
         >
           <X size={12} />
         </button>

@@ -24,7 +24,7 @@ function StatusMark({ status }: { status: RunStatus }) {
     case "failed":
       return <X size={14} className="text-red-500" aria-label="Failed" />;
     case "running":
-      return <Loader2 size={14} className="animate-spin text-violet-500" aria-label="Running" />;
+      return <Loader2 size={14} className="animate-spin text-indigo-500" aria-label="Running" />;
     default:
       return <span className="h-1.5 w-1.5 rounded-full bg-gray-300" aria-label="Pending" />;
   }

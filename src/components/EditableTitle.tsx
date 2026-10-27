@@ -55,7 +55,7 @@ export default function EditableTitle({ value, onChange, readOnly = false, label
         onChange={(e) => setDraft(e.target.value)}
         onBlur={commit}
         onKeyDown={onKeyDown}
-        className={`-mx-1.5 min-w-0 flex-1 rounded-md border border-violet-500 bg-white px-1.5 py-0.5 text-sm font-semibold text-gray-900 outline-none ring-1 ring-violet-500 ${className}`}
+        className={`-mx-1.5 min-w-0 flex-1 rounded-md border border-indigo-500 bg-white px-1.5 py-0.5 text-sm font-semibold text-gray-900 outline-none ring-1 ring-indigo-500 ${className}`}
       />
     );
 

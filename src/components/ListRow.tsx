@@ -53,26 +53,26 @@ export default function ListRow({
   const interactive = Boolean(to || onClick);
   const frame = `group flex w-full items-center rounded-lg border text-left transition-all ${
     dashed ? "border-dashed" : ""
-  } ${selected ? "border-violet-300 bg-violet-50/40" : "border-gray-200 bg-white"} ${interactive ? "hover:border-violet-300 hover:shadow-sm" : ""}`;
+  } ${selected ? "border-indigo-300 bg-indigo-50/40" : "border-gray-200 bg-white"} ${interactive ? "hover:border-indigo-300 hover:shadow-sm" : ""}`;
   // With actions, the frame wraps both the row and the action buttons, and
   // only the inner part is the link or button.
   const className = actions
     ? "flex flex-1 min-w-0 items-center gap-4 p-4 text-left"
     : `${frame} gap-4 p-4`;
-  const hoverText = interactive ? "group-hover:text-violet-600" : "";
+  const hoverText = interactive ? "group-hover:text-indigo-600" : "";
 
   const content = (
     <>
       {logo ?? (
         <div
           className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-            selected ? "bg-violet-100" : "bg-gray-100"
-          } ${interactive ? "group-hover:bg-violet-50" : ""}`}
+            selected ? "bg-indigo-100" : "bg-gray-100"
+          } ${interactive ? "group-hover:bg-indigo-50" : ""}`}
         >
           <Icon
             size={20}
-            className={`${selected ? "text-violet-500" : "text-gray-400"} ${
-              interactive ? "group-hover:text-violet-500" : ""
+            className={`${selected ? "text-indigo-500" : "text-gray-400"} ${
+              interactive ? "group-hover:text-indigo-500" : ""
             }`}
           />
         </div>
@@ -97,7 +97,7 @@ export default function ListRow({
       {/* With actions, the buttons hold the right edge, so the chevron steps aside. */}
       {trailing ??
         (interactive && !actions && (
-          <ChevronRight size={16} className="text-gray-300 group-hover:text-violet-400 flex-shrink-0" />
+          <ChevronRight size={16} className="text-gray-300 group-hover:text-indigo-400 flex-shrink-0" />
         ))}
     </>
   );

@@ -20,7 +20,7 @@ export default function BuildPrompt({
 }: Props) {
   return (
     <form
-      className="rounded-xl border border-gray-300 bg-white shadow-sm focus-within:border-violet-500 focus-within:ring-1 focus-within:ring-violet-500"
+      className="rounded-xl border border-gray-300 bg-white shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit?.();

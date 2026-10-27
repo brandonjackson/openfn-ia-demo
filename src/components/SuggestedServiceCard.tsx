@@ -6,7 +6,7 @@ import Button from "./Button";
 import SystemPill from "./SystemPill";
 
 const categoryTones: Record<string, BadgeTone> = {
-  "Data sync": "violet",
+  "Data sync": "indigo",
   "Event-driven": "pink",
   Interoperability: "green",
   Reporting: "yellow",
@@ -24,7 +24,7 @@ interface Props {
  */
 export default function SuggestedServiceCard({ service, onStart, onDismiss }: Props) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-violet-200 hover:shadow-sm">
+    <div className="rounded-lg border border-gray-200 bg-white p-4 transition-all hover:border-indigo-200 hover:shadow-sm">
       <Badge label={service.category} tone={categoryTones[service.category]} />
       <h3 className="mt-2 text-sm font-semibold leading-snug text-gray-900">{service.title}</h3>
       <p className="mt-1 text-xs leading-relaxed text-gray-500">{service.description}</p>

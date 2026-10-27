@@ -15,7 +15,7 @@ const typeConfig: Record<ChannelRowType, { label: string; icon: LucideIcon; tone
   write: { label: "Write", icon: PenLine, tone: "green" },
   read: { label: "Read", icon: Eye, tone: "gray" },
   event: { label: "Event", icon: Zap, tone: "pink" },
-  default: { label: "Default", icon: Plug, tone: "violet" },
+  default: { label: "Default", icon: Plug, tone: "indigo" },
 };
 
 interface Props {
@@ -55,7 +55,7 @@ export default function ChannelRow({ id, name, description, channelType, autoCre
         showMeta && (
           <>
             {system && (
-              <Link to={system.path} className="inline-flex items-center gap-1 hover:text-violet-600">
+              <Link to={system.path} className="inline-flex items-center gap-1 hover:text-indigo-600">
                 <AdaptorLogo name={system.name} size="2xs" />
                 {system.name}
                 <ArrowUpRight size={10} />

@@ -34,7 +34,7 @@ export default function SnippetCard({ snippet, onInsert }: Props) {
       title={insert ? "Insert at the cursor" : "Read-only. Edit in a sandbox to insert snippets."}
       className={`group overflow-hidden rounded-lg border bg-white ${
         insert
-          ? "cursor-pointer border-gray-200 transition-colors hover:border-violet-300 hover:shadow-sm focus-visible:border-violet-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-100"
+          ? "cursor-pointer border-gray-200 transition-colors hover:border-indigo-300 hover:shadow-sm focus-visible:border-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-100"
           : "cursor-not-allowed border-dashed border-gray-200 opacity-60"
       }`}
     >
@@ -44,7 +44,7 @@ export default function SnippetCard({ snippet, onInsert }: Props) {
           <p className="mt-0.5 text-xs leading-snug text-gray-500">{snippet.description}</p>
         </div>
         {insert ? (
-          <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-md border border-violet-200 px-1.5 py-0.5 text-xs font-medium text-violet-600 transition-colors group-hover:border-violet-600 group-hover:bg-violet-600 group-hover:text-white">
+          <span className="inline-flex flex-shrink-0 items-center gap-1 rounded-md border border-indigo-200 px-1.5 py-0.5 text-xs font-medium text-indigo-600 transition-colors group-hover:border-indigo-600 group-hover:bg-indigo-600 group-hover:text-white">
             <Plus size={12} /> Insert
           </span>
         ) : (
@@ -53,7 +53,7 @@ export default function SnippetCard({ snippet, onInsert }: Props) {
           </span>
         )}
       </div>
-      <pre className={`overflow-x-auto border-t border-gray-100 bg-gray-50 px-3 py-2 font-mono text-xs leading-relaxed text-gray-800 ${insert ? "group-hover:bg-violet-50/40" : ""}`}>
+      <pre className={`overflow-x-auto border-t border-gray-100 bg-gray-50 px-3 py-2 font-mono text-xs leading-relaxed text-gray-800 ${insert ? "group-hover:bg-indigo-50/40" : ""}`}>
         <code>{snippet.code}</code>
       </pre>
     </div>

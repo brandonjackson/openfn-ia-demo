@@ -39,7 +39,7 @@ export default function SystemPill({
   const interactive = Boolean(to || onClick);
   const sizing =
     size === "sm" ? "gap-1.5 py-0.5 pl-0.5 pr-2 text-xs" : "gap-2 py-1 pl-1 pr-3 text-sm";
-  const hover = interactive ? "hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700" : "";
+  const hover = interactive ? "hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-700" : "";
   const className = `inline-flex items-center whitespace-nowrap rounded-full font-medium transition-colors ${sizing} ${hover} ${
     suggested
       ? "border border-dashed border-gray-300 bg-white text-gray-600"

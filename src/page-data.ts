@@ -19,7 +19,7 @@ export interface StatTileData {
   detail?: string;
   /** Recent values, oldest first, drawn as a sparkline. */
   trend?: number[];
-  badge?: { label: string; tone: "green" | "yellow" | "red" | "violet" | "gray" };
+  badge?: { label: string; tone: "green" | "yellow" | "red" | "indigo" | "gray" };
   linkTo?: string;
 }
 

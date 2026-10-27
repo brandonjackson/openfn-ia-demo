@@ -179,7 +179,7 @@ export default function WorkflowCanvas({
     >
       <div
         className="relative mx-auto"
-        style={{ width, height, marginTop, transform: `translate(${pan.x}px, ${pan.y}px)` }}
+        style={{ width, height, marginTop: `calc(${marginTop}px + var(--editor-toolbar-h, 0px))`, transform: `translate(${pan.x}px, ${pan.y}px)` }}
       >
         {/* Edge layer */}
         <svg className="absolute inset-0 pointer-events-none" width={width} height={height}>

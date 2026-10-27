@@ -26,3 +26,6 @@ export const Failed: Story = { args: { run: failedRun } };
 
 /** A run on an older version than the latest gets a yellow version tag. */
 export const OlderVersion: Story = { args: { run: olderRun } };
+
+/** In the inspector's failure list: a shallower indent. */
+export const Compact: Story = { args: { compact: true } };

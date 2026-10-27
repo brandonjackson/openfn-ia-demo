@@ -7,9 +7,10 @@ import { activityPeriodLabel } from "../../mock-data/runs";
 import { adaptorInfo, credentialsFor } from "../../mock-data/adaptor-reference";
 import { codeSummary } from "../../mock-data/code-summaries";
 import FormField from "../FormField";
-import { TextInput } from "../FormControls";
 import Button from "../Button";
+import EditableTitle from "../EditableTitle";
 import Badge from "../Badge";
+import SectionHeading from "../SectionHeading";
 import StatTile from "../StatTile";
 import TextLink from "../TextLink";
 import ToggleSwitch from "../ToggleSwitch";
@@ -70,14 +71,16 @@ interface Props {
 
 /**
  * The inspector: a small card over the right of the canvas for the selected
- * node. What it shows follows what the canvas shows:
+ * node. It is a flat stack of sections, each under one small heading, and
+ * what it shows follows what the canvas shows:
  *
- * - **No runs** (the runs bar is Off): the node's config, its name, adaptor
- *   and credential or the trigger's type, URL and switch, with the
- *   assistant's summary of the step's code and a link to the full code.
- * - **Run history** (`stats`): how many runs reached the node in the
- *   canvas's period, how many failed and why. The period comes from the
- *   canvas; on the trigger the numbers are the whole workflow's.
+ * - **No run loaded**: the node's config first, its adaptor and credential
+ *   (its name is renamed from the header), or the trigger's type, URL and switch. With run history on
+ *   the canvas (`stats`), a strip of the node's runs, failures and success
+ *   rate over the canvas's period, then why the runs failed; on the trigger
+ *   the numbers are the whole workflow's. For a step, the assistant's
+ *   summary of what its code does sits between the config and the runs,
+ *   with a link to the full code.
  * - **A run loaded** (`run`): the node's log, input and output in that run,
  *   as snippets that open in full in the code view's panel, with a clear
  *   way to unload the run and go back to the history.
@@ -105,7 +108,7 @@ export default function StepInspector({
   const job = node.type === "job" ? node : undefined;
   const trigger = node.type === "trigger" ? node : undefined;
   const step = job ? run?.steps.find((s) => s.jobId === job.id) : undefined;
-  const state = run ? "run" : stats ? "stats" : "config";
+  const period = stats && activityPeriodLabel(stats.period);
 
   return (
     <section
@@ -113,7 +116,14 @@ export default function StepInspector({
       className="flex max-h-full w-[380px] max-w-[calc(100vw-2rem)] flex-col rounded-xl border border-gray-200 bg-white shadow-xl"
     >
       <header className="flex h-12 flex-none items-center gap-2 border-b border-gray-100 pl-4 pr-2">
-        <h2 className="min-w-0 flex-1 truncate text-sm font-semibold text-gray-900">{node.label}</h2>
+        <div className="flex min-w-0 flex-1 items-center">
+          <EditableTitle
+            value={node.label}
+            label="Step name"
+            readOnly={readOnly || !job}
+            onChange={job && onChange ? (label) => onChange({ label }) : undefined}
+          />
+        </div>
         {step && <StatusPill status={step.status} />}
         <div className="flex flex-shrink-0 items-center gap-0.5">
           {job && onOpenCode && <HeaderButton label="Open code" icon={Code2} onClick={onOpenCode} />}
@@ -121,51 +131,71 @@ export default function StepInspector({
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-4 py-4">
-        {state === "config" && job && (
-          <>
-            <FormField label="Name" htmlFor="inspector-name">
-              <TextInput
-                id="inspector-name"
-                value={job.label}
-                disabled={readOnly}
-                onChange={(e) => onChange?.({ label: e.target.value })}
+      {run ? (
+        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-4 py-3">
+          <RunData run={run} job={job} dataclips={dataclips} onUnload={onUnloadRun} onExpand={onExpand} />
+        </div>
+      ) : (
+        <div className="min-h-0 flex-1 divide-y divide-gray-100 overflow-y-auto">
+          <InspectorSection>
+            {job && (
+              <AdaptorRow
+                adaptor={job.adaptor}
+                credentialId={credentialId}
+                readOnly={readOnly}
+                onConnect={(id) => onChange?.({ credentialId: id })}
               />
-            </FormField>
-            <AdaptorRow
-              adaptor={job.adaptor}
-              credentialId={credentialId}
-              readOnly={readOnly}
-              onConnect={(id) => onChange?.({ credentialId: id })}
-            />
-            <CodeSummary job={job} onOpenCode={onOpenCode} />
-          </>
-        )}
+            )}
+            {trigger && (
+              <>
+                <TriggerTypeRow trigger={trigger} />
+                {trigger.triggerType === "webhook" && <WebhookUrl url={url} />}
+                <FormField compact label="Enabled" hint="When off, the trigger won't start runs. You can still run manually.">
+                  <ToggleSwitch key={String(live)} checked={live} onChange={readOnly ? undefined : onToggleLive} label={live ? "Live" : "Paused"} />
+                </FormField>
+              </>
+            )}
+          </InspectorSection>
 
-        {state === "config" && trigger && (
-          <>
-            <TriggerTypeRow trigger={trigger} />
-            {trigger.triggerType === "webhook" && <WebhookUrl url={url} />}
-            <FormField label="Enabled" hint="When off, the trigger won't start runs. You can still run manually.">
-              <ToggleSwitch key={String(live)} checked={live} onChange={readOnly ? undefined : onToggleLive} label={live ? "Live" : "Paused"} />
-            </FormField>
-          </>
-        )}
+          {job && (
+            <InspectorSection
+              heading="What this step does"
+              aside={
+                onOpenCode ? (
+                  <TextLink variant="action" onClick={onOpenCode}>
+                    <span className="text-xs">See full code →</span>
+                  </TextLink>
+                ) : undefined
+              }
+            >
+              <CodeSummary job={job} />
+            </InspectorSection>
+          )}
+          {stats && (
+            <InspectorSection heading={job ? "Runs" : "Workflow runs"} aside={period}>
+              <RunStrip stats={stats} job={job} />
+            </InspectorSection>
+          )}
 
-        {state === "stats" && stats && (
-          <RunStats
-            stats={stats}
-            job={job}
-            selectedRunId={run?.runId}
-            latestVersion={latestVersion}
-            onSelectRun={onSelectRun}
-          />
-        )}
+          {stats && stats.runs > 0 && stats.failed > 0 && (
+            <InspectorSection heading="Why runs failed" aside={`${stats.failed} of ${stats.runs}`}>
+              <FailureBreakdown
+                key={job?.id ?? "workflow"}
+                compact
+                reasons={stats.reasons}
+                period={stats.period}
+                stepLabel={job?.label}
+                scope={job ? "step" : "workflow"}
+                latestVersion={latestVersion}
+                onSelectRun={onSelectRun}
+              />
+            </InspectorSection>
+          )}
 
-        {state === "run" && run && <RunData run={run} job={job} dataclips={dataclips} onUnload={onUnloadRun} onExpand={onExpand} />}
-      </div>
+        </div>
+      )}
 
-      {state === "config" && (onRunFromHere || (onDelete && !readOnly)) && (
+      {!run && (onRunFromHere || (onDelete && !readOnly)) && (
         <footer className="flex flex-none items-center justify-between gap-2 border-t border-gray-100 px-4 py-3">
           <div>
             {onDelete && !readOnly && (
@@ -185,11 +215,30 @@ export default function StepInspector({
   );
 }
 
+/** One section of the inspector: an optional small heading, with something to its right, over its content. */
+function InspectorSection({ heading, aside, children }: { heading?: string; aside?: ReactNode; children: ReactNode }) {
+  return (
+    <section aria-label={heading} className="flex flex-col gap-3 px-4 py-3">
+      {heading && (
+        <div className="-mb-3">
+          <SectionHeading
+            variant="label"
+            compact
+            title={heading}
+            action={aside && <span className="text-[11px] text-gray-400">{aside}</span>}
+          />
+        </div>
+      )}
+      {children}
+    </section>
+  );
+}
+
 /** Text with `backticks` drawn as code. */
 function withCode(text: string): ReactNode {
   return text.split("`").map((part, i) =>
     i % 2 ? (
-      <code key={i} className="rounded bg-white px-1 font-mono text-[11px] text-gray-800">
+      <code key={i} className="rounded bg-gray-100 px-1 font-mono text-[11px] text-gray-800">
         {part}
       </code>
     ) : (
@@ -198,77 +247,39 @@ function withCode(text: string): ReactNode {
   );
 }
 
-/** The assistant's summary of what the step's code does, with the way to the full code. */
-function CodeSummary({ job, onOpenCode }: { job: JobNode; onOpenCode?: () => void }) {
+/** The assistant's summary of what the step's code does, as a short list with a note that an AI wrote it. */
+function CodeSummary({ job }: { job: JobNode }) {
   return (
-    <section aria-label="Code summary" className="rounded-lg border border-violet-100 bg-violet-50/50 px-3 py-2.5">
-      <div className="flex items-center gap-1.5 text-xs font-medium text-violet-700">
-        <Sparkles size={13} />
-        What the code does
-      </div>
-      <ul className="mt-1.5 list-disc space-y-1 pl-4 text-xs leading-5 text-gray-700 marker:text-violet-300">
+    <div>
+      <ul className="list-disc space-y-1 pl-4 text-xs leading-5 text-gray-700 marker:text-violet-300">
         {codeSummary(job).map((point) => (
           <li key={point}>{withCode(point)}</li>
         ))}
       </ul>
-      <div className="mt-2 flex items-center justify-between gap-2 text-xs">
-        <span className="text-[11px] text-gray-400">Summarised by AI</span>
-        {onOpenCode && (
-          <TextLink variant="action" onClick={onOpenCode}>
-            <span className="text-xs">See full code →</span>
-          </TextLink>
-        )}
-      </div>
-    </section>
+      <p className="mt-2 flex items-center gap-1 text-[11px] text-violet-600/80">
+        <Sparkles size={11} />
+        Summarised by AI
+      </p>
+    </div>
   );
 }
 
-/** The node's runs, failures and success rate over the period, then why the runs failed. */
-function RunStats({
-  stats,
-  job,
-  selectedRunId,
-  latestVersion,
-  onSelectRun,
-}: {
-  stats: InspectorStats;
-  job?: JobNode;
-  selectedRunId?: string;
-  latestVersion?: string;
-  onSelectRun?: (run: RunDetails) => void;
-}) {
+/** The node's runs, failures and success rate over the period, as one row of numbers, or a line saying there were none. */
+function RunStrip({ stats, job }: { stats: InspectorStats; job?: JobNode }) {
   const { runs, failed } = stats;
-  const rate = runs > 0 ? `${Math.round(((runs - failed) / runs) * 100)}%` : "–";
-  return (
-    <>
-      <p className="text-xs text-gray-500">
-        {job ? "This step" : "Whole workflow"} · {activityPeriodLabel(stats.period)}
+  if (runs === 0)
+    return (
+      <p className="text-xs text-gray-400">
+        No runs {job ? "reached this step" : "started"} in the {activityPeriodLabel(stats.period).toLowerCase()}.
       </p>
-      <div className="grid grid-cols-3 gap-2">
-        <StatTile compact label={job ? "Reached" : "Runs"} value={runs} />
-        <StatTile compact label="Failed" value={failed} danger={failed > 0} />
-        <StatTile compact label="Succeeded" value={rate} />
-      </div>
-      {runs === 0 ? (
-        <p className="text-xs text-gray-500">
-          No runs {job ? "reached this step" : "started"} in the {activityPeriodLabel(stats.period).toLowerCase()}.
-        </p>
-      ) : (
-        <div className="-mx-4 border-t border-gray-100 pt-1">
-          <h3 className="px-4 pb-0 pt-2 text-sm font-medium text-gray-800">Why runs failed</h3>
-          <FailureBreakdown
-            key={job?.id ?? "workflow"}
-            reasons={stats.reasons}
-            period={stats.period}
-            stepLabel={job?.label}
-            scope={job ? "step" : "workflow"}
-            selectedRunId={selectedRunId}
-            latestVersion={latestVersion}
-            onSelectRun={onSelectRun}
-          />
-        </div>
-      )}
-    </>
+    );
+  const rate = `${Math.round(((runs - failed) / runs) * 100)}%`;
+  return (
+    <div className="grid grid-cols-3 divide-x divide-gray-100 [&>*+*]:pl-3">
+      <StatTile bare label={job ? "Reached" : "Runs"} value={runs} />
+      <StatTile bare label="Failed" value={failed} danger={failed > 0} />
+      <StatTile bare label="Succeeded" value={rate} />
+    </div>
   );
 }
 
@@ -367,7 +378,7 @@ function AdaptorRow({
   const credential = credentials.find((c) => c.id === credentialId);
   const needs = info.needsCredential && !credential;
   return (
-    <FormField label="Adaptor">
+    <FormField compact label="Adaptor">
       <div
         className={`flex items-center gap-2 rounded-md border px-2 py-1.5 ${
           needs && !readOnly ? "border-blue-200 bg-blue-50/40" : "border-gray-200"
@@ -390,17 +401,19 @@ function AdaptorRow({
 function TriggerTypeRow({ trigger }: { trigger: TriggerNode }) {
   const { label, icon } = triggerType[trigger.triggerType];
   return (
-    <div className="flex items-center gap-2 rounded-md border border-gray-200 px-2 py-1.5">
-      <Badge label={label} tone="green" icon={icon} />
-      <span className="ml-auto truncate text-xs text-gray-500">{trigger.subtitle}</span>
-    </div>
+    <FormField compact label="Trigger">
+      <div className="flex items-center gap-2 rounded-md border border-gray-200 px-2 py-1.5">
+        <Badge label={label} tone="green" icon={icon} />
+        <span className="ml-auto truncate text-xs text-gray-500">{trigger.subtitle}</span>
+      </div>
+    </FormField>
   );
 }
 
 /** The webhook's URL with its method and a copy control. */
 function WebhookUrl({ url }: { url?: string }) {
   return (
-    <FormField label="Webhook URL" hint={url ? "POST a JSON body to this URL to start a run." : undefined}>
+    <FormField compact label="Webhook URL" hint={url ? "POST a JSON body to this URL to start a run." : undefined}>
       <div className="flex items-start gap-2 rounded-md border border-gray-200 px-2 py-2">
         <Badge label="POST" tone="green" />
         <code className="min-w-0 flex-1 break-all font-mono text-xs leading-5 text-gray-700">

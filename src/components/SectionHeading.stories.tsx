@@ -38,3 +38,8 @@ export const WithAction: Story = {
 export const Label: Story = {
   args: { title: "Active", variant: "label" },
 };
+
+/** The smaller label that heads each section of the inspector, with a link as its action. */
+export const CompactLabel: Story = {
+  args: { title: "Summary", variant: "label", compact: true, action: <Button variant="ghost" size="xs">See full code</Button> },
+};

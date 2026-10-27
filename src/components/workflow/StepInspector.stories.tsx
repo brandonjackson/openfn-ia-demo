@@ -47,7 +47,7 @@ const meta: Meta<typeof StepInspector> = {
 export default meta;
 type Story = StoryObj<typeof StepInspector>;
 
-/** No runs on the canvas: the step's config and what its code does, summarised by the assistant. */
+/** No runs on the canvas: the step's adaptor and credential, then what its code does, summarised by the assistant. Click the title to rename the step. */
 export const Default: Story = {};
 
 /** The step needs a credential it doesn't have yet. */
@@ -67,7 +67,7 @@ export const EmptyStep: Story = {
   },
 };
 
-/** Run history on the canvas: the step's runs, failures and why they failed, over the canvas's period. */
+/** Run history on the canvas: the config and summary stay on top, then the step's runs, failures and why they failed, over the canvas's period. */
 export const Stats: Story = {
   args: { node: job("create"), stats: statsFor("create") },
 };

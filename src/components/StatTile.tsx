@@ -11,6 +11,8 @@ interface Props extends StatTileData {
   compact?: boolean;
   /** Draws the value in red, e.g. a failure count. */
   danger?: boolean;
+  /** No border or padding: for a row of numbers separated by dividers rather than a row of boxes. Implies `compact`. */
+  bare?: boolean;
 }
 
 /**
@@ -27,7 +29,9 @@ export default function StatTile({
   trendClassName = "text-indigo-500",
   compact = false,
   danger = false,
+  bare = false,
 }: Props) {
+  compact = compact || bare;
   const body = (
     <>
       <div className="flex items-center justify-between gap-2">
@@ -43,7 +47,7 @@ export default function StatTile({
           )
         )}
       </div>
-      <p className={`mt-1 font-semibold ${compact ? "text-lg" : "text-2xl"} ${danger ? "text-red-600" : "text-gray-900"}`}>{value}</p>
+      <p className={`${bare ? "mt-0 text-base leading-6" : compact ? "mt-1 text-lg" : "mt-1 text-2xl"} font-semibold ${danger ? "text-red-600" : "text-gray-900"}`}>{value}</p>
       {detail && <p className="mt-0.5 text-xs text-gray-500">{detail}</p>}
       {trend && (
         <Sparkline
@@ -55,7 +59,7 @@ export default function StatTile({
     </>
   );
 
-  const base = `block rounded-lg border border-gray-200 bg-white ${compact ? "px-3 py-2.5" : "p-5"}`;
+  const base = bare ? "block min-w-0" : `block rounded-lg border border-gray-200 bg-white ${compact ? "px-3 py-2.5" : "p-5"}`;
   return linkTo ? (
     <Link to={linkTo} className={`group ${base} hover:border-gray-300 hover:shadow-sm transition`}>
       {body}

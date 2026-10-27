@@ -38,3 +38,14 @@ export const Compact: Story = { args: { label: "Runs", value: 214, compact: true
 
 /** A failure count, drawn in red. */
 export const Danger: Story = { args: { label: "Failed", value: 12, compact: true, danger: true } };
+
+/** Bare: three numbers in a row with dividers instead of boxes, as the inspector's run strip. */
+export const Bare: Story = {
+  render: () => (
+    <div className="grid grid-cols-3 divide-x divide-gray-100 rounded-lg border border-gray-200 px-3 py-2 [&>*+*]:pl-3">
+      <StatTile bare label="Reached" value={214} />
+      <StatTile bare label="Failed" value={12} danger />
+      <StatTile bare label="Succeeded" value="94%" />
+    </div>
+  ),
+};

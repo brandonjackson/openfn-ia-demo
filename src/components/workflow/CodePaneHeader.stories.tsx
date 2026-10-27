@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import CodePaneHeader from "./CodePaneHeader";
-import AdaptorPill from "./AdaptorPill";
+import EntityPill from "../EntityPill";
+import { adaptorInfo } from "../../mock-data/adaptor-reference";
 
 const meta: Meta<typeof CodePaneHeader> = {
   title: "Workflow/CodePaneHeader",
@@ -12,7 +13,7 @@ const meta: Meta<typeof CodePaneHeader> = {
       </div>
     ),
   ],
-  args: { path: ["Search for duplicate citizens in Identity"], leading: <AdaptorPill adaptor="http" showVersion compact onClick={() => {}} /> },
+  args: { path: ["Search for duplicate citizens in Identity"], leading: <EntityPill name={adaptorInfo.http.name} adaptor="http" suffix={adaptorInfo.http.version} size="xs" onClick={() => {}} /> },
 };
 
 export default meta;

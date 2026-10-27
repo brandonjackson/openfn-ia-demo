@@ -13,7 +13,7 @@ import Badge from "../Badge";
 import IconButton from "../IconButton";
 import SegmentedControl from "../SegmentedControl";
 import FileDetailsPanel from "./FileDetailsPanel";
-import AdaptorPill from "./AdaptorPill";
+import EntityPill from "../EntityPill";
 import AdaptorReferencePanel from "./AdaptorReferencePanel";
 import RunIOPanel from "./RunIOPanel";
 import EditorExplorer from "./EditorExplorer";
@@ -179,10 +179,11 @@ export default function CodeWorkspace({
             : yaml;
 
   const adaptorPill = step && (
-    <AdaptorPill
+    <EntityPill
+      name={adaptorInfo[step.adaptor].name}
       adaptor={step.adaptor}
-      showVersion
-      compact
+      suffix={adaptorInfo[step.adaptor].version}
+      size="xs"
       title="Open the step's config"
       onClick={onDetailsViewChange ? () => onDetailsViewChange("config") : undefined}
     />

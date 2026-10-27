@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, FileText, Info, MessagesSquare, MoreVertical, Plus, Sparkles, X } from "lucide-react";
+import { ArrowLeft, FileText, Info, MessagesSquare, MoreVertical, Plus, Sparkles, X, Zap } from "lucide-react";
 import type { AssistantConversation, AssistantMessage, AssistantMode, AssistantPlan, AssistantReference } from "../../mock-data/assistant";
 import { assistantPlanResult, assistantReply, assistantSuggestions } from "../../mock-data/assistant";
 import { shortId } from "../../mock-data/runs";
@@ -8,7 +8,7 @@ import DropdownMenu from "../DropdownMenu";
 import AssistantChatInput from "./AssistantChatInput";
 import AssistantPlanCard from "./AssistantPlanCard";
 import AssistantResultCard from "./AssistantResultCard";
-import ReferenceChip from "./ReferenceChip";
+import EntityPill from "../EntityPill";
 import IconButton from "../IconButton";
 import SearchInput from "../SearchInput";
 
@@ -301,7 +301,14 @@ function Message({
       <div className="rounded-xl bg-green-50 px-3.5 py-2.5 text-sm text-gray-900">
         {message.reference && (
           <div className="mb-1.5">
-            <ReferenceChip reference={message.reference} />
+            <EntityPill
+              name={message.reference.label}
+              adaptor={message.reference.adaptor}
+              icon={message.reference.adaptor ? undefined : <Zap size={12} className="text-indigo-500" />}
+              shape="tag"
+              size="sm"
+              tone="accent"
+            />
           </div>
         )}
         <div className="whitespace-pre-wrap">{message.content}</div>

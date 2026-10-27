@@ -3,7 +3,7 @@ import type { SuggestedSystem } from "../page-data";
 import AdaptorLogo from "./AdaptorLogo";
 import ListRow from "./ListRow";
 import SectionHeading from "./SectionHeading";
-import SystemPill from "./SystemPill";
+import EntityPill from "./EntityPill";
 
 const defaultSuggestions: SuggestedSystem[] = [
   { name: "OpenMRS", description: "Electronic medical records", adaptor: "openmrs" },
@@ -30,12 +30,12 @@ export default function SuggestedSystemsToAdd({
     return (
       <>
         {suggestions.map((sys) => (
-          <SystemPill
+          <EntityPill
             key={sys.name}
             name={sys.name}
             adaptor={sys.adaptor}
             title={sys.description}
-            suggested
+            tone="suggested"
             onClick={() => onSelect?.(sys.name)}
           />
         ))}

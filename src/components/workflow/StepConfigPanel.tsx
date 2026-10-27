@@ -4,7 +4,7 @@ import { adaptorChoices, adaptorInfo, credentialsFor } from "../../mock-data/ada
 import FormField from "../FormField";
 import { Select, TextInput } from "../FormControls";
 import Button from "../Button";
-import AdaptorPill from "./AdaptorPill";
+import EntityPill from "../EntityPill";
 
 export interface StepChanges {
   label?: string;
@@ -47,7 +47,7 @@ export default function StepConfigPanel({
       {showHeader && (
         <div className="flex h-10 flex-none items-center gap-2 border-b border-gray-100 px-4">
           <span className="truncate text-sm font-semibold text-gray-900">{step.label}</span>
-          <AdaptorPill adaptor={step.adaptor} />
+          <EntityPill name={adaptorInfo[step.adaptor].name} adaptor={step.adaptor} size="sm" />
         </div>
       )}
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4">

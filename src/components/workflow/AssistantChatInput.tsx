@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
-import { ArrowUp, ChevronDown, Loader2, Plus } from "lucide-react";
+import { ArrowUp, ChevronDown, Loader2, Plus, X, Zap } from "lucide-react";
 import type { AssistantMode, AssistantReference } from "../../mock-data/assistant";
 import { assistantModes } from "../../mock-data/assistant";
 import DropdownMenu from "../DropdownMenu";
-import ReferenceChip from "./ReferenceChip";
+import EntityPill from "../EntityPill";
 import IconButton from "../IconButton";
 import Surface from "../Surface";
 import { usePopover } from "../../use-popover";
@@ -85,7 +85,19 @@ export default function AssistantChatInput({
         {reference && (
           <div className="flex items-center gap-1.5 px-3 pt-2.5 text-xs text-gray-500">
             <span>About</span>
-            <ReferenceChip reference={reference} onRemove={onRemoveReference} />
+            <EntityPill
+              name={reference.label}
+              adaptor={reference.adaptor}
+              icon={reference.adaptor ? undefined : <Zap size={12} className="text-indigo-500" />}
+              shape="tag"
+              size="sm"
+              tone="accent"
+              trailing={
+                onRemoveReference && (
+                  <IconButton size="2xs" icon={X} label={`Remove ${reference.label}`} onClick={onRemoveReference} />
+                )
+              }
+            />
           </div>
         )}
         <textarea

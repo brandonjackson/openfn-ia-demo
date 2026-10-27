@@ -3,7 +3,7 @@ import type { SuggestedService } from "../page-data";
 import Badge from "./Badge";
 import type { BadgeTone } from "./Badge";
 import Button from "./Button";
-import SystemPill from "./SystemPill";
+import EntityPill from "./EntityPill";
 
 const categoryTones: Record<string, BadgeTone> = {
   "Data sync": "indigo",
@@ -31,11 +31,11 @@ export default function SuggestedServiceCard({ service, onStart, onDismiss }: Pr
 
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
         {service.fromSystems.map((name) => (
-          <SystemPill key={name} name={name} size="sm" />
+          <EntityPill key={name} name={name} size="sm" />
         ))}
         <ArrowRight size={12} className="flex-shrink-0 text-gray-400" />
         {service.toSystems.map((name) => (
-          <SystemPill key={name} name={name} size="sm" />
+          <EntityPill key={name} name={name} size="sm" />
         ))}
       </div>
 

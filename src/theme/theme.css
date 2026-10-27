@@ -79,19 +79,19 @@ html[data-theme="lightning-v2"] {
     Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   /* Lightning's primary is indigo (--color-primary-* = indigo). The
-     demo's primary actions, links and focus rings are blue, so blue
-     steps onto indigo. Sky stays sky for info, as in Lightning. */
-  --color-blue-50: var(--color-indigo-50);
-  --color-blue-100: var(--color-indigo-100);
-  --color-blue-200: var(--color-indigo-200);
-  --color-blue-300: var(--color-indigo-300);
-  --color-blue-400: var(--color-indigo-400);
-  --color-blue-500: var(--color-indigo-500);
-  --color-blue-600: var(--color-indigo-600);
-  --color-blue-700: var(--color-indigo-700);
-  --color-blue-800: var(--color-indigo-800);
-  --color-blue-900: var(--color-indigo-900);
-  --color-blue-950: var(--color-indigo-950);
+     demo's one accent is violet, so violet steps onto indigo. Sky
+     stays sky for info, as in Lightning. */
+  --color-violet-50: var(--color-indigo-50);
+  --color-violet-100: var(--color-indigo-100);
+  --color-violet-200: var(--color-indigo-200);
+  --color-violet-300: var(--color-indigo-300);
+  --color-violet-400: var(--color-indigo-400);
+  --color-violet-500: var(--color-indigo-500);
+  --color-violet-600: var(--color-indigo-600);
+  --color-violet-700: var(--color-indigo-700);
+  --color-violet-800: var(--color-indigo-800);
+  --color-violet-900: var(--color-indigo-900);
+  --color-violet-950: var(--color-indigo-950);
 
   /* Lightning's card shadow (tailwind.config.ts boxShadow.card). */
   --shadow-card: 0 4px 16px 0 rgba(0, 0, 0, 0.06);
@@ -316,8 +316,8 @@ html[data-theme="gds"] {
   --color-gray-950: #0b0c0c;
 
   /* Primary — GOV.UK blue: brand #1d70b8, link #1a65a6,
-     link-hover #0f385c, surface #f4f8fb. Drives blue + indigo +
-     violet utilities across the app. */
+     link-hover #0f385c, surface #f4f8fb. Drives the violet accent
+     (plus any stray blue or indigo) across the app. */
   --color-blue-50: #f4f8fb;   --color-indigo-50: #f4f8fb;  --color-violet-50: #f4f8fb;
   --color-blue-100: #d2e2f1;  --color-indigo-100: #d2e2f1; --color-violet-100: #d2e2f1;
   --color-blue-200: #8eb8dc;  --color-indigo-200: #8eb8dc; --color-violet-200: #8eb8dc;
@@ -388,7 +388,8 @@ html[data-theme="gds"] {
   --color-sky-900: #0f385c;  --color-cyan-900: #0b4144;
   --color-sky-950: #0f385c;  --color-cyan-950: #0b4144;
 
-  /* Category accent — GOV.UK purple #54319f (also link-visited) */
+  /* Category accent — GOV.UK purple #54319f (also link-visited),
+     carried by the pink tone and any purple utilities */
   --color-purple-50: #f6f5fa;
   --color-purple-100: #ddd6ec;
   --color-purple-200: #aa98cf;
@@ -400,6 +401,17 @@ html[data-theme="gds"] {
   --color-purple-800: #2a1950;
   --color-purple-900: #2a1950;
   --color-purple-950: #2a1950;
+  --color-pink-50: var(--color-purple-50);
+  --color-pink-100: var(--color-purple-100);
+  --color-pink-200: var(--color-purple-200);
+  --color-pink-300: var(--color-purple-300);
+  --color-pink-400: var(--color-purple-400);
+  --color-pink-500: var(--color-purple-500);
+  --color-pink-600: var(--color-purple-600);
+  --color-pink-700: var(--color-purple-700);
+  --color-pink-800: var(--color-purple-800);
+  --color-pink-900: var(--color-purple-900);
+  --color-pink-950: var(--color-purple-950);
 
   /* Component tokens — read by the component layer at the end */
   --ui-text: #0b0c0c;
@@ -507,7 +519,7 @@ html[data-theme="gds"] {
 
   /* Callout: a heavy tone-coloured border on a plain surface. */
   [data-ui="callout"] {
-    border: var(--ui-callout-border-width) solid var(--color-blue-500);
+    border: var(--ui-callout-border-width) solid var(--color-violet-500);
     background-color: #ffffff;
     &[data-tone="success"] { border-color: var(--color-green-500); }
     &[data-tone="warning"] { border-color: var(--color-orange-500); }

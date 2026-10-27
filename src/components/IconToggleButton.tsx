@@ -40,7 +40,7 @@ export default function IconToggleButton({
       }`}
     >
       <Icon size={size === "sm" ? 14 : 16} />
-      {dot && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-blue-500" aria-hidden />}
+      {dot && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-violet-500" aria-hidden />}
     </button>
   );
 }

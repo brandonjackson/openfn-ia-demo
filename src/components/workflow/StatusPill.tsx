@@ -5,7 +5,7 @@ import type { RunStatus } from "../../mock-data/workflow";
 const config: Record<RunStatus, { label: string; classes: string; dot: string; icon: LucideIcon; iconClasses: string }> = {
   success: { label: "Success", classes: "bg-green-100 text-green-700", dot: "bg-green-500", icon: CheckCircle2, iconClasses: "text-green-500" },
   failed: { label: "Failed", classes: "bg-red-100 text-red-600", dot: "bg-red-500", icon: XCircle, iconClasses: "text-red-500" },
-  running: { label: "Running", classes: "bg-blue-100 text-blue-600", dot: "bg-blue-500 animate-pulse", icon: Loader2, iconClasses: "animate-spin text-blue-500" },
+  running: { label: "Running", classes: "bg-violet-100 text-violet-600", dot: "bg-violet-500 animate-pulse", icon: Loader2, iconClasses: "animate-spin text-violet-500" },
   pending: { label: "Pending", classes: "bg-gray-100 text-gray-500", dot: "bg-gray-300", icon: Circle, iconClasses: "text-gray-300" },
 };
 

@@ -104,7 +104,7 @@ export default function FailureBreakdown({
                         className="group block w-full py-2 text-left"
                       >
                         <span className="flex items-baseline gap-2">
-                          <span className="min-w-0 flex-1 truncate font-mono text-xs text-gray-900 group-hover:text-blue-700">{r.reason}</span>
+                          <span className="min-w-0 flex-1 truncate font-mono text-xs text-gray-900 group-hover:text-violet-700">{r.reason}</span>
                           <span className="flex-shrink-0 text-xs tabular-nums">
                             <span className="font-semibold text-red-600">{r.count}</span>
                             <span className="ml-1.5 text-gray-400">{share}%</span>

@@ -4,11 +4,11 @@ interface Props {
   /** Shows "value/max" to the right of the bar. */
   showCount?: boolean;
   /** Blue for progress; red for a share of failures. */
-  tone?: "blue" | "red";
+  tone?: "violet" | "red";
 }
 
 /** Thin horizontal bar showing progress towards a target, e.g. systems connected, or a share of a total. */
-export default function ProgressBar({ value, max, showCount = false, tone = "blue" }: Props) {
+export default function ProgressBar({ value, max, showCount = false, tone = "violet" }: Props) {
   const pct = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   return (
     <div className="flex items-center gap-3">
@@ -19,7 +19,7 @@ export default function ProgressBar({ value, max, showCount = false, tone = "blu
         aria-valuemin={0}
         aria-valuemax={max}
       >
-        <div className={`h-full rounded-full transition-all ${tone === "red" ? "bg-red-400" : "bg-blue-500"}`} style={{ width: `${pct}%` }} />
+        <div className={`h-full rounded-full transition-all ${tone === "red" ? "bg-red-400" : "bg-violet-500"}`} style={{ width: `${pct}%` }} />
       </div>
       {showCount && (
         <span className="flex-shrink-0 text-xs text-gray-500">

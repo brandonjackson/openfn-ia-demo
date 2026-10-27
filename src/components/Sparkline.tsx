@@ -8,7 +8,7 @@ interface Props {
 }
 
 /** A small trend line with no axes, for use inside a stat tile. */
-export default function Sparkline({ values, label, className = "h-8 w-full text-indigo-500" }: Props) {
+export default function Sparkline({ values, label, className = "h-8 w-full text-violet-500" }: Props) {
   if (values.length < 2) return null;
   const max = Math.max(...values);
   const min = Math.min(...values);

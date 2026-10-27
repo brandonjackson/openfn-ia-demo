@@ -63,7 +63,7 @@ export default function FilesPanel({
       <div className="mt-4">
         <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
           <div
-            className={`h-full rounded-full ${percent >= 90 ? "bg-red-500" : "bg-indigo-500"}`}
+            className={`h-full rounded-full ${percent >= 90 ? "bg-red-500" : "bg-violet-500"}`}
             style={{ width: `${Math.max(percent, used > 0 ? 1 : 0)}%` }}
           />
         </div>

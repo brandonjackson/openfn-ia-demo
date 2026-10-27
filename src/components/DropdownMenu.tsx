@@ -121,7 +121,7 @@ export default function DropdownMenu({
                   >
                     {item.checked !== undefined &&
                       (item.checked ? (
-                        <CheckSquare2 size={15} className="mt-0.5 flex-shrink-0 text-blue-600" />
+                        <CheckSquare2 size={15} className="mt-0.5 flex-shrink-0 text-violet-600" />
                       ) : (
                         <Square size={15} className="mt-0.5 flex-shrink-0 text-gray-300" />
                       ))}
@@ -141,7 +141,7 @@ export default function DropdownMenu({
                         <span className="block text-xs text-gray-500">{item.description}</span>
                       )}
                     </span>
-                    {item.selected && <Check size={14} className="mt-0.5 flex-shrink-0 text-blue-600" />}
+                    {item.selected && <Check size={14} className="mt-0.5 flex-shrink-0 text-violet-600" />}
                     {item.shortcut && !item.selected && (
                       <span className="mt-0.5 flex-shrink-0 font-mono text-xs text-gray-400">{item.shortcut}</span>
                     )}

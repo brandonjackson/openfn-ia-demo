@@ -20,7 +20,7 @@ export default function SystemLabel({ name, adaptor, to }: Props) {
     </>
   );
   return to ? (
-    <Link to={to} className="inline-flex items-center gap-1.5 font-medium text-gray-900 hover:text-blue-600 hover:underline">
+    <Link to={to} className="inline-flex items-center gap-1.5 font-medium text-gray-900 hover:text-violet-600 hover:underline">
       {content}
     </Link>
   ) : (

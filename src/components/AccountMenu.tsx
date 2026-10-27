@@ -107,7 +107,7 @@ export default function AccountMenu({ user, instance, onLogOut, defaultOpen = fa
           open ? "bg-gray-100" : "hover:bg-gray-100"
         }`}
       >
-        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-indigo-600 text-[11px] font-bold text-white">
+        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-violet-600 text-[11px] font-bold text-white">
           {instance.initials}
         </span>
         <span className="min-w-0 flex-1 truncate text-sm">

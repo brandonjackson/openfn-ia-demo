@@ -409,7 +409,7 @@ function TreeNodeRow({
 }
 
 const statusColors: Record<MappingEntry["status"], string> = {
-  moved: "bg-blue-100 text-blue-700",
+  moved: "bg-violet-100 text-violet-700",
   merged: "bg-purple-100 text-purple-700",
   split: "bg-orange-100 text-orange-700",
   renamed: "bg-yellow-100 text-yellow-700",
@@ -439,7 +439,7 @@ export default function IAComparisonPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="flex items-center gap-2">
-            <GitCompare size={20} className="text-indigo-600" />
+            <GitCompare size={20} className="text-violet-600" />
             <h1 className="text-2xl font-semibold text-gray-900">
               IA Comparison
             </h1>
@@ -453,7 +453,7 @@ export default function IAComparisonPage() {
           <button
             className={`px-3 py-1.5 ${
               view === "side-by-side"
-                ? "bg-indigo-50 text-indigo-700 font-medium"
+                ? "bg-violet-50 text-violet-700 font-medium"
                 : "bg-white text-gray-600 hover:bg-gray-50"
             }`}
             onClick={() => setView("side-by-side")}
@@ -463,7 +463,7 @@ export default function IAComparisonPage() {
           <button
             className={`px-3 py-1.5 border-l border-gray-200 ${
               view === "mapping"
-                ? "bg-indigo-50 text-indigo-700 font-medium"
+                ? "bg-violet-50 text-violet-700 font-medium"
                 : "bg-white text-gray-600 hover:bg-gray-50"
             }`}
             onClick={() => setView("mapping")}

@@ -41,7 +41,7 @@ export default function ReadOnlyNotice({ variant = "banner", onEditInSandbox }: 
           <button
             type="button"
             onClick={onEditInSandbox}
-            className="ml-1.5 inline-flex items-center gap-1 font-medium text-blue-600 hover:text-blue-700 hover:underline"
+            className="ml-1.5 inline-flex items-center gap-1 font-medium text-violet-600 hover:text-violet-700 hover:underline"
           >
             <FlaskConical size={12} /> Edit in sandbox
           </button>

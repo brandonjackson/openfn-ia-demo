@@ -76,7 +76,7 @@ export default function SegmentedControl({
             disabled={opt.disabled}
             onClick={() => onChange(opt.id)}
             className={`px-3 py-1 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${text} ${
-              value === opt.id ? "bg-blue-50 text-blue-700" : "text-gray-500 hover:bg-gray-50"
+              value === opt.id ? "bg-violet-50 text-violet-700" : "text-gray-500 hover:bg-gray-50"
             }`}
           >
             {opt.label}

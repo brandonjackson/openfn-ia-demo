@@ -20,13 +20,13 @@ export default function UsageModeCard({ icon: Icon, title, description, badge, c
   return (
     <div className="flex flex-col rounded-lg border border-gray-200 bg-white p-4">
       <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-blue-200 bg-blue-50">
-          <Icon size={16} className="text-blue-500" />
+        <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-violet-200 bg-violet-50">
+          <Icon size={16} className="text-violet-500" />
         </div>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-            {badge && <Badge label={badge} tone="blue" />}
+            {badge && <Badge label={badge} tone="violet" />}
           </div>
           <p className="mt-0.5 text-sm text-gray-500">{description}</p>
         </div>

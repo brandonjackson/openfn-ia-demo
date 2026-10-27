@@ -45,9 +45,9 @@ export default function FileDropzone({
       onDrop={handleDrop}
       className={`flex w-full flex-col items-center justify-center rounded-lg border-2 border-dashed text-center transition-colors ${
         compact ? "gap-1 px-4 py-3" : "gap-2 px-6 py-8"
-      } ${dragging ? "border-indigo-400 bg-indigo-50" : "border-gray-200 bg-gray-50 hover:border-gray-300"}`}
+      } ${dragging ? "border-violet-400 bg-violet-50" : "border-gray-200 bg-gray-50 hover:border-gray-300"}`}
     >
-      <Upload size={compact ? 16 : 22} className={dragging ? "text-indigo-500" : "text-gray-400"} />
+      <Upload size={compact ? 16 : 22} className={dragging ? "text-violet-500" : "text-gray-400"} />
       <span className="text-sm text-gray-600">{title}</span>
       {description && <span className="text-xs text-gray-400">{description}</span>}
       <input

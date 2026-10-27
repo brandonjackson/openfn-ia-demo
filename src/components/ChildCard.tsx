@@ -14,18 +14,18 @@ export default function ChildCard({
   return (
     <Link
       to={to}
-      className="group block rounded-lg border border-gray-200 p-4 hover:border-blue-300 hover:shadow-sm transition-all"
+      className="group block rounded-lg border border-gray-200 p-4 hover:border-violet-300 hover:shadow-sm transition-all"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="font-medium text-gray-900 group-hover:text-blue-600">
+          <h3 className="font-medium text-gray-900 group-hover:text-violet-600">
             {node.label}
           </h3>
           {node.badges?.map((b) => <Badge key={b} label={b} />)}
         </div>
         <ChevronRight
           size={16}
-          className="text-gray-300 group-hover:text-blue-400"
+          className="text-gray-300 group-hover:text-violet-400"
         />
       </div>
       {node.description && (

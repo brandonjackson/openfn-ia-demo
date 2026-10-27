@@ -32,7 +32,7 @@ export default function ServiceCatalogCard({ entry }: Props) {
             <ArrowUpRight size={10} />
           </span>
           {entry.callableAs?.map((c) => (
-            <Badge key={c} label={consumerLabels[c].label} icon={consumerLabels[c].icon} tone="blue" />
+            <Badge key={c} label={consumerLabels[c].label} icon={consumerLabels[c].icon} tone="violet" />
           ))}
           {entry.mcpToolName && <code className="font-mono text-gray-500">{entry.mcpToolName}</code>}
         </>

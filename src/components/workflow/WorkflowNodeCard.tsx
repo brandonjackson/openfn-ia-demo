@@ -21,7 +21,7 @@ export type NodeAction = "run" | "edit" | "improve" | "delete";
  * A node on the workflow canvas: a card with the step's adaptor (or the
  * trigger's kind) as a pill in its head, the step's name in bold, and a ⋮ menu of actions: run from here, edit
  * (which opens the inspector), improve (which opens the assistant about this
- * step) and delete. Clicking the card selects it; selecting toggles a blue
+ * step) and delete. Clicking the card selects it; selecting toggles a violet
  * ring.
  *
  * The slot before the menu shows the run history (`activity`: how many runs
@@ -70,11 +70,11 @@ export default function WorkflowNodeCard({
   const job = node.type === "job" ? node : undefined;
 
   const ringClasses = selected
-    ? "ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-50"
+    ? "ring-2 ring-violet-500 ring-offset-2 ring-offset-gray-50"
     : step?.status === "failed"
       ? "ring-2 ring-red-300"
       : step?.status === "running"
-        ? "ring-2 ring-blue-300"
+        ? "ring-2 ring-violet-300"
         : "hover:ring-2 hover:ring-gray-200";
 
   const items: DropdownMenuItem[] = [
@@ -97,7 +97,7 @@ export default function WorkflowNodeCard({
         onClick={() => onClick?.(node)}
         aria-label={`${selected ? "Deselect" : "Select"} ${node.label}`}
         aria-pressed={selected}
-        className="absolute inset-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+        className="absolute inset-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
       />
 
       <div className="pointer-events-none relative flex h-full flex-col p-3">
@@ -159,7 +159,7 @@ export default function WorkflowNodeCard({
           onClick={() => onAddAfter(node)}
           aria-label={`Add a step after ${node.label}`}
           title="Add a step"
-          className="absolute -bottom-3 left-1/2 inline-flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-md bg-blue-600 text-white opacity-0 shadow-sm transition-opacity hover:bg-blue-700 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 group-hover:opacity-100"
+          className="absolute -bottom-3 left-1/2 inline-flex h-6 w-6 -translate-x-1/2 items-center justify-center rounded-md bg-violet-600 text-white opacity-0 shadow-sm transition-opacity hover:bg-violet-700 focus:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 group-hover:opacity-100"
         >
           <Plus size={14} strokeWidth={2.5} />
         </button>

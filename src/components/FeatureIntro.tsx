@@ -54,7 +54,7 @@ export default function FeatureIntro({ title, description, features, storageKey,
     <section
       data-ui="feature-intro"
       aria-label={title}
-      className="relative rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 to-white px-5 py-4"
+      className="relative rounded-lg border border-violet-200 bg-gradient-to-br from-violet-50 to-white px-5 py-4"
     >
       <button
         type="button"
@@ -73,7 +73,7 @@ export default function FeatureIntro({ title, description, features, storageKey,
       <ul className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
         {features.map(({ icon: Icon, title: featureTitle, description: featureDescription }) => (
           <li key={featureTitle} className="flex items-start gap-3">
-            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-blue-100 text-blue-600">
+            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-violet-100 text-violet-600">
               <Icon size={16} />
             </span>
             <div className="min-w-0">

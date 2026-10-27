@@ -79,7 +79,7 @@ export default function WikiArticle({ sections, hideContents = false }: Props) {
                     e.preventDefault();
                     document.getElementById(section.id)?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="text-blue-600 hover:text-blue-700 hover:underline"
+                  className="text-violet-600 hover:text-violet-700 hover:underline"
                 >
                   <span className="mr-2 text-gray-400">{i + 1}</span>
                   {section.title}

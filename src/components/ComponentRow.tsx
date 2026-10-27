@@ -28,9 +28,9 @@ export default function ComponentRow({ component, projectPath, showDescription =
       to={to}
       className="group flex items-center gap-3 px-3 py-2.5 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
     >
-      <Icon size={16} className="text-gray-400 group-hover:text-blue-500 flex-shrink-0" />
+      <Icon size={16} className="text-gray-400 group-hover:text-violet-500 flex-shrink-0" />
       <div className="flex-1 min-w-0">
-        <span className="text-sm text-gray-900 group-hover:text-blue-600 font-mono truncate block">
+        <span className="text-sm text-gray-900 group-hover:text-violet-600 font-mono truncate block">
           {component.name}
         </span>
         {showDescription && component.description && (

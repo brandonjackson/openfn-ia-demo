@@ -36,7 +36,7 @@ const navItems: SettingsNavItem[] = [
 /*  Collaboration section                                              */
 /* ------------------------------------------------------------------ */
 
-const roleTones = { Owner: "blue", Admin: "green", Member: "gray" } as const;
+const roleTones = { Owner: "violet", Admin: "green", Member: "gray" } as const;
 
 function CollaborationSection({ members }: { members: InstanceMember[] }) {
   const columns: DataTableColumn<InstanceMember>[] = [

@@ -36,7 +36,7 @@ const HEADER_TOP = 12;
  * With `activity` and no run, the run history is laid over the workflow
  * instead: each card shows how many runs reached it and how many failed
  * there (a way into the failures view), and each connector that runs went
- * along is light blue with slow-moving dots, its width in proportion to the
+ * along is light violet with slow-moving dots, its width in proportion to the
  * busiest one and its count beside the badge. The editor's runs bar, passed
  * as the `header`, picks the period and sums it up; it sits just above the
  * top card and moves with the workflow when the canvas pans.
@@ -200,7 +200,7 @@ export default function WorkflowCanvas({
                       strokeWidth={3}
                       strokeLinecap="round"
                       strokeDasharray="4 11"
-                      className="stroke-blue-500 animate-[edge-flow_0.8s_linear_infinite] motion-reduce:animate-none"
+                      className="stroke-violet-500 animate-[edge-flow_0.8s_linear_infinite] motion-reduce:animate-none"
                     />
                   )}
                 </g>
@@ -214,7 +214,7 @@ export default function WorkflowCanvas({
                   <path
                     d={d}
                     fill="none"
-                    className={n === 0 ? "stroke-slate-200" : "stroke-blue-200"}
+                    className={n === 0 ? "stroke-slate-200" : "stroke-violet-200"}
                     strokeWidth={strokeWidth}
                     strokeLinecap="round"
                   >
@@ -227,7 +227,7 @@ export default function WorkflowCanvas({
                       strokeWidth={3}
                       strokeLinecap="round"
                       strokeDasharray="1 14"
-                      className="stroke-blue-400 animate-[edge-flow_3.2s_linear_infinite] motion-reduce:animate-none"
+                      className="stroke-violet-400 animate-[edge-flow_3.2s_linear_infinite] motion-reduce:animate-none"
                     />
                   )}
                 </g>

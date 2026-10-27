@@ -44,6 +44,9 @@ const HEADER_TOP = 12;
  * The canvas pans: scroll (mouse wheel or trackpad) or drag any empty part of
  * it to move around, and the controls' Center button puts it back. Node
  * coordinates come from the workflow data; there is no zoom or node drag yet.
+ *
+ * With `onAddAfter`, each card shows a + on its bottom edge while hovered,
+ * to add a step after it.
  */
 export default function WorkflowCanvas({
   workflow,
@@ -58,6 +61,7 @@ export default function WorkflowCanvas({
   height = 720,
   showControls = true,
   header,
+  onAddAfter,
 }: {
   workflow: Workflow;
   selectedId?: string;
@@ -77,6 +81,8 @@ export default function WorkflowCanvas({
   showControls?: boolean;
   /** Pinned just above the top card, centred on it, and panned with the workflow, e.g. the runs bar. */
   header?: ReactNode;
+  /** Adds a step after a node, from the + that shows on a hovered card. */
+  onAddAfter?: (nodeId: string) => void;
 }) {
   const nodeById = (id: string) => workflow.nodes.find((n) => n.id === id);
 
@@ -276,6 +282,7 @@ export default function WorkflowCanvas({
               activity={overlay?.nodes[node.id]}
               onShowFailures={onShowFailures && overlay?.nodes[node.id]?.failed ? () => onShowFailures(node.id) : undefined}
               note={node.type === "trigger" && startedAtTrigger ? `Started by ${run!.startedBy}` : undefined}
+              onAddAfter={onAddAfter ? (n) => onAddAfter(n.id) : undefined}
             />
           </div>
         ))}

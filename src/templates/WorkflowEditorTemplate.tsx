@@ -7,6 +7,7 @@ import type {
   RunDetails,
   RunStep,
   Workflow,
+  WorkflowEdge,
   WorkflowNode,
   WorkflowVersion,
   WorkOrder,
@@ -15,7 +16,9 @@ import { defaultWorkflowSettings, workflowToYaml } from "../mock-data/workflow";
 import type { WorkflowSettings } from "../mock-data/workflow";
 import { failureReasons, filterWorkOrders, runActivity, shortId, simulateRun } from "../mock-data/runs";
 import type { ActivityPeriod } from "../mock-data/runs";
-import { adaptorInfo } from "../mock-data/adaptor-reference";
+import { adaptorInfo, adaptorSnippets } from "../mock-data/adaptor-reference";
+import { builtInTools } from "../mock-data/adaptor-catalog";
+import { connectedSystems } from "../mock-data/connected-systems";
 import type { AssistantConversation, AssistantPlan, AssistantReference } from "../mock-data/assistant";
 import type { ProjectComponent, ProjectService } from "../mock-data/projects";
 import EditorShell from "../components/workflow/EditorShell";
@@ -52,6 +55,8 @@ import PromoteSandboxModal from "../components/PromoteSandboxModal";
 import ConfirmModal from "../components/ConfirmModal";
 import Modal from "../components/Modal";
 import AddComponentPanel from "../components/AddComponentPanel";
+import ConnectSystemPicker from "../components/workflow/ConnectSystemPicker";
+import type { ConnectChoice } from "../components/workflow/ConnectSystemPicker";
 import { componentTypes } from "../component-types";
 
 /** Who starts runs and retries in the prototype. */
@@ -68,9 +73,27 @@ interface Edits {
   credentials: Record<string, string | undefined>;
   removed: string[];
   added: JobNode[];
+  /** The edges into added steps. */
+  addedEdges: WorkflowEdge[];
 }
 
-const noEdits: Edits = { labels: {}, adaptors: {}, bodies: {}, credentials: {}, removed: [], added: [] };
+const noEdits: Edits = { labels: {}, adaptors: {}, bodies: {}, credentials: {}, removed: [], added: [], addedEdges: [] };
+
+/** How far apart steps sit on the canvas: one row down, or one branch across. */
+const ROW_GAP = 170;
+const BRANCH_GAP = 320;
+
+/** Where a step added after `source` goes: straight below it, or beside its other children as a new branch. */
+function placeAfter(workflow: Workflow, source: WorkflowNode): { x: number; y: number } {
+  const children = workflow.edges
+    .filter((e) => e.source === source.id)
+    .map((e) => workflow.nodes.find((n) => n.id === e.target))
+    .filter((n): n is WorkflowNode => n !== undefined);
+  const y = source.y + ROW_GAP;
+  let x = children.length ? Math.max(...children.map((c) => c.x)) + BRANCH_GAP : source.x;
+  while (workflow.nodes.some((n) => Math.abs(n.x - x) < BRANCH_GAP - 20 && Math.abs(n.y - y) < ROW_GAP - 40)) x += BRANCH_GAP;
+  return { x, y };
+}
 
 /** The workflow with this session's edits applied. */
 function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
@@ -88,13 +111,7 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
       };
     });
   const ids = new Set(nodes.map((n) => n.id));
-  const edges = [
-    ...workflow.edges,
-    ...edits.added.map((job, i) => {
-      const previous = i === 0 ? workflow.nodes.filter((n) => n.type === "job").at(-1) : edits.added[i - 1];
-      return { id: `e-${previous?.id}-${job.id}`, source: previous?.id ?? "", target: job.id, condition: "on_success" as const };
-    }),
-  ].filter((e) => ids.has(e.source) && ids.has(e.target));
+  const edges = [...workflow.edges, ...edits.addedEdges].filter((e) => ids.has(e.source) && ids.has(e.target));
   return { ...workflow, name, nodes, edges };
 }
 
@@ -512,9 +529,48 @@ export default function WorkflowEditorTemplate({
       x: last?.x ?? 490,
       y: (last?.y ?? 70) + 170,
     };
-    edit((e) => ({ added: [...e.added, job] }));
+    edit((e) => ({
+      added: [...e.added, job],
+      addedEdges: last ? [...e.addedEdges, { id: `e-${last.id}-${id}`, source: last.id, target: id, condition: "on_success" }] : e.addedEdges,
+    }));
     setFile({ stepId: id });
     setView("code");
+  };
+
+  // Adding a step after a node from the + on its card: pick what it connects to first.
+  const [addAfterId, setAddAfterId] = useState<string>();
+  const connectedAdaptors = [
+    ...new Set([
+      ...connectedSystems.map((s) => s.adaptor),
+      ...graph.nodes.flatMap((n) => (n.type === "job" ? [n.adaptor] : [])),
+    ]),
+  ].filter((a) => !builtInTools.includes(a));
+
+  const addStepAfter = (sourceId: string, choice: ConnectChoice) => {
+    const source = graph.nodes.find((n) => n.id === sourceId);
+    if (!source) return;
+    const id = `step-${shortId().slice(0, 4)}`;
+    const adaptor = choice.kind === "ai" ? "claude" : choice.adaptor;
+    const info = adaptorInfo[adaptor];
+    const firstSnippet = adaptorSnippets[adaptor]?.[0]?.code;
+    const job: JobNode = {
+      id,
+      type: "job",
+      label: choice.kind === "ai" ? `${choice.action.label} with AI` : `New ${info.name} step`,
+      adaptor,
+      adaptorPackage: info.package,
+      body: choice.kind === "ai" ? choice.action.body : `// Connect to ${info.name}\n${firstSnippet ?? "fn(state => state);"}\n`,
+      ...placeAfter(graph, source),
+    };
+    edit((e) => ({
+      added: [...e.added, job],
+      addedEdges: [
+        ...e.addedEdges,
+        { id: `e-${source.id}-${id}`, source: source.id, target: id, condition: source.type === "trigger" ? "always" : "on_success" },
+      ],
+    }));
+    setAddAfterId(undefined);
+    setSelectedId(id);
   };
 
   // Docs added from the explorer, kept for this session.
@@ -859,6 +915,12 @@ export default function WorkflowEditorTemplate({
               }}
             />
           </Modal>
+          <Modal open={addAfterId !== undefined} title="Connect a system" onClose={() => setAddAfterId(undefined)} widthClass="max-w-3xl">
+            <ConnectSystemPicker
+              connected={connectedAdaptors}
+              onSelect={(choice) => addAfterId && addStepAfter(addAfterId, choice)}
+            />
+          </Modal>
           <ConfirmModal
             open={deleteOpen}
             title="Delete workflow?"
@@ -889,6 +951,7 @@ export default function WorkflowEditorTemplate({
           onShowFailures={setSelectedId}
           height={760}
           header={runsBar}
+          onAddAfter={onMain || version !== "latest" || selectedRun ? undefined : setAddAfterId}
         />
       )}
       {view === "code" && (

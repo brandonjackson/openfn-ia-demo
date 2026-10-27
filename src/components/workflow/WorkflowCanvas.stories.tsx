@@ -24,6 +24,11 @@ export const WithSelection: Story = {
   args: { workflow: nationalIdWorkflow, selectedId: "search" },
 };
 
+/** In a sandbox: hover a card for the + that adds a step after it. */
+export const WithAddStep: Story = {
+  args: { workflow: nationalIdWorkflow, onAddAfter: () => {} },
+};
+
 export const Bare: Story = {
   name: "No overlays",
   args: { workflow: nationalIdWorkflow, showControls: false, onNodeAction: undefined },

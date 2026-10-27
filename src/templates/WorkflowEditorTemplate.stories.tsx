@@ -98,6 +98,14 @@ export const CodeReadOnly: Story = {
   args: { initialView: "code", initialFile: { stepId: "search" } },
 };
 
+/** The canvas in a sandbox: hover a step for the + that adds the next one, through "Connect a system". */
+export const CanvasInSandbox: Story = {
+  args: {
+    sandbox: projects[0].sandboxes[1],
+    initialLayout: { panel: false, assistant: false, canvasActivity: false },
+  },
+};
+
 /** Code mode in a sandbox: everything editable, with the assistant open. */
 export const CodeInSandbox: Story = {
   args: {

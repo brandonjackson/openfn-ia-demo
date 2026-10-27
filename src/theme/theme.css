@@ -52,6 +52,21 @@
   --picker-light-dot-border: #cbd5e1;
   --picker-shadow: rgb(0 0 0 / 0.25);
   --picker-panel-shadow: rgb(0 0 0 / 0.22);
+
+  /* Red, a touch darker and well under Tailwind's chroma so errors and
+     danger actions read as serious rather than alarming. Themes that
+     bring their own red (GDS) redefine these. */
+  --color-red-50: oklch(97.5% 0.012 20);
+  --color-red-100: oklch(94.5% 0.028 20);
+  --color-red-200: oklch(89% 0.055 21);
+  --color-red-300: oklch(80% 0.09 22);
+  --color-red-400: oklch(68% 0.125 23);
+  --color-red-500: oklch(58% 0.145 24);
+  --color-red-600: oklch(52% 0.145 25);
+  --color-red-700: oklch(45% 0.125 25);
+  --color-red-800: oklch(39% 0.105 25);
+  --color-red-900: oklch(34% 0.085 25);
+  --color-red-950: oklch(24% 0.06 25);
 }
 
 body {

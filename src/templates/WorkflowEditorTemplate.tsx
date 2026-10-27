@@ -326,9 +326,28 @@ export default function WorkflowEditorTemplate({
     });
   };
 
+  // A page in the code view's main pane (Health) opens with the bottom and right panels hidden, so
+  // it has the room. Showing them there lasts until you leave the page, and leaves the remembered
+  // layout alone, so opening a code item brings the panels back as they were.
+  const onPage = view === "code" && file === "health";
+  const [pagePanels, setPagePanels] = useState({ panel: false, details: false });
+  const shownLayout: EditorLayout = onPage ? { ...layout, ...pagePanels } : layout;
+  const changeLayout = (patch: Partial<EditorLayout>) => {
+    if (!onPage) return updateLayout(patch);
+    const { panel, details, ...rest } = patch;
+    if (panel !== undefined || details !== undefined) {
+      setPagePanels((p) => ({ panel: panel ?? p.panel, details: details ?? p.details }));
+    }
+    if (Object.keys(rest).length > 0) updateLayout(rest);
+  };
+  const openFile = (f: ExplorerFile) => {
+    if (f === "health" && file !== "health") setPagePanels({ panel: false, details: false });
+    setFile(f);
+  };
+
   /** Show the panel on a view, e.g. a step's log when a run is loaded. */
-  const showPanel = (panelView: PanelViewId) => updateLayout({ panel: true, panelView });
-  const togglePanel = () => updateLayout({ panel: !layout.panel });
+  const showPanel = (panelView: PanelViewId) => changeLayout({ panel: true, panelView });
+  const togglePanel = () => changeLayout({ panel: !shownLayout.panel });
   const toggleAssistant = () => updateLayout({ assistant: !layout.assistant });
   const toggleExplorer = () => updateLayout({ explorer: !layout.explorer });
 
@@ -346,7 +365,7 @@ export default function WorkflowEditorTemplate({
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [layout, view]);
+  }, [layout, view, file, pagePanels]);
 
   const selectNode = (node: WorkflowNode) => setSelectedId(selectedId === node.id ? undefined : node.id);
 
@@ -759,14 +778,15 @@ export default function WorkflowEditorTemplate({
         selectRun(r);
         const failed = r.steps.find((s) => s.status === "failed");
         if (failed && graph.nodes.some((n) => n.id === failed.jobId)) {
+          // Leaving the page for the step, so the log opens in the remembered layout.
           setFile({ stepId: failed.jobId });
-          showPanel("log");
+          updateLayout({ panel: true, panelView: "log" });
         }
       }}
     />
   );
 
-  const layoutMenu = <LayoutMenu layout={layout} onChange={updateLayout} onReset={resetLayout} />;
+  const layoutMenu = <LayoutMenu layout={shownLayout} onChange={changeLayout} onReset={resetLayout} />;
 
   /** From a snippet in the inspector: open the node in the code view, with that section in the panel. */
   const expandInCode = (section: InspectorSection) => {
@@ -812,7 +832,7 @@ export default function WorkflowEditorTemplate({
     ) : undefined;
 
   // The panel lives under the code; the canvas has none.
-  const panel = layout.panel ? (
+  const panel = shownLayout.panel ? (
     <EditorPanel
       view={panelView}
       onViewChange={(v) => updateLayout({ panelView: v })}
@@ -984,7 +1004,7 @@ export default function WorkflowEditorTemplate({
             workflow={graph}
             file={file}
             onOpen={(f) => {
-              setFile(f);
+              openFile(f);
               if (typeof f === "object" && "stepId" in f && selectedRun?.steps.some((s) => s.jobId === f.stepId)) {
                 if (!["input", "output"].includes(layout.panelView)) showPanel("log");
               }
@@ -1016,9 +1036,9 @@ export default function WorkflowEditorTemplate({
             pane={file === "health" ? healthPane : undefined}
             bottomTray={panel}
             showExplorer={layout.explorer}
-            showDetails={layout.details}
+            showDetails={shownLayout.details}
             detailsView={layout.detailsView}
-            onDetailsViewChange={(v) => updateLayout({ details: true, detailsView: v })}
+            onDetailsViewChange={(v) => changeLayout({ details: true, detailsView: v })}
             layoutMenu={layoutMenu}
             onClose={() => setView("canvas")}
             statusNote={statusNote}

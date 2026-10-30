@@ -1,11 +1,13 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Plus, Workflow } from "lucide-react";
 import type { IANode } from "../ia-tree";
-import type { ProjectComponentItem, ProjectWorkflowsPageData } from "../page-data";
+import type { ProjectWorkflowsPageData, WorkflowListItem } from "../page-data";
 import PageHeader from "../components/PageHeader";
 import Button from "../components/Button";
-import DataTable from "../components/DataTable";
-import type { DataTableColumn } from "../components/DataTable";
+import SectionHeading from "../components/SectionHeading";
+import { Select } from "../components/FormControls";
+import WorkflowRow from "../components/WorkflowRow";
 import EmptyState from "../components/EmptyState";
 
 interface Props {
@@ -15,25 +17,19 @@ interface Props {
   data: ProjectWorkflowsPageData;
 }
 
-const columns: DataTableColumn<ProjectComponentItem>[] = [
-  {
-    key: "name",
-    header: "Name",
-    render: (w) => (
-      <Link
-        to={`/workflow-editor/${w.id}`}
-        className="inline-flex items-center gap-2 font-mono text-gray-900 hover:text-indigo-600"
-      >
-        <Workflow size={14} className="text-gray-400" />
-        {w.name}
-      </Link>
-    ),
-  },
-  { key: "description", header: "Description", render: (w) => w.description },
-];
+const sorts: Record<string, (a: WorkflowListItem, b: WorkflowListItem) => number> = {
+  "Sort by: Activity": (a, b) => (b.lastRunAt ?? "").localeCompare(a.lastRunAt ?? ""),
+  "Sort by: Last updated": (a, b) => b.updatedAt.localeCompare(a.updatedAt),
+  "Sort by: Name": (a, b) => a.name.localeCompare(b.name),
+};
+const sortOptions = Object.keys(sorts);
 
 export default function ProjectWorkflowsTemplate({ node, ancestors, data }: Props) {
   const navigate = useNavigate();
+  const [sort, setSort] = useState(sortOptions[0]);
+  const workflows = [...data.workflows].sort(sorts[sort]);
+  const count = data.workflows.length;
+
   return (
     <div className="space-y-8">
       <PageHeader
@@ -54,8 +50,26 @@ export default function ProjectWorkflowsTemplate({ node, ancestors, data }: Prop
         }
       />
 
-      {data.workflows.length > 0 ? (
-        <DataTable columns={columns} rows={data.workflows} getRowKey={(w) => w.id} />
+      {count > 0 ? (
+        <section>
+          <SectionHeading
+            variant="label"
+            title={`${count} workflow${count === 1 ? "" : "s"}`}
+            action={
+              <Select
+                aria-label="Sort workflows"
+                options={sortOptions}
+                value={sort}
+                onChange={(e) => setSort(e.target.value)}
+              />
+            }
+          />
+          <div className="space-y-3">
+            {workflows.map((w) => (
+              <WorkflowRow key={w.id} workflow={w} />
+            ))}
+          </div>
+        </section>
       ) : (
         <EmptyState
           icon={Workflow}

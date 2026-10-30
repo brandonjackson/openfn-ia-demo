@@ -4,7 +4,7 @@ import { findNodeByPath } from "../ia-utils";
 import type { LookupResult } from "../ia-utils";
 import { pageDataRegistry } from "../mock-data";
 import { connectedSystems, orgCredentials, systemAccessGrants } from "../mock-data/connected-systems";
-import { projects, projectSandboxes } from "../mock-data/projects";
+import { projects, projectSandboxes, projectWorkflowItems } from "../mock-data/projects";
 import { historyData, mockEntries } from "../mock-data/history";
 import { serviceCatalogData } from "../mock-data/service-catalog";
 import { userSettingsData } from "../mock-data/user";
@@ -213,7 +213,7 @@ function resolveDynamic(
         const data: ProjectWorkflowsPageData = {
           pageType: "project-workflows",
           projectId: project.id,
-          workflows: project.components.filter((c) => c.type === "Workflow"),
+          workflows: projectWorkflowItems(project),
         };
         return { node: result.node, data };
       }

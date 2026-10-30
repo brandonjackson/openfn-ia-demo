@@ -22,9 +22,9 @@ export type NodeAction = "run" | "edit" | "improve" | "delete";
 /**
  * A node on the workflow canvas: a card with the step's adaptor (or the
  * trigger's kind) as a pill in its head, the step's name in bold, and a ⋮ menu of actions: run from here, edit
- * (which opens the inspector), improve (which opens the assistant about this
+ * (which opens the step in code), improve (which opens the assistant about this
  * step) and delete. Clicking the card selects it; selecting toggles a indigo
- * ring.
+ * ring. Double-clicking it opens it (`onOpen`).
  *
  * The slot before the menu shows the run history (`activity`: how many runs
  * reached the node and how many failed there) or, while a run is loaded, the
@@ -37,6 +37,7 @@ export default function WorkflowNodeCard({
   node,
   selected = false,
   onClick,
+  onOpen,
   onAction,
   readOnly = false,
   menuPlacement = "beside",
@@ -50,6 +51,8 @@ export default function WorkflowNodeCard({
   node: WorkflowNode;
   selected?: boolean;
   onClick?: (node: WorkflowNode) => void;
+  /** Double-clicking the card, e.g. to open the step in code. */
+  onOpen?: (node: WorkflowNode) => void;
   /** An item picked from the ⋮ menu. Without it the card has no menu. */
   onAction?: (node: WorkflowNode, action: NodeAction) => void;
   /** On main nothing can be deleted. */
@@ -97,6 +100,7 @@ export default function WorkflowNodeCard({
       <button
         type="button"
         onClick={() => onClick?.(node)}
+        onDoubleClick={() => onOpen?.(node)}
         aria-label={`${selected ? "Deselect" : "Select"} ${node.label}`}
         aria-pressed={selected}
         className="absolute inset-0 rounded-xl focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"

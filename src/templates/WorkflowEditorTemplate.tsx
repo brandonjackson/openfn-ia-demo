@@ -143,7 +143,8 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
  * code; its runs, failures and why they failed (the whole workflow's, on
  * the trigger); or its log, input and output in the loaded run, which open
  * in full in the code view's panel. A card's failed count selects it. Each
- * node card's ⋮ menu runs from that step, opens the inspector (Edit), opens
+ * node card's ⋮ menu runs from that step, opens it in code (Edit, as does
+ * double-clicking the card), opens
  * the assistant with the step loaded as context (Improve) or deletes it.
  *
  * In code mode the panel under the code carries the views that aren't code:
@@ -373,6 +374,12 @@ export default function WorkflowEditorTemplate({
     const node = graph.nodes.find((n) => n.id === nodeId);
     setFile(node ? (node.type === "trigger" ? "trigger" : { stepId: node.id }) : "workflow");
     setView("code");
+  };
+
+  /** Open a node in code from the canvas (its Edit, or a double-click), keeping it selected. */
+  const openNode = (node: WorkflowNode) => {
+    setSelectedId(node.id);
+    openInCode(node.id);
   };
 
   const [runInputOpen, setRunInputOpen] = useState(defaultRunInputOpen);
@@ -622,7 +629,7 @@ export default function WorkflowEditorTemplate({
       case "run":
         return runFresh(job?.id);
       case "edit":
-        return setSelectedId(node.id);
+        return openNode(node);
       case "improve":
         setAssistantReference(
           job
@@ -989,6 +996,7 @@ export default function WorkflowEditorTemplate({
           workflow={graph}
           selectedId={selectedId}
           onSelect={selectNode}
+          onOpen={openNode}
           onNodeAction={onNodeAction}
           readOnly={onMain}
           run={selectedRun}

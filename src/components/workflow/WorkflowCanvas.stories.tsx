@@ -10,7 +10,7 @@ const meta: Meta<typeof WorkflowCanvas> = {
   title: "Workflow/WorkflowCanvas",
   component: WorkflowCanvas,
   parameters: { layout: "fullscreen" },
-  args: { onNodeAction: () => {}, onSelect: () => {} },
+  args: { onNodeAction: () => {}, onSelect: () => {}, onOpen: () => {} },
 };
 
 export default meta;

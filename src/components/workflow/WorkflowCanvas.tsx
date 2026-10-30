@@ -52,6 +52,7 @@ export default function WorkflowCanvas({
   workflow,
   selectedId,
   onSelect,
+  onOpen,
   onNodeAction,
   readOnly = false,
   run,
@@ -66,6 +67,8 @@ export default function WorkflowCanvas({
   workflow: Workflow;
   selectedId?: string;
   onSelect?: (node: WorkflowNode) => void;
+  /** A card double-clicked, to open the node in code. */
+  onOpen?: (node: WorkflowNode) => void;
   /** An item picked from a card's ⋮ menu; without it cards have no menu. */
   onNodeAction?: (node: WorkflowNode, action: NodeAction) => void;
   /** On main steps can't be deleted. */
@@ -272,6 +275,7 @@ export default function WorkflowCanvas({
               node={node}
               selected={node.id === selectedId}
               onClick={onSelect}
+              onOpen={onOpen}
               onAction={onNodeAction}
               readOnly={readOnly}
               menuPlacement={node.x + HALF_W + MENU_ROOM <= width ? "beside" : "below"}

@@ -301,7 +301,7 @@ const proposedTree: TreeNode[] = [
  */
 const proposedGroups: { label?: string; items: string[] }[] = [
   { items: ["Overview"] },
-  { label: "Context", items: ["Handbook", "Systems", "Services"] },
+  { label: "Organization", items: ["Handbook", "Systems", "Services"] },
   { label: "Monitoring", items: ["Status", "Insights", "History"] },
   { label: "Projects", items: ["Projects", "Workflow Editor"] },
   { label: "Support", items: ["Get Help Now", "OpenFn Docs"] },

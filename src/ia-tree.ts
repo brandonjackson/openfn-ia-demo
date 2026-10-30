@@ -256,7 +256,7 @@ export interface NavGroup {
  */
 export const mainNavGroups: NavGroup[] = [
   { items: ["overview"] },
-  { label: "Context", items: ["handbook", "connected-systems", "service-catalog"] },
+  { label: "Organization", items: ["handbook", "connected-systems", "service-catalog"] },
   { label: "Monitoring", items: ["status", "insights", "history"] },
 ];
 

@@ -170,7 +170,7 @@ function useCurrentProject(): Project | undefined {
 
 /**
  * App sidebar. At the instance level it shows the grouped top-level IA
- * (Overview; Context; Monitoring; recent Projects). Once you open a project
+ * (Overview; Organization; Monitoring; recent Projects). Once you open a project
  * it swaps to that project's own menu (Overview; Build; Maintain). The logo always returns to Overview,
  * Support stays pinned near the bottom, and the account menu sits below it.
  */

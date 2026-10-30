@@ -624,7 +624,6 @@ export default function WorkflowEditorTemplate({
       case "edit":
         return setSelectedId(node.id);
       case "improve":
-        setSelectedId(node.id);
         setAssistantReference(
           job
             ? { kind: "step", id: job.id, label: job.label, adaptor: job.adaptor }
@@ -639,7 +638,11 @@ export default function WorkflowEditorTemplate({
 
   /** A plan the assistant carried out: note it on the step it was about. */
   const applyPlan = (plan: AssistantPlan) => {
-    const target = focusJob ?? graph.nodes.find((n): n is JobNode => n.type === "job");
+    const referenced = assistantReference?.kind === "step" ? assistantReference.id : undefined;
+    const target =
+      graph.nodes.find((n): n is JobNode => n.type === "job" && n.id === referenced) ??
+      focusJob ??
+      graph.nodes.find((n): n is JobNode => n.type === "job");
     if (!target) return;
     edit((e) => ({
       bodies: { ...e.bodies, [target.id]: `// Assistant: ${plan.steps[0]}\n${e.bodies[target.id] ?? target.body}` },

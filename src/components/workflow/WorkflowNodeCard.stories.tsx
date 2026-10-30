@@ -13,7 +13,7 @@ const meta: Meta<typeof WorkflowNodeCard> = {
   title: "Workflow/WorkflowNodeCard",
   component: WorkflowNodeCard,
   parameters: { layout: "padded" },
-  args: { onAction: () => {} },
+  args: { onAction: () => {}, onOpen: () => {} },
 };
 
 export default meta;

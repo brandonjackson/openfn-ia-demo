@@ -1,5 +1,6 @@
 import type { BadgeTone } from "./components/Badge";
 import type { FeatureIntroItem } from "./components/FeatureIntro";
+import type { RunStatus } from "./mock-data/workflow";
 
 /* ------------------------------------------------------------------ */
 /*  Shared primitive types                                             */
@@ -396,10 +397,24 @@ export interface ProjectPageData {
   components: ProjectComponentItem[];
 }
 
+/** A workflow on the project's Workflows list, with its recent activity. */
+export interface WorkflowListItem extends ProjectComponentItem {
+  /** Status of the service the workflow backs, if it backs one. */
+  serviceStatus?: "Live" | "Draft";
+  /** Status of its most recent run; none if it has never run. */
+  latestRun?: RunStatus;
+  /** When it last ran, as an ISO timestamp (sorts by Activity). */
+  lastRunAt?: string;
+  /** Names of the people who have edited it, most recent first. */
+  members: string[];
+  /** When it was last changed, as an ISO timestamp. */
+  updatedAt: string;
+}
+
 export interface ProjectWorkflowsPageData {
   pageType: "project-workflows";
   projectId: string;
-  workflows: ProjectComponentItem[];
+  workflows: WorkflowListItem[];
 }
 
 export interface ProjectComponentsPageData {

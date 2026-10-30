@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ProjectWorkflowsTemplate from "./ProjectWorkflowsTemplate";
 import { withRouterAt } from "../stories/decorators";
-import { projects } from "../mock-data/projects";
+import { projectWorkflowItems, projects } from "../mock-data/projects";
 import type { IANode } from "../ia-tree";
 
 const node: IANode = {
@@ -35,7 +35,7 @@ export const Default: Story = {
     data: {
       pageType: "project-workflows",
       projectId: project.id,
-      workflows: project.components.filter((c) => c.type === "Workflow"),
+      workflows: projectWorkflowItems(project),
     },
   },
 };

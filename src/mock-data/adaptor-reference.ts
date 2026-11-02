@@ -79,6 +79,24 @@ export const adaptorInfo: Record<AdaptorKind, AdaptorInfo> = {
     needsCredential: true,
     description: "Query, create and upsert Salesforce records.",
   },
+  opencrvs: {
+    id: "opencrvs",
+    name: "OpenCRVS",
+    version: "1.2",
+    package: "@openfn/language-opencrvs",
+    docsUrl: "https://docs.openfn.org/adaptors/packages/opencrvs-docs",
+    needsCredential: true,
+    description: "Search civil registration records and submit birth and death events to OpenCRVS.",
+  },
+  twilio: {
+    id: "twilio",
+    name: "Twilio",
+    version: "1.1",
+    package: "@openfn/language-twilio",
+    docsUrl: "https://docs.openfn.org/adaptors/packages/twilio-docs",
+    needsCredential: true,
+    description: "Send SMS messages through a Twilio account.",
+  },
   postgresql: {
     id: "postgresql",
     name: "Postgres",
@@ -91,7 +109,7 @@ export const adaptorInfo: Record<AdaptorKind, AdaptorInfo> = {
 };
 
 /** Every adaptor a step can be switched to, in picker order. */
-export const adaptorChoices: AdaptorKind[] = ["common", "http", "postgresql", "dhis2", "salesforce"];
+export const adaptorChoices: AdaptorKind[] = ["common", "http", "opencrvs", "twilio", "postgresql", "dhis2", "salesforce"];
 
 /** Adaptors without snippets of their own have none. */
 const noSnippets: Record<AdaptorKind, Snippet[]> = Object.fromEntries(adaptorCatalog.map((a) => [a.id, []]));
@@ -160,6 +178,52 @@ export const adaptorSnippets: Record<AdaptorKind, Snippet[]> = {
       title: "Paginate with a cursor",
       description: "Follow next-page links until there are none.",
       code: `get('/api/v1/citizens', { query: { page: 1 } });\n\nfn(state => {\n  state.citizens = [...(state.citizens ?? []), ...state.data.results];\n  return state;\n});`,
+    },
+  ],
+  opencrvs: [
+    {
+      id: "queryEvents",
+      title: "queryEvents",
+      description: "Search registered births or deaths; the results go on state.data.",
+      code: `queryEvents(\n  {\n    event: 'birth',\n    registrationStatuses: ['REGISTERED'],\n    childFirstNames: $.application.given_name,\n    childLastName: $.application.family_name,\n    childDoB: $.application.date_of_birth,\n  },\n  { count: 10 }\n);`,
+    },
+    {
+      id: "submitBirthNotification",
+      title: "submitBirthNotification",
+      description: "Create a birth event and notify it with its declaration, in one call.",
+      code: `submitBirthNotification(\n  {\n    'child.name': { firstname: $.data.given_name, surname: $.data.family_name },\n    'child.dob': $.data.date_of_birth,\n    'child.gender': $.data.gender,\n    'child.placeOfBirth': 'HEALTH_FACILITY',\n    'child.birthLocation': $.locationId,\n    'informant.relation': 'MOTHER',\n  },\n  { createdAtLocation: $.locationId }\n);`,
+    },
+    {
+      id: "createEvent",
+      title: "createEvent",
+      description: "Create a v2 event; its id is on state.data.id.",
+      code: `createEvent('birth', { createdAtLocation: $.locationId });`,
+    },
+    {
+      id: "notifyEvent",
+      title: "notifyEvent",
+      description: "Send declaration data for an event you've created.",
+      code: `notifyEvent($.data.id, {\n  'child.name': { firstname: $.data.given_name, surname: $.data.family_name },\n  'child.dob': $.data.date_of_birth,\n}, { createdAtLocation: $.locationId });`,
+    },
+    {
+      id: "getLocations",
+      title: "getLocations",
+      description: "List offices and health facilities, e.g. to pick createdAtLocation.",
+      code: `getLocations();\n\nfn(state => {\n  state.locationId = state.data.find(l => l.name === $.application.district)?.id;\n  return state;\n});`,
+    },
+  ],
+  twilio: [
+    {
+      id: "sendSMS",
+      title: "sendSMS",
+      description: "Send an SMS; Twilio's response goes on state.data.",
+      code: `sendSMS({\n  body: \`Hi \${$.application.given_name}, your application has been received.\`,\n  from: $.configuration.fromNumber,\n  to: $.application.phone,\n});`,
+    },
+    {
+      id: "each",
+      title: "SMS everyone in a list",
+      description: "Send the same message to every recipient on state.",
+      code: `each('$.recipients[*]', sendSMS({\n  body: 'Your local registration office is closed on Friday.',\n  from: $.configuration.fromNumber,\n  to: $.data.phone,\n}));`,
     },
   ],
   postgresql: [
@@ -254,6 +318,8 @@ export const projectCredentials: ProjectCredential[] = [
   { id: "cred-identity-prod", name: "Identity API (production)", adaptor: "http", owner: "Brandon Jackson" },
   { id: "cred-identity-staging", name: "Identity API (staging)", adaptor: "http", owner: "Brandon Jackson" },
   { id: "cred-notify", name: "Notification gateway", adaptor: "http", owner: "Amara Okafor" },
+  { id: "cred-opencrvs", name: "OpenCRVS (Farajaland)", adaptor: "opencrvs", owner: "Brandon Jackson" },
+  { id: "cred-twilio", name: "Twilio SMS", adaptor: "twilio", owner: "Amara Okafor" },
   { id: "cred-pg-citizens", name: "Citizens database", adaptor: "postgresql", owner: "Brandon Jackson" },
   { id: "cred-dhis2-play", name: "DHIS2 play", adaptor: "dhis2", owner: "Jane Doe" },
   { id: "cred-sf-sandbox", name: "Salesforce sandbox", adaptor: "salesforce", owner: "Jane Doe" },

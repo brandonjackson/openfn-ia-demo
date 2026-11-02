@@ -175,13 +175,52 @@ export interface WorkOrder {
 // The "Apply for a national ID" workflow shown in the design reference.
 // ---------------------------------------------------------------------------
 
-const searchBody = `// Keep the original application payload safe for downstream steps
+const verifyBody = `// Keep the original application payload safe for downstream steps
 fn(state => {
   state.application = state.data;
   return state;
 });
 
-// Search Identity for potential duplicates
+// Look up the applicant's registered birth in OpenCRVS
+queryEvents(
+  {
+    event: 'birth',
+    registrationStatuses: ['REGISTERED'],
+    childFirstNames: $.application.given_name,
+    childLastName: $.application.family_name,
+    childDoB: $.application.date_of_birth,
+  },
+  { count: 5 }
+);
+
+// Keep the birth record, or stop if there isn't one
+fn(state => {
+  const [record] = state.data ?? [];
+  if (!record) {
+    throw new Error('No registered birth found in OpenCRVS');
+  }
+  state.birthRegistration = {
+    trackingId: record.registration?.trackingId,
+    registrationNumber: record.registration?.registrationNumber,
+  };
+  return state;
+});`;
+
+const notifyBody = `// Tell the applicant by SMS that they already have a national ID
+sendSMS({
+  body: \`Hi \${$.application.given_name}, you already have a national ID (\${$.matches[0].nationalId}). No new ID will be issued.\`,
+  from: $.configuration.fromNumber,
+  to: $.application.phone,
+});`;
+
+const confirmBody = `// Send the applicant their new national ID by SMS
+sendSMS({
+  body: \`Hi \${$.application.given_name}, your national ID is \${$.nationalId}. Collect your card at the \${$.application.district} office.\`,
+  from: $.configuration.fromNumber,
+  to: $.application.phone,
+});`;
+
+const searchBody = `// Search Identity for potential duplicates
 get(
   'https://simdpgidentity-production.up.railway.app/citizens/search',
   state => ({
@@ -230,6 +269,17 @@ export const nationalIdWorkflow: Workflow = {
       y: 70,
     },
     {
+      id: "verify",
+      type: "job",
+      label: "Verify birth registration in OpenCRVS",
+      summary: "**Checks OpenCRVS** for the applicant's registered birth.",
+      adaptor: "opencrvs",
+      adaptorPackage: "@openfn/language-opencrvs",
+      body: verifyBody,
+      x: 490,
+      y: 230,
+    },
+    {
       id: "search",
       type: "job",
       label: "Search for duplicate citizens in Identity",
@@ -238,18 +288,18 @@ export const nationalIdWorkflow: Workflow = {
       adaptorPackage: "@openfn/language-http",
       body: searchBody,
       x: 490,
-      y: 230,
+      y: 390,
     },
     {
       id: "notify",
       type: "job",
       label: "Notify applicant of existing national ID",
       summary: "**Tells the applicant** a national ID already exists for them.",
-      adaptor: "http",
-      adaptorPackage: "@openfn/language-http",
-      body: "// Notify the applicant that a national ID already exists\npost('https://.../notify', state => ({ body: state.match }));",
+      adaptor: "twilio",
+      adaptorPackage: "@openfn/language-twilio",
+      body: notifyBody,
       x: 190,
-      y: 410,
+      y: 570,
     },
     {
       id: "create",
@@ -260,7 +310,7 @@ export const nationalIdWorkflow: Workflow = {
       adaptorPackage: "@openfn/language-http",
       body: "// Register the new citizen and capture the issued national ID\npost('https://.../citizens', state => ({ body: state.application }));",
       x: 490,
-      y: 410,
+      y: 570,
     },
     {
       id: "queue",
@@ -271,22 +321,23 @@ export const nationalIdWorkflow: Workflow = {
       adaptorPackage: "@openfn/language-common",
       body: "// Park the application so it can be retried later\nfn(state => state);",
       x: 790,
-      y: 410,
+      y: 570,
     },
     {
       id: "confirm",
       type: "job",
       label: "Send confirmation notification with national ID",
       summary: "**Sends the applicant** their new national ID.",
-      adaptor: "http",
-      adaptorPackage: "@openfn/language-http",
-      body: "// Send the applicant their new national ID\npost('https://.../notify', state => ({ body: state.nationalId }));",
+      adaptor: "twilio",
+      adaptorPackage: "@openfn/language-twilio",
+      body: confirmBody,
       x: 490,
-      y: 580,
+      y: 740,
     },
   ],
   edges: [
-    { id: "e-trigger-search", source: "trigger", target: "search", condition: "always" },
+    { id: "e-trigger-verify", source: "trigger", target: "verify", condition: "always" },
+    { id: "e-verify-search", source: "verify", target: "search", condition: "on_success" },
     {
       id: "e-search-notify",
       source: "search",
@@ -307,15 +358,15 @@ export const nationalIdWorkflow: Workflow = {
 };
 
 /**
- * The same workflow at v1, before the duplicate check was promoted: every
- * application went straight to Identity. Step ids match the latest version,
+ * The same workflow at v1, before the birth check and duplicate check were
+ * promoted: every application went straight to Identity. Step ids match the latest version,
  * so a v1 run can be shown on either graph.
  */
 export const nationalIdWorkflowV1: Workflow = {
   ...nationalIdWorkflow,
   version: "v1",
   nodes: nationalIdWorkflow.nodes
-    .filter((n) => n.id !== "search" && n.id !== "notify")
+    .filter((n) => n.id !== "verify" && n.id !== "search" && n.id !== "notify")
     .map((n) => {
       if (n.id === "create") return { ...n, y: 230 };
       if (n.id === "confirm") return { ...n, x: 340, y: 410 };

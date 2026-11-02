@@ -22,6 +22,8 @@ type State = Record<string, unknown>;
 const json = (value: unknown) => JSON.stringify(value, null, 2);
 
 const IDENTITY = "https://simdpgidentity-production.up.railway.app";
+const OPENCRVS = "https://gateway.farajaland.opencrvs.org";
+const TWILIO = "https://api.twilio.com/2010-04-01/Accounts/AC5f3e/Messages.json";
 
 /** A random 8-character hex id, like the short ids shown in history. */
 export function shortId(): string {
@@ -41,12 +43,15 @@ function setupLogs(runId: string): LogLine[] {
     { source: "VER", message: "  ▸ worker                        1.27.0" },
     { source: "VER", message: "  ▸ @openfn/language-common       3.3.3" },
     { source: "VER", message: "  ▸ @openfn/language-http         7.3.1" },
+    { source: "VER", message: "  ▸ @openfn/language-opencrvs     1.2.2" },
+    { source: "VER", message: "  ▸ @openfn/language-twilio       1.1.2" },
     { source: "R/T", message: "Workflow compilation complete in 2.2s" },
     { source: "R/T", message: `Executing ${runId}-444b-40ab-9e0e-4ef5c975e31a` },
   ];
 }
 
 const DEFAULT_DURATION: Record<string, string> = {
+  verify: "842 ms",
   search: "3 s",
   create: "179 ms",
   confirm: "401 ms",
@@ -57,6 +62,14 @@ const DEFAULT_DURATION: Record<string, string> = {
 /** What each step adds to the state it was given, when it succeeds. */
 function stepOutput(jobId: string, input: State, seed: string): State {
   switch (jobId) {
+    case "verify":
+      return {
+        ...input,
+        birthRegistration: {
+          trackingId: `B${seed.slice(0, 6).toUpperCase()}`,
+          registrationNumber: `2026${seed.slice(2, 8).toUpperCase()}`,
+        },
+      };
     case "search":
       return { ...input, matches: [], exactMatch: false };
     case "create":
@@ -75,6 +88,8 @@ function stepOutput(jobId: string, input: State, seed: string): State {
 function requestLog(jobId: string, input: State, failed: boolean): LogLine | undefined {
   const status = (ok: number) => (failed ? `502 in 30012ms` : `${ok} in ${120 + (jobId.length * 47) % 300}ms`);
   switch (jobId) {
+    case "verify":
+      return { source: "ADA", message: `POST ${OPENCRVS}/graphql - ${status(200)}` };
     case "search":
       return {
         source: "ADA",
@@ -86,7 +101,7 @@ function requestLog(jobId: string, input: State, failed: boolean): LogLine | und
       return { source: "ADA", message: `POST ${IDENTITY}/citizens - ${status(201)}` };
     case "confirm":
     case "notify":
-      return { source: "ADA", message: `POST https://notify.example.gov/messages - ${status(202)}` };
+      return { source: "ADA", message: `POST ${TWILIO} - ${status(201)}` };
     default:
       return undefined;
   }
@@ -214,23 +229,27 @@ const inputs = {
     family_name: "Okafor",
     date_of_birth: "1991-03-14",
     district: "North",
+    phone: "+15555550101",
   }),
   tomas: application("req-57c5", "today at 8:15 AM", {
     given_name: "Tomás",
     family_name: "Rivera",
     date_of_birth: "1984-11-02",
     district: "Coast",
+    phone: "+15555550102",
   }),
   lina: application("req-7143", "yesterday at 4:38 PM", {
     given_name: "Lina",
     family_name: "Haddad",
     date_of_birth: "2001-07-21",
     district: "Central",
+    phone: "+15555550103",
   }),
   kofi: application(
     "req-896d",
     "yesterday at 11:11 AM",
-    { given_name: "Kofi", family_name: "Mensah", date_of_birth: "1976-01-30", district: "East" },
+    { given_name: "Kofi", family_name: "Mensah", date_of_birth: "1976-01-30", district: "East",
+    phone: "+15555550104" },
     "Application that hit the Identity 502"
   ),
   priya: application("req-2f11", "Oct 13th, 12:19 PM", {
@@ -238,18 +257,21 @@ const inputs = {
     family_name: "Nair",
     date_of_birth: "1999-05-08",
     district: "North",
+    phone: "+15555550105",
   }),
   jonas: application("req-0b39", "Oct 13th, 12:18 PM", {
     given_name: "Jonas",
     family_name: "Berg",
     date_of_birth: "1968-09-17",
     district: "West",
+    phone: "+15555550106",
   }),
   mei: application("req-b4f8", "Oct 12th, 9:22 AM", {
     given_name: "Mei",
     family_name: "Chen",
     date_of_birth: "1995-12-03",
     district: "Central",
+    phone: "+15555550107",
   }),
 };
 
@@ -260,14 +282,14 @@ const savedInputs: Dataclip[] = [
     name: "Sample application: new citizen",
     type: "saved_input",
     created: "Oct 10th, 2:04 PM",
-    body: json({ given_name: "Test", family_name: "Applicant", date_of_birth: "2000-01-01", district: "North" }),
+    body: json({ given_name: "Test", family_name: "Applicant", date_of_birth: "2000-01-01", district: "North", phone: "+15555550100" }),
   },
   {
     id: "saved-existing-citizen",
     name: "Sample application: existing citizen",
     type: "saved_input",
     created: "Oct 10th, 2:06 PM",
-    body: json({ given_name: "Amara", family_name: "Okafor", date_of_birth: "1991-03-14", district: "North" }),
+    body: json({ given_name: "Amara", family_name: "Okafor", date_of_birth: "1991-03-14", district: "North", phone: "+15555550101" }),
   },
 ];
 
@@ -284,7 +306,7 @@ const built = [
     started: "20/10/2026, 09:42:13",
     duration: "6 s",
     input: inputs.amara,
-    path: ["search", "create", "confirm"],
+    path: ["verify", "search", "create", "confirm"],
   }),
   buildRun({
     runId: "3c9e1a07",
@@ -294,7 +316,7 @@ const built = [
     started: "20/10/2026, 08:15:40",
     duration: "4 s",
     input: inputs.tomas,
-    path: ["search", "notify"],
+    path: ["verify", "search", "notify"],
     outputs: {
       search: {
         ...(JSON.parse(inputs.tomas.body) as State),
@@ -313,7 +335,7 @@ const built = [
     startedBy: "Brandon Jackson",
     duration: "5 s",
     input: inputs.lina,
-    path: ["search", "create", "confirm"],
+    path: ["verify", "search", "create", "confirm"],
   }),
   buildRun({
     runId: "e81b55c2",
@@ -323,7 +345,7 @@ const built = [
     started: "19/10/2026, 16:38:02",
     duration: "31 s",
     input: inputs.lina,
-    path: ["search", "queue"],
+    path: ["verify", "search", "queue"],
     failAt: { jobId: "search", error: "Identity did not respond within 30s" },
   }),
   buildRun({
@@ -334,7 +356,7 @@ const built = [
     started: "19/10/2026, 11:11:26",
     duration: "34 s",
     input: inputs.kofi,
-    path: ["search", "create"],
+    path: ["verify", "search", "create"],
     failAt: { jobId: "create", error: "Identity returned 502 Bad Gateway" },
   }),
   buildRun({

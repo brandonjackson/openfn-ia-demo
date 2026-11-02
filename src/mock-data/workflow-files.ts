@@ -60,16 +60,17 @@ Webhook. The e-planning portal POSTs one application per request.
 
 ## Input
 \`\`\`json
-{ "given_name": "Amara", "family_name": "Okafor", "date_of_birth": "1991-03-14", "consent": "yes" }
+{ "given_name": "Amara", "family_name": "Okafor", "date_of_birth": "1991-03-14", "phone": "+15555550101", "consent": "yes" }
 \`\`\`
 
 ## Steps
 | Step | Adaptor | Writes |
 | --- | --- | --- |
+| Verify birth registration in OpenCRVS | opencrvs | state.application, state.birthRegistration |
 | Search for duplicate citizens in Identity | http | state.matches, state.exactMatch |
-| Notify applicant of existing national ID | http | state.notified |
+| Notify applicant of existing national ID | twilio | state.notified |
 | Create new citizen in Identity | http | state.nationalId |
-| Send confirmation notification with national ID | http | state.notified |
+| Send confirmation notification with national ID | twilio | state.notified |
 | Queue application for retry | common | state.queuedForRetry |
 
 ## Done when

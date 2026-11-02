@@ -9,20 +9,27 @@ import { adaptorInfo } from "./adaptor-reference";
 
 /** Summaries of the national ID workflow's steps, as first loaded. */
 const written: Record<string, { body: string; points: string[] }> = {
-  search: {
+  verify: {
     body: "fn(state => {\n  state.application = state.data;",
     points: [
       "Keeps the original application on state so later steps can use it.",
+      "Searches OpenCRVS for a registered birth with the applicant's name and date of birth.",
+      "Keeps the birth's tracking and registration numbers on `birthRegistration`, or fails the run when no registered birth is found.",
+    ],
+  },
+  search: {
+    body: "// Search Identity for potential duplicates",
+    points: [
       "Searches Identity's citizen register by the applicant's given name and date of birth.",
       "Compares the results with the application and sets `exactMatch`, which decides whether the run goes on to notify the applicant or create a new citizen.",
     ],
   },
   notify: {
-    body: "post('https://.../notify', state => ({ body: state.match }))",
-    points: ["Posts the matching citizen record to the notification service, telling the applicant they already have a national ID."],
+    body: "you already have a national ID (",
+    points: ["Texts the applicant through Twilio with the national ID they already hold, so no new one is issued."],
   },
   create: {
-    body: "post('https://.../citizens', state => ({ body: state.application }))",
+    body: "post('https://simdpgidentity-production.up.railway.app/citizens', $.application",
     points: ["Posts the application to Identity to register a new citizen.", "Identity's response, with the issued national ID, becomes the next step's input."],
   },
   queue: {
@@ -30,8 +37,8 @@ const written: Record<string, { body: string; points: string[] }> = {
     points: ["Passes state through unchanged, so the application is kept and can be retried once Identity is reachable again."],
   },
   confirm: {
-    body: "post('https://.../notify', state => ({ body: state.nationalId }))",
-    points: ["Posts the newly issued national ID to the notification service so the applicant receives it."],
+    body: "your national ID is",
+    points: ["Texts the applicant through Twilio with their new national ID and the district office to collect the card from."],
   },
 };
 
@@ -48,6 +55,12 @@ const verbs: Record<string, string> = {
   upsert: "Creates or updates records",
   create: "Creates records",
   update: "Updates records",
+  queryEvents: "Searches OpenCRVS records",
+  createEvent: "Creates an OpenCRVS event",
+  notifyEvent: "Sends declaration data to OpenCRVS",
+  submitBirthNotification: "Submits a birth notification to OpenCRVS",
+  getLocations: "Fetches OpenCRVS locations",
+  sendSMS: "Sends an SMS",
 };
 
 /**

@@ -7,6 +7,7 @@ import { connectedSystems, orgCredentials, systemAccessGrants } from "../mock-da
 import { projects, projectSandboxes, projectWorkflowItems } from "../mock-data/projects";
 import { historyData, mockEntries } from "../mock-data/history";
 import { serviceCatalogData } from "../mock-data/service-catalog";
+import { channelDetails } from "../mock-data/channels";
 import { userSettingsData } from "../mock-data/user";
 import { instanceSettingsData } from "../mock-data/instance";
 import { buildProjectInsightsData, buildProjectOverviewTiles } from "../mock-data/insights";
@@ -23,6 +24,7 @@ import type {
   ProjectSandboxesPageData,
   ServiceApiSpec,
   ServicePageData,
+  ChannelPageData,
   TablePageData,
   PageData,
 } from "../page-data";
@@ -244,8 +246,23 @@ function resolveDynamic(
         if (!data) return null;
         return { node: { ...result.node, label: data.service.name }, data };
       }
-      default:
+      default: {
+        // A component's page: a channel gets its channel view; anything else is still a placeholder, under its own name.
+        const component =
+          result.node.id === "component" ? project.components.find((c) => c.id === params["component"]) : undefined;
+        if (component?.type === "Channel") {
+          const data: ChannelPageData = {
+            pageType: "channel",
+            projectId: project.id,
+            projectName: project.name,
+            component,
+            channel: channelDetails(component),
+          };
+          return { node: { ...result.node, label: component.name, description: component.description, pageType: "channel" }, data };
+        }
+        if (component) return { node: { ...result.node, label: component.name, description: component.description }, data: undefined };
         return { node: result.node, data: undefined };
+      }
     }
   }
 

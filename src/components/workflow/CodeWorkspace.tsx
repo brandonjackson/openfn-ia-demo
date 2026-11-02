@@ -1,12 +1,14 @@
 import { useRef } from "react";
 import type { ReactNode } from "react";
-import { BookOpen, Calendar, ExternalLink, FolderKanban, History, Layers, Radio, User, X } from "lucide-react";
+import { BookOpen, Calendar, ExternalLink, FolderKanban, Globe, History, Layers, Plug, Radio, User, X } from "lucide-react";
 import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../mock-data/workflow";
 import type { DetailsViewId } from "../../editor-layout";
 import { triggerTypes, workflowToYaml } from "../../mock-data/workflow";
 import { adaptorInfo } from "../../mock-data/adaptor-reference";
 import type { ProjectComponent, ProjectService } from "../../mock-data/projects";
 import { componentPreview, serviceListing, workflowDocs } from "../../mock-data/workflow-files";
+import { channelDetails } from "../../mock-data/channels";
+import { channelTypeConfig } from "../../channel-types";
 import { componentTypeIcons } from "../../component-types";
 import Button from "../Button";
 import Badge from "../Badge";
@@ -144,6 +146,7 @@ export default function CodeWorkspace({
       : undefined;
   const component =
     typeof file === "object" && "componentId" in file ? components.find((c) => c.id === file.componentId) : undefined;
+  const channel = component?.type === "Channel" ? channelDetails(component) : undefined;
   const doc = file === "context" ? "context" : file === "spec" ? "spec" : undefined;
   const listing = file === "service" ? service : undefined;
   const addedDoc = typeof file === "object" && "docName" in file ? file.docName : undefined;
@@ -221,6 +224,13 @@ export default function CodeWorkspace({
         description={component.description}
         properties={[
           { icon: componentTypeIcons[component.type], label: "Type", value: component.type },
+          ...(channel
+            ? [
+                { icon: channelTypeConfig[channel.channelType].icon, label: "Kind", value: channelTypeConfig[channel.channelType].label },
+                { icon: Plug, label: "System", value: channel.system.name },
+                { icon: Globe, label: "Method", value: channel.method },
+              ]
+            : []),
           { icon: FolderKanban, label: "Project", value: workflow.project },
         ]}
         action={

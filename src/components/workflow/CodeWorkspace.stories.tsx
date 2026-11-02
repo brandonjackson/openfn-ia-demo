@@ -10,6 +10,8 @@ import StatusPill from "./StatusPill";
 import { defaultWorkflowSettings, nationalIdWorkflow } from "../../mock-data/workflow";
 import { dataclips, failedRun, workflowHealth, workOrders } from "../../mock-data/runs";
 import WorkflowHealth from "./WorkflowHealth";
+import ChannelView from "./ChannelView";
+import { channelDetails } from "../../mock-data/channels";
 import { projects } from "../../mock-data/projects";
 
 const components = projects[0].components.filter((c) => c.type !== "Workflow");
@@ -103,6 +105,16 @@ export const UnsavedChanges: Story = { args: { dirtyStepIds: ["search"], onStepC
 /** A collection the workflow uses, opened from the Components group. */
 export const CollectionOpen: Story = {
   args: { file: { componentId: components.find((c) => c.type === "Collection")!.id } },
+};
+
+const channel = components.find((c) => c.type === "Channel")!;
+
+/** A channel the workflow uses, opened from the Components group: its traffic in the code's place, its facts on the right. */
+export const ChannelOpen: Story = {
+  args: {
+    file: { componentId: channel.id },
+    pane: <ChannelView name={channel.name} description={channel.description} channel={channelDetails(channel)} />,
+  },
 };
 
 /** Following a failed run, with the step's output in an inline tray. */

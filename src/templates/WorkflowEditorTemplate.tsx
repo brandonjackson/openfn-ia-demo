@@ -55,6 +55,8 @@ import ConfirmModal from "../components/ConfirmModal";
 import Modal from "../components/Modal";
 import AddComponentPanel from "../components/AddComponentPanel";
 import WorkflowHealth from "../components/workflow/WorkflowHealth";
+import ChannelView from "../components/workflow/ChannelView";
+import { channelDetails } from "../mock-data/channels";
 import ConnectSystemPicker from "../components/workflow/ConnectSystemPicker";
 import type { ConnectChoice } from "../components/workflow/ConnectSystemPicker";
 import { componentTypes } from "../component-types";
@@ -793,6 +795,25 @@ export default function WorkflowEditorTemplate({
     />
   );
 
+  // A channel, opened from the explorer's Components, shows its traffic in the code's place.
+  // A message from a run loads that run.
+  const openChannel =
+    typeof file === "object" && "componentId" in file
+      ? components.find((c) => c.id === file.componentId && c.type === "Channel")
+      : undefined;
+  const channelPane = openChannel && (
+    <ChannelView
+      key={openChannel.id}
+      name={openChannel.name}
+      description={openChannel.description}
+      channel={channelDetails(openChannel)}
+      onOpenRun={(id) => {
+        const r = orders.flatMap((o) => o.runs).find((run) => run.runId === id);
+        if (r) selectRun(r);
+      }}
+    />
+  );
+
   const layoutMenu = <LayoutMenu layout={shownLayout} onChange={changeLayout} onReset={resetLayout} />;
 
   /** From a snippet in the inspector: open the node in the code view, with that section in the panel. */
@@ -1042,7 +1063,7 @@ export default function WorkflowEditorTemplate({
             docs={docs}
             onAddDoc={onMain ? undefined : addDoc}
             onAddComponent={onMain ? undefined : () => setAddComponentOpen(true)}
-            pane={file === "health" ? healthPane : undefined}
+            pane={file === "health" ? healthPane : channelPane || undefined}
             bottomTray={panel}
             showExplorer={layout.explorer}
             showDetails={shownLayout.details}

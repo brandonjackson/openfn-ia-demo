@@ -1,22 +1,13 @@
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Eye, Globe, PenLine, Plug, Zap } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { ArrowUpRight, Globe } from "lucide-react";
 import AdaptorLogo from "./AdaptorLogo";
-import type { ChannelType } from "../page-data";
+import { channelTypeConfig } from "../channel-types";
+import type { ChannelRowType } from "../channel-types";
 import Badge from "./Badge";
-import type { BadgeTone } from "./Badge";
 import ListRow from "./ListRow";
 import StartWorkflowFromChannel from "./StartWorkflowFromChannel";
 
-/** "default" is the HTTP channel created automatically when a system gets a URL. */
-export type ChannelRowType = ChannelType | "default";
-
-const typeConfig: Record<ChannelRowType, { label: string; icon: LucideIcon; tone: BadgeTone }> = {
-  write: { label: "Write", icon: PenLine, tone: "green" },
-  read: { label: "Read", icon: Eye, tone: "gray" },
-  event: { label: "Event", icon: Zap, tone: "pink" },
-  default: { label: "Default", icon: Plug, tone: "indigo" },
-};
+export type { ChannelRowType };
 
 interface Props {
   /** Service catalog ID, used when starting a workflow from an event channel. */
@@ -35,7 +26,7 @@ interface Props {
  * channels offer to start a new workflow from them.
  */
 export default function ChannelRow({ id, name, description, channelType, autoCreated = false, system }: Props) {
-  const config = channelType ? typeConfig[channelType] : undefined;
+  const config = channelType ? channelTypeConfig[channelType] : undefined;
   const showMeta = system || channelType === "event";
 
   return (

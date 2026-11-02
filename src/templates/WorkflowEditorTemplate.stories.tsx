@@ -147,6 +147,11 @@ export const ComponentOpen: Story = {
   args: { initialView: "code", initialFile: { componentId: "planning-authority-codes" } },
 };
 
+/** A channel the workflow uses, opened from the explorer's Components group: its traffic, recent messages and message shape. */
+export const ChannelOpen: Story = {
+  args: { initialView: "code", initialFile: { componentId: "eplanning-submission-received" } },
+};
+
 /** The workflow's settings beside its YAML. */
 export const WorkflowSettings: Story = {
   args: { initialView: "code", initialFile: "workflow", sandbox: projects[0].sandboxes[1] },

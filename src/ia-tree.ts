@@ -27,6 +27,7 @@ export interface IANode {
     | "project-sandboxes"
     | "project-settings"
     | "service"
+    | "channel"
     | "user-settings"
     | "instance-settings"
     | "handbook"

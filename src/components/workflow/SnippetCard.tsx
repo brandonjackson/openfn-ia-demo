@@ -40,7 +40,7 @@ export default function SnippetCard({ snippet, onInsert }: Props) {
     >
       <div className="flex items-start justify-between gap-3 px-3 pt-2.5 pb-2">
         <div className="min-w-0">
-          <code className="font-mono text-[13px] font-medium text-gray-900">{snippet.title}</code>
+          <p className="text-[13px] font-medium text-gray-900">{snippet.title}</p>
           <p className="mt-0.5 text-xs leading-snug text-gray-500">{snippet.description}</p>
         </div>
         {insert ? (

@@ -181,8 +181,9 @@ fn(state => {
   return state;
 });
 
-// Look up the applicant's registered birth in OpenCRVS
+// Search registered births (v1 GraphQL advanced search).
 queryEvents(
+  // 1) Search parameters: the applicant's name and date of birth.
   {
     event: 'birth',
     registrationStatuses: ['REGISTERED'],
@@ -190,6 +191,7 @@ queryEvents(
     childLastName: $.application.family_name,
     childDoB: $.application.date_of_birth,
   },
+  // 2) Paging: count defaults to 10.
   { count: 5 }
 );
 
@@ -206,30 +208,37 @@ fn(state => {
   return state;
 });`;
 
-const notifyBody = `// Tell the applicant by SMS that they already have a national ID
+const notifyBody = `// Send an SMS via Twilio.
+// state.references is populated with Twilio's API response.
 sendSMS({
+  // Message body (max 1600 chars, billed per 160-char segment).
   body: \`Hi \${$.application.given_name}, you already have a national ID (\${$.matches[0].nationalId}). No new ID will be issued.\`,
+  // Your Twilio sending number, in E.164 format (e.g. +14155551212).
   from: $.configuration.fromNumber,
+  // Recipient, in E.164 format.
   to: $.application.phone,
 });`;
 
-const confirmBody = `// Send the applicant their new national ID by SMS
+const confirmBody = `// Send an SMS via Twilio.
+// state.references is populated with Twilio's API response.
 sendSMS({
+  // Message body (max 1600 chars, billed per 160-char segment).
   body: \`Hi \${$.application.given_name}, your national ID is \${$.nationalId}. Collect your card at the \${$.application.district} office.\`,
+  // Your Twilio sending number, in E.164 format (e.g. +14155551212).
   from: $.configuration.fromNumber,
+  // Recipient, in E.164 format.
   to: $.application.phone,
+});`;
+
+const createBody = `// Send a POST request with a JSON body.
+post('https://simdpgidentity-production.up.railway.app/citizens', $.application, {
+  headers: { 'X-Trace-Id': $.run.id },
 });`;
 
 const searchBody = `// Search Identity for potential duplicates
-get(
-  'https://simdpgidentity-production.up.railway.app/citizens/search',
-  state => ({
-    query: {
-      name: state.application.given_name,
-      dob: state.application.date_of_birth,
-    }
-  })
-);
+get('https://simdpgidentity-production.up.railway.app/citizens/search', {
+  query: { name: $.application.given_name, dob: $.application.date_of_birth },
+});
 
 // Compare results and set match flags for branching
 fn(state => {
@@ -308,7 +317,7 @@ export const nationalIdWorkflow: Workflow = {
       summary: "**Registers the citizen** in Identity and captures the issued ID.",
       adaptor: "http",
       adaptorPackage: "@openfn/language-http",
-      body: "// Register the new citizen and capture the issued national ID\npost('https://.../citizens', state => ({ body: state.application }));",
+      body: createBody,
       x: 490,
       y: 570,
     },

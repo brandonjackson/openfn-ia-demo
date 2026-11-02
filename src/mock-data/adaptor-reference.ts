@@ -1,5 +1,6 @@
 import type { AdaptorKind } from "./workflow";
 import { adaptorCatalog } from "./adaptor-catalog";
+import publishedSnippets from "./adaptor-snippets.json";
 
 /**
  * What the editor knows about each adaptor a step can use: its display name
@@ -19,7 +20,7 @@ export interface AdaptorInfo {
 
 export interface Snippet {
   id: string;
-  /** The operation or pattern, e.g. "get" or "each". */
+  /** What it does, e.g. "Send SMS" or "Search Registered Births". */
   title: string;
   description: string;
   code: string;
@@ -114,8 +115,17 @@ export const adaptorChoices: AdaptorKind[] = ["common", "http", "opencrvs", "twi
 /** Adaptors without snippets of their own have none. */
 const noSnippets: Record<AdaptorKind, Snippet[]> = Object.fromEntries(adaptorCatalog.map((a) => [a.id, []]));
 
+/**
+ * Snippets for every adaptor, as published in adaptors-storybook
+ * (`packages/<adaptor>/snippets.json`), keyed by adaptor id. Refresh it from
+ * there rather than editing it by hand.
+ */
+const storybookSnippets = publishedSnippets as Record<AdaptorKind, Snippet[]>;
+
 export const adaptorSnippets: Record<AdaptorKind, Snippet[]> = {
   ...noSnippets,
+  ...storybookSnippets,
+  // Common has no published snippets yet.
   common: [
     {
       id: "fn",
@@ -146,162 +156,6 @@ export const adaptorSnippets: Record<AdaptorKind, Snippet[]> = {
       title: "Skip the rest of the workflow",
       description: "Return early and flag downstream steps to skip.",
       code: `fn(state => {\n  if (!state.data.consent) {\n    console.log('Skipped: no consent');\n    return { ...state, skip: true };\n  }\n  return state;\n});`,
-    },
-  ],
-  http: [
-    {
-      id: "get",
-      title: "get",
-      description: "GET a resource and put the response body on state.data.",
-      code: `get('/api/v1/citizens', {\n  query: { district: $.data.district },\n});`,
-    },
-    {
-      id: "post",
-      title: "post",
-      description: "POST a JSON body.",
-      code: `post('/api/v1/citizens', {\n  body: $.citizen,\n  headers: { 'content-type': 'application/json' },\n});`,
-    },
-    {
-      id: "put",
-      title: "put",
-      description: "Replace a resource.",
-      code: `put('/api/v1/citizens/' + $.data.id, { body: $.citizen });`,
-    },
-    {
-      id: "request",
-      title: "request",
-      description: "Any method, with full control over the options.",
-      code: `request('PATCH', '/api/v1/citizens/123', {\n  body: { consent: true },\n  errors: { 404: false },\n});`,
-    },
-    {
-      id: "paginate",
-      title: "Paginate with a cursor",
-      description: "Follow next-page links until there are none.",
-      code: `get('/api/v1/citizens', { query: { page: 1 } });\n\nfn(state => {\n  state.citizens = [...(state.citizens ?? []), ...state.data.results];\n  return state;\n});`,
-    },
-  ],
-  opencrvs: [
-    {
-      id: "queryEvents",
-      title: "queryEvents",
-      description: "Search registered births or deaths; the results go on state.data.",
-      code: `queryEvents(\n  {\n    event: 'birth',\n    registrationStatuses: ['REGISTERED'],\n    childFirstNames: $.application.given_name,\n    childLastName: $.application.family_name,\n    childDoB: $.application.date_of_birth,\n  },\n  { count: 10 }\n);`,
-    },
-    {
-      id: "submitBirthNotification",
-      title: "submitBirthNotification",
-      description: "Create a birth event and notify it with its declaration, in one call.",
-      code: `submitBirthNotification(\n  {\n    'child.name': { firstname: $.data.given_name, surname: $.data.family_name },\n    'child.dob': $.data.date_of_birth,\n    'child.gender': $.data.gender,\n    'child.placeOfBirth': 'HEALTH_FACILITY',\n    'child.birthLocation': $.locationId,\n    'informant.relation': 'MOTHER',\n  },\n  { createdAtLocation: $.locationId }\n);`,
-    },
-    {
-      id: "createEvent",
-      title: "createEvent",
-      description: "Create a v2 event; its id is on state.data.id.",
-      code: `createEvent('birth', { createdAtLocation: $.locationId });`,
-    },
-    {
-      id: "notifyEvent",
-      title: "notifyEvent",
-      description: "Send declaration data for an event you've created.",
-      code: `notifyEvent($.data.id, {\n  'child.name': { firstname: $.data.given_name, surname: $.data.family_name },\n  'child.dob': $.data.date_of_birth,\n}, { createdAtLocation: $.locationId });`,
-    },
-    {
-      id: "getLocations",
-      title: "getLocations",
-      description: "List offices and health facilities, e.g. to pick createdAtLocation.",
-      code: `getLocations();\n\nfn(state => {\n  state.locationId = state.data.find(l => l.name === $.application.district)?.id;\n  return state;\n});`,
-    },
-  ],
-  twilio: [
-    {
-      id: "sendSMS",
-      title: "sendSMS",
-      description: "Send an SMS; Twilio's response goes on state.data.",
-      code: `sendSMS({\n  body: \`Hi \${$.application.given_name}, your application has been received.\`,\n  from: $.configuration.fromNumber,\n  to: $.application.phone,\n});`,
-    },
-    {
-      id: "each",
-      title: "SMS everyone in a list",
-      description: "Send the same message to every recipient on state.",
-      code: `each('$.recipients[*]', sendSMS({\n  body: 'Your local registration office is closed on Friday.',\n  from: $.configuration.fromNumber,\n  to: $.data.phone,\n}));`,
-    },
-  ],
-  postgresql: [
-    {
-      id: "sql",
-      title: "sql",
-      description: "Run a SQL statement.",
-      code: `sql('SELECT * FROM citizens WHERE district = $1', {\n  values: [$.citizen.district],\n});`,
-    },
-    {
-      id: "insert",
-      title: "insert",
-      description: "Insert one row.",
-      code: `insert('citizens', {\n  name: $.citizen.name,\n  district: $.citizen.district,\n  submitted_at: $.citizen.submitted_at,\n});`,
-    },
-    {
-      id: "upsert",
-      title: "upsert",
-      description: "Insert, or update when the key already exists.",
-      code: `upsert('citizens', 'external_id', {\n  external_id: $.data._id,\n  name: $.citizen.name,\n});`,
-    },
-    {
-      id: "insertMany",
-      title: "insertMany",
-      description: "Insert an array of rows in one statement.",
-      code: `insertMany('submissions', state => state.rows);`,
-    },
-  ],
-  dhis2: [
-    {
-      id: "create",
-      title: "create",
-      description: "Create a resource, e.g. a tracked entity or event.",
-      code: `create('trackedEntityInstances', {\n  orgUnit: $.data.orgUnit,\n  trackedEntityType: 'nEenWmSyUEp',\n  attributes: [{ attribute: 'w75KJ2mc4zz', value: $.data.given_name }],\n});`,
-    },
-    {
-      id: "update",
-      title: "update",
-      description: "Update a resource by id.",
-      code: `update('events', $.data.eventId, { status: 'COMPLETED' });`,
-    },
-    {
-      id: "get",
-      title: "get",
-      description: "Fetch resources with filters.",
-      code: `get('dataValueSets', {\n  dataSet: 'pBOMPrpg1QX',\n  orgUnit: 'DiszpKrYNg8',\n  period: '202610',\n});`,
-    },
-    {
-      id: "upsert",
-      title: "upsert",
-      description: "Create or update by matching on an attribute.",
-      code: `upsert('trackedEntityInstances', {\n  ou: $.data.orgUnit,\n  filter: ['w75KJ2mc4zz:Eq:' + $.data.given_name],\n}, { attributes: [] });`,
-    },
-  ],
-  salesforce: [
-    {
-      id: "query",
-      title: "query",
-      description: "Run a SOQL query.",
-      code: `query('SELECT Id, Name FROM Contact WHERE Email = \\'' + $.data.email + '\\'');`,
-    },
-    {
-      id: "create",
-      title: "create",
-      description: "Create a record.",
-      code: `create('Contact', {\n  FirstName: $.data.given_name,\n  LastName: $.data.family_name,\n  Email: $.data.email,\n});`,
-    },
-    {
-      id: "upsert",
-      title: "upsert",
-      description: "Upsert on an external id field.",
-      code: `upsert('Contact', 'External_Id__c', {\n  External_Id__c: $.data._id,\n  Email: $.data.email,\n});`,
-    },
-    {
-      id: "bulk",
-      title: "bulk",
-      description: "Load many records through the Bulk API.",
-      code: `bulk('Contact', 'insert', state => state.contacts, {\n  failOnError: true,\n});`,
     },
   ],
 };

@@ -25,11 +25,11 @@ const written: Record<string, { body: string; points: string[] }> = {
     ],
   },
   notify: {
-    body: "// Tell the applicant by SMS that they already have a national ID",
+    body: "you already have a national ID (",
     points: ["Texts the applicant through Twilio with the national ID they already hold, so no new one is issued."],
   },
   create: {
-    body: "post('https://.../citizens', state => ({ body: state.application }))",
+    body: "post('https://simdpgidentity-production.up.railway.app/citizens', $.application",
     points: ["Posts the application to Identity to register a new citizen.", "Identity's response, with the issued national ID, becomes the next step's input."],
   },
   queue: {
@@ -37,7 +37,7 @@ const written: Record<string, { body: string; points: string[] }> = {
     points: ["Passes state through unchanged, so the application is kept and can be retried once Identity is reachable again."],
   },
   confirm: {
-    body: "// Send the applicant their new national ID by SMS",
+    body: "your national ID is",
     points: ["Texts the applicant through Twilio with their new national ID and the district office to collect the card from."],
   },
 };

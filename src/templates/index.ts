@@ -13,6 +13,7 @@ import ProjectCreateTemplate from "./ProjectCreateTemplate";
 import ProjectSandboxesTemplate from "./ProjectSandboxesTemplate";
 import ProjectSettingsTemplate from "./ProjectSettingsTemplate";
 import ServiceTemplate from "./ServiceTemplate";
+import ChannelTemplate from "./ChannelTemplate";
 import DashboardTemplate from "./DashboardTemplate";
 import StatusTemplate from "./StatusTemplate";
 import InsightsTemplate from "./InsightsTemplate";
@@ -43,6 +44,7 @@ export const templateMap: Record<string, React.FC<any>> = {
   "project-sandboxes": ProjectSandboxesTemplate,
   "project-settings": ProjectSettingsTemplate,
   service: ServiceTemplate,
+  channel: ChannelTemplate,
   dashboard: DashboardTemplate,
   status: StatusTemplate,
   insights: InsightsTemplate,

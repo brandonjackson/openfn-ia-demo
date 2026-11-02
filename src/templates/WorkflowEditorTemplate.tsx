@@ -55,7 +55,7 @@ import ConfirmModal from "../components/ConfirmModal";
 import Modal from "../components/Modal";
 import AddComponentPanel from "../components/AddComponentPanel";
 import WorkflowHealth from "../components/workflow/WorkflowHealth";
-import ChannelView from "../components/workflow/ChannelView";
+import ChannelView from "../components/ChannelView";
 import { channelDetails } from "../mock-data/channels";
 import ConnectSystemPicker from "../components/workflow/ConnectSystemPicker";
 import type { ConnectChoice } from "../components/workflow/ConnectSystemPicker";

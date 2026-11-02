@@ -1,35 +1,39 @@
 import { useState } from "react";
 import { KeyRound } from "lucide-react";
-import type { ChannelDetails, ChannelMessage } from "../../mock-data/channels";
-import { channelTypeConfig } from "../../channel-types";
-import Badge from "../Badge";
-import Card from "../Card";
-import StatTile from "../StatTile";
-import BarChart from "../BarChart";
-import DataTable from "../DataTable";
-import CodeBlock from "../CodeBlock";
-import EntityPill from "../EntityPill";
-import SectionHeading from "../SectionHeading";
-import TextLink from "../TextLink";
+import type { ChannelDetails, ChannelMessage } from "../mock-data/channels";
+import { channelTypeConfig } from "../channel-types";
+import Badge from "./Badge";
+import Card from "./Card";
+import StatTile from "./StatTile";
+import BarChart from "./BarChart";
+import DataTable from "./DataTable";
+import CodeBlock from "./CodeBlock";
+import EntityPill from "./EntityPill";
+import SectionHeading from "./SectionHeading";
+import TextLink from "./TextLink";
 
 /**
- * A channel the workflow uses, opened from the code view's explorer and shown
- * in the main pane in the code's place: the system it belongs to, the
- * address it listens on (event) or calls (read, write), its traffic over the
- * last week, its recent messages, and the shape of a message. Picking a
- * message shows its body; one that started or came from a run links to it.
- * It lays itself out by its own width, so it fits beside the explorer and
- * details column.
+ * A channel: the system it belongs to, the address it listens on (event) or
+ * calls (read, write), its traffic over the last week, its recent messages,
+ * and the shape of a message. Picking a message shows its body; one that
+ * started or came from a run links to it. The same view in two places: as
+ * the project's page for the channel ("page", under the page's own header),
+ * and in the workflow editor, opened from the code view's explorer in the
+ * code's place ("pane", with its own heading and scroll). It lays itself out
+ * by its own width, so it fits beside the explorer and details column.
  */
 export default function ChannelView({
   name,
   description,
   channel,
   onOpenRun,
+  variant = "pane",
 }: {
+  /** Shown as the heading in a pane; a page has its own header. */
   name: string;
   description: string;
   channel: ChannelDetails;
+  variant?: "pane" | "page";
   /** Loads the run a message started or came from. */
   onOpenRun?: (runId: string) => void;
 }) {
@@ -41,14 +45,15 @@ export default function ChannelView({
   const selected = channel.messages.find((m) => m.id === selectedId);
   const direction = channel.channelType === "event" ? "received" : "sent";
 
+  const pane = variant === "pane";
   return (
-    <div className="@container h-full overflow-y-auto bg-gray-50">
-      <div className="mx-auto max-w-6xl space-y-6 px-6 pb-10 pt-4">
-        <SectionHeading title={name} description={description} />
+    <div className={pane ? "@container h-full overflow-y-auto bg-gray-50" : "@container"}>
+      <div className={pane ? "mx-auto max-w-6xl space-y-6 px-6 pb-10 pt-4" : "space-y-6"}>
+        {pane && <SectionHeading title={name} description={description} />}
 
         <Card>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge label={type.label} tone={type.tone} icon={type.icon} />
+            {pane && <Badge label={type.label} tone={type.tone} icon={type.icon} />}
             <EntityPill name={channel.system.name} adaptor={channel.system.adaptor} size="sm" />
           </div>
           <div className="mt-4 flex min-w-0 items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 font-mono text-xs">

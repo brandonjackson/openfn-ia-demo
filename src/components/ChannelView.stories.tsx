@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ChannelView from "./ChannelView";
-import { channelDetails } from "../../mock-data/channels";
-import { projects } from "../../mock-data/projects";
+import { channelDetails } from "../mock-data/channels";
+import { projects } from "../mock-data/projects";
 
 const channels = projects.flatMap((p) => p.components).filter((c) => c.type === "Channel");
 const byId = (id: string) => channels.find((c) => c.id === id)!;
 
 const meta: Meta<typeof ChannelView> = {
-  title: "Workflow/ChannelView",
+  title: "Components/ChannelView",
   component: ChannelView,
   parameters: { layout: "fullscreen" },
   decorators: [

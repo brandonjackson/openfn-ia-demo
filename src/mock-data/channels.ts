@@ -34,6 +34,8 @@ export interface ChannelDetails {
   days: { label: string; tick: string; messages: number; errors: number }[];
   medianMs: number;
   messages: ChannelMessage[];
+  /** The workflow whose runs the messages started or came from, for loading a run from a message. */
+  workflowId?: string;
 }
 
 const json = (value: unknown) => JSON.stringify(value, null, 2);
@@ -71,6 +73,7 @@ const details: Record<string, ChannelDetails> = {
     }),
     days: days([38, 42, 35, 12, 9, 47, 31], [0, 1, 0, 0, 0, 2, 1]),
     medianMs: 84,
+    workflowId: "apply-national-id",
     messages: applications.map((a, i) => ({
       id: `msg-${a.ref}`,
       at: times[i],
@@ -102,6 +105,7 @@ const details: Record<string, ChannelDetails> = {
     }),
     days: days([36, 40, 35, 12, 9, 44, 29], [1, 0, 0, 0, 0, 3, 0]),
     medianMs: 412,
+    workflowId: "apply-national-id",
     messages: applications.map((a, i) => ({
       id: `case-${a.ref}`,
       at: times[i],

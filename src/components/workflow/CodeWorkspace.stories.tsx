@@ -10,7 +10,7 @@ import StatusPill from "./StatusPill";
 import { defaultWorkflowSettings, nationalIdWorkflow } from "../../mock-data/workflow";
 import { dataclips, failedRun, workflowHealth, workOrders } from "../../mock-data/runs";
 import WorkflowHealth from "./WorkflowHealth";
-import ChannelView from "./ChannelView";
+import ChannelView from "../ChannelView";
 import { channelDetails } from "../../mock-data/channels";
 import { projects } from "../../mock-data/projects";
 

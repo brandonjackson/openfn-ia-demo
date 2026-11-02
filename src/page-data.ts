@@ -1,6 +1,7 @@
 import type { BadgeTone } from "./components/Badge";
 import type { FeatureIntroItem } from "./components/FeatureIntro";
 import type { RunStatus } from "./mock-data/workflow";
+import type { ChannelDetails } from "./mock-data/channels";
 
 /* ------------------------------------------------------------------ */
 /*  Shared primitive types                                             */
@@ -368,6 +369,15 @@ export interface ServicePageData {
   api: ServiceApiSpec;
 }
 
+/** A channel's page in its project, opened from the project's Components. */
+export interface ChannelPageData {
+  pageType: "channel";
+  projectId: string;
+  projectName: string;
+  component: ProjectComponentItem;
+  channel: ChannelDetails;
+}
+
 /** Kinds of building block a project is made from. */
 export type ProjectComponentType =
   | "Workflow"
@@ -650,6 +660,7 @@ export type PageData =
   | ProjectSandboxesPageData
   | ProjectSettingsPageData
   | ServicePageData
+  | ChannelPageData
   | UserSettingsPageData
   | InstanceSettingsPageData
   | HandbookPageData;

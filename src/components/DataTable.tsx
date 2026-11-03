@@ -31,7 +31,7 @@ export default function DataTable<T>({
   selectedKey,
 }: Props<T>) {
   return (
-    <div data-ui="table" className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+    <div data-ui="table" className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200 bg-gray-50">

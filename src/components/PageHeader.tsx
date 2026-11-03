@@ -19,13 +19,14 @@ interface Props {
 
 /**
  * Top of every page: breadcrumbs, the page title with an optional icon and
- * badges, a description, and page-level actions on the right.
+ * badges, a description, and page-level actions on the right (below it on
+ * small screens, so the title and description keep the full width).
  */
 export default function PageHeader({ breadcrumbs, title, description, icon: Icon, logo, badges, actions }: Props) {
   return (
     <div data-ui="page-header">
       {breadcrumbs && <Breadcrumbs ancestors={breadcrumbs.ancestors} current={breadcrumbs.current} />}
-      <div className={`flex items-start justify-between gap-4 ${breadcrumbs ? "mt-6" : ""}`}>
+      <div className={`flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4 ${breadcrumbs ? "mt-6" : ""}`}>
         <div className="flex min-w-0 items-start gap-4">
           {logo}
           {!logo && Icon && (

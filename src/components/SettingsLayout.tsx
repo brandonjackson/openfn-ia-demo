@@ -15,7 +15,8 @@ interface Props {
 
 /**
  * Page frame shared by every settings page: breadcrumbs, title,
- * section menu on the left and the active section on the right.
+ * section menu on the left and the active section on the right. On small
+ * screens the menu sits above the section instead.
  */
 export default function SettingsLayout({
   breadcrumbs,
@@ -30,7 +31,7 @@ export default function SettingsLayout({
     <div>
       <PageHeader breadcrumbs={breadcrumbs} title={title} description={description} />
 
-      <div className="mt-8 flex gap-8">
+      <div className="mt-8 flex flex-col gap-6 md:flex-row md:gap-8">
         <SettingsNav items={navItems} activeId={activeId} onSelect={onSelect} />
         <div className="flex-1 min-w-0">{children}</div>
       </div>

@@ -78,9 +78,10 @@ export default function ListRow({
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 min-w-0">
+        {/* On small screens badges drop below a long title rather than squeezing it. */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-2 gap-y-1 min-w-0">
           <h3
-            className={`font-medium text-gray-900 text-sm truncate ${monoTitle ? "font-mono" : ""} ${hoverText}`}
+            className={`max-w-full font-medium text-gray-900 text-sm truncate ${monoTitle ? "font-mono" : ""} ${hoverText}`}
             title={title}
           >
             {title}

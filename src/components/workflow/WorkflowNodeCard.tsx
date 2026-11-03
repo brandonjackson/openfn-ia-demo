@@ -6,6 +6,8 @@ import DropdownMenu from "../DropdownMenu";
 import type { DropdownMenuItem } from "../DropdownMenu";
 import EntityPill from "../EntityPill";
 import { adaptorInfo } from "../../mock-data/adaptor-reference";
+import { connectedSystems, connectionOf } from "../../mock-data/connected-systems";
+import ConnectionMethodBadge from "../ConnectionMethodBadge";
 import { TriggerIcon } from "./AdaptorIcon";
 import StatusPill from "./StatusPill";
 import RunCountBadge from "./RunCountBadge";
@@ -20,8 +22,9 @@ export const NODE_HEIGHT = 94;
 export type NodeAction = "run" | "edit" | "improve" | "delete";
 
 /**
- * A node on the workflow canvas: a card with the step's adaptor (or the
- * trigger's kind) as a pill in its head, the step's name in bold, and a ⋮ menu of actions: run from here, edit
+ * A node on the workflow canvas: a card with the step's connected system (or
+ * its adaptor, or the trigger's kind) as a pill in its head, with a small
+ * badge saying whether the system is reached directly or over X-Road, the step's name in bold, and a ⋮ menu of actions: run from here, edit
  * (which opens the step in code), improve (which opens the assistant about this
  * step) and delete. Clicking the card selects it; selecting toggles a indigo
  * ring. Double-clicking it opens it (`onOpen`).
@@ -73,6 +76,8 @@ export default function WorkflowNodeCard({
   onAddAfter?: (node: WorkflowNode) => void;
 }) {
   const job = node.type === "job" ? node : undefined;
+  // A step on a connected system is named by the system; the badge says how it's reached.
+  const system = job?.system ? connectedSystems.find((s) => s.id === job.system) : undefined;
 
   const ringClasses = selected
     ? "ring-2 ring-indigo-500 ring-offset-2 ring-offset-gray-50"
@@ -109,7 +114,13 @@ export default function WorkflowNodeCard({
       <div className="pointer-events-none relative flex h-full flex-col p-3">
         <div className="flex h-7 items-center gap-2">
           {node.type === "job" ? (
-            <EntityPill name={adaptorInfo[node.adaptor].name} adaptor={node.adaptor} size="sm" />
+            <span className="flex min-w-0 flex-1 items-center gap-1">
+              {/* The pill gives way (truncating its name) before the badge or the run count do. */}
+              <span className="flex min-w-0">
+                <EntityPill name={system?.name ?? adaptorInfo[node.adaptor].name} adaptor={node.adaptor} size="sm" />
+              </span>
+              {system && <ConnectionMethodBadge method={connectionOf(system).method} compact />}
+            </span>
           ) : (
             <EntityPill
               name={triggerTypes[node.triggerType].label}
@@ -117,7 +128,7 @@ export default function WorkflowNodeCard({
               icon={<TriggerIcon triggerType={node.triggerType} size="xs" />}
             />
           )}
-          <span className="pointer-events-auto ml-auto flex items-center gap-1">
+          <span className="pointer-events-auto ml-auto flex flex-shrink-0 items-center gap-1">
             {step ? (
               <StatusPill status={step.status} variant="icon" detail={step.duration || undefined} />
             ) : activity ? (

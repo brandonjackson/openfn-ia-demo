@@ -5,12 +5,18 @@ import FormField from "../FormField";
 import { Select, TextInput } from "../FormControls";
 import Button from "../Button";
 import EntityPill from "../EntityPill";
+import ConnectionMethodBadge from "../ConnectionMethodBadge";
+import { connectedSystems, connectionOf } from "../../mock-data/connected-systems";
 
 export interface StepChanges {
   label?: string;
   adaptor?: AdaptorKind;
   credentialId?: string;
+  /** The connected system, by id; picking one also picks its adaptor. */
+  system?: string;
 }
+
+const NO_SYSTEM = "No connected system";
 
 interface Props {
   step: JobNode;
@@ -24,8 +30,11 @@ interface Props {
 }
 
 /**
- * The step's config beside its code: name, adaptor and credential. The
- * adaptor's snippets live in their own view next to this one.
+ * The step's config beside its code: name, the connected system it talks to,
+ * adaptor and credential. A step just picks a system; whether that system is
+ * reached directly or over X-Road shows only as a small badge, and an X-Road
+ * system needs no credential. The adaptor's snippets live in their own view
+ * next to this one.
  */
 export default function StepConfigPanel({
   step,
@@ -41,6 +50,8 @@ export default function StepConfigPanel({
   const credentials = credentialsFor(step.adaptor);
   const credentialOptions = ["No credential", ...credentials.map((c) => c.name)];
   const credentialValue = credentials.find((c) => c.id === credentialId)?.name ?? "No credential";
+  const system = step.system ? connectedSystems.find((s) => s.id === step.system) : undefined;
+  const method = system ? connectionOf(system).method : undefined;
 
   return (
     <div className="flex h-full flex-col">
@@ -60,6 +71,31 @@ export default function StepConfigPanel({
           />
         </FormField>
 
+        <FormField
+          label="System"
+          hint={
+            method === "xroad"
+              ? "Reached over X-Road: the route and headers come from your organisation's settings."
+              : method === "direct"
+                ? "Reached directly, with a credential."
+                : "Pick a connected system, or leave it empty for code that only works on state."
+          }
+        >
+          <div className="flex items-center gap-2">
+            <Select
+              className="w-full"
+              options={[NO_SYSTEM, ...connectedSystems.map((s) => s.name)]}
+              value={system?.name ?? NO_SYSTEM}
+              disabled={readOnly}
+              onChange={(e) => {
+                const picked = connectedSystems.find((s) => s.name === e.target.value);
+                onChange?.(picked ? { system: picked.id, adaptor: picked.adaptor } : { system: undefined });
+              }}
+            />
+            {method && <ConnectionMethodBadge method={method} />}
+          </div>
+        </FormField>
+
         <FormField label="Adaptor" hint={`${info.package}@${info.version}`}>
           <Select
             className="w-full"
@@ -72,8 +108,19 @@ export default function StepConfigPanel({
           />
         </FormField>
 
-        <FormField label="Credential" hint={info.needsCredential ? undefined : "This adaptor doesn't need one."}>
-          {info.needsCredential ? (
+        <FormField
+          label="Credential"
+          hint={
+            method === "xroad"
+              ? "Not needed: your Security Server adds your organisation's identity."
+              : info.needsCredential
+                ? undefined
+                : "This adaptor doesn't need one."
+          }
+        >
+          {method === "xroad" ? (
+            <Select className="w-full" options={["Via X-Road"]} value="Via X-Road" disabled />
+          ) : info.needsCredential ? (
             <Select
               className="w-full"
               options={credentialOptions}

@@ -4,10 +4,12 @@ import {
   buildStarterWorkflow,
   nationalIdWorkflow,
   nationalIdWorkflowAt,
+  surveillanceVersions,
+  workflowGraphs,
   workflowVersions,
   type Workflow,
 } from "../mock-data/workflow";
-import { dataclips, workOrders } from "../mock-data/runs";
+import { dataclips, runHistories, workOrders } from "../mock-data/runs";
 import { projects, serviceForWorkflow } from "../mock-data/projects";
 import { serviceCatalogData } from "../mock-data/service-catalog";
 import { useSandbox } from "../sandbox-state";
@@ -30,12 +32,14 @@ function resolveNewWorkflow(params: URLSearchParams): Workflow {
 
 /**
  * Resolve a workflow to open from its id, at a version ("latest" by default).
- * There is a single richly-modelled workflow ({@link nationalIdWorkflow});
- * any other workflow component in the prototype reuses its graph and history
- * but is relabelled with the component's name and owning project so the
- * editor reads correctly.
+ * A few workflows have a graph and history of their own ({@link workflowGraphs});
+ * any other workflow component in the prototype reuses the national ID
+ * workflow's graph and history ({@link nationalIdWorkflow}) but is
+ * relabelled with the component's name and owning project so the editor
+ * reads correctly.
  */
 function resolveWorkflow(workflowId?: string, version = "latest"): Workflow {
+  if (workflowId && workflowGraphs[workflowId]) return workflowGraphs[workflowId];
   const graph = nationalIdWorkflowAt(version);
   if (!workflowId || workflowId === nationalIdWorkflow.id) {
     return graph;
@@ -78,6 +82,9 @@ export default function WorkflowEditorPage() {
   const [sandbox, setSandbox] = useSandbox(project?.id ?? workflow.project);
   // "See details" opens the service listing that documents this workflow.
   const service = isNew ? undefined : serviceForWorkflow(workflow.id);
+  // Workflows with a graph of their own have their own run history too.
+  const history = workflowId ? runHistories[workflowId] : undefined;
+  const ownGraph = !!(workflowId && workflowGraphs[workflowId]);
 
   const runId = searchParams.get("run") ?? undefined;
   const setRunId = (id: string | undefined) =>
@@ -95,8 +102,8 @@ export default function WorkflowEditorPage() {
     <div className="h-screen">
       <WorkflowEditorTemplate
         workflow={workflow}
-        workOrders={isNew ? [] : workOrders}
-        dataclips={isNew ? [] : dataclips}
+        workOrders={isNew ? [] : (history?.workOrders ?? workOrders)}
+        dataclips={isNew ? [] : (history?.dataclips ?? dataclips)}
         graphForVersion={isNew ? undefined : (version) => resolveWorkflow(workflowId, version)}
         runId={runId}
         onRunChange={setRunId}
@@ -117,11 +124,11 @@ export default function WorkflowEditorPage() {
         sandbox={sandbox}
         onSelectSandbox={setSandbox}
         onViewAllSandboxes={project ? () => navigate(`/projects/${project.id}/sandboxes`) : undefined}
-        versions={isNew ? [] : workflowVersions}
+        versions={isNew ? [] : ownGraph ? surveillanceVersions : workflowVersions}
         url={service?.url}
         service={service?.service}
         onSeeDetails={service ? () => navigate(service.path) : undefined}
-        assistantConversations={isNew ? [] : assistantConversations}
+        assistantConversations={isNew || ownGraph ? [] : assistantConversations}
       />
     </div>
   );

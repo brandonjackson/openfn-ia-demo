@@ -63,3 +63,14 @@ export const Draft: Story = {
 
 /** A lookup service other workflows and agents call for answers. */
 export const Lookup: Story = { args: storyArgs(projects[2], 1) };
+
+/** A workflow service published to X-Road: other members call it, and its usage and catalogue record show. */
+export const OnXRoad: Story = { args: storyArgs(projects.find((p) => p.id === "case-surveillance")!, 0) };
+
+/** Not on X-Road or MCP yet, so both cards offer to turn it on. */
+export const NotOnXRoadYet: Story = {
+  args: (() => {
+    const args = storyArgs(projects.find((p) => p.id === "case-surveillance")!, 0);
+    return { ...args, data: { ...args.data, service: { ...args.data.service, xroad: undefined, mcpEnabled: false } } };
+  })(),
+};

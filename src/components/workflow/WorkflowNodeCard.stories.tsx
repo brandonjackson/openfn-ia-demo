@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowNodeCard from "./WorkflowNodeCard";
-import { nationalIdWorkflow } from "../../mock-data/workflow";
+import { nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "../../mock-data/workflow";
 import { failedRun, runActivity, sampleRun, workOrders } from "../../mock-data/runs";
 
 const trigger = nationalIdWorkflow.nodes.find((n) => n.type === "trigger")!;
@@ -71,3 +71,9 @@ export const Gallery: Story = {
     </div>
   ),
 };
+
+/** Workflow A's step on OpenMRS, reached over X-Road. */
+export const OnXRoadSystem: Story = { args: { node: registerCaseWorkflow.nodes.find((n) => n.id === "openmrs-patient")! } };
+
+/** Workflow B's step on DHIS2, reached directly. It looks the same but for the badge. */
+export const OnDirectSystem: Story = { args: { node: weeklyCaseReportWorkflow.nodes.find((n) => n.id === "send-dhis2")! } };

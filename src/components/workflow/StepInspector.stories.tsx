@@ -1,8 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import StepInspector from "./StepInspector";
-import { nationalIdWorkflow } from "../../mock-data/workflow";
+import { nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "../../mock-data/workflow";
+import { withRouter } from "../../stories/decorators";
 import type { JobNode } from "../../mock-data/workflow";
-import { dataclips, failedRun, failureReasons, runActivity, sampleRun, workOrders } from "../../mock-data/runs";
+import {
+  accessNotGrantedRun,
+  dataclips,
+  failedRun,
+  failureReasons,
+  registerCaseDataclips,
+  registerCaseWorkOrders,
+  runActivity,
+  sampleRun,
+  workOrders,
+} from "../../mock-data/runs";
 
 const job = (id: string) => nationalIdWorkflow.nodes.find((n): n is JobNode => n.type === "job" && n.id === id)!;
 const trigger = nationalIdWorkflow.nodes.find((n) => n.type === "trigger")!;
@@ -110,4 +121,36 @@ export const Trigger: Story = {
 /** The trigger with a run loaded: the run's input and its own log lines. */
 export const TriggerWithRun: Story = {
   args: { ...Trigger.args, run: sampleRun },
+};
+
+const caseJob = (id: string) =>
+  [...registerCaseWorkflow.nodes, ...weeklyCaseReportWorkflow.nodes].find((n): n is JobNode => n.type === "job" && n.id === id)!;
+
+/** A step on a system reached over X-Road: the system with its X-Road badge, and no credential to pick. */
+export const OnXRoadSystem: Story = {
+  decorators: [withRouter],
+  args: { node: caseJob("openmrs-patient"), dataclips: registerCaseDataclips, latestVersion: "v1" },
+};
+
+/** The same kind of step on a system reached directly: only the badge differs. */
+export const OnDirectSystem: Story = {
+  decorators: [withRouter],
+  args: { node: caseJob("send-dhis2"), latestVersion: "v1" },
+};
+
+/** The trigger in a run that came in over X-Road: who called, the message ID and the official behind it. */
+export const TriggerCalledOverXRoad: Story = {
+  args: {
+    ...Trigger.args,
+    node: registerCaseWorkflow.nodes.find((n) => n.type === "trigger")!,
+    run: registerCaseWorkOrders[0].runs[0],
+    dataclips: registerCaseDataclips,
+    latestVersion: "v1",
+  },
+};
+
+/** The provider hadn't granted access yet, so the call was refused. */
+export const AccessNotGranted: Story = {
+  decorators: [withRouter],
+  args: { node: caseJob("verify-nid"), run: accessNotGrantedRun, dataclips: registerCaseDataclips, latestVersion: "v1" },
 };

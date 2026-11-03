@@ -8,6 +8,7 @@
 
 import { Clock, Globe, Radio } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { XRoadCall } from "./xroad";
 
 /**
  * The adaptor a job uses, by package id (e.g. "http" or "dhis2"): any adaptor
@@ -66,6 +67,12 @@ export interface JobNode {
   adaptorPackage: string;
   /** Source body shown in the code editor when this job is selected. */
   body: string;
+  /**
+   * The connected system the step talks to, by id. The step only ever
+   * names the system; whether it's reached directly or over X-Road is the
+   * system's business, shown as a small badge.
+   */
+  system?: string;
   x: number;
   y: number;
 }
@@ -156,6 +163,8 @@ export interface RunDetails {
   inputId: string;
   steps: RunStep[];
   logs: LogLine[];
+  /** Who called, for a run started by a call over X-Road. */
+  xroad?: XRoadCall;
 }
 
 /**
@@ -413,6 +422,206 @@ export function happyPath(workflow: Workflow, fromJobId?: string): string[] {
   }
   return path;
 }
+
+// ---------------------------------------------------------------------------
+// Case-based surveillance: two workflows that look the same in the editor,
+// though one reaches its systems over X-Road and the other directly.
+// ---------------------------------------------------------------------------
+
+const checkCallerBody = `// Who called us over X-Road, as OpenFn read it from the
+// X-Road headers. Read-only: the workflow can't change it.
+fn(state => {
+  const { client, userId } = state.xroad ?? {};
+  const allowed = ['NRH', 'NDHO'];
+
+  if (client && !allowed.includes(client.memberCode)) {
+    throw new Error(\`\${client.name} may not report cases\`);
+  }
+
+  state.report = state.data;
+  state.reportedBy = { member: client?.name ?? 'Direct webhook', userId };
+  return state;
+});`;
+
+const verifyIdBody = `// Ask the Ministry of Interior's "Verify a national ID" service.
+// It's a workflow service of theirs, reached over X-Road: the
+// system adds the route and headers, so this is a plain POST.
+post('/verify', {
+  nationalId: $.report.patient.nationalId,
+  name: \`\${$.report.patient.givenName} \${$.report.patient.familyName}\`,
+  dateOfBirth: $.report.patient.dateOfBirth,
+});
+
+fn(state => {
+  if (!state.data.match) throw new Error('National ID does not match the patient');
+  return state;
+});`;
+
+const openmrsPatientBody = `// Find the patient in the hospital's OpenMRS by national ID,
+// and register them if they aren't there yet.
+searchPatient({ identifier: $.report.patient.nationalId });
+
+fn(state => {
+  const [patient] = state.data.results ?? [];
+  state.patientUuid = patient?.uuid;
+  return state;
+});
+
+fnIf(!$.patientUuid, create('patient', {
+  identifiers: [{ identifier: $.report.patient.nationalId, identifierType: 'National ID' }],
+  person: {
+    gender: $.report.patient.sex,
+    birthdate: $.report.patient.dateOfBirth,
+    names: [{ givenName: $.report.patient.givenName, familyName: $.report.patient.familyName }],
+  },
+}));`;
+
+const countCasesBody = `// Count last week's suspected cases by district and disease.
+collections.get('suspected-cases', { createdAfter: 'now - 7d' });
+
+fn(state => {
+  const counts = {};
+  for (const { value } of state.data) {
+    const key = \`\${value.district}|\${value.disease}\`;
+    counts[key] = (counts[key] ?? 0) + 1;
+  }
+  state.counts = counts;
+  return state;
+});`;
+
+const sendDhis2Body = `// Send the week's totals to the national DHIS2 as data values.
+create('dataValueSets', {
+  dataSet: 'IDSR-weekly',
+  period: $.period,
+  dataValues: Object.entries($.counts).map(([key, value]) => {
+    const [orgUnit, dataElement] = key.split('|');
+    return { orgUnit, dataElement, value };
+  }),
+});`;
+
+/**
+ * Workflow A: facilities report suspected cases to it over X-Road, and it
+ * calls OpenMRS and the Ministry of Interior's own workflow service over
+ * X-Road too. The step that verifies the national ID calls another
+ * organisation's published workflow: services built from workflows, used by
+ * workflows, across organisations.
+ */
+export const registerCaseWorkflow: Workflow = {
+  id: "register-case-workflow",
+  name: "register-case-workflow",
+  project: "Case-based surveillance",
+  version: "latest",
+  nodes: [
+    {
+      id: "trigger",
+      type: "trigger",
+      triggerType: "webhook",
+      label: "Webhook trigger",
+      subtitle: "On each case reported",
+      summary: "**Starts a run** for each suspected case a facility reports.",
+      x: 490,
+      y: 70,
+    },
+    {
+      id: "check-caller",
+      type: "job",
+      label: "Check the caller may report cases",
+      summary: "**Checks who called**, from the X-Road identity on state.",
+      adaptor: "common",
+      adaptorPackage: "@openfn/language-common",
+      body: checkCallerBody,
+      x: 490,
+      y: 230,
+    },
+    {
+      id: "verify-nid",
+      type: "job",
+      label: "Verify the patient's national ID",
+      summary: "**Verifies the national ID** with the Ministry of Interior.",
+      adaptor: "http",
+      adaptorPackage: "@openfn/language-http",
+      body: verifyIdBody,
+      system: "national-id",
+      x: 490,
+      y: 390,
+    },
+    {
+      id: "openmrs-patient",
+      type: "job",
+      label: "Find or register the patient in OpenMRS",
+      summary: "**Finds the patient** in the hospital's OpenMRS, or registers them.",
+      adaptor: "openmrs",
+      adaptorPackage: "@openfn/language-openmrs",
+      body: openmrsPatientBody,
+      system: "openmrs",
+      x: 490,
+      y: 550,
+    },
+  ],
+  edges: [
+    { id: "e-trigger-check-caller", source: "trigger", target: "check-caller", condition: "always" },
+    { id: "e-check-caller-verify-nid", source: "check-caller", target: "verify-nid", condition: "on_success" },
+    { id: "e-verify-nid-openmrs-patient", source: "verify-nid", target: "openmrs-patient", condition: "on_success" },
+  ],
+};
+
+/** Workflow B: sends weekly counts to DHIS2, reached directly with a credential. */
+export const weeklyCaseReportWorkflow: Workflow = {
+  id: "weekly-case-report-workflow",
+  name: "weekly-case-report-workflow",
+  project: "Case-based surveillance",
+  version: "latest",
+  nodes: [
+    {
+      id: "trigger",
+      type: "trigger",
+      triggerType: "cron",
+      label: "Cron trigger",
+      subtitle: "Every Monday at 06:00",
+      summary: "**Starts a run** every Monday at 06:00.",
+      x: 490,
+      y: 70,
+    },
+    {
+      id: "count-cases",
+      type: "job",
+      label: "Count last week's cases by district",
+      summary: "**Counts suspected cases** by district and disease.",
+      adaptor: "common",
+      adaptorPackage: "@openfn/language-common",
+      body: countCasesBody,
+      x: 490,
+      y: 230,
+    },
+    {
+      id: "send-dhis2",
+      type: "job",
+      label: "Send weekly totals to DHIS2",
+      summary: "**Sends the totals** to the national DHIS2.",
+      adaptor: "dhis2",
+      adaptorPackage: "@openfn/language-dhis2",
+      body: sendDhis2Body,
+      system: "dhis2",
+      x: 490,
+      y: 390,
+    },
+  ],
+  edges: [
+    { id: "e-trigger-count-cases", source: "trigger", target: "count-cases", condition: "always" },
+    { id: "e-count-cases-send-dhis2", source: "count-cases", target: "send-dhis2", condition: "on_success" },
+  ],
+};
+
+/** Workflows with a graph of their own, by id. Any other workflow borrows the national ID workflow's. */
+export const workflowGraphs: Record<string, Workflow> = {
+  [registerCaseWorkflow.id]: registerCaseWorkflow,
+  [weeklyCaseReportWorkflow.id]: weeklyCaseReportWorkflow,
+};
+
+/** The version history of a workflow with its own graph. */
+export const surveillanceVersions: WorkflowVersion[] = [
+  { id: "v1", message: "Initial go-live", author: "Jane Doe", date: "15 Oct 2026" },
+];
 
 /**
  * A blank workflow for "New Workflow": a trigger wired to one empty step.

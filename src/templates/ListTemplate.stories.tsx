@@ -3,6 +3,8 @@ import ListTemplate from "./ListTemplate";
 import { withRouter } from "../stories/decorators";
 import { connectedSystemListItems, connectedSystemsIntro } from "../mock-data/connected-systems";
 import type { IANode } from "../ia-tree";
+import { pageDataRegistry } from "../mock-data";
+import type { ListPageData } from "../page-data";
 
 const node: IANode = {
   id: "connected-systems",
@@ -64,5 +66,16 @@ export const NoFilters: Story = {
       items: connectedSystemListItems.slice(0, 3),
       showSuggestions: false,
     },
+  },
+};
+
+/** On X-Road: the network map preview, each system's connection method, and the directory of services to add. */
+export const WithXRoad: Story = {
+  name: "With X-Road",
+  args: {
+    node,
+    ancestors,
+    currentPath: "/connected-systems",
+    data: { ...(pageDataRegistry.get("connected-systems") as ListPageData), intro: undefined },
   },
 };

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import RunRow from "./RunRow";
-import { failedRun, olderRun, sampleRun } from "../../mock-data/runs";
+import { accessNotGrantedRun, failedRun, olderRun, registerCaseWorkOrders, sampleRun } from "../../mock-data/runs";
 
 const meta: Meta<typeof RunRow> = {
   title: "Workflow/RunRow",
@@ -29,3 +29,9 @@ export const OlderVersion: Story = { args: { run: olderRun } };
 
 /** In the inspector's failure list: a shallower indent. */
 export const Compact: Story = { args: { compact: true } };
+
+/** A run started by a call over X-Road names the calling member and subsystem. */
+export const CalledOverXRoad: Story = { args: { run: registerCaseWorkOrders[0].runs[0], latestVersion: "v1" } };
+
+/** Refused by the provider because access hadn't been granted yet. */
+export const AccessNotGranted: Story = { args: { run: accessNotGrantedRun, latestVersion: "v1" } };

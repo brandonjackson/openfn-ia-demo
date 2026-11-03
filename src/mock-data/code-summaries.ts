@@ -40,6 +40,36 @@ const written: Record<string, { body: string; points: string[] }> = {
     body: "your national ID is",
     points: ["Texts the applicant through Twilio with their new national ID and the district office to collect the card from."],
   },
+  "check-caller": {
+    body: "const allowed = ['NRH', 'NDHO'];",
+    points: [
+      "Reads who called from `state.xroad`, the caller's X-Road identity, which the workflow can read but not change.",
+      "Stops the run unless the caller is the National Referral Hospital or the Northern District Health Office.",
+      "Keeps the report and who sent it on state for the next steps.",
+    ],
+  },
+  "verify-nid": {
+    body: "post('/verify', {",
+    points: [
+      "Asks the Ministry of Interior's \"Verify a national ID\" service (their own OpenFn workflow) whether the national ID matches the patient.",
+      "Fails the run when it doesn't match.",
+    ],
+  },
+  "openmrs-patient": {
+    body: "searchPatient({ identifier: $.report.patient.nationalId });",
+    points: [
+      "Searches the hospital's OpenMRS for the patient by national ID and keeps their UUID.",
+      "Registers the patient in OpenMRS when they aren't there yet.",
+    ],
+  },
+  "count-cases": {
+    body: "collections.get('suspected-cases'",
+    points: ["Reads last week's suspected cases from the `suspected-cases` collection.", "Counts them by district and disease."],
+  },
+  "send-dhis2": {
+    body: "create('dataValueSets', {",
+    points: ["Sends the week's counts to the national DHIS2 as data values in the weekly IDSR data set."],
+  },
 };
 
 const verbs: Record<string, string> = {

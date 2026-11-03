@@ -1,7 +1,14 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowEditorTemplate from "./WorkflowEditorTemplate";
-import { nationalIdWorkflow, nationalIdWorkflowAt, workflowVersions } from "../mock-data/workflow";
-import { dataclips, failedRun, olderRun, sampleRun, workOrders } from "../mock-data/runs";
+import {
+  nationalIdWorkflow,
+  nationalIdWorkflowAt,
+  registerCaseWorkflow,
+  surveillanceVersions,
+  weeklyCaseReportWorkflow,
+  workflowVersions,
+} from "../mock-data/workflow";
+import { dataclips, failedRun, olderRun, runHistories, sampleRun, workOrders } from "../mock-data/runs";
 import { projects } from "../mock-data/projects";
 import { assistantConversations } from "../mock-data/assistant";
 
@@ -198,4 +205,44 @@ export const NewWorkflow: Story = {
 /** The assistant open beside the canvas, on the workflow's conversations. */
 export const AssistantOpen: Story = {
   args: { initialLayout: { assistant: true } },
+};
+
+const surveillance = projects.find((p) => p.id === "case-surveillance")!;
+
+/**
+ * Workflow A: facilities call it over X-Road, and its steps reach OpenMRS and
+ * the Ministry of Interior's own workflow service over X-Road too. Each step
+ * just names a connected system; the badge is the only sign of X-Road.
+ */
+export const XRoadWorkflow: Story = {
+  name: "X-Road workflow (A)",
+  args: {
+    workflow: registerCaseWorkflow,
+    ...runHistories[registerCaseWorkflow.id],
+    graphForVersion: () => registerCaseWorkflow,
+    projectName: surveillance.name,
+    components: surveillance.components.filter((c) => c.type !== "Workflow"),
+    sandboxes: surveillance.sandboxes,
+    versions: surveillanceVersions,
+    assistantConversations: [],
+    url: "https://app.openfn.org/i/case-surveillance/register-suspected-case",
+    service: surveillance.services[0],
+    initialSelectedId: "openmrs-patient",
+    initialLayout: { canvasActivity: false, panel: false, assistant: false },
+  },
+};
+
+/** Workflow B: the same kind of step on DHIS2, reached directly with a credential. */
+export const DirectWorkflow: Story = {
+  name: "Direct workflow (B)",
+  args: {
+    ...XRoadWorkflow.args,
+    workflow: weeklyCaseReportWorkflow,
+    ...runHistories[weeklyCaseReportWorkflow.id],
+    graphForVersion: () => weeklyCaseReportWorkflow,
+    url: undefined,
+    service: undefined,
+    onSeeDetails: undefined,
+    initialSelectedId: "send-dhis2",
+  },
 };

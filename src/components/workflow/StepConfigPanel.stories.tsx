@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import StepConfigPanel from "./StepConfigPanel";
-import { nationalIdWorkflow } from "../../mock-data/workflow";
+import { nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "../../mock-data/workflow";
 import type { JobNode } from "../../mock-data/workflow";
 
 const search = nationalIdWorkflow.nodes.find((n) => n.id === "search") as JobNode;
@@ -30,3 +30,13 @@ export const ReadOnly: Story = { args: { readOnly: true } };
 
 /** A common step: no credential needed. */
 export const CommonStep: Story = { args: { step: queue, credentialId: undefined, onChange: () => {} } };
+
+/** A step on a system reached over X-Road: no credential to pick. */
+export const OnXRoadSystem: Story = {
+  args: { step: registerCaseWorkflow.nodes.find((n) => n.id === "openmrs-patient") as JobNode, onChange: () => {} },
+};
+
+/** A step on a system reached directly, with its credential. */
+export const OnDirectSystem: Story = {
+  args: { step: weeklyCaseReportWorkflow.nodes.find((n) => n.id === "send-dhis2") as JobNode, onChange: () => {} },
+};

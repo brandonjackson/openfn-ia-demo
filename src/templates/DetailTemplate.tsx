@@ -1,4 +1,4 @@
-import { BookOpen, FolderOpen, Globe, Lock, ShieldX, User, Users } from "lucide-react";
+import { BookOpen, FolderOpen, Globe, KeyRound, Lock, Network, ShieldX, User, Users } from "lucide-react";
 import type { IANode } from "../ia-tree";
 import type { AccessGrant, DetailPageData, DetailSectionItem } from "../page-data";
 import AdaptorLogo from "../components/AdaptorLogo";
@@ -14,7 +14,10 @@ import type { Property } from "../components/PropertyList";
 import SectionHeading from "../components/SectionHeading";
 import SystemEnvironments from "../components/SystemEnvironments";
 import TextLink from "../components/TextLink";
-import { connectedSystems } from "../mock-data/connected-systems";
+import ConnectionMethodBadge from "../components/ConnectionMethodBadge";
+import XRoadAccessBadge from "../components/XRoadAccessBadge";
+import XRoadConnectionDetails from "../components/XRoadConnectionDetails";
+import { connectedSystems, connectionOf } from "../mock-data/connected-systems";
 
 interface Props {
   node: IANode;
@@ -80,6 +83,8 @@ function ChannelSection({ title, items }: { title: string; items: DetailSectionI
 
 export default function DetailTemplate({ node, ancestors, data }: Props) {
   const system = data.systemId ? connectedSystems.find((s) => s.id === data.systemId) : undefined;
+  const connection = system ? connectionOf(system) : undefined;
+  const xroad = connection?.method === "xroad" ? connection : undefined;
   const productionUrl = system?.environments.production.url;
 
   // Build channel items, prepending a default HTTP channel if the system has a URL
@@ -102,6 +107,13 @@ export default function DetailTemplate({ node, ancestors, data }: Props) {
   const properties: Property[] = [];
   if (system) {
     properties.push({ icon: system.ownerType === "org" ? Users : User, label: "Owner", value: system.owner });
+    properties.push({
+      icon: xroad ? Network : KeyRound,
+      label: "Connection",
+      value: xroad
+        ? "Via X-Road: routing and headers come from your organisation's X-Road settings"
+        : "Direct, with a credential for each environment",
+    });
     if (system.apiDocsUrl) {
       properties.push({
         icon: BookOpen,
@@ -129,13 +141,17 @@ export default function DetailTemplate({ node, ancestors, data }: Props) {
           logo={system && <AdaptorLogo adaptor={system.adaptor} name={system.name} size="lg" />}
           title={node.label}
           badges={
-            headerBadge && (
-              <Badge
-                label={headerBadge.label}
-                tone={headerBadge.variant === "shared" ? "indigo" : "gray"}
-                icon={headerBadge.variant === "shared" ? Users : Lock}
-              />
-            )
+            <>
+              {headerBadge && (
+                <Badge
+                  label={headerBadge.label}
+                  tone={headerBadge.variant === "shared" ? "indigo" : "gray"}
+                  icon={headerBadge.variant === "shared" ? Users : Lock}
+                />
+              )}
+              {connection && <ConnectionMethodBadge method={connection.method} />}
+              {xroad && <XRoadAccessBadge status={xroad.status} />}
+            </>
           }
           description={system?.description ?? node.description}
         />
@@ -146,7 +162,9 @@ export default function DetailTemplate({ node, ancestors, data }: Props) {
         )}
       </div>
 
-      {system && (
+      {xroad && <XRoadConnectionDetails connection={xroad} />}
+
+      {system && !xroad && (
         <section>
           <SectionHeading
             title="Environments"
@@ -156,7 +174,7 @@ export default function DetailTemplate({ node, ancestors, data }: Props) {
         </section>
       )}
 
-      {channelsSection && <ChannelSection title={channelsSection.title} items={allChannelItems} />}
+      {channelsSection && !xroad && <ChannelSection title={channelsSection.title} items={allChannelItems} />}
 
       {data.accessGrants && data.accessGrants.length > 0 && (
         <section>

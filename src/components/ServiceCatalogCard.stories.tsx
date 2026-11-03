@@ -27,3 +27,6 @@ export const WorkflowOnly: Story = { args: { entry: byId("project-b-commcare-cas
 
 /** A scheduled service runs on its own, so it can't be called. */
 export const Scheduled: Story = { args: { entry: byId("malawi-chw-referrals-chw-referral-sync") } };
+
+/** Published to X-Road, so other members call it through their Security Servers. */
+export const OnXRoad: Story = { args: { entry: byId("case-surveillance-register-suspected-case") } };

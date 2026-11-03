@@ -30,6 +30,7 @@ export interface IANode {
     | "channel"
     | "user-settings"
     | "instance-settings"
+    | "organization-settings"
     | "handbook"
     | "generic";
   /** When true, this node acts as a template that matches any sibling slug not found by exact ID */
@@ -327,6 +328,32 @@ export const settingsTree: IANode[] = [
         label: "Context",
         description: "Context layers this instance draws its handbook, systems and services from.",
         pageType: "instance-settings",
+      },
+    ],
+  },
+  {
+    id: "organization-settings",
+    label: "Organization settings",
+    description: "Who's in your organisation, what others can see by default, and your organisation's identity on X-Road.",
+    pageType: "organization-settings",
+    children: [
+      {
+        id: "members",
+        label: "Members",
+        description: "Users in the organisation and their roles.",
+        pageType: "organization-settings",
+      },
+      {
+        id: "visibility",
+        label: "Visibility",
+        description: "Default discoverability and access for projects, systems and services.",
+        pageType: "organization-settings",
+      },
+      {
+        id: "xroad",
+        label: "X-Road",
+        description: "Your organisation's X-Road identity: instance, member, subsystems, Security Servers and certificates.",
+        pageType: "organization-settings",
       },
     ],
   },

@@ -145,7 +145,7 @@ export default function XRoadNetworkMap({ centre, members, variant = "full", onE
       <button
         type="button"
         onClick={onExpand}
-        className="w-60 flex-shrink-0 rounded-md bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+        className="w-24 sm:w-60 flex-shrink-0 rounded-md bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
         aria-label="Open the X-Road network map"
       >
         {map}

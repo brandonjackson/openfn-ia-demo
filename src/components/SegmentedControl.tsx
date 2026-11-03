@@ -39,9 +39,9 @@ export default function SegmentedControl({
 
   if (variant === "pill") {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 max-w-full items-center gap-2">
         {label && <span className="text-xs font-medium text-gray-500">{label}:</span>}
-        <div className="flex items-center gap-0.5" role="group" aria-label={label}>
+        <div className="flex min-w-0 items-center gap-0.5 overflow-x-auto" role="group" aria-label={label}>
           {items.map((opt) => (
             <button
               key={opt.id}
@@ -49,7 +49,7 @@ export default function SegmentedControl({
               aria-pressed={value === opt.id}
               disabled={opt.disabled}
               onClick={() => onChange(opt.id)}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${text} ${
+              className={`inline-flex flex-shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${text} ${
                 value === opt.id ? "bg-gray-200/70 text-gray-900" : "text-gray-500 hover:bg-gray-100 hover:text-gray-900"
               }`}
             >
@@ -65,9 +65,9 @@ export default function SegmentedControl({
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-0 max-w-full items-center gap-2">
       {label && <span className="text-xs font-medium text-gray-500">{label}:</span>}
-      <div className="flex overflow-hidden rounded-md border border-gray-200" role="group" aria-label={label}>
+      <div className="flex min-w-0 overflow-x-auto rounded-md border border-gray-200" role="group" aria-label={label}>
         {items.map((opt) => (
           <button
             key={opt.id}
@@ -75,7 +75,7 @@ export default function SegmentedControl({
             aria-pressed={value === opt.id}
             disabled={opt.disabled}
             onClick={() => onChange(opt.id)}
-            className={`px-3 py-1 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${text} ${
+            className={`flex-shrink-0 whitespace-nowrap px-3 py-1 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${text} ${
               value === opt.id ? "bg-indigo-50 text-indigo-700" : "text-gray-500 hover:bg-gray-50"
             }`}
           >

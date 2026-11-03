@@ -43,10 +43,22 @@ export const projects: Project[] = [
     services: [
       {
         id: "planning-application-intake",
-        name: "Planning Application Intake",
+        name: "Submit a planning application",
         description:
           "Receives planning applications from the e-planning portal and routes them to the local authority case management system.",
         status: "Live",
+        mcpEnabled: true,
+        usage: { organisations: 2, calls30d: 412, trend: [9, 14, 11, 16, 12, 15, 18] },
+        record: {
+          owner: "Department of Planning",
+          purpose: "Get every planning application to the right local authority without re-keying it.",
+          dataExchanged: "Application reference, applicant contact details, site address, proposal and plans.",
+          legalBasis: "Town and Country Planning Act 2017, s.22 (electronic applications)",
+          classification: "Internal",
+          sla: "99% monthly uptime",
+          version: "1.4",
+          accessConditions: "Open to local authorities and the e-planning portal.",
+        },
         workflowId: "planning-application-workflow",
         api: {
           trigger: "webhook",
@@ -77,7 +89,7 @@ export const projects: Project[] = [
       },
       {
         id: "decision-status-sync",
-        name: "Decision Status Sync",
+        name: "Send decision statuses to applicants",
         description:
           "Syncs planning decision statuses back to the applicant portal on a daily schedule.",
         status: "Draft",
@@ -145,10 +157,11 @@ export const projects: Project[] = [
     services: [
       {
         id: "commcare-case-sync",
-        name: "CommCare Case Sync",
+        name: "Copy CommCare cases to the data warehouse",
         description:
           "Syncs case data from CommCare to the shared data warehouse.",
         status: "Live",
+        usage: { organisations: 1, calls30d: 6420, trend: [180, 220, 205, 240, 230, 210, 250] },
         workflowId: "case-sync-workflow",
         api: {
           trigger: "webhook",
@@ -206,7 +219,7 @@ export const projects: Project[] = [
     services: [
       {
         id: "chw-referral-sync",
-        name: "CHW Referral Sync",
+        name: "Send CHW referrals to DHIS2 Tracker",
         description: "Pushes CommCare referrals into DHIS2 Tracker every 15 minutes.",
         status: "Live",
         workflowId: "chw-referral-workflow",
@@ -224,9 +237,21 @@ export const projects: Project[] = [
       },
       {
         id: "client-registry-lookup",
-        name: "Client Registry Lookup",
+        name: "Look up a client's national ID",
         description: "Matches incoming patients against the national client registry.",
         status: "Live",
+        mcpEnabled: true,
+        usage: { organisations: 3, calls30d: 2310, trend: [62, 70, 81, 77, 90, 84, 96] },
+        record: {
+          owner: "Ministry of Health",
+          purpose: "Give each patient one national ID across community and facility records.",
+          dataExchanged: "Sent: name, date of birth, district. Returned: national ID and match confidence.",
+          legalBasis: "Health Records Regulations 2021, reg. 9 (continuity of care)",
+          classification: "Confidential",
+          sla: "99.5% monthly uptime; answers within 3 seconds",
+          version: "2.0",
+          accessConditions: "Health sector programmes, once registered with the HMIS team.",
+        },
         workflowId: "client-dedup-workflow",
         api: {
           trigger: "webhook",
@@ -252,7 +277,7 @@ export const projects: Project[] = [
       },
       {
         id: "district-monthly-report",
-        name: "District Monthly Report",
+        name: "Report district monthly totals",
         description: "Aggregates referral outcomes into a monthly district report.",
         status: "Draft",
         workflowId: "monthly-aggregate-workflow",
@@ -316,6 +341,86 @@ export const projects: Project[] = [
     ],
   },
   {
+    id: "case-surveillance",
+    name: "Case-based surveillance",
+    description:
+      "Takes reports of suspected notifiable disease cases from facilities over X-Road, checks each patient's national ID and hospital record, and sends weekly counts to the national DHIS2.",
+    environment: "production",
+    lastActivity: "18 minutes ago",
+    memberCount: 3,
+    sandboxes: ["main"],
+    services: [
+      {
+        id: "register-suspected-case",
+        name: "Register a suspected case",
+        description:
+          "Records a suspected case of a notifiable disease reported by a facility, after checking the patient's national ID and finding or registering them in the hospital's OpenMRS.",
+        status: "Live",
+        workflowId: "register-case-workflow",
+        mcpEnabled: false,
+        usage: { organisations: 4, calls30d: 1284, trend: [31, 38, 35, 44, 52, 47, 58] },
+        xroad: { serviceCode: "register-case", published: true, clients: ["FJ/GOV/NRH/OPENMRS", "FJ/GOV/NDHO/SURVEILLANCE"] },
+        record: {
+          owner: "Ministry of Health",
+          purpose: "Find outbreaks early by recording every suspected case of a notifiable disease the day it's seen.",
+          dataExchanged: "Sent: disease, onset date, reporting facility and the patient's national ID, name, sex and date of birth. Returned: case ID.",
+          legalBasis: "Public Health Act 2015, s.41 (notifiable diseases)",
+          classification: "Restricted",
+          sla: "99.9% monthly uptime; accepts a report within 1 second",
+          version: "1.2",
+          accessConditions: "Health facilities and district health offices on X-Road, granted per subsystem by the surveillance unit.",
+        },
+        api: {
+          trigger: "webhook",
+          invocation: "POST https://app.openfn.org/i/case-surveillance/register-suspected-case",
+          auth: "Over X-Road as FJ/GOV/MOH/OPENFN/register-case, or an API key in the x-api-key header",
+          inputFields: [
+            { name: "disease", type: "string", required: true, description: "The suspected disease, as an ICD-11 code." },
+            { name: "onsetDate", type: "string", required: true, description: "When symptoms started, YYYY-MM-DD." },
+            { name: "facility", type: "string", required: true, description: "The reporting facility's code." },
+            { name: "patient", type: "object", required: true, description: "National ID, given and family name, sex and date of birth." },
+          ],
+          requestExample: `curl -X POST https://ss1.nrh.gov.fj/r1/FJ/GOV/MOH/OPENFN/register-case \\
+  -H "X-Road-Client: FJ/GOV/NRH/OPENMRS" \\
+  -H "X-Road-UserId: FJ-HW-20431" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "disease": "1D47",
+    "onsetDate": "2026-10-18",
+    "facility": "NRH-OPD",
+    "patient": { "nationalId": "FJ-1990-004417", "givenName": "Chisomo", "familyName": "Phiri", "sex": "F", "dateOfBirth": "1990-06-11" }
+  }'`,
+          outputDescription: "Returns the case ID straight away; the patient checks run in the background.",
+          outputExample: `{
+  "workOrderId": "wo_c4e18a",
+  "caseId": "CASE-2026-1182",
+  "status": "accepted"
+}`,
+        },
+      },
+    ],
+    components: [
+      {
+        id: "register-case-workflow",
+        name: "register-case-workflow",
+        description: "Checks the caller, verifies the patient's national ID and finds or registers them in OpenMRS.",
+        type: "Workflow",
+      },
+      {
+        id: "weekly-case-report-workflow",
+        name: "weekly-case-report-workflow",
+        description: "Counts last week's suspected cases by district and sends the totals to DHIS2.",
+        type: "Workflow",
+      },
+      {
+        id: "suspected-cases",
+        name: "suspected-cases",
+        description: "Every suspected case registered, keyed by case ID.",
+        type: "Collection",
+      },
+    ],
+  },
+  {
     // Stress test: a brand new project with nothing in it yet.
     id: "data-quality-checks",
     name: "Data Quality Checks",
@@ -348,6 +453,7 @@ export const projectSummaries: ProjectSummary[] = projects.map(summarizeProject)
 
 /** The projects the current user opened most recently, newest first. */
 export const recentProjects: Project[] = [
+  "case-surveillance",
   "malawi-chw-referrals",
   "project-a",
   "project-b",
@@ -470,6 +576,18 @@ const workflowActivity: Record<
     lastRunAt: "2026-10-28T19:33:00Z",
     members: ["Kofi Boateng", "Amadou Diallo"],
     updatedAt: "2026-10-21T12:10:00Z",
+  },
+  "register-case-workflow": {
+    latestRun: "success",
+    lastRunAt: "2026-10-20T09:51:00Z",
+    members: ["Jane Doe", "Amadou Diallo"],
+    updatedAt: "2026-10-15T10:40:00Z",
+  },
+  "weekly-case-report-workflow": {
+    latestRun: "success",
+    lastRunAt: "2026-10-19T06:00:00Z",
+    members: ["Jane Doe"],
+    updatedAt: "2026-10-06T08:12:00Z",
   },
   "monthly-aggregate-workflow": {
     members: ["Jane Doe"],

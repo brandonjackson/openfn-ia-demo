@@ -1,4 +1,4 @@
-import { ArrowUpRight, Bot, Workflow } from "lucide-react";
+import { ArrowUpRight, Bot, Network, Workflow } from "lucide-react";
 import type { ServiceConsumer, WorkflowCatalogEntry } from "../page-data";
 import Badge from "./Badge";
 import ListRow from "./ListRow";
@@ -6,6 +6,7 @@ import ListRow from "./ListRow";
 const consumerLabels: Record<ServiceConsumer, { label: string; icon: typeof Workflow }> = {
   workflow: { label: "Workflow step", icon: Workflow },
   mcp: { label: "MCP tool", icon: Bot },
+  xroad: { label: "X-Road service", icon: Network },
 };
 
 interface Props {
@@ -14,7 +15,8 @@ interface Props {
 
 /**
  * A published service in the catalog: links to its API page and shows how it
- * can be called, from other workflows and as an agent tool over MCP.
+ * can be called (from other workflows, as an agent tool over MCP, by other
+ * members over X-Road) and how much it's used.
  */
 export default function ServiceCatalogCard({ entry }: Props) {
   return (
@@ -35,6 +37,12 @@ export default function ServiceCatalogCard({ entry }: Props) {
             <Badge key={c} label={consumerLabels[c].label} icon={consumerLabels[c].icon} tone="indigo" />
           ))}
           {entry.mcpToolName && <code className="font-mono text-gray-500">{entry.mcpToolName}</code>}
+          {entry.usage && (
+            <span>
+              {entry.usage.organisations} organisation{entry.usage.organisations === 1 ? "" : "s"} ·{" "}
+              {entry.usage.calls30d.toLocaleString()} calls in 30 days
+            </span>
+          )}
         </>
       }
     />

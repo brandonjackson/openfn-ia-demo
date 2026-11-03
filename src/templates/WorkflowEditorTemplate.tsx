@@ -73,13 +73,15 @@ interface Edits {
   adaptors: Record<string, AdaptorKind>;
   bodies: Record<string, string>;
   credentials: Record<string, string | undefined>;
+  /** The connected system each step talks to, where it was changed. */
+  systems: Record<string, string | undefined>;
   removed: string[];
   added: JobNode[];
   /** The edges into added steps. */
   addedEdges: WorkflowEdge[];
 }
 
-const noEdits: Edits = { labels: {}, adaptors: {}, bodies: {}, credentials: {}, removed: [], added: [], addedEdges: [] };
+const noEdits: Edits = { labels: {}, adaptors: {}, bodies: {}, credentials: {}, systems: {}, removed: [], added: [], addedEdges: [] };
 
 /** How far apart steps sit on the canvas: one row down, or one branch across. */
 const ROW_GAP = 170;
@@ -110,6 +112,7 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
         adaptor,
         adaptorPackage: adaptorInfo[adaptor].package,
         body: edits.bodies[n.id] ?? n.body,
+        system: n.id in edits.systems ? edits.systems[n.id] : n.system,
       };
     });
   const ids = new Set(nodes.map((n) => n.id));
@@ -544,6 +547,7 @@ export default function WorkflowEditorTemplate({
       labels: changes.label !== undefined ? { ...e.labels, [stepId]: changes.label } : e.labels,
       adaptors: changes.adaptor !== undefined ? { ...e.adaptors, [stepId]: changes.adaptor } : e.adaptors,
       credentials: "credentialId" in changes ? { ...e.credentials, [stepId]: changes.credentialId } : e.credentials,
+      systems: "system" in changes ? { ...e.systems, [stepId]: changes.system } : e.systems,
     }));
 
   const changeCode = (stepId: string, body: string) => edit((e) => ({ bodies: { ...e.bodies, [stepId]: body } }));

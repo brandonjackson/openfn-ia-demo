@@ -2,6 +2,8 @@ import type { BadgeTone } from "./components/Badge";
 import type { FeatureIntroItem } from "./components/FeatureIntro";
 import type { RunStatus } from "./mock-data/workflow";
 import type { ChannelDetails } from "./mock-data/channels";
+import type { NetworkMember, OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember } from "./mock-data/xroad";
+import type { ConnectionMethod } from "./mock-data/connected-systems";
 
 /* ------------------------------------------------------------------ */
 /*  Shared primitive types                                             */
@@ -63,6 +65,15 @@ export interface ListPageData {
   showSuggestions?: boolean;
   /** Dismissible "why use this" banner shown at the top of the page. */
   intro?: FeatureIntroData;
+  /** The X-Road network and directory, for an organisation on X-Road. */
+  xroad?: {
+    centre: { name: string; code: string };
+    network: NetworkMember[];
+    directory: XRoadMember[];
+    /** Directory services already in your systems, as `memberId/subsystem/service`. */
+    added: string[];
+    syncedAt: string;
+  };
 }
 
 export interface FeatureIntroData {
@@ -128,8 +139,8 @@ export interface ChannelCatalogEntry {
   section: string;
 }
 
-/** Ways a published service can be used: as a step in another workflow, or as an agent tool over MCP. */
-export type ServiceConsumer = "workflow" | "mcp";
+/** Ways a published service can be used: as a step in another workflow, as an agent tool over MCP, or by other members over X-Road. */
+export type ServiceConsumer = "workflow" | "mcp" | "xroad";
 
 export interface WorkflowCatalogEntry {
   kind: "workflow";
@@ -144,6 +155,33 @@ export interface WorkflowCatalogEntry {
   callableAs?: ServiceConsumer[];
   /** Tool name agents see on the organization's MCP server. */
   mcpToolName?: string;
+  /** How many organisations use it, and how many calls it took in the last 30 days. */
+  usage?: { organisations: number; calls30d: number };
+}
+
+/**
+ * A service the organisation uses: one published by a system it has added,
+ * such as another member's service on X-Road. Only systems you've added
+ * show up.
+ */
+export interface UsedServiceEntry {
+  id: string;
+  name: string;
+  description: string;
+  /** The connected system it comes through. */
+  system: string;
+  systemPath: string;
+  adaptor: string;
+  connection: ConnectionMethod;
+  xroadStatus?: XRoadConnectionStatus;
+  /** The organisation that publishes it. */
+  owner: string;
+  /** The endpoints it offers. */
+  methods: string[];
+  /** Its X-Road service ID, e.g. `FJ/GOV/MOI/IDENTITY/verify-national-id`. */
+  serviceId?: string;
+  builtWithOpenFn?: boolean;
+  record?: ServiceRecord;
 }
 
 export type CatalogEntry = ChannelCatalogEntry | WorkflowCatalogEntry;
@@ -151,6 +189,8 @@ export type CatalogEntry = ChannelCatalogEntry | WorkflowCatalogEntry;
 export interface CatalogPageData {
   pageType: "catalog";
   entries: CatalogEntry[];
+  /** Services from systems you've added, beside the channels in `entries`. */
+  usedServices?: UsedServiceEntry[];
   /** The organization's MCP server, which exposes callable services as agent tools. */
   mcpServerUrl?: string;
 }
@@ -327,6 +367,14 @@ export interface ProjectServiceItem {
   workflowId?: string;
   /** How other teams call the service. Generated from the workflow when absent. */
   api?: ServiceApiSpec;
+  /** What the catalogue records about it: owner, purpose, legal basis and so on. */
+  record?: ServiceRecord;
+  /** Who uses it: how many organisations, and how many calls in the last 30 days. */
+  usage?: { organisations: number; calls30d: number; trend?: number[] };
+  /** Whether agents can call it as a tool on the organisation's MCP server. */
+  mcpEnabled?: boolean;
+  /** Its X-Road service code, once published to X-Road. */
+  xroad?: { serviceCode: string; published: boolean; clients?: string[] };
 }
 
 /* ------------------------------------------------------------------ */
@@ -598,6 +646,24 @@ export interface InstanceSettingsPageData {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Organization settings                                              */
+/* ------------------------------------------------------------------ */
+
+/** Who can find and use something by default: its project's members, the whole organisation, or everyone on the server. */
+export type VisibilityScope = "project" | "organization" | "server";
+
+export interface OrganizationSettingsPageData {
+  pageType: "organization-settings";
+  name: string;
+  members: InstanceMember[];
+  /** Default discoverability and access for new projects, systems and services. */
+  visibility: { projects: VisibilityScope; systems: VisibilityScope; services: VisibilityScope };
+  xroad: OrgXRoadSettings;
+  /** How many connected systems and published services use the X-Road settings. */
+  xroadUsage: { systems: number; services: number };
+}
+
+/* ------------------------------------------------------------------ */
 /*  Union type                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -663,4 +729,5 @@ export type PageData =
   | ChannelPageData
   | UserSettingsPageData
   | InstanceSettingsPageData
+  | OrganizationSettingsPageData
   | HandbookPageData;

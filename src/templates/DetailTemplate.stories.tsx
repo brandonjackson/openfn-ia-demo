@@ -108,3 +108,25 @@ export const NoChannels: Story = {
     },
   },
 };
+
+/** A system reached over X-Road: its route, status track, agreement, access, headers and catalogue record. */
+export const ViaXRoad: Story = {
+  name: "Via X-Road",
+  args: {
+    node: { id: "national-id", label: "National ID verification" },
+    ancestors,
+    currentPath: "/connected-systems/national-id",
+    data: { pageType: "detail", systemId: "national-id", headerBadge: { label: "Shared", variant: "shared" }, sections: [] },
+  },
+};
+
+/** Still waiting on the data sharing agreement, so no methods are allowed yet. */
+export const ViaXRoadAgreementPending: Story = {
+  name: "Via X-Road (agreement pending)",
+  args: {
+    node: { id: "social-registry", label: "Social registry" },
+    ancestors,
+    currentPath: "/connected-systems/social-registry",
+    data: { pageType: "detail", systemId: "social-registry", headerBadge: { label: "Shared", variant: "shared" }, sections: [] },
+  },
+};

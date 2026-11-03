@@ -6,7 +6,7 @@ import SectionHeading from "./SectionHeading";
 import EntityPill from "./EntityPill";
 
 const defaultSuggestions: SuggestedSystem[] = [
-  { name: "OpenMRS", description: "Electronic medical records", adaptor: "openmrs" },
+  { name: "RapidPro", description: "SMS and chat flows", adaptor: "rapidpro" },
   { name: "PostgreSQL", description: "Relational database", adaptor: "postgresql" },
   { name: "WhatsApp Business", description: "Messaging and notifications", adaptor: "whatsapp" },
 ];

@@ -39,3 +39,8 @@ export const Empty: Story = {
     data: { pageType: "catalog", entries: [] },
   },
 };
+
+/** The methods of the systems you've added, including other members' services on X-Road. */
+export const ServicesWeUse: Story = {
+  args: { ...Default.args, initialView: "use" },
+};

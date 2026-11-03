@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import TriggerConfigPanel from "./TriggerConfigPanel";
 import { nationalIdWorkflow } from "../../mock-data/workflow";
 import type { TriggerNode } from "../../mock-data/workflow";
+import { projects } from "../../mock-data/projects";
 
 const trigger = nationalIdWorkflow.nodes.find((n) => n.type === "trigger") as TriggerNode;
 
@@ -10,7 +11,7 @@ const meta: Meta<typeof TriggerConfigPanel> = {
   component: TriggerConfigPanel,
   decorators: [
     (Story) => (
-      <div className="h-[420px] w-80 border border-gray-200 bg-white">
+      <div className="h-[640px] w-80 border border-gray-200 bg-white">
         <Story />
       </div>
     ),
@@ -24,3 +25,8 @@ type Story = StoryObj<typeof TriggerConfigPanel>;
 export const Default: Story = {};
 export const ReadOnly: Story = { args: { readOnly: true } };
 export const Paused: Story = { args: { live: false } };
+
+/** Published as a service: its annotations generate the OpenAPI 3 docs. */
+export const PublishedAsService: Story = {
+  args: { service: projects.find((p) => p.id === "case-surveillance")!.services[0] },
+};

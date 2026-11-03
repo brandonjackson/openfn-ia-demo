@@ -10,6 +10,7 @@ import { serviceCatalogData } from "../mock-data/service-catalog";
 import { channelDetails } from "../mock-data/channels";
 import { userSettingsData } from "../mock-data/user";
 import { instanceSettingsData } from "../mock-data/instance";
+import { organizationSettingsData } from "../mock-data/organization";
 import { buildProjectInsightsData, buildProjectOverviewTiles } from "../mock-data/insights";
 import { buildCreatePageData, buildIdeas } from "../mock-data/build-ideas";
 import { templateMap } from "../templates";
@@ -178,6 +179,9 @@ function resolveDynamic(
     }
     if (result.node.pageType === "instance-settings") {
       return { node: result.node, data: instanceSettingsData };
+    }
+    if (result.node.pageType === "organization-settings") {
+      return { node: result.node, data: organizationSettingsData };
     }
     return {
       node: result.node,

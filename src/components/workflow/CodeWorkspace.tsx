@@ -297,7 +297,7 @@ export default function CodeWorkspace({
         showHeader={false}
       />
     ) : file === "trigger" && trigger ? (
-      <TriggerConfigPanel trigger={trigger} url={url} readOnly={readOnly} live={live} onToggleLive={onToggleLive} showHeader={false} />
+      <TriggerConfigPanel trigger={trigger} url={url} readOnly={readOnly} live={live} onToggleLive={onToggleLive} showHeader={false} service={service} />
     ) : (
       <WorkflowSettingsPanel workflow={workflow} settings={settings} readOnly={readOnly} onChange={onSettingsChange} showHeader={false} />
     );

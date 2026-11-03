@@ -15,7 +15,9 @@ import type {
   Workflow,
   WorkOrder,
 } from "./workflow";
-import { happyPath, nationalIdWorkflow } from "./workflow";
+import { happyPath, nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "./workflow";
+import type { XRoadCall } from "./xroad";
+import { openfnClientId, routeUrl } from "./xroad";
 
 type State = Record<string, unknown>;
 
@@ -24,6 +26,12 @@ const json = (value: unknown) => JSON.stringify(value, null, 2);
 const IDENTITY = "https://simdpgidentity-production.up.railway.app";
 const OPENCRVS = "https://gateway.farajaland.opencrvs.org";
 const TWILIO = "https://api.twilio.com/2010-04-01/Accounts/AC5f3e/Messages.json";
+const NATIONAL_ID = routeUrl({ memberId: "moi", subsystem: "IDENTITY", service: "verify-national-id" });
+const OPENMRS = routeUrl({ memberId: "nrh", subsystem: "OPENMRS", service: "patients" });
+const DHIS2 = "https://dhis2.example.org/api";
+
+/** Steps whose system is reached over X-Road, so their calls carry X-Road headers. */
+const XROAD_STEPS = ["verify-nid", "openmrs-patient"];
 
 /** A random 8-character hex id, like the short ids shown in history. */
 export function shortId(): string {
@@ -57,6 +65,11 @@ const DEFAULT_DURATION: Record<string, string> = {
   confirm: "401 ms",
   notify: "388 ms",
   queue: "52 ms",
+  "check-caller": "4 ms",
+  "verify-nid": "612 ms",
+  "openmrs-patient": "938 ms",
+  "count-cases": "210 ms",
+  "send-dhis2": "1 s",
 };
 
 /** What each step adds to the state it was given, when it succeeds. */
@@ -79,6 +92,19 @@ function stepOutput(jobId: string, input: State, seed: string): State {
       return { ...input, notified: true };
     case "queue":
       return { ...input, queuedForRetry: true };
+    case "check-caller":
+      return { ...input, callerAllowed: true };
+    case "verify-nid":
+      return { ...input, nationalIdVerified: { match: true, status: "active" } };
+    case "openmrs-patient":
+      return { ...input, patientUuid: `a1f0${seed.slice(0, 4)}-7c2e-4b1d-9e3f-${seed}0e5c` };
+    case "count-cases":
+      return {
+        period: "2026W42",
+        counts: { "Northern|Cholera": 3, "Northern|Measles": 1, "Central|Cholera": 5, "Coast|Measles": 2 },
+      };
+    case "send-dhis2":
+      return { ...input, importSummary: { status: "SUCCESS", imported: 4, updated: 0, ignored: 0 } };
     default:
       return input;
   }
@@ -102,6 +128,12 @@ function requestLog(jobId: string, input: State, failed: boolean): LogLine | und
     case "confirm":
     case "notify":
       return { source: "ADA", message: `POST ${TWILIO} - ${status(201)}` };
+    case "verify-nid":
+      return { source: "ADA", message: `POST ${NATIONAL_ID}/verify - ${failed ? "403 in 211ms" : status(200)}` };
+    case "openmrs-patient":
+      return { source: "ADA", message: `GET ${OPENMRS}/patient?identifier=… - ${status(200)}` };
+    case "send-dhis2":
+      return { source: "ADA", message: `POST ${DHIS2}/dataValueSets - ${status(200)}` };
     default:
       return undefined;
   }
@@ -119,7 +151,9 @@ interface RunSpec {
   /** Job ids in the order the run reached them. */
   path: string[];
   /** The step that failed, and why. */
-  failAt?: { jobId: string; error: string };
+  failAt?: { jobId: string; error: string; duration?: string };
+  /** Who called, for a run started by a call over X-Road. */
+  xroad?: XRoadCall;
   /** Replaces a step's output, e.g. a search that found a match. */
   outputs?: Record<string, State>;
   /** Graph to take step labels from. */
@@ -145,6 +179,12 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
   const dataclips: Dataclip[] = [];
   const steps: RunStep[] = [];
   const logs: LogLine[] = setupLogs(spec.runId);
+  if (spec.xroad) {
+    logs.push({
+      source: "R/T",
+      message: `Started by an X-Road call from ${spec.xroad.client} (X-Road-Id ${spec.xroad.messageId})`,
+    });
+  }
   let state = JSON.parse(spec.input.body) as State;
   let inputId = spec.input.id;
 
@@ -158,7 +198,7 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
     const output = failed
       ? { ...state, error: spec.failAt!.error }
       : spec.outputs?.[jobId] ?? stepOutput(jobId, state, spec.runId);
-    const duration = failed ? "30 s" : DEFAULT_DURATION[jobId] ?? "12 ms";
+    const duration = failed ? (spec.failAt!.duration ?? "30 s") : DEFAULT_DURATION[jobId] ?? "12 ms";
 
     const outputId = `${stepId}-out`;
     if (done) {
@@ -178,6 +218,9 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
     if (status === "running") logs.push({ source: "R/T", message: `Starting step ${label(jobId)}`, stepId });
     if (done) {
       logs.push({ source: "R/T", message: `Starting step ${label(jobId)}`, stepId });
+      if (XROAD_STEPS.includes(jobId)) {
+        logs.push({ source: "ADA", message: `Added X-Road headers: X-Road-Client ${openfnClientId}, X-Road-Id ${spec.runId}-${jobId}`, stepId });
+      }
       const request = requestLog(jobId, state, failed);
       if (request) logs.push({ ...request, stepId });
       if (jobId === "queue") logs.push({ source: "JOB", message: "Parked application for retry", stepId });
@@ -209,6 +252,7 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
       inputId: spec.input.id,
       steps,
       logs,
+      xroad: spec.xroad,
     },
     dataclips,
   };
@@ -421,6 +465,187 @@ export const failedRun: RunDetails = workOrders.find((o) => o.id === "896d2dcb")
 
 /** A run on v1, older than the latest version. */
 export const olderRun: RunDetails = workOrders.find((o) => o.id === "2f11d4f1")!.runs[0];
+
+// ---------------------------------------------------------------------------
+// Case-based surveillance. Facilities report cases over X-Road, so most runs
+// carry the caller's identity; one came in on the plain webhook. The run on
+// 14 Oct failed because the Ministry of Interior hadn't granted access yet;
+// it was retried once they had.
+// ---------------------------------------------------------------------------
+
+function caseReport(id: string, when: string, body: State, name?: string): Dataclip {
+  return { id, type: "http_request", body: json(body), created: when, name };
+}
+
+const cases = {
+  chisomo: caseReport("req-c4e1", "today at 9:51 AM", {
+    disease: "1A00",
+    onsetDate: "2026-10-18",
+    facility: "NRH-OPD",
+    patient: { nationalId: "FJ-1990-004417", givenName: "Chisomo", familyName: "Phiri", sex: "F", dateOfBirth: "1990-06-11" },
+  }),
+  yusuf: caseReport("req-8b20", "today at 8:02 AM", {
+    disease: "1F03",
+    onsetDate: "2026-10-17",
+    facility: "NDHO-KAR",
+    patient: { nationalId: "FJ-2016-118203", givenName: "Yusuf", familyName: "Kamara", sex: "M", dateOfBirth: "2016-02-23" },
+  }),
+  ama: caseReport("req-3d7a", "yesterday at 3:14 PM", {
+    disease: "1A00",
+    onsetDate: "2026-10-18",
+    facility: "NRH-PAED",
+    patient: { nationalId: "FJ-2021-220981", givenName: "Ama", familyName: "Boateng", sex: "F", dateOfBirth: "2021-09-30" },
+  }),
+  tendai: caseReport("req-61f9", "yesterday at 9:30 AM", {
+    disease: "1F03",
+    onsetDate: "2026-10-16",
+    facility: "CEN-HC-04",
+    patient: { nationalId: "FJ-1978-031177", givenName: "Tendai", familyName: "Moyo", sex: "M", dateOfBirth: "1978-12-01" },
+  }),
+  grace: caseReport(
+    "req-e902",
+    "Oct 14th, 2:20 PM",
+    {
+      disease: "1A00",
+      onsetDate: "2026-10-13",
+      facility: "NRH-OPD",
+      patient: { nationalId: "FJ-1985-077310", givenName: "Grace", familyName: "Banda", sex: "F", dateOfBirth: "1985-04-27" },
+    },
+    "Report refused before Interior granted access"
+  ),
+};
+
+const nrh = (messageId: string, userId?: string, issue?: string): XRoadCall => ({
+  client: "FJ/GOV/NRH/OPENMRS",
+  clientName: "National Referral Hospital",
+  messageId,
+  userId,
+  issue,
+});
+
+const caseRunPath = ["check-caller", "verify-nid", "openmrs-patient"];
+
+const builtCases = [
+  buildRun({
+    runId: "c4e18a62",
+    workOrderId: "5a0c71e2",
+    version: "v1",
+    when: "today at 9:51 AM",
+    started: "20/10/2026, 09:51:07",
+    startedBy: "National Referral Hospital, over X-Road",
+    duration: "2 s",
+    input: cases.chisomo,
+    path: caseRunPath,
+    workflow: registerCaseWorkflow,
+    xroad: nrh("nrh-5f1c0a2e-93b4-4d1e-8c2a", "FJ-HW-20431", "CASE-2026-1182"),
+  }),
+  buildRun({
+    runId: "8b20f4d1",
+    workOrderId: "d93e0b47",
+    version: "v1",
+    when: "today at 8:02 AM",
+    started: "20/10/2026, 08:02:44",
+    startedBy: "Northern District Health Office, over X-Road",
+    duration: "2 s",
+    input: cases.yusuf,
+    path: caseRunPath,
+    workflow: registerCaseWorkflow,
+    xroad: {
+      client: "FJ/GOV/NDHO/SURVEILLANCE",
+      clientName: "Northern District Health Office",
+      messageId: "ndho-0b7d44e1-2a6c-41f0",
+    },
+  }),
+  buildRun({
+    runId: "3d7a9c05",
+    workOrderId: "f1b6a3d8",
+    version: "v1",
+    when: "yesterday at 3:14 PM",
+    started: "19/10/2026, 15:14:52",
+    startedBy: "National Referral Hospital, over X-Road",
+    duration: "3 s",
+    input: cases.ama,
+    path: caseRunPath,
+    workflow: registerCaseWorkflow,
+    xroad: nrh("nrh-a83d61b0-0f2e-4c77-b915", "FJ-HW-18802", "CASE-2026-1175"),
+  }),
+  buildRun({
+    runId: "61f9e2b7",
+    workOrderId: "0e47c9a1",
+    version: "v1",
+    when: "yesterday at 9:30 AM",
+    started: "19/10/2026, 09:30:18",
+    duration: "2 s",
+    input: cases.tendai,
+    path: caseRunPath,
+    workflow: registerCaseWorkflow,
+  }),
+  // Retried by hand once the Ministry of Interior had granted access.
+  buildRun({
+    runId: "a2c7d910",
+    workOrderId: "e902b5c4",
+    version: "v1",
+    when: "Oct 15th, 11:02 AM",
+    started: "15/10/2026, 11:02:31",
+    startedBy: "Jane Doe",
+    duration: "2 s",
+    input: cases.grace,
+    path: caseRunPath,
+    workflow: registerCaseWorkflow,
+    xroad: nrh("nrh-71e09c3a-55d2-4b08-a3e4", "FJ-HW-20431", "CASE-2026-1101"),
+  }),
+  buildRun({
+    runId: "e902b5c4",
+    workOrderId: "e902b5c4",
+    version: "v1",
+    when: "Oct 14th, 2:20 PM",
+    started: "14/10/2026, 14:20:09",
+    startedBy: "National Referral Hospital, over X-Road",
+    duration: "1 s",
+    input: cases.grace,
+    path: ["check-caller", "verify-nid"],
+    failAt: { jobId: "verify-nid", error: "Access not granted by provider", duration: "211 ms" },
+    workflow: registerCaseWorkflow,
+    xroad: nrh("nrh-71e09c3a-55d2-4b08-a3e4", "FJ-HW-20431", "CASE-2026-1101"),
+  }),
+];
+
+/** Recent work orders for the register-case workflow, newest first. */
+export const registerCaseWorkOrders: WorkOrder[] = toWorkOrders(builtCases.map((b) => b.run));
+
+export const registerCaseDataclips: Dataclip[] = [...Object.values(cases), ...builtCases.flatMap((b) => b.dataclips)];
+
+/** The run that was refused by the provider, for stories. */
+export const accessNotGrantedRun: RunDetails = registerCaseWorkOrders.find((o) => o.id === "e902b5c4")!.runs.at(-1)!;
+
+const weeklyInput = (id: string, when: string): Dataclip => ({ id, type: "http_request", body: json({}), created: when });
+
+const builtWeekly = [
+  { runId: "7e30c1aa", workOrderId: "w42d1e09", when: "yesterday at 6:00 AM", started: "19/10/2026, 06:00:02" },
+  { runId: "52b8e4f0", workOrderId: "w41c7a33", when: "Oct 12th, 6:00 AM", started: "12/10/2026, 06:00:01" },
+  { runId: "19dd07b2", workOrderId: "w40b25e1", when: "Oct 5th, 6:00 AM", started: "05/10/2026, 06:00:03" },
+].map((r) =>
+  buildRun({
+    ...r,
+    version: "v1",
+    startedBy: "cron trigger",
+    duration: "2 s",
+    input: weeklyInput(`cron-${r.runId}`, r.when),
+    path: ["count-cases", "send-dhis2"],
+    workflow: weeklyCaseReportWorkflow,
+  })
+);
+
+/** Recent work orders for the weekly DHIS2 report, newest first. */
+export const weeklyReportWorkOrders: WorkOrder[] = toWorkOrders(builtWeekly.map((b) => b.run));
+
+export const weeklyReportDataclips: Dataclip[] = builtWeekly.flatMap((b) => b.dataclips);
+
+/** Run history for each workflow that has its own, by workflow id. */
+export const runHistories: Record<string, { workOrders: WorkOrder[]; dataclips: Dataclip[] }> = {
+  [registerCaseWorkflow.id]: { workOrders: registerCaseWorkOrders, dataclips: registerCaseDataclips },
+  [weeklyCaseReportWorkflow.id]: { workOrders: weeklyReportWorkOrders, dataclips: weeklyReportDataclips },
+};
 
 /**
  * A new run of `workflow` from `input`, along every step it would take when

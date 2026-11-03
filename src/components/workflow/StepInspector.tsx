@@ -6,6 +6,9 @@ import type { ActivityPeriod, FailureReason } from "../../mock-data/runs";
 import { activityPeriodLabel } from "../../mock-data/runs";
 import { adaptorInfo, credentialsFor } from "../../mock-data/adaptor-reference";
 import { codeSummary } from "../../mock-data/code-summaries";
+import { connectedSystems, connectionOf } from "../../mock-data/connected-systems";
+import ConnectionMethodBadge from "../ConnectionMethodBadge";
+import XRoadCallDetails from "../XRoadCallDetails";
 import Button from "../Button";
 import EditableTitle from "../EditableTitle";
 import Badge from "../Badge";
@@ -138,6 +141,7 @@ export default function StepInspector({
           <InspectorSection>
             {job && (
               <AdaptorRow
+                system={job.system}
                 adaptor={job.adaptor}
                 credentialId={credentialId}
                 readOnly={readOnly}
@@ -324,6 +328,13 @@ function RunData({
         <RunLabel run={run} detail={step?.duration || run.when} onUnload={onUnload} />
       </div>
 
+      {!job && run.xroad && (
+        <div className="space-y-2">
+          <SectionHeading variant="label" compact title="Called over X-Road" />
+          <XRoadCallDetails call={run.xroad} />
+        </div>
+      )}
+
       {data ? (
         <>
           {section("log", "Log", data.logs.map((l) => l.message), {
@@ -349,13 +360,20 @@ function RunData({
   );
 }
 
-/** The adaptor and its credential as label/value rows, with Connect when the step needs one. */
+/**
+ * The step's system (when it talks to a connected system), adaptor and
+ * credential as label/value rows, with Connect when the step needs one. A
+ * system reached over X-Road needs no credential: the Security Server
+ * vouches for the organisation.
+ */
 function AdaptorRow({
+  system: systemId,
   adaptor,
   credentialId,
   readOnly,
   onConnect,
 }: {
+  system?: string;
   adaptor: AdaptorKind;
   credentialId?: string;
   readOnly: boolean;
@@ -364,14 +382,33 @@ function AdaptorRow({
   const info = adaptorInfo[adaptor];
   const credentials = credentialsFor(adaptor);
   const credential = credentials.find((c) => c.id === credentialId);
+  const system = systemId ? connectedSystems.find((s) => s.id === systemId) : undefined;
+  const method = system ? connectionOf(system).method : undefined;
   return (
     <PropertyList
       variant="plain"
       properties={[
+        ...(system && method
+          ? [
+              {
+                label: "System",
+                value: (
+                  <>
+                    <EntityPill name={system.name} adaptor={system.adaptor} size="sm" />
+                    <ConnectionMethodBadge method={method} />
+                  </>
+                ),
+              },
+            ]
+          : []),
         { label: "Adaptor", value: <EntityPill name={info.name} adaptor={adaptor} suffix={info.version} size="sm" /> },
         {
           label: "Credential",
-          value: credential ? (
+          value: method === "xroad" ? (
+            <span className="text-gray-500">Not needed: X-Road adds your identity</span>
+          ) : method === "direct" && system && !credential ? (
+            <span className="truncate">{system.environments.production.credential ?? "None yet"}</span>
+          ) : credential ? (
             <span className="truncate">{credential.name}</span>
           ) : !info.needsCredential ? (
             <span className="text-gray-500">Not needed</span>

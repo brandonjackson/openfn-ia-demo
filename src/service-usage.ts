@@ -51,3 +51,33 @@ ${properties}
   }
 }`;
 }
+
+/** The URL that starts a webhook service, from its invocation line. */
+export function webhookUrl(api: ServiceApiSpec): string | undefined {
+  return api.invocation.match(/https?:\/\/\S+/)?.[0];
+}
+
+/** Where the OpenAPI 3 document generated from the webhook trigger's annotations is served. */
+export function openApiUrl(api: ServiceApiSpec): string | undefined {
+  const url = webhookUrl(api);
+  return url && `${url}/openapi.json`;
+}
+
+/**
+ * What a workflow published over X-Road sees about who called it: structured
+ * and read-only on `state.xroad`, never raw headers, for access checks and
+ * audit.
+ */
+export const xroadCallerSnippet = `// On every run started over X-Road (read-only)
+state.xroad = {
+  client: {
+    instance: "FJ",
+    memberClass: "GOV",
+    memberCode: "NRH",
+    subsystem: "OPENMRS",
+    name: "National Referral Hospital",
+  },
+  messageId: "nrh-5f1c0a2e-93b4-4d1e-8c2a", // X-Road-Id
+  userId: "FJ-HW-20431",                    // X-Road-UserId, when sent
+  issue: "CASE-2026-1182",                  // X-Road-Issue, when sent
+};`;

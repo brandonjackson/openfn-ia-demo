@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ChevronsUpDown, GitCompare, LogOut, Settings, Wrench } from "lucide-react";
+import { Building2, ChevronsUpDown, GitCompare, LogOut, Settings, Wrench } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Surface from "./Surface";
 import { usePopover } from "../use-popover";
@@ -40,8 +40,8 @@ function MenuItem({
 
 /**
  * Account switcher pinned to the bottom of the sidebar. Shows who you are
- * and which instance you're in; opens upwards into your personal and instance
- * settings.
+ * and which instance you're in; opens upwards into your personal,
+ * organisation and instance settings.
  */
 export default function AccountMenu({ user, instance, onLogOut, defaultOpen = false }: Props) {
   const { open, setOpen, ref } = usePopover(defaultOpen);
@@ -59,6 +59,12 @@ export default function AccountMenu({ user, instance, onLogOut, defaultOpen = fa
         >
           <p className="truncate px-2 pt-1 pb-1.5 text-xs text-gray-500">{user.email}</p>
           <MenuItem to="/user-settings" icon={Settings} label="Settings" onSelect={close} />
+          <MenuItem
+            to="/organization-settings"
+            icon={Building2}
+            label="Organization settings"
+            onSelect={close}
+          />
           <MenuItem
             to="/instance-settings"
             icon={Wrench}

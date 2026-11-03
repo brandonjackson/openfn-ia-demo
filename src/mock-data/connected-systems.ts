@@ -9,6 +9,31 @@ import type {
   FeatureIntroData,
   SuggestedSystem,
 } from "../page-data";
+import type { XRoadAgreement, XRoadConnectionStatus, XRoadRoute } from "./xroad";
+import { routeUrl } from "./xroad";
+
+/**
+ * How OpenFn reaches a system. Workflows and adaptors reference the system,
+ * never the transport: a step on an X-Road system looks the same as one on
+ * a direct system, and the X-Road route and headers come from here and the
+ * organisation's X-Road settings.
+ */
+export type SystemConnection =
+  | { method: "direct" }
+  | {
+      method: "xroad";
+      route: XRoadRoute;
+      status: XRoadConnectionStatus;
+      /** When each status was reached, oldest first. */
+      history: { status: XRoadConnectionStatus; date: string }[];
+      agreement?: XRoadAgreement;
+      /** When access was last checked with `allowedMethods`. */
+      accessCheckedAt: string;
+      /** What `allowedMethods` said we may call. */
+      allowedMethods: string[];
+    };
+
+export type ConnectionMethod = SystemConnection["method"];
 
 export interface ConnectedSystem {
   id: string;
@@ -26,6 +51,22 @@ export interface ConnectedSystem {
   environments: Record<Environment, SystemEnvironment>;
   apiDocsUrl?: string;
   linkTo?: string;
+  /** Direct (standard credentials) when unset. */
+  connection?: SystemConnection;
+}
+
+/** How a system is reached; systems without one are reached directly. */
+export function connectionOf(system: ConnectedSystem): SystemConnection {
+  return system.connection ?? { method: "direct" };
+}
+
+/** An X-Road system's environments: production goes through the Security Server, and there's no credential to add. */
+function xroadEnvironments(route: XRoadRoute): Record<Environment, SystemEnvironment> {
+  return {
+    production: { url: routeUrl(route) },
+    staging: { url: undefined },
+    mock: { url: undefined },
+  };
 }
 
 /**
@@ -152,6 +193,85 @@ export const connectedSystems: ConnectedSystem[] = [
     },
     apiDocsUrl: "https://documentation.opencrvs.org/technology/interoperability/",
   },
+  {
+    id: "openmrs",
+    name: "OpenMRS",
+    description: "The National Referral Hospital's electronic medical records, reached over X-Road.",
+    credentialType: "org",
+    hasAccess: true,
+    color: "bg-teal-100 text-teal-700",
+    adaptor: "openmrs",
+    owner: "National Referral Hospital",
+    ownerType: "org",
+    environments: xroadEnvironments({ memberId: "nrh", subsystem: "OPENMRS", service: "patients" }),
+    apiDocsUrl: "https://rest.openmrs.org",
+    connection: {
+      method: "xroad",
+      route: { memberId: "nrh", subsystem: "OPENMRS", service: "patients" },
+      status: "live",
+      history: [
+        { status: "discovered", date: "2 Aug 2026" },
+        { status: "agreement-pending", date: "4 Aug 2026" },
+        { status: "operator-approval", date: "21 Aug 2026" },
+        { status: "access-granted", date: "28 Aug 2026" },
+        { status: "live", date: "9 Sep 2026" },
+      ],
+      agreement: { name: "Patient identity sharing, MOH and NRH", reference: "DSA-2026-014", signedOn: "19 Aug 2026" },
+      accessCheckedAt: "4 minutes ago",
+      allowedMethods: ["GET /patient", "POST /patient", "POST /encounter"],
+    },
+  },
+  {
+    id: "national-id",
+    name: "National ID verification",
+    description: "The Ministry of Interior's service for checking a national ID against the population register.",
+    credentialType: "org",
+    hasAccess: true,
+    color: "bg-amber-100 text-amber-700",
+    adaptor: "http",
+    owner: "Ministry of Interior",
+    ownerType: "org",
+    environments: xroadEnvironments({ memberId: "moi", subsystem: "IDENTITY", service: "verify-national-id" }),
+    connection: {
+      method: "xroad",
+      route: { memberId: "moi", subsystem: "IDENTITY", service: "verify-national-id" },
+      status: "live",
+      history: [
+        { status: "discovered", date: "1 Oct 2026" },
+        { status: "agreement-pending", date: "1 Oct 2026" },
+        { status: "operator-approval", date: "9 Oct 2026" },
+        { status: "access-granted", date: "15 Oct 2026" },
+        { status: "live", date: "15 Oct 2026" },
+      ],
+      agreement: { name: "Identity verification for health services", reference: "MOI-DSA-0442", signedOn: "8 Oct 2026" },
+      accessCheckedAt: "4 minutes ago",
+      allowedMethods: ["POST /verify"],
+    },
+  },
+  {
+    id: "social-registry",
+    name: "Social registry",
+    description: "The Ministry of Social Protection's registry of households and the programmes they're enrolled in.",
+    credentialType: "org",
+    hasAccess: false,
+    color: "bg-lime-100 text-lime-700",
+    adaptor: "http",
+    owner: "Ministry of Social Protection",
+    ownerType: "org",
+    environments: xroadEnvironments({ memberId: "msp", subsystem: "SOCIALREG", service: "household-lookup" }),
+    connection: {
+      method: "xroad",
+      route: { memberId: "msp", subsystem: "SOCIALREG", service: "household-lookup" },
+      status: "agreement-pending",
+      history: [
+        { status: "discovered", date: "27 Oct 2026" },
+        { status: "agreement-pending", date: "28 Oct 2026" },
+      ],
+      agreement: { name: "Fee waiver targeting, MOH and MSP", reference: "Draft v2" },
+      accessCheckedAt: "4 minutes ago",
+      allowedMethods: [],
+    },
+  },
 ];
 
 /**
@@ -185,6 +305,12 @@ export const systemAccessGrants: Record<string, AccessGrant[]> = {
     { id: "ag-13", grantedTo: "Project A", grantedToType: "project", scope: "/Patient", lastAccessed: "2026-04-05" },
     { id: "ag-14", grantedTo: "Project B", grantedToType: "project", scope: "/Observation", lastAccessed: null },
   ],
+  openmrs: [
+    { id: "ag-18", grantedTo: "Case-based surveillance", grantedToType: "project", scope: "All Resources", lastAccessed: "2026-10-20" },
+  ],
+  "national-id": [
+    { id: "ag-19", grantedTo: "Case-based surveillance", grantedToType: "project", scope: "All Resources", lastAccessed: "2026-10-20" },
+  ],
   opencrvs: [
     { id: "ag-15", grantedTo: "Project A", grantedToType: "project", scope: "All Resources", lastAccessed: "2026-04-07" },
     { id: "ag-16", grantedTo: "Brandon Jackson", grantedToType: "user", scope: "/births", lastAccessed: "2026-03-20" },
@@ -208,6 +334,7 @@ export const orgCredentials: OrgCredential[] = [
 /** ListItem shape for the list template */
 export const connectedSystemListItems: ListItem[] = connectedSystems.map((s) => {
   const url = s.environments.production.url;
+  const connection = connectionOf(s);
   return {
     id: s.id,
     name: s.name,
@@ -216,6 +343,8 @@ export const connectedSystemListItems: ListItem[] = connectedSystems.map((s) => 
       credentialType: s.credentialType,
       access: s.hasAccess ? "yes" : "no",
       adaptor: s.adaptor,
+      connection: connection.method,
+      ...(connection.method === "xroad" ? { xroadStatus: connection.status } : {}),
       ...(url ? { url } : {}),
     },
     linkTo: s.linkTo,
@@ -234,7 +363,6 @@ export const connectedSystemSummaries: ConnectedSystemSummary[] = connectedSyste
 
 /** Systems we suggest connecting next, shown on the Overview. */
 export const recommendedSystems: SuggestedSystem[] = [
-  { name: "OpenMRS", description: "Electronic medical records", adaptor: "openmrs" },
   { name: "PostgreSQL", description: "Relational database", adaptor: "postgresql" },
   { name: "WhatsApp Business", description: "Messaging and notifications", adaptor: "whatsapp" },
   { name: "RapidPro", description: "SMS and chat flows", adaptor: "rapidpro" },

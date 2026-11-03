@@ -8,9 +8,9 @@ const meta: Meta<typeof Sidebar> = {
   parameters: {
     layout: "fullscreen",
   },
-  render: () => (
+  render: (args) => (
     <div className="flex h-screen">
-      <Sidebar />
+      <Sidebar {...args} />
     </div>
   ),
 };
@@ -49,4 +49,11 @@ export const InsideProjectCreate: Story = {
 /** A page under Maintain. */
 export const InsideProjectMaintain: Story = {
   decorators: [withRouterAt("/projects/project-a/deployments")],
+};
+
+/** On a small screen the sidebar is a drawer. Open, it slides in over a
+ *  dimmed page with a close button by the logo (narrow the canvas to see it). */
+export const MobileOpen: Story = {
+  decorators: [withRouterAt("/overview")],
+  args: { open: true, onClose: () => {} },
 };

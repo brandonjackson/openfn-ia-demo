@@ -18,11 +18,15 @@ import {
   Settings,
   BookMarked,
   LifeBuoy,
+  X,
 } from "lucide-react";
 import { mainNavGroups, mainNavTree, openfnDocsUrl, supportTree } from "../ia-tree";
 import { projects, recentProjects } from "../mock-data/projects";
 import type { Project } from "../mock-data/projects";
 import { currentInstance, currentUser } from "../mock-data/user";
+import { useDismiss } from "../use-popover";
+import IconButton from "./IconButton";
+import InstanceLogo from "./InstanceLogo";
 import SidebarLink from "./SidebarLink";
 import SidebarSection from "./SidebarSection";
 import AccountMenu from "./AccountMenu";
@@ -173,40 +177,58 @@ function useCurrentProject(): Project | undefined {
  * (Overview; Organization; Monitoring; recent Projects). Once you open a project
  * it swaps to that project's own menu (Overview; Build; Maintain). The logo always returns to Overview,
  * Support stays pinned near the bottom, and the account menu sits below it.
+ *
+ * From the `md` breakpoint up it sits in the page's flow. Below it, it's a
+ * drawer: off-screen until `open`, then it slides in over a dimmed page and
+ * slides back out on its close button, a tap outside or Escape.
  */
-export default function Sidebar() {
+export default function Sidebar({ open = false, onClose }: { open?: boolean; onClose?: () => void }) {
   const project = useCurrentProject();
   const { pathname } = useLocation();
   const getHelp = supportTree.find((n) => n.id === "get-help")!;
+  const ref = useDismiss<HTMLElement>(open, () => onClose?.());
 
   return (
-    <aside data-ui="sidebar" className="w-72 border-r border-gray-200 bg-white flex-shrink-0 flex flex-col h-full">
-      {/* Logo: always a clear way back to the root. */}
-      <div data-ui="sidebar-logo" className="px-4 py-4">
-        <Link to="/" className="flex items-center gap-2" title="Back to Overview">
-          <div className="w-7 h-7 bg-indigo-600 rounded-md flex items-center justify-center">
-            <span className="text-white text-xs font-bold">{currentInstance.initials}</span>
+    <>
+      {/* Dims the page behind the drawer on small screens. */}
+      <div
+        aria-hidden
+        className={`md:hidden fixed inset-0 z-30 bg-black/40 transition-opacity duration-200 ${
+          open ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      />
+      <aside
+        ref={ref}
+        data-ui="sidebar"
+        className={`w-72 max-w-[85vw] border-r border-gray-200 bg-white flex-shrink-0 flex flex-col h-full fixed inset-y-0 left-0 z-40 transition-transform duration-200 ease-out md:static md:z-auto md:translate-x-0 md:transition-none ${
+          open ? "translate-x-0 shadow-xl md:shadow-none" : "-translate-x-full"
+        }`}
+      >
+        {/* Logo: always a clear way back to the root. */}
+        <div data-ui="sidebar-logo" className="px-4 py-4 flex items-center justify-between gap-2">
+          <InstanceLogo />
+          <div className="md:hidden">
+            <IconButton icon={X} label="Close menu" size="md" onClick={onClose} />
           </div>
-          <span className="text-lg font-semibold text-gray-900">{currentInstance.name}</span>
-        </Link>
-      </div>
-
-      {project ? <ProjectNav project={project} /> : <OrgNav />}
-
-      <div className="p-3 space-y-3">
-        <SidebarSection label="Support">
-          <SidebarLink href={openfnDocsUrl} icon={BookMarked} label="OpenFn docs" />
-          <SidebarLink
-            to={"/" + getHelp.id}
-            icon={LifeBuoy}
-            label={getHelp.label}
-            active={isAt(pathname, "/" + getHelp.id)}
-          />
-        </SidebarSection>
-        <div className="border-t border-gray-200 pt-3">
-          <AccountMenu user={currentUser} instance={currentInstance} />
         </div>
-      </div>
-    </aside>
+
+        {project ? <ProjectNav project={project} /> : <OrgNav />}
+
+        <div className="p-3 space-y-3">
+          <SidebarSection label="Support">
+            <SidebarLink href={openfnDocsUrl} icon={BookMarked} label="OpenFn docs" />
+            <SidebarLink
+              to={"/" + getHelp.id}
+              icon={LifeBuoy}
+              label={getHelp.label}
+              active={isAt(pathname, "/" + getHelp.id)}
+            />
+          </SidebarSection>
+          <div className="border-t border-gray-200 pt-3">
+            <AccountMenu user={currentUser} instance={currentInstance} />
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }

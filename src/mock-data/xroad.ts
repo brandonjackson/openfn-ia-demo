@@ -494,26 +494,10 @@ export interface NetworkLink {
   direction: "outbound" | "inbound" | "both";
 }
 
-/** Members the organisation exchanges data with over X-Road. Everyone else in the directory is drawn faded. */
+/** Members the organisation exchanges data with over X-Road. Those that call in are drawn on the ecosystem map. */
 export const networkLinks: NetworkLink[] = [
   { memberId: "moi", direction: "outbound" },
   { memberId: "nrh", direction: "both" },
   { memberId: "msp", direction: "outbound" },
   { memberId: "ndho", direction: "inbound" },
 ];
-
-/** A member as the network map draws it. */
-export interface NetworkMember {
-  id: string;
-  name: string;
-  code: string;
-  /** Whether you exchange data with them yet; unlinked members are drawn faded. */
-  linked: boolean;
-  direction?: NetworkLink["direction"];
-}
-
-/** Every member in the directory, marked with whether and how you're linked to them. */
-export const networkMembers: NetworkMember[] = xroadDirectory.map((m) => {
-  const link = networkLinks.find((l) => l.memberId === m.id);
-  return { id: m.id, name: m.name, code: m.memberCode, linked: !!link, direction: link?.direction };
-});

@@ -1,6 +1,7 @@
 import type { PageData } from "../page-data";
 import { connectedSystemListItems, connectedSystems, connectedSystemsIntro, connectionOf } from "./connected-systems";
-import { networkMembers, orgXRoad, routeKey, xroadDirectory } from "./xroad";
+import { routeKey, xroadDirectory } from "./xroad";
+import { ecosystemRoutes, ecosystemStations, ecosystemWorkflows } from "./ecosystem";
 import { serviceCatalogData } from "./service-catalog";
 import { historyData } from "./history";
 import { overviewData } from "./overview";
@@ -27,9 +28,8 @@ pageDataRegistry.set("connected-systems", {
   filterMap: { "You have access": "yes", "No access": "no" },
   showSuggestions: true,
   intro: connectedSystemsIntro,
+  ecosystem: { stations: ecosystemStations, workflows: ecosystemWorkflows, routes: ecosystemRoutes },
   xroad: {
-    centre: { name: orgXRoad.memberName, code: orgXRoad.memberCode },
-    network: networkMembers,
     directory: xroadDirectory,
     added: connectedSystems.flatMap((s) => {
       const c = connectionOf(s);

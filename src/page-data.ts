@@ -2,7 +2,8 @@ import type { BadgeTone } from "./components/Badge";
 import type { FeatureIntroItem } from "./components/FeatureIntro";
 import type { RunStatus } from "./mock-data/workflow";
 import type { ChannelDetails } from "./mock-data/channels";
-import type { NetworkMember, OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember } from "./mock-data/xroad";
+import type { EcosystemStation, EcosystemWorkflow } from "./mock-data/ecosystem";
+import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember } from "./mock-data/xroad";
 import type { ConnectionMethod } from "./mock-data/connected-systems";
 
 /* ------------------------------------------------------------------ */
@@ -65,10 +66,14 @@ export interface ListPageData {
   showSuggestions?: boolean;
   /** Dismissible "why use this" banner shown at the top of the page. */
   intro?: FeatureIntroData;
-  /** The X-Road network and directory, for an organisation on X-Road. */
+  /** The organisation's systems and the workflows between them, drawn as a transport map. */
+  ecosystem?: {
+    stations: EcosystemStation[];
+    workflows: EcosystemWorkflow[];
+    routes: Record<string, { col: number; row: number }[]>;
+  };
+  /** The X-Road directory, for an organisation on X-Road. */
   xroad?: {
-    centre: { name: string; code: string };
-    network: NetworkMember[];
     directory: XRoadMember[];
     /** Directory services already in your systems, as `memberId/subsystem/service`. */
     added: string[];

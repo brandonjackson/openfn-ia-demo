@@ -5,6 +5,7 @@ import type { ListPageData, ListItem } from "../page-data";
 import AdaptorLogo from "../components/AdaptorLogo";
 import Badge from "../components/Badge";
 import Button from "../components/Button";
+import EcosystemView from "../components/EcosystemView";
 import EmptyState from "../components/EmptyState";
 import FeatureIntro from "../components/FeatureIntro";
 import ListRow from "../components/ListRow";
@@ -13,11 +14,9 @@ import SegmentedControl from "../components/SegmentedControl";
 import SuggestedSystemsToAdd from "../components/SuggestedSystemsToAdd";
 import AddConnectedSystemFlow from "../components/AddConnectedSystemFlow";
 import ConnectionMethodBadge from "../components/ConnectionMethodBadge";
-import Modal from "../components/Modal";
 import SectionHeading from "../components/SectionHeading";
 import XRoadAccessBadge from "../components/XRoadAccessBadge";
 import XRoadDirectory from "../components/XRoadDirectory";
-import XRoadNetworkMap from "../components/XRoadNetworkMap";
 import type { ConnectionMethod } from "../mock-data/connected-systems";
 import type { XRoadConnectionStatus, XRoadRoute } from "../mock-data/xroad";
 import { directoryMember, routeKey, routeService } from "../mock-data/xroad";
@@ -65,14 +64,11 @@ export default function ListTemplate({ node, ancestors, currentPath, data }: Pro
   const [selected, setSelected] = useState(firstFilter?.options[0] ?? "All");
   const [addFlowOpen, setAddFlowOpen] = useState(false);
   const [preselectedSystem, setPreselectedSystem] = useState<string | undefined>();
-  const [mapOpen, setMapOpen] = useState(false);
+  const [view, setView] = useState<"list" | "ecosystem">("list");
   // Services added from the X-Road directory this session.
   const [addedRoutes, setAddedRoutes] = useState<XRoadRoute[]>([]);
   const xroad = data.xroad;
   const added = [...(xroad?.added ?? []), ...addedRoutes.map(routeKey)];
-  const network = xroad?.network.map((m) =>
-    m.linked || !addedRoutes.some((r) => r.memberId === m.id) ? m : { ...m, linked: true, direction: "outbound" as const }
-  );
   const addedItems: ListItem[] = addedRoutes.map((route) => {
     const member = directoryMember(route.memberId);
     const service = routeService(route);
@@ -119,26 +115,42 @@ export default function ListTemplate({ node, ancestors, currentPath, data }: Pro
 
       {data.intro && <FeatureIntro {...data.intro} />}
 
-      {xroad && network && (
-        <XRoadNetworkMap centre={xroad.centre} members={network} variant="mini" onExpand={() => setMapOpen(true)} />
-      )}
-
       <div className="space-y-4">
-        {firstFilter && (
-          <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          {data.ecosystem && (
             <SegmentedControl
-              label={firstFilter.label}
-              options={firstFilter.options}
-              value={selected}
-              onChange={setSelected}
+              variant="pill"
+              options={[
+                { id: "list", label: "List" },
+                { id: "ecosystem", label: "Ecosystem" },
+              ]}
+              value={view}
+              onChange={(v) => setView(v as "list" | "ecosystem")}
             />
-            <span className="text-xs text-gray-400">
-              {filtered.length} system{filtered.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-        )}
+          )}
+          {firstFilter && view === "list" && (
+            <>
+              <SegmentedControl
+                label={firstFilter.label}
+                options={firstFilter.options}
+                value={selected}
+                onChange={setSelected}
+              />
+              <span className="text-xs text-gray-400">
+                {filtered.length} system{filtered.length !== 1 ? "s" : ""}
+              </span>
+            </>
+          )}
+        </div>
 
-        {filtered.length > 0 ? (
+        {view === "ecosystem" && data.ecosystem ? (
+          <EcosystemView
+            stations={data.ecosystem.stations}
+            workflows={data.ecosystem.workflows}
+            routes={data.ecosystem.routes}
+            systemHref={(id) => (data.items.some((i) => i.id === id) ? `${currentPath}/${id}` : undefined)}
+          />
+        ) : filtered.length > 0 ? (
           <div className="space-y-2">
             {filtered.map((item) => (
               <ListItemRow key={item.id} item={item} basePath={currentPath} />
@@ -165,12 +177,6 @@ export default function ListTemplate({ node, ancestors, currentPath, data }: Pro
       )}
 
       {data.showSuggestions && <SuggestedSystemsToAdd onSelect={handleOpenAddFlow} />}
-
-      {xroad && network && (
-        <Modal open={mapOpen} onClose={() => setMapOpen(false)} title="X-Road network" widthClass="max-w-4xl">
-          <XRoadNetworkMap centre={xroad.centre} members={network} variant="full" />
-        </Modal>
-      )}
 
       <AddConnectedSystemFlow
         open={addFlowOpen}

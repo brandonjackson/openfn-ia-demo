@@ -497,6 +497,8 @@ export interface ProjectPageData {
   projectId: string;
   /** Headline numbers from Insights and History, linking through. */
   tiles: StatTileData[];
+  /** Its workflows, most recently run first. Empty for a new project, which shows an empty state. */
+  workflows: WorkflowListItem[];
   /** What the project publishes. Absent without the service catalog. */
   services?: ProjectServiceItem[];
   /** What it's built from. Absent without components. */

@@ -1,32 +1,41 @@
-import { ClipboardList } from "lucide-react";
+import { ClipboardList, Plus, Workflow } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
 import type { ProjectPageData } from "../model/page-data";
 import Badge from "../components/primitives/Badge";
 import PageHeader from "../components/patterns/PageHeader";
 import Breadcrumbs from "../components/domain/Breadcrumbs";
+import Button from "../components/primitives/Button";
 import Card from "../components/primitives/Card";
 import ComponentRow from "../components/domain/ComponentRow";
 import EmptyState from "../components/primitives/EmptyState";
 import ListRow from "../components/primitives/ListRow";
 import SectionHeading from "../components/primitives/SectionHeading";
+import Stack from "../components/primitives/Stack";
 import StatTile from "../components/primitives/StatTile";
 import TextLink from "../components/primitives/TextLink";
+import WorkflowRow from "../components/domain/WorkflowRow";
 
-export type ProjectPageProps = PageProps<ProjectPageData>;
+export interface ProjectPageProps extends PageProps<ProjectPageData> {
+  /** Opens a blank workflow in this project, from the empty state. */
+  onNewWorkflow: () => void;
+}
+
+/** How many workflows the Overview lists before "View all". */
+const WORKFLOW_PREVIEW = 5;
 
 /** How many components the Overview lists before "View all". */
 const COMPONENT_PREVIEW = 6;
 
 /**
- * A project at a glance: how it's running (the best of Insights), then what
- * it already publishes and is built from. Each section after the first is
- * left out when its data is (its feature is off).
+ * A project at a glance: how it's running (the best of Insights), its
+ * workflows, then what it publishes and is built from. Services and
+ * components are left out when their data is (their feature is off).
  */
-export default function ProjectPage({ node, ancestors, currentPath, data }: ProjectPageProps) {
-  const { tiles, services, components } = data;
+export default function ProjectPage({ node, ancestors, currentPath, data, onNewWorkflow }: ProjectPageProps) {
+  const { tiles, workflows, services, components } = data;
 
   return (
-    <div className="space-y-8">
+    <Stack gap="xl">
       <PageHeader
         breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
@@ -54,6 +63,44 @@ export default function ProjectPage({ node, ancestors, currentPath, data }: Proj
         </div>
       </section>
 
+
+      <section>
+        <SectionHeading
+          title="Workflows"
+          description={
+            workflows.length > 0
+              ? `${workflows.length} workflow${workflows.length !== 1 ? "s" : ""} in this project.`
+              : undefined
+          }
+          action={
+            workflows.length > 0 && (
+              <TextLink to={`${currentPath}/workflows`} variant="action">
+                View all
+              </TextLink>
+            )
+          }
+        />
+        <div className="-mt-3">
+          {workflows.length > 0 ? (
+            <Stack gap="sm">
+              {workflows.slice(0, WORKFLOW_PREVIEW).map((w) => (
+                <WorkflowRow key={w.id} workflow={w} />
+              ))}
+            </Stack>
+          ) : (
+            <EmptyState
+              icon={Workflow}
+              title="No workflows yet"
+              description="Workflows move data between your connected systems."
+              action={
+                <Button icon={Plus} onClick={onNewWorkflow}>
+                  Create one
+                </Button>
+              }
+            />
+          )}
+        </div>
+      </section>
 
       <div className={`grid grid-cols-1 gap-8 ${services && components ? "lg:grid-cols-2" : ""}`}>
         {services && (
@@ -117,6 +164,6 @@ export default function ProjectPage({ node, ancestors, currentPath, data }: Proj
           </section>
         )}
       </div>
-    </div>
+    </Stack>
   );
 }

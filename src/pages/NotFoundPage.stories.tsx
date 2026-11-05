@@ -18,3 +18,8 @@ export const NoPage: Story = {
 export const NoData: Story = {
   args: { path: "/projects/no-such-project/workflows", reason: "data" },
 };
+
+/** The page belongs to a feature whose flag is off. */
+export const FeatureOff: Story = {
+  args: { path: "/connected-systems", reason: "flag", feature: "Connected systems" },
+};

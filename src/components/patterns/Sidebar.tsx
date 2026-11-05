@@ -20,7 +20,8 @@ import {
   LifeBuoy,
   X,
 } from "lucide-react";
-import { mainNavGroups, mainNavTree, openfnDocsUrl, supportTree } from "../../model/ia-tree";
+import { mainNavTree, openfnDocsUrl, supportTree, visibleNavGroups } from "../../model/ia-tree";
+import type { FlagId } from "../../model/feature-flags";
 import type { Project } from "../../model/projects";
 import { useDismiss } from "../primitives/use-popover";
 import IconButton from "../primitives/IconButton";
@@ -46,6 +47,8 @@ interface ProjectSection {
   id: string;
   label: string;
   icon: LucideIcon;
+  /** The feature flag the section belongs to; off, it's left out. */
+  flag?: FlagId;
 }
 
 /**
@@ -57,7 +60,7 @@ const projectNavGroups: { label?: string; sections: ProjectSection[] }[] = [
   {
     label: "Build",
     sections: [
-      { id: "create", label: "Create", icon: Sparkles },
+      { id: "create", label: "Create", icon: Sparkles, flag: "aiBuild" },
       { id: "workflows", label: "Workflows", icon: Workflow },
       { id: "components", label: "Components", icon: Boxes },
       { id: "sandboxes", label: "Sandboxes", icon: FlaskConical },
@@ -68,7 +71,7 @@ const projectNavGroups: { label?: string; sections: ProjectSection[] }[] = [
     sections: [
       { id: "history", label: "History", icon: ChartColumn },
       { id: "insights", label: "Insights", icon: Lightbulb },
-      { id: "deployments", label: "Deployments", icon: Rocket },
+      { id: "deployments", label: "Deployments", icon: Rocket, flag: "deployments" },
       { id: "settings", label: "Settings", icon: Settings },
     ],
   },
@@ -80,9 +83,13 @@ function isAt(pathname: string, path: string) {
 }
 
 function ProjectNav({ project }: { project: Project }) {
-  const { currentPath } = useShell();
+  const { currentPath, flags } = useShell();
   const base = "/projects/" + project.id;
-  const sectionIds = projectNavGroups
+  const groups = projectNavGroups.map((g) => ({
+    ...g,
+    sections: g.sections.filter((s) => !s.flag || flags[s.flag]),
+  }));
+  const sectionIds = groups
     .flatMap((g) => g.sections.map((s) => s.id))
     .filter(Boolean);
   // Anything under the project that isn't its own nav section (services)
@@ -103,7 +110,7 @@ function ProjectNav({ project }: { project: Project }) {
         </Link>
       </div>
       <nav className="p-3 flex-1 overflow-y-auto space-y-5">
-        {projectNavGroups.map((group) => (
+        {groups.map((group) => (
           <SidebarSection key={group.label ?? "top"} label={group.label}>
             {group.sections.map((section) => (
               <SidebarLink
@@ -122,11 +129,11 @@ function ProjectNav({ project }: { project: Project }) {
 }
 
 function OrgNav() {
-  const { currentPath: pathname, recentProjects } = useShell();
+  const { currentPath: pathname, recentProjects, flags } = useShell();
 
   return (
     <nav className="p-3 flex-1 overflow-y-auto space-y-5">
-      {mainNavGroups.map((group) => (
+      {visibleNavGroups(flags).map((group) => (
         <SidebarSection key={group.label ?? "top"} label={group.label}>
           {group.items.map((id) => {
             const node = mainNavTree.find((n) => n.id === id);
@@ -166,7 +173,8 @@ function OrgNav() {
 
 /**
  * App sidebar. At the instance level it shows the grouped top-level IA
- * (Overview; Organization; Monitoring; recent Projects). Once you open a project
+ * (Overview; Organization; Monitoring; recent Projects), leaving out what the
+ * feature flags turn off. Once you open a project
  * it swaps to that project's own menu (Overview; Build; Maintain). The logo always returns to Overview,
  * Support stays pinned near the bottom, and the account menu sits below it.
  *
@@ -175,7 +183,7 @@ function OrgNav() {
  * slides back out on its close button, a tap outside or Escape.
  */
 export default function Sidebar({ open = false, onClose }: { open?: boolean; onClose?: () => void }) {
-  const { project, currentPath: pathname, user, instance } = useShell();
+  const { project, currentPath: pathname, user, instance, flags } = useShell();
   const getHelp = supportTree.find((n) => n.id === "get-help")!;
   const ref = useDismiss<HTMLElement>(open, () => onClose?.());
 
@@ -197,7 +205,10 @@ export default function Sidebar({ open = false, onClose }: { open?: boolean; onC
       >
         {/* Logo: always a clear way back to the root. */}
         <div data-ui="sidebar-logo" className="px-4 py-4 flex items-center justify-between gap-2">
-          <InstanceLogo instance={instance} />
+          <InstanceLogo
+            instance={instance}
+            title={flags.organizations ? "Back to Overview" : "Back to projects"}
+          />
           <div className="md:hidden">
             <IconButton icon={X} label="Close menu" size="md" onClick={onClose} />
           </div>
@@ -216,7 +227,7 @@ export default function Sidebar({ open = false, onClose }: { open?: boolean; onC
             />
           </SidebarSection>
           <div className="border-t border-gray-200 pt-3">
-            <AccountMenu user={user} instance={instance} />
+            <AccountMenu user={user} instance={instance} showOrganizationSettings={flags.organizations} />
           </div>
         </div>
       </aside>

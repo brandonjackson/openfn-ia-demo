@@ -1,6 +1,8 @@
 import type { ComponentType } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { iaTree, type IANode } from "../model/ia-tree";
+import { iaTree, visibleTree, type IANode } from "../model/ia-tree";
+import { flagById } from "../model/feature-flags";
+import { useFlags } from "./feature-flags";
 import { findNodeByPath, type PageRoute as Route } from "./ia-utils";
 import NotFoundPage from "../pages/NotFoundPage";
 import OverviewPageFixtures from "../pages/OverviewPage.fixtures";
@@ -68,18 +70,30 @@ const movedPaths: Record<string, string> = {
 /**
  * Shows the page at the current URL: finds where it sits in the IA tree and
  * hands the route to the wrapper for that kind of page. Overview, the home
- * page, sits at "/" outside the tree.
+ * page, sits at "/" outside the tree; with the Organizations flag off, home
+ * is the projects list. A page whose feature flag is off says so.
  */
 export default function PageRoute() {
   const { pathname } = useLocation();
+  const flags = useFlags();
 
-  if (pathname === "/" || pathname === "/overview") return <OverviewPageFixtures />;
+  if (pathname === "/" || pathname === "/overview") {
+    return flags.organizations ? <OverviewPageFixtures /> : <Navigate to="/projects" replace />;
+  }
 
   const moved = movedPaths[pathname.replace(/\/$/, "")];
   if (moved) return <Navigate to={moved} replace />;
 
-  const result = findNodeByPath(iaTree, pathname);
-  if (!result) return <NotFoundPage path={pathname} reason="page" />;
+  const result = findNodeByPath(visibleTree(iaTree, flags), pathname);
+  if (!result) {
+    const hidden = findNodeByPath(iaTree, pathname);
+    const flag = hidden && [...hidden.ancestors.map((a) => a.node), hidden.node].find((n) => n.flag && !flags[n.flag])?.flag;
+    return flag ? (
+      <NotFoundPage path={pathname} reason="flag" feature={flagById(flag).label} />
+    ) : (
+      <NotFoundPage path={pathname} reason="page" />
+    );
+  }
 
   const Wrapper = wrappers[result.node.pageType ?? "generic"];
   return <Wrapper route={{ ...result, currentPath: pathname }} />;

@@ -1,3 +1,5 @@
+import type { FeatureFlags, FlagId } from "./feature-flags";
+
 export interface IANode {
   id: string;
   label: string;
@@ -32,6 +34,8 @@ export interface IANode {
     | "generic";
   /** When true, this node acts as a template that matches any sibling slug not found by exact ID */
   dynamic?: boolean;
+  /** The feature flag this page belongs to. Off, the page and everything under it are gone. */
+  flag?: FlagId;
 }
 
 /**
@@ -63,6 +67,7 @@ export const projectTemplateTree: IANode[] = [
       // Build
       {
         id: "create",
+        flag: "aiBuild",
         label: "Create",
         description:
           "Start a new public service from an idea, drawing on every system, channel and service your organization already has.",
@@ -113,6 +118,7 @@ export const projectTemplateTree: IANode[] = [
       },
       {
         id: "deployments",
+        flag: "deployments",
         label: "Deployments",
         description:
           "What's running in production, when it was deployed, and from which sandbox.",
@@ -127,6 +133,7 @@ export const projectTemplateTree: IANode[] = [
       // Not in the project nav, but linked from the project Overview and Services.
       {
         id: "services",
+        flag: "serviceCatalog",
         label: "Services",
         description: "Published services built from project components.",
         children: [
@@ -150,6 +157,7 @@ export const projectTemplateTree: IANode[] = [
 export const mainNavTree: IANode[] = [
   {
     id: "overview",
+    flag: "organizations",
     label: "Overview",
     description:
       "What needs your attention and what's happened recently, with links into Status and Insights.",
@@ -157,6 +165,7 @@ export const mainNavTree: IANode[] = [
   },
   {
     id: "handbook",
+    flag: "handbook",
     label: "Handbook",
     description:
       "How this organization works: who you integrate with, the agreements behind each system, conventions, and the files that go with them.",
@@ -164,6 +173,7 @@ export const mainNavTree: IANode[] = [
   },
   {
     id: "connected-systems",
+    flag: "connectedSystems",
     label: "Systems",
     description: "Browse and manage all connected external systems.",
     pageType: "list",
@@ -205,6 +215,7 @@ export const mainNavTree: IANode[] = [
   },
   {
     id: "service-catalog",
+    flag: "serviceCatalog",
     label: "Services",
     description: "Browse the catalog of published services and channels.",
     pageType: "catalog",
@@ -227,6 +238,7 @@ export const mainNavTree: IANode[] = [
   },
   {
     id: "status",
+    flag: "organizations",
     label: "Status",
     description:
       "Right now: which systems and workflows are up, degraded, or failing.",
@@ -234,6 +246,7 @@ export const mainNavTree: IANode[] = [
   },
   {
     id: "insights",
+    flag: "organizations",
     label: "Insights",
     description:
       "Trends over time: runs, errors, and how long things take, across every project.",
@@ -241,6 +254,7 @@ export const mainNavTree: IANode[] = [
   },
   {
     id: "history",
+    flag: "organizations",
     label: "History",
     description: "View historical work orders and channel requests across all projects.",
     pageType: "table",
@@ -317,6 +331,7 @@ export const settingsTree: IANode[] = [
   },
   {
     id: "organization-settings",
+    flag: "organizations",
     label: "Organization settings",
     description: "Who's in your organisation, what others can see by default, the context it draws on, its identity on X-Road, and billing.",
     pageType: "organization-settings",
@@ -341,6 +356,7 @@ export const settingsTree: IANode[] = [
       },
       {
         id: "xroad",
+        flag: "xroad",
         label: "X-Road",
         description: "Your organisation's X-Road identity: instance, member, subsystems, Security Servers and certificates.",
         pageType: "organization-settings",
@@ -363,3 +379,18 @@ export const iaTree: IANode[] = [
   ...supportTree,
   ...settingsTree,
 ];
+
+/** The tree without the pages whose feature flag is off. */
+export function visibleTree(tree: IANode[], flags: FeatureFlags): IANode[] {
+  return tree
+    .filter((n) => !n.flag || flags[n.flag])
+    .map((n) => (n.children ? { ...n, children: visibleTree(n.children, flags) } : n));
+}
+
+/** The sidebar's groups, without the pages whose flag is off, and without groups left empty. */
+export function visibleNavGroups(flags: FeatureFlags): NavGroup[] {
+  const shown = new Set(visibleTree(mainNavTree, flags).map((n) => n.id));
+  return mainNavGroups
+    .map((g) => ({ ...g, items: g.items.filter((id) => shown.has(id)) }))
+    .filter((g) => g.items.length > 0);
+}

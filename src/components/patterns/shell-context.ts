@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 import type { Project } from "../../model/projects";
 import type { UserProfile } from "../../model/page-data";
+import { allFlagsOn, type FeatureFlags } from "../../model/feature-flags";
 
 /**
  * What the app's chrome (the sidebar, and the project bar in the
@@ -25,6 +26,8 @@ export interface Shell {
   onSelectSandbox: (sandbox: string) => void;
   /** Goes to a page in the app, e.g. after switching project. */
   onNavigate: (path: string) => void;
+  /** The feature flags in effect, for which menu items to show. */
+  flags: FeatureFlags;
 }
 
 const empty: Shell = {
@@ -35,6 +38,7 @@ const empty: Shell = {
   sandbox: "main",
   onSelectSandbox: () => {},
   onNavigate: () => {},
+  flags: allFlagsOn,
 };
 
 export const ShellContext = createContext<Shell>(empty);

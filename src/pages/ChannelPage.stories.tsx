@@ -30,6 +30,17 @@ function storyArgs(project: Project, componentId: string) {
     // As the wrapper does: a channel whose messages come from a workflow can open it.
     onOpenWorkflow: data.channel.workflowId ? () => {} : undefined,
     onOpenRun: data.channel.workflowId ? () => {} : undefined,
+    onEditChannel: async () => {},
+    onSetEnabled: async () => {},
+    onDeleteChannel: async () => {},
+    draft: {
+      name: component.name,
+      description: component.description,
+      channelType: data.channel.channelType,
+      system: data.channel.system.name,
+      destinationUrl: data.channel.endpoint,
+      enabled: true,
+    },
   };
 }
 
@@ -51,4 +62,12 @@ export const Write: Story = { args: storyArgs(projects[0], "case-management-crea
 /** A channel with no linked workflow, so its messages have no runs to load. */
 export const NoWorkflow: Story = {
   args: storyArgs(projects.find((p) => p.components.some((c) => c.id === "client-registry-search"))!, "client-registry-search"),
+};
+
+/** Turned off: it refuses every request until it's turned back on. */
+export const TurnedOff: Story = {
+  args: (() => {
+    const args = storyArgs(projects[0], "case-management-create-case");
+    return { ...args, data: { ...args.data, channel: { ...args.data.channel, enabled: false } } };
+  })(),
 };

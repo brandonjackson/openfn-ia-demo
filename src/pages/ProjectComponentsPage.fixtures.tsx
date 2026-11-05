@@ -5,6 +5,9 @@ import NotFoundPage from "./NotFoundPage";
 import { pageFrame, routeProject } from "./route.fixtures";
 import { useFlags } from "../app/feature-flags";
 import { componentTypesFor, componentsFor } from "./flagged.fixtures";
+import { saveChannels, useSavedChannels } from "../app/channel-state";
+import { projectCredentials } from "../fixtures/adaptor-reference";
+import { channelEventAddress, channelId, createChannel, fixtureChannels } from "./channel-records.fixtures";
 
 /**
  * Feeds a project's Components list from fixtures, with the kinds of
@@ -15,8 +18,14 @@ export default function ProjectComponentsPageFixtures({ route }: { route: PageRo
   const navigate = useNavigate();
   const flags = useFlags();
   const project = routeProject(route);
+  const saved = useSavedChannels(project?.id ?? "");
   if (!project) return <NotFoundPage path={route.currentPath} reason="data" />;
-  const components = componentsFor(project.components, flags);
+  // Channels made, edited or deleted this session stand in for the fixtures' own.
+  const channels = saved ?? fixtureChannels(project);
+  const components = componentsFor(
+    [...project.components.filter((c) => c.type !== "Channel"), ...channels.map((c) => c.component)],
+    flags
+  );
   const types = componentTypesFor(flags);
   return (
     <ProjectComponentsPage
@@ -31,6 +40,9 @@ export default function ProjectComponentsPageFixtures({ route }: { route: PageRo
               })
           : undefined
       }
+      onCreateChannel={async (draft) => saveChannels(project.id, [...channels, createChannel(project, draft)])}
+      channelCredentials={projectCredentials.map((c) => c.name)}
+      channelAddress={(name) => channelEventAddress(project.id, channelId(name) || "my-channel")}
     />
   );
 }

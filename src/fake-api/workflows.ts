@@ -230,9 +230,24 @@ addProjectStats((projectId) => {
 
 const WORKFLOW_KEYS = ["id", "project_id", "name", "jobs", "triggers", "edges", "positions", "concurrency", "enable_job_logs", "lock_version"];
 
+/**
+ * Whether a project credential (a link) may be used by a step in a project:
+ * linked there, or to a project it's a sandbox of (sandboxes share their
+ * parent's credentials). credentials.ts answers it.
+ */
+let credentialUsable: (projectId: string, linkId: string) => boolean = () => true;
+export const setCredentialCheck = (check: typeof credentialUsable) => void (credentialUsable = check);
+
 /** Every problem with a workflow's graph, in one list (api/workflows.md). */
-export function graphProblems(doc: Pick<WorkflowDocument, "jobs" | "triggers" | "edges">, { selfId }: { selfId?: string } = {}): Entry[] {
+export function graphProblems(doc: Pick<WorkflowDocument, "jobs" | "triggers" | "edges">, { selfId, projectId }: { selfId?: string; projectId?: string } = {}): Entry[] {
   const errors: Entry[] = [];
+  if (projectId) {
+    doc.jobs.forEach((j, i) => {
+      if (j.project_credential_id && !credentialUsable(projectId, j.project_credential_id)) {
+        errors.push({ code: "credential_not_allowed", detail: "isn't a credential this project can use", pointer: `#/jobs/${i}/project_credential_id` });
+      }
+    });
+  }
   const jobIds = new Set(doc.jobs.map((j) => j.id));
   const triggerIds = new Set(doc.triggers.map((t) => t.id));
   doc.jobs.forEach((j, i) => {
@@ -405,7 +420,7 @@ function update(projectId: string, id: string, body: Body): Response {
     const kept = new Set(next.triggers.map((t) => t.id));
     if (existing.triggers.some((t) => !kept.has(t.id))) errors.push({ code: "trigger_removed", detail: "a trigger can't be removed", pointer: "#/triggers" });
   }
-  errors.push(...graphProblems(next, { selfId: id }));
+  errors.push(...graphProblems(next, { selfId: id, projectId: p.id }));
   if (errors.length) return invalid(errors);
   if (typeof body["lock_version"] === "number" && body["lock_version"] !== existing.lock_version) {
     return conflict("concurrent_edit", "Someone else changed this workflow. Fetch it again and retry.");

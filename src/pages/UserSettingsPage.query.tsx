@@ -1,8 +1,12 @@
 import { useState } from "react";
 import type { PageRoute } from "../app/ia-utils";
-import type { ApiToken, BackupCode, OAuthClient, UserCredential, UserProfile } from "../model/page-data";
-import { withoutSecrets } from "../model/credentials";
+import Loaded from "../app/Loaded";
+import { useCredentialSaves, useMyCredentials, useOAuthClients } from "../api/credentials";
+import { useProjectList } from "../api/projects";
+import { combine } from "../api/status";
+import type { ApiToken, BackupCode, UserProfile } from "../model/page-data";
 import { instanceUsers, userSettingsData } from "../fixtures/user";
+import { isOpenable } from "./project-records.query";
 import UserSettingsPage from "./UserSettingsPage";
 import { pageFrame } from "./route.fixtures";
 import { useFlags } from "../app/feature-flags";
@@ -23,29 +27,32 @@ function newBackupCodes(): BackupCode[] {
 }
 
 const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
-const today = () => dateFormat.format(new Date());
 const daysFromNow = (days: number) => dateFormat.format(new Date(Date.now() + days * 86_400_000));
 
 /**
- * Feeds every section of User settings from fixtures, and plays the server
- * for everything you can do there: each action applies Lightning's rules,
- * changes this session's copy of the records, and the page redraws from it.
+ * Feeds User settings. Your credentials (with their environments and the
+ * projects they're shared with) and OAuth clients come from the API, and so
+ * does the list of projects you can share with. Your profile, MFA and API
+ * tokens are still played here for the session until the account moves to
+ * the API.
  */
-export default function UserSettingsPageFixtures({ route }: { route: PageRoute }) {
+export default function UserSettingsPageQuery({ route }: { route: PageRoute }) {
   const flags = useFlags();
+  const { status: projectsStatus, projects: allProjects } = useProjectList();
+  const projects = allProjects.filter((p) => isOpenable(p) && !p.parentId);
+  const { status: credentialsStatus, credentials } = useMyCredentials(projects.map((p) => p.id));
+  const { status: clientsStatus, clients: oauthClients } = useOAuthClients();
+  const credentialSaves = useCredentialSaves(credentials);
   // Your account as it stands this session: the fixtures' stand-in for the server.
   const [profile, setProfile] = useState<UserProfile>(userSettingsData.profile);
-  const [credentials, setCredentials] = useState<UserCredential[]>(userSettingsData.credentials);
-  const [oauthClients, setOAuthClients] = useState<OAuthClient[]>(userSettingsData.oauthClients);
   const [tokens, setTokens] = useState<ApiToken[]>(userSettingsData.apiTokens);
   const [backupCodes, setBackupCodes] = useState<BackupCode[] | undefined>(userSettingsData.backupCodes);
   // The authenticator secret handed out but not yet confirmed with a code.
   const [pendingSecret, setPendingSecret] = useState<string>();
 
-  const projectName = (id: string) => userSettingsData.projects.find((p) => p.id === id)?.name ?? id;
-  const schemaOf = (id: string) => userSettingsData.credentialSchemas.find((s) => s.id === id);
-
   return (
+    <Loaded status={combine(projectsStatus, credentialsStatus, clientsStatus)} path={route.currentPath}>
+      {() => (
     <UserSettingsPage
       {...pageFrame(route)}
       data={{
@@ -53,6 +60,7 @@ export default function UserSettingsPageFixtures({ route }: { route: PageRoute }
         profile,
         credentials,
         oauthClients,
+        projects: projects.map((p) => ({ id: p.id, name: p.name })),
         apiTokens: tokens,
         backupCodes: profile.mfaEnabled ? backupCodes : undefined,
         // In the demo you're the instance's superuser, so you may make global OAuth clients.
@@ -90,42 +98,12 @@ export default function UserSettingsPageFixtures({ route }: { route: PageRoute }
         if (email !== profile.email) throw new Error("This email doesn't match your current email");
         setProfile((p) => ({ ...p, scheduledDeletion: daysFromNow(7) }));
       }}
-      onSaveCredential={async (draft) => {
-        if (draft.externalId) {
-          const clash = credentials.find(
-            (c) => c.id !== draft.id && c.externalId === draft.externalId && c.projectIds.some((p) => draft.projectIds.includes(p))
-          );
-          if (clash) throw new Error("Another credential with the same external ID already exists in this project");
-        }
-        // Secrets go to the server and never come back.
-        const environments = draft.environments.map((e) => ({ ...e, values: withoutSecrets(e.values, schemaOf(draft.schema)) }));
-        if (draft.id) {
-          setCredentials((all) => all.map((c) => (c.id === draft.id ? { ...c, ...draft, id: c.id, environments } : c)));
-        } else {
-          setCredentials((all) => [...all, { ...draft, id: `ucred-${Date.now()}`, environments, createdAt: today() }]);
-        }
-      }}
-      onDeleteCredential={async (id) => setCredentials((all) => all.filter((c) => c.id !== id))}
-      onTransferCredential={async (id, email) => {
-        const credential = credentials.find((c) => c.id === id);
-        if (!credential) throw new Error("Credential not found");
-        if (email === profile.email) throw new Error("You cannot transfer a credential to yourself");
-        const receiver = instanceUsers.find((u) => u.email === email);
-        if (!receiver) throw new Error("User does not exist");
-        const blocking = credential.projectIds.filter((p) => !receiver.projectIds.includes(p));
-        if (blocking.length > 0)
-          throw new Error(`User doesn't have access to these projects: ${blocking.map(projectName).join(", ")}`);
-        setCredentials((all) => all.map((c) => (c.id === id ? { ...c, transferPendingTo: email } : c)));
-      }}
-      onRevokeCredentialTransfer={async (id) =>
-        setCredentials((all) => all.map((c) => (c.id === id ? { ...c, transferPendingTo: undefined } : c)))
-      }
-      onSaveOAuthClient={async ({ clientSecret: _secret, ...draft }) => {
-        void _secret; // The secret goes to the server and never comes back.
-        if (draft.id) setOAuthClients((all) => all.map((c) => (c.id === draft.id ? { ...c, ...draft, id: c.id } : c)));
-        else setOAuthClients((all) => [...all, { ...draft, id: `oauth-${Date.now()}` }]);
-      }}
-      onDeleteOAuthClient={async (id) => setOAuthClients((all) => all.filter((c) => c.id !== id))}
+      onSaveCredential={credentialSaves.save}
+      onDeleteCredential={credentialSaves.remove}
+      onTransferCredential={credentialSaves.transfer}
+      onRevokeCredentialTransfer={credentialSaves.revokeTransfer}
+      onSaveOAuthClient={credentialSaves.saveOAuthClient}
+      onDeleteOAuthClient={credentialSaves.deleteOAuthClient}
       onGenerateToken={async () => {
         const token = fakeToken();
         setTokens((prev) => [{ id: `tok-${Date.now()}`, suffix: token.slice(-4), createdAt: "Just now" }, ...prev]);
@@ -133,5 +111,7 @@ export default function UserSettingsPageFixtures({ route }: { route: PageRoute }
       }}
       onDeleteToken={async (id) => setTokens((prev) => prev.filter((t) => t.id !== id))}
     />
+      )}
+    </Loaded>
   );
 }

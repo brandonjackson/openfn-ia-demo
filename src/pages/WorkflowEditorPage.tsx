@@ -129,6 +129,7 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
         adaptorPackage: info[adaptor].package,
         body: edits.bodies[n.id] ?? n.body,
         system: n.id in edits.systems ? edits.systems[n.id] : n.system,
+        credentialId: n.id in edits.credentials ? edits.credentials[n.id] : n.credentialId,
       };
     });
   const ids = new Set(nodes.map((n) => n.id));
@@ -987,7 +988,7 @@ export default function WorkflowEditorPage({
         credentials={focusJob ? adaptors.credentials.filter((c) => c.adaptor === focusJob.adaptor) : undefined}
         system={focusJob?.system ? systems.find((s) => s.id === focusJob.system) : undefined}
         codeSummary={focusJob ? codeSummary?.(focusJob) : undefined}
-        credentialId={focusJob ? edits.credentials[focusJob.id] : undefined}
+        credentialId={focusJob?.credentialId}
         readOnly={onMain}
         url={url}
         live={live}
@@ -1224,7 +1225,7 @@ export default function WorkflowEditorPage({
             setSettings(s);
             if (s.name.trim()) setName(s.name);
           }}
-          credentials={edits.credentials}
+          credentials={Object.fromEntries(graph.nodes.flatMap((n) => (n.type === "job" ? [[n.id, n.credentialId]] : [])))}
           onStepChange={onMain ? undefined : changeStep}
           onCodeChange={onMain ? undefined : changeCode}
           onDeleteStep={onMain ? undefined : deleteStep}

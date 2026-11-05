@@ -23,7 +23,7 @@ import ServicePageFixtures from "../pages/ServicePage.fixtures";
 import ChannelPageFixtures from "../pages/ChannelPage.fixtures";
 import StatusPageFixtures from "../pages/StatusPage.fixtures";
 import InsightsPageFixtures from "../pages/InsightsPage.fixtures";
-import UserSettingsPageFixtures from "../pages/UserSettingsPage.fixtures";
+import UserSettingsPageQuery from "../pages/UserSettingsPage.query";
 import OrganizationSettingsPageFixtures from "../pages/OrganizationSettingsPage.fixtures";
 import AdminSettingsPageQuery from "../pages/AdminSettingsPage.query";
 import HandbookPageFixtures from "../pages/HandbookPage.fixtures";
@@ -53,7 +53,7 @@ const wrappers: Record<PageType, ComponentType<{ route: Route }>> = {
   channel: ChannelPageFixtures,
   status: StatusPageFixtures,
   insights: InsightsPageFixtures,
-  "user-settings": UserSettingsPageFixtures,
+  "user-settings": UserSettingsPageQuery,
   "organization-settings": OrganizationSettingsPageFixtures,
   "admin-settings": AdminSettingsPageQuery,
   handbook: HandbookPageFixtures,

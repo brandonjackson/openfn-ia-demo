@@ -66,6 +66,8 @@ export interface JobNode {
    * system's business, shown as a small badge.
    */
   system?: string;
+  /** The project credential it runs with (the project's link to a credential), if one is chosen. */
+  credentialId?: string;
   x: number;
   y: number;
 }

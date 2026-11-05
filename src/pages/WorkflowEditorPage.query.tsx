@@ -15,10 +15,11 @@ import { serviceCatalogData } from "../fixtures/service-catalog";
 import { useSandbox } from "../app/sandbox-state";
 import Loaded from "../app/Loaded";
 import { useProject } from "../api/projects";
+import { useProjectCredentials } from "../api/credentials";
 import { combine } from "../api/status";
 import { asGraph, useProjectWorkflows, useSandboxes, useSandboxSaves, useWorkflow, useWorkflowSaves, useWorkflowSnapshots } from "../api/workflows";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
-import { adaptorChoices, adaptorInfo, adaptorSnippets, projectCredentials } from "../fixtures/adaptor-reference";
+import { adaptorChoices, adaptorInfo, adaptorSnippets } from "../fixtures/adaptor-reference";
 import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
 import { codeSummary } from "../fixtures/code-summaries";
 import { channelDetails } from "../fixtures/channels";
@@ -28,12 +29,11 @@ import type { AdaptorCatalog } from "../model/adaptor-catalog";
 import { useFlags } from "../app/feature-flags";
 import { componentTypesFor, componentsFor, systemsFor } from "./flagged.fixtures";
 
-/** The adaptors steps can use, and the project's credentials for them. */
-const adaptors: AdaptorReference = {
+/** The adaptors steps can use; the project's credentials for them come from the API. */
+const adaptorReference: Omit<AdaptorReference, "credentials"> = {
   info: adaptorInfo,
   snippets: adaptorSnippets,
   choices: adaptorChoices,
-  credentials: projectCredentials,
 };
 
 /** Every adaptor, for "Connect a system". */
@@ -171,6 +171,9 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const { snapshots } = useWorkflowSnapshots(main.id);
   const saves = useWorkflowSaves();
   const sandboxSaves = useSandboxSaves();
+  // Sandboxes share their project's credentials: a step anywhere in the tree picks from the project's links.
+  const { credentials } = useProjectCredentials(root.id);
+  const adaptors: AdaptorReference = { ...adaptorReference, credentials };
 
   const slug = fixtureWorkflow(main.id)?.slug;
   // "See details" opens the service listing that documents this workflow.

@@ -29,8 +29,10 @@ export type WorkflowMenuAction =
 
 interface Props {
   onSelect: (action: WorkflowMenuAction) => void;
-  /** Whether the editor is on main (read-only) or in a sandbox. */
+  /** Whether the editor is on main or in a sandbox: main offers "Edit in sandbox", a sandbox "Go live". */
   onMain?: boolean;
+  /** Whether Rename is offered. Whoever uses the menu decides, e.g. not on main. */
+  canRename?: boolean;
   /** Whether triggers currently start runs. */
   live?: boolean;
   /** The project to go back to; adds "Back to workflows" at the top. */
@@ -51,6 +53,7 @@ interface Props {
 export default function WorkflowFileMenu({
   onSelect,
   onMain = true,
+  canRename = false,
   live = true,
   projectName,
   url,
@@ -61,7 +64,7 @@ export default function WorkflowFileMenu({
     ...(projectName
       ? [{ id: "back", label: `Back to ${projectName}`, description: "All workflows in the project", icon: ArrowLeft }]
       : []),
-    { id: "rename", label: "Rename", icon: Pencil, shortcut: "R", divider: Boolean(projectName), disabled: onMain },
+    { id: "rename", label: "Rename", icon: Pencil, shortcut: "R", divider: Boolean(projectName), disabled: !canRename },
     { id: "settings", label: "Settings", icon: Settings },
     onMain
       ? { id: "edit-in-sandbox", label: "Edit in sandbox", icon: FlaskConical }

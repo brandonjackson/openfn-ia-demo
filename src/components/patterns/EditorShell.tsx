@@ -24,8 +24,8 @@ interface Props {
   rightTrayWidthClass?: string;
   /** A card floating over the right of the main surface, e.g. the inspector; it sizes itself. */
   rightOverlay?: ReactNode;
-  /** Draws the amber edge along the top that marks a sandbox. */
-  sandboxed?: boolean;
+  /** Draws an amber edge along the top, e.g. to mark that you're working in a sandbox. */
+  accentEdge?: boolean;
   /** Anything that sits over everything, e.g. dialogs. */
   overlays?: ReactNode;
 }
@@ -49,7 +49,7 @@ export default function EditorShell({
   rightTrayOpen = true,
   rightTrayWidthClass = "w-[400px]",
   rightOverlay,
-  sandboxed = false,
+  accentEdge = false,
   overlays,
 }: Props) {
   const trayOpen = rightTray !== undefined && rightTrayOpen;
@@ -71,7 +71,7 @@ export default function EditorShell({
   return (
     <div
       className={`relative flex h-full overflow-hidden bg-gray-50 bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] [background-size:22px_22px] ${
-        sandboxed ? "border-t-4 border-amber-400" : ""
+        accentEdge ? "border-t-4 border-amber-400" : ""
       }`}
     >
       <div className="flex min-w-0 flex-1 flex-col">

@@ -9,6 +9,7 @@ import type { ChannelRowType } from "../components/domain/ChannelRow";
 import DataTable from "../components/primitives/DataTable";
 import type { DataTableColumn } from "../components/primitives/DataTable";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import PropertyList from "../components/primitives/PropertyList";
 import type { Property } from "../components/primitives/PropertyList";
 import SectionHeading from "../components/primitives/SectionHeading";
@@ -16,7 +17,7 @@ import SystemEnvironments from "../components/domain/SystemEnvironments";
 import TextLink from "../components/primitives/TextLink";
 import ConnectionMethodBadge from "../components/domain/ConnectionMethodBadge";
 import XRoadAccessBadge from "../components/domain/XRoadAccessBadge";
-import XRoadConnectionDetails from "../components/patterns/XRoadConnectionDetails";
+import XRoadConnectionDetails from "../components/domain/XRoadConnectionDetails";
 import { connectionOf } from "../model/connected-systems";
 
 export interface SystemPageProps extends PageProps<DetailPageData> {
@@ -145,10 +146,7 @@ export default function SystemPage({ node, ancestors, data, onStartWorkflow }: S
     <div className="space-y-8">
       <div>
         <PageHeader
-          breadcrumbs={{
-            ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-            current: node.label,
-          }}
+          breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
           icon={Globe}
           logo={system && <AdaptorLogo adaptor={system.adaptor} name={system.name} size="lg" />}
           title={node.label}

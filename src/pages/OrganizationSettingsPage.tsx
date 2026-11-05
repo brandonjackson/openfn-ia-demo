@@ -12,6 +12,7 @@ import type { SecurityServer, SecurityServerManager, XRoadCertificate, XRoadSubs
 import { memberClassLabels, securityServerManagerLabels } from "../model/xroad";
 import { clientIdOf } from "../model/xroad";
 import SettingsLayout from "../components/patterns/SettingsLayout";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import type { SettingsNavItem } from "../components/patterns/SettingsNav";
 import SectionHeading from "../components/primitives/SectionHeading";
 import Card from "../components/primitives/Card";
@@ -446,10 +447,7 @@ export default function OrganizationSettingsPage({
   const activeId = navItems.some((item) => item.id === node.id) ? node.id : navItems[0].id;
   return (
     <SettingsLayout
-      breadcrumbs={{
-        ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-        current: node.label,
-      }}
+      breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
       title="Organization settings"
       description={`Who's in the ${data.name}, what others can see, the context you draw on, your identity on X-Road, and billing.`}
       navItems={navItems}

@@ -14,6 +14,7 @@ import {
 import type { PageProps } from "../model/ia-tree";
 import type { ApiToken, OAuthClient, UserCredential, UserProfile, UserSettingsPageData } from "../model/page-data";
 import SettingsLayout from "../components/patterns/SettingsLayout";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import type { SettingsNavItem } from "../components/patterns/SettingsNav";
 import SectionHeading from "../components/primitives/SectionHeading";
 import Card from "../components/primitives/Card";
@@ -341,10 +342,7 @@ export default function UserSettingsPage({ node, ancestors, data, onGenerateToke
 
   return (
     <SettingsLayout
-      breadcrumbs={{
-        ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-        current: node.label,
-      }}
+      breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
       title="User settings"
       description="Manage your profile, personal credentials and API tokens."
       navItems={navItems}

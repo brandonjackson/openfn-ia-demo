@@ -5,6 +5,7 @@ import Badge from "../components/primitives/Badge";
 import DataTable from "../components/primitives/DataTable";
 import type { DataTableColumn } from "../components/primitives/DataTable";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import SegmentedControl from "../components/primitives/SegmentedControl";
 
 export interface HistoryPageProps extends PageProps<TablePageData> {
@@ -57,10 +58,7 @@ export default function HistoryPage({ node, ancestors, data, filterQuery = {} }:
   return (
     <div className="space-y-8">
       <PageHeader
-        breadcrumbs={{
-          ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-          current: node.label,
-        }}
+        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
         description={node.description}
       />

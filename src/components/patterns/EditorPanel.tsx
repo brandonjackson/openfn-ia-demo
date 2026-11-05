@@ -1,17 +1,23 @@
 import type { ReactNode } from "react";
 import { ChevronDown, ChevronUp, Maximize2, Minimize2, X } from "lucide-react";
-import type { PanelViewId } from "./editor-layout";
-import { panelViews } from "./panel-views";
 import SegmentedControl from "../primitives/SegmentedControl";
 import IconButton from "../primitives/IconButton";
 
-interface Props {
-  view: PanelViewId;
-  onViewChange: (view: PanelViewId) => void;
+/** One view the panel can show, as a tab. */
+export interface EditorPanelView<V extends string = string> {
+  id: V;
+  label: string;
+}
+
+interface Props<V extends string> {
+  /** Every view the panel can show, in tab order, e.g. the editor's run views. */
+  views: EditorPanelView<V>[];
+  view: V;
+  onViewChange: (view: V) => void;
   /** Views that can't show anything right now, e.g. Log with no run loaded. */
-  disabledViews?: PanelViewId[];
+  disabledViews?: V[];
   /** Views the reader has taken out of the tab bar (through the layout menu). */
-  hiddenViews?: PanelViewId[];
+  hiddenViews?: V[];
   /** Extra header controls. */
   actions?: ReactNode;
   /** Collapsed shows just the tab bar. */
@@ -30,13 +36,13 @@ interface Props {
  * The panel under the code, as in an IDE: a bar of view tabs that's always
  * there, with the active view's body under it. The panel collapses to the
  * bar, maximises, or closes and comes back from the layout menu (or
- * Ctrl/⌘ + J); which views it shows is set there too. Runs, failures, and
- * the step's log, input and output in the loaded run all live here, so
- * there's one place in the code view to look for anything about runs. The
- * canvas has no panel: its inspector shows the same things for the node
- * selected, and opens them here in full.
+ * Ctrl/⌘ + J); which views it shows is set there too. The views are a
+ * prop: in the workflow editor they're runs, failures, and the step's log,
+ * input and output in the loaded run, so there's one place in the code view
+ * to look for anything about runs.
  */
-export default function EditorPanel({
+export default function EditorPanel<V extends string>({
+  views,
   view,
   onViewChange,
   disabledViews = [],
@@ -49,8 +55,8 @@ export default function EditorPanel({
   onClose,
   context,
   children,
-}: Props) {
-  const tabs = panelViews
+}: Props<V>) {
+  const tabs = views
     .filter((v) => !hiddenViews.includes(v.id))
     .map((v) => ({ id: v.id, label: v.label, disabled: disabledViews.includes(v.id) }));
 
@@ -60,7 +66,7 @@ export default function EditorPanel({
     <section aria-label="Panel" className="flex flex-col border-t border-gray-200 bg-white">
       <header className="flex-none border-b border-gray-100">
         <div className="flex h-11 items-center gap-3 px-3">
-          <SegmentedControl variant="pill" options={tabs} value={view} onChange={(v) => onViewChange(v as PanelViewId)} />
+          <SegmentedControl variant="pill" options={tabs} value={view} onChange={(v) => onViewChange(v as V)} />
           <div className="ml-auto flex min-w-0 flex-shrink items-center gap-1">
             {context && <div className="mr-2 flex min-w-0 items-center gap-2 text-xs text-gray-500">{context}</div>}
             {actions}

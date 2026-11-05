@@ -3,11 +3,12 @@ import { FolderKanban, Plus } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
 import type { ProjectsPageData } from "../model/page-data";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import Button from "../components/primitives/Button";
 import EmptyState from "../components/primitives/EmptyState";
 import { TextInput } from "../components/primitives/FormControls";
 import ProjectCard from "../components/domain/ProjectCard";
-import CreateProjectFlow from "../components/patterns/CreateProjectFlow";
+import CreateProjectFlow from "../components/domain/CreateProjectFlow";
 
 export interface ProjectsPageProps extends PageProps<ProjectsPageData> {
   /** Creates a project and opens it. */
@@ -34,10 +35,7 @@ export default function ProjectsPage({ node, ancestors, data, onCreateProject }:
   return (
     <div className="space-y-8">
       <PageHeader
-        breadcrumbs={{
-          ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-          current: node.label,
-        }}
+        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
         description={node.description}
         actions={

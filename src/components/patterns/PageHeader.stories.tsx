@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ClipboardList, Download, Plus, Users } from "lucide-react";
 import PageHeader from "./PageHeader";
+import Breadcrumbs from "../domain/Breadcrumbs";
 import Badge from "../primitives/Badge";
 import Button from "../primitives/Button";
 import { withRouter } from "../../stories/decorators";
@@ -17,7 +18,7 @@ type Story = StoryObj<typeof PageHeader>;
 
 export const Default: Story = {
   args: {
-    breadcrumbs: { ancestors: [{ label: "Home", path: "/" }], current: "Projects" },
+    breadcrumbs: <Breadcrumbs ancestors={[{ label: "Home", path: "/" }]} current="Projects" />,
     title: "Projects",
     description: "Workspaces that group workflows, credentials and collaborators.",
   },
@@ -25,7 +26,7 @@ export const Default: Story = {
 
 export const WithActions: Story = {
   args: {
-    breadcrumbs: { ancestors: [{ label: "Home", path: "/" }], current: "Connected Systems" },
+    breadcrumbs: <Breadcrumbs ancestors={[{ label: "Home", path: "/" }]} current="Connected Systems" />,
     title: "Connected Systems",
     description: "Systems your organization has connected to OpenFn.",
     actions: (
@@ -44,7 +45,7 @@ export const WithActions: Story = {
 export const RecordPage: Story = {
   name: "Record page (icon and badges)",
   args: {
-    breadcrumbs: { ancestors: [{ label: "Services", path: "/service-catalog" }], current: "Birth registration" },
+    breadcrumbs: <Breadcrumbs ancestors={[{ label: "Services", path: "/service-catalog" }]} current="Birth registration" />,
     icon: ClipboardList,
     title: "Birth registration",
     badges: (

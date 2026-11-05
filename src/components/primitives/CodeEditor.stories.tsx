@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import CodeEditor from "./CodeEditor";
 import { type JobNode } from "../../model/workflow";
+import { adaptorOperations } from "../../model/adaptor-reference";
 import { nationalIdWorkflow } from "../../fixtures/workflow";
 
 const searchJob = nationalIdWorkflow.nodes.find((n) => n.id === "search") as JobNode;
@@ -9,6 +10,8 @@ const searchJob = nationalIdWorkflow.nodes.find((n) => n.id === "search") as Job
 const meta: Meta<typeof CodeEditor> = {
   title: "Primitives/CodeEditor",
   component: CodeEditor,
+  // As the workflow editor uses it, with adaptor operations coloured as calls.
+  args: { calls: adaptorOperations },
   parameters: { layout: "fullscreen" },
   decorators: [
     (Story) => (
@@ -26,7 +29,7 @@ export const Default: Story = { args: { code: searchJob.body } };
 
 function EditableEditor() {
   const [code, setCode] = useState(searchJob.body);
-  return <CodeEditor code={code} onChange={setCode} />;
+  return <CodeEditor code={code} onChange={setCode} calls={adaptorOperations} />;
 }
 
 /** Type, paste and undo as normal; Tab indents and Enter keeps the indent. */

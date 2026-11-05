@@ -1,5 +1,21 @@
-import type { WikiBlock, WikiInline, WikiSection } from "../../model/page-data";
 import TextLink from "../primitives/TextLink";
+
+/** Inline text: plain strings, or links to other pages in the app. */
+export type WikiInline = string | { text: string; to: string };
+
+/** One block of an article's section. */
+export type WikiBlock =
+  | { type: "paragraph"; content: WikiInline[] }
+  | { type: "list"; items: WikiInline[][] }
+  /** Label/value rows, e.g. who owns something and what covers it. */
+  | { type: "facts"; rows: { label: string; value: WikiInline[] }[] };
+
+/** A titled section of the article, which the Contents box links to. */
+export interface WikiSection {
+  id: string;
+  title: string;
+  blocks: WikiBlock[];
+}
 
 interface Props {
   sections: WikiSection[];

@@ -3,13 +3,13 @@ import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import EditorPanel from "./EditorPanel";
 import LogConsole from "../domain/LogConsole";
-import RunHistoryList from "./RunHistoryList";
+import RunHistoryList from "../domain/RunHistoryList";
 import StatusPill from "../domain/StatusPill";
-import type { PanelViewId } from "./editor-layout";
+import { panelViews } from "../domain/panel-views";
 import { sampleRun, workOrders } from "../../fixtures/runs";
 
 function Stateful(args: ComponentProps<typeof EditorPanel>) {
-  const [view, setView] = useState<PanelViewId>(args.view);
+  const [view, setView] = useState(args.view);
   const [collapsed, setCollapsed] = useState(args.collapsed ?? false);
   const [maximized, setMaximized] = useState(args.maximized ?? false);
   return (
@@ -40,6 +40,7 @@ const meta: Meta<typeof EditorPanel> = {
   component: EditorPanel,
   parameters: { layout: "fullscreen" },
   args: {
+    views: panelViews,
     view: "runs",
     context: (
       <>

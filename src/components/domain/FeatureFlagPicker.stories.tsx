@@ -47,7 +47,12 @@ export const FullVision: Story = { render: () => <Playground initial={allFlagsOn
 /** Open, with every feature off: the redesign at today's scope. The trigger counts what's off. */
 export const Redesign: Story = { render: () => <Playground initial={allFlagsOff} defaultOpen /> };
 
-/** X-Road switched on while Connected systems is off: it says what it needs, and has no effect. */
+/** Connected systems off: X-Road and the Ecosystem map, nested under it, say what they need and have no effect. */
 export const BlockedByRequirement: Story = {
   render: () => <Playground initial={{ ...allFlagsOn, connectedSystems: false }} defaultOpen />,
+};
+
+/** Organizations off: everything nested under it dims, and only the flags right under it say why. */
+export const ParentOff: Story = {
+  render: () => <Playground initial={{ ...allFlagsOn, organizations: false }} defaultOpen />,
 };

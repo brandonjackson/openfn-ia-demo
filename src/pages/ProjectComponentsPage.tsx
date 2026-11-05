@@ -1,4 +1,10 @@
-import { Boxes } from "lucide-react";
+import { useState } from "react";
+import { Boxes, Plus } from "lucide-react";
+import type { ChannelDraft } from "../model/channels";
+import ChannelFormModal from "../components/domain/ChannelFormModal";
+import Button from "../components/primitives/Button";
+import Callout from "../components/primitives/Callout";
+import Stack from "../components/primitives/Stack";
 import type { PageProps } from "../model/ia-tree";
 import type { ProjectComponentsPageData } from "../model/page-data";
 import AddComponentPanel from "../components/domain/AddComponentPanel";
@@ -13,6 +19,12 @@ import SectionHeading from "../components/primitives/SectionHeading";
 export interface ProjectComponentsPageProps extends PageProps<ProjectComponentsPageData> {
   /** Starts a new component of a type. Components are drafted from a plain-words description on Create, so without it there's no panel for adding. */
   onAddComponent?: (type: string) => void;
+  /** Makes a channel, as Lightning's Channels page does. Left out where you can't. */
+  onCreateChannel?: (draft: ChannelDraft) => Promise<void>;
+  /** The project's credentials, by name, that a new channel can sign in with. */
+  channelCredentials?: string[];
+  /** Where an event channel with a given name would listen. */
+  channelAddress?: (name: string) => string;
 }
 
 /**
@@ -21,7 +33,17 @@ export interface ProjectComponentsPageProps extends PageProps<ProjectComponentsP
  * are empty groups. Lists only the kinds in `data.types`: with just
  * channels, it's the project's Channels page.
  */
-export default function ProjectComponentsPage({ node, ancestors, data, onAddComponent }: ProjectComponentsPageProps) {
+export default function ProjectComponentsPage({
+  node,
+  ancestors,
+  data,
+  onAddComponent,
+  onCreateChannel,
+  channelCredentials = [],
+  channelAddress = (name) => name,
+}: ProjectComponentsPageProps) {
+  const [creating, setCreating] = useState(false);
+  const [created, setCreated] = useState<string>();
   const projectPath = `/projects/${data.projectId}`;
   const types = componentTypes.filter((t) => t.type !== "Workflow" && data.types.includes(t.type));
   const groups = types
@@ -29,12 +51,21 @@ export default function ProjectComponentsPage({ node, ancestors, data, onAddComp
     .filter((g) => g.items.length > 0);
 
   return (
-    <div className="space-y-8">
+    <Stack gap="xl">
       <PageHeader
         breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
         description={node.description}
+        actions={
+          onCreateChannel && (
+            <Button icon={Plus} size="sm" variant={onAddComponent ? "secondary" : "primary"} onClick={() => setCreating(true)}>
+              New channel
+            </Button>
+          )
+        }
       />
+
+      {created && <Callout variant="success" title={`Created ${created}.`} />}
 
       {onAddComponent && (
         <div>
@@ -43,7 +74,7 @@ export default function ProjectComponentsPage({ node, ancestors, data, onAddComp
       )}
 
       {groups.length > 0 ? (
-        <div className="space-y-8">
+        <Stack gap="xl">
           {groups.map((group) => (
             <section key={group.type}>
               <SectionHeading
@@ -57,7 +88,7 @@ export default function ProjectComponentsPage({ node, ancestors, data, onAddComp
               </Card>
             </section>
           ))}
-        </div>
+        </Stack>
       ) : (
         <EmptyState
           icon={Boxes}
@@ -69,6 +100,20 @@ export default function ProjectComponentsPage({ node, ancestors, data, onAddComp
           }
         />
       )}
-    </div>
+
+      {onCreateChannel && (
+        <ChannelFormModal
+          open={creating}
+          takenNames={data.components.filter((c) => c.type === "Channel").map((c) => c.name)}
+          credentials={channelCredentials}
+          eventAddress={channelAddress}
+          onClose={() => setCreating(false)}
+          onSubmit={async (draft) => {
+            await onCreateChannel(draft);
+            setCreated(draft.name.trim());
+          }}
+        />
+      )}
+    </Stack>
   );
 }

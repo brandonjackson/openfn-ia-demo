@@ -16,22 +16,48 @@ export function TextInput({ className = "", compact = false, ...rest }: TextInpu
   return <input type="text" className={`${controlClasses} ${compact ? "py-1.5" : "py-2"} ${className}`} {...rest} />;
 }
 
-export function TextArea({ className = "", ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea className={`${controlClasses} py-2 ${className}`} {...rest} />;
+interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  /** Monospaced, for code or JSON. */
+  mono?: boolean;
+}
+
+export function TextArea({ className = "", mono = false, ...rest }: TextAreaProps) {
+  return <textarea className={`${controlClasses} py-2 ${mono ? "font-mono text-xs" : ""} ${className}`} {...rest} />;
+}
+
+/** An option whose value differs from what's shown, e.g. `{ value: "viewer", label: "Viewer" }`. */
+export interface SelectOption {
+  value: string;
+  label: string;
 }
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
-  options: string[];
+  /** Plain strings are both the value and the label. */
+  options: (string | SelectOption)[];
+  /** A first, empty option such as "Select a branch", chosen while nothing else is. */
+  placeholder?: string;
+  /** Shorter, for a select inside a table row. */
+  compact?: boolean;
+  /** Fills its row, like a text input, rather than fitting its longest option. */
+  fullWidth?: boolean;
+  /** As wide as its longest option rather than its container, for a filter in a row of them. */
+  fit?: boolean;
 }
 
-export function Select({ options, className = "w-auto", ...rest }: SelectProps) {
+export function Select({ options, placeholder, compact = false, fullWidth = false, fit = false, className, ...rest }: SelectProps) {
+  const width = className ?? (fullWidth ? "w-full" : "w-auto");
+  const classes = fit ? controlClasses.replace("w-full ", "") : controlClasses;
   return (
-    <select className={`${controlClasses} py-2 ${className}`} {...rest}>
-      {options.map((opt) => (
-        <option key={opt} value={opt}>
-          {opt}
-        </option>
-      ))}
+    <select className={`${classes} ${compact ? "py-1" : "py-2"} ${width}`} {...rest}>
+      {placeholder !== undefined && <option value="">{placeholder}</option>}
+      {options.map((opt) => {
+        const { value, label } = typeof opt === "string" ? { value: opt, label: opt } : opt;
+        return (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        );
+      })}
     </select>
   );
 }

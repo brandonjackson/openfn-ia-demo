@@ -73,5 +73,8 @@ export const ChannelsOnly: Story = {
       types: ["Channel"],
     },
     onAddComponent: undefined,
+    onCreateChannel: async () => {},
+    channelCredentials: ["DHIS2 production", "Case Management API"],
+    channelAddress: (name: string) => `https://app.openfn.org/c/project-a/${name}`,
   },
 };

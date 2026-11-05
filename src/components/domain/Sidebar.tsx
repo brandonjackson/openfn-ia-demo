@@ -193,7 +193,7 @@ function OrgNav() {
  * slides back out on its close button, a tap outside or Escape.
  */
 export default function Sidebar({ open = false, onClose }: { open?: boolean; onClose?: () => void }) {
-  const { project, currentPath: pathname, user, instance, flags } = useShell();
+  const { project, currentPath: pathname, user, instance, flags, isSuperuser } = useShell();
   const getHelp = supportTree.find((n) => n.id === "get-help")!;
   const ref = useDismiss<HTMLElement>(open, () => onClose?.());
 
@@ -237,7 +237,12 @@ export default function Sidebar({ open = false, onClose }: { open?: boolean; onC
             />
           </NavSection>
           <div className="border-t border-gray-200 pt-3">
-            <AccountMenu user={user} instance={instance} showOrganizationSettings={flags.organizations} />
+            <AccountMenu
+              user={user}
+              instance={instance}
+              showOrganizationSettings={flags.organizations}
+              showAdminSettings={isSuperuser}
+            />
           </div>
         </div>
       </aside>

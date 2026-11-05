@@ -1,4 +1,4 @@
-import { Check, CheckCircle2, Circle, Loader2, X, XCircle } from "lucide-react";
+import { Ban, Check, CheckCircle2, Circle, Loader2, X, XCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { RunStatus } from "../../model/workflow";
 
@@ -10,6 +10,7 @@ const config: Record<
   failed: { label: "Failed", classes: "bg-red-100 text-red-600", dot: "bg-red-500", icon: XCircle, iconClasses: "text-red-500", mark: X },
   running: { label: "Running", classes: "bg-indigo-100 text-indigo-600", dot: "bg-indigo-500 animate-pulse", icon: Loader2, iconClasses: "animate-spin text-indigo-500", mark: Loader2 },
   pending: { label: "Pending", classes: "bg-gray-100 text-gray-500", dot: "bg-gray-300", icon: Circle, iconClasses: "text-gray-300" },
+  cancelled: { label: "Cancelled", classes: "bg-gray-100 text-gray-600", dot: "bg-gray-400", icon: Ban, iconClasses: "text-gray-400", mark: Ban },
 };
 
 /**

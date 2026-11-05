@@ -26,8 +26,33 @@ export const MultiLine: Story = {
   render: () => <TextArea rows={3} defaultValue="A short description of a project." />,
 };
 
+/** Monospaced, for a JSON body or code. */
+export const MonoTextArea: Story = {
+  render: () => <TextArea mono rows={4} defaultValue={'{\n  "apiKey": "demo-not-a-real-key"\n}'} />,
+};
+
 export const Dropdown: Story = {
   render: () => <Select options={["7 Days", "14 Days", "30 Days"]} defaultValue="14 Days" />,
+};
+
+/** Values that differ from their labels, with a placeholder chosen until something else is. */
+export const DropdownWithLabels: Story = {
+  render: () => (
+    <Select
+      placeholder="Select role"
+      options={[
+        { value: "viewer", label: "Viewer" },
+        { value: "editor", label: "Editor" },
+        { value: "admin", label: "Admin" },
+      ]}
+      defaultValue=""
+    />
+  ),
+};
+
+/** A select inside a table row. */
+export const CompactDropdown: Story = {
+  render: () => <Select compact options={["Never", "Daily", "Weekly", "Monthly"]} defaultValue="Weekly" />,
 };
 
 export const Radios: Story = {

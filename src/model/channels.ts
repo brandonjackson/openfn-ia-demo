@@ -34,4 +34,34 @@ export interface ChannelDetails {
   messages: ChannelMessage[];
   /** The workflow whose runs the messages started or came from, for loading a run from a message. */
   workflowId?: string;
+  /** Off, the channel refuses every request until it's turned back on. On unless set. */
+  enabled?: boolean;
+  /** The project credential OpenFn signs in to the system with, for a read or write channel. */
+  credential?: string;
+}
+
+/** What making or editing a channel asks for, as in Lightning. */
+export interface ChannelDraft {
+  name: string;
+  description: string;
+  channelType: ChannelType;
+  /** The system on the other end. */
+  system: string;
+  /** For a read or write channel, the address OpenFn forwards requests to. An event channel gets its own. */
+  destinationUrl: string;
+  /** The project credential to call the system with, if any. */
+  credential?: string;
+  enabled: boolean;
+}
+
+/** Why a channel draft can't be saved, by field, or nothing when it can. `taken` are the names in use. */
+export function channelDraftErrors(draft: ChannelDraft, taken: string[]): Partial<Record<"name" | "destinationUrl" | "system", string>> {
+  const errors: Partial<Record<"name" | "destinationUrl" | "system", string>> = {};
+  const name = draft.name.trim();
+  if (!name) errors.name = "Give the channel a name.";
+  else if (taken.includes(name)) errors.name = "There's already a channel with this name.";
+  if (!draft.system.trim()) errors.system = "Say which system it talks to.";
+  if (draft.channelType !== "event" && !/^https?:\/\/[^\s]+\.[^\s]+/.test(draft.destinationUrl.trim()))
+    errors.destinationUrl = "Enter the full address, starting with https://.";
+  return errors;
 }

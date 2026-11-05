@@ -4,6 +4,16 @@ import { ChevronRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import IconTile from "./IconTile";
 
+/** A labelled value at the right of a row, lined up with the same column in the rows above and below. */
+export interface ListRowColumn {
+  label: string;
+  value: ReactNode;
+  /** `sm` 64px for a count, `md` 96px for a status, `lg` 144px for names or a date. */
+  width?: "sm" | "md" | "lg";
+}
+
+const columnWidths = { sm: "w-16", md: "w-24", lg: "w-36" };
+
 interface Props {
   icon: LucideIcon;
   /** Replaces the icon tile, e.g. with an AdaptorLogo. */
@@ -17,6 +27,11 @@ interface Props {
   /** Where the row goes. Without `to` or `onClick` the row is static. */
   to?: string;
   onClick?: () => void;
+  /**
+   * Labelled values at the right of the row (latest run, counts, last
+   * updated), hidden on narrow screens where there's no room to line them up.
+   */
+  columns?: ListRowColumn[];
   /** Replaces the chevron on the right, e.g. with a status or action. */
   trailing?: ReactNode;
   /**
@@ -45,6 +60,7 @@ export default function ListRow({
   meta,
   to,
   onClick,
+  columns,
   trailing,
   actions,
   selected = false,
@@ -83,6 +99,16 @@ export default function ListRow({
           </div>
         )}
       </div>
+      {columns && columns.length > 0 && (
+        <div className="hidden flex-shrink-0 items-start gap-6 md:flex">
+          {columns.map((c) => (
+            <div key={c.label} className={columnWidths[c.width ?? "md"]}>
+              <div className="mb-1.5 text-xs font-medium text-gray-500">{c.label}</div>
+              <div className="flex h-6 items-center whitespace-nowrap text-sm text-gray-600">{c.value}</div>
+            </div>
+          ))}
+        </div>
+      )}
       {/* With actions, the buttons hold the right edge, so the chevron steps aside. */}
       {trailing ??
         (interactive && !actions && (

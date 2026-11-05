@@ -1,11 +1,13 @@
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import WorkflowEditorPage from "./WorkflowEditorPage";
 import { type WorkOrder, type Workflow, type WorkflowFileContents } from "../model/workflow";
-import { buildStarterWorkflow, nationalIdWorkflow, nationalIdWorkflowAt, surveillanceVersions, workflowGraphs, workflowVersions } from "../fixtures/workflow";
-import { dataclips, runHistories, simulateRun, workOrders } from "../fixtures/runs";
+import { buildStarterWorkflow, nationalIdWorkflow, surveillanceVersions, workflowGraphs, workflowVersions } from "../fixtures/workflow";
+import { resolveWorkflow, workflowHistory } from "../fixtures/workflow-lookup";
+import { useChangedHistories } from "../app/history-state";
+import { simulateRun } from "../fixtures/runs";
 import { projects, serviceForWorkflow } from "../fixtures/projects";
 import { serviceCatalogData } from "../fixtures/service-catalog";
-import { useSandbox } from "../app/sandbox-state";
+import { useSandbox, useSavedSandboxes } from "../app/sandbox-state";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
 import { adaptorChoices, adaptorInfo, adaptorSnippets, projectCredentials } from "../fixtures/adaptor-reference";
 import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
@@ -64,36 +66,6 @@ function resolveNewWorkflow(params: URLSearchParams): Workflow {
 }
 
 /**
- * Resolve a workflow to open from its id, at a version ("latest" by default).
- * A few workflows have a graph and history of their own ({@link workflowGraphs});
- * any other workflow component in the prototype reuses the national ID
- * workflow's graph and history ({@link nationalIdWorkflow}) but is
- * relabelled with the component's name and owning project so the editor
- * reads correctly.
- */
-function resolveWorkflow(workflowId?: string, version = "latest"): Workflow {
-  if (workflowId && workflowGraphs[workflowId]) return workflowGraphs[workflowId];
-  const graph = nationalIdWorkflowAt(version);
-  if (!workflowId || workflowId === nationalIdWorkflow.id) {
-    return graph;
-  }
-  for (const project of projects) {
-    const component = project.components.find(
-      (c) => c.id === workflowId && c.type === "Workflow"
-    );
-    if (component) {
-      return {
-        ...graph,
-        id: component.id,
-        name: component.name,
-        project: project.name,
-      };
-    }
-  }
-  return graph;
-}
-
-/**
  * Full-screen route that drops the prototype's standard sidebar/chrome and
  * shows the workflow editor on its own, mirroring the real Lightning editor.
  * Opened from anywhere a workflow is opened (e.g. a project's components list)
@@ -119,10 +91,18 @@ export default function WorkflowEditorPageFixtures() {
   // The editor shares the project's selected sandbox with the rest of the app.
   const project = projects.find((p) => p.name === workflow.project);
   const [sandbox, setSandbox] = useSandbox(project?.id ?? workflow.project);
+  // Sandboxes made or deleted this session are offered too.
+  const savedSandboxes = useSavedSandboxes(project?.id ?? "");
   // "See details" opens the service listing that documents this workflow.
   const service = isNew || !flags.serviceCatalog ? undefined : serviceForWorkflow(workflow.id);
-  // Workflows with a graph of their own have their own run history too.
-  const history = workflowId ? runHistories[workflowId] : undefined;
+  // The workflow's run history, with any runs retried or cancelled from History this session.
+  const changed = useChangedHistories();
+  const fixtureHistory = isNew ? undefined : workflowHistory(workflowId ?? nationalIdWorkflow.id);
+  const changedHistory = workflowId ? changed[workflowId] : undefined;
+  const history = fixtureHistory && {
+    workOrders: changedHistory?.workOrders ?? fixtureHistory.workOrders,
+    dataclips: [...fixtureHistory.dataclips, ...(changedHistory?.dataclips ?? [])],
+  };
   const ownGraph = !!(workflowId && workflowGraphs[workflowId]);
   const components = project && componentsFor(project.components, flags).filter((c) => c.type !== "Workflow");
   // What opening the workflow's docs, its service listing and its components shows.
@@ -149,8 +129,8 @@ export default function WorkflowEditorPageFixtures() {
     <div className="h-screen">
       <WorkflowEditorPage
         workflow={workflow}
-        workOrders={isNew ? [] : withoutXRoadCalls(history?.workOrders ?? workOrders, flags.xroad)}
-        dataclips={isNew ? [] : (history?.dataclips ?? dataclips)}
+        workOrders={history ? withoutXRoadCalls(history.workOrders, flags.xroad) : []}
+        dataclips={history?.dataclips ?? []}
         graphForVersion={isNew ? undefined : (version) => resolveWorkflow(workflowId, version)}
         runId={runId}
         onRunChange={setRunId}
@@ -168,7 +148,7 @@ export default function WorkflowEditorPageFixtures() {
             : undefined
         }
         componentTypeOptions={componentTypesFor(flags)}
-        sandboxes={project?.sandboxes ?? ["main"]}
+        sandboxes={savedSandboxes?.map((s) => s.name) ?? project?.sandboxes ?? ["main"]}
         sandbox={sandbox}
         onSelectSandbox={setSandbox}
         onViewAllSandboxes={project ? () => navigate(`/projects/${project.id}/sandboxes`) : undefined}

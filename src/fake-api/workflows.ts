@@ -16,6 +16,7 @@
  *   its GET is a 404. Its run history stays.
  */
 import { projects as fixtureProjects, projectWorkflowItems } from "../fixtures/projects";
+import { authMethods } from "../fixtures/project-settings";
 import { nationalIdWorkflow, nationalIdWorkflowAt, surveillanceVersions, workflowGraphs, workflowVersions } from "../fixtures/workflow";
 import { apiNodeId, apiWorkflowId, cloneNodeId, newId, seedId } from "../fixtures/ids";
 import type { Workflow } from "../model/workflow";
@@ -92,9 +93,17 @@ function fixtureWorkflows() {
   return rows;
 }
 
+/** The webhook auth methods that guard a fixture workflow's webhook trigger, by their ids on the API. */
+const methodsGuarding = (slug: string) =>
+  Object.values(authMethods)
+    .flat()
+    .filter((m) => m.triggerIds.includes(`${slug}:webhook`))
+    .map((m) => seedId("webhook_auth_method", m.id));
+
 /** The fixture graph as stored: a cron workflow's trigger is a cron trigger (the list said so; the borrowed graph didn't). */
 function seedDocument(w: ReturnType<typeof fixtureWorkflows>[number], version: string) {
   const doc = toDocument(seededGraph(w.slug, w.graphAt(version)), { enabled: w.enabled });
+  doc.triggers = doc.triggers.map((t) => ({ ...t, webhook_auth_method_ids: w.cron ? [] : methodsGuarding(w.slug) }));
   if (w.cron) {
     doc.triggers = doc.triggers.map((t) => ({
       ...t,

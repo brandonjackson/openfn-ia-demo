@@ -1197,6 +1197,8 @@ export interface AdminCollection {
   name: string;
   /** The project it belongs to. */
   projectName: string;
+  /** That project's id, where the server gives it. */
+  projectId?: string;
   /** How many items it holds. */
   items: number;
   /** How much it stores, in bytes. */

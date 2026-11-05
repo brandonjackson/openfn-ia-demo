@@ -15,3 +15,8 @@ type Story = StoryObj<typeof InstanceLogo>;
 export const Default: Story = {
   args: { instance: currentInstance },
 };
+
+/** Without the organization layer, home is the projects list. */
+export const HomeIsProjects: Story = {
+  args: { instance: currentInstance, title: "Back to projects" },
+};

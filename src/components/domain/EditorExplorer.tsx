@@ -43,6 +43,10 @@ interface Props {
   docs?: string[];
   /** On main: each group's + shows but is disabled, pointing to a sandbox. */
   readOnly?: boolean;
+  /** List the Workflow group (workflow.yaml, its docs, service.md and Health). Off with the demo's Workflow docs flag. */
+  showWorkflowFiles?: boolean;
+  /** List the Components group. Off with the demo's Components flag. */
+  showComponents?: boolean;
   /** The + on each group. */
   onAddDoc?: () => void;
   onAddStep?: () => void;
@@ -66,6 +70,8 @@ export default function EditorExplorer({
   hasService = false,
   docs = [],
   readOnly = false,
+  showWorkflowFiles = true,
+  showComponents = true,
   onAddDoc,
   onAddStep,
   onAddComponent,
@@ -80,24 +86,26 @@ export default function EditorExplorer({
     <nav aria-label="Explorer" className="flex h-full flex-col overflow-y-auto px-3 py-3">
       <div className="mb-2 px-2 font-mono text-[11px] uppercase tracking-widest text-gray-400">Explorer</div>
 
-      <Section title="Workflow" addLabel="New doc" onAdd={onAddDoc} readOnly={readOnly}>
-        <ExplorerRow label="workflow.yaml" icon={WorkflowIcon} selected={current === "workflow"} onClick={() => onOpen("workflow")} />
-        <ExplorerRow label="context.md" icon={FileText} selected={current === "context"} onClick={() => onOpen("context")} />
-        <ExplorerRow label="spec.md" icon={FileText} selected={current === "spec"} onClick={() => onOpen("spec")} />
-        {hasService && (
-          <ExplorerRow label="service.md" icon={BookOpen} selected={current === "service"} onClick={() => onOpen("service")} />
-        )}
-        <ExplorerRow label="Health" icon={HeartPulse} selected={current === "health"} onClick={() => onOpen("health")} />
-        {docs.map((name) => (
-          <ExplorerRow
-            key={name}
-            label={name}
-            icon={FileText}
-            selected={current === `doc:${name}`}
-            onClick={() => onOpen({ docName: name })}
-          />
-        ))}
-      </Section>
+      {showWorkflowFiles && (
+        <Section title="Workflow" addLabel="New doc" onAdd={onAddDoc} readOnly={readOnly}>
+          <ExplorerRow label="workflow.yaml" icon={WorkflowIcon} selected={current === "workflow"} onClick={() => onOpen("workflow")} />
+          <ExplorerRow label="context.md" icon={FileText} selected={current === "context"} onClick={() => onOpen("context")} />
+          <ExplorerRow label="spec.md" icon={FileText} selected={current === "spec"} onClick={() => onOpen("spec")} />
+          {hasService && (
+            <ExplorerRow label="service.md" icon={BookOpen} selected={current === "service"} onClick={() => onOpen("service")} />
+          )}
+          <ExplorerRow label="Health" icon={HeartPulse} selected={current === "health"} onClick={() => onOpen("health")} />
+          {docs.map((name) => (
+            <ExplorerRow
+              key={name}
+              label={name}
+              icon={FileText}
+              selected={current === `doc:${name}`}
+              onClick={() => onOpen({ docName: name })}
+            />
+          ))}
+        </Section>
+      )}
 
       <Section title="Steps" addLabel="Add step" onAdd={onAddStep} readOnly={readOnly}>
         {trigger && (
@@ -121,7 +129,7 @@ export default function EditorExplorer({
         ))}
       </Section>
 
-      {(components.length > 0 || onAddComponent || readOnly) && (
+      {showComponents && (components.length > 0 || onAddComponent || readOnly) && (
         <Section title="Components" addLabel="Add project component" onAdd={onAddComponent} readOnly={readOnly}>
           {components.map((c) => (
             <ExplorerRow

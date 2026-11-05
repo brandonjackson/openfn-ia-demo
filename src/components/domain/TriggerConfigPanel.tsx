@@ -33,6 +33,8 @@ interface Props {
   showHeader?: boolean;
   /** The service the workflow is published as, whose annotations live on its webhook trigger. */
   service?: ProjectServiceItem;
+  /** Show a webhook's service annotations. Off when workflows can't be published as services (no service catalog). */
+  showServiceAnnotations?: boolean;
 }
 
 /**
@@ -49,6 +51,7 @@ export default function TriggerConfigPanel({
   onToggleLive,
   showHeader = true,
   service,
+  showServiceAnnotations = true,
 }: Props) {
   return (
     <div className="flex h-full flex-col">
@@ -88,7 +91,7 @@ export default function TriggerConfigPanel({
         <FormField label="Enabled" hint="When off, the trigger won't start runs. You can still run manually.">
           <ToggleSwitch key={String(live)} checked={live} onChange={readOnly ? undefined : onToggleLive} label={live ? "Live" : "Paused"} />
         </FormField>
-        {trigger.triggerType === "webhook" && (
+        {trigger.triggerType === "webhook" && showServiceAnnotations && (
           <div className="space-y-5 border-t border-gray-100 pt-5">
             <SectionHeading
               variant="label"
@@ -97,7 +100,7 @@ export default function TriggerConfigPanel({
             />
             <p className="-mt-3 text-xs text-gray-500">
               {service
-                ? "These generate the service's OpenAPI 3 docs, which callers (and X-Road) read."
+                ? "These generate the service's OpenAPI 3 docs, which callers read."
                 : "Annotate the webhook to publish this workflow as a service with OpenAPI 3 docs."}
             </p>
             <FormField label="Service name" htmlFor="service-name">

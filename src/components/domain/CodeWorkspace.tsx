@@ -56,6 +56,12 @@ interface Props {
   onOpenService?: () => void;
   /** On main nothing can be changed. */
   readOnly?: boolean;
+  /** List the workflow's own files (workflow.yaml, docs, service.md, Health) in the explorer. */
+  showWorkflowFiles?: boolean;
+  /** List the project components the workflow uses in the explorer. */
+  showComponents?: boolean;
+  /** Whether a workflow can be published as a service, which its webhook trigger's annotations do. */
+  publishesServices?: boolean;
   /** The URL that starts the workflow, shown on the trigger. */
   url?: string;
   live?: boolean;
@@ -124,6 +130,9 @@ export default function CodeWorkspace({
   service,
   onOpenService,
   readOnly = false,
+  showWorkflowFiles = true,
+  showComponents = true,
+  publishesServices = true,
   url,
   live = true,
   onToggleLive,
@@ -311,7 +320,7 @@ export default function CodeWorkspace({
         showHeader={false}
       />
     ) : file === "trigger" && trigger ? (
-      <TriggerConfigPanel trigger={trigger} url={url} readOnly={readOnly} live={live} onToggleLive={onToggleLive} showHeader={false} service={service} />
+      <TriggerConfigPanel trigger={trigger} url={url} readOnly={readOnly} live={live} onToggleLive={onToggleLive} showHeader={false} service={service} showServiceAnnotations={publishesServices} />
     ) : (
       <WorkflowSettingsPanel workflow={workflow} settings={settings} readOnly={readOnly} onChange={onSettingsChange} showHeader={false} />
     );
@@ -349,6 +358,8 @@ export default function CodeWorkspace({
           hasService={service !== undefined}
           docs={docs}
           readOnly={readOnly}
+          showWorkflowFiles={showWorkflowFiles}
+          showComponents={showComponents}
           onAddDoc={readOnly ? undefined : onAddDoc}
           onAddStep={readOnly ? undefined : onAddStep}
           onAddComponent={readOnly ? undefined : onAddComponent}

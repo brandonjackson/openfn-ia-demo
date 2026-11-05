@@ -73,3 +73,8 @@ export const NoApiTokens: Story = {
     data: { ...userSettingsData, apiTokens: [] },
   },
 };
+
+/** Without connected systems, organization credentials don't live in Systems, so there's no pointer to them. */
+export const CredentialsWithoutSystems: Story = {
+  args: { ...Credentials.args, data: { ...userSettingsData, orgCredentialsOnSystems: false } },
+};

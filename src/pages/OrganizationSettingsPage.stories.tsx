@@ -66,7 +66,18 @@ export const XRoadRunByNationalOperator: Story = {
   name: "X-Road (Security Server run by the national operator)",
   args: {
     ...XRoad.args,
-    data: { ...organizationSettingsData, xroad: { ...organizationSettingsData.xroad, managedBy: "national-operator" } },
+    data: { ...organizationSettingsData, xroad: { ...organizationSettingsData.xroad!, managedBy: "national-operator" } },
+  },
+};
+
+/** With the X-Road, Connected systems and Service catalog flags off: no X-Road section, and only projects have a visibility default. */
+export const WithoutXRoadSystemsOrServices: Story = {
+  name: "Visibility (no X-Road, systems or services)",
+  args: {
+    node: section("visibility", "Visibility"),
+    ancestors,
+    currentPath: "/organization-settings/visibility",
+    data: { ...organizationSettingsData, xroad: undefined, visibility: { projects: organizationSettingsData.visibility.projects } },
   },
 };
 

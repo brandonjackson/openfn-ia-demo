@@ -116,6 +116,36 @@ The model is close to LiveView, on purpose.
 | `handle_event` changes state, then the view re-renders | the wrapper's action saves, then the page redraws from fresh props |
 | a function component | a domain component or a pattern |
 
+## Feature flags
+
+The demo shows a redesign of today's Lightning with new features on top. Feature flags switch those features off, so the same app can show the full vision or the redesign at about today's scope. The new editor isn't a flag: it's always on, so the old one is never built.
+
+**Where they live.** `src/model/feature-flags.ts` lists every flag: its label, what turning it off takes away, and what it requires. `src/app/feature-flags.ts` holds which are switched on. A `?flags=` parameter in the URL wins, then the last choice made in the flag panel, then everything on. The panel (`FeatureFlagPicker`, mounted beside the Style Picker) switches them, has the two presets, and copies a link with the current choices.
+
+**Requirements.** A flag only takes effect when everything it requires is in effect too, the way flag services handle prerequisites. Turning on X-Road while Connected systems is off leaves X-Road off, and the panel says "Needs Connected systems". It doesn't quietly turn the parent on. The tree today:
+
+```
+organizations
+├─ connectedSystems
+│  ├─ xroad
+│  └─ ecosystemMap
+├─ serviceCatalog
+└─ handbook
+components
+└─ forms, staticWebsites, aiSkills, documents, artifacts
+aiBuild, deployments, workflowDocs: standalone
+```
+
+**Who reads them.** The same people who read fixtures: the route table, the shell and the wrappers. Pages and components never do (lint already stops them importing `src/app`).
+
+- The route table trims the IA tree (`visibleTree`): a node with a `flag` that's off is gone, along with everything under it, and its URL shows "This feature is turned off". A node with `whenOff` is renamed instead. Components becomes Channels, for example.
+- The shell passes the flags to the chrome through `ShellContext`, so the sidebar and account menu leave out what's off.
+- A wrapper leaves out the data or the action for anything that's off, and the page doesn't draw what it isn't given. Where a component always drew something, it got an optional prop instead: `showWorkflowFiles` on the explorer, or `showServiceAnnotations` on the webhook trigger. Shared helpers for wrappers, such as `systemsFor` and `componentsFor`, are in `src/pages/flagged.fixtures.ts`.
+
+**Only the two presets are looked after.** "Full vision" (everything on) and "Lightning redesign" (everything off) are the states that matter. Other mixes work on a best-effort basis.
+
+**Adding a feature.** Decide which flag it belongs to, or add one to `featureFlags` (with `requires` if it builds on another), and then gate it in the places above. **Retiring a flag.** Once a feature is in or out for good, delete the flag and the conditionals that read it.
+
 ## The ratchet
 
 `npm run metrics` counts the things the design system wants fewer of:

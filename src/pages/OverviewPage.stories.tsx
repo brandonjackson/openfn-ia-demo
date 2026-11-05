@@ -21,7 +21,7 @@ export const FewSystems: Story = {
   args: {
     data: {
       ...overviewData,
-      connectedSystems: overviewData.connectedSystems.slice(0, 2),
+      connectedSystems: overviewData.connectedSystems?.slice(0, 2),
     },
   },
 };
@@ -46,4 +46,9 @@ export const FewProjects: Story = {
       projects: overviewData.projects.slice(0, 2),
     },
   },
+};
+
+/** Without the Connected systems flag: no setup section, and Status counts workflows only. */
+export const WithoutConnectedSystems: Story = {
+  args: { data: { ...overviewData, connectedSystems: undefined } },
 };

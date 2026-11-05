@@ -11,18 +11,19 @@ import EmptyState from "../components/primitives/EmptyState";
 import SectionHeading from "../components/primitives/SectionHeading";
 
 export interface ProjectComponentsPageProps extends PageProps<ProjectComponentsPageData> {
-  /** Starts a new component of a type. Components are drafted from a plain-words description on Create. */
-  onAddComponent: (type: string) => void;
+  /** Starts a new component of a type. Components are drafted from a plain-words description on Create, so without it there's no panel for adding. */
+  onAddComponent?: (type: string) => void;
 }
 
 /**
  * Every component in the project, grouped by type, under a panel for adding
  * a new one. Workflows have their own page, so they are left out here, as
- * are empty groups.
+ * are empty groups. Lists only the kinds in `data.types`: with just
+ * channels, it's the project's Channels page.
  */
 export default function ProjectComponentsPage({ node, ancestors, data, onAddComponent }: ProjectComponentsPageProps) {
   const projectPath = `/projects/${data.projectId}`;
-  const types = componentTypes.filter((t) => t.type !== "Workflow");
+  const types = componentTypes.filter((t) => t.type !== "Workflow" && data.types.includes(t.type));
   const groups = types
     .map((t) => ({ ...t, items: data.components.filter((c) => c.type === t.type) }))
     .filter((g) => g.items.length > 0);
@@ -35,12 +36,11 @@ export default function ProjectComponentsPage({ node, ancestors, data, onAddComp
         description={node.description}
       />
 
-      <div>
-        <AddComponentPanel
-          options={types}
-          onSelect={onAddComponent}
-        />
-      </div>
+      {onAddComponent && (
+        <div>
+          <AddComponentPanel options={types} onSelect={onAddComponent} />
+        </div>
+      )}
 
       {groups.length > 0 ? (
         <div className="space-y-8">
@@ -61,8 +61,12 @@ export default function ProjectComponentsPage({ node, ancestors, data, onAddComp
       ) : (
         <EmptyState
           icon={Boxes}
-          title="No components yet"
-          description="Components are the building blocks of a project: channels, forms, documents, AI skills and more. Add one above."
+          title={`No ${node.label.toLowerCase()} yet`}
+          description={
+            types.length > 1
+              ? `Components are the building blocks of a project: ${types.map((t) => t.plural.toLowerCase()).join(", ")}.${onAddComponent ? " Add one above." : ""}`
+              : undefined
+          }
         />
       )}
     </div>

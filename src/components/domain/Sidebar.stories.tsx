@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import Sidebar from "./Sidebar";
 import { withRouterAt } from "../../stories/decorators";
+import { allFlagsOff } from "../../model/feature-flags";
 
 const meta: Meta<typeof Sidebar> = {
   title: "Domain/Sidebar",
@@ -49,6 +50,18 @@ export const InsideProjectCreate: Story = {
 /** A page under Maintain. */
 export const InsideProjectMaintain: Story = {
   decorators: [withRouterAt("/projects/project-a/deployments")],
+};
+
+/** With every feature flag off: no organization layer, so just projects,
+ *  Support and the account menu, as in Lightning. */
+export const WithoutOrganizations: Story = {
+  decorators: [withRouterAt("/projects", allFlagsOff)],
+};
+
+/** Inside a project with every feature flag off: no Create or Deployments,
+ *  and Channels in place of Components. */
+export const InsideProjectRedesign: Story = {
+  decorators: [withRouterAt("/projects/project-a/workflows", allFlagsOff)],
 };
 
 /** On a small screen the sidebar is a drawer. Open, it slides in over a

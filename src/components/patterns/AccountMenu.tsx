@@ -8,6 +8,8 @@ interface Props {
   user: { firstName: string; lastName: string; email: string };
   /** The organisation you're signed in to; its settings live under Organization settings. */
   instance: { name: string; initials: string };
+  /** Offer Organization settings. Off when the demo's Organizations flag is. */
+  showOrganizationSettings?: boolean;
   /** Called when "Log out" is chosen. */
   onLogOut?: () => void;
   /** Start with the menu open (useful for stories and screenshots). */
@@ -43,7 +45,13 @@ function MenuItem({
  * and which organisation you're in; opens upwards into your personal and
  * organisation settings.
  */
-export default function AccountMenu({ user, instance, onLogOut, defaultOpen = false }: Props) {
+export default function AccountMenu({
+  user,
+  instance,
+  showOrganizationSettings = true,
+  onLogOut,
+  defaultOpen = false,
+}: Props) {
   const { open, setOpen, ref } = usePopover(defaultOpen);
   const close = () => setOpen(false);
 
@@ -59,12 +67,14 @@ export default function AccountMenu({ user, instance, onLogOut, defaultOpen = fa
         >
           <p className="truncate px-2 pt-1 pb-1.5 text-xs text-gray-500">{user.email}</p>
           <MenuItem to="/user-settings" icon={Settings} label="Settings" onSelect={close} />
-          <MenuItem
-            to="/organization-settings"
-            icon={Building2}
-            label="Organization settings"
-            onSelect={close}
-          />
+          {showOrganizationSettings && (
+            <MenuItem
+              to="/organization-settings"
+              icon={Building2}
+              label="Organization settings"
+              onSelect={close}
+            />
+          )}
           <div className="my-1.5 border-t border-gray-200" />
           <button
             type="button"

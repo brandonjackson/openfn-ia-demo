@@ -82,30 +82,32 @@ export default function StepConfigPanel({
           />
         </FormField>
 
-        <FormField
-          label="System"
-          hint={
-            method === "xroad"
-              ? "Reached over X-Road: the route and headers come from your organisation's settings."
-              : method === "direct"
-                ? "Reached directly, with a credential."
-                : "Pick a connected system, or leave it empty for code that only works on state."
-          }
-        >
-          <div className="flex items-center gap-2">
-            <Select
-              className="w-full"
-              options={[NO_SYSTEM, ...systems.map((s) => s.name)]}
-              value={system?.name ?? NO_SYSTEM}
-              disabled={readOnly}
-              onChange={(e) => {
-                const picked = systems.find((s) => s.name === e.target.value);
-                onChange?.(picked ? { system: picked.id, adaptor: picked.adaptor } : { system: undefined });
-              }}
-            />
-            {method && <ConnectionMethodBadge method={method} />}
-          </div>
-        </FormField>
+        {systems.length > 0 && (
+          <FormField
+            label="System"
+            hint={
+              method === "xroad"
+                ? "Reached over X-Road: the route and headers come from your organisation's settings."
+                : method === "direct"
+                  ? "Reached directly, with a credential."
+                  : "Pick a connected system, or leave it empty for code that only works on state."
+            }
+          >
+            <div className="flex items-center gap-2">
+              <Select
+                className="w-full"
+                options={[NO_SYSTEM, ...systems.map((s) => s.name)]}
+                value={system?.name ?? NO_SYSTEM}
+                disabled={readOnly}
+                onChange={(e) => {
+                  const picked = systems.find((s) => s.name === e.target.value);
+                  onChange?.(picked ? { system: picked.id, adaptor: picked.adaptor } : { system: undefined });
+                }}
+              />
+              {method && <ConnectionMethodBadge method={method} />}
+            </div>
+          </FormField>
+        )}
 
         <FormField label="Adaptor" hint={`${info.package}@${info.version}`}>
           <Select

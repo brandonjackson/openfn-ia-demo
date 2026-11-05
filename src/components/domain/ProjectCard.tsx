@@ -31,11 +31,13 @@ export default function ProjectCard({ project }: Props) {
             <Users size={11} />
             {plural(project.memberCount, "member")}
           </span>
-          <span>
-            {project.serviceCount === 0
-              ? "No services"
-              : `${project.liveServiceCount}/${project.serviceCount} services live`}
-          </span>
+          {project.serviceCount !== undefined && (
+            <span>
+              {project.serviceCount === 0
+                ? "No services"
+                : `${project.liveServiceCount ?? 0}/${project.serviceCount} services live`}
+            </span>
+          )}
           <span>
             {project.lastActivity === "Never" ? "No activity yet" : `Active ${project.lastActivity}`}
           </span>

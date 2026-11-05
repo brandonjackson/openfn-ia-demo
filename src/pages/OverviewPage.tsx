@@ -15,7 +15,8 @@ export interface OverviewPageProps {
 
 /**
  * Overview: summary tiles that link through to Status and Insights, setup
- * progress for connected systems, and your projects.
+ * progress for connected systems (when the organisation has them), and your
+ * projects.
  */
 export default function OverviewPage({ data }: OverviewPageProps) {
   const [addFlowOpen, setAddFlowOpen] = useState(false);
@@ -43,12 +44,14 @@ export default function OverviewPage({ data }: OverviewPageProps) {
         ))}
       </div>
 
-      <ConnectedSystemsSetupSection
-        systems={data.connectedSystems}
-        recommendedSystems={data.recommendedSystems}
-        recommended={data.recommended}
-        onAddSystem={handleOpenAddFlow}
-      />
+      {data.connectedSystems && (
+        <ConnectedSystemsSetupSection
+          systems={data.connectedSystems}
+          recommendedSystems={data.recommendedSystems}
+          recommended={data.recommended}
+          onAddSystem={handleOpenAddFlow}
+        />
+      )}
 
       <section>
         <SectionHeading
@@ -63,7 +66,7 @@ export default function OverviewPage({ data }: OverviewPageProps) {
       </section>
 
       <AddConnectedSystemFlow
-        open={addFlowOpen}
+        open={addFlowOpen && !!data.connectedSystems}
         onClose={() => setAddFlowOpen(false)}
         adaptors={data.adaptors}
         preselectedSystem={preselectedSystem}

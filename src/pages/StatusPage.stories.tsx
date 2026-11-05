@@ -25,8 +25,13 @@ export const AllOperational: Story = {
   args: {
     data: {
       ...statusData,
-      systems: statusData.systems.map((s) => ({ ...s, status: "operational", note: "Responding normally." })),
+      systems: statusData.systems?.map((s) => ({ ...s, status: "operational", note: "Responding normally." })),
       workflows: statusData.workflows.map((w) => ({ ...w, status: "operational", note: "Last run succeeded." })),
     },
   },
+};
+
+/** Without the Connected systems flag: workflows only. */
+export const WithoutConnectedSystems: Story = {
+  args: { data: { ...statusData, systems: undefined } },
 };

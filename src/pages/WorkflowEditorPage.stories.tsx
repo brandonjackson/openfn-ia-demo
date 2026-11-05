@@ -273,3 +273,15 @@ export const DirectWorkflow: Story = {
     initialSelectedId: "send-dhis2",
   },
 };
+
+/** Code mode with the Workflow docs, Components, Service catalog and Connected systems flags off: the trigger and steps, as in Lightning. */
+export const CodeRedesign: Story = {
+  args: {
+    initialView: "code",
+    showWorkflowFiles: false,
+    showComponents: false,
+    publishesServices: false,
+    systems: [],
+    service: undefined,
+  },
+};

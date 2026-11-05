@@ -60,3 +60,6 @@ export const NoComponents: Story = { args: { components: [], readOnly: true } };
 
 /** With no components yet, a sandbox still shows the group so one can be added. */
 export const NoComponentsEditable: Story = { args: { components: [], onAddStep: () => {}, onAddComponent: () => {} } };
+
+/** With the Workflow docs and Components flags off: just the trigger and steps. */
+export const StepsOnly: Story = { args: { showWorkflowFiles: false, showComponents: false, onAddStep: () => {} } };

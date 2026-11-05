@@ -227,6 +227,10 @@ export interface CatalogPageData {
   mcpServerUrl?: string;
   /** Projects a new workflow can be started in, from an event channel. */
   projects?: { id: string; name: string }[];
+  /** Whether the organisation has connected systems, whose methods "Services we use" lists. Defaults to true. */
+  connectedSystems?: boolean;
+  /** Whether the organisation is on X-Road, so services can be offered over it. Defaults to true. */
+  xroad?: boolean;
 }
 
 /* ------------------------------------------------------------------ */
@@ -304,7 +308,8 @@ export interface DashboardPageData {
   pageType: "dashboard";
   /** Summary tiles that link through to Status and Insights. */
   tiles: StatTileData[];
-  connectedSystems: ConnectedSystemSummary[];
+  /** The organisation's systems, for setup progress. Absent without connected systems, which leaves the section out. */
+  connectedSystems?: ConnectedSystemSummary[];
   recommendedSystems: SuggestedSystem[];
   projects: ProjectSummary[];
   recommended: number;
@@ -339,7 +344,8 @@ export interface WorkflowStatus {
 export interface StatusPageData {
   pageType: "status";
   checkedAt: string;
-  systems: SystemStatus[];
+  /** The organisation's systems. Absent without connected systems, which leaves the table out. */
+  systems?: SystemStatus[];
   workflows: WorkflowStatus[];
 }
 
@@ -381,8 +387,9 @@ export interface ProjectSummary {
   lastActivity: string;
   memberCount: number;
   workflowCount: number;
-  serviceCount: number;
-  liveServiceCount: number;
+  /** Its published services, and how many are live. Absent without the service catalog. */
+  serviceCount?: number;
+  liveServiceCount?: number;
 }
 
 export interface ProjectsPageData {
@@ -451,8 +458,8 @@ export interface ServicePageData {
   /** The workflow behind the service, if it's been linked. */
   workflow?: ProjectComponentItem;
   api: ServiceApiSpec;
-  /** The organisation's X-Road settings: who it is on X-Road, and its Security Server. */
-  xroadOrg: OrgXRoadSettings;
+  /** The organisation's X-Road settings: who it is on X-Road, and its Security Server. Absent when it isn't on X-Road. */
+  xroadOrg?: OrgXRoadSettings;
 }
 
 /** A channel's page in its project, opened from the project's Components. */
@@ -487,10 +494,12 @@ export interface ProjectPageData {
   projectId: string;
   /** Headline numbers from Insights and History, linking through. */
   tiles: StatTileData[];
-  /** Starter ideas from Create, to kick off something new. */
-  ideas: BuildIdea[];
-  services: ProjectServiceItem[];
-  components: ProjectComponentItem[];
+  /** Starter ideas from Create, to kick off something new. Absent without Create, which leaves the section out. */
+  ideas?: BuildIdea[];
+  /** What the project publishes. Absent without the service catalog. */
+  services?: ProjectServiceItem[];
+  /** What it's built from. Absent without components. */
+  components?: ProjectComponentItem[];
 }
 
 /** A workflow on the project's Workflows list, with its recent activity. */
@@ -517,6 +526,8 @@ export interface ProjectComponentsPageData {
   pageType: "project-components";
   projectId: string;
   components: ProjectComponentItem[];
+  /** The kinds of component the page lists and offers to add, never Workflow (it has its own page). */
+  types: ProjectComponentType[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -640,6 +651,8 @@ export interface UserSettingsPageData {
   credentials: UserCredential[];
   oauthClients: OAuthClient[];
   apiTokens: ApiToken[];
+  /** Whether organization credentials live on connected systems, which the Credentials section points to. Defaults to true. */
+  orgCredentialsOnSystems?: boolean;
 }
 
 /* ------------------------------------------------------------------ */
@@ -684,11 +697,12 @@ export interface OrganizationSettingsPageData {
   pageType: "organization-settings";
   name: string;
   members: OrganizationMember[];
-  /** Default discoverability and access for new projects, systems and services. */
-  visibility: { projects: VisibilityScope; systems: VisibilityScope; services: VisibilityScope };
+  /** Default discoverability and access for new projects, systems and services. Systems and services are absent when the organisation has none. */
+  visibility: { projects: VisibilityScope; systems?: VisibilityScope; services?: VisibilityScope };
   /** Shared sources of handbook pages, systems and services the organisation draws on. */
   contextLayers: ContextLayer[];
-  xroad: OrgXRoadSettings;
+  /** Its identity on X-Road. Absent when it isn't on X-Road, which leaves out the X-Road section. */
+  xroad?: OrgXRoadSettings;
   /** How many connected systems and published services use the X-Road settings. */
   xroadUsage: { systems: number; services: number };
   billing: BillingDetails;

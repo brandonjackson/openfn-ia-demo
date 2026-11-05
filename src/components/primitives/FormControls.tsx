@@ -5,7 +5,7 @@ import type {
 } from "react";
 
 const controlClasses =
-  "w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-50 disabled:text-gray-500";
+  "w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-50 disabled:text-gray-500";
 
 interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
   /** The height of a `sm` Button, for an input beside one, e.g. a search in a page header. */

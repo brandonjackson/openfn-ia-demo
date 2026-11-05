@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import Card from "../primitives/Card";
 
 export interface AddComponentOption {
   type: string;
@@ -25,29 +26,24 @@ export default function AddComponentPanel({ options, onSelect, title = "Add proj
   const grid = (
     <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${columns === 4 ? "lg:grid-cols-4" : ""} ${bare ? "" : "p-3"}`}>
       {options.map(({ type, icon: Icon, description }) => (
-        <button
-          key={type}
-          type="button"
-          onClick={() => onSelect?.(type)}
-          className="group flex items-start gap-2.5 rounded-lg border border-gray-200 p-3 text-left transition-all hover:border-indigo-300 hover:bg-indigo-50"
-        >
+        <Card key={type} padding="sm" onClick={() => onSelect?.(type)} className="flex items-start gap-2.5">
           <Icon size={16} className="mt-0.5 flex-shrink-0 text-gray-400 group-hover:text-indigo-500" />
           <div>
-            <div className="text-sm font-medium text-gray-700 group-hover:text-indigo-700">{type}</div>
+            <div className="text-sm font-medium text-gray-700 group-hover:text-indigo-600">{type}</div>
             <div className="mt-0.5 text-xs leading-snug text-gray-400">{description}</div>
           </div>
-        </button>
+        </Card>
       ))}
     </div>
   );
   if (bare) return grid;
   return (
-    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
+    <Card flush>
       <div className="flex items-center gap-2 border-b border-gray-100 px-3 py-1.5">
         <Plus size={14} className="text-gray-400" />
         <span className="text-xs font-medium text-gray-400">{title}</span>
       </div>
       {grid}
-    </div>
+    </Card>
   );
 }

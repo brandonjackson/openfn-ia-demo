@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { X, FolderPlus } from "lucide-react";
 import Button from "../primitives/Button";
+import FormField from "../primitives/FormField";
+import { TextArea, TextInput } from "../primitives/FormControls";
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -94,56 +96,35 @@ function CreateProjectModal({
           {/* Form fields */}
           <div className="space-y-5">
             {/* Name */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Project name
-              </label>
-              <input
+            <FormField label="Project name" hint="A unique name to identify this project.">
+              <TextInput
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Planning Application Intake"
                 autoFocus
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
-              <p className="mt-1 text-xs text-gray-400">
-                A unique name to identify this project.
-              </p>
-            </div>
+            </FormField>
 
             {/* Environment */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Project environment
-              </label>
-              <input
+            <FormField label="Project environment" hint="Credentials will be loaded with values from this environment.">
+              <TextInput
                 type="text"
                 value={environment}
                 onChange={(e) => setEnvironment(e.target.value)}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
-              <p className="mt-1 text-xs text-gray-400">
-                Credentials will be loaded with values from this environment.
-              </p>
-            </div>
+            </FormField>
 
             {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Project description
-              </label>
-              <textarea
+            <FormField label="Project description" hint={`${description.length}/240 characters`}>
+              <TextArea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe what this project is used for..."
                 rows={3}
                 maxLength={240}
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
-              <p className="mt-1 text-xs text-gray-400">
-                {description.length}/240 characters
-              </p>
-            </div>
+            </FormField>
 
             {/* Actions */}
             <div className="flex items-center justify-end gap-3 pt-2">

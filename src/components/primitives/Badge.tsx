@@ -25,16 +25,23 @@ interface Props {
   /** Overrides the tone inferred from the label (gray if unknown). */
   tone?: BadgeTone;
   icon?: LucideIcon;
+  /**
+   * `pill` (the default) is a rounded status or label; `tag` is the small,
+   * square-cornered note beside a name, e.g. a component's kind or "Read only".
+   */
+  shape?: "pill" | "tag";
 }
 
-export default function Badge({ label, tone, icon: Icon }: Props) {
+export default function Badge({ label, tone, icon: Icon, shape = "pill" }: Props) {
   const resolvedTone = tone ?? labelTones[label] ?? "gray";
   const colors = toneClasses[resolvedTone];
   return (
     <span
       data-ui="tag"
       data-tone={resolvedTone}
-      className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium ${colors}`}
+      className={`inline-flex flex-shrink-0 items-center gap-1 whitespace-nowrap font-medium ${
+        shape === "tag" ? "rounded px-1.5 py-0.5 text-[11px]" : "rounded-full px-2.5 py-0.5 text-xs"
+      } ${colors}`}
     >
       {Icon && <Icon size={10} />}
       {label}

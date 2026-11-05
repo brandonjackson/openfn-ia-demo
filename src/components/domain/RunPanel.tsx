@@ -1,6 +1,7 @@
 import { Info } from "lucide-react";
 import type { RunDetails, RunStep } from "../../model/workflow";
 import StatusPill from "./StatusPill";
+import Code from "../primitives/Code";
 
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -30,14 +31,14 @@ export default function RunPanel({
       <div className="px-4 py-2">
         <div className="divide-y divide-gray-50">
           <MetaRow label="Work Order">
-            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs">
+            <Code>
               {run.workOrderId}
-            </code>
+            </Code>
           </MetaRow>
           <MetaRow label="Run">
-            <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs">
+            <Code>
               {run.runId}
-            </code>
+            </Code>
           </MetaRow>
           <MetaRow label="Status">
             <StatusPill status={run.status} />

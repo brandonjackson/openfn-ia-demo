@@ -131,7 +131,7 @@ export default function ProjectPage({ node, ancestors, currentPath, data, onStar
               }
             />
             {components.length > 0 ? (
-              <Card flush className="-mt-3">
+              <Card flush className="-mt-3 space-y-0.5 p-1.5">
                 {components.slice(0, COMPONENT_PREVIEW).map((comp) => (
                   <ComponentRow key={comp.id} component={comp} projectPath={currentPath} />
                 ))}

@@ -48,17 +48,6 @@ export interface StatTileData {
   linkTo?: string;
 }
 
-export type ActivityKind = "created" | "updated" | "tested" | "deployed" | "warning" | "error";
-
-/** One line in an activity or needs-attention feed. Strong parts are bolded. */
-export interface ActivityItem {
-  id: string;
-  kind: ActivityKind;
-  parts: (string | { strong: string })[];
-  when: string;
-  linkTo?: string;
-}
-
 export interface FilterDef {
   label: string;
   options: string[];
@@ -316,16 +305,6 @@ export interface SuggestedSystem {
   name: string;
   description: string;
   adaptor?: string;
-}
-
-export interface SuggestedService {
-  id: string;
-  title: string;
-  description: string;
-  fromSystems: string[];
-  toSystems: string[];
-  category: string;
-  why: string;
 }
 
 export interface DashboardPageData {

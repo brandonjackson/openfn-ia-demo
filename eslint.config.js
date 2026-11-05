@@ -14,12 +14,13 @@ import { defineConfig, globalIgnores } from 'eslint/config'
  *   fixtures     fake records                              (model)
  *   primitives   the smallest pieces, no OpenFn words      (primitives, types from model)
  *   patterns     the shape of a screen, no OpenFn nouns    (primitives, patterns)
- *   domain       anything in OpenFn's words                (primitives, patterns, domain, model)
+ *   domain       anything in OpenFn's words                (primitives, domain, model)
  *   pages        one screen; draws, and nothing else       (any component, model)
  *   wrappers     XPage.fixtures.tsx: feeds a page          (anything)
  *
- * The line is primitives → patterns → domain → pages. Patterns sit below
- * domain on purpose: they get OpenFn content only through slots.
+ * Patterns and domain both sit on primitives, side by side, and neither
+ * imports the other: a pattern gets OpenFn content through slots, and the
+ * page is where a pattern and the domain components that fill it meet.
  */
 
 const docs = 'See docs/architecture.md'
@@ -42,10 +43,17 @@ const router = {
 }
 const above = (layer, names) => ({
   group: names.flatMap((n) => [`**/${n}`, `**/${n}/**`]),
-  message: `${layer} only import from the layers below them (primitives < patterns < domain < pages). If you need something from a higher layer, the component is probably in the wrong layer. ${docs}#the-layers`,
+  message: `${layer} only import from the layers below them (primitives < patterns and domain < pages). If you need something from a higher layer, the component is probably in the wrong layer. ${docs}#the-layers`,
 })
-// Patterns sit below domain, so the general rule above covers domain too; this
-// one says why, since it's the import that's tempting.
+// Domain draws with primitives only. Where a domain component would sit in a
+// pattern's frame, it hands its pieces to the page instead, and the page puts
+// them in the pattern's slots.
+const noPatternsInDomain = {
+  group: ['**/patterns', '**/patterns/**'],
+  message: `Domain components are built from primitives (and other domain components) only. If this belongs in a pattern's frame, let the page draw the pattern and pass this component in as a slot; if the pattern is really one small piece, it's a primitive. ${docs}#domain-draws-with-primitives`,
+}
+// Patterns don't know OpenFn either; this says why, since it's the import
+// that's tempting.
 const slot = `Patterns can't know OpenFn's nouns, so they stay reusable everywhere; take the content as a slot instead (children or a ReactNode prop) and let whoever uses the pattern pass the domain component in. ${docs}#patterns-take-openfn-content-through-slots`
 const noOpenFnInPatterns = [
   { group: ['**/domain', '**/domain/**'], message: slot },
@@ -122,7 +130,7 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': [
         'error',
-        { paths: [router], patterns: [fixtures, wrappers, app, above('Domain components', ['pages'])] },
+        { paths: [router], patterns: [fixtures, wrappers, app, noPatternsInDomain, above('Domain components', ['pages'])] },
       ],
     },
   },

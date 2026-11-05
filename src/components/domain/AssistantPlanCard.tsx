@@ -1,5 +1,6 @@
 import type { AssistantPlan } from "../../model/assistant";
 import Button from "../primitives/Button";
+import Card from "../primitives/Card";
 
 interface Props {
   plan: AssistantPlan;
@@ -14,7 +15,7 @@ interface Props {
  */
 export default function AssistantPlanCard({ plan, onAccept, onEdit }: Props) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
+    <Card padding="sm">
       <div className="mb-2 font-mono text-[10px] uppercase tracking-widest text-gray-400">Plan</div>
       <ol className="space-y-1.5">
         {plan.steps.map((step, i) => (
@@ -40,6 +41,6 @@ export default function AssistantPlanCard({ plan, onAccept, onEdit }: Props) {
           </>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

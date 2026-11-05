@@ -8,7 +8,7 @@ import EntityPill from "./EntityPill";
 import { connectionOf } from "../../model/connected-systems";
 import type { ConnectedSystem } from "../../model/connected-systems";
 import ConnectionMethodBadge from "./ConnectionMethodBadge";
-import { TriggerIcon } from "./AdaptorIcon";
+import IconTile from "../primitives/IconTile";
 import StatusPill from "./StatusPill";
 import RunCountBadge from "./RunCountBadge";
 import IconButton from "../primitives/IconButton";
@@ -129,7 +129,7 @@ export default function WorkflowNodeCard({
             <EntityPill
               name={triggerTypes[node.triggerType].label}
               size="sm"
-              icon={<TriggerIcon triggerType={node.triggerType} size="xs" />}
+              icon={<IconTile icon={triggerTypes[node.triggerType].icon} size="2xs" tone="white" round />}
             />
           )}
           <span className="pointer-events-auto ml-auto flex flex-shrink-0 items-center gap-1">

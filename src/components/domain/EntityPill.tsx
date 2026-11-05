@@ -2,8 +2,6 @@ import Link from "../primitives/Link";
 import type { ReactNode } from "react";
 import { Plus } from "lucide-react";
 import AdaptorLogo from "./AdaptorLogo";
-import { AdaptorIcon } from "./AdaptorIcon";
-import { hasAdaptorLogo } from "./adaptor-lookup";
 
 export type EntityPillSize = "xs" | "sm" | "md";
 
@@ -78,14 +76,7 @@ export default function EntityPill({
     shape === "pill" ? "rounded-full" : "rounded-md"
   } ${sizing[size]} ${trailing ? "pr-0.5" : endPadding[size]} ${box} ${hover}`;
 
-  // Adaptors without a logo fall back to their lettered tile, as on the canvas cards.
-  const tile =
-    icon ??
-    (adaptor && !hasAdaptorLogo(adaptor) ? (
-      <AdaptorIcon adaptor={adaptor} size="xs" />
-    ) : (
-      <AdaptorLogo adaptor={adaptor} name={name} size={size === "md" ? "xs" : "2xs"} />
-    ));
+  const tile = icon ?? <AdaptorLogo adaptor={adaptor} name={name} size={size === "md" ? "xs" : "2xs"} />;
 
   const content = (
     <>

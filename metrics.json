@@ -1,8 +1,8 @@
 {
   "debt": 2,
-  "classNamesInDomain": 775,
-  "classNamesInPatterns": 94,
-  "classNamesInPages": 114,
+  "classNamesInDomain": 707,
+  "classNamesInPatterns": 90,
+  "classNamesInPages": 113,
   "rawControlsInPages": 0,
   "componentsWithoutStories": 0
 }

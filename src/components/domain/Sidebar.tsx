@@ -28,7 +28,7 @@ import { useDismiss } from "../primitives/use-popover";
 import IconButton from "../primitives/IconButton";
 import InstanceLogo from "./InstanceLogo";
 import NavItem from "../primitives/NavItem";
-import SidebarSection from "../patterns/SidebarSection";
+import NavSection from "../primitives/NavSection";
 import AccountMenu from "./AccountMenu";
 import { useShell } from "./shell-context";
 import type { LucideIcon } from "lucide-react";
@@ -121,7 +121,7 @@ function ProjectNav({ project }: { project: Project }) {
       </div>
       <nav className="p-3 flex-1 overflow-y-auto space-y-5">
         {groups.map((group) => (
-          <SidebarSection key={group.label ?? "top"} label={group.label}>
+          <NavSection key={group.label ?? "top"} label={group.label}>
             {group.sections.map((section) => (
               <NavItem
                 key={section.label}
@@ -131,7 +131,7 @@ function ProjectNav({ project }: { project: Project }) {
                 active={activeSection === section.id}
               />
             ))}
-          </SidebarSection>
+          </NavSection>
         ))}
       </nav>
     </>
@@ -144,7 +144,7 @@ function OrgNav() {
   return (
     <nav className="p-3 flex-1 overflow-y-auto space-y-5">
       {visibleNavGroups(flags).map((group) => (
-        <SidebarSection key={group.label ?? "top"} label={group.label}>
+        <NavSection key={group.label ?? "top"} label={group.label}>
           {group.items.map((id) => {
             const node = mainNavTree.find((n) => n.id === id);
             if (!node) return null;
@@ -158,10 +158,10 @@ function OrgNav() {
               />
             );
           })}
-        </SidebarSection>
+        </NavSection>
       ))}
 
-      <SidebarSection label="Projects">
+      <NavSection label="Projects">
         {recentProjects.slice(0, 4).map((project) => (
           <NavItem
             key={project.id}
@@ -176,7 +176,7 @@ function OrgNav() {
           label="View all"
           active={pathname === "/projects"}
         />
-      </SidebarSection>
+      </NavSection>
     </nav>
   );
 }
@@ -227,7 +227,7 @@ export default function Sidebar({ open = false, onClose }: { open?: boolean; onC
         {project ? <ProjectNav project={project} /> : <OrgNav />}
 
         <div className="p-3 space-y-3">
-          <SidebarSection label="Support">
+          <NavSection label="Support">
             <NavItem href={openfnDocsUrl} icon={BookMarked} label="OpenFn docs" />
             <NavItem
               to={"/" + getHelp.id}
@@ -235,7 +235,7 @@ export default function Sidebar({ open = false, onClose }: { open?: boolean; onC
               label={getHelp.label}
               active={isAt(pathname, "/" + getHelp.id)}
             />
-          </SidebarSection>
+          </NavSection>
           <div className="border-t border-gray-200 pt-3">
             <AccountMenu
               user={user}

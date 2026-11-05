@@ -12,7 +12,7 @@ import type {
   UserSettingsPageData,
 } from "../model/page-data";
 import SettingsLayout from "../components/patterns/SettingsLayout";
-import type { SettingsNavItem } from "../components/patterns/SettingsNav";
+import type { SettingsNavItem } from "../components/primitives/SettingsNav";
 import Breadcrumbs from "../components/domain/Breadcrumbs";
 import ApiTokenTable from "../components/domain/ApiTokenTable";
 import BackupCodes from "../components/domain/BackupCodes";

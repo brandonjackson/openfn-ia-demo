@@ -5,6 +5,8 @@ import AdaptorLogo from "./AdaptorLogo";
 import Button from "../primitives/Button";
 import EmptyState from "../primitives/EmptyState";
 import SearchInput from "../primitives/SearchInput";
+import FormField from "../primitives/FormField";
+import { TextArea, TextInput } from "../primitives/FormControls";
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -174,72 +176,44 @@ function ConfigForm({
       {/* Form fields */}
       <div className="space-y-5">
         {/* Name */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Name
-          </label>
-          <input
+        <FormField label="Name" hint="A display name for this connected system.">
+          <TextInput
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
           />
-          <p className="mt-1 text-xs text-gray-400">
-            A display name for this connected system.
-          </p>
-        </div>
+        </FormField>
 
         {/* Description */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Description
-          </label>
-          <textarea
+        <FormField label="Description" hint={`${description.length}/240 characters`}>
+          <TextArea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Describe what this system is used for..."
             rows={3}
             maxLength={240}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
           />
-          <p className="mt-1 text-xs text-gray-400">
-            {description.length}/240 characters
-          </p>
-        </div>
+        </FormField>
 
         {/* Endpoint URL */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Endpoint URL <span className="font-normal text-gray-400">(optional)</span>
-          </label>
-          <input
+        <FormField label="Endpoint URL" hint="The base URL of the system's API." optional>
+          <TextInput
             type="url"
             value={endpointUrl}
             onChange={(e) => setEndpointUrl(e.target.value)}
             placeholder="https://"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
           />
-          <p className="mt-1 text-xs text-gray-400">
-            The base URL of the system's API.
-          </p>
-        </div>
+        </FormField>
 
         {/* Docs URL */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Docs URL <span className="font-normal text-gray-400">(optional)</span>
-          </label>
-          <input
+        <FormField label="Docs URL" hint="Where to find the system's API documentation." optional>
+          <TextInput
             type="url"
             value={docsUrl}
             onChange={(e) => setDocsUrl(e.target.value)}
             placeholder="https://"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
           />
-          <p className="mt-1 text-xs text-gray-400">
-            Where to find the system's API documentation.
-          </p>
-        </div>
+        </FormField>
 
         {/* Submit */}
         <div className="flex items-center justify-end gap-3 pt-2">

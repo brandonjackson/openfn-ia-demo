@@ -28,8 +28,6 @@ import type { StepChanges } from "./StepConfigPanel";
 import TriggerConfigPanel from "./TriggerConfigPanel";
 import type { RunDataSection } from "./panel-views";
 import WorkflowSettingsPanel from "./WorkflowSettingsPanel";
-import CodeLayout from "../patterns/CodeLayout";
-import EditorTray from "../patterns/EditorTray";
 
 interface Props {
   workflow: Workflow;
@@ -86,8 +84,6 @@ interface Props {
    * panel, status bar and details column stay as they are.
    */
   pane?: ReactNode;
-  /** The panel inline under the code. */
-  bottomTray?: ReactNode;
   /** Hide the explorer column (toggled from the toolbar). */
   showExplorer?: boolean;
   /** The details column beside the code, and which of its views shows. I/O shows only while a run is loaded. */
@@ -102,17 +98,44 @@ interface Props {
   statusNote?: string;
   /** Steps changed in this session and not yet promoted, by id. */
   dirtyStepIds?: string[];
+  /**
+   * Lays the pieces out. The code view's frame is a pattern (`CodeLayout`,
+   * with an `EditorTray` for the details), so the page draws it and fills
+   * its slots with these.
+   */
+  children: (slots: CodeWorkspaceSlots) => ReactNode;
+}
+
+/** The code view's pieces, for the page to put in `CodeLayout`'s slots. */
+export interface CodeWorkspaceSlots {
+  /** The explorer, for the left column; absent while it's hidden. */
+  nav?: ReactNode;
+  /** The path row over the code, with the adaptor pill and corner controls. */
+  header: ReactNode;
+  /** The status bar under the code. */
+  footer: ReactNode;
+  /** The code editor, or the open item's own pane (e.g. Health). */
+  main: ReactNode;
+  /** The details column, for an `EditorTray` on the right; absent while it's hidden. */
+  details?: {
+    tabs: { options: { id: string; label: string }[]; value: string; onChange: (id: string) => void };
+    /** The ⋯ layout menu and close, for the tray's corner. */
+    actions?: ReactNode;
+    body: ReactNode;
+  };
 }
 
 /**
- * Code mode, filling the `CodeLayout` pattern: the explorer on the left, the
- * code in the middle under a path row (no file tabs: the explorer is the list of what can be opened), and
- * the details column on the right (an `EditorTray`) with its views: the open item's config
+ * Code mode's pieces, which the page lays out in the `CodeLayout` pattern
+ * (domain draws with primitives only; patterns get it through slots): the
+ * explorer on the left, the code in the middle under a path row (no file
+ * tabs: the explorer is the list of what can be opened), and the details
+ * column on the right (in an `EditorTray`) with its views: the open item's config
  * and, for a step, its adaptor's snippets, which insert at the cursor, and
  * its input and output (I/O) while a run is loaded. A step shows its code and its settings; the
  * trigger and `workflow.yaml` show the YAML and their settings. An item that
  * isn't text, such as Health, passes its own `pane` to show in the code's
- * place. The panel (the bottom tray) sits inline under the code. The ⋯ layout menu and the close button take
+ * place. The page puts the panel (the bottom tray) under the code. The ⋯ layout menu and the close button take
  * the top-right corner of whichever column is rightmost.
  */
 export default function CodeWorkspace({
@@ -146,7 +169,6 @@ export default function CodeWorkspace({
   docs = [],
   onAddDoc,
   onAddComponent,
-  bottomTray,
   showExplorer = true,
   showDetails = true,
   detailsView = "snippets",
@@ -156,6 +178,7 @@ export default function CodeWorkspace({
   statusNote,
   dirtyStepIds = [],
   pane,
+  children,
 }: Props) {
   const step =
     typeof file === "object" && "stepId" in file
@@ -345,72 +368,62 @@ export default function CodeWorkspace({
   const saveState = pane ? undefined : readOnly || component || listing ? "Read-only" : step && dirtyStepIds.includes(step.id) ? "Unsaved changes" : "Saved";
   const statusTrailing = [statusNote, lineCount, saveState].filter(Boolean) as string[];
 
-  return (
-    <CodeLayout
-      nav={
-        showExplorer && (
-          <EditorExplorer
-            workflow={workflow}
-            file={file}
-            onOpen={onOpen}
-            run={run}
-            components={components}
-            hasService={service !== undefined}
-            docs={docs}
-            readOnly={readOnly}
-            showWorkflowFiles={showWorkflowFiles}
-            showComponents={showComponents}
-            onAddDoc={readOnly ? undefined : onAddDoc}
-            onAddStep={readOnly ? undefined : onAddStep}
-            onAddComponent={readOnly ? undefined : onAddComponent}
-          />
-        )
-      }
-      header={
-        <CodePaneHeader
-          path={path}
-          leading={adaptorPill}
-          actions={
-            readOnly || !showDetails ? (
-              <>
-                {readOnly && !pane && <ReadOnlyNotice variant="tag" />}
-                {!showDetails && cornerControls}
-              </>
-            ) : undefined
-          }
-        />
-      }
-      bottomTray={bottomTray}
-      footer={<EditorStatusBar items={statusItems} trailing={statusTrailing} />}
-      rightTray={
-        showDetails && (
-          <EditorTray
-            placement="right"
-            tabs={{
-              options: [
-                { id: "config", label: component || doc || listing || addedDoc || health ? "Details" : "Config" },
-                ...(step ? [{ id: "snippets", label: "Snippets" }] : []),
-                ...(hasIO ? [{ id: "io", label: "I/O" }] : []),
-              ],
-              value: view,
-              onChange: (v) => onDetailsViewChange?.(v as DetailsViewId),
-            }}
-            actions={cornerControls}
-          >
-            {detailsBody}
-          </EditorTray>
-        )
-      }
-    >
-      {pane ?? (
-        <CodeEditor
-          ref={editor}
-          key={step?.id ?? path.join("/")}
-          code={code}
-          calls={adaptorOperations}
-          onChange={step && editable ? (next) => onCodeChange!(step.id, next) : undefined}
-        />
-      )}
-    </CodeLayout>
-  );
+  return children({
+    nav: showExplorer ? (
+      <EditorExplorer
+        workflow={workflow}
+        file={file}
+        onOpen={onOpen}
+        run={run}
+        components={components}
+        hasService={service !== undefined}
+        docs={docs}
+        readOnly={readOnly}
+        showWorkflowFiles={showWorkflowFiles}
+        showComponents={showComponents}
+        onAddDoc={readOnly ? undefined : onAddDoc}
+        onAddStep={readOnly ? undefined : onAddStep}
+        onAddComponent={readOnly ? undefined : onAddComponent}
+      />
+    ) : undefined,
+    header: (
+      <CodePaneHeader
+        path={path}
+        leading={adaptorPill}
+        actions={
+          readOnly || !showDetails ? (
+            <>
+              {readOnly && !pane && <ReadOnlyNotice variant="tag" />}
+              {!showDetails && cornerControls}
+            </>
+          ) : undefined
+        }
+      />
+    ),
+    footer: <EditorStatusBar items={statusItems} trailing={statusTrailing} />,
+    details: showDetails
+      ? {
+          tabs: {
+            options: [
+              { id: "config", label: component || doc || listing || addedDoc || health ? "Details" : "Config" },
+              ...(step ? [{ id: "snippets", label: "Snippets" }] : []),
+              ...(hasIO ? [{ id: "io", label: "I/O" }] : []),
+            ],
+            value: view,
+            onChange: (v) => onDetailsViewChange?.(v as DetailsViewId),
+          },
+          actions: cornerControls || undefined,
+          body: detailsBody,
+        }
+      : undefined,
+    main: pane ?? (
+      <CodeEditor
+        ref={editor}
+        key={step?.id ?? path.join("/")}
+        code={code}
+        calls={adaptorOperations}
+        onChange={step && editable ? (next) => onCodeChange!(step.id, next) : undefined}
+      />
+    ),
+  });
 }

@@ -10,13 +10,15 @@ interface Props {
   error?: string;
   /** Marks the field as one that must be filled in. */
   required?: boolean;
+  /** Marks the field "(optional)" after its label. */
+  optional?: boolean;
   children: ReactNode;
 }
 
 /**
  * Label + control + hint. Wrap any control from `FormControls` in this.
  */
-export default function FormField({ label, htmlFor, hint, error, required = false, children }: Props) {
+export default function FormField({ label, htmlFor, hint, error, required = false, optional = false, children }: Props) {
   return (
     <div>
       <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700 mb-1">
@@ -26,6 +28,7 @@ export default function FormField({ label, htmlFor, hint, error, required = fals
             *
           </span>
         )}
+        {optional && <span className="font-normal text-gray-400"> (optional)</span>}
       </label>
       {children}
       {error ? (

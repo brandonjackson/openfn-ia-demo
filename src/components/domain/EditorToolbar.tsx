@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { KeyboardEvent } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 import { FlaskConical, GitMerge, Sparkles } from "lucide-react";
 import type { RunDetails, WorkflowVersion } from "../../model/workflow";
 import { versionOptions } from "../../model/workflow";
@@ -7,7 +7,6 @@ import Button from "../primitives/Button";
 import Picker from "../primitives/Picker";
 import SegmentedControl from "../primitives/SegmentedControl";
 import IconButton from "../primitives/IconButton";
-import EditorTopBar from "../patterns/EditorTopBar";
 import WorkflowFileMenu from "./WorkflowFileMenu";
 import type { WorkflowMenuAction } from "./WorkflowFileMenu";
 import SandboxChip from "./SandboxChip";
@@ -64,6 +63,27 @@ interface Props {
    */
   assistantOpen?: boolean;
   onToggleAssistant?: () => void;
+  /**
+   * Lays the groups out. The bar's frame is a pattern (`EditorTopBar`), so
+   * the page draws it and fills its slots with these.
+   */
+  children: (groups: EditorToolbarGroups) => ReactNode;
+}
+
+/** The toolbar's groups of controls, for the page to put in `EditorTopBar`'s slots. */
+export interface EditorToolbarGroups {
+  /** The file menu, the workflow's name (or version picker) and the sandbox chip. */
+  start: ReactNode;
+  /** The Canvas/Code switcher. */
+  middle: ReactNode;
+  /** The loaded run, beside the switcher in code mode. */
+  afterMiddle?: ReactNode;
+  /** Run, and the main action: Edit in sandbox or Go live. */
+  end: ReactNode;
+  /** The assistant's toggle. */
+  aside?: ReactNode;
+  /** Hide the assistant's toggle while the assistant is open. */
+  asideHidden: boolean;
 }
 
 /**
@@ -112,6 +132,7 @@ export default function EditorToolbar({
   onRunWithCustomInput,
   assistantOpen = false,
   onToggleAssistant,
+  children,
 }: Props) {
   const onMain = sandbox === "main";
   const canRename = onRename !== undefined;
@@ -163,9 +184,8 @@ export default function EditorToolbar({
     onMenuAction(action);
   };
 
-  return (
-    <EditorTopBar
-      start={
+  return children({
+      start: (
         <>
           <WorkflowFileMenu
             onSelect={menuAction}
@@ -227,13 +247,13 @@ export default function EditorToolbar({
             onViewAll={onViewAllSandboxes}
           />
         </>
-      }
-      middle={
+      ),
+      middle: (
         <SegmentedControl variant="pill" size="md" options={editorViews} value={view} onChange={(v) => onViewChange(v as EditorView)} />
-      }
+      ),
       // The loaded run sits beside the switcher in code mode; the canvas has its own runs bar.
-      afterMiddle={run && view === "code" && <LoadedRunBar run={run} detail={run.version} onUnload={onCloseRun} />}
-      end={
+      afterMiddle: run && view === "code" ? <LoadedRunBar run={run} detail={run.version} onUnload={onCloseRun} /> : undefined,
+      end: (
         <>
           <RunMenuButton
             retry={retry}
@@ -253,14 +273,11 @@ export default function EditorToolbar({
             </Button>
           )}
         </>
-      }
-      aside={
-        onToggleAssistant && (
-          <IconButton variant="toggle" size="md" icon={Sparkles} label="Assistant" hint="Ctrl/⌘ + K" onClick={onToggleAssistant} />
-        )
-      }
+      ),
+      aside: onToggleAssistant ? (
+        <IconButton variant="toggle" size="md" icon={Sparkles} label="Assistant" hint="Ctrl/⌘ + K" onClick={onToggleAssistant} />
+      ) : undefined,
       // Folds away while the assistant is open, since its own header closes it.
-      asideHidden={assistantOpen}
-    />
-  );
+      asideHidden: assistantOpen,
+  });
 }

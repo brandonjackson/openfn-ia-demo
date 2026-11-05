@@ -13,7 +13,7 @@ import type {
 } from "../model/page-data";
 import { fullName } from "../model/admin";
 import SettingsLayout from "../components/patterns/SettingsLayout";
-import type { SettingsNavItem } from "../components/patterns/SettingsNav";
+import type { SettingsNavItem } from "../components/primitives/SettingsNav";
 import Breadcrumbs from "../components/domain/Breadcrumbs";
 import AdminUserTable from "../components/domain/AdminUserTable";
 import UserFormModal from "../components/domain/UserFormModal";

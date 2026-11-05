@@ -3,6 +3,8 @@ import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import Surface from "./Surface";
 import { usePopover } from "./use-popover";
+import NavItem from "./NavItem";
+import Badge from "./Badge";
 
 export interface PickerOption {
   id: string;
@@ -71,7 +73,6 @@ export default function Picker({
   const selected = options.find((o) => o.id === value);
 
 
-  const FooterIcon = footerAction?.icon;
   const TriggerIcon = selected?.icon ?? Icon;
 
   return (
@@ -81,7 +82,6 @@ export default function Picker({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={ariaLabel}
-        title={selected?.label}
         onClick={() => setOpen((o) => !o)}
         className={
           trigger
@@ -103,7 +103,7 @@ export default function Picker({
           <>
             {TriggerIcon && <TriggerIcon size={14} className="flex-shrink-0 text-gray-500" />}
             <span className="truncate font-medium">{selected?.shortLabel ?? selected?.label ?? value}</span>
-            {selected?.tag && <OptionTag label={selected.tag} />}
+            {selected?.tag && <Badge label={selected.tag} shape="tag" />}
             <ChevronDown size={14} className="flex-shrink-0 text-gray-400" />
           </>
         )}
@@ -116,51 +116,33 @@ export default function Picker({
               const isSelected = option.id === value;
               const startsGroup = option.group && option.group !== options[i - 1]?.group;
               return (
-                <li key={option.id} role="option" aria-selected={isSelected}>
+                <li key={option.id}>
                   {startsGroup && (
                     <div className="px-2 pb-1 pt-2 text-xs font-medium uppercase tracking-wide text-gray-400">
                       {option.group}
                     </div>
                   )}
-                  <button
-                    type="button"
+                  <NavItem
+                    variant="menu"
+                    role="option"
+                    active={isSelected}
+                    label={option.label}
+                    description={option.description}
+                    icon={option.icon ?? Icon}
+                    leading={option.badge && <Badge label={option.badge.label} tone={option.badge.tone} shape="tag" />}
+                    trailing={
+                      (option.tag || isSelected) && (
+                        <>
+                          {option.tag && <Badge label={option.tag} shape="tag" />}
+                          {isSelected && <Check size={14} className="text-indigo-600" />}
+                        </>
+                      )
+                    }
                     onClick={() => {
                       setOpen(false);
                       onChange?.(option.id);
                     }}
-                    className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-gray-100 ${
-                      isSelected ? "font-medium text-gray-900" : "text-gray-700"
-                    }`}
-                  >
-                    {option.badge ? (
-                      <span
-                        className={`flex-shrink-0 rounded border px-1.5 py-0.5 text-xs font-medium ${
-                          option.badge.tone === "green"
-                            ? "border-green-200 bg-green-50 text-green-700"
-                            : "border-gray-200 bg-gray-50 text-gray-600"
-                        }`}
-                      >
-                        {option.badge.label}
-                      </span>
-                    ) : (
-                      (() => {
-                        const OptionIcon = option.icon ?? Icon;
-                        return OptionIcon && <OptionIcon size={14} className="flex-shrink-0 text-gray-400" />;
-                      })()
-                    )}
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate" title={option.label}>
-                        {option.label}
-                      </span>
-                      {option.description && (
-                        <span className="block truncate text-xs font-normal text-gray-500">
-                          {option.description}
-                        </span>
-                      )}
-                    </span>
-                    {option.tag && <OptionTag label={option.tag} />}
-                    {isSelected && <Check size={14} className="flex-shrink-0 text-indigo-600" />}
-                  </button>
+                  />
                 </li>
               );
             })}
@@ -168,30 +150,19 @@ export default function Picker({
           {footerAction && (
             <>
               <div className="my-1.5 border-t border-gray-200" />
-              <button
-                type="button"
+              <NavItem
+                variant="menu"
+                label={footerAction.label}
+                icon={footerAction.icon}
                 onClick={() => {
                   setOpen(false);
                   footerAction.onClick();
                 }}
-                className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100"
-              >
-                {FooterIcon && <FooterIcon size={14} className="flex-shrink-0 text-gray-400" />}
-                {footerAction.label}
-              </button>
+              />
             </>
           )}
         </Surface>
       )}
     </div>
-  );
-}
-
-/** Small gray tag after an option's label, e.g. "Read only". */
-function OptionTag({ label }: { label: string }) {
-  return (
-    <span className="flex-shrink-0 whitespace-nowrap rounded bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-500">
-      {label}
-    </span>
   );
 }

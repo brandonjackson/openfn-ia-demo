@@ -35,7 +35,7 @@ import {
   type ProjectRole,
 } from "../model/project-settings";
 import SettingsLayout from "../components/patterns/SettingsLayout";
-import type { SettingsNavItem } from "../components/patterns/SettingsNav";
+import type { SettingsNavItem } from "../components/primitives/SettingsNav";
 import Breadcrumbs from "../components/domain/Breadcrumbs";
 import EnvironmentBadge from "../components/domain/EnvironmentBadge";
 import SystemLabel from "../components/domain/SystemLabel";

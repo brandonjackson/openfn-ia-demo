@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { PageProps } from "../model/ia-tree";
 import type { ProjectCreatePageData } from "../model/page-data";
-import Breadcrumbs from "../components/patterns/Breadcrumbs";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import BuildPrompt from "../components/domain/BuildPrompt";
 import Callout from "../components/primitives/Callout";
 import IdeaCard from "../components/domain/IdeaCard";

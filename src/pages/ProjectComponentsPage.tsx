@@ -1,7 +1,7 @@
 import { Boxes } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
 import type { ProjectComponentsPageData } from "../model/page-data";
-import AddComponentPanel from "../components/patterns/AddComponentPanel";
+import AddComponentPanel from "../components/domain/AddComponentPanel";
 import PageHeader from "../components/patterns/PageHeader";
 import Card from "../components/primitives/Card";
 import ComponentRow from "../components/domain/ComponentRow";

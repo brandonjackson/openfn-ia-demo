@@ -15,7 +15,7 @@ import SectionHeading from "../components/primitives/SectionHeading";
 import TextLink from "../components/primitives/TextLink";
 import UsageModeCard from "../components/domain/UsageModeCard";
 import CopyValue from "../components/primitives/CopyValue";
-import PublishToXRoadModal from "../components/patterns/PublishToXRoadModal";
+import PublishToXRoadModal from "../components/domain/PublishToXRoadModal";
 import ServiceRecordList from "../components/domain/ServiceRecordList";
 import StatTile from "../components/primitives/StatTile";
 import { mcpToolSnippet, openApiUrl, webhookUrl, workflowCallSnippet, xroadCallerSnippet } from "../model/service-usage";

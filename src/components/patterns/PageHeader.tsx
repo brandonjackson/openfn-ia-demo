@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import Breadcrumbs from "./Breadcrumbs";
+import Breadcrumbs from "../domain/Breadcrumbs";
 
 interface Props {
   /** Breadcrumbs shown above the title. */

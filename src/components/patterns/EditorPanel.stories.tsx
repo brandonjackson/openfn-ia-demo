@@ -3,9 +3,9 @@ import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import EditorPanel from "./EditorPanel";
 import LogConsole from "../domain/LogConsole";
-import RunHistoryList from "./RunHistoryList";
+import RunHistoryList from "../domain/RunHistoryList";
 import StatusPill from "../domain/StatusPill";
-import type { PanelViewId } from "./editor-layout";
+import type { PanelViewId } from "../domain/editor-layout";
 import { sampleRun, workOrders } from "../../fixtures/runs";
 
 function Stateful(args: ComponentProps<typeof EditorPanel>) {

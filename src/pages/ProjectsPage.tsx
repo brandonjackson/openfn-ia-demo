@@ -7,7 +7,7 @@ import Button from "../components/primitives/Button";
 import EmptyState from "../components/primitives/EmptyState";
 import { TextInput } from "../components/primitives/FormControls";
 import ProjectCard from "../components/domain/ProjectCard";
-import CreateProjectFlow from "../components/patterns/CreateProjectFlow";
+import CreateProjectFlow from "../components/domain/CreateProjectFlow";
 
 export interface ProjectsPageProps extends PageProps<ProjectsPageData> {
   /** Creates a project and opens it. */

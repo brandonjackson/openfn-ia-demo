@@ -16,7 +16,7 @@ import SystemEnvironments from "../components/domain/SystemEnvironments";
 import TextLink from "../components/primitives/TextLink";
 import ConnectionMethodBadge from "../components/domain/ConnectionMethodBadge";
 import XRoadAccessBadge from "../components/domain/XRoadAccessBadge";
-import XRoadConnectionDetails from "../components/patterns/XRoadConnectionDetails";
+import XRoadConnectionDetails from "../components/domain/XRoadConnectionDetails";
 import { connectionOf } from "../model/connected-systems";
 
 export interface SystemPageProps extends PageProps<DetailPageData> {

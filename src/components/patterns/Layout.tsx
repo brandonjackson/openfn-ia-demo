@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import MobileTopBar from "./MobileTopBar";
 import PageContainer from "./PageContainer";
-import Sidebar from "./Sidebar";
-import { useShell } from "./shell-context";
+import Sidebar from "../domain/Sidebar";
+import { useShell } from "../domain/shell-context";
 
 /**
  * The frame around every page outside the workflow editor: the sidebar (a

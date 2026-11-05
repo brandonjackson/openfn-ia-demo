@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { ChevronDown, ChevronUp, Maximize2, Minimize2, X } from "lucide-react";
-import type { PanelViewId } from "./editor-layout";
-import { panelViews } from "./panel-views";
+import type { PanelViewId } from "../domain/editor-layout";
+import { panelViews } from "../domain/panel-views";
 import SegmentedControl from "../primitives/SegmentedControl";
 import IconButton from "../primitives/IconButton";
 

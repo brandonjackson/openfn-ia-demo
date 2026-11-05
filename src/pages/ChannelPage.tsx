@@ -5,7 +5,7 @@ import { channelTypeConfig } from "../components/domain/channel-types";
 import PageHeader from "../components/patterns/PageHeader";
 import Badge from "../components/primitives/Badge";
 import Button from "../components/primitives/Button";
-import ChannelView from "../components/patterns/ChannelView";
+import ChannelView from "../components/domain/ChannelView";
 
 export interface ChannelPageProps extends PageProps<ChannelPageData> {
   /** Opens the workflow whose runs the channel's messages started or came from, when there is one. */

@@ -26,6 +26,24 @@ export const DeleteWorkflow: Story = {
   },
 };
 
+/** Something to type before the confirm button turns on, for actions that destroy a lot. */
+export const TypeToConfirm: Story = {
+  args: {
+    title: "Delete project",
+    confirmLabel: "Delete project",
+    confirmPhrase: "project-a",
+    confirmPhraseLabel: "Project name",
+    children: (
+      <>
+        <p>
+          Enter the project name to confirm deletion: <strong>project-a</strong>
+        </p>
+        <p>Deleting this project will disable access for all users, and disable all jobs in the project.</p>
+      </>
+    ),
+  },
+};
+
 export const Primary: Story = {
   args: { title: "Discard changes?", confirmLabel: "Discard", tone: "primary", children: <p>Your unsaved edits will be lost.</p> },
 };

@@ -19,6 +19,16 @@ export const Default: Story = {
   },
 };
 
+export const WithError: Story = {
+  args: {
+    label: "Name",
+    htmlFor: "collection-name",
+    hint: "Your collection will be named my-collection.",
+    error: "A collection with this name already exists",
+    children: <TextInput id="collection-name" defaultValue="applicant-cache" />,
+  },
+};
+
 export const WithHint: Story = {
   args: {
     label: "Project environment",

@@ -20,18 +20,36 @@ export function TextArea({ className = "", ...rest }: TextareaHTMLAttributes<HTM
   return <textarea className={`${controlClasses} py-2 ${className}`} {...rest} />;
 }
 
-interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
-  options: string[];
+/** An option whose value differs from what's shown, e.g. `{ value: "viewer", label: "Viewer" }`. */
+export interface SelectOption {
+  value: string;
+  label: string;
 }
 
-export function Select({ options, className = "w-auto", ...rest }: SelectProps) {
+interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+  /** Plain strings are both the value and the label. */
+  options: (string | SelectOption)[];
+  /** A first, empty option such as "Select a branch", chosen while nothing else is. */
+  placeholder?: string;
+  /** Shorter, for a select inside a table row. */
+  compact?: boolean;
+  /** Fills its row, like a text input, rather than fitting its longest option. */
+  fullWidth?: boolean;
+}
+
+export function Select({ options, placeholder, compact = false, fullWidth = false, className, ...rest }: SelectProps) {
+  const width = className ?? (fullWidth ? "w-full" : "w-auto");
   return (
-    <select className={`${controlClasses} py-2 ${className}`} {...rest}>
-      {options.map((opt) => (
-        <option key={opt} value={opt}>
-          {opt}
-        </option>
-      ))}
+    <select className={`${controlClasses} ${compact ? "py-1" : "py-2"} ${width}`} {...rest}>
+      {placeholder !== undefined && <option value="">{placeholder}</option>}
+      {options.map((opt) => {
+        const { value, label } = typeof opt === "string" ? { value: opt, label: opt } : opt;
+        return (
+          <option key={value} value={value}>
+            {label}
+          </option>
+        );
+      })}
     </select>
   );
 }

@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { X } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import IconButton from "../primitives/IconButton";
 
 interface Props {
+  /** The top bar, e.g. an `EditorTopBar`. */
   toolbar: ReactNode;
   /**
    * Floats the toolbar over the main surface instead of above it, so one
@@ -8,22 +12,22 @@ interface Props {
    * `--editor-toolbar-h` CSS variable for content that must start below it.
    */
   floatToolbar?: boolean;
-  /** The main surface: canvas, code workspace or runs. */
+  /** The main surface: a `CanvasLayout` or a `CodeLayout`. */
   children: ReactNode;
-  /** A bar centred over the top of the main surface, e.g. the canvas's runs bar. */
-  top?: ReactNode;
-  /** A bar pinned to the bottom of the main surface, e.g. main's read-only notice on the canvas. */
-  bottom?: ReactNode;
   /**
-   * A tray docked to the right, full height beside everything else, the
-   * toolbar included. Keep passing it while closed so it can slide out.
+   * The side column, docked to the right, full height beside everything
+   * else, the toolbar included. Keep passing it while closed so it can
+   * slide out.
    */
-  rightTray?: ReactNode;
-  /** Whether the right tray is shown; it slides in and out as this changes. */
-  rightTrayOpen?: boolean;
-  rightTrayWidthClass?: string;
-  /** A card floating over the right of the main surface, e.g. the inspector; it sizes itself. */
-  rightOverlay?: ReactNode;
+  side?: ReactNode;
+  /** The side column's name, in its header. */
+  sideTitle?: string;
+  sideIcon?: LucideIcon;
+  /** Whether the side column is shown; it slides in and out as this changes. */
+  sideOpen?: boolean;
+  /** Closes the side column, from the X in its header. */
+  onCloseSide?: () => void;
+  sideWidthClass?: string;
   /** Draws an amber edge along the top, e.g. to mark that you're working in a sandbox. */
   accentEdge?: boolean;
   /** Anything that sits over everything, e.g. dialogs. */
@@ -31,28 +35,28 @@ interface Props {
 }
 
 /**
- * The editor's frame: the toolbar across the top, the main surface below it
- * on the dotted canvas background (or, with `floatToolbar`, under it, so the
- * canvas runs the full height), with a bar centred over its top, one
- * pinned to its bottom and a card floating over its right. The right tray is the outermost column and
- * runs the full height, so it sits to the right of the toolbar too; it
- * slides in and out rather than popping. The main surface and the tray are
- * plain slots, so canvas and code share one layout.
+ * The editor's frame: the top bar across the top and the main surface below
+ * it on the dotted canvas background (or, with `floatToolbar`, under it, so
+ * the canvas runs the full height). The main surface is a plain slot, filled
+ * by the canvas or the code layout, which each bring their own bars, cards
+ * and trays. The side column is the outermost column and runs the full
+ * height, so it sits to the right of the toolbar too, at a level above
+ * either view; it slides in and out rather than popping.
  */
 export default function EditorShell({
   toolbar,
   floatToolbar = false,
   children,
-  top,
-  bottom,
-  rightTray,
-  rightTrayOpen = true,
-  rightTrayWidthClass = "w-[400px]",
-  rightOverlay,
+  side,
+  sideTitle,
+  sideIcon: SideIcon,
+  sideOpen = true,
+  onCloseSide,
+  sideWidthClass = "w-[400px]",
   accentEdge = false,
   overlays,
 }: Props) {
-  const trayOpen = rightTray !== undefined && rightTrayOpen;
+  const open = side !== undefined && sideOpen;
 
   // A floating toolbar covers the top of the surface, so what's pinned there moves down by its height.
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -64,9 +68,7 @@ export default function EditorShell({
     observer.observe(el);
     return () => observer.disconnect();
   }, [floatToolbar]);
-  const inset = floatToolbar ? toolbarHeight : 0;
-  const surfaceStyle = { "--editor-toolbar-h": `${inset}px` } as CSSProperties;
-  const belowToolbar = { top: `calc(${inset}px + 0.75rem)` };
+  const surfaceStyle = { "--editor-toolbar-h": `${floatToolbar ? toolbarHeight : 0}px` } as CSSProperties;
 
   return (
     <div
@@ -87,30 +89,29 @@ export default function EditorShell({
               {toolbar}
             </div>
           )}
-          {rightOverlay && (
-            <div className="absolute bottom-4 right-4 z-30 flex items-start justify-end" style={belowToolbar}>
-              {rightOverlay}
-            </div>
-          )}
-          {top && (
-            <div className="pointer-events-none absolute inset-x-4 z-40 flex justify-center [&>*]:pointer-events-auto" style={belowToolbar}>
-              {top}
-            </div>
-          )}
-          {bottom && <div className="pointer-events-none absolute inset-x-4 bottom-4 z-40 flex justify-center [&>*]:pointer-events-auto">{bottom}</div>}
         </div>
       </div>
-      {rightTray !== undefined && (
-        // The outer column animates its width while the tray inside keeps its
-        // own, pinned to the right edge, so the tray slides rather than squashes.
+      {side !== undefined && (
+        // The outer column animates its width while the panel inside keeps its
+        // own, pinned to the right edge, so it slides rather than squashes.
         <aside
-          inert={!trayOpen}
-          aria-hidden={!trayOpen}
+          inert={!open}
+          aria-hidden={!open}
+          aria-label={sideTitle}
           className={`flex flex-none justify-end overflow-hidden transition-[width] duration-300 ease-out motion-reduce:transition-none ${
-            trayOpen ? rightTrayWidthClass : "w-0"
+            open ? sideWidthClass : "w-0"
           }`}
         >
-          <div className={`h-full flex-none ${rightTrayWidthClass}`}>{rightTray}</div>
+          <section className={`flex h-full flex-none flex-col border-l border-gray-200 bg-white ${sideWidthClass}`}>
+            {(sideTitle || onCloseSide) && (
+              <header className="flex h-12 flex-none items-center gap-2 border-b border-gray-100 px-4">
+                {SideIcon && <SideIcon size={15} className="flex-shrink-0 text-gray-400" />}
+                <h2 className="min-w-0 flex-1 truncate text-sm font-semibold text-gray-900">{sideTitle}</h2>
+                {onCloseSide && <IconButton icon={X} label="Close" onClick={onCloseSide} />}
+              </header>
+            )}
+            <div className="min-h-0 flex-1 overflow-auto">{side}</div>
+          </section>
         </aside>
       )}
       {overlays}

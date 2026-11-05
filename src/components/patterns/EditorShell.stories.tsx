@@ -1,13 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { History } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import EditorShell from "./EditorShell";
-import EditorTray from "./EditorTray";
+import CanvasLayout from "./CanvasLayout";
 import WorkflowCanvas from "../domain/WorkflowCanvas";
-import ReadOnlyNotice from "../domain/ReadOnlyNotice";
-import CanvasRunsBar from "../domain/CanvasRunsBar";
 import { nationalIdWorkflow } from "../../fixtures/workflow";
-import { runActivity } from "../../model/runs";
-import { workOrders } from "../../fixtures/runs";
 import { adaptorInfo } from "../../fixtures/adaptor-reference";
 import { connectedSystems } from "../../fixtures/connected-systems";
 
@@ -28,7 +24,11 @@ const meta: Meta<typeof EditorShell> = {
         Toolbar
       </div>
     ),
-    children: <WorkflowCanvas workflow={nationalIdWorkflow} adaptors={adaptorInfo} systems={connectedSystems} height={760} />,
+    children: (
+      <CanvasLayout>
+        <WorkflowCanvas workflow={nationalIdWorkflow} adaptors={adaptorInfo} systems={connectedSystems} height={760} />
+      </CanvasLayout>
+    ),
   },
 };
 
@@ -42,62 +42,18 @@ export const FloatingToolbar: Story = {
   args: { floatToolbar: true },
 };
 
-export const WithTray: Story = {
-  args: {
-    rightTray: (
-      <EditorTray title="Run history" icon={History} placement="right">
-        <p className="p-4 text-sm text-gray-500">Right tray</p>
-      </EditorTray>
-    ),
-  },
-};
-
-/** The canvas's runs bar centred over the top of the main surface. */
-export const WithTop: Story = {
-  args: {
-    top: (
-      <CanvasRunsBar
-        period="7d"
-        onPeriodChange={() => {}}
-        showing
-        onShowingChange={() => {}}
-        activity={runActivity(nationalIdWorkflow, workOrders)}
-        workOrders={workOrders}
-        open={false}
-        onOpenChange={() => {}}
-      />
-    ),
-  },
-};
-
-/** Main's read-only notice pinned to the bottom of the main surface. */
-export const WithBottom: Story = {
-  args: { bottom: <ReadOnlyNotice onEditInSandbox={() => {}} /> },
-};
-
 /**
- * The assistant tray runs the full height, to the right of the toolbar too.
- * Toggle `rightTrayOpen` in the controls to watch it slide in and out.
+ * The side column, here the assistant, runs the full height, to the right of
+ * the toolbar too, a level above the canvas or code. Toggle `sideOpen` in
+ * the controls to watch it slide in and out.
  */
-export const WithAssistantTray: Story = {
+export const WithSide: Story = {
   args: {
-    rightTrayOpen: true,
-    rightTray: (
-      <EditorTray title="Assistant" placement="right">
-        <p className="p-4 text-sm text-gray-500">Right tray</p>
-      </EditorTray>
-    ),
-  },
-};
-
-/** A card floating over the right of the canvas, e.g. the inspector. */
-export const WithRightOverlay: Story = {
-  args: {
-    rightOverlay: (
-      <div className="w-[380px] rounded-xl border border-gray-200 bg-white p-4 shadow-xl">
-        <p className="text-sm text-gray-500">Right overlay</p>
-      </div>
-    ),
+    sideOpen: true,
+    sideTitle: "Assistant",
+    sideIcon: Sparkles,
+    onCloseSide: () => {},
+    side: <p className="p-4 text-sm text-gray-500">Side column</p>,
   },
 };
 

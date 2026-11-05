@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { History, Sparkles } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import EditorTray from "./EditorTray";
-import type { TrayPlacement } from "./EditorTray";
+import IconButton from "../primitives/IconButton";
 import StatusPill from "../domain/StatusPill";
 import LogConsole from "../domain/LogConsole";
 import { sampleRun } from "../../fixtures/runs";
@@ -16,57 +16,56 @@ const meta: Meta<typeof EditorTray> = {
 export default meta;
 type Story = StoryObj<typeof EditorTray>;
 
+function RightTray() {
+  const [tab, setTab] = useState("config");
+  return (
+    <div className="flex h-[520px] justify-end border border-gray-200 bg-white">
+      <EditorTray
+        placement="right"
+        tabs={{ options: [{ id: "config", label: "Config" }, { id: "snippets", label: "Snippets" }], value: tab, onChange: setTab }}
+        actions={<IconButton icon={MoreHorizontal} label="Layout" onClick={() => {}} />}
+        onClose={() => {}}
+      >
+        <p className="p-4 text-sm text-gray-500">{tab} view</p>
+      </EditorTray>
+    </div>
+  );
+}
+
+/** The details column beside the code: tabs for its views, and the corner controls. */
+export const Right: Story = { render: () => <RightTray /> };
+
 function BottomTray() {
   const [tab, setTab] = useState("log");
   return (
-    <div className="relative h-[520px] bg-gray-50 bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] [background-size:22px_22px]">
-      <div className="absolute inset-x-4 bottom-4">
-        <EditorTray
-          title="Map fields"
-          badge={<StatusPill status="success" />}
-          tabs={{ options: [{ id: "log", label: "Log" }, { id: "input", label: "Input" }, { id: "output", label: "Output" }], value: tab, onChange: setTab }}
-          meta={`Run #${sampleRun.runId.slice(0, 4)} · 2.5s`}
-          placement="bottom"
-          floating
-          onMove={() => {}}
-          onClose={() => {}}
-        >
-          <LogConsole lines={sampleRun.logs.slice(0, 8)} />
-        </EditorTray>
-      </div>
+    <div className="flex h-[520px] flex-col justify-end border border-gray-200 bg-white">
+      <EditorTray
+        placement="bottom"
+        tabs={{ options: [{ id: "log", label: "Log" }, { id: "input", label: "Input" }, { id: "output", label: "Output" }], value: tab, onChange: setTab }}
+        meta={
+          <>
+            <StatusPill status="success" variant="dot" />
+            Run {sampleRun.runId.slice(0, 6)} · 2.5 s
+          </>
+        }
+        onClose={() => {}}
+      >
+        <LogConsole lines={sampleRun.logs.slice(0, 8)} />
+      </EditorTray>
     </div>
   );
 }
 
-/** A bottom tray floating over the canvas, as when a step's output is open. */
-export const BottomFloating: Story = { render: () => <BottomTray /> };
+/** The panel under the code, with context about the open view at the right. */
+export const Bottom: Story = { render: () => <BottomTray /> };
 
-/** Docked to the right, full height. */
-export const Right: Story = {
+/** A tray can carry a name and a status ahead of its tabs. */
+export const WithTitle: Story = {
   render: () => (
-    <div className="flex h-[520px] justify-end bg-gray-50">
-      <div className="w-[380px]">
-        <EditorTray title="Run history" icon={History} placement="right" onMove={() => {}} onClose={() => {}}>
-          <p className="p-4 text-sm text-gray-500">Tray content goes here.</p>
-        </EditorTray>
-      </div>
+    <div className="flex h-[320px] flex-col justify-end border border-gray-200 bg-white">
+      <EditorTray placement="bottom" title="Map fields" badge={<StatusPill status="success" />} onClose={() => {}} heightClass="h-40">
+        <LogConsole lines={sampleRun.logs.slice(0, 4)} />
+      </EditorTray>
     </div>
   ),
 };
-
-function MovableTray() {
-  const [placement, setPlacement] = useState<TrayPlacement>("right");
-  const tray = (
-    <EditorTray title="Assistant" icon={Sparkles} placement={placement} floating onMove={setPlacement} onClose={() => {}}>
-      <p className="p-4 text-sm text-gray-500">Docked {placement}. Use the header control to move it.</p>
-    </EditorTray>
-  );
-  return (
-    <div className="relative flex h-[520px] justify-end bg-gray-50">
-      {placement === "right" ? <div className="w-[380px]">{tray}</div> : <div className="absolute inset-x-4 bottom-4">{tray}</div>}
-    </div>
-  );
-}
-
-/** The dock control moves a tray between the two placements. */
-export const Movable: Story = { render: () => <MovableTray /> };

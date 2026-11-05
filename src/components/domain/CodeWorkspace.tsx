@@ -12,7 +12,6 @@ import { componentTypeIcons } from "../../model/component-types";
 import Button from "../primitives/Button";
 import Badge from "../primitives/Badge";
 import IconButton from "../primitives/IconButton";
-import SegmentedControl from "../primitives/SegmentedControl";
 import FileDetailsPanel from "./FileDetailsPanel";
 import EntityPill from "./EntityPill";
 import AdaptorReferencePanel from "./AdaptorReferencePanel";
@@ -29,7 +28,8 @@ import type { StepChanges } from "./StepConfigPanel";
 import TriggerConfigPanel from "./TriggerConfigPanel";
 import type { RunDataSection } from "./panel-views";
 import WorkflowSettingsPanel from "./WorkflowSettingsPanel";
-import Surface from "../primitives/Surface";
+import CodeLayout from "../patterns/CodeLayout";
+import EditorTray from "../patterns/EditorTray";
 
 interface Props {
   workflow: Workflow;
@@ -105,14 +105,14 @@ interface Props {
 }
 
 /**
- * Code mode: the explorer on the left, the code in the middle under a path
- * row (no file tabs: the explorer is the list of what can be opened), and
- * the details column on the right with two views: the open item's config
+ * Code mode, filling the `CodeLayout` pattern: the explorer on the left, the
+ * code in the middle under a path row (no file tabs: the explorer is the list of what can be opened), and
+ * the details column on the right (an `EditorTray`) with its views: the open item's config
  * and, for a step, its adaptor's snippets, which insert at the cursor, and
  * its input and output (I/O) while a run is loaded. A step shows its code and its settings; the
  * trigger and `workflow.yaml` show the YAML and their settings. An item that
  * isn't text, such as Health, passes its own `pane` to show in the code's
- * place. The panel sits inline under the code. The ⋯ layout menu and the close button take
+ * place. The panel (the bottom tray) sits inline under the code. The ⋯ layout menu and the close button take
  * the top-right corner of whichever column is rightmost.
  */
 export default function CodeWorkspace({
@@ -346,28 +346,27 @@ export default function CodeWorkspace({
   const statusTrailing = [statusNote, lineCount, saveState].filter(Boolean) as string[];
 
   return (
-    <Surface className="flex h-full overflow-hidden">
-      {showExplorer && (
-      <div className="w-64 flex-none border-r border-gray-100">
-        <EditorExplorer
-          workflow={workflow}
-          file={file}
-          onOpen={onOpen}
-          run={run}
-          components={components}
-          hasService={service !== undefined}
-          docs={docs}
-          readOnly={readOnly}
-          showWorkflowFiles={showWorkflowFiles}
-          showComponents={showComponents}
-          onAddDoc={readOnly ? undefined : onAddDoc}
-          onAddStep={readOnly ? undefined : onAddStep}
-          onAddComponent={readOnly ? undefined : onAddComponent}
-        />
-      </div>
-      )}
-
-      <div className="flex min-w-0 flex-1 flex-col">
+    <CodeLayout
+      nav={
+        showExplorer && (
+          <EditorExplorer
+            workflow={workflow}
+            file={file}
+            onOpen={onOpen}
+            run={run}
+            components={components}
+            hasService={service !== undefined}
+            docs={docs}
+            readOnly={readOnly}
+            showWorkflowFiles={showWorkflowFiles}
+            showComponents={showComponents}
+            onAddDoc={readOnly ? undefined : onAddDoc}
+            onAddStep={readOnly ? undefined : onAddStep}
+            onAddComponent={readOnly ? undefined : onAddComponent}
+          />
+        )
+      }
+      header={
         <CodePaneHeader
           path={path}
           leading={adaptorPill}
@@ -380,39 +379,38 @@ export default function CodeWorkspace({
             ) : undefined
           }
         />
-        <div className="min-h-0 flex-1 overflow-hidden">
-          {pane ?? (
-            <CodeEditor
-              ref={editor}
-              key={step?.id ?? path.join("/")}
-              code={code}
-              calls={adaptorOperations}
-              onChange={step && editable ? (next) => onCodeChange!(step.id, next) : undefined}
-            />
-          )}
-        </div>
-        {bottomTray}
-        <EditorStatusBar items={statusItems} trailing={statusTrailing} />
-      </div>
-
-      {showDetails && (
-        <div className="flex w-80 flex-none flex-col border-l border-gray-100">
-          <div className="flex h-10 flex-none items-center justify-between gap-2 border-b border-gray-100 px-2">
-            <SegmentedControl
-              variant="pill"
-              options={[
+      }
+      bottomTray={bottomTray}
+      footer={<EditorStatusBar items={statusItems} trailing={statusTrailing} />}
+      rightTray={
+        showDetails && (
+          <EditorTray
+            placement="right"
+            tabs={{
+              options: [
                 { id: "config", label: component || doc || listing || addedDoc || health ? "Details" : "Config" },
                 ...(step ? [{ id: "snippets", label: "Snippets" }] : []),
                 ...(hasIO ? [{ id: "io", label: "I/O" }] : []),
-              ]}
-              value={view}
-              onChange={(v) => onDetailsViewChange?.(v as DetailsViewId)}
-            />
-            {cornerControls}
-          </div>
-          <div className="min-h-0 flex-1">{detailsBody}</div>
-        </div>
+              ],
+              value: view,
+              onChange: (v) => onDetailsViewChange?.(v as DetailsViewId),
+            }}
+            actions={cornerControls}
+          >
+            {detailsBody}
+          </EditorTray>
+        )
+      }
+    >
+      {pane ?? (
+        <CodeEditor
+          ref={editor}
+          key={step?.id ?? path.join("/")}
+          code={code}
+          calls={adaptorOperations}
+          onChange={step && editable ? (next) => onCodeChange!(step.id, next) : undefined}
+        />
       )}
-    </Surface>
+    </CodeLayout>
   );
 }

@@ -16,8 +16,8 @@ Each layer only imports from the layers below it. Lint enforces this, so the wro
 
 | Layer | Folder | What it's for | Examples | May import |
 | --- | --- | --- | --- | --- |
-| **Primitive** | `src/components/primitives/` | The smallest pieces, where accessibility and the look live, knowing nothing about OpenFn. | `Button`, `Modal`, `DataTable`, `EmptyState`, `use-popover` | primitives; types from `model/` |
-| **Pattern** | `src/components/patterns/` | The shape of a screen or a region of one, with no OpenFn nouns, so it can be reused anywhere in the app. | `Layout`, `PageHeader`, `PageContainer`, `SettingsLayout`, `EditorShell`, `EditorPanel` | primitives, patterns |
+| **Primitive** | `src/components/primitives/` | The smallest pieces, where accessibility and the look live, knowing nothing about OpenFn. | `Button`, `Modal`, `DataTable`, `NavItem`, `use-popover` | primitives; types from `model/` |
+| **Pattern** | `src/components/patterns/` | The shape of a screen or a region of one, with no OpenFn nouns, so it can be reused anywhere in the app. | `Layout`, `PageHeader`, `PageContainer`, `SettingsLayout`, `EditorShell`, `CodeLayout` | primitives, patterns |
 | **Domain** | `src/components/domain/` | Anything in OpenFn's words, from a status badge up to the workflow canvas. | `StatusPill`, `EntityPill`, `Sidebar`, `WorkflowCanvas`, `StepInspector`, `EcosystemMap`, `XRoadDirectory` | primitives, patterns, domain, `model/` |
 | **Page** | `src/pages/XPage.tsx` | One screen, built from the layers below. It draws, and nothing else. | `ProjectWorkflowsPage` | any component, `model/` |
 

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
-import { ChevronDown, ChevronUp, Maximize2, Minimize2, X } from "lucide-react";
-import SegmentedControl from "../primitives/SegmentedControl";
+import { ChevronDown, ChevronUp, Maximize2, Minimize2 } from "lucide-react";
 import IconButton from "../primitives/IconButton";
+import EditorTray from "./EditorTray";
 
 /** One view the panel can show, as a tab. */
 export interface EditorPanelView<V extends string = string> {
@@ -33,9 +33,9 @@ interface Props<V extends string> {
 }
 
 /**
- * The panel under the code, as in an IDE: a bar of view tabs that's always
- * there, with the active view's body under it. The panel collapses to the
- * bar, maximises, or closes and comes back from the layout menu (or
+ * The panel under the code, as in an IDE: the bottom `EditorTray`, with a
+ * bar of view tabs that's always there and the active view's body under
+ * it. The panel collapses to the bar, maximises, or closes and comes back from the layout menu (or
  * Ctrl/⌘ + J); which views it shows is set there too. The views are a
  * prop: in the workflow editor they're runs, failures, and the step's log,
  * input and output in the loaded run, so there's one place in the code view
@@ -60,36 +60,36 @@ export default function EditorPanel<V extends string>({
     .filter((v) => !hiddenViews.includes(v.id))
     .map((v) => ({ id: v.id, label: v.label, disabled: disabledViews.includes(v.id) }));
 
-  const height = collapsed ? "" : maximized ? "h-[60vh]" : "h-60";
-
   return (
-    <section aria-label="Panel" className="flex flex-col border-t border-gray-200 bg-white">
-      <header className="flex-none border-b border-gray-100">
-        <div className="flex h-11 items-center gap-3 px-3">
-          <SegmentedControl variant="pill" options={tabs} value={view} onChange={(v) => onViewChange(v as V)} />
-          <div className="ml-auto flex min-w-0 flex-shrink items-center gap-1">
-            {context && <div className="mr-2 flex min-w-0 items-center gap-2 text-xs text-gray-500">{context}</div>}
-            {actions}
-            {onToggleMaximized && !collapsed && (
-              <IconButton
-                label={maximized ? "Restore panel size" : "Maximise panel"}
-                icon={maximized ? Minimize2 : Maximize2}
-                onClick={onToggleMaximized}
-              />
-            )}
-            {onToggleCollapsed && (
-              <IconButton
-                label={collapsed ? "Expand panel" : "Collapse panel"}
-                icon={collapsed ? ChevronUp : ChevronDown}
-                onClick={onToggleCollapsed}
-              />
-            )}
-            {onClose && <IconButton label="Close panel" icon={X} onClick={onClose} />}
-          </div>
-        </div>
-      </header>
-      {!collapsed && <div className={`min-h-0 overflow-auto ${height}`}>{children}</div>}
-    </section>
+    <EditorTray
+      placement="bottom"
+      tabs={{ options: tabs, value: view, onChange: (v) => onViewChange(v as V) }}
+      meta={context}
+      actions={
+        <>
+          {actions}
+          {onToggleMaximized && !collapsed && (
+            <IconButton
+              label={maximized ? "Restore panel size" : "Maximise panel"}
+              icon={maximized ? Minimize2 : Maximize2}
+              onClick={onToggleMaximized}
+            />
+          )}
+          {onToggleCollapsed && (
+            <IconButton
+              label={collapsed ? "Expand panel" : "Collapse panel"}
+              icon={collapsed ? ChevronUp : ChevronDown}
+              onClick={onToggleCollapsed}
+            />
+          )}
+        </>
+      }
+      onClose={onClose}
+      closeLabel="Close panel"
+      collapsed={collapsed}
+      heightClass={maximized ? "h-[60vh]" : "h-60"}
+    >
+      {children}
+    </EditorTray>
   );
 }
-

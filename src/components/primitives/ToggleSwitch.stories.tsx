@@ -20,3 +20,11 @@ export const On: Story = {
 export const WithLabel: Story = {
   args: { checked: false, label: "Disable parallel execution" },
 };
+
+export const WithDetail: Story = {
+  args: { checked: false, label: "Require MFA?", detail: "(currently optional for this project)" },
+};
+
+export const Disabled: Story = {
+  args: { checked: true, label: "Require MFA?", disabled: true, title: "You do not have permission to perform this action" },
+};

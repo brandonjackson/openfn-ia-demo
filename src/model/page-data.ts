@@ -6,6 +6,15 @@ import type { ChannelDetails } from "./channels";
 import type { EcosystemStation, EcosystemWorkflow } from "./ecosystem";
 import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember, XRoadService } from "./xroad";
 import type { ConnectedSystem, ConnectionMethod } from "./connected-systems";
+import type {
+  DigestFrequency,
+  HistoryExportStatus,
+  IoDataPolicy,
+  ProjectRole,
+  ProjectSettingsPermissions,
+  SyncDirection,
+  WebhookAuthType,
+} from "./project-settings";
 
 /* ------------------------------------------------------------------ */
 /*  Shared primitive types                                             */
@@ -629,13 +638,38 @@ export interface ProjectSandboxesPageData {
 /*  Project Settings page                                              */
 /* ------------------------------------------------------------------ */
 
+/** Someone with access to a project, as the collaboration table shows them. */
 export interface Collaborator {
-  name: string;
+  /** The membership's id (one person can be in many projects). */
+  id: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  role: "Owner" | "Editor" | "Viewer" | "Admin";
-  isSelf?: boolean;
-  failureAlert: string;
-  digest: string;
+  role: ProjectRole;
+  /** This is you. */
+  isSelf: boolean;
+  /** Whether they're emailed when a run fails. */
+  failureAlert: boolean;
+  /** How often they get a digest of the project's runs. */
+  digest: DigestFrequency;
+  /** The roles you can give them, decided by the wrapper; empty when you can't change theirs. */
+  assignableRoles: ProjectRole[];
+  /** Why you can't remove them, decided by the wrapper; absent when you can. */
+  removeBlockedReason?: string;
+}
+
+/** One row of the Add collaborators form: an email and the role to give them. */
+export interface CollaboratorDraft {
+  email: string;
+  role: ProjectRole;
+}
+
+/** Someone without an OpenFn account, to invite to OpenFn and to the project. */
+export interface CollaboratorInvite {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: ProjectRole;
 }
 
 export interface OrgCredential {
@@ -647,19 +681,153 @@ export interface OrgCredential {
   hasAccess: boolean;
 }
 
+/** A named key-value store the project's workflows read and write. */
+export interface ProjectCollection {
+  id: string;
+  /** URL-safe, unique in the project. */
+  name: string;
+  /** How many keys it holds. */
+  itemCount: number;
+  /** The total size of its values, in bytes. */
+  byteSize: number;
+  /** When an item was last written, for display ("2 hours ago"). */
+  updatedAt: string;
+}
+
+/** One key in a collection, with its value. */
+export interface CollectionItem {
+  key: string;
+  /** The stored value, as JSON text. */
+  value: string;
+  /** When it was last written, for display. */
+  updatedAt: string;
+}
+
+/** A way of authenticating calls to the project's webhook triggers. */
+export interface WebhookAuthMethod {
+  id: string;
+  /** Unique in the project. */
+  name: string;
+  type: WebhookAuthType;
+  /** The basic auth username; absent for an API key. */
+  username?: string;
+  /** The API key or password with all but its last characters hidden. The full secret is shown once, when it's made. */
+  maskedSecret: string;
+  /** The webhook triggers that require it, by id (see `WebhookTriggerOption`). */
+  triggerIds: string[];
+}
+
+/** A webhook trigger in the project that an auth method can protect. */
+export interface WebhookTriggerOption {
+  id: string;
+  /** The workflow it starts. */
+  workflowName: string;
+}
+
+/** A new webhook auth method as typed into the form. */
+export interface WebhookAuthMethodDraft {
+  name: string;
+  type: WebhookAuthType;
+  /** Basic auth only. */
+  username?: string;
+  /** Basic auth only. */
+  password?: string;
+  /** The webhook triggers to protect straight away. */
+  triggerIds: string[];
+}
+
+/** The repositories a GitHub App installation can reach. */
+export interface GitHubInstallation {
+  id: string;
+  /** The user or organisation it's installed on. */
+  account: string;
+  repos: GitHubRepo[];
+}
+
+/** A repository an installation can reach. */
+export interface GitHubRepo {
+  /** "owner/name". */
+  fullName: string;
+  /** Where the pull workflow is committed. */
+  defaultBranch: string;
+  branches: string[];
+}
+
+/** How the project is connected to a GitHub branch. */
+export interface GitHubConnectionSettings {
+  installationId: string;
+  /** "owner/name". */
+  repo: string;
+  branch: string;
+  /** Where the project's config lives in the repo; blank for the default. */
+  configPath: string;
+  /** Which way the first sync went. */
+  syncDirection: SyncDirection;
+}
+
+/** The project's GitHub connection, once it's made. */
+export interface GitHubConnection extends GitHubConnectionSettings {
+  /** When the last sync ran, for display; absent before the first. */
+  lastSyncedAt?: string;
+}
+
+/** The project's GitHub sync, connected or not. */
+export interface GitHubSyncState {
+  /** Your OpenFn account is linked to GitHub, so you can pick installations. */
+  accountConnected: boolean;
+  /** The installations your GitHub account can use. */
+  installations: GitHubInstallation[];
+  /** The project's connection, absent when it isn't synced. */
+  connection?: GitHubConnection;
+}
+
+/** How long the project keeps its run history and input/output data. */
+export interface DataStorageSettings {
+  /** One of `retentionPeriods`. */
+  retentionPeriod: string;
+  ioDataPolicy: IoDataPolicy;
+  /** One of `retentionPeriods`; ignored under zero-persistence. */
+  ioRetentionPeriod: string;
+}
+
+/** A file of the project's work order history, made on request. */
+export interface HistoryExport {
+  id: string;
+  /** Absent until the export is ready. */
+  fileName?: string;
+  /** Who asked for it. */
+  requestedBy: string;
+  /** When it was asked for, for display. */
+  createdAt: string;
+  status: HistoryExportStatus;
+}
+
 export interface ProjectSettingsPageData {
   pageType: "project-settings";
+  /** The project's id, as used in file names and the CLI. */
+  projectId: string;
+  /** The project's URL-safe name. */
   projectName: string;
+  /** The environment credentials load their values from, e.g. "main". */
   projectEnvironment: string;
   projectDescription: string;
-  collaborators: Collaborator[];
-  orgCredentials: OrgCredential[];
-  retentionPeriod: string;
-  ioDataPolicy: "retain" | "zero-persistence";
-  ioRetentionPeriod: string;
-  mfaRequired: boolean;
-  githubConnected: boolean;
+  /** What you're allowed to change here, from your role in the project. */
+  permissions: ProjectSettingsPermissions;
+  /** Only one run at a time across the whole project. */
   concurrencyDisabled: boolean;
+  /** The organisation's credentials and whether this project can use each. */
+  orgCredentials: OrgCredential[];
+  collections: ProjectCollection[];
+  webhookAuthMethods: WebhookAuthMethod[];
+  /** The project's webhook triggers, which auth methods can be assigned to. */
+  webhookTriggers: WebhookTriggerOption[];
+  collaborators: Collaborator[];
+  /** Everyone must have MFA on their account to open the project. */
+  mfaRequired: boolean;
+  github: GitHubSyncState;
+  dataStorage: DataStorageSettings;
+  /** Newest first. */
+  historyExports: HistoryExport[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -806,8 +974,7 @@ export interface AdminUserDraft {
   password?: string;
 }
 
-/** A member's role in one project, from most to least access. */
-export type ProjectRole = "owner" | "admin" | "editor" | "viewer";
+export type { ProjectRole };
 
 /** One user's place in a project. */
 export interface ProjectMembership {

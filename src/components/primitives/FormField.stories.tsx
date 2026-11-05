@@ -19,21 +19,21 @@ export const Default: Story = {
   },
 };
 
+export const WithError: Story = {
+  args: {
+    label: "Name",
+    htmlFor: "collection-name",
+    hint: "Your collection will be named my-collection.",
+    error: "A collection with this name already exists",
+    children: <TextInput id="collection-name" defaultValue="applicant-cache" />,
+  },
+};
+
 export const WithHint: Story = {
   args: {
     label: "Project environment",
     htmlFor: "env",
     hint: "Credentials will be loaded with values from this environment.",
     children: <TextInput id="env" defaultValue="main" />,
-  },
-};
-
-
-export const WithError: Story = {
-  args: {
-    label: "Name",
-    htmlFor: "name",
-    error: "There's already a sandbox called decision-sync-fix.",
-    children: <TextInput id="name" defaultValue="decision-sync-fix" />,
   },
 };

@@ -121,8 +121,8 @@ function UsersSection({
         open={!!deleting}
         title={deleting?.now ? "Delete user now" : "Delete user"}
         confirmLabel={deleting?.now ? "Delete now" : "Schedule deletion"}
-        confirmText={deleting?.user.email}
-        confirmTextLabel="Type the user's email to confirm"
+        confirmPhrase={deleting?.user.email}
+        confirmPhraseLabel="Type the user's email to confirm"
         onClose={() => setDeleting(null)}
         onConfirm={() => {
           if (!deleting) return;
@@ -208,8 +208,8 @@ function ProjectsSection({
         open={!!deleting}
         title={deleting?.now ? "Delete project now" : "Delete project"}
         confirmLabel={deleting?.now ? "Delete now" : "Schedule deletion"}
-        confirmText={deleting?.project.name}
-        confirmTextLabel="Type the project's name to confirm"
+        confirmPhrase={deleting?.project.name}
+        confirmPhraseLabel="Type the project's name to confirm"
         onClose={() => setDeleting(null)}
         onConfirm={() => {
           if (!deleting) return;

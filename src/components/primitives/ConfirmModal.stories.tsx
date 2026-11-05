@@ -26,18 +26,20 @@ export const DeleteWorkflow: Story = {
   },
 };
 
-/** The person types the account's email before the button wakes up, as when deleting a user. */
+/** Something to type before the confirm button turns on, for actions that destroy a lot. */
 export const TypeToConfirm: Story = {
   args: {
-    title: "Delete user",
-    confirmLabel: "Schedule deletion",
-    confirmText: "lokafor@example.org",
-    confirmTextLabel: "Type the user's email to confirm",
+    title: "Delete project",
+    confirmLabel: "Delete project",
+    confirmPhrase: "project-a",
+    confirmPhraseLabel: "Project name",
     children: (
-      <p>
-        Lena Okafor's account and credential data will be deleted 7 days from today. Make sure none of their credentials
-        are used in production workflows.
-      </p>
+      <>
+        <p>
+          Enter the project name to confirm deletion: <strong>project-a</strong>
+        </p>
+        <p>Deleting this project will disable access for all users, and disable all jobs in the project.</p>
+      </>
     ),
   },
 };

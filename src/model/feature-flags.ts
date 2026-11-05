@@ -179,6 +179,14 @@ export function effectiveFlags(chosen: FeatureFlags): FeatureFlags {
   return Object.fromEntries(flagIds.map((id) => [id, resolve(id)])) as FeatureFlags;
 }
 
+/**
+ * The flag a flag sits under in the flag panel: the first flag it requires
+ * in its own group. Undefined for a flag at the top of its group.
+ */
+export function flagParent(flag: FeatureFlag): FlagId | undefined {
+  return flag.requires.find((r) => flagById(r).group === flag.group);
+}
+
 /** The flags `id` directly requires that aren't in effect, for "Needs Connected systems". */
 export function missingRequirements(id: FlagId, chosen: FeatureFlags): FlagId[] {
   const effective = effectiveFlags(chosen);

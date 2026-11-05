@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from "react";
 import { Check, Link2, ToggleRight, X } from "lucide-react";
-import type { FeatureFlag, FeatureFlags, FlagId, FlagPreset } from "../../model/feature-flags";
+import { flagParent, type FeatureFlag, type FeatureFlags, type FlagId, type FlagPreset } from "../../model/feature-flags";
 import { usePopover } from "../primitives/use-popover";
 
 interface Props {
@@ -23,8 +23,9 @@ interface Props {
 /**
  * Floating control, beside the Style Picker, that turns the demo's new
  * features on and off: presets for the full vision and the plain redesign,
- * then a switch for each flag. A flag that needs another one that's off says
- * so and has no effect until it's on.
+ * then a switch for each flag. A flag that builds on another sits nested
+ * under it on a guide line; while the one it needs is off it's dimmed, says
+ * what it needs, and has no effect.
  *
  * Like the Style Picker it's the demo's own chrome, not part of the product,
  * so it's styled with the theme-independent --picker-* tokens and reads the
@@ -47,6 +48,45 @@ export default function FeatureFlagPicker({
   const activePreset = presets.find((p) => flags.every((f) => p.flags[f.id] === chosen[f.id]));
   const offCount = flags.filter((f) => !effective[f.id]).length;
 
+  const childrenOf = (id: FlagId) => flags.filter((f) => flagParent(f) === id);
+
+  /** A flag and, nested under it on a guide line, the flags that build on it. */
+  const renderRow = (flag: FeatureFlag, depth: number) => {
+    const parent = flagParent(flag);
+    const missing = flag.requires.filter((r) => !effective[r]);
+    // The nesting already says a flag needs its parent, so name a missing
+    // requirement only where it's the cause: switched off itself, or not the
+    // flag it sits under. A flag under a parent that's itself blocked just dims.
+    const causes = missing.filter((r) => r !== parent || !chosen[r]);
+    const inactive = missing.length > 0;
+    const children = childrenOf(flag.id);
+    const requires = flag.requires.map(label);
+    return (
+      <li key={flag.id}>
+        <label
+          style={{ ...styles.row, opacity: inactive ? 0.5 : 1 }}
+          title={requires.length ? `${flag.description}\n\nRequires ${requires.join(" and ")}.` : flag.description}
+        >
+          <input
+            type="checkbox"
+            checked={chosen[flag.id]}
+            onChange={(e) => onToggle(flag.id, e.target.checked)}
+            style={styles.checkbox}
+          />
+          <span style={styles.rowText}>
+            <span style={styles.rowName}>{flag.label}</span>
+            {causes.length > 0 && <span style={styles.needs}>Needs {causes.map(label).join(" and ")}</span>}
+          </span>
+        </label>
+        {children.length > 0 && renderBranch(children, depth + 1)}
+      </li>
+    );
+  };
+
+  const renderBranch = (branch: FeatureFlag[], depth: number) => (
+    <ul style={depth === 0 ? styles.ul : styles.branch}>{branch.map((f) => renderRow(f, depth))}</ul>
+  );
+
   const copy = () => {
     if (!shareUrl) return;
     void navigator.clipboard?.writeText(shareUrl).then(() => {
@@ -66,8 +106,8 @@ export default function FeatureFlagPicker({
             </button>
           </div>
           <p style={styles.subtitle}>
-            Turn the new features off to see the redesign at today's scope. Only the two presets are looked after; other
-            mixes are best effort.
+            Turn the new features off to see the redesign at today's scope. Nested features need the one above them.
+            Only the two presets are looked after; other mixes are best effort.
           </p>
 
           <div style={styles.presets}>
@@ -97,32 +137,7 @@ export default function FeatureFlagPicker({
             {groups.map((group) => (
               <section key={group}>
                 <div style={styles.groupLabel}>{group}</div>
-                <ul style={styles.ul}>
-                  {flags
-                    .filter((f) => f.group === group)
-                    .map((flag) => {
-                      const missing = flag.requires.filter((r) => !effective[r]);
-                      const blocked = chosen[flag.id] && missing.length > 0;
-                      return (
-                        <li key={flag.id}>
-                          <label style={styles.row} title={flag.description}>
-                            <input
-                              type="checkbox"
-                              checked={chosen[flag.id]}
-                              onChange={(e) => onToggle(flag.id, e.target.checked)}
-                              style={styles.checkbox}
-                            />
-                            <span style={styles.rowText}>
-                              <span style={{ ...styles.rowName, opacity: blocked ? 0.55 : 1 }}>{flag.label}</span>
-                              {missing.length > 0 && (
-                                <span style={styles.needs}>Needs {missing.map(label).join(" and ")}</span>
-                              )}
-                            </span>
-                          </label>
-                        </li>
-                      );
-                    })}
-                </ul>
+                {renderBranch(flags.filter((f) => f.group === group && !flagParent(f)), 0)}
               </section>
             ))}
           </div>
@@ -245,6 +260,13 @@ const styles: Record<string, CSSProperties> = {
     margin: "0 0 4px 2px",
   },
   ul: { listStyle: "none", margin: 0, padding: 0 },
+  /* The flags that build on the one above: indented on a guide line. */
+  branch: {
+    listStyle: "none",
+    margin: "0 0 2px 13px",
+    padding: "0 0 0 10px",
+    borderLeft: "1.5px solid var(--picker-border)",
+  },
   row: {
     display: "flex",
     alignItems: "flex-start",

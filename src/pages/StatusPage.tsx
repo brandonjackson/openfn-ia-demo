@@ -1,6 +1,7 @@
 import type { PageProps } from "../model/ia-tree";
 import type { HealthState, StatusPageData, SystemStatus, WorkflowStatus } from "../model/page-data";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import Callout from "../components/primitives/Callout";
 import SectionHeading from "../components/primitives/SectionHeading";
 import DataTable from "../components/primitives/DataTable";
@@ -60,10 +61,7 @@ export default function StatusPage({ node, ancestors, data }: StatusPageProps) {
   return (
     <div className="space-y-8">
       <PageHeader
-        breadcrumbs={{
-        ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-        current: node.label,
-      }}
+        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
         description={`${node.description ?? ""} Checked ${data.checkedAt}.`.trim()}
       />

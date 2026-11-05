@@ -4,6 +4,7 @@ import type { PageProps } from "../model/ia-tree";
 import type { ServiceApiField, ServicePageData } from "../model/page-data";
 import Badge from "../components/primitives/Badge";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import Button from "../components/primitives/Button";
 import Callout from "../components/primitives/Callout";
 import CodeBlock from "../components/primitives/CodeBlock";
@@ -15,7 +16,7 @@ import SectionHeading from "../components/primitives/SectionHeading";
 import TextLink from "../components/primitives/TextLink";
 import UsageModeCard from "../components/domain/UsageModeCard";
 import CopyValue from "../components/primitives/CopyValue";
-import PublishToXRoadModal from "../components/patterns/PublishToXRoadModal";
+import PublishToXRoadModal from "../components/domain/PublishToXRoadModal";
 import ServiceRecordList from "../components/domain/ServiceRecordList";
 import StatTile from "../components/primitives/StatTile";
 import { mcpToolSnippet, openApiUrl, webhookUrl, workflowCallSnippet, xroadCallerSnippet } from "../model/service-usage";
@@ -109,14 +110,16 @@ export default function ServicePage({
     <div className="space-y-8">
       <div>
         <PageHeader
-          breadcrumbs={{
-            // The workflow comes last so it's one click back to editing it.
-            ancestors: [
-              ...ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-              ...(workflow ? [{ label: workflow.name, path: `/workflow-editor/${workflow.id}` }] : []),
-            ],
-            current: "Service listing",
-          }}
+          breadcrumbs={
+            <Breadcrumbs
+              // The workflow comes last so it's one click back to editing it.
+              ancestors={[
+                ...ancestors.map((a) => ({ label: a.node.label, path: a.path })),
+                ...(workflow ? [{ label: workflow.name, path: `/workflow-editor/${workflow.id}` }] : []),
+              ]}
+              current="Service listing"
+            />
+          }
           icon={ClipboardList}
           title={service.name}
           badges={

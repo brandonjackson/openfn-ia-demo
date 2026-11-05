@@ -10,6 +10,7 @@ import ConnectionMethodBadge from "../components/domain/ConnectionMethodBadge";
 import EmptyState from "../components/primitives/EmptyState";
 import ListRow from "../components/primitives/ListRow";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import SectionHeading from "../components/primitives/SectionHeading";
 import SegmentedControl from "../components/primitives/SegmentedControl";
 import ServiceCatalogCard from "../components/domain/ServiceCatalogCard";
@@ -69,10 +70,7 @@ export default function ServicesPage({ node, ancestors, data, initialView = "pub
   return (
     <div className="space-y-8">
       <PageHeader
-        breadcrumbs={{
-          ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-          current: node.label,
-        }}
+        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
         description={node.description}
       />

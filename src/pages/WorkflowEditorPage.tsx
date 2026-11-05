@@ -30,43 +30,43 @@ import type {
 } from "../model/assistant";
 import type { ProjectComponent, ProjectService } from "../model/projects";
 import EditorShell from "../components/patterns/EditorShell";
-import EditorToolbar from "../components/patterns/EditorToolbar";
-import type { EditorView } from "../components/patterns/EditorToolbar";
+import EditorToolbar from "../components/domain/EditorToolbar";
+import type { EditorView } from "../components/domain/EditorToolbar";
 import type { WorkflowMenuAction } from "../components/domain/WorkflowFileMenu";
 import EditorTray from "../components/patterns/EditorTray";
 import EditorPanel from "../components/patterns/EditorPanel";
-import LayoutMenu from "../components/patterns/LayoutMenu";
-import { useEditorLayout, resetLayout } from "../components/patterns/editor-layout";
-import type { EditorLayout, PanelViewId } from "../components/patterns/editor-layout";
-import WorkflowCanvas from "../components/patterns/WorkflowCanvas";
+import LayoutMenu from "../components/domain/LayoutMenu";
+import { useEditorLayout, resetLayout } from "../components/domain/editor-layout";
+import type { EditorLayout, PanelViewId } from "../components/domain/editor-layout";
+import WorkflowCanvas from "../components/domain/WorkflowCanvas";
 import type { NodeAction } from "../components/domain/WorkflowNodeCard";
-import CodeWorkspace from "../components/patterns/CodeWorkspace";
-import type { ExplorerFile } from "../components/patterns/EditorExplorer";
+import CodeWorkspace from "../components/domain/CodeWorkspace";
+import type { ExplorerFile } from "../components/domain/EditorExplorer";
 import VersionMismatchBanner from "../components/domain/VersionMismatchBanner";
-import StepRunDetails from "../components/patterns/StepRunDetails";
-import StepInspector from "../components/patterns/StepInspector";
-import type { RunDataSection } from "../components/patterns/panel-views";
-import CanvasRunsBar from "../components/patterns/CanvasRunsBar";
+import StepRunDetails from "../components/domain/StepRunDetails";
+import StepInspector from "../components/domain/StepInspector";
+import { panelViews, type RunDataSection } from "../components/domain/panel-views";
+import CanvasRunsBar from "../components/domain/CanvasRunsBar";
 import ReadOnlyNotice from "../components/domain/ReadOnlyNotice";
-import FailureBreakdown from "../components/patterns/FailureBreakdown";
-import type { FailureScope } from "../components/patterns/FailureBreakdown";
-import RunHistoryList from "../components/patterns/RunHistoryList";
-import type { StepChanges } from "../components/patterns/StepConfigPanel";
-import AIAssistantPanel from "../components/patterns/AIAssistantPanel";
+import FailureBreakdown from "../components/domain/FailureBreakdown";
+import type { FailureScope } from "../components/domain/FailureBreakdown";
+import RunHistoryList from "../components/domain/RunHistoryList";
+import type { StepChanges } from "../components/domain/StepConfigPanel";
+import AIAssistantPanel from "../components/domain/AIAssistantPanel";
 import RunLabel from "../components/domain/RunLabel";
-import RunInputModal from "../components/patterns/RunInputModal";
-import type { RunInput } from "../components/patterns/RunInputModal";
-import EditInSandboxModal from "../components/patterns/EditInSandboxModal";
-import type { SandboxStart } from "../components/patterns/EditInSandboxModal";
-import PromoteSandboxModal from "../components/patterns/PromoteSandboxModal";
+import RunInputModal from "../components/domain/RunInputModal";
+import type { RunInput } from "../components/domain/RunInputModal";
+import EditInSandboxModal from "../components/domain/EditInSandboxModal";
+import type { SandboxStart } from "../components/domain/EditInSandboxModal";
+import PromoteSandboxModal from "../components/domain/PromoteSandboxModal";
 import ConfirmModal from "../components/primitives/ConfirmModal";
 import Modal from "../components/primitives/Modal";
 import type { ProjectComponentType } from "../model/page-data";
-import AddComponentPanel from "../components/patterns/AddComponentPanel";
-import WorkflowHealth from "../components/patterns/WorkflowHealth";
-import ChannelView from "../components/patterns/ChannelView";
-import ConnectSystemPicker from "../components/patterns/ConnectSystemPicker";
-import type { ConnectChoice } from "../components/patterns/ConnectSystemPicker";
+import AddComponentPanel from "../components/domain/AddComponentPanel";
+import WorkflowHealth from "../components/domain/WorkflowHealth";
+import ChannelView from "../components/domain/ChannelView";
+import ConnectSystemPicker from "../components/domain/ConnectSystemPicker";
+import type { ConnectChoice } from "../components/domain/ConnectSystemPicker";
 import { componentTypes } from "../model/component-types";
 
 /** Who starts runs and retries in the prototype. */
@@ -927,6 +927,7 @@ export default function WorkflowEditorPage({
   // The panel lives under the code; the canvas has none.
   const panel = shownLayout.panel ? (
     <EditorPanel
+      views={panelViews}
       view={panelView}
       onViewChange={(v) => updateLayout({ panelView: v })}
       disabledViews={disabledViews}
@@ -985,7 +986,7 @@ export default function WorkflowEditorPage({
   const toolbar = (
     <EditorToolbar
       name={name}
-      onRename={setName}
+      onRename={onMain ? undefined : setName}
       onMenuAction={onMenuAction}
       projectName={projectName}
       url={url}
@@ -1018,7 +1019,7 @@ export default function WorkflowEditorPage({
     <EditorShell
       toolbar={toolbar}
       floatToolbar={view === "canvas"}
-      sandboxed={!onMain}
+      accentEdge={!onMain}
       bottom={view === "canvas" && onMain ? <ReadOnlyNotice onEditInSandbox={() => setEditInSandboxOpen(true)} /> : undefined}
       rightTray={rightTray}
       rightTrayOpen={layout.assistant}
@@ -1030,6 +1031,7 @@ export default function WorkflowEditorPage({
             open={editInSandboxOpen}
             onClose={() => setEditInSandboxOpen(false)}
             sandboxes={allSandboxes.filter((s) => s !== "main")}
+            reservedNames={["main"]}
             run={selectedRun}
             runInput={selectedRun ? clips.find((d) => d.id === selectedRun.inputId) : undefined}
             latestVersion={latestVersion}

@@ -1,8 +1,9 @@
 import { Boxes } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
 import type { ProjectComponentsPageData } from "../model/page-data";
-import AddComponentPanel from "../components/patterns/AddComponentPanel";
+import AddComponentPanel from "../components/domain/AddComponentPanel";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import Card from "../components/primitives/Card";
 import ComponentRow from "../components/domain/ComponentRow";
 import { componentTypes } from "../model/component-types";
@@ -30,10 +31,7 @@ export default function ProjectComponentsPage({ node, ancestors, data, onAddComp
   return (
     <div className="space-y-8">
       <PageHeader
-        breadcrumbs={{
-          ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-          current: node.label,
-        }}
+        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
         description={node.description}
       />

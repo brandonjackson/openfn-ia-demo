@@ -5,18 +5,19 @@ import type { ListPageData, ListItem } from "../model/page-data";
 import AdaptorLogo from "../components/domain/AdaptorLogo";
 import Badge from "../components/primitives/Badge";
 import Button from "../components/primitives/Button";
-import EcosystemView from "../components/patterns/EcosystemView";
+import EcosystemView from "../components/domain/EcosystemView";
 import EmptyState from "../components/primitives/EmptyState";
 import FeatureIntro from "../components/patterns/FeatureIntro";
 import ListRow from "../components/primitives/ListRow";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import SegmentedControl from "../components/primitives/SegmentedControl";
-import SuggestedSystemsToAdd from "../components/patterns/SuggestedSystemsToAdd";
-import AddConnectedSystemFlow from "../components/patterns/AddConnectedSystemFlow";
+import SuggestedSystemsToAdd from "../components/domain/SuggestedSystemsToAdd";
+import AddConnectedSystemFlow from "../components/domain/AddConnectedSystemFlow";
 import ConnectionMethodBadge from "../components/domain/ConnectionMethodBadge";
 import SectionHeading from "../components/primitives/SectionHeading";
 import XRoadAccessBadge from "../components/domain/XRoadAccessBadge";
-import XRoadDirectory from "../components/patterns/XRoadDirectory";
+import XRoadDirectory from "../components/domain/XRoadDirectory";
 import type { ConnectionMethod } from "../model/connected-systems";
 import type { XRoadConnectionStatus, XRoadRoute } from "../model/xroad";
 
@@ -79,10 +80,7 @@ export default function SystemsPage({ node, ancestors, currentPath, data, onAddX
   return (
     <div className="space-y-8">
       <PageHeader
-        breadcrumbs={{
-          ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-          current: node.label,
-        }}
+        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
         description={node.description}
         actions={

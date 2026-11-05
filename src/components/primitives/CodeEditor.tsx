@@ -1,4 +1,4 @@
-import { Fragment, useImperativeHandle, useRef, type KeyboardEvent, type Ref } from "react";
+import { Fragment, useImperativeHandle, useMemo, useRef, type KeyboardEvent, type Ref } from "react";
 
 const KEYWORDS = new Set([
   "const",
@@ -13,14 +13,11 @@ const KEYWORDS = new Set([
   "null",
   "undefined",
 ]);
-// OpenFn adaptor operations get a distinct colour.
-const OPERATIONS = new Set(["fn", "get", "post", "put", "patch", "each", "alterState"]);
-
 /**
  * Renders one line of code with very rough token highlighting: comments,
- * strings, keywords and adaptor operations.
+ * strings, keywords and the names the caller asks to stand out as calls.
  */
-function highlightLine(line: string) {
+function highlightLine(line: string, calls: ReadonlySet<string>) {
   const commentIdx = line.indexOf("//");
   const code = commentIdx >= 0 ? line.slice(0, commentIdx) : line;
   const comment = commentIdx >= 0 ? line.slice(commentIdx) : "";
@@ -45,7 +42,7 @@ function highlightLine(line: string) {
             </span>
           );
         }
-        if (OPERATIONS.has(tok)) {
+        if (calls.has(tok)) {
           return (
             <span key={i} className="text-sky-600">
               {tok}
@@ -72,6 +69,8 @@ interface Props {
   /** Called with the new text on every edit. Leave it out for a read-only view. */
   onChange?: (code: string) => void;
   ref?: Ref<CodeEditorHandle>;
+  /** Names coloured as calls, e.g. an adaptor's operations. */
+  calls?: readonly string[];
 }
 
 /**
@@ -80,8 +79,11 @@ interface Props {
  * own and the colours stay underneath. Tab indents, Shift+Tab outdents.
  * Without `onChange` it's a read-only view.
  */
-export default function CodeEditor({ code, onChange, ref }: Props) {
+const noCalls: readonly string[] = [];
+
+export default function CodeEditor({ code, onChange, ref, calls = noCalls }: Props) {
   const lines = code.split("\n");
+  const callSet = useMemo(() => new Set(calls), [calls]);
   const textarea = useRef<HTMLTextAreaElement>(null);
   // Until you click or type in the code, inserts go at the end rather than line 1.
   const caretPlaced = useRef(false);
@@ -173,7 +175,7 @@ export default function CodeEditor({ code, onChange, ref }: Props) {
         <pre aria-hidden={onChange ? true : undefined} className="m-0 w-max min-w-full py-3 pl-4 pr-6 font-mono text-gray-700">
           {lines.map((line, i) => (
             <div key={i} className="whitespace-pre">
-              {line ? highlightLine(line) : " "}
+              {line ? highlightLine(line, callSet) : " "}
             </div>
           ))}
         </pre>

@@ -3,6 +3,7 @@ import { Plus, Workflow } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
 import type { ProjectWorkflowsPageData, WorkflowListItem } from "../model/page-data";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import Button from "../components/primitives/Button";
 import SectionHeading from "../components/primitives/SectionHeading";
 import { Select } from "../components/primitives/FormControls";
@@ -29,10 +30,7 @@ export default function ProjectWorkflowsPage({ node, ancestors, data, onNewWorkf
   return (
     <div className="space-y-8">
       <PageHeader
-        breadcrumbs={{
-          ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-          current: node.label,
-        }}
+        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
         description={node.description}
         actions={

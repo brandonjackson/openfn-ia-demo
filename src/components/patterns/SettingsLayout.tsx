@@ -4,7 +4,8 @@ import SettingsNav from "./SettingsNav";
 import type { SettingsNavItem } from "./SettingsNav";
 
 interface Props {
-  breadcrumbs: { ancestors: { label: string; path: string }[]; current: string };
+  /** The trail above the title, e.g. the app's Breadcrumbs. */
+  breadcrumbs: ReactNode;
   title: string;
   description?: string;
   navItems: SettingsNavItem[];

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ShellContext } from "../components/patterns/shell-context";
+import { ShellContext } from "../components/domain/shell-context";
 import { projects, recentProjects } from "../fixtures/projects";
 import { currentInstance, currentUser } from "../fixtures/user";
 import { useSandbox } from "./sandbox-state";

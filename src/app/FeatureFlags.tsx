@@ -1,4 +1,4 @@
-import FeatureFlagPicker from "../components/patterns/FeatureFlagPicker";
+import FeatureFlagPicker from "../components/domain/FeatureFlagPicker";
 import { featureFlags, flagPresets, flagsParam } from "../model/feature-flags";
 import { setFlag, setFlags, shareUrl, useChosenFlags, useFlags } from "./feature-flags";
 

@@ -1,10 +1,9 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import Breadcrumbs from "./Breadcrumbs";
 
 interface Props {
-  /** Breadcrumbs shown above the title. */
-  breadcrumbs?: { ancestors: { label: string; path: string }[]; current: string };
+  /** The trail above the title, e.g. the app's Breadcrumbs. */
+  breadcrumbs?: ReactNode;
   title: ReactNode;
   description?: ReactNode;
   /** Icon tile shown before the title, for record pages (a system, a service). */
@@ -18,14 +17,14 @@ interface Props {
 }
 
 /**
- * Top of every page: breadcrumbs, the page title with an optional icon and
+ * Top of every page: the breadcrumbs slot, the page title with an optional icon and
  * badges, a description, and page-level actions on the right (below it on
  * small screens, so the title and description keep the full width).
  */
 export default function PageHeader({ breadcrumbs, title, description, icon: Icon, logo, badges, actions }: Props) {
   return (
     <div data-ui="page-header">
-      {breadcrumbs && <Breadcrumbs ancestors={breadcrumbs.ancestors} current={breadcrumbs.current} />}
+      {breadcrumbs}
       <div className={`flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4 ${breadcrumbs ? "mt-6" : ""}`}>
         <div className="flex min-w-0 items-start gap-4">
           {logo}

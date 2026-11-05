@@ -4,6 +4,10 @@
  * handful of code snippets for its most-used operations.
  */
 import type { AdaptorKind } from "./workflow";
+
+/** The operations adaptors share, which the code editor colours as calls. */
+export const adaptorOperations = ["fn", "get", "post", "put", "patch", "each", "alterState"] as const;
+
 export interface AdaptorInfo {
   id: AdaptorKind;
   name: string;

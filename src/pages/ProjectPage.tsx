@@ -4,6 +4,7 @@ import type { PageProps } from "../model/ia-tree";
 import type { ProjectPageData } from "../model/page-data";
 import Badge from "../components/primitives/Badge";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import BuildPrompt from "../components/domain/BuildPrompt";
 import Card from "../components/primitives/Card";
 import ComponentRow from "../components/domain/ComponentRow";
@@ -41,10 +42,7 @@ export default function ProjectPage({ node, ancestors, currentPath, data, onStar
   return (
     <div className="space-y-8">
       <PageHeader
-        breadcrumbs={{
-        ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-        current: node.label,
-      }}
+        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
         description={node.description}
       />

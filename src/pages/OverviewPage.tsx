@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { DashboardPageData } from "../model/page-data";
-import ConnectedSystemsSetupSection from "../components/patterns/ConnectedSystemsSetupSection";
-import AddConnectedSystemFlow from "../components/patterns/AddConnectedSystemFlow";
+import ConnectedSystemsSetupSection from "../components/domain/ConnectedSystemsSetupSection";
+import AddConnectedSystemFlow from "../components/domain/AddConnectedSystemFlow";
 import PageHeader from "../components/patterns/PageHeader";
 import ProjectCard from "../components/domain/ProjectCard";
 import StatTile from "../components/primitives/StatTile";

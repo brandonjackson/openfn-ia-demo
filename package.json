@@ -7,6 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "metrics": "node scripts/metrics.mjs",
+    "metrics:check": "node scripts/metrics.mjs check",
+    "metrics:update": "node scripts/metrics.mjs update",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"

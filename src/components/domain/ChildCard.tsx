@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "../primitives/Link";
 import { ChevronRight } from "lucide-react";
 import type { IANode } from "../../model/ia-tree";
 import Badge from "../primitives/Badge";

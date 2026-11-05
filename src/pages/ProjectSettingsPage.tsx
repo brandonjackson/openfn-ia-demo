@@ -12,7 +12,7 @@ import {
   Lock,
   UserMinus,
 } from "lucide-react";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { Collaborator, OrgCredential, ProjectSettingsPageData } from "../model/page-data";
 import SettingsLayout from "../components/patterns/SettingsLayout";
 import type { SettingsNavItem } from "../components/patterns/SettingsNav";
@@ -385,14 +385,9 @@ function HistoryExportsSection() {
 /*  Main template                                                      */
 /* ------------------------------------------------------------------ */
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: ProjectSettingsPageData;
-}
+export type ProjectSettingsPageProps = PageProps<ProjectSettingsPageData>;
 
-export default function ProjectSettingsPage({ node, ancestors, data }: Props) {
+export default function ProjectSettingsPage({ node, ancestors, data }: ProjectSettingsPageProps) {
   const [activeTab, setActiveTab] = useState("setup");
 
   const projectLabel = ancestors.length > 0

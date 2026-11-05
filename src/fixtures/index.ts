@@ -1,27 +1,21 @@
-import type { PageData } from "../model/page-data";
+/*
+ * Page data that isn't any one record: the org-wide pages' contents, built
+ * from the records in the other fixture files. Pages that show one record (a
+ * project, a system) are built by their wrappers instead.
+ */
+import type { ListPageData, ProjectsPageData } from "../model/page-data";
 import { connectionOf } from "../model/connected-systems";
 import { connectedSystemListItems, connectedSystems, connectedSystemsIntro } from "./connected-systems";
 import { routeKey } from "../model/xroad";
 import { xroadDirectory } from "./xroad";
 import { ecosystemRoutes, ecosystemStations, ecosystemWorkflows } from "./ecosystem";
-import { serviceCatalogData } from "./service-catalog";
-import { historyData } from "./history";
-import { overviewData } from "./overview";
-import { statusData } from "./status";
-import { insightsData } from "./insights";
 import { projectSummaries } from "./projects";
-import { handbookData } from "./handbook";
 
-export { mockEntries } from "./history";
-export { connectedSystems, connectedSystemSummaries, connectedSystemListItems } from "./connected-systems";
+/** The Projects page: every project, summarised. */
+export const projectsPageData: ProjectsPageData = { pageType: "projects", projects: projectSummaries };
 
-export const pageDataRegistry = new Map<string, PageData>();
-
-pageDataRegistry.set("overview", overviewData);
-
-pageDataRegistry.set("projects", { pageType: "projects", projects: projectSummaries });
-
-pageDataRegistry.set("connected-systems", {
+/** The Systems page: the organisation's connected systems, their ecosystem and the X-Road directory. */
+export const systemsPageData: ListPageData = {
   pageType: "list",
   filters: [{ label: "Access", options: ["All", "You have access", "No access"] }],
   items: connectedSystemListItems,
@@ -38,14 +32,4 @@ pageDataRegistry.set("connected-systems", {
     }),
     syncedAt: "12 minutes ago",
   },
-});
-
-pageDataRegistry.set("service-catalog", serviceCatalogData);
-
-pageDataRegistry.set("history", historyData);
-
-pageDataRegistry.set("status", statusData);
-
-pageDataRegistry.set("insights", insightsData);
-
-pageDataRegistry.set("handbook", handbookData);
+};

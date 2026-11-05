@@ -1,4 +1,4 @@
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { InsightsPageData, ProjectInsight } from "../model/page-data";
 import PageHeader from "../components/patterns/PageHeader";
 import Badge from "../components/primitives/Badge";
@@ -10,12 +10,7 @@ import DataTable from "../components/primitives/DataTable";
 import type { DataTableColumn } from "../components/primitives/DataTable";
 import TextLink from "../components/primitives/TextLink";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: InsightsPageData;
-}
+export type InsightsPageProps = PageProps<InsightsPageData>;
 
 const projectColumns: DataTableColumn<ProjectInsight>[] = [
   {
@@ -44,7 +39,7 @@ const projectColumns: DataTableColumn<ProjectInsight>[] = [
  * are on very different scales, so they get a chart each rather than sharing
  * one.
  */
-export default function InsightsPage({ node, ancestors, data }: Props) {
+export default function InsightsPage({ node, ancestors, data }: InsightsPageProps) {
   return (
     <div className="space-y-8">
       <PageHeader

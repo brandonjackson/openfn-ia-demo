@@ -1,5 +1,3 @@
-import { projects } from "../fixtures/projects";
-
 export interface IANode {
   id: string;
   label: string;
@@ -38,6 +36,22 @@ export interface IANode {
 }
 
 /**
+ * What every page is handed besides its own actions: where it sits, and its
+ * data. A page's wrapper (XPage.fixtures.tsx) fills these in; the page only
+ * draws them.
+ */
+export interface PageProps<Data> {
+  /** The page's place in the navigation: its title, description and the pages under it. */
+  node: IANode;
+  /** The pages above it, top first, for the breadcrumbs. */
+  ancestors: { node: IANode; path: string }[];
+  /** The URL being shown. */
+  currentPath: string;
+  /** Everything the page shows. Its shape is the page's contract, in model/page-data.ts. */
+  data: Data;
+}
+
+/**
  * Dynamic project template (matches any project slug under /projects/)
  */
 export const projectTemplateTree: IANode[] = [
@@ -71,6 +85,8 @@ export const projectTemplateTree: IANode[] = [
           {
             id: "component",
             label: "Component",
+            // A channel's page; other kinds of component show a placeholder for now.
+            pageType: "channel",
             dynamic: true,
           },
         ],
@@ -229,11 +245,6 @@ export const mainNavTree: IANode[] = [
     label: "History",
     description: "View historical work orders and channel requests across all projects.",
     pageType: "table",
-    filters: [
-      { label: "Project", options: ["All projects", ...projects.map((p) => p.name)] },
-      { label: "Type", options: ["All", "Work Order", "Channel Request"] },
-      { label: "Status", options: ["All", "Success", "Failed", "Pending"] },
-    ],
   },
   {
     id: "projects",

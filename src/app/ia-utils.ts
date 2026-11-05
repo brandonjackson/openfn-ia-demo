@@ -63,3 +63,12 @@ export function getNodePath(tree: IANode[], targetId: string, prefix = ""): stri
   }
   return null;
 }
+
+/**
+ * The route being shown, as the router hands it to a page's wrapper: the
+ * matched node, the pages above it, the URL's dynamic segments (for example
+ * `{ project: "project-a" }`) and the URL itself.
+ */
+export interface PageRoute extends LookupResult {
+  currentPath: string;
+}

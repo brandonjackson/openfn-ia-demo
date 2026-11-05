@@ -1,23 +1,19 @@
 import { useState } from "react";
-import type { IANode } from "../../model/ia-tree";
-import Badge from "../primitives/Badge";
-import Button from "../primitives/Button";
-import Callout from "../primitives/Callout";
-import ChildCard from "../domain/ChildCard";
-import EmptyState from "../primitives/EmptyState";
-import PageHeader from "./PageHeader";
-import SectionHeading from "../primitives/SectionHeading";
-import SegmentedControl from "../primitives/SegmentedControl";
-import TextLink from "../primitives/TextLink";
+import type { PageProps } from "../model/ia-tree";
+import Badge from "../components/primitives/Badge";
+import Button from "../components/primitives/Button";
+import Callout from "../components/primitives/Callout";
+import ChildCard from "../components/domain/ChildCard";
+import EmptyState from "../components/primitives/EmptyState";
+import PageHeader from "../components/patterns/PageHeader";
+import SectionHeading from "../components/primitives/SectionHeading";
+import SegmentedControl from "../components/primitives/SegmentedControl";
+import TextLink from "../components/primitives/TextLink";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-}
+export type PlaceholderPageProps = Omit<PageProps<never>, "data">;
 
-/** Placeholder page for IA nodes that don't have a template yet. */
-export default function PageShell({ node, ancestors, currentPath }: Props) {
+/** Placeholder page for IA nodes that don't have a page of their own yet. */
+export default function PlaceholderPage({ node, ancestors, currentPath }: PlaceholderPageProps) {
   const [filterState, setFilterState] = useState<Record<string, string>>(() =>
     Object.fromEntries((node.filters ?? []).map((f) => [f.label, f.options[0]]))
   );

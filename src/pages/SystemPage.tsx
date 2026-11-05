@@ -1,5 +1,5 @@
 import { BookOpen, FolderOpen, Globe, KeyRound, Lock, Network, ShieldX, User, Users } from "lucide-react";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { AccessGrant, DetailPageData, DetailSectionItem } from "../model/page-data";
 import AdaptorLogo from "../components/domain/AdaptorLogo";
 import Badge from "../components/primitives/Badge";
@@ -20,12 +20,7 @@ import XRoadConnectionDetails from "../components/patterns/XRoadConnectionDetail
 import { connectionOf } from "../model/connected-systems";
 import { connectedSystems } from "../fixtures/connected-systems";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: DetailPageData;
-}
+export type SystemPageProps = PageProps<DetailPageData>;
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
@@ -82,7 +77,7 @@ function ChannelSection({ title, items }: { title: string; items: DetailSectionI
   );
 }
 
-export default function SystemPage({ node, ancestors, data }: Props) {
+export default function SystemPage({ node, ancestors, data }: SystemPageProps) {
   const system = data.systemId ? connectedSystems.find((s) => s.id === data.systemId) : undefined;
   const connection = system ? connectionOf(system) : undefined;
   const xroad = connection?.method === "xroad" ? connection : undefined;

@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Layout from "../components/patterns/Layout";
-import IAPage from "./IAPage";
+import PageRoute from "./PageRoute";
 import WorkflowEditorPageFixtures from "../pages/WorkflowEditorPage.fixtures";
 
 export default function App() {
@@ -10,7 +10,7 @@ export default function App() {
       <Route path="/workflow-editor" element={<WorkflowEditorPageFixtures />} />
       <Route path="/workflow-editor/:workflowId" element={<WorkflowEditorPageFixtures />} />
       <Route element={<Layout />}>
-        <Route path="*" element={<IAPage />} />
+        <Route path="*" element={<PageRoute />} />
       </Route>
     </Routes>
   );

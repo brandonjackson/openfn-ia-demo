@@ -8,7 +8,8 @@ import StatTile from "../components/primitives/StatTile";
 import SectionHeading from "../components/primitives/SectionHeading";
 import TextLink from "../components/primitives/TextLink";
 
-interface Props {
+export interface OverviewPageProps {
+  /** Everything the page shows. */
   data: DashboardPageData;
 }
 
@@ -16,7 +17,7 @@ interface Props {
  * Overview: summary tiles that link through to Status and Insights, setup
  * progress for connected systems, and your projects.
  */
-export default function OverviewPage({ data }: Props) {
+export default function OverviewPage({ data }: OverviewPageProps) {
   const [addFlowOpen, setAddFlowOpen] = useState(false);
   const [preselectedSystem, setPreselectedSystem] = useState<string | undefined>();
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FolderKanban, Plus } from "lucide-react";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { ProjectsPageData } from "../model/page-data";
 import PageHeader from "../components/patterns/PageHeader";
 import Button from "../components/primitives/Button";
@@ -10,14 +10,9 @@ import { TextInput } from "../components/primitives/FormControls";
 import ProjectCard from "../components/domain/ProjectCard";
 import CreateProjectFlow from "../components/patterns/CreateProjectFlow";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: ProjectsPageData;
-}
+export type ProjectsPageProps = PageProps<ProjectsPageData>;
 
-export default function ProjectsPage({ node, ancestors, data }: Props) {
+export default function ProjectsPage({ node, ancestors, data }: ProjectsPageProps) {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [createOpen, setCreateOpen] = useState(false);

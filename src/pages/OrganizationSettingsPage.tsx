@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Eye, Network, Save, UserPlus, Users } from "lucide-react";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { InstanceMember, OrganizationSettingsPageData, VisibilityScope } from "../model/page-data";
 import type { SecurityServer, SecurityServerManager, XRoadCertificate, XRoadSubsystem } from "../model/xroad";
 import { memberClassLabels, securityServerManagerLabels } from "../model/xroad";
@@ -258,19 +258,14 @@ function XRoadSection({ data }: { data: OrganizationSettingsPageData }) {
 /*  Main template                                                      */
 /* ------------------------------------------------------------------ */
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: OrganizationSettingsPageData;
-}
+export type OrganizationSettingsPageProps = PageProps<OrganizationSettingsPageData>;
 
 /**
  * The organisation's settings, from the account menu: its members, what
  * others can see by default, and its identity on X-Road, which connected
  * systems and published services reuse.
  */
-export default function OrganizationSettingsPage({ node, ancestors, data }: Props) {
+export default function OrganizationSettingsPage({ node, ancestors, data }: OrganizationSettingsPageProps) {
   const activeId = navItems.some((item) => item.id === node.id) ? node.id : navItems[0].id;
   return (
     <SettingsLayout

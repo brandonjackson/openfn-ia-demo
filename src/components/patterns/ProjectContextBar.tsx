@@ -1,4 +1,5 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import Link from "../primitives/Link";
 import { ChevronRight, FlaskConical, Folder, FolderKanban } from "lucide-react";
 import { recentProjects } from "../../fixtures/projects";
 import type { Project } from "../../model/projects";

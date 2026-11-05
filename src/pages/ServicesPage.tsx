@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Bot, Network, Workflow } from "lucide-react";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { CatalogPageData, ChannelCatalogEntry, UsedServiceEntry, WorkflowCatalogEntry } from "../model/page-data";
 import AdaptorLogo from "../components/domain/AdaptorLogo";
 import Badge from "../components/primitives/Badge";
@@ -17,11 +17,7 @@ import { ClassificationBadge } from "../components/domain/ServiceRecordList";
 import UsageModeCard from "../components/domain/UsageModeCard";
 import XRoadAccessBadge from "../components/domain/XRoadAccessBadge";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: CatalogPageData;
+export interface ServicesPageProps extends PageProps<CatalogPageData> {
   /** Which view opens first. */
   initialView?: CatalogView;
 }
@@ -42,7 +38,7 @@ function groupBy<T>(items: T[], key: (item: T) => string): [string, T[]][] {
  * added, including other members' services on X-Road. Only systems you've
  * added show up under "we use".
  */
-export default function ServicesPage({ node, ancestors, data, initialView = "publish" }: Props) {
+export default function ServicesPage({ node, ancestors, data, initialView = "publish" }: ServicesPageProps) {
   const [view, setView] = useState<CatalogView>(initialView);
   const published = data.entries.filter((e): e is WorkflowCatalogEntry => e.kind === "workflow");
   const channels = data.entries.filter((e): e is ChannelCatalogEntry => e.kind === "channel");

@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom";
+import Link from "../primitives/Link";
 import { ArrowUpRight, Globe } from "lucide-react";
 import AdaptorLogo from "./AdaptorLogo";
-import { channelTypeConfig } from "../../model/channel-types";
-import type { ChannelRowType } from "../../model/channel-types";
+import { channelTypeConfig } from "./channel-types";
+import type { ChannelRowType } from "./channel-types";
 import Badge from "../primitives/Badge";
 import ListRow from "../primitives/ListRow";
 import StartWorkflowFromChannel from "./StartWorkflowFromChannel";

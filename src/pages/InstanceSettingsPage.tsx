@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CreditCard, Layers, Plus, Unplug, UserPlus, Users } from "lucide-react";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { BillingDetails, ContextLayer, InstanceMember, InstanceSettingsPageData } from "../model/page-data";
 import SettingsLayout from "../components/patterns/SettingsLayout";
 import type { SettingsNavItem } from "../components/patterns/SettingsNav";
@@ -231,14 +231,9 @@ function ContextSection({ initialLayers }: { initialLayers: ContextLayer[] }) {
 /*  Main template                                                      */
 /* ------------------------------------------------------------------ */
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: InstanceSettingsPageData;
-}
+export type InstanceSettingsPageProps = PageProps<InstanceSettingsPageData>;
 
-export default function InstanceSettingsPage({ node, ancestors, data }: Props) {
+export default function InstanceSettingsPage({ node, ancestors, data }: InstanceSettingsPageProps) {
   // The /instance-settings root shows the first section.
   const activeId = navItems.some((item) => item.id === node.id) ? node.id : navItems[0].id;
 

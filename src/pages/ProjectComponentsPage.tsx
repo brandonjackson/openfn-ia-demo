@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Boxes } from "lucide-react";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { ProjectComponentsPageData } from "../model/page-data";
 import AddComponentPanel from "../components/patterns/AddComponentPanel";
 import PageHeader from "../components/patterns/PageHeader";
@@ -10,19 +10,14 @@ import { componentTypes } from "../model/component-types";
 import EmptyState from "../components/primitives/EmptyState";
 import SectionHeading from "../components/primitives/SectionHeading";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: ProjectComponentsPageData;
-}
+export type ProjectComponentsPageProps = PageProps<ProjectComponentsPageData>;
 
 /**
  * Every component in the project, grouped by type, under a panel for adding
  * a new one. Workflows have their own page, so they are left out here, as
  * are empty groups.
  */
-export default function ProjectComponentsPage({ node, ancestors, data }: Props) {
+export default function ProjectComponentsPage({ node, ancestors, data }: ProjectComponentsPageProps) {
   const navigate = useNavigate();
   const projectPath = `/projects/${data.projectId}`;
   const types = componentTypes.filter((t) => t.type !== "Workflow");

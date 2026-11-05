@@ -3,8 +3,7 @@ import SystemsPage from "./SystemsPage";
 import { withRouter } from "../stories/decorators";
 import { connectedSystemListItems, connectedSystemsIntro } from "../fixtures/connected-systems";
 import type { IANode } from "../model/ia-tree";
-import { pageDataRegistry } from "../fixtures";
-import type { ListPageData } from "../model/page-data";
+import { systemsPageData } from "../fixtures";
 
 const node: IANode = {
   id: "connected-systems",
@@ -76,6 +75,6 @@ export const WithXRoad: Story = {
     node,
     ancestors,
     currentPath: "/connected-systems",
-    data: { ...(pageDataRegistry.get("connected-systems") as ListPageData), intro: undefined },
+    data: { ...systemsPageData, intro: undefined },
   },
 };

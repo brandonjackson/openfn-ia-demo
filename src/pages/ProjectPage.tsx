@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ClipboardList } from "lucide-react";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { ProjectPageData } from "../model/page-data";
 import Badge from "../components/primitives/Badge";
 import PageHeader from "../components/patterns/PageHeader";
@@ -15,12 +15,7 @@ import SectionHeading from "../components/primitives/SectionHeading";
 import StatTile from "../components/primitives/StatTile";
 import TextLink from "../components/primitives/TextLink";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: ProjectPageData;
-}
+export type ProjectPageProps = PageProps<ProjectPageData>;
 
 /** How many components the Overview lists before "View all". */
 const COMPONENT_PREVIEW = 6;
@@ -30,7 +25,7 @@ const COMPONENT_PREVIEW = 6;
  * and starter ideas for building something new (the best of Create), then
  * what it already publishes and is built from.
  */
-export default function ProjectPage({ node, ancestors, currentPath, data }: Props) {
+export default function ProjectPage({ node, ancestors, currentPath, data }: ProjectPageProps) {
   const navigate = useNavigate();
   const [prompt, setPrompt] = useState("");
   const { tiles, ideas, services, components } = data;

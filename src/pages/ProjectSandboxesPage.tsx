@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, FlaskConical, Plus, Trash2 } from "lucide-react";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { ProjectSandboxesPageData, SandboxItem } from "../model/page-data";
 import { useSandbox } from "../app/sandbox-state";
 import Badge from "../components/primitives/Badge";
@@ -11,12 +11,7 @@ import EmptyState from "../components/primitives/EmptyState";
 import ListRow from "../components/primitives/ListRow";
 import SectionHeading from "../components/primitives/SectionHeading";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: ProjectSandboxesPageData;
-}
+export type ProjectSandboxesPageProps = PageProps<ProjectSandboxesPageData>;
 
 function SandboxRow({
   sandbox,
@@ -69,7 +64,7 @@ function SandboxRow({
  * top; the rest are listed below, and picking one switches to it. Listed
  * sandboxes other than main can be deleted; the selected one can't.
  */
-export default function ProjectSandboxesPage({ node, ancestors, data }: Props) {
+export default function ProjectSandboxesPage({ node, ancestors, data }: ProjectSandboxesPageProps) {
   const [selectedName, setSelected] = useSandbox(data.projectId);
   const [deleted, setDeleted] = useState<string[]>([]);
   const [pendingDelete, setPendingDelete] = useState<SandboxItem | null>(null);

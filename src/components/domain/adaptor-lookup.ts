@@ -18,7 +18,7 @@ export function adaptorForSystem(name?: string): string | undefined {
 }
 
 // Square logos copied from github.com/OpenFn/adaptors (packages/<id>/assets/square.png).
-const logos = import.meta.glob<string>("./assets/adaptors/*.png", {
+const logos = import.meta.glob<string>("../../assets/adaptors/*.png", {
   eager: true,
   query: "?url",
   import: "default",
@@ -26,7 +26,7 @@ const logos = import.meta.glob<string>("./assets/adaptors/*.png", {
 
 /** URL of an adaptor's square logo, or undefined if we don't have one. */
 export function adaptorLogoUrl(adaptorId?: string): string | undefined {
-  return adaptorId ? logos[`./assets/adaptors/${adaptorId}.png`] : undefined;
+  return adaptorId ? logos[`../../assets/adaptors/${adaptorId}.png`] : undefined;
 }
 
 export function hasAdaptorLogo(adaptorId?: string): boolean {

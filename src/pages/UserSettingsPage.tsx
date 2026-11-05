@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "../components/primitives/Link";
 import {
   UserCircle,
   KeyRound,
@@ -11,7 +11,7 @@ import {
   ShieldCheck,
   Fingerprint,
 } from "lucide-react";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { ApiToken, OAuthClient, UserCredential, UserProfile, UserSettingsPageData } from "../model/page-data";
 import SettingsLayout from "../components/patterns/SettingsLayout";
 import type { SettingsNavItem } from "../components/patterns/SettingsNav";
@@ -333,14 +333,9 @@ function ApiTokensSection({ data }: { data: UserSettingsPageData }) {
 /*  Main template                                                      */
 /* ------------------------------------------------------------------ */
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: UserSettingsPageData;
-}
+export type UserSettingsPageProps = PageProps<UserSettingsPageData>;
 
-export default function UserSettingsPage({ node, ancestors, data }: Props) {
+export default function UserSettingsPage({ node, ancestors, data }: UserSettingsPageProps) {
   // The /user-settings root shows the first section.
   const activeId = navItems.some((item) => item.id === node.id) ? node.id : navItems[0].id;
 

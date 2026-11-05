@@ -1,12 +1,8 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import type { FeatureIntroItem } from "../../model/page-data";
 
-export interface FeatureIntroItem {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-}
+export type { FeatureIntroItem };
 
 interface Props {
   title: string;

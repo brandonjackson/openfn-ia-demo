@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "../primitives/Link";
 import { Building2, ChevronsUpDown, LogOut, Settings, Wrench } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Surface from "../primitives/Surface";

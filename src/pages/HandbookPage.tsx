@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Pencil } from "lucide-react";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { HandbookFile, HandbookFileKind, HandbookPageData } from "../model/page-data";
 import PageHeader from "../components/patterns/PageHeader";
 import Button from "../components/primitives/Button";
@@ -8,12 +8,7 @@ import FilesPanel from "../components/patterns/FilesPanel";
 import WikiArticle from "../components/patterns/WikiArticle";
 import { currentUser } from "../fixtures/user";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: HandbookPageData;
-}
+export type HandbookPageProps = PageProps<HandbookPageData>;
 
 function kindOf(name: string): HandbookFileKind {
   const ext = name.split(".").pop()?.toLowerCase() ?? "";
@@ -34,7 +29,7 @@ function formatSize(bytes: number) {
  * that go with it (agreements, contact sheets, diagrams) in a column on the
  * right, like a Claude project's knowledge.
  */
-export default function HandbookPage({ node, ancestors, data }: Props) {
+export default function HandbookPage({ node, ancestors, data }: HandbookPageProps) {
   const [files, setFiles] = useState<HandbookFile[]>(data.files);
 
   const addFiles = (added: File[]) => {

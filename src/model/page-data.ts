@@ -1,5 +1,4 @@
-import type { BadgeTone } from "../components/primitives/Badge";
-import type { FeatureIntroItem } from "../components/patterns/FeatureIntro";
+import type { LucideIcon } from "lucide-react";
 import type { RunStatus } from "./workflow";
 import type { ChannelDetails } from "./channels";
 import type { EcosystemStation, EcosystemWorkflow } from "./ecosystem";
@@ -9,6 +8,16 @@ import type { ConnectionMethod } from "./connected-systems";
 /* ------------------------------------------------------------------ */
 /*  Shared primitive types                                             */
 /* ------------------------------------------------------------------ */
+
+/** The colours a badge comes in. */
+export type BadgeTone = "green" | "yellow" | "red" | "indigo" | "pink" | "gray";
+
+/** One point in a feature's intro banner. */
+export interface FeatureIntroItem {
+  icon: LucideIcon;
+  title: string;
+  description: string;
+}
 
 export interface MetricCard {
   label: string;

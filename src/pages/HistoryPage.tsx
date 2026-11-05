@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { TablePageData } from "../model/page-data";
 import Badge from "../components/primitives/Badge";
 import DataTable from "../components/primitives/DataTable";
@@ -8,16 +8,11 @@ import type { DataTableColumn } from "../components/primitives/DataTable";
 import PageHeader from "../components/patterns/PageHeader";
 import SegmentedControl from "../components/primitives/SegmentedControl";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: TablePageData;
-}
+export type HistoryPageProps = PageProps<TablePageData>;
 
 type Row = TablePageData["rows"][number];
 
-export default function HistoryPage({ node, ancestors, data }: Props) {
+export default function HistoryPage({ node, ancestors, data }: HistoryPageProps) {
   const [searchParams] = useSearchParams();
 
   // Initialize filter state from URL params or first option

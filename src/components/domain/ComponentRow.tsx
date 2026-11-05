@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "../primitives/Link";
 import type { ProjectComponentItem } from "../../model/page-data";
 import { componentTypeIcons } from "../../model/component-types";
 

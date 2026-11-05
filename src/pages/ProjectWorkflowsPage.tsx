@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Workflow } from "lucide-react";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { ProjectWorkflowsPageData, WorkflowListItem } from "../model/page-data";
 import PageHeader from "../components/patterns/PageHeader";
 import Button from "../components/primitives/Button";
@@ -10,12 +10,7 @@ import { Select } from "../components/primitives/FormControls";
 import WorkflowRow from "../components/domain/WorkflowRow";
 import EmptyState from "../components/primitives/EmptyState";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: ProjectWorkflowsPageData;
-}
+export type ProjectWorkflowsPageProps = PageProps<ProjectWorkflowsPageData>;
 
 const sorts: Record<string, (a: WorkflowListItem, b: WorkflowListItem) => number> = {
   "Sort by: Activity": (a, b) => (b.lastRunAt ?? "").localeCompare(a.lastRunAt ?? ""),
@@ -24,7 +19,7 @@ const sorts: Record<string, (a: WorkflowListItem, b: WorkflowListItem) => number
 };
 const sortOptions = Object.keys(sorts);
 
-export default function ProjectWorkflowsPage({ node, ancestors, data }: Props) {
+export default function ProjectWorkflowsPage({ node, ancestors, data }: ProjectWorkflowsPageProps) {
   const navigate = useNavigate();
   const [sort, setSort] = useState(sortOptions[0]);
   const workflows = [...data.workflows].sort(sorts[sort]);

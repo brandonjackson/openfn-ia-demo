@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { ProjectCreatePageData } from "../model/page-data";
 import Breadcrumbs from "../components/patterns/Breadcrumbs";
 import BuildPrompt from "../components/domain/BuildPrompt";
@@ -8,18 +8,13 @@ import Callout from "../components/primitives/Callout";
 import IdeaCard from "../components/domain/IdeaCard";
 import SectionHeading from "../components/primitives/SectionHeading";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: ProjectCreatePageData;
-}
+export type ProjectCreatePageProps = PageProps<ProjectCreatePageData>;
 
 /**
  * The project's starting point for something new: a "what would you like to
  * build?" prompt and starter ideas for public services.
  */
-export default function ProjectCreatePage({ node, ancestors, data }: Props) {
+export default function ProjectCreatePage({ node, ancestors, data }: ProjectCreatePageProps) {
   // A prompt started on the project Overview arrives in router state, already
   // submitted; a draft (e.g. from "New Component") only pre-fills the box.
   const routeState = useLocation().state as { prompt?: string; draft?: string } | null;

@@ -1,4 +1,4 @@
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { HealthState, StatusPageData, SystemStatus, WorkflowStatus } from "../model/page-data";
 import PageHeader from "../components/patterns/PageHeader";
 import Callout from "../components/primitives/Callout";
@@ -9,12 +9,7 @@ import StatusBadge from "../components/domain/StatusBadge";
 import SystemLabel from "../components/domain/SystemLabel";
 import TextLink from "../components/primitives/TextLink";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: StatusPageData;
-}
+export type StatusPageProps = PageProps<StatusPageData>;
 
 const severity: Record<HealthState, number> = { down: 0, degraded: 1, operational: 2 };
 const worstFirst = <T extends { status: HealthState }>(rows: T[]) =>
@@ -56,7 +51,7 @@ const workflowColumns: DataTableColumn<WorkflowStatus>[] = [
  * Monitoring, right now: what's up, degraded or failing. Problems are
  * summarised at the top and sorted to the top of each table.
  */
-export default function StatusPage({ node, ancestors, data }: Props) {
+export default function StatusPage({ node, ancestors, data }: StatusPageProps) {
   const systemIssues = data.systems.filter((s) => s.status !== "operational");
   const workflowIssues = data.workflows.filter((w) => w.status !== "operational");
   const issues = [...workflowIssues, ...systemIssues];

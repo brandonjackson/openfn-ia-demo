@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, Globe, Lock, Plus, Download } from "lucide-react";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { ListPageData, ListItem } from "../model/page-data";
 import AdaptorLogo from "../components/domain/AdaptorLogo";
 import Badge from "../components/primitives/Badge";
@@ -22,12 +22,7 @@ import type { XRoadConnectionStatus, XRoadRoute } from "../model/xroad";
 import { routeKey } from "../model/xroad";
 import { directoryMember, routeService } from "../fixtures/xroad";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: ListPageData;
-}
+export type SystemsPageProps = PageProps<ListPageData>;
 
 function ListItemRow({ item, basePath }: { item: ListItem; basePath: string }) {
   const access = item.metadata?.access;
@@ -60,7 +55,7 @@ function ListItemRow({ item, basePath }: { item: ListItem; basePath: string }) {
   );
 }
 
-export default function SystemsPage({ node, ancestors, currentPath, data }: Props) {
+export default function SystemsPage({ node, ancestors, currentPath, data }: SystemsPageProps) {
   const firstFilter = data.filters[0];
   const [selected, setSelected] = useState(firstFilter?.options[0] ?? "All");
   const [addFlowOpen, setAddFlowOpen] = useState(false);

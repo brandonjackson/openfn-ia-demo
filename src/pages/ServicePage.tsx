@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bot, ClipboardList, Clock, FileCode2, Folder, KeyRound, ListChecks, Network, Webhook, Workflow } from "lucide-react";
-import type { IANode } from "../model/ia-tree";
+import type { PageProps } from "../model/ia-tree";
 import type { ServiceApiField, ServicePageData } from "../model/page-data";
 import Badge from "../components/primitives/Badge";
 import PageHeader from "../components/patterns/PageHeader";
@@ -22,12 +22,7 @@ import StatTile from "../components/primitives/StatTile";
 import { mcpToolSnippet, openApiUrl, webhookUrl, workflowCallSnippet, xroadCallerSnippet } from "../model/service-usage";
 import { openfnClientId, orgXRoad } from "../fixtures/xroad";
 
-interface Props {
-  node: IANode;
-  ancestors: { node: IANode; path: string }[];
-  currentPath: string;
-  data: ServicePageData;
-}
+export type ServicePageProps = PageProps<ServicePageData>;
 
 const fieldColumns: DataTableColumn<ServiceApiField>[] = [
   { key: "name", header: "Field", render: (f) => <code className="font-mono text-sm text-gray-900">{f.name}</code> },
@@ -48,7 +43,7 @@ const fieldColumns: DataTableColumn<ServiceApiField>[] = [
  * trigger's annotations generate the OpenAPI 3 docs. Links through to that
  * workflow and its project.
  */
-export default function ServicePage({ ancestors, data }: Props) {
+export default function ServicePage({ ancestors, data }: ServicePageProps) {
   const navigate = useNavigate();
   const { service, workflow, api } = data;
   const projectPath = `/projects/${data.projectId}`;

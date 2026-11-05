@@ -8,7 +8,7 @@ import { adaptorInfo } from "../../fixtures/adaptor-reference";
 import type { ProjectComponent, ProjectService } from "../../model/projects";
 import { componentPreview, serviceListing, workflowDocs } from "../../fixtures/workflow-files";
 import { channelDetails } from "../../fixtures/channels";
-import { channelTypeConfig } from "../../model/channel-types";
+import { channelTypeConfig } from "../domain/channel-types";
 import { componentTypeIcons } from "../../model/component-types";
 import Button from "../primitives/Button";
 import Badge from "../primitives/Badge";

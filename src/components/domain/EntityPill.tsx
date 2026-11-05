@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "../primitives/Link";
 import type { ReactNode } from "react";
 import { Plus } from "lucide-react";
 import AdaptorLogo from "./AdaptorLogo";

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "../primitives/Link";
 import type { LucideIcon } from "lucide-react";
 
 export interface SettingsNavItem {

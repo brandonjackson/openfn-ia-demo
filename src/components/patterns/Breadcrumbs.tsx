@@ -1,4 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+import Link from "../primitives/Link";
 import { ChevronRight, Home } from "lucide-react";
 import { projects } from "../../fixtures/projects";
 import ProjectContextBar from "./ProjectContextBar";

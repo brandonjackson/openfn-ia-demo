@@ -20,3 +20,17 @@ export const On: Story = {
 export const WithLabel: Story = {
   args: { checked: false, label: "Disable parallel execution" },
 };
+
+/** In a row whose column already says what it is, the label is for screen readers only. */
+export const HiddenLabel: Story = {
+  args: {
+    checked: true,
+    label: "Referral sync enabled",
+    hideLabel: true,
+    title: "This workflow is active (webhook trigger enabled)",
+  },
+};
+
+export const Disabled: Story = {
+  args: { checked: true, label: "Enabled", disabled: true },
+};

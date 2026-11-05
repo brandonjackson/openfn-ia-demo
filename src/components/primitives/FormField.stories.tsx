@@ -28,3 +28,15 @@ export const WithHint: Story = {
   },
 };
 
+/** A value that failed validation: the error takes the hint's place. */
+export const WithError: Story = {
+  args: {
+    label: "New password",
+    htmlFor: "pw",
+    required: true,
+    hint: "At least 12 characters.",
+    error: "Should be at least 12 characters",
+    children: <TextInput id="pw" type="password" defaultValue="short" />,
+  },
+};
+

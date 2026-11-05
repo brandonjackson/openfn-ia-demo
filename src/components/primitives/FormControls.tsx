@@ -16,8 +16,13 @@ export function TextInput({ className = "", compact = false, ...rest }: TextInpu
   return <input type="text" className={`${controlClasses} ${compact ? "py-1.5" : "py-2"} ${className}`} {...rest} />;
 }
 
-export function TextArea({ className = "", ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea className={`${controlClasses} py-2 ${className}`} {...rest} />;
+interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+  /** Monospaced, for code or JSON. */
+  mono?: boolean;
+}
+
+export function TextArea({ className = "", mono = false, ...rest }: TextAreaProps) {
+  return <textarea className={`${controlClasses} py-2 ${mono ? "font-mono text-xs" : ""} ${className}`} {...rest} />;
 }
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {

@@ -17,6 +17,7 @@ import AssistantResultCard from "./AssistantResultCard";
 import EntityPill from "./EntityPill";
 import IconButton from "../primitives/IconButton";
 import SearchInput from "../primitives/SearchInput";
+import Code from "../primitives/Code";
 
 type View = "sessions" | "chat";
 
@@ -394,18 +395,14 @@ function About({ onClose }: { onClose: () => void }) {
         <ul className="list-inside list-disc space-y-1 pl-4">
           <li>Conversations are saved to your project and can be revisited any time</li>
           <li>
-            Press <Kbd>Enter</Kbd> to send, <Kbd>Shift + Enter</Kbd> for a new line
+            Press <Code>Enter</Code> to send, <Code>Shift + Enter</Code> for a new line
           </li>
           <li>
-            Press <Kbd>Ctrl/⌘ + K</Kbd> to open or close the assistant
+            Press <Code>Ctrl/⌘ + K</Code> to open or close the assistant
           </li>
           <li>When you have a run open you can attach its logs and its data to a message</li>
         </ul>
       </div>
     </div>
   );
-}
-
-function Kbd({ children }: { children: string }) {
-  return <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">{children}</code>;
 }

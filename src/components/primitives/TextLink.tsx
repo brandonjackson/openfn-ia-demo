@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import Link from "./Link";
 import { ExternalLink } from "lucide-react";
 
 interface Props {
@@ -19,7 +19,7 @@ interface Props {
 
 const variantClasses = {
   default: "font-medium text-gray-900 hover:text-indigo-600 hover:underline",
-  action: "text-sm font-medium text-indigo-600 hover:text-indigo-700",
+  action: "inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700",
   inline: "text-indigo-600 hover:text-indigo-700 hover:underline",
 };
 

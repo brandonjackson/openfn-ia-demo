@@ -1,10 +1,12 @@
 import { useState } from "react";
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import CodeWorkspace from "./CodeWorkspace";
 import type { ExplorerFile } from "./EditorExplorer";
 import type { DetailsViewId } from "./editor-layout";
 import EditorPanel from "../patterns/EditorPanel";
+import CodeLayout from "../patterns/CodeLayout";
+import EditorTray from "../patterns/EditorTray";
 import { panelViews } from "./panel-views";
 import StepRunDetails from "./StepRunDetails";
 import StatusPill from "./StatusPill";
@@ -29,7 +31,10 @@ const contents = {
   channels: Object.fromEntries(components.filter((c) => c.type === "Channel").map((c) => [c.id, channelDetails(c)])),
 };
 
-function Stateful(args: ComponentProps<typeof CodeWorkspace>) {
+/** The workspace's props, plus the panel the page would put under the code. */
+type Args = Omit<ComponentProps<typeof CodeWorkspace>, "children"> & { bottomTray?: ReactNode };
+
+function Stateful({ bottomTray, ...args }: Args) {
   const [file, setFile] = useState<ExplorerFile>(args.file);
   const [detailsView, setDetailsView] = useState<DetailsViewId>(args.detailsView ?? "snippets");
   const [bodies, setBodies] = useState<Record<string, string>>({});
@@ -47,13 +52,32 @@ function Stateful(args: ComponentProps<typeof CodeWorkspace>) {
       onDetailsViewChange={setDetailsView}
       onCodeChange={args.onCodeChange ? (id, code) => setBodies((b) => ({ ...b, [id]: code })) : undefined}
       pane={file === "health" ? args.pane : undefined}
-    />
+    >
+      {/* Laid out as the page does, in the code view's frame. */}
+      {(code) => (
+        <CodeLayout
+          nav={code.nav}
+          header={code.header}
+          footer={code.footer}
+          bottomTray={bottomTray}
+          rightTray={
+            code.details && (
+              <EditorTray placement="right" tabs={code.details.tabs} actions={code.details.actions}>
+                {code.details.body}
+              </EditorTray>
+            )
+          }
+        >
+          {code.main}
+        </CodeLayout>
+      )}
+    </CodeWorkspace>
   );
 }
 
-const meta: Meta<typeof CodeWorkspace> = {
+const meta: Meta<Args> = {
   title: "Domain/CodeWorkspace",
-  component: CodeWorkspace,
+  component: Stateful,
   parameters: { layout: "fullscreen" },
   decorators: [
     (Story) => (
@@ -79,7 +103,7 @@ const meta: Meta<typeof CodeWorkspace> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof CodeWorkspace>;
+type Story = StoryObj<Args>;
 
 /** On main: read-only. */
 export const ReadOnly: Story = { args: { readOnly: true } };

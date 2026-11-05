@@ -6,19 +6,21 @@ The short version: **everything on screen belongs to one of four layers, and eve
 
 ## The layers
 
-The layers sit on one line, lowest to highest:
+Primitives are the base. Patterns and domain components both sit on them, side by side, and pages sit on top:
 
 ```
-primitives → patterns → domain → pages
+             ┌─ patterns ─┐
+primitives ──┤            ├── pages
+             └─ domain  ──┘
 ```
 
-Each layer only imports from the layers below it. Lint enforces this, so the wrong import fails `npm run lint` with a message saying why.
+Each layer only imports from the layers below it, and patterns and domain never import each other: the page is where a pattern and the domain components that fill it meet. Lint enforces this, so the wrong import fails `npm run lint` with a message saying why.
 
 | Layer | Folder | What it's for | Examples | May import |
 | --- | --- | --- | --- | --- |
-| **Primitive** | `src/components/primitives/` | The smallest pieces, where accessibility and the look live, knowing nothing about OpenFn. | `Button`, `Modal`, `DataTable`, `NavItem`, `use-popover` | primitives; types from `model/` |
+| **Primitive** | `src/components/primitives/` | The smallest pieces, where accessibility and the look live, knowing nothing about OpenFn. | `Button`, `Card`, `NavItem`, `IconTile`, `Modal`, `use-popover` | primitives; types from `model/` |
 | **Pattern** | `src/components/patterns/` | The shape of a screen or a region of one, with no OpenFn nouns, so it can be reused anywhere in the app. | `Layout`, `PageHeader`, `PageContainer`, `SettingsLayout`, `EditorShell`, `CodeLayout` | primitives, patterns |
-| **Domain** | `src/components/domain/` | Anything in OpenFn's words, from a status badge up to the workflow canvas. | `StatusPill`, `EntityPill`, `Sidebar`, `WorkflowCanvas`, `StepInspector`, `EcosystemMap`, `XRoadDirectory` | primitives, patterns, domain, `model/` |
+| **Domain** | `src/components/domain/` | Anything in OpenFn's words, from a status badge up to the workflow canvas. | `StatusPill`, `EntityPill`, `Sidebar`, `WorkflowCanvas`, `StepInspector`, `EcosystemMap`, `XRoadDirectory` | primitives, domain, `model/` |
 | **Page** | `src/pages/XPage.tsx` | One screen, built from the layers below. It draws, and nothing else. | `ProjectWorkflowsPage` | any component, `model/` |
 
 Two more folders sit beside the layers rather than in them:
@@ -48,9 +50,29 @@ So a pattern gets OpenFn content only through slots. Whoever uses the pattern im
 
 `ListPage` decides where things go and what shows while loading, empty or blocked. It never knows what a credential is.
 
-That's why patterns sit *below* domain, and why they can't import `src/model` either: model's types are OpenFn nouns too. A pattern's props are generic (`title`, `action`, `rows: T[]`), never OpenFn's (`workflow`, `run`, `credential`). The test: you could drop it into any other product unchanged.
+That's why patterns can't import domain, and why they can't import `src/model` either: model's types are OpenFn nouns too. A pattern's props are generic (`title`, `action`, `rows: T[]`), never OpenFn's (`workflow`, `run`, `credential`). The test: you could drop it into any other product unchanged.
 
 You'll see it all over the app. `PageHeader` takes `breadcrumbs` as a slot, and pages pass `<Breadcrumbs>`, which knows about the project bar. `Layout` takes the `sidebar` and `logo` as slots, and the app fills them with OpenFn's `Sidebar` and `InstanceLogo`. `EditorPanel` takes its `views`, and the workflow editor passes its run views.
+
+### Domain draws with primitives
+
+A domain component is built from primitives and other domain components, never from a pattern. That keeps the two halves of the library honest: patterns stay free of OpenFn, domain stays free of page layout, and when the look of a row, a card or a menu changes, it changes in one primitive and every domain component follows.
+
+So when a domain component would sit inside a pattern's frame, it doesn't draw the frame. It hands its pieces to the page, and the page puts them in the pattern's slots. Most of the time that's just props. Where the pieces share state, the domain component takes a function as its children and gives the pieces to it:
+
+```tsx
+<CodeWorkspace {...props}>
+  {(code) => (
+    <CodeLayout nav={code.nav} header={code.header} footer={code.footer} bottomTray={panel}>
+      {code.main}
+    </CodeLayout>
+  )}
+</CodeWorkspace>
+```
+
+`EditorToolbar` hands its groups to `EditorTopBar` the same way. If a domain component seems to need a pattern that's really one small piece (a menu row, a section heading), that piece is a primitive.
+
+**Reach for the core primitives first.** Most of what domain components draw is one of a few shapes, and each has one primitive: a row in a list of places or choices is `NavItem` (side menus, the code explorer, every dropdown and picker); a bordered box is `Card` (a link or a button with `to` or `onClick`); a glyph or logo on a square is `IconTile`; a small label is `Badge` (`shape="tag"` for a kind beside a name); an id or a bit of code in a sentence is `Code`; a form field is `FormField` with a control from `FormControls`. Extend one of these with a prop before writing another.
 
 ## The seam
 
@@ -167,7 +189,7 @@ Short notes on the big calls, so nobody "fixes" one back by accident.
 
 - **Pages take props; data lives at the edge.** Route loaders or server components would tie every page to one way of loading data. These pages need to work inside today's LiveView and in a standalone app, and props are the only thing that works in both.
 - **Contracts are written by hand.** `XPageProps` and the shapes in `model/page-data.ts` are written out with a comment per field, and not generated from the API or the fixtures. A mapper in the wrapper absorbs a messy API, so the page stays stable.
-- **Patterns sit below domain.** It used to be the other way round, and patterns filled up with features: the editor, the ecosystem map, the X-Road directory. Putting patterns under domain, with no access to `model/`, means a pattern can only learn about OpenFn through a slot, so it stays reusable. A component that's mostly shape but knows one OpenFn noun becomes a pattern by turning that import into a slot; if that isn't small, it lives in domain until someone does.
+- **Patterns and domain sit side by side.** Patterns used to sit above domain, and filled up with features: the editor, the ecosystem map, the X-Road directory. Then they sat below it, which kept OpenFn out of patterns but let domain components reach for page layout. Now neither imports the other: a pattern learns about OpenFn only through a slot, a domain component is built from primitives, and the page puts the two together. A component that's mostly shape but knows one OpenFn noun becomes a pattern by turning that import into a slot; if that isn't small, it lives in domain until someone does.
 - **Real folders for layers, not tags.** Lint can only check what it can see in a path. Folders also make the layer the first thing you see in a file's name.
 - **The chrome gets a context; pages don't.** The breadcrumbs' project bar is inside every page's header. Threading the project list through 20 pages' props would bury the seam in noise, so the shell's wrapper provides it once.
 - **The run simulation in the editor stays synchronous.** Starting a run updates the canvas in the same click today. A real server needs a start-and-subscribe shape, which is a bigger change than this restructure. `onRun` is the seam where that will go.

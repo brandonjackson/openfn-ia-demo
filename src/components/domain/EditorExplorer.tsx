@@ -4,7 +4,7 @@ import { triggerTypes } from "../../model/workflow";
 import type { ProjectComponent } from "../../model/projects";
 import { componentTypeIcons } from "../../model/component-types";
 import NavItem from "../primitives/NavItem";
-import { AdaptorIcon } from "./AdaptorIcon";
+import AdaptorLogo from "./AdaptorLogo";
 import StatusPill from "./StatusPill";
 
 /**
@@ -127,7 +127,7 @@ export default function EditorExplorer({
               variant="tree"
               key={step.id}
               label={step.label}
-              leading={<AdaptorIcon adaptor={step.adaptor} size="xs" />}
+              leading={<AdaptorLogo adaptor={step.adaptor} size="2xs" />}
               trailing={status && <StatusPill status={status} variant="mark" />}
               active={current === `step:${step.id}`}
               onClick={() => onOpen({ stepId: step.id })}

@@ -42,6 +42,11 @@ export const WithIcon: Story = {
   args: { label: "Not allowed on Free plans", icon: Lock },
 };
 
+/** The small square note beside a name, e.g. a component's kind. */
+export const Tag: Story = {
+  args: { label: "Read only", shape: "tag" },
+};
+
 export const AllVariants: Story = {
   render: () => (
     <div className="flex items-center gap-3">

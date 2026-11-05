@@ -12,7 +12,7 @@ const projectItems = [
 ];
 
 const meta: Meta<typeof SettingsNav> = {
-  title: "Patterns/SettingsNav",
+  title: "Primitives/SettingsNav",
   component: SettingsNav,
   decorators: [withRouter],
   parameters: { layout: "padded" },

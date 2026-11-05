@@ -1,8 +1,7 @@
-import Link from "../primitives/Link";
 import { Building2, ChevronsUpDown, LogOut, Settings } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import Surface from "../primitives/Surface";
 import { usePopover } from "../primitives/use-popover";
+import NavItem from "../primitives/NavItem";
 
 interface Props {
   user: { firstName: string; lastName: string; email: string };
@@ -14,30 +13,6 @@ interface Props {
   onLogOut?: () => void;
   /** Start with the menu open (useful for stories and screenshots). */
   defaultOpen?: boolean;
-}
-
-function MenuItem({
-  to,
-  icon: Icon,
-  label,
-  onSelect,
-}: {
-  to: string;
-  icon: LucideIcon;
-  label: string;
-  onSelect: () => void;
-}) {
-  return (
-    <Link
-      to={to}
-      role="menuitem"
-      onClick={onSelect}
-      className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-    >
-      <Icon size={16} className="flex-shrink-0 text-gray-500" />
-      {label}
-    </Link>
-  );
 }
 
 /**
@@ -66,28 +41,26 @@ export default function AccountMenu({
           className="absolute bottom-full left-0 right-0 mb-2 p-1.5"
         >
           <p className="truncate px-2 pt-1 pb-1.5 text-xs text-gray-500">{user.email}</p>
-          <MenuItem to="/user-settings" icon={Settings} label="Settings" onSelect={close} />
+          <NavItem variant="menu" to="/user-settings" icon={Settings} label="Settings" onClick={close} />
           {showOrganizationSettings && (
-            <MenuItem
+            <NavItem
+              variant="menu"
               to="/organization-settings"
               icon={Building2}
               label="Organization settings"
-              onSelect={close}
+              onClick={close}
             />
           )}
           <div className="my-1.5 border-t border-gray-200" />
-          <button
-            type="button"
-            role="menuitem"
+          <NavItem
+            variant="menu"
+            icon={LogOut}
+            label="Log out"
             onClick={() => {
               close();
               onLogOut?.();
             }}
-            className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
-          >
-            <LogOut size={16} className="flex-shrink-0 text-gray-500" />
-            Log out
-          </button>
+          />
         </Surface>
       )}
 

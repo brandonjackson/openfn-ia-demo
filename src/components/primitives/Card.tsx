@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "./Link";
 
 interface Props {
   /** Optional card heading. */
@@ -7,21 +8,57 @@ interface Props {
   description?: ReactNode;
   /** Removes inner padding, e.g. when the card wraps a table. */
   flush?: boolean;
+  /** `md` (the default) for settings sections; `sm` for cards in a grid or a feed. */
+  padding?: "sm" | "md";
+  /** Makes the whole card a link, with a hover lift. */
+  to?: string;
+  /** Makes the whole card a button, with a hover lift. */
+  onClick?: () => void;
   className?: string;
   children?: ReactNode;
 }
 
 /**
- * White bordered surface used to group related settings or content.
+ * White bordered surface that groups related content: a settings section, a
+ * feature, an idea to start from. With `to` or `onClick` the whole card is
+ * the link or button, and lifts on hover.
  */
-export default function Card({ title, description, flush = false, className = "", children }: Props) {
-  return (
-    <div
-      className={`rounded-lg border border-gray-200 bg-white ${flush ? "overflow-hidden" : "p-5"} ${className}`}
-    >
-      {title && <h3 className="text-sm font-semibold text-gray-900 mb-1">{title}</h3>}
+export default function Card({
+  title,
+  description,
+  flush = false,
+  padding = "md",
+  to,
+  onClick,
+  className = "",
+  children,
+}: Props) {
+  const interactive = Boolean(to || onClick);
+  const frame = `rounded-lg border border-gray-200 bg-white ${
+    flush ? "overflow-hidden" : padding === "sm" ? "p-4" : "p-5"
+  } ${interactive ? "group w-full text-left transition-all hover:border-indigo-300 hover:shadow-sm" : ""} ${className}`;
+  const content = (
+    <>
+      {title && (
+        <h3 className={`text-sm font-semibold text-gray-900 mb-1 ${interactive ? "group-hover:text-indigo-600" : ""}`}>
+          {title}
+        </h3>
+      )}
       {description && <div className="text-xs text-gray-500 mb-4 space-y-2">{description}</div>}
       {children}
-    </div>
+    </>
   );
+  if (to)
+    return (
+      <Link to={to} className={`block ${frame}`}>
+        {content}
+      </Link>
+    );
+  if (onClick)
+    return (
+      <button type="button" onClick={onClick} className={frame}>
+        {content}
+      </button>
+    );
+  return <div className={frame}>{content}</div>;
 }

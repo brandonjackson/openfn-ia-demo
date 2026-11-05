@@ -3,6 +3,7 @@ import type { Environment, SystemEnvironment } from "../../model/page-data";
 import { ENVIRONMENTS } from "../../model/page-data";
 import Button from "../primitives/Button";
 import EnvironmentBadge from "./EnvironmentBadge";
+import Card from "../primitives/Card";
 
 // What's lost if an environment has no credential, so the gap reads as a choice.
 const missingHint: Record<Environment, string> = {
@@ -21,7 +22,7 @@ interface Props {
  */
 export default function SystemEnvironments({ environments }: Props) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white divide-y divide-gray-100">
+    <Card flush className="divide-y divide-gray-100">
       {ENVIRONMENTS.map((env) => {
         const { url, credential } = environments[env];
         return (
@@ -66,6 +67,6 @@ export default function SystemEnvironments({ environments }: Props) {
           </div>
         );
       })}
-    </div>
+    </Card>
   );
 }

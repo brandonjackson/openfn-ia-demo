@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import Link from "./Link";
 import { ChevronRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import IconTile from "./IconTile";
 
 interface Props {
   icon: LucideIcon;
@@ -63,20 +64,7 @@ export default function ListRow({
 
   const content = (
     <>
-      {logo ?? (
-        <div
-          className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-            selected ? "bg-indigo-100" : "bg-gray-100"
-          } ${interactive ? "group-hover:bg-indigo-50" : ""}`}
-        >
-          <Icon
-            size={20}
-            className={`${selected ? "text-indigo-500" : "text-gray-400"} ${
-              interactive ? "group-hover:text-indigo-500" : ""
-            }`}
-          />
-        </div>
-      )}
+      {logo ?? <IconTile icon={Icon} tone={selected ? "indigo" : "gray"} hoverTint={interactive} />}
       <div className="flex-1 min-w-0">
         {/* On small screens badges drop below a long title rather than squeezing it. */}
         <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-2 gap-y-1 min-w-0">

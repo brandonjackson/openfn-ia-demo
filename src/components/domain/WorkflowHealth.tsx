@@ -9,7 +9,7 @@ import ProgressBar from "../primitives/ProgressBar";
 import SectionHeading from "../primitives/SectionHeading";
 import PeriodPicker from "./PeriodPicker";
 import FailureBreakdown from "./FailureBreakdown";
-import { AdaptorIcon } from "./AdaptorIcon";
+import AdaptorLogo from "./AdaptorLogo";
 
 /**
  * The workflow's Health page, opened from the code view's explorer and shown
@@ -81,7 +81,7 @@ export default function WorkflowHealth({
                 {health.steps.map((s) => (
                   <li key={s.jobId}>
                     <div className="mb-1.5 flex items-center gap-2 text-sm">
-                      {s.adaptor && <AdaptorIcon adaptor={s.adaptor} size="xs" />}
+                      {s.adaptor && <AdaptorLogo adaptor={s.adaptor} size="2xs" />}
                       <span className="min-w-0 flex-1 truncate text-gray-900" title={s.label}>
                         {s.label}
                       </span>

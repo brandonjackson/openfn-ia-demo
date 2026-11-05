@@ -2,15 +2,11 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Button from "./Button";
 import type { ButtonSize, ButtonVariant } from "./Button";
-import Surface from "./Surface";
-import { usePopover } from "./use-popover";
+import DropdownMenu from "./DropdownMenu";
+import type { DropdownMenuItem } from "./DropdownMenu";
+import TextLink from "./TextLink";
 
-export interface MenuButtonItem {
-  id: string;
-  label: string;
-  description?: string;
-  icon?: LucideIcon;
-}
+export type MenuButtonItem = Pick<DropdownMenuItem, "id" | "label" | "description" | "icon">;
 
 interface Props {
   label: string;
@@ -49,79 +45,30 @@ export default function MenuButton({
   align = "left",
   defaultOpen = false,
 }: Props) {
-  const { open, setOpen, ref } = usePopover(defaultOpen);
-
-
-  const toggle = () => setOpen((o) => !o);
   const LinkIcon = icon;
-
   return (
-    <div ref={ref} className="relative inline-block">
-      {appearance === "button" ? (
-        <Button
-          variant={variant}
-          size={size}
-          icon={icon}
-          aria-haspopup="menu"
-          aria-expanded={open}
-          onClick={toggle}
-        >
-          {label}
-          <ChevronDown size={14} className="-mr-0.5 opacity-70" />
-        </Button>
-      ) : (
-        <button
-          type="button"
-          aria-haspopup="menu"
-          aria-expanded={open}
-          onClick={toggle}
-          className="inline-flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700"
-        >
-          {LinkIcon && <LinkIcon size={12} />}
-          {label}
-          <ArrowRight size={12} />
-        </button>
-      )}
-
-      {open && (
-        <Surface
-          variant="popover"
-          role="menu"
-          className={`absolute top-full z-50 mt-1 w-72 p-1.5 ${
-            align === "right" ? "right-0" : "left-0"
-          }`}
-        >
-          {menuTitle && <p className="px-2 pt-1 pb-1.5 text-xs text-gray-500">{menuTitle}</p>}
-          <ul className="max-h-72 overflow-y-auto">
-            {items.map((item) => {
-              const ItemIcon = item.icon;
-              return (
-                <li key={item.id}>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setOpen(false);
-                      onSelect(item.id);
-                    }}
-                    className="flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left hover:bg-gray-100"
-                  >
-                    {ItemIcon && <ItemIcon size={14} className="mt-0.5 flex-shrink-0 text-gray-400" />}
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm text-gray-900" title={item.label}>
-                        {item.label}
-                      </span>
-                      {item.description && (
-                        <span className="block text-xs text-gray-500">{item.description}</span>
-                      )}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </Surface>
-      )}
-    </div>
+    <DropdownMenu
+      ariaLabel={label}
+      title={menuTitle}
+      items={items}
+      onSelect={onSelect}
+      align={align}
+      widthClass="w-72"
+      defaultOpen={defaultOpen}
+      trigger={({ open, toggle }) =>
+        appearance === "button" ? (
+          <Button variant={variant} size={size} icon={icon} aria-haspopup="menu" aria-expanded={open} onClick={toggle}>
+            {label}
+            <ChevronDown size={14} className="-mr-0.5 opacity-70" />
+          </Button>
+        ) : (
+          <TextLink variant="action" onClick={toggle}>
+            {LinkIcon && <LinkIcon size={12} />}
+            {label}
+            <ArrowRight size={12} />
+          </TextLink>
+        )
+      }
+    />
   );
 }

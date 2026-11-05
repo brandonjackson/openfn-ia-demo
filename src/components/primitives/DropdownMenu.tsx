@@ -3,6 +3,8 @@ import { Check, CheckSquare2, Square } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Surface from "./Surface";
 import { usePopover } from "./use-popover";
+import NavItem from "./NavItem";
+import Badge from "./Badge";
 
 export interface DropdownMenuItem {
   id: string;
@@ -89,49 +91,39 @@ export default function DropdownMenu({
           {title && <p className="px-2.5 pb-1.5 pt-1 text-xs text-gray-500">{title}</p>}
           <ul>
             {items.map((item) => {
-              const Icon = item.icon;
-              const danger = item.tone === "danger";
               return (
                 <li key={item.id} className={item.divider ? "mt-1.5 border-t border-gray-100 pt-1.5" : undefined}>
-                  <button
-                    type="button"
-                    role="menuitem"
+                  <NavItem
+                    variant="menu"
+                    label={item.label}
+                    icon={item.icon}
+                    leading={
+                      item.checked === undefined ? undefined : item.checked ? (
+                        <CheckSquare2 size={15} className="text-indigo-600" />
+                      ) : (
+                        <Square size={15} className="text-gray-300" />
+                      )
+                    }
+                    description={item.description}
+                    danger={item.tone === "danger"}
                     disabled={item.disabled}
                     onClick={() => {
                       setOpen(false);
                       onSelect(item.id);
                     }}
-                    className={`flex w-full items-start gap-2.5 rounded-md px-2.5 py-1.5 text-left text-sm disabled:cursor-not-allowed disabled:opacity-50 ${
-                      danger ? "text-red-600 hover:bg-red-50" : "text-gray-800 hover:bg-gray-100"
-                    }`}
-                  >
-                    {item.checked !== undefined &&
-                      (item.checked ? (
-                        <CheckSquare2 size={15} className="mt-0.5 flex-shrink-0 text-indigo-600" />
-                      ) : (
-                        <Square size={15} className="mt-0.5 flex-shrink-0 text-gray-300" />
-                      ))}
-                    {Icon && (
-                      <Icon size={14} className={`mt-0.5 flex-shrink-0 ${danger ? "text-red-500" : "text-gray-400"}`} />
-                    )}
-                    <span className="min-w-0 flex-1">
-                      <span className="flex items-center gap-2">
-                        <span className="truncate">{item.label}</span>
-                        {item.tag && (
-                          <span className="flex-shrink-0 rounded bg-gray-100 px-1.5 py-0.5 text-[11px] font-medium text-gray-500">
-                            {item.tag}
-                          </span>
-                        )}
-                      </span>
-                      {item.description && (
-                        <span className="block text-xs text-gray-500">{item.description}</span>
-                      )}
-                    </span>
-                    {item.selected && <Check size={14} className="mt-0.5 flex-shrink-0 text-indigo-600" />}
-                    {item.shortcut && !item.selected && (
-                      <span className="mt-0.5 flex-shrink-0 font-mono text-xs text-gray-400">{item.shortcut}</span>
-                    )}
-                  </button>
+                    trailing={
+                      (item.tag || item.selected || item.shortcut) && (
+                        <>
+                          {item.tag && <Badge label={item.tag} shape="tag" />}
+                          {item.selected ? (
+                            <Check size={14} className="text-indigo-600" />
+                          ) : (
+                            item.shortcut && <span className="font-mono text-xs text-gray-400">{item.shortcut}</span>
+                          )}
+                        </>
+                      )
+                    }
+                  />
                 </li>
               );
             })}

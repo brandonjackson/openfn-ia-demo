@@ -3,7 +3,7 @@ import type { PageRoute } from "../app/ia-utils";
 import { saveWorkOrders, useChangedHistories } from "../app/history-state";
 import type { HistoryPageData } from "../model/page-data";
 import type { Dataclip, RunStatus, WorkOrder } from "../model/workflow";
-import { historyStatuses } from "../model/history";
+import { defaultHistoryFilters, historySearchFields, historyStatuses, type HistoryFilters } from "../model/history";
 import { shortId } from "../model/runs";
 import {
   allChannelRequests,
@@ -18,23 +18,58 @@ import { projects } from "../fixtures/projects";
 import { simulateRun } from "../fixtures/runs";
 import { resolveWorkflow } from "../fixtures/workflow-lookup";
 import { currentUser } from "../fixtures/user";
-import HistoryPage, { type HistoryFilters } from "./HistoryPage";
+import HistoryPage from "./HistoryPage";
 import NotFoundPage from "./NotFoundPage";
 import { pageFrame, routeProject } from "./route.fixtures";
 
 /**
- * Where History starts, from the URL: `?status=failed`, `?workflow=<id>`,
- * `?project=<id>`, and `?type=Channel+Request` (as Insights links it) for
- * the channel requests.
+ * History's filters, from the URL: `?status=failed,cancelled`,
+ * `?workflow=<id>`, `?project=<id>`, `?workorder=<id>`, `?q=` with
+ * `?in=id,body`, `?received_after=` / `_before=` and `?activity_after=` /
+ * `_before=` (datetime-local values), and on the channel requests tab
+ * (`?type=channels`; Insights links it as `Channel+Request`) `?channel=` and
+ * `?request_status=ok|failed`. Anything missing or unknown is left unfiltered.
  */
 function filtersFrom(params: URLSearchParams): HistoryFilters {
-  const status = params.get("status")?.toLowerCase();
+  const list = (key: string) => (params.get(key) ?? "").split(",").map((v) => v.trim().toLowerCase()).filter(Boolean);
+  const fields = historySearchFields.filter((f) => list("in").includes(f.id.toLowerCase())).map((f) => f.id);
+  const requestStatus = params.get("request_status");
   return {
-    tab: params.get("type")?.toLowerCase().startsWith("channel") ? "channels" : undefined,
-    status: historyStatuses.find((s) => s.id === status || s.label.toLowerCase() === status)?.id,
-    workflowId: params.get("workflow") ?? undefined,
-    projectId: params.get("project") ?? undefined,
+    tab: params.get("type")?.toLowerCase().startsWith("channel") ? "channels" : "work-orders",
+    search: params.get("q") ?? "",
+    searchFields: fields.length ? fields : defaultHistoryFilters.searchFields,
+    projectId: params.get("project"),
+    workflowId: params.get("workflow"),
+    statuses: historyStatuses.filter((s) => list("status").some((v) => v === s.id || v === s.label.toLowerCase())).map((s) => s.id),
+    receivedAfter: params.get("received_after"),
+    receivedBefore: params.get("received_before"),
+    activityAfter: params.get("activity_after"),
+    activityBefore: params.get("activity_before"),
+    workOrderId: params.get("workorder"),
+    channelId: params.get("channel"),
+    requestStatus: requestStatus === "ok" || requestStatus === "failed" ? requestStatus : null,
   };
+}
+
+/** The URL's search for `filters`, leaving out whatever is as History opens. */
+function paramsFor(filters: HistoryFilters): URLSearchParams {
+  const f = filters;
+  const entries: [string, string | null][] = [
+    ["type", f.tab === "channels" ? "channels" : null],
+    ["q", f.search || null],
+    ["in", f.searchFields.join(",") === defaultHistoryFilters.searchFields.join(",") ? null : f.searchFields.join(",")],
+    ["project", f.projectId],
+    ["workflow", f.workflowId],
+    ["status", f.statuses.join(",") || null],
+    ["received_after", f.receivedAfter],
+    ["received_before", f.receivedBefore],
+    ["activity_after", f.activityAfter],
+    ["activity_before", f.activityBefore],
+    ["workorder", f.workOrderId],
+    ["channel", f.channelId],
+    ["request_status", f.requestStatus],
+  ];
+  return new URLSearchParams(entries.filter((e): e is [string, string] => !!e[1]));
 }
 
 /**
@@ -44,7 +79,7 @@ function filtersFrom(params: URLSearchParams): HistoryFilters {
  */
 export default function HistoryPageFixtures({ route }: { route: PageRoute }) {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const changed = useChangedHistories();
   const project = routeProject(route);
   if (project === null) return <NotFoundPage path={route.currentPath} reason="data" />;
@@ -97,14 +132,17 @@ export default function HistoryPageFixtures({ route }: { route: PageRoute }) {
   }
 
   const cancelled: RunStatus = "cancelled";
+  const filters = filtersFrom(searchParams);
 
   return (
     <HistoryPage
-      // A new page, or new filters in the URL, start afresh rather than keeping the last page's filters.
-      key={`${route.currentPath}?${searchParams.toString()}`}
+      // A new page starts afresh rather than keeping the last page's picks.
+      key={route.currentPath}
       {...pageFrame(route)}
       data={data}
-      initialFilters={filtersFrom(searchParams)}
+      filters={filters}
+      // Each change is a step Back can undo, except typing in the search, which would leave one per letter.
+      onFiltersChange={(next) => setSearchParams(paramsFor(next), { replace: next.search !== filters.search })}
       onRetry={async (ids) => retry(ids)}
       onRetryFromStep={async (ids, jobId) => retry(ids, jobId)}
       onCancel={async (ids) =>

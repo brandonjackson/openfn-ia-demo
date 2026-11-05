@@ -1,10 +1,12 @@
+import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import HistoryPage from "./HistoryPage";
+import HistoryPage, { type HistoryPageProps } from "./HistoryPage";
 import { withRouter } from "../stories/decorators";
 import { allChannelRequests, allWorkOrders, historyWorkflows, projectChannelRequests, projectWorkOrders } from "../fixtures/history";
 import { projects } from "../fixtures/projects";
 import type { IANode } from "../model/ia-tree";
 import type { HistoryPageData } from "../model/page-data";
+import { defaultHistoryFilters, type HistoryFilters } from "../model/history";
 
 const project = projects[0];
 
@@ -30,10 +32,17 @@ const actions = {
   onExport: async () => {},
 };
 
+/** Keeps the filters as the wrapper's URL would, starting from the story's. */
+function WithFilters(props: HistoryPageProps) {
+  const [filters, setFilters] = useState<HistoryFilters>(props.filters);
+  return <HistoryPage {...props} filters={filters} onFiltersChange={setFilters} />;
+}
+
 const meta: Meta<typeof HistoryPage> = {
   title: "Pages/HistoryPage",
   component: HistoryPage,
   decorators: [withRouter],
+  render: (args) => <WithFilters {...args} />,
   parameters: { layout: "padded" },
   args: {
     node,
@@ -43,6 +52,8 @@ const meta: Meta<typeof HistoryPage> = {
     ],
     currentPath: `/projects/${project.id}/history`,
     data: projectData,
+    filters: defaultHistoryFilters,
+    onFiltersChange: () => {},
     ...actions,
   },
 };
@@ -54,10 +65,20 @@ type Story = StoryObj<typeof HistoryPage>;
 export const Default: Story = {};
 
 /** Opened from a link to the project's failed work orders. */
-export const FailedOnly: Story = { args: { initialFilters: { status: "failed" } } };
+export const FailedOnly: Story = { args: { filters: { ...defaultHistoryFilters, statuses: ["failed"] } } };
+
+/** Searched and filtered by when the work orders last ran. */
+export const Filtered: Story = {
+  args: { filters: { ...defaultHistoryFilters, search: "502", activityAfter: "2026-10-13T10:00" } },
+};
+
+/** Opened from a link to one work order, which shows open. */
+export const OneWorkOrder: Story = {
+  args: { filters: { ...defaultHistoryFilters, workOrderId: projectData.workOrders[0]?.workOrder.id ?? null } },
+};
 
 /** The requests the project's channels carried. */
-export const ChannelRequests: Story = { args: { initialFilters: { tab: "channels" } } };
+export const ChannelRequests: Story = { args: { filters: { ...defaultHistoryFilters, tab: "channels" } } };
 
 /** Across every project, with a project filter and the project on each row. */
 export const AcrossProjects: Story = {

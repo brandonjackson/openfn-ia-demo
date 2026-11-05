@@ -2,13 +2,13 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import XRoadDirectory from "./XRoadDirectory";
 import { routeKey } from "../../model/xroad";
-import { xroadDirectory } from "../../fixtures/xroad";
+import { orgXRoad, xroadDirectory } from "../../fixtures/xroad";
 import type { XRoadRoute } from "../../model/xroad";
 
 const meta: Meta<typeof XRoadDirectory> = {
   title: "Patterns/XRoadDirectory",
   component: XRoadDirectory,
-  args: { members: xroadDirectory, syncedAt: "12 minutes ago" },
+  args: { members: xroadDirectory, instance: orgXRoad.instance, syncedAt: "12 minutes ago" },
   decorators: [(Story) => <div className="max-w-4xl"><Story /></div>],
 };
 

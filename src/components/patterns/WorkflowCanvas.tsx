@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import type { RunDetails, Workflow, WorkflowNode } from "../../model/workflow";
+import type { AdaptorKind, RunDetails, Workflow, WorkflowNode } from "../../model/workflow";
 import type { RunActivity } from "../../model/runs";
+import type { AdaptorInfo } from "../../model/adaptor-reference";
+import type { ConnectedSystem } from "../../model/connected-systems";
 import WorkflowNodeCard, { NODE_HEIGHT, NODE_WIDTH } from "../domain/WorkflowNodeCard";
 import type { NodeAction } from "../domain/WorkflowNodeCard";
 import EdgeBadge from "../domain/EdgeBadge";
@@ -63,6 +65,8 @@ export default function WorkflowCanvas({
   showControls = true,
   header,
   onAddAfter,
+  adaptors = {},
+  systems = [],
 }: {
   workflow: Workflow;
   selectedId?: string;
@@ -86,6 +90,10 @@ export default function WorkflowCanvas({
   header?: ReactNode;
   /** Adds a step after a node, from the + that shows on a hovered card. */
   onAddAfter?: (nodeId: string) => void;
+  /** Each adaptor's name and version, by adaptor id, for the steps' cards. */
+  adaptors?: Record<AdaptorKind, AdaptorInfo>;
+  /** The project's connected systems, for the cards of steps that talk to one. */
+  systems?: ConnectedSystem[];
 }) {
   const nodeById = (id: string) => workflow.nodes.find((n) => n.id === id);
 
@@ -285,6 +293,8 @@ export default function WorkflowCanvas({
               onShowFailures={onShowFailures && overlay?.nodes[node.id]?.failed ? () => onShowFailures(node.id) : undefined}
               note={node.type === "trigger" && startedAtTrigger ? `Started by ${run!.startedBy}` : undefined}
               onAddAfter={onAddAfter ? (n) => onAddAfter(n.id) : undefined}
+              adaptorName={node.type === "job" ? adaptors[node.adaptor]?.name : undefined}
+              system={node.type === "job" && node.system ? systems.find((s) => s.id === node.system) : undefined}
             />
           </div>
         ))}

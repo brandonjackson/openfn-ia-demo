@@ -1,4 +1,5 @@
-import type { NetworkLink, OrgXRoadSettings, XRoadHeader, XRoadMember, XRoadRoute, XRoadService } from "../model/xroad";
+import type { NetworkLink, OrgXRoadSettings, XRoadMember, XRoadRoute, XRoadService } from "../model/xroad";
+import { clientIdOf, findMember, findService, openfnSubsystemOf, serviceIdOf, subsystemIdOf } from "../model/xroad";
 
 export const orgXRoad: OrgXRoadSettings = {
   instance: "FJ",
@@ -34,10 +35,10 @@ export const orgXRoad: OrgXRoadSettings = {
 };
 
 /** The subsystem OpenFn publishes and calls as. */
-export const openfnSubsystem = orgXRoad.subsystems.find((s) => s.openfn)!;
+export const openfnSubsystem = openfnSubsystemOf(orgXRoad);
 
 /** `FJ/GOV/MOH/OPENFN`: who OpenFn is on X-Road, sent as X-Road-Client on every call it makes. */
-export const openfnClientId = [orgXRoad.instance, orgXRoad.memberClass, orgXRoad.memberCode, openfnSubsystem.code].join("/");
+export const openfnClientId = clientIdOf(orgXRoad);
 
 const verifyNationalId: XRoadService = {
   code: "verify-national-id",
@@ -271,24 +272,21 @@ export const xroadDirectory: XRoadMember[] = [
 ];
 
 export function directoryMember(id: string): XRoadMember | undefined {
-  return xroadDirectory.find((m) => m.id === id);
+  return findMember(xroadDirectory, id);
 }
 
 export function routeService(route: XRoadRoute): XRoadService | undefined {
-  return directoryMember(route.memberId)
-    ?.subsystems.find((s) => s.code === route.subsystem)
-    ?.services.find((s) => s.code === route.service);
+  return findService(xroadDirectory, route);
 }
 
 /** `FJ/GOV/MOI/IDENTITY/verify-national-id`, as X-Road names a service. */
 export function routeServiceId(route: XRoadRoute): string {
-  const member = directoryMember(route.memberId);
-  return [orgXRoad.instance, member?.memberClass, member?.memberCode, route.subsystem, route.service].join("/");
+  return serviceIdOf(orgXRoad.instance, directoryMember(route.memberId), route);
 }
 
 /** `FJ/GOV/NRH/OPENMRS`, as X-Road names a member's subsystem. */
 export function subsystemId(member: XRoadMember, subsystem: string): string {
-  return [orgXRoad.instance, member.memberClass, member.memberCode, subsystem].join("/");
+  return subsystemIdOf(orgXRoad.instance, member, subsystem);
 }
 
 /** The URL a call goes to: the organisation's own Security Server, which forwards it to the provider's. */
@@ -296,13 +294,6 @@ export function routeUrl(route: XRoadRoute): string {
   return `https://${orgXRoad.securityServers[0].address}/r1/${routeServiceId(route)}`;
 }
 
-/** The X-Road headers OpenFn reads on calls in and adds to calls out. */
-export const xroadHeaders: XRoadHeader[] = [
-  { name: "X-Road-Client", required: true, description: "The member and subsystem making the call." },
-  { name: "X-Road-Id", required: false, description: "The message ID, to match a run to the Security Server's logs." },
-  { name: "X-Road-UserId", required: false, description: "The official behind the call." },
-  { name: "X-Road-Issue", required: false, description: "A business case reference, such as a case or ticket number." },
-];
 
 /** Members the organisation exchanges data with over X-Road. Those that call in are drawn on the ecosystem map. */
 export const networkLinks: NetworkLink[] = [

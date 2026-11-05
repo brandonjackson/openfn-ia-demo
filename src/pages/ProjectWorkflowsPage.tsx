@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Plus, Workflow } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
 import type { ProjectWorkflowsPageData, WorkflowListItem } from "../model/page-data";
@@ -10,7 +9,10 @@ import { Select } from "../components/primitives/FormControls";
 import WorkflowRow from "../components/domain/WorkflowRow";
 import EmptyState from "../components/primitives/EmptyState";
 
-export type ProjectWorkflowsPageProps = PageProps<ProjectWorkflowsPageData>;
+export interface ProjectWorkflowsPageProps extends PageProps<ProjectWorkflowsPageData> {
+  /** Opens a blank workflow in this project. */
+  onNewWorkflow: () => void;
+}
 
 const sorts: Record<string, (a: WorkflowListItem, b: WorkflowListItem) => number> = {
   "Sort by: Activity": (a, b) => (b.lastRunAt ?? "").localeCompare(a.lastRunAt ?? ""),
@@ -19,8 +21,7 @@ const sorts: Record<string, (a: WorkflowListItem, b: WorkflowListItem) => number
 };
 const sortOptions = Object.keys(sorts);
 
-export default function ProjectWorkflowsPage({ node, ancestors, data }: ProjectWorkflowsPageProps) {
-  const navigate = useNavigate();
+export default function ProjectWorkflowsPage({ node, ancestors, data, onNewWorkflow }: ProjectWorkflowsPageProps) {
   const [sort, setSort] = useState(sortOptions[0]);
   const workflows = [...data.workflows].sort(sorts[sort]);
   const count = data.workflows.length;
@@ -38,7 +39,7 @@ export default function ProjectWorkflowsPage({ node, ancestors, data }: ProjectW
           <Button
             icon={Plus}
             size="sm"
-            onClick={() => navigate(`/workflow-editor/new?project=${data.projectId}`)}
+            onClick={onNewWorkflow}
           >
             New workflow
           </Button>

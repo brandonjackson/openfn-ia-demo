@@ -1,13 +1,12 @@
 import { useRef } from "react";
 import type { ReactNode } from "react";
 import { BookOpen, Calendar, ExternalLink, FolderKanban, Globe, History, Layers, Plug, Radio, User, X } from "lucide-react";
-import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../model/workflow";
+import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowFileContents, WorkflowSettings } from "../../model/workflow";
 import type { DetailsViewId } from "./editor-layout";
 import { triggerTypes, workflowToYaml } from "../../model/workflow";
-import { adaptorInfo } from "../../fixtures/adaptor-reference";
+import type { AdaptorReference } from "../../model/adaptor-reference";
+import type { ConnectedSystem } from "../../model/connected-systems";
 import type { ProjectComponent, ProjectService } from "../../model/projects";
-import { componentPreview, serviceListing, workflowDocs } from "../../fixtures/workflow-files";
-import { channelDetails } from "../../fixtures/channels";
 import { channelTypeConfig } from "../domain/channel-types";
 import { componentTypeIcons } from "../../model/component-types";
 import Button from "../primitives/Button";
@@ -34,6 +33,12 @@ import Surface from "../primitives/Surface";
 
 interface Props {
   workflow: Workflow;
+  /** What the editor knows about each adaptor (name, version, snippets), the adaptors a step can switch to, and the project's credentials. */
+  adaptors: AdaptorReference;
+  /** The project's connected systems, for a step's config. */
+  systems?: ConnectedSystem[];
+  /** What the docs, service listing and project components listed in the explorer hold. */
+  contents?: WorkflowFileContents;
   file: ExplorerFile;
   onOpen: (file: ExplorerFile) => void;
   /** The selected run; steps show how they went in the explorer, and a step's input and output show in I/O. */
@@ -106,6 +111,9 @@ interface Props {
  */
 export default function CodeWorkspace({
   workflow,
+  adaptors,
+  systems = [],
+  contents,
   file,
   onOpen,
   run,
@@ -146,7 +154,7 @@ export default function CodeWorkspace({
       : undefined;
   const component =
     typeof file === "object" && "componentId" in file ? components.find((c) => c.id === file.componentId) : undefined;
-  const channel = component?.type === "Channel" ? channelDetails(component) : undefined;
+  const channel = component?.type === "Channel" ? contents?.channels[component.id] : undefined;
   const doc = file === "context" ? "context" : file === "spec" ? "spec" : undefined;
   const listing = file === "service" ? service : undefined;
   const addedDoc = typeof file === "object" && "docName" in file ? file.docName : undefined;
@@ -157,6 +165,7 @@ export default function CodeWorkspace({
   const triggerYaml = yaml.slice(yaml.indexOf("triggers:"), yaml.indexOf("edges:")).trimEnd();
   const editor = useRef<CodeEditorHandle>(null);
   const editable = Boolean(step && !readOnly && onCodeChange);
+  const stepAdaptor = step ? adaptors.info[step.adaptor] : undefined;
 
   const path =
     step !== undefined
@@ -170,22 +179,22 @@ export default function CodeWorkspace({
   const code = step
     ? step.body
     : component
-      ? componentPreview(component)
+      ? (contents?.componentPreviews[component.id] ?? "")
       : file === "trigger"
         ? triggerYaml
         : doc
-          ? workflowDocs[doc]
+          ? (contents?.docs[doc] ?? "")
           : listing
-            ? serviceListing(listing)
+            ? (contents?.serviceListing ?? "")
             : addedDoc
             ? `# ${addedDoc.replace(/\.md$/, "")}\n`
             : yaml;
 
-  const adaptorPill = step && (
+  const adaptorPill = step && stepAdaptor && (
     <EntityPill
-      name={adaptorInfo[step.adaptor].name}
+      name={stepAdaptor.name}
       adaptor={step.adaptor}
-      suffix={adaptorInfo[step.adaptor].version}
+      suffix={stepAdaptor.version}
       size="xs"
       title="Open the step's config"
       onClick={onDetailsViewChange ? () => onDetailsViewChange("config") : undefined}
@@ -201,16 +210,21 @@ export default function CodeWorkspace({
   const detailsBody =
     view === "io" && run ? (
       <RunIOPanel run={run} jobId={step?.id} dataclips={dataclips} onExpand={onExpandRunData} />
-    ) : view === "snippets" && step ? (
+    ) : view === "snippets" && step && stepAdaptor ? (
       <AdaptorReferencePanel
-        adaptor={step.adaptor}
+        adaptor={stepAdaptor}
+        snippets={adaptors.snippets[step.adaptor] ?? []}
         onInsert={editable ? (s) => editor.current?.insert(s.code) : undefined}
         stepLabel={step.label}
       />
-    ) : step ? (
+    ) : step && stepAdaptor ? (
       <StepConfigPanel
         key={step.id}
         step={step}
+        adaptor={stepAdaptor}
+        adaptorChoices={adaptors.choices.map((a) => adaptors.info[a])}
+        credentials={adaptors.credentials.filter((c) => c.adaptor === step.adaptor)}
+        systems={systems}
         credentialId={credentials[step.id]}
         readOnly={readOnly}
         onChange={onStepChange ? (changes) => onStepChange(step.id, changes) : undefined}
@@ -311,7 +325,7 @@ export default function CodeWorkspace({
   );
 
   const statusItems = step
-    ? [`${step.adaptor}@${adaptorInfo[step.adaptor].version}`, step.label]
+    ? [`${step.adaptor}@${stepAdaptor?.version}`, step.label]
     : component
       ? [component.type.toLowerCase(), component.name]
       : file === "trigger" && trigger

@@ -1,4 +1,13 @@
+/*
+ * debt: a system's logo is looked up by its name here, from fixtures, so a
+ * logo can be drawn where only the name is known. The data should carry the
+ * adaptor id instead (each system row, channel and credential), and then this
+ * map goes. Until then it's the one place below the wrappers that reads
+ * fixtures; don't add another.
+ */
+// eslint-disable-next-line no-restricted-imports -- debt: see above
 import { adaptors } from "../../fixtures/adaptors";
+// eslint-disable-next-line no-restricted-imports -- debt: see above
 import { connectedSystems, recommendedSystems } from "../../fixtures/connected-systems";
 
 const byName = new Map<string, string>();

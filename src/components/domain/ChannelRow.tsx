@@ -19,13 +19,26 @@ interface Props {
   autoCreated?: boolean;
   /** The system that publishes the channel, shown as a link under the description. */
   system?: { name: string; path: string };
+  /** Projects a workflow can be started in, for an event channel's "Create a workflow here". */
+  projects?: { id: string; name: string }[];
+  /** Starts a new workflow in a project, triggered by this channel. */
+  onStartWorkflow?: (projectId: string, channelId: string) => void;
 }
 
 /**
  * A read, write or event channel published by a connected system. Event
  * channels offer to start a new workflow from them.
  */
-export default function ChannelRow({ id, name, description, channelType, autoCreated = false, system }: Props) {
+export default function ChannelRow({
+  id,
+  name,
+  description,
+  channelType,
+  autoCreated = false,
+  system,
+  projects,
+  onStartWorkflow,
+}: Props) {
   const config = channelType ? channelTypeConfig[channelType] : undefined;
   const showMeta = system || channelType === "event";
 
@@ -52,7 +65,9 @@ export default function ChannelRow({ id, name, description, channelType, autoCre
                 <ArrowUpRight size={10} />
               </Link>
             )}
-            {channelType === "event" && <StartWorkflowFromChannel channelId={id} />}
+            {channelType === "event" && projects && onStartWorkflow && (
+              <StartWorkflowFromChannel projects={projects} onSelect={(projectId) => onStartWorkflow(projectId, id)} />
+            )}
           </>
         )
       }

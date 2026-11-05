@@ -20,6 +20,7 @@ const ancestors = [
 const meta: Meta<typeof ProjectWorkflowsPage> = {
   title: "Pages/ProjectWorkflowsPage",
   component: ProjectWorkflowsPage,
+  args: { onNewWorkflow: () => {} },
   decorators: [withRouterAt("/projects/malawi-chw-referrals/workflows")],
   parameters: { layout: "padded" },
 };

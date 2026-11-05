@@ -4,6 +4,8 @@ import CanvasRunsBar from "./CanvasRunsBar";
 import { nationalIdWorkflow, nationalIdWorkflowV1 } from "../../fixtures/workflow";
 import { runActivity } from "../../model/runs";
 import { failedRun, olderRun, sampleRun, workOrders } from "../../fixtures/runs";
+import { adaptorInfo } from "../../fixtures/adaptor-reference";
+import { connectedSystems } from "../../fixtures/connected-systems";
 
 const activity = runActivity(nationalIdWorkflow, workOrders);
 
@@ -11,7 +13,7 @@ const meta: Meta<typeof WorkflowCanvas> = {
   title: "Patterns/WorkflowCanvas",
   component: WorkflowCanvas,
   parameters: { layout: "fullscreen" },
-  args: { onNodeAction: () => {}, onSelect: () => {}, onOpen: () => {} },
+  args: { adaptors: adaptorInfo, systems: connectedSystems, onNodeAction: () => {}, onSelect: () => {}, onOpen: () => {} },
 };
 
 export default meta;

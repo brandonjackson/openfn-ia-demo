@@ -19,10 +19,11 @@ import XRoadAccessBadge from "../components/domain/XRoadAccessBadge";
 import XRoadDirectory from "../components/patterns/XRoadDirectory";
 import type { ConnectionMethod } from "../model/connected-systems";
 import type { XRoadConnectionStatus, XRoadRoute } from "../model/xroad";
-import { routeKey } from "../model/xroad";
-import { directoryMember, routeService } from "../fixtures/xroad";
 
-export type SystemsPageProps = PageProps<ListPageData>;
+export interface SystemsPageProps extends PageProps<ListPageData> {
+  /** Adds a service from the X-Road directory to your systems, with its route filled in. */
+  onAddXRoadService: (route: XRoadRoute) => Promise<void>;
+}
 
 function ListItemRow({ item, basePath }: { item: ListItem; basePath: string }) {
   const access = item.metadata?.access;
@@ -55,33 +56,20 @@ function ListItemRow({ item, basePath }: { item: ListItem; basePath: string }) {
   );
 }
 
-export default function SystemsPage({ node, ancestors, currentPath, data }: SystemsPageProps) {
+export default function SystemsPage({ node, ancestors, currentPath, data, onAddXRoadService }: SystemsPageProps) {
   const firstFilter = data.filters[0];
   const [selected, setSelected] = useState(firstFilter?.options[0] ?? "All");
   const [addFlowOpen, setAddFlowOpen] = useState(false);
   const [preselectedSystem, setPreselectedSystem] = useState<string | undefined>();
   const [view, setView] = useState<"list" | "ecosystem">("list");
-  // Services added from the X-Road directory this session.
-  const [addedRoutes, setAddedRoutes] = useState<XRoadRoute[]>([]);
   const xroad = data.xroad;
-  const added = [...(xroad?.added ?? []), ...addedRoutes.map(routeKey)];
-  const addedItems: ListItem[] = addedRoutes.map((route) => {
-    const member = directoryMember(route.memberId);
-    const service = routeService(route);
-    return {
-      id: `xroad-${routeKey(route)}`,
-      name: service?.name ?? route.service,
-      description: `${member?.name ?? route.memberId}, ${route.subsystem}. Just added from the X-Road directory: next, agree terms with the provider.`,
-      metadata: { connection: "xroad", xroadStatus: "discovered", adaptor: "http", justAdded: "true" },
-    };
-  });
 
   const handleOpenAddFlow = (systemName?: string) => {
     setPreselectedSystem(systemName);
     setAddFlowOpen(true);
   };
 
-  const filtered = [...data.items, ...addedItems].filter((item) => {
+  const filtered = data.items.filter((item) => {
     if (!data.filterKey || !data.filterMap) return true;
     const mapped = data.filterMap[selected];
     if (!mapped) return true; // "All" = show everything
@@ -165,9 +153,10 @@ export default function SystemsPage({ node, ancestors, currentPath, data }: Syst
           />
           <XRoadDirectory
             members={xroad.directory}
-            added={added}
+            instance={xroad.instance}
+            added={xroad.added}
             syncedAt={xroad.syncedAt}
-            onAdd={(route) => setAddedRoutes((routes) => [...routes, route])}
+            onAdd={(route) => void onAddXRoadService(route)}
           />
         </section>
       )}
@@ -177,6 +166,7 @@ export default function SystemsPage({ node, ancestors, currentPath, data }: Syst
       <AddConnectedSystemFlow
         open={addFlowOpen}
         onClose={() => setAddFlowOpen(false)}
+        adaptors={data.adaptors}
         preselectedSystem={preselectedSystem}
       />
     </div>

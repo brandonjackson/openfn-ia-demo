@@ -2,12 +2,27 @@ import type { Meta, StoryObj } from "@storybook/react";
 import StepInspector from "./StepInspector";
 import { nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "../../fixtures/workflow";
 import { withRouter } from "../../stories/decorators";
-import type { JobNode } from "../../model/workflow";
+import type { JobNode, WorkflowNode } from "../../model/workflow";
+import { adaptorInfo, credentialsFor } from "../../fixtures/adaptor-reference";
+import { codeSummary } from "../../fixtures/code-summaries";
+import { connectedSystems } from "../../fixtures/connected-systems";
 import { failureReasons, runActivity } from "../../model/runs";
 import { accessNotGrantedRun, dataclips, failedRun, registerCaseDataclips, registerCaseWorkOrders, sampleRun, workOrders } from "../../fixtures/runs";
 
 const job = (id: string) => nationalIdWorkflow.nodes.find((n): n is JobNode => n.type === "job" && n.id === id)!;
 const trigger = nationalIdWorkflow.nodes.find((n) => n.type === "trigger")!;
+
+/** A node with what the inspector shows about it: a step's adaptor, credentials, system and code summary. */
+const inspect = (node: WorkflowNode) =>
+  node.type === "job"
+    ? {
+        node,
+        adaptor: adaptorInfo[node.adaptor],
+        credentials: credentialsFor(node.adaptor),
+        system: node.system ? connectedSystems.find((s) => s.id === node.system) : undefined,
+        codeSummary: codeSummary(node),
+      }
+    : { node };
 
 const activity = runActivity(nationalIdWorkflow, workOrders, "30d");
 const statsFor = (id?: string) => ({
@@ -22,7 +37,7 @@ const meta: Meta<typeof StepInspector> = {
   component: StepInspector,
   parameters: { layout: "fullscreen" },
   args: {
-    node: job("search"),
+    ...inspect(job("search")),
     dataclips,
     url: "https://app.openfn.org/i/8f3c2a1e",
     latestVersion: "v2",
@@ -54,7 +69,7 @@ export const Default: Story = {};
 
 /** The step needs a credential it doesn't have yet. */
 export const NeedsCredential: Story = {
-  args: { node: job("create") },
+  args: { ...inspect(job("create")) },
 };
 
 /** On main: read-only, with the credential named. */
@@ -65,23 +80,23 @@ export const ReadOnly: Story = {
 /** A step whose code has nothing in it yet: the summary says so. */
 export const EmptyStep: Story = {
   args: {
-    node: { ...job("queue"), id: "step-new", label: "Untitled step", body: "// Start writing your step here" },
+    ...inspect({ ...job("queue"), id: "step-new", label: "Untitled step", body: "// Start writing your step here" }),
   },
 };
 
 /** Run history on the canvas: the config and summary stay on top, then the step's runs, failures and why they failed, over the canvas's period. */
 export const Stats: Story = {
-  args: { node: job("create"), stats: statsFor("create") },
+  args: { ...inspect(job("create")), stats: statsFor("create") },
 };
 
 /** A step that hasn't failed in the period. */
 export const StatsNoFailures: Story = {
-  args: { node: job("confirm"), stats: statsFor("confirm") },
+  args: { ...inspect(job("confirm")), stats: statsFor("confirm") },
 };
 
 /** No runs reached the step in the period. */
 export const StatsNoRuns: Story = {
-  args: { node: job("notify"), stats: { period: "24h", runs: 0, failed: 0, reasons: [] } },
+  args: { ...inspect(job("notify")), stats: { period: "24h", runs: 0, failed: 0, reasons: [] } },
 };
 
 /** The trigger under run history: the whole workflow's numbers. */
@@ -96,12 +111,12 @@ export const WithRun: Story = {
 
 /** The failed step, with its log telling why. */
 export const FailedStep: Story = {
-  args: { node: job("create"), run: failedRun, credentialId: "cred-identity-prod" },
+  args: { ...inspect(job("create")), run: failedRun, credentialId: "cred-identity-prod" },
 };
 
 /** A step the loaded run never reached. */
 export const NotInRun: Story = {
-  args: { node: job("notify"), run: failedRun },
+  args: { ...inspect(job("notify")), run: failedRun },
 };
 
 /** The trigger with no runs on the canvas: its type, webhook URL and switch. */
@@ -120,13 +135,13 @@ const caseJob = (id: string) =>
 /** A step on a system reached over X-Road: the system with its X-Road badge, and no credential to pick. */
 export const OnXRoadSystem: Story = {
   decorators: [withRouter],
-  args: { node: caseJob("openmrs-patient"), dataclips: registerCaseDataclips, latestVersion: "v1" },
+  args: { ...inspect(caseJob("openmrs-patient")), dataclips: registerCaseDataclips, latestVersion: "v1" },
 };
 
 /** The same kind of step on a system reached directly: only the badge differs. */
 export const OnDirectSystem: Story = {
   decorators: [withRouter],
-  args: { node: caseJob("send-dhis2"), latestVersion: "v1" },
+  args: { ...inspect(caseJob("send-dhis2")), latestVersion: "v1" },
 };
 
 /** The trigger in a run that came in over X-Road: who called, the message ID and the official behind it. */
@@ -143,5 +158,5 @@ export const TriggerCalledOverXRoad: Story = {
 /** The provider hadn't granted access yet, so the call was refused. */
 export const AccessNotGranted: Story = {
   decorators: [withRouter],
-  args: { node: caseJob("verify-nid"), run: accessNotGrantedRun, dataclips: registerCaseDataclips, latestVersion: "v1" },
+  args: { ...inspect(caseJob("verify-nid")), run: accessNotGrantedRun, dataclips: registerCaseDataclips, latestVersion: "v1" },
 };

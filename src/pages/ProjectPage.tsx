@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { ClipboardList } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
 import type { ProjectPageData } from "../model/page-data";
@@ -15,7 +14,10 @@ import SectionHeading from "../components/primitives/SectionHeading";
 import StatTile from "../components/primitives/StatTile";
 import TextLink from "../components/primitives/TextLink";
 
-export type ProjectPageProps = PageProps<ProjectPageData>;
+export interface ProjectPageProps extends PageProps<ProjectPageData> {
+  /** Takes a prompt over to Create, where the drafting happens. */
+  onStartBuilding: (prompt: string) => void;
+}
 
 /** How many components the Overview lists before "View all". */
 const COMPONENT_PREVIEW = 6;
@@ -25,15 +27,14 @@ const COMPONENT_PREVIEW = 6;
  * and starter ideas for building something new (the best of Create), then
  * what it already publishes and is built from.
  */
-export default function ProjectPage({ node, ancestors, currentPath, data }: ProjectPageProps) {
-  const navigate = useNavigate();
+export default function ProjectPage({ node, ancestors, currentPath, data, onStartBuilding }: ProjectPageProps) {
   const [prompt, setPrompt] = useState("");
   const { tiles, ideas, services, components } = data;
 
   // The prompt carries over to Create, where the drafting happens.
   const startBuilding = () => {
     const text = prompt.trim();
-    if (text) navigate(`${currentPath}/create`, { state: { prompt: text } });
+    if (text) onStartBuilding(text);
   };
 
   return (

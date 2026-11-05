@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { Boxes } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
 import type { ProjectComponentsPageData } from "../model/page-data";
@@ -10,15 +9,17 @@ import { componentTypes } from "../model/component-types";
 import EmptyState from "../components/primitives/EmptyState";
 import SectionHeading from "../components/primitives/SectionHeading";
 
-export type ProjectComponentsPageProps = PageProps<ProjectComponentsPageData>;
+export interface ProjectComponentsPageProps extends PageProps<ProjectComponentsPageData> {
+  /** Starts a new component of a type. Components are drafted from a plain-words description on Create. */
+  onAddComponent: (type: string) => void;
+}
 
 /**
  * Every component in the project, grouped by type, under a panel for adding
  * a new one. Workflows have their own page, so they are left out here, as
  * are empty groups.
  */
-export default function ProjectComponentsPage({ node, ancestors, data }: ProjectComponentsPageProps) {
-  const navigate = useNavigate();
+export default function ProjectComponentsPage({ node, ancestors, data, onAddComponent }: ProjectComponentsPageProps) {
   const projectPath = `/projects/${data.projectId}`;
   const types = componentTypes.filter((t) => t.type !== "Workflow");
   const groups = types
@@ -39,12 +40,7 @@ export default function ProjectComponentsPage({ node, ancestors, data }: Project
       <div>
         <AddComponentPanel
           options={types}
-          // Components are drafted from a plain-words description on Create.
-          onSelect={(type) =>
-            navigate(`${projectPath}/create`, {
-              state: { draft: `Add ${/^[aeiou]/i.test(type) ? "an" : "a"} ${type.toLowerCase()} to this project that ` },
-            })
-          }
+          onSelect={onAddComponent}
         />
       </div>
 

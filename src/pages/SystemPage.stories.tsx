@@ -3,6 +3,20 @@ import SystemPage from "./SystemPage";
 import { withRouter } from "../stories/decorators";
 import type { IANode } from "../model/ia-tree";
 import type { DetailPageData } from "../model/page-data";
+import { connectionOf } from "../model/connected-systems";
+import { connectedSystems } from "../fixtures/connected-systems";
+import { projectOptions } from "../fixtures/projects";
+import { directoryMember, orgXRoad, routeService } from "../fixtures/xroad";
+
+/** A system's record, and where its X-Road route goes when it has one, as the page's wrapper passes them. */
+function systemData(id: string): Pick<DetailPageData, "system" | "xroad"> {
+  const system = connectedSystems.find((s) => s.id === id)!;
+  const c = connectionOf(system);
+  return {
+    system,
+    xroad: c.method === "xroad" ? { org: orgXRoad, member: directoryMember(c.route.memberId), service: routeService(c.route) } : undefined,
+  };
+}
 
 const node: IANode = {
   id: "dhis2",
@@ -17,12 +31,13 @@ const ancestors = [
 
 const detailData: DetailPageData = {
   pageType: "detail",
-  systemId: "dhis2",
+  projects: projectOptions,
+  ...systemData("dhis2"),
   headerBadge: { label: "Shared", variant: "shared" },
   sections: [
     {
       id: "channels",
-      title: "Pages/SystemPage",
+      title: "Channels",
       display: "cards",
       items: [
         {
@@ -49,8 +64,9 @@ const detailData: DetailPageData = {
 };
 
 const meta: Meta<typeof SystemPage> = {
-  title: "Templates/SystemPage",
+  title: "Pages/SystemPage",
   component: SystemPage,
+  args: { onStartWorkflow: () => {} },
   decorators: [withRouter],
   parameters: { layout: "padded" },
 };
@@ -74,7 +90,7 @@ export const PrivateSystem: Story = {
     currentPath: "/connected-systems/kobo-toolbox",
     data: {
       ...detailData,
-      systemId: "kobo-toolbox",
+      ...systemData("kobo-toolbox"),
       headerBadge: { label: "Private", variant: "private" },
       sections: [
         {
@@ -102,7 +118,8 @@ export const NoChannels: Story = {
     currentPath: "/connected-systems/google-sheets",
     data: {
       pageType: "detail",
-      systemId: "google-sheets",
+  projects: projectOptions,
+      ...systemData("google-sheets"),
       headerBadge: { label: "Shared", variant: "shared" },
       sections: [],
     },
@@ -116,7 +133,7 @@ export const ViaXRoad: Story = {
     node: { id: "national-id", label: "National ID verification" },
     ancestors,
     currentPath: "/connected-systems/national-id",
-    data: { pageType: "detail", systemId: "national-id", headerBadge: { label: "Shared", variant: "shared" }, sections: [] },
+    data: { pageType: "detail", projects: projectOptions, ...systemData("national-id"), headerBadge: { label: "Shared", variant: "shared" }, sections: [] },
   },
 };
 
@@ -127,6 +144,6 @@ export const ViaXRoadAgreementPending: Story = {
     node: { id: "social-registry", label: "Social registry" },
     ancestors,
     currentPath: "/connected-systems/social-registry",
-    data: { pageType: "detail", systemId: "social-registry", headerBadge: { label: "Shared", variant: "shared" }, sections: [] },
+    data: { pageType: "detail", projects: projectOptions, ...systemData("social-registry"), headerBadge: { label: "Shared", variant: "shared" }, sections: [] },
   },
 };

@@ -1,6 +1,9 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { PageRoute } from "../app/ia-utils";
-import type { ServiceApiSpec, ServicePageData } from "../model/page-data";
+import type { ProjectServiceItem, ServiceApiSpec, ServicePageData } from "../model/page-data";
 import { projects } from "../fixtures/projects";
+import { orgXRoad } from "../fixtures/xroad";
 import ServicePage from "./ServicePage";
 import NotFoundPage from "./NotFoundPage";
 import { pageFrame, routeProject } from "./route.fixtures";
@@ -29,13 +32,39 @@ function buildServiceData(projectId: string, serviceId: string): ServicePageData
     service,
     workflow: project.components.find((c) => c.id === service.workflowId),
     api: service.api ?? defaultApi,
+    xroadOrg: orgXRoad,
   };
 }
 
 /** Feeds a published service's page from fixtures. */
 export default function ServicePageFixtures({ route }: { route: PageRoute }) {
+  const navigate = useNavigate();
+  // Changes saved this session, by service: the fixtures' stand-in for the server.
+  const [saved, setSaved] = useState<Record<string, Partial<ProjectServiceItem>>>({});
   const project = routeProject(route);
-  const data = project && buildServiceData(project.id, route.params["service"]);
-  if (!data) return <NotFoundPage path={route.currentPath} reason="data" />;
-  return <ServicePage {...pageFrame(route, { label: data.service.name })} data={data} />;
+  const found = project && buildServiceData(project.id, route.params["service"]);
+  if (!found) return <NotFoundPage path={route.currentPath} reason="data" />;
+
+  const data = { ...found, service: { ...found.service, ...saved[found.service.id] } };
+  const save = (changes: Partial<ProjectServiceItem>) =>
+    setSaved((s) => ({ ...s, [data.service.id]: { ...s[data.service.id], ...changes } }));
+
+  return (
+    <ServicePage
+      {...pageFrame(route, { label: data.service.name })}
+      data={data}
+      onOpenProject={() => navigate(`/projects/${data.projectId}`)}
+      onOpenWorkflow={(id) => navigate(`/workflow-editor/${id}`)}
+      onEnableMcp={async () => save({ mcpEnabled: true })}
+      onPublishToXRoad={async () =>
+        save({
+          xroad: {
+            ...data.service.xroad,
+            serviceCode: data.service.xroad?.serviceCode ?? data.service.id,
+            published: true,
+          },
+        })
+      }
+    />
+  );
 }

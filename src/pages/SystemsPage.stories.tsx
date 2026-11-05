@@ -4,6 +4,7 @@ import { withRouter } from "../stories/decorators";
 import { connectedSystemListItems, connectedSystemsIntro } from "../fixtures/connected-systems";
 import type { IANode } from "../model/ia-tree";
 import { systemsPageData } from "../fixtures";
+import { adaptors } from "../fixtures/adaptors";
 
 const node: IANode = {
   id: "connected-systems",
@@ -16,6 +17,7 @@ const ancestors = [{ node: { id: "root", label: "Home" }, path: "/" }];
 const meta: Meta<typeof SystemsPage> = {
   title: "Pages/SystemsPage",
   component: SystemsPage,
+  args: { onAddXRoadService: async () => {} },
   decorators: [withRouter],
   parameters: { layout: "padded" },
 };
@@ -30,6 +32,7 @@ export const Default: Story = {
     currentPath: "/connected-systems",
     data: {
       pageType: "list",
+      adaptors,
       filters: [{ label: "Access", options: ["All", "You have access", "No access"] }],
       items: connectedSystemListItems,
       filterKey: "access",
@@ -47,6 +50,7 @@ export const EmptyList: Story = {
     currentPath: "/connected-systems",
     data: {
       pageType: "list",
+      adaptors,
       filters: [{ label: "Access", options: ["All", "You have access", "No access"] }],
       items: [],
       showSuggestions: false,
@@ -61,6 +65,7 @@ export const NoFilters: Story = {
     currentPath: "/connected-systems",
     data: {
       pageType: "list",
+      adaptors,
       filters: [],
       items: connectedSystemListItems.slice(0, 3),
       showSuggestions: false,

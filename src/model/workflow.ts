@@ -5,6 +5,7 @@
 import { Clock, Globe, Radio } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { XRoadCall } from "./xroad";
+import type { ChannelDetails } from "./channels";
 export type AdaptorKind = string;
 
 /** What starts a workflow. */
@@ -262,4 +263,20 @@ export function defaultWorkflowSettings(workflow: Workflow): WorkflowSettings {
     retention: "Project default (90 days)",
     logOutput: true,
   };
+}
+
+/**
+ * What the files the code explorer lists beside a workflow's steps hold: the
+ * docs kept with it, the listing of the service it backs, and the project
+ * components it uses.
+ */
+export interface WorkflowFileContents {
+  /** context.md and spec.md. */
+  docs: { context: string; spec: string };
+  /** service.md, when the workflow backs a published service. */
+  serviceListing?: string;
+  /** What each project component looks like when opened, by component id. */
+  componentPreviews: Record<string, string>;
+  /** Each channel component's system, endpoint, traffic and messages, by component id. */
+  channels: Record<string, ChannelDetails>;
 }

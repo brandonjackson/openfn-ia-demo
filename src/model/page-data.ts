@@ -1,9 +1,10 @@
 import type { LucideIcon } from "lucide-react";
+import type { Adaptor } from "./adaptors";
 import type { RunStatus } from "./workflow";
 import type { ChannelDetails } from "./channels";
 import type { EcosystemStation, EcosystemWorkflow } from "./ecosystem";
-import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember } from "./xroad";
-import type { ConnectionMethod } from "./connected-systems";
+import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember, XRoadService } from "./xroad";
+import type { ConnectedSystem, ConnectionMethod } from "./connected-systems";
 
 /* ------------------------------------------------------------------ */
 /*  Shared primitive types                                             */
@@ -84,10 +85,14 @@ export interface ListPageData {
   /** The X-Road directory, for an organisation on X-Road. */
   xroad?: {
     directory: XRoadMember[];
+    /** The X-Road instance the directory is for, e.g. `FJ`. */
+    instance: string;
     /** Directory services already in your systems, as `memberId/subsystem/service`. */
     added: string[];
     syncedAt: string;
   };
+  /** Every adaptor a new system can be connected with. */
+  adaptors: Adaptor[];
 }
 
 export interface FeatureIntroData {
@@ -126,14 +131,27 @@ export interface AccessGrant {
   lastAccessed: string | null;
 }
 
+/** What a page needs to show an X-Road route: the organisation's own settings, and where the route goes. */
+export interface XRoadRouteContext {
+  org: OrgXRoadSettings;
+  /** The member the route goes to, from the directory. */
+  member?: XRoadMember;
+  /** The service the route goes to, from the directory. */
+  service?: XRoadService;
+}
+
 export interface DetailPageData {
   pageType: "detail";
   headerBadge?: { label: string; variant: "shared" | "private" };
-  /** System ID to look up full system data (url, owner, credentials, etc.) */
-  systemId?: string;
+  /** The system the page is about: its URL, owner, environments and how it's reached. */
+  system?: ConnectedSystem;
+  /** For a system reached over X-Road: the organisation's X-Road settings, and the member and service the route goes to. */
+  xroad?: XRoadRouteContext;
   metrics?: MetricCard[];
   sections: DetailSection[];
   accessGrants?: AccessGrant[];
+  /** Projects a new workflow can be started in, from an event channel. */
+  projects?: { id: string; name: string }[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -207,6 +225,8 @@ export interface CatalogPageData {
   usedServices?: UsedServiceEntry[];
   /** The organization's MCP server, which exposes callable services as agent tools. */
   mcpServerUrl?: string;
+  /** Projects a new workflow can be started in, from an event channel. */
+  projects?: { id: string; name: string }[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -288,6 +308,8 @@ export interface DashboardPageData {
   recommendedSystems: SuggestedSystem[];
   projects: ProjectSummary[];
   recommended: number;
+  /** Every adaptor a new system can be connected with. */
+  adaptors: Adaptor[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -429,6 +451,8 @@ export interface ServicePageData {
   /** The workflow behind the service, if it's been linked. */
   workflow?: ProjectComponentItem;
   api: ServiceApiSpec;
+  /** The organisation's X-Road settings: who it is on X-Road, and its Security Server. */
+  xroadOrg: OrgXRoadSettings;
 }
 
 /** A channel's page in its project, opened from the project's Components. */

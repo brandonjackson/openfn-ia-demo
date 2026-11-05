@@ -65,3 +65,9 @@ export interface AssistantConversation {
   author: string;
   messages: AssistantMessage[];
 }
+
+/** Suggested first questions for a new conversation: about the whole workflow, or about one step. */
+export interface AssistantSuggestions {
+  workflow: string[];
+  job: string[];
+}

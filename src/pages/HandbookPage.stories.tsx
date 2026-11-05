@@ -12,7 +12,14 @@ const meta: Meta<typeof HandbookPage> = {
   component: HandbookPage,
   decorators: [withRouter],
   parameters: { layout: "padded" },
-  args: { node, ancestors, currentPath: "/handbook", data: handbookData },
+  args: {
+    node,
+    ancestors,
+    currentPath: "/handbook",
+    data: handbookData,
+    onUploadFiles: async () => {},
+    onRemoveFile: async () => {},
+  },
 };
 
 export default meta;

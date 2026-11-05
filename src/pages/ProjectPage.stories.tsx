@@ -32,6 +32,7 @@ const projectData: ProjectPageData = {
 const meta: Meta<typeof ProjectPage> = {
   title: "Pages/ProjectPage",
   component: ProjectPage,
+  args: { onStartBuilding: () => {} },
   decorators: [withRouterAt(`/projects/${project.id}`)],
   parameters: { layout: "padded" },
 };

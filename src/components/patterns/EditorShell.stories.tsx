@@ -8,6 +8,8 @@ import CanvasRunsBar from "./CanvasRunsBar";
 import { nationalIdWorkflow } from "../../fixtures/workflow";
 import { runActivity } from "../../model/runs";
 import { workOrders } from "../../fixtures/runs";
+import { adaptorInfo } from "../../fixtures/adaptor-reference";
+import { connectedSystems } from "../../fixtures/connected-systems";
 
 const meta: Meta<typeof EditorShell> = {
   title: "Patterns/EditorShell",
@@ -26,7 +28,7 @@ const meta: Meta<typeof EditorShell> = {
         Toolbar
       </div>
     ),
-    children: <WorkflowCanvas workflow={nationalIdWorkflow} height={760} />,
+    children: <WorkflowCanvas workflow={nationalIdWorkflow} adaptors={adaptorInfo} systems={connectedSystems} height={760} />,
   },
 };
 

@@ -1,27 +1,16 @@
-import { useState } from "react";
 import { Pencil } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
-import type { HandbookFile, HandbookFileKind, HandbookPageData } from "../model/page-data";
+import type { HandbookPageData } from "../model/page-data";
 import PageHeader from "../components/patterns/PageHeader";
 import Button from "../components/primitives/Button";
 import FilesPanel from "../components/patterns/FilesPanel";
 import WikiArticle from "../components/patterns/WikiArticle";
-import { currentUser } from "../fixtures/user";
 
-export type HandbookPageProps = PageProps<HandbookPageData>;
-
-function kindOf(name: string): HandbookFileKind {
-  const ext = name.split(".").pop()?.toLowerCase() ?? "";
-  if (ext === "pdf") return "pdf";
-  if (["doc", "docx"].includes(ext)) return "doc";
-  if (["xls", "xlsx", "csv"].includes(ext)) return "sheet";
-  if (["png", "jpg", "jpeg", "gif", "svg"].includes(ext)) return "image";
-  return "text";
-}
-
-function formatSize(bytes: number) {
-  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+export interface HandbookPageProps extends PageProps<HandbookPageData> {
+  /** Uploads files to go with the handbook. */
+  onUploadFiles: (files: File[]) => Promise<void>;
+  /** Removes one of the handbook's files. */
+  onRemoveFile: (id: string) => Promise<void>;
 }
 
 /**
@@ -29,21 +18,7 @@ function formatSize(bytes: number) {
  * that go with it (agreements, contact sheets, diagrams) in a column on the
  * right, like a Claude project's knowledge.
  */
-export default function HandbookPage({ node, ancestors, data }: HandbookPageProps) {
-  const [files, setFiles] = useState<HandbookFile[]>(data.files);
-
-  const addFiles = (added: File[]) => {
-    const uploaded = added.map((f, i) => ({
-      id: `upload-${Date.now()}-${i}`,
-      name: f.name,
-      kind: kindOf(f.name),
-      size: formatSize(f.size),
-      bytes: f.size,
-      addedBy: `${currentUser.firstName} ${currentUser.lastName}`,
-      addedAt: "Just now",
-    }));
-    setFiles((prev) => [...uploaded, ...prev]);
-  };
+export default function HandbookPage({ node, ancestors, data, onUploadFiles, onRemoveFile }: HandbookPageProps) {
 
   return (
     <div className="space-y-8">
@@ -67,11 +42,11 @@ export default function HandbookPage({ node, ancestors, data }: HandbookPageProp
         </div>
         <aside className="lg:sticky lg:top-0 lg:self-start">
           <FilesPanel
-            files={files}
+            files={data.files}
             capacityBytes={data.capacityBytes}
             description="Agreements, contacts and reference docs that go with this handbook."
-            onAdd={addFiles}
-            onRemove={(id) => setFiles((prev) => prev.filter((f) => f.id !== id))}
+            onAdd={(files) => void onUploadFiles(files)}
+            onRemove={(id) => void onRemoveFile(id)}
           />
         </aside>
       </div>

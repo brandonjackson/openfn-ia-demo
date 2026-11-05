@@ -22,6 +22,7 @@ const ancestorsFor = (p: typeof project) => [
 const meta: Meta<typeof ProjectSandboxesPage> = {
   title: "Pages/ProjectSandboxesPage",
   component: ProjectSandboxesPage,
+  args: { selectedSandbox: "main", onSelectSandbox: () => {}, onDeleteSandbox: async () => {} },
   decorators: [withRouterAt(`/projects/${project.id}/sandboxes`)],
   parameters: { layout: "padded" },
 };

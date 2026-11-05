@@ -21,8 +21,7 @@ import SettingsNav from "./SettingsNav";
 import SectionHeading from "../primitives/SectionHeading";
 import EmptyState from "../primitives/EmptyState";
 import ConnectOptionRow from "../domain/ConnectOptionRow";
-import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogAdaptor, catalogCategories } from "../../fixtures/adaptor-catalog";
-import type { AiAction, CatalogGroup } from "../../model/adaptor-catalog";
+import type { AdaptorCatalog, AiAction, CatalogGroup } from "../../model/adaptor-catalog";
 import SearchInput from "../primitives/SearchInput";
 
 /** What was picked: an adaptor to connect, or an AI action to run on the data. */
@@ -45,12 +44,6 @@ const actionIcons: Record<string, LucideIcon> = {
   extract: ScanText,
 };
 
-const navItems = [
-  { id: "connected", label: "Connected", icon: Plug },
-  { id: "ai", label: "AI", icon: Sparkles },
-  ...catalogCategories.map((c) => ({ id: c.id, label: c.label, icon: categoryIcons[c.id] ?? Plug })),
-];
-
 /**
  * The picker behind a step's + on the canvas: connect the next step to a
  * system. A side menu of categories sits beside the choices, with a search
@@ -63,15 +56,25 @@ const navItems = [
  * every adaptor, sorted by what the system does into titled groups.
  */
 export default function ConnectSystemPicker({
+  catalog,
   connected,
   onSelect,
   initialCategory = "connected",
 }: {
+  /** Every adaptor, sorted into categories, with the built-in tools and what the AI tab offers. */
+  catalog: AdaptorCatalog;
   /** Adaptor ids of the systems this project is connected to. */
   connected: string[];
   onSelect?: (choice: ConnectChoice) => void;
   initialCategory?: string;
 }) {
+  const { adaptors: adaptorCatalog, categories: catalogCategories, builtInTools, aiModels, aiActions } = catalog;
+  const catalogAdaptor = (id: string) => adaptorCatalog.find((a) => a.id === id);
+  const navItems = [
+    { id: "connected", label: "Connected", icon: Plug },
+    { id: "ai", label: "AI", icon: Sparkles },
+    ...catalogCategories.map((c) => ({ id: c.id, label: c.label, icon: categoryIcons[c.id] ?? Plug })),
+  ];
   const [category, setCategory] = useState(initialCategory);
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import AdaptorReferencePanel from "./AdaptorReferencePanel";
+import { adaptorInfo, adaptorSnippets } from "../../fixtures/adaptor-reference";
 
 const meta: Meta<typeof AdaptorReferencePanel> = {
   title: "Patterns/AdaptorReferencePanel",
@@ -11,7 +12,7 @@ const meta: Meta<typeof AdaptorReferencePanel> = {
       </div>
     ),
   ],
-  args: { adaptor: "http" },
+  args: { adaptor: adaptorInfo.http, snippets: adaptorSnippets.http },
 };
 
 export default meta;
@@ -24,4 +25,4 @@ export const Insertable: Story = {
   args: { onInsert: () => {}, stepLabel: "Search for duplicate citizens in Identity" },
 };
 
-export const Postgres: Story = { args: { adaptor: "postgresql" } };
+export const Postgres: Story = { args: { adaptor: adaptorInfo.postgresql, snippets: adaptorSnippets.postgresql } };

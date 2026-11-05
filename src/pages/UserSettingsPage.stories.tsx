@@ -12,6 +12,7 @@ const section = (id: string, label: string): IANode => ({ id, label, pageType: "
 const meta: Meta<typeof UserSettingsPage> = {
   title: "Pages/UserSettingsPage",
   component: UserSettingsPage,
+  args: { onGenerateToken: async () => "ofn_pat_demo_0000", onDeleteToken: async () => {} },
   decorators: [withRouter],
   parameters: { layout: "padded" },
 };

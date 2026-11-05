@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import type { PageRoute } from "../app/ia-utils";
 import { projects } from "../fixtures/projects";
 import { channelDetails } from "../fixtures/channels";
@@ -14,6 +14,7 @@ import { pageFrame, routeProject } from "./route.fixtures";
  * or old URL) drops you into the full-screen editor instead.
  */
 export default function ChannelPageFixtures({ route }: { route: PageRoute }) {
+  const navigate = useNavigate();
   const componentMatch = route.currentPath.match(/^\/projects\/[^/]+\/components\/([^/]+)$/);
   if (componentMatch) {
     const componentId = componentMatch[1];
@@ -28,6 +29,8 @@ export default function ChannelPageFixtures({ route }: { route: PageRoute }) {
   const component = project.components.find((c) => c.id === route.params["component"]);
 
   if (component?.type === "Channel") {
+    const channel = channelDetails(component);
+    const workflowPath = channel.workflowId ? `/workflow-editor/${channel.workflowId}` : undefined;
     return (
       <ChannelPage
         {...pageFrame(route, { label: component.name, description: component.description })}
@@ -36,8 +39,10 @@ export default function ChannelPageFixtures({ route }: { route: PageRoute }) {
           projectId: project.id,
           projectName: project.name,
           component,
-          channel: channelDetails(component),
+          channel,
         }}
+        onOpenWorkflow={workflowPath ? () => navigate(workflowPath) : undefined}
+        onOpenRun={workflowPath ? (runId) => navigate(`${workflowPath}?run=${runId}`) : undefined}
       />
     );
   }

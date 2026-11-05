@@ -18,6 +18,8 @@ import UsageModeCard from "../components/domain/UsageModeCard";
 import XRoadAccessBadge from "../components/domain/XRoadAccessBadge";
 
 export interface ServicesPageProps extends PageProps<CatalogPageData> {
+  /** Starts a new workflow in a project, triggered by an event channel. */
+  onStartWorkflow: (projectId: string, channelId: string) => void;
   /** Which view opens first. */
   initialView?: CatalogView;
 }
@@ -38,7 +40,7 @@ function groupBy<T>(items: T[], key: (item: T) => string): [string, T[]][] {
  * added, including other members' services on X-Road. Only systems you've
  * added show up under "we use".
  */
-export default function ServicesPage({ node, ancestors, data, initialView = "publish" }: ServicesPageProps) {
+export default function ServicesPage({ node, ancestors, data, initialView = "publish", onStartWorkflow }: ServicesPageProps) {
   const [view, setView] = useState<CatalogView>(initialView);
   const published = data.entries.filter((e): e is WorkflowCatalogEntry => e.kind === "workflow");
   const channels = data.entries.filter((e): e is ChannelCatalogEntry => e.kind === "channel");
@@ -173,6 +175,8 @@ export default function ServicesPage({ node, ancestors, data, initialView = "pub
                     description={entry.description}
                     channelType={entry.channelType}
                     system={{ name: entry.system, path: entry.systemPath }}
+                    projects={data.projects}
+                    onStartWorkflow={onStartWorkflow}
                   />
                 ))}
               </div>

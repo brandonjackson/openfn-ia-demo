@@ -1,13 +1,13 @@
 import { Trash2 } from "lucide-react";
 import type { AdaptorKind, JobNode } from "../../model/workflow";
-import { adaptorChoices, adaptorInfo, credentialsFor } from "../../fixtures/adaptor-reference";
+import type { AdaptorInfo, ProjectCredential } from "../../model/adaptor-reference";
 import FormField from "../primitives/FormField";
 import { Select, TextInput } from "../primitives/FormControls";
 import Button from "../primitives/Button";
 import EntityPill from "../domain/EntityPill";
 import ConnectionMethodBadge from "../domain/ConnectionMethodBadge";
 import { connectionOf } from "../../model/connected-systems";
-import { connectedSystems } from "../../fixtures/connected-systems";
+import type { ConnectedSystem } from "../../model/connected-systems";
 
 export interface StepChanges {
   label?: string;
@@ -21,6 +21,14 @@ const NO_SYSTEM = "No connected system";
 
 interface Props {
   step: JobNode;
+  /** The step's adaptor: its name, package, version and whether it needs a credential. */
+  adaptor: AdaptorInfo;
+  /** The adaptors the step can be switched to, in picker order. */
+  adaptorChoices: AdaptorInfo[];
+  /** The project's credentials for the step's adaptor. */
+  credentials: ProjectCredential[];
+  /** The project's connected systems, to pick the step's from. */
+  systems: ConnectedSystem[];
   credentialId?: string;
   /** On main nothing can be changed. */
   readOnly?: boolean;
@@ -39,19 +47,21 @@ interface Props {
  */
 export default function StepConfigPanel({
   step,
+  adaptor: info,
+  adaptorChoices,
+  credentials,
+  systems,
   credentialId,
   readOnly = false,
   onChange,
   onDelete,
   showHeader = true,
 }: Props) {
-  const info = adaptorInfo[step.adaptor];
   // A step added from the picker may be on an adaptor outside the usual choices.
-  const choices = adaptorChoices.includes(step.adaptor) ? adaptorChoices : [step.adaptor, ...adaptorChoices];
-  const credentials = credentialsFor(step.adaptor);
+  const choices = adaptorChoices.some((a) => a.id === step.adaptor) ? adaptorChoices : [info, ...adaptorChoices];
   const credentialOptions = ["No credential", ...credentials.map((c) => c.name)];
   const credentialValue = credentials.find((c) => c.id === credentialId)?.name ?? "No credential";
-  const system = step.system ? connectedSystems.find((s) => s.id === step.system) : undefined;
+  const system = step.system ? systems.find((s) => s.id === step.system) : undefined;
   const method = system ? connectionOf(system).method : undefined;
 
   return (
@@ -59,7 +69,7 @@ export default function StepConfigPanel({
       {showHeader && (
         <div className="flex h-10 flex-none items-center gap-2 border-b border-gray-100 px-4">
           <span className="truncate text-sm font-semibold text-gray-900">{step.label}</span>
-          <EntityPill name={adaptorInfo[step.adaptor].name} adaptor={step.adaptor} size="sm" />
+          <EntityPill name={info.name} adaptor={step.adaptor} size="sm" />
         </div>
       )}
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4">
@@ -85,11 +95,11 @@ export default function StepConfigPanel({
           <div className="flex items-center gap-2">
             <Select
               className="w-full"
-              options={[NO_SYSTEM, ...connectedSystems.map((s) => s.name)]}
+              options={[NO_SYSTEM, ...systems.map((s) => s.name)]}
               value={system?.name ?? NO_SYSTEM}
               disabled={readOnly}
               onChange={(e) => {
-                const picked = connectedSystems.find((s) => s.name === e.target.value);
+                const picked = systems.find((s) => s.name === e.target.value);
                 onChange?.(picked ? { system: picked.id, adaptor: picked.adaptor } : { system: undefined });
               }}
             />
@@ -100,11 +110,11 @@ export default function StepConfigPanel({
         <FormField label="Adaptor" hint={`${info.package}@${info.version}`}>
           <Select
             className="w-full"
-            options={choices.map((a) => adaptorInfo[a].name)}
+            options={choices.map((a) => a.name)}
             value={info.name}
             disabled={readOnly}
             onChange={(e) =>
-              onChange?.({ adaptor: choices.find((a) => adaptorInfo[a].name === e.target.value) })
+              onChange?.({ adaptor: choices.find((a) => a.name === e.target.value)?.id })
             }
           />
         </FormField>

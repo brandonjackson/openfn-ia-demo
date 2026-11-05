@@ -12,6 +12,7 @@ const section = (id: string, label: string): IANode => ({ id, label, pageType: "
 const meta: Meta<typeof InstanceSettingsPage> = {
   title: "Pages/InstanceSettingsPage",
   component: InstanceSettingsPage,
+  args: { onRequestContextAccess: async () => {}, onRemoveContextLayer: async () => {} },
   decorators: [withRouter],
   parameters: { layout: "padded" },
 };

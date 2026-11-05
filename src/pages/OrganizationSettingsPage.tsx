@@ -4,7 +4,7 @@ import type { PageProps } from "../model/ia-tree";
 import type { InstanceMember, OrganizationSettingsPageData, VisibilityScope } from "../model/page-data";
 import type { SecurityServer, SecurityServerManager, XRoadCertificate, XRoadSubsystem } from "../model/xroad";
 import { memberClassLabels, securityServerManagerLabels } from "../model/xroad";
-import { openfnClientId } from "../fixtures/xroad";
+import { clientIdOf } from "../model/xroad";
 import SettingsLayout from "../components/patterns/SettingsLayout";
 import type { SettingsNavItem } from "../components/patterns/SettingsNav";
 import SectionHeading from "../components/primitives/SectionHeading";
@@ -214,7 +214,7 @@ function XRoadSection({ data }: { data: OrganizationSettingsPageData }) {
               label: "OpenFn calls as",
               value: (
                 <div className="w-80 max-w-full">
-                  <CopyValue value={openfnClientId} label="Copy client ID" />
+                  <CopyValue value={clientIdOf(xroad)} label="Copy client ID" />
                 </div>
               ),
             },

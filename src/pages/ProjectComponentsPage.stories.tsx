@@ -20,6 +20,7 @@ const ancestors = [
 const meta: Meta<typeof ProjectComponentsPage> = {
   title: "Pages/ProjectComponentsPage",
   component: ProjectComponentsPage,
+  args: { onAddComponent: () => {} },
   decorators: [withRouterAt(`/projects/${project.id}/components`)],
   parameters: { layout: "padded" },
 };

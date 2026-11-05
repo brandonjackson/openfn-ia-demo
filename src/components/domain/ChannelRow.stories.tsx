@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import ChannelRow from "./ChannelRow";
 import { withRouter } from "../../stories/decorators";
 import { serviceCatalogData } from "../../fixtures/service-catalog";
+import { projectOptions } from "../../fixtures/projects";
 import type { ChannelCatalogEntry } from "../../model/page-data";
 
 const channels = serviceCatalogData.entries.filter(
@@ -21,6 +22,7 @@ const meta: Meta<typeof ChannelRow> = {
   component: ChannelRow,
   decorators: [withRouter],
   parameters: { layout: "padded" },
+  args: { projects: projectOptions, onStartWorkflow: () => {} },
 };
 
 export default meta;

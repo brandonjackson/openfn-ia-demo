@@ -18,9 +18,11 @@ import ConnectionMethodBadge from "../components/domain/ConnectionMethodBadge";
 import XRoadAccessBadge from "../components/domain/XRoadAccessBadge";
 import XRoadConnectionDetails from "../components/patterns/XRoadConnectionDetails";
 import { connectionOf } from "../model/connected-systems";
-import { connectedSystems } from "../fixtures/connected-systems";
 
-export type SystemPageProps = PageProps<DetailPageData>;
+export interface SystemPageProps extends PageProps<DetailPageData> {
+  /** Starts a new workflow in a project, triggered by one of the system's event channels. */
+  onStartWorkflow: (projectId: string, channelId: string) => void;
+}
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
@@ -57,7 +59,19 @@ const grantColumns: DataTableColumn<AccessGrant>[] = [
   },
 ];
 
-function ChannelSection({ title, items }: { title: string; items: DetailSectionItem[] }) {
+interface StartWorkflow {
+  /** Projects a new workflow can be started in, from an event channel. */
+  projects?: { id: string; name: string }[];
+  /** Starts a new workflow in a project, triggered by an event channel. */
+  onStartWorkflow?: (projectId: string, channelId: string) => void;
+}
+
+function ChannelSection({
+  title,
+  items,
+  projects,
+  onStartWorkflow,
+}: { title: string; items: DetailSectionItem[] } & StartWorkflow) {
   return (
     <section>
       <SectionHeading title={title} description={plural(items.length, title.toLowerCase().replace(/s$/, ""))} />
@@ -70,6 +84,8 @@ function ChannelSection({ title, items }: { title: string; items: DetailSectionI
             description={item.description}
             channelType={item.metadata?.channelType as ChannelRowType | undefined}
             autoCreated={item.metadata?.isDefault === "true"}
+            projects={projects}
+            onStartWorkflow={onStartWorkflow}
           />
         ))}
       </div>
@@ -77,8 +93,8 @@ function ChannelSection({ title, items }: { title: string; items: DetailSectionI
   );
 }
 
-export default function SystemPage({ node, ancestors, data }: SystemPageProps) {
-  const system = data.systemId ? connectedSystems.find((s) => s.id === data.systemId) : undefined;
+export default function SystemPage({ node, ancestors, data, onStartWorkflow }: SystemPageProps) {
+  const { system } = data;
   const connection = system ? connectionOf(system) : undefined;
   const xroad = connection?.method === "xroad" ? connection : undefined;
   const productionUrl = system?.environments.production.url;
@@ -158,7 +174,7 @@ export default function SystemPage({ node, ancestors, data }: SystemPageProps) {
         )}
       </div>
 
-      {xroad && <XRoadConnectionDetails connection={xroad} />}
+      {xroad && data.xroad && <XRoadConnectionDetails connection={xroad} {...data.xroad} />}
 
       {system && !xroad && (
         <section>
@@ -170,7 +186,7 @@ export default function SystemPage({ node, ancestors, data }: SystemPageProps) {
         </section>
       )}
 
-      {channelsSection && !xroad && <ChannelSection title={channelsSection.title} items={allChannelItems} />}
+      {channelsSection && !xroad && <ChannelSection title={channelsSection.title} items={allChannelItems} projects={data.projects} onStartWorkflow={onStartWorkflow} />}
 
       {data.accessGrants && data.accessGrants.length > 0 && (
         <section>
@@ -180,7 +196,13 @@ export default function SystemPage({ node, ancestors, data }: SystemPageProps) {
       )}
 
       {otherSections.map((section) => (
-        <ChannelSection key={section.id} title={section.title} items={section.items} />
+        <ChannelSection
+          key={section.id}
+          title={section.title}
+          items={section.items}
+          projects={data.projects}
+          onStartWorkflow={onStartWorkflow}
+        />
       ))}
     </div>
   );

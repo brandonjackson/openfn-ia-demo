@@ -15,8 +15,18 @@ import WorkflowHealth from "./WorkflowHealth";
 import ChannelView from "./ChannelView";
 import { channelDetails } from "../../fixtures/channels";
 import { projects } from "../../fixtures/projects";
+import { adaptorChoices, adaptorInfo, adaptorSnippets, projectCredentials } from "../../fixtures/adaptor-reference";
+import { connectedSystems } from "../../fixtures/connected-systems";
+import { componentPreview, serviceListing, workflowDocs } from "../../fixtures/workflow-files";
 
 const components = projects[0].components.filter((c) => c.type !== "Workflow");
+const adaptors = { info: adaptorInfo, snippets: adaptorSnippets, choices: adaptorChoices, credentials: projectCredentials };
+const contents = {
+  docs: workflowDocs,
+  serviceListing: serviceListing(projects[0].services[0]),
+  componentPreviews: Object.fromEntries(components.map((c) => [c.id, componentPreview(c)])),
+  channels: Object.fromEntries(components.filter((c) => c.type === "Channel").map((c) => [c.id, channelDetails(c)])),
+};
 
 function Stateful(args: ComponentProps<typeof CodeWorkspace>) {
   const [file, setFile] = useState<ExplorerFile>(args.file);
@@ -53,6 +63,9 @@ const meta: Meta<typeof CodeWorkspace> = {
   ],
   args: {
     workflow: nationalIdWorkflow,
+    adaptors,
+    systems: connectedSystems,
+    contents,
     file: { stepId: "search" },
     settings: defaultWorkflowSettings(nationalIdWorkflow),
     credentials: { search: "cred-identity-prod" },

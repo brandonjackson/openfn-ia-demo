@@ -65,6 +65,7 @@ export default function OverviewPage({ data }: OverviewPageProps) {
       <AddConnectedSystemFlow
         open={addFlowOpen}
         onClose={() => setAddFlowOpen(false)}
+        adaptors={data.adaptors}
         preselectedSystem={preselectedSystem}
       />
     </div>

@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Check, FlaskConical, Plus, Trash2 } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
 import type { ProjectSandboxesPageData, SandboxItem } from "../model/page-data";
-import { useSandbox } from "../app/sandbox-state";
 import Badge from "../components/primitives/Badge";
 import PageHeader from "../components/patterns/PageHeader";
 import Button from "../components/primitives/Button";
@@ -11,7 +10,14 @@ import EmptyState from "../components/primitives/EmptyState";
 import ListRow from "../components/primitives/ListRow";
 import SectionHeading from "../components/primitives/SectionHeading";
 
-export type ProjectSandboxesPageProps = PageProps<ProjectSandboxesPageData>;
+export interface ProjectSandboxesPageProps extends PageProps<ProjectSandboxesPageData> {
+  /** The sandbox you're working in, shared with the rest of the project. */
+  selectedSandbox: string;
+  /** Switches to another sandbox. */
+  onSelectSandbox: (name: string) => void;
+  /** Deletes a sandbox (never main, never the selected one). */
+  onDeleteSandbox: (name: string) => Promise<void>;
+}
 
 function SandboxRow({
   sandbox,
@@ -64,18 +70,23 @@ function SandboxRow({
  * top; the rest are listed below, and picking one switches to it. Listed
  * sandboxes other than main can be deleted; the selected one can't.
  */
-export default function ProjectSandboxesPage({ node, ancestors, data }: ProjectSandboxesPageProps) {
-  const [selectedName, setSelected] = useSandbox(data.projectId);
-  const [deleted, setDeleted] = useState<string[]>([]);
+export default function ProjectSandboxesPage({
+  node,
+  ancestors,
+  data,
+  selectedSandbox: selectedName,
+  onSelectSandbox: setSelected,
+  onDeleteSandbox,
+}: ProjectSandboxesPageProps) {
   const [pendingDelete, setPendingDelete] = useState<SandboxItem | null>(null);
-  const sandboxes = data.sandboxes.filter((s) => !deleted.includes(s.name));
+  const sandboxes = data.sandboxes;
   const main = sandboxes.find((s) => s.isMain);
   const selected =
     sandboxes.find((s) => s.name === selectedName) ?? main ?? sandboxes[0];
   const others = sandboxes.filter((s) => s !== selected);
 
   const confirmDelete = () => {
-    if (pendingDelete) setDeleted((d) => [...d, pendingDelete.name]);
+    if (pendingDelete) void onDeleteSandbox(pendingDelete.name);
     setPendingDelete(null);
   };
   const deleteHandler = (sandbox: SandboxItem) =>

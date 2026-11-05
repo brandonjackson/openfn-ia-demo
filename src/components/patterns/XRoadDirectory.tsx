@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Check, Network, Plus, RefreshCw } from "lucide-react";
 import type { XRoadMember, XRoadMemberClass, XRoadRoute } from "../../model/xroad";
 import { memberClassLabels, routeKey } from "../../model/xroad";
-import { subsystemId } from "../../fixtures/xroad";
+import { subsystemIdOf } from "../../model/xroad";
 import Badge from "../primitives/Badge";
 import Button from "../primitives/Button";
 import EmptyState from "../primitives/EmptyState";
@@ -12,6 +12,8 @@ import SegmentedControl from "../primitives/SegmentedControl";
 
 interface Props {
   members: XRoadMember[];
+  /** The X-Road instance the directory is for, e.g. `FJ`; every subsystem's ID starts with it. */
+  instance: string;
   /** Services already in your systems, as `memberId/subsystem/service`. */
   added?: string[];
   /** Adds a service to your systems with its X-Road route filled in. */
@@ -29,7 +31,7 @@ const ALL = "All";
  * member class. Each service has an Add button that puts it in your systems
  * with the X-Road route already filled in.
  */
-export default function XRoadDirectory({ members, added = [], onAdd, syncedAt }: Props) {
+export default function XRoadDirectory({ members, instance, added = [], onAdd, syncedAt }: Props) {
   const [query, setQuery] = useState("");
   const classes = [...new Set(members.map((m) => m.memberClass))];
   const [memberClass, setMemberClass] = useState(ALL);
@@ -94,7 +96,7 @@ export default function XRoadDirectory({ members, added = [], onAdd, syncedAt }:
               {member.subsystems.map((sub) => (
                 <div key={sub.code} className="space-y-2 border-l-2 border-gray-100 pl-3">
                   <p className="text-xs text-gray-500">
-                    <code className="font-mono text-gray-700">{subsystemId(member, sub.code)}</code>
+                    <code className="font-mono text-gray-700">{subsystemIdOf(instance, member, sub.code)}</code>
                     <span className="ml-2">{sub.description}</span>
                   </p>
                   {sub.services.map((svc) => {

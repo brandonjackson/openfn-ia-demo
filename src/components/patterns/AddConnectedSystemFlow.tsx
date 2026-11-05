@@ -1,7 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { X, ChevronRight, Check } from "lucide-react";
 import { type Adaptor } from "../../model/adaptors";
-import { adaptors } from "../../fixtures/adaptors";
 import AdaptorLogo from "../domain/AdaptorLogo";
 import Button from "../primitives/Button";
 import EmptyState from "../primitives/EmptyState";
@@ -14,6 +13,8 @@ import SearchInput from "../primitives/SearchInput";
 interface Props {
   open: boolean;
   onClose: () => void;
+  /** Every adaptor a system can be connected with, to search and pick from. */
+  adaptors: Adaptor[];
   /** Pre-select a system by name (e.g. from "Suggested to add") */
   preselectedSystem?: string;
 }
@@ -23,8 +24,10 @@ interface Props {
 /* ------------------------------------------------------------------ */
 
 function AdaptorSearchList({
+  adaptors,
   onSelect,
 }: {
+  adaptors: Adaptor[];
   onSelect: (adaptor: Adaptor) => void;
 }) {
   const [query, setQuery] = useState("");
@@ -44,7 +47,7 @@ function AdaptorSearchList({
         a.description.toLowerCase().includes(q) ||
         a.category.toLowerCase().includes(q)
     );
-  }, [query]);
+  }, [query, adaptors]);
 
   // Group by category
   const grouped = useMemo(() => {
@@ -257,6 +260,7 @@ function ConfigForm({
 export default function AddConnectedSystemFlow({
   open,
   onClose,
+  adaptors,
   preselectedSystem,
 }: Props) {
   const findPreselected = () =>
@@ -316,7 +320,7 @@ export default function AddConnectedSystemFlow({
             onClose={handleClose}
           />
         ) : (
-          <AdaptorSearchList onSelect={setSelectedAdaptor} />
+          <AdaptorSearchList adaptors={adaptors} onSelect={setSelectedAdaptor} />
         )}
       </div>
     </div>

@@ -160,6 +160,46 @@ export function routeKey(route: XRoadRoute): string {
   return `${route.memberId}/${route.subsystem}/${route.service}`;
 }
 
+/** The organisation's subsystem that OpenFn runs as. */
+export function openfnSubsystemOf(org: OrgXRoadSettings): XRoadSubsystem {
+  return org.subsystems.find((s) => s.openfn)!;
+}
+
+/** `FJ/GOV/MOH/OPENFN`: who OpenFn is on X-Road, sent as X-Road-Client on every call it makes. */
+export function clientIdOf(org: OrgXRoadSettings): string {
+  return [org.instance, org.memberClass, org.memberCode, openfnSubsystemOf(org).code].join("/");
+}
+
+/** A member in the X-Road directory, by its id. */
+export function findMember(directory: XRoadMember[], memberId: string): XRoadMember | undefined {
+  return directory.find((m) => m.id === memberId);
+}
+
+/** The service a route goes to, in the X-Road directory. */
+export function findService(directory: XRoadMember[], route: XRoadRoute): XRoadService | undefined {
+  return findMember(directory, route.memberId)
+    ?.subsystems.find((s) => s.code === route.subsystem)
+    ?.services.find((s) => s.code === route.service);
+}
+
+/** `FJ/GOV/MOI/IDENTITY/verify-national-id`, as X-Road names a service. */
+export function serviceIdOf(instance: string, member: XRoadMember | undefined, route: XRoadRoute): string {
+  return [instance, member?.memberClass, member?.memberCode, route.subsystem, route.service].join("/");
+}
+
+/** `FJ/GOV/NRH/OPENMRS`, as X-Road names a member's subsystem. */
+export function subsystemIdOf(instance: string, member: XRoadMember, subsystem: string): string {
+  return [instance, member.memberClass, member.memberCode, subsystem].join("/");
+}
+
+/** The X-Road headers OpenFn reads on calls in and adds to calls out. */
+export const xroadHeaders: XRoadHeader[] = [
+  { name: "X-Road-Client", required: true, description: "The member and subsystem making the call." },
+  { name: "X-Road-Id", required: false, description: "The message ID, to match a run to the Security Server's logs." },
+  { name: "X-Road-UserId", required: false, description: "The official behind the call." },
+  { name: "X-Road-Issue", required: false, description: "A business case reference, such as a case or ticket number." },
+];
+
 /* ------------------------------------------------------------------ */
 /*  Headers                                                            */
 /* ------------------------------------------------------------------ */

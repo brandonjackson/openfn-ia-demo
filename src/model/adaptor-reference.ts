@@ -30,3 +30,18 @@ export interface ProjectCredential {
   adaptor: AdaptorKind;
   owner: string;
 }
+
+/**
+ * What the editor looks up about the adaptors a project's steps can use, and
+ * the project's credentials for them.
+ */
+export interface AdaptorReference {
+  /** Each adaptor's name, version, package and docs, by adaptor id. */
+  info: Record<AdaptorKind, AdaptorInfo>;
+  /** Each adaptor's snippets, by adaptor id. */
+  snippets: Record<AdaptorKind, Snippet[]>;
+  /** The adaptors a step can be switched to, in picker order. */
+  choices: AdaptorKind[];
+  /** The project's credentials, for every adaptor. */
+  credentials: ProjectCredential[];
+}

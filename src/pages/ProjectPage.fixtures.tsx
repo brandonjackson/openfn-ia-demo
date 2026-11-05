@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import type { PageRoute } from "../app/ia-utils";
 import type { ProjectPageData } from "../model/page-data";
 import type { Project } from "../model/projects";
@@ -26,12 +27,14 @@ function projectPageData(project: Project): ProjectPageData {
 
 /** Feeds a project's Overview from fixtures. */
 export default function ProjectPageFixtures({ route }: { route: PageRoute }) {
+  const navigate = useNavigate();
   const project = routeProject(route);
   if (!project) return <NotFoundPage path={route.currentPath} reason="data" />;
   return (
     <ProjectPage
       {...pageFrame(route, { label: project.name, description: project.description })}
       data={projectPageData(project)}
+      onStartBuilding={(prompt) => navigate(`${route.currentPath}/create`, { state: { prompt } })}
     />
   );
 }

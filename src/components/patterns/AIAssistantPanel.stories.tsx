@@ -2,8 +2,12 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Sparkles } from "lucide-react";
 import AIAssistantPanel from "./AIAssistantPanel";
 import EditorTray from "./EditorTray";
-import { assistantConversations } from "../../fixtures/assistant";
+import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../../fixtures/assistant";
 import { sampleRun } from "../../fixtures/runs";
+
+/** The fake assistant "thinks" this long before answering. */
+const REPLY_DELAY_MS = 900;
+const later = <T,>(answer: () => T) => new Promise<T>((resolve) => setTimeout(() => resolve(answer()), REPLY_DELAY_MS));
 
 const meta: Meta<typeof AIAssistantPanel> = {
   title: "Patterns/AIAssistantPanel",
@@ -20,7 +24,14 @@ const meta: Meta<typeof AIAssistantPanel> = {
       </div>
     ),
   ],
-  args: { conversations: assistantConversations, onOpenRuns: () => {}, onAskToMerge: () => {} },
+  args: {
+    conversations: assistantConversations,
+    suggestions: assistantSuggestions,
+    onSend: (prompt, jobLabel, mode) => later(() => assistantReply(prompt, jobLabel, mode)),
+    onCarryOutPlan: (plan) => later(() => assistantPlanResult(plan)),
+    onOpenRuns: () => {},
+    onAskToMerge: () => {},
+  },
 };
 
 export default meta;

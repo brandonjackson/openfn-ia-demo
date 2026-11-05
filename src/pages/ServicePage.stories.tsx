@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import ServicePage from "./ServicePage";
 import { withRouter } from "../stories/decorators";
 import { projects } from "../fixtures/projects";
+import { orgXRoad } from "../fixtures/xroad";
 import type { IANode } from "../model/ia-tree";
 import type { Project } from "../model/projects";
 import type { ServicePageData } from "../model/page-data";
@@ -17,6 +18,7 @@ function storyArgs(project: Project, serviceIndex: number) {
     service,
     workflow: project.components.find((c) => c.id === service.workflowId),
     api: service.api!,
+    xroadOrg: orgXRoad,
   };
   return {
     node,
@@ -27,6 +29,10 @@ function storyArgs(project: Project, serviceIndex: number) {
     ],
     currentPath: `/projects/${project.id}/services/${service.id}`,
     data,
+    onOpenProject: () => {},
+    onOpenWorkflow: () => {},
+    onEnableMcp: async () => {},
+    onPublishToXRoad: async () => {},
   };
 }
 

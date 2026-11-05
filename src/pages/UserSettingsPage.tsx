@@ -247,19 +247,19 @@ function CredentialsSection({ data }: { data: UserSettingsPageData }) {
 /*  API tokens section                                                 */
 /* ------------------------------------------------------------------ */
 
-function fakeToken() {
-  const hex = Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
-  return `ofn_pat_demo_${hex}`;
+interface TokenActions {
+  /** Generates a personal access token and resolves with it: the only time it's ever shown. */
+  onGenerateToken: () => Promise<string>;
+  /** Deletes a token, so it stops working. */
+  onDeleteToken: (id: string) => Promise<void>;
 }
 
-function ApiTokensSection({ data }: { data: UserSettingsPageData }) {
-  const [tokens, setTokens] = useState<ApiToken[]>(data.apiTokens);
+function ApiTokensSection({ data, onGenerateToken, onDeleteToken }: { data: UserSettingsPageData } & TokenActions) {
+  const tokens = data.apiTokens;
   const [newToken, setNewToken] = useState<string | null>(null);
 
-  const generate = () => {
-    const token = fakeToken();
-    setNewToken(token);
-    setTokens([{ id: `tok-${Date.now()}`, suffix: token.slice(-4), createdAt: "Just now" }, ...tokens]);
+  const generate = async () => {
+    setNewToken(await onGenerateToken());
   };
 
   const columns: DataTableColumn<ApiToken>[] = [
@@ -280,7 +280,7 @@ function ApiTokensSection({ data }: { data: UserSettingsPageData }) {
           size="xs"
           icon={Trash2}
           aria-label="Delete token"
-          onClick={() => setTokens(tokens.filter((x) => x.id !== t.id))}
+          onClick={() => void onDeleteToken(t.id)}
         >
           Delete
         </Button>
@@ -333,9 +333,9 @@ function ApiTokensSection({ data }: { data: UserSettingsPageData }) {
 /*  Main template                                                      */
 /* ------------------------------------------------------------------ */
 
-export type UserSettingsPageProps = PageProps<UserSettingsPageData>;
+export interface UserSettingsPageProps extends PageProps<UserSettingsPageData>, TokenActions {}
 
-export default function UserSettingsPage({ node, ancestors, data }: UserSettingsPageProps) {
+export default function UserSettingsPage({ node, ancestors, data, onGenerateToken, onDeleteToken }: UserSettingsPageProps) {
   // The /user-settings root shows the first section.
   const activeId = navItems.some((item) => item.id === node.id) ? node.id : navItems[0].id;
 
@@ -352,7 +352,9 @@ export default function UserSettingsPage({ node, ancestors, data }: UserSettings
     >
       {activeId === "profile" && <ProfileSection profile={data.profile} />}
       {activeId === "credentials" && <CredentialsSection data={data} />}
-      {activeId === "api-tokens" && <ApiTokensSection data={data} />}
+      {activeId === "api-tokens" && (
+        <ApiTokensSection data={data} onGenerateToken={onGenerateToken} onDeleteToken={onDeleteToken} />
+      )}
     </SettingsLayout>
   );
 }

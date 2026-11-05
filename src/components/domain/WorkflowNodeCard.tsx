@@ -5,9 +5,8 @@ import type { NodeActivity } from "../../model/runs";
 import DropdownMenu from "../primitives/DropdownMenu";
 import type { DropdownMenuItem } from "../primitives/DropdownMenu";
 import EntityPill from "./EntityPill";
-import { adaptorInfo } from "../../fixtures/adaptor-reference";
 import { connectionOf } from "../../model/connected-systems";
-import { connectedSystems } from "../../fixtures/connected-systems";
+import type { ConnectedSystem } from "../../model/connected-systems";
 import ConnectionMethodBadge from "./ConnectionMethodBadge";
 import { TriggerIcon } from "./AdaptorIcon";
 import StatusPill from "./StatusPill";
@@ -51,6 +50,8 @@ export default function WorkflowNodeCard({
   onShowFailures,
   note,
   onAddAfter,
+  adaptorName,
+  system,
 }: {
   node: WorkflowNode;
   selected?: boolean;
@@ -75,10 +76,12 @@ export default function WorkflowNodeCard({
   note?: string;
   /** Adds a step after this node, from the + on its bottom edge. Without it there's no +. */
   onAddAfter?: (node: WorkflowNode) => void;
+  /** The step's adaptor's display name, shown when the step isn't on a connected system. */
+  adaptorName?: string;
+  /** The connected system the step talks to, if any: it names the step, with a badge for how it's reached. */
+  system?: ConnectedSystem;
 }) {
   const job = node.type === "job" ? node : undefined;
-  // A step on a connected system is named by the system; the badge says how it's reached.
-  const system = job?.system ? connectedSystems.find((s) => s.id === job.system) : undefined;
 
   const ringClasses = selected
     ? "ring-2 ring-indigo-500 ring-offset-2 ring-offset-gray-50"
@@ -118,7 +121,7 @@ export default function WorkflowNodeCard({
             <span className="flex min-w-0 flex-1 items-center gap-1">
               {/* The pill gives way (truncating its name) before the badge or the run count do. */}
               <span className="flex min-w-0">
-                <EntityPill name={system?.name ?? adaptorInfo[node.adaptor].name} adaptor={node.adaptor} size="sm" />
+                <EntityPill name={system?.name ?? adaptorName ?? node.adaptor} adaptor={node.adaptor} size="sm" />
               </span>
               {system && <ConnectionMethodBadge method={connectionOf(system).method} compact />}
             </span>

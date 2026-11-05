@@ -128,7 +128,7 @@ export default defineConfig([
   },
   {
     files: ['src/pages/**/*.{ts,tsx}'],
-    ignores: ['**/*.stories.tsx', '**/*.fixtures.tsx'],
+    ignores: ['**/*.stories.tsx', '**/*.fixtures.{ts,tsx}'],
     rules: {
       'no-restricted-imports': ['error', { paths: [router], patterns: [fixtures, wrappers, app] }],
     },

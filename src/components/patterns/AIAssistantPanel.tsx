@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, FileText, Info, MessagesSquare, MoreVertical, Plus, Sparkles, X, Zap } from "lucide-react";
-import type { AssistantConversation, AssistantMessage, AssistantMode, AssistantPlan, AssistantReference } from "../../model/assistant";
-import { assistantPlanResult, assistantReply, assistantSuggestions } from "../../fixtures/assistant";
+import type {
+  AssistantConversation,
+  AssistantMessage,
+  AssistantMode,
+  AssistantPlan,
+  AssistantReference,
+  AssistantSuggestions,
+} from "../../model/assistant";
 import { shortId } from "../../model/runs";
 import CodeBlock from "../primitives/CodeBlock";
 import DropdownMenu from "../primitives/DropdownMenu";
@@ -11,9 +17,6 @@ import AssistantResultCard from "../domain/AssistantResultCard";
 import EntityPill from "../domain/EntityPill";
 import IconButton from "../primitives/IconButton";
 import SearchInput from "../primitives/SearchInput";
-
-/** How long the prototype "thinks" before replying. */
-const REPLY_DELAY_MS = 900;
 
 type View = "sessions" | "chat";
 
@@ -45,6 +48,9 @@ export default function AIAssistantPanel({
   onPlanAccepted,
   reference,
   onClearReference,
+  suggestions = { workflow: [], job: [] },
+  onSend,
+  onCarryOutPlan,
 }: {
   /** Saved conversations for this workflow, newest first. */
   conversations?: AssistantConversation[];
@@ -68,6 +74,12 @@ export default function AIAssistantPanel({
   reference?: AssistantReference;
   /** The reference was sent or removed. */
   onClearReference?: () => void;
+  /** Suggested first questions, offered while there are no conversations about the workflow or the open step. */
+  suggestions?: AssistantSuggestions;
+  /** Sends a message to the assistant, about the open step if any, in a mode; resolves with its reply. */
+  onSend?: (prompt: string, jobLabel: string | undefined, mode: AssistantMode) => Promise<AssistantMessage>;
+  /** Carries out an accepted plan; resolves with the assistant's message saying how it went. */
+  onCarryOutPlan?: (plan: AssistantPlan) => Promise<AssistantMessage>;
 }) {
   const [conversations, setConversations] = useState(initialConversations);
   const [conversationId, setConversationId] = useState(defaultConversationId);
@@ -83,7 +95,7 @@ export default function AIAssistantPanel({
   const inChat = view === "chat" && conversation !== undefined;
   const forContext = conversations.filter((c) => c.jobLabel === jobLabel);
   const listed = forContext.filter((c) => c.title.toLowerCase().includes(query.trim().toLowerCase()));
-  const suggestions = jobLabel ? assistantSuggestions.job : assistantSuggestions.workflow;
+  const suggested = jobLabel ? suggestions.job : suggestions.workflow;
   const placeholder = reference
     ? `What should be better about this ${reference.kind}?`
     : jobLabel
@@ -112,12 +124,13 @@ export default function AIAssistantPanel({
     );
     if (status !== "accepted") return;
     onPlanAccepted?.(plan);
+    if (!onCarryOutPlan) return;
     setLoading(true);
     const id = conversation.id;
-    setTimeout(() => {
-      addMessage(id, assistantPlanResult(plan));
+    void onCarryOutPlan(plan).then((result) => {
+      addMessage(id, result);
       setLoading(false);
-    }, REPLY_DELAY_MS);
+    });
   };
 
   const send = (text: string) => {
@@ -140,12 +153,13 @@ export default function AIAssistantPanel({
     } else {
       addMessage(id, userMessage);
     }
+    if (!onSend) return;
     setLoading(true);
     const replyTo = id;
-    setTimeout(() => {
-      addMessage(replyTo, assistantReply(text, jobLabel, mode));
+    void onSend(text, jobLabel, mode).then((reply) => {
+      addMessage(replyTo, reply);
       setLoading(false);
-    }, REPLY_DELAY_MS);
+    });
   };
 
   const showSessions = () => {
@@ -225,7 +239,7 @@ export default function AIAssistantPanel({
               {forContext.length === 0 && (
                 <Suggestions
                   title={jobLabel ? "Ask about this job" : "Ask about this workflow"}
-                  suggestions={suggestions}
+                  suggestions={suggested}
                   onPick={send}
                 />
               )}

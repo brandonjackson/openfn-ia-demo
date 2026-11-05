@@ -15,6 +15,7 @@ const ancestors = [{ node: { id: "root", label: "Home" }, path: "/" }];
 const meta: Meta<typeof ProjectsPage> = {
   title: "Pages/ProjectsPage",
   component: ProjectsPage,
+  args: { onCreateProject: async () => {} },
   decorators: [withRouter],
   parameters: { layout: "padded" },
 };

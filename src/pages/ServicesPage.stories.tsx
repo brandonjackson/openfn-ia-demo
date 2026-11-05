@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import ServicesPage from "./ServicesPage";
 import { withRouter } from "../stories/decorators";
 import { serviceCatalogData } from "../fixtures/service-catalog";
+import { projectOptions } from "../fixtures/projects";
 import type { IANode } from "../model/ia-tree";
 
 const node: IANode = {
@@ -15,6 +16,7 @@ const ancestors = [{ node: { id: "root", label: "Home" }, path: "/" }];
 const meta: Meta<typeof ServicesPage> = {
   title: "Pages/ServicesPage",
   component: ServicesPage,
+  args: { onStartWorkflow: () => {} },
   decorators: [withRouter],
   parameters: { layout: "padded" },
 };
@@ -27,7 +29,7 @@ export const Default: Story = {
     node,
     ancestors,
     currentPath: "/service-catalog",
-    data: serviceCatalogData,
+    data: { ...serviceCatalogData, projects: projectOptions },
   },
 };
 

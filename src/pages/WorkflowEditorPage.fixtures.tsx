@@ -1,12 +1,45 @@
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import WorkflowEditorPage from "./WorkflowEditorPage";
-import { type Workflow } from "../model/workflow";
+import { type Workflow, type WorkflowFileContents } from "../model/workflow";
 import { buildStarterWorkflow, nationalIdWorkflow, nationalIdWorkflowAt, surveillanceVersions, workflowGraphs, workflowVersions } from "../fixtures/workflow";
-import { dataclips, runHistories, workOrders } from "../fixtures/runs";
+import { dataclips, runHistories, simulateRun, workOrders } from "../fixtures/runs";
 import { projects, serviceForWorkflow } from "../fixtures/projects";
 import { serviceCatalogData } from "../fixtures/service-catalog";
 import { useSandbox } from "../app/sandbox-state";
-import { assistantConversations } from "../fixtures/assistant";
+import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
+import { adaptorChoices, adaptorInfo, adaptorSnippets, projectCredentials } from "../fixtures/adaptor-reference";
+import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
+import { connectedSystems } from "../fixtures/connected-systems";
+import { codeSummary } from "../fixtures/code-summaries";
+import { channelDetails } from "../fixtures/channels";
+import { componentPreview, serviceListing, workflowDocs } from "../fixtures/workflow-files";
+import type { AdaptorReference } from "../model/adaptor-reference";
+import type { AdaptorCatalog } from "../model/adaptor-catalog";
+
+/** The adaptors steps can use, and the project's credentials for them. */
+const adaptors: AdaptorReference = {
+  info: adaptorInfo,
+  snippets: adaptorSnippets,
+  choices: adaptorChoices,
+  credentials: projectCredentials,
+};
+
+/** Every adaptor, for "Connect a system". */
+const catalog: AdaptorCatalog = {
+  adaptors: adaptorCatalog,
+  categories: catalogCategories,
+  builtInTools,
+  aiModels,
+  aiActions,
+};
+
+/** How long the fake assistant "thinks" before answering. */
+const REPLY_DELAY_MS = 900;
+
+/** The fake assistant's answer, after it has thought about it. */
+function later<T>(answer: () => T): Promise<T> {
+  return new Promise((resolve) => setTimeout(() => resolve(answer()), REPLY_DELAY_MS));
+}
 
 /**
  * `/workflow-editor/new?project=…&channel=…` opens a blank workflow in that
@@ -78,6 +111,14 @@ export default function WorkflowEditorPageFixtures() {
   // Workflows with a graph of their own have their own run history too.
   const history = workflowId ? runHistories[workflowId] : undefined;
   const ownGraph = !!(workflowId && workflowGraphs[workflowId]);
+  const components = project?.components.filter((c) => c.type !== "Workflow");
+  // What opening the workflow's docs, its service listing and its components shows.
+  const contents: WorkflowFileContents = {
+    docs: workflowDocs,
+    serviceListing: service ? serviceListing(service.service) : undefined,
+    componentPreviews: Object.fromEntries((components ?? []).map((c) => [c.id, componentPreview(c)])),
+    channels: Object.fromEntries((components ?? []).filter((c) => c.type === "Channel").map((c) => [c.id, channelDetails(c)])),
+  };
 
   const runId = searchParams.get("run") ?? undefined;
   const setRunId = (id: string | undefined) =>
@@ -102,7 +143,7 @@ export default function WorkflowEditorPageFixtures() {
         onRunChange={setRunId}
         onBack={() => (project ? navigate(`/projects/${project.id}/workflows`) : navigate(-1))}
         projectName={project?.name}
-        components={project?.components.filter((c) => c.type !== "Workflow")}
+        components={components}
         onOpenComponent={project ? (id) => navigate(`/projects/${project.id}/components/${id}`) : undefined}
         // Like the project's Components page: drafted from a plain-words description on Create.
         onAddComponent={
@@ -122,6 +163,15 @@ export default function WorkflowEditorPageFixtures() {
         service={service?.service}
         onSeeDetails={service ? () => navigate(service.path) : undefined}
         assistantConversations={isNew || ownGraph ? [] : assistantConversations}
+        adaptors={adaptors}
+        catalog={catalog}
+        systems={connectedSystems}
+        contents={contents}
+        codeSummary={codeSummary}
+        onRun={simulateRun}
+        assistantSuggestions={assistantSuggestions}
+        onAssistantSend={(prompt, jobLabel, mode) => later(() => assistantReply(prompt, jobLabel, mode))}
+        onAssistantCarryOutPlan={(plan) => later(() => assistantPlanResult(plan))}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import MobileTopBar from "./MobileTopBar";
 import { withRouter } from "../../stories/decorators";
+import { currentInstance } from "../../fixtures/user";
 
 const meta: Meta<typeof MobileTopBar> = {
   title: "Patterns/MobileTopBar",
@@ -9,7 +10,7 @@ const meta: Meta<typeof MobileTopBar> = {
   parameters: {
     layout: "fullscreen",
   },
-  args: { onOpenMenu: () => {} },
+  args: { onOpenMenu: () => {}, instance: currentInstance },
 };
 
 export default meta;

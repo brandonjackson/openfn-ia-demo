@@ -562,3 +562,6 @@ export function projectWorkflowItems(project: Project): WorkflowListItem[] {
       ...(workflowActivity[c.id] ?? { members: [], updatedAt: "2026-01-01T00:00:00Z" }),
     }));
 }
+
+/** Every project by id and name, for anything that offers a choice of project. */
+export const projectOptions = projects.map((p) => ({ id: p.id, name: p.name }));

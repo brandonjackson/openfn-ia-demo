@@ -4,10 +4,9 @@ import type { AdaptorKind, Dataclip, JobNode, RunDetails, TriggerNode, WorkflowN
 import { triggerTypes } from "../../model/workflow";
 import type { ActivityPeriod, FailureReason } from "../../model/runs";
 import { activityPeriodLabel } from "../../model/runs";
-import { adaptorInfo, credentialsFor } from "../../fixtures/adaptor-reference";
-import { codeSummary } from "../../fixtures/code-summaries";
+import type { AdaptorInfo, ProjectCredential } from "../../model/adaptor-reference";
 import { connectionOf } from "../../model/connected-systems";
-import { connectedSystems } from "../../fixtures/connected-systems";
+import type { ConnectedSystem } from "../../model/connected-systems";
 import ConnectionMethodBadge from "../domain/ConnectionMethodBadge";
 import XRoadCallDetails from "../domain/XRoadCallDetails";
 import Button from "../primitives/Button";
@@ -41,6 +40,14 @@ export interface InspectorStats {
 
 interface Props {
   node: WorkflowNode;
+  /** The step's adaptor: its name, version and whether it needs a credential. */
+  adaptor?: AdaptorInfo;
+  /** The project's credentials for the step's adaptor; Connect picks the first. */
+  credentials?: ProjectCredential[];
+  /** The connected system the step talks to, if any. */
+  system?: ConnectedSystem;
+  /** What the assistant says the step's code does, one point per thing it does. */
+  codeSummary?: string[];
   credentialId?: string;
   /** On main nothing can be changed. */
   readOnly?: boolean;
@@ -86,6 +93,10 @@ interface Props {
  */
 export default function StepInspector({
   node,
+  adaptor,
+  credentials = [],
+  system,
+  codeSummary = [],
   credentialId,
   readOnly = false,
   url,
@@ -140,10 +151,12 @@ export default function StepInspector({
       ) : (
         <div className="min-h-0 flex-1 divide-y divide-gray-200 overflow-y-auto">
           <InspectorSection>
-            {job && (
+            {job && adaptor && (
               <AdaptorRow
-                system={job.system}
+                system={system}
                 adaptor={job.adaptor}
+                info={adaptor}
+                credentials={credentials}
                 credentialId={credentialId}
                 readOnly={readOnly}
                 onConnect={(id) => onChange?.({ credentialId: id })}
@@ -162,7 +175,7 @@ export default function StepInspector({
                 </span>
               }
             >
-              <CodeSummary job={job} onOpenCode={onOpenCode} />
+              <CodeSummary points={codeSummary} onOpenCode={onOpenCode} />
             </InspectorSection>
           )}
 
@@ -243,8 +256,7 @@ function withCode(text: string): ReactNode {
 }
 
 /** The assistant's summary of what the step's code does: numbered points on the text axis, then the way to the full code. */
-function CodeSummary({ job, onOpenCode }: { job: JobNode; onOpenCode?: () => void }) {
-  const points = codeSummary(job);
+function CodeSummary({ points, onOpenCode }: { points: string[]; onOpenCode?: () => void }) {
   return (
     <div>
       <ol className="grid grid-cols-[16px_minmax(0,1fr)] gap-x-1 gap-y-1.5 text-xs leading-5 text-gray-800">
@@ -368,22 +380,23 @@ function RunData({
  * vouches for the organisation.
  */
 function AdaptorRow({
-  system: systemId,
+  system,
   adaptor,
+  info,
+  credentials,
   credentialId,
   readOnly,
   onConnect,
 }: {
-  system?: string;
+  system?: ConnectedSystem;
   adaptor: AdaptorKind;
+  info: AdaptorInfo;
+  credentials: ProjectCredential[];
   credentialId?: string;
   readOnly: boolean;
   onConnect: (credentialId?: string) => void;
 }) {
-  const info = adaptorInfo[adaptor];
-  const credentials = credentialsFor(adaptor);
   const credential = credentials.find((c) => c.id === credentialId);
-  const system = systemId ? connectedSystems.find((s) => s.id === systemId) : undefined;
   const method = system ? connectionOf(system).method : undefined;
   return (
     <PropertyList

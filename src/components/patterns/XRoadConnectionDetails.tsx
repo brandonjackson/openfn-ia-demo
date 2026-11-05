@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Building2, FileText, Network, Paperclip, RefreshCw, Route, Server, ShieldCheck } from "lucide-react";
 import type { SystemConnection } from "../../model/connected-systems";
-import { hasXRoadAccess } from "../../model/xroad";
-import { directoryMember, openfnClientId, orgXRoad, routeService, openfnSubsystem, routeServiceId, xroadHeaders } from "../../fixtures/xroad";
+import { clientIdOf, hasXRoadAccess, openfnSubsystemOf, serviceIdOf, xroadHeaders } from "../../model/xroad";
+import type { OrgXRoadSettings, XRoadMember, XRoadService } from "../../model/xroad";
 import Badge from "../primitives/Badge";
 import Button from "../primitives/Button";
 import Card from "../primitives/Card";
@@ -19,15 +19,23 @@ type XRoadConnection = Extract<SystemConnection, { method: "xroad" }>;
 
 interface Props {
   connection: XRoadConnection;
+  /** The organisation's X-Road settings: its identity and Security Server. */
+  org: OrgXRoadSettings;
+  /** The member the route goes to, from the X-Road directory. */
+  member?: XRoadMember;
+  /** The service the route goes to, from the X-Road directory. */
+  service?: XRoadService;
 }
 
 /** What OpenFn sends for each header on a call out. */
-const outboundValues: Record<string, string> = {
-  "X-Road-Client": openfnClientId,
-  "X-Road-Id": "A new ID for each call, kept on the run",
-  "X-Road-UserId": "Whoever started the run, when it was started by a person",
-  "X-Road-Issue": "The work order's reference, when it has one",
-};
+function outboundValues(clientId: string): Record<string, string> {
+  return {
+    "X-Road-Client": clientId,
+    "X-Road-Id": "A new ID for each call, kept on the run",
+    "X-Road-UserId": "Whoever started the run, when it was started by a person",
+    "X-Road-Issue": "The work order's reference, when it has one",
+  };
+}
 
 /**
  * How a system is reached over X-Road: the member, subsystem and service it
@@ -37,10 +45,9 @@ const outboundValues: Record<string, string> = {
  * headers come from the organisation's X-Road settings, so there's nothing
  * here to configure per system.
  */
-export default function XRoadConnectionDetails({ connection }: Props) {
+export default function XRoadConnectionDetails({ connection, org, member, service }: Props) {
   const { route } = connection;
-  const member = directoryMember(route.memberId);
-  const service = routeService(route);
+  const openfnClientId = clientIdOf(org);
   const access = hasXRoadAccess(connection.status);
   const [agreementRef, setAgreementRef] = useState(connection.agreement?.reference ?? "");
 
@@ -61,7 +68,7 @@ export default function XRoadConnectionDetails({ connection }: Props) {
                   {member?.name}
                   {member && (
                     <code className="ml-2 font-mono text-xs text-gray-500">
-                      {[orgXRoad.instance, member.memberClass, member.memberCode].join("/")}
+                      {[org.instance, member.memberClass, member.memberCode].join("/")}
                     </code>
                   )}
                 </span>
@@ -74,7 +81,7 @@ export default function XRoadConnectionDetails({ connection }: Props) {
               value: (
                 <div className="w-full max-w-md space-y-1">
                   <p>{service?.name ?? route.service}</p>
-                  <CopyValue value={routeServiceId(route)} label="Copy service ID" />
+                  <CopyValue value={serviceIdOf(org.instance, member, route)} label="Copy service ID" />
                 </div>
               ),
             },
@@ -83,7 +90,7 @@ export default function XRoadConnectionDetails({ connection }: Props) {
               label: "Through",
               value: (
                 <span>
-                  <code className="font-mono">{orgXRoad.securityServers[0].address}</code>
+                  <code className="font-mono">{org.securityServers[0].address}</code>
                   <span className="ml-2 text-gray-500">
                     from your <TextLink to="/organization-settings/xroad" variant="inline">X-Road settings</TextLink>
                   </span>
@@ -146,7 +153,7 @@ export default function XRoadConnectionDetails({ connection }: Props) {
             <div className="space-y-2">
               <p className="inline-flex items-center gap-2 text-sm text-gray-700">
                 <ShieldCheck size={14} className="text-green-600" />
-                The provider lets your {openfnSubsystem.code} subsystem call:
+                The provider lets your {openfnSubsystemOf(org).code} subsystem call:
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {connection.allowedMethods.map((m) => (
@@ -176,7 +183,7 @@ export default function XRoadConnectionDetails({ connection }: Props) {
             label: h.name,
             value: (
               <span className="flex flex-wrap items-center gap-2">
-                <span className={h.name === "X-Road-Client" ? "font-mono" : "text-gray-600"}>{outboundValues[h.name]}</span>
+                <span className={h.name === "X-Road-Client" ? "font-mono" : "text-gray-600"}>{outboundValues(openfnClientId)[h.name]}</span>
                 {h.required && <Badge label="Required" tone="indigo" />}
               </span>
             ),

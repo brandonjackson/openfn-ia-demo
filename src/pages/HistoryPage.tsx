@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
 import type { PageProps } from "../model/ia-tree";
 import type { TablePageData } from "../model/page-data";
 import Badge from "../components/primitives/Badge";
@@ -8,18 +7,20 @@ import type { DataTableColumn } from "../components/primitives/DataTable";
 import PageHeader from "../components/patterns/PageHeader";
 import SegmentedControl from "../components/primitives/SegmentedControl";
 
-export type HistoryPageProps = PageProps<TablePageData>;
+export interface HistoryPageProps extends PageProps<TablePageData> {
+  /** Filters set in the URL, by lower-cased filter label, e.g. `{ status: "Failed" }`. Unset filters start on their first option. */
+  filterQuery?: Record<string, string>;
+}
 
 type Row = TablePageData["rows"][number];
 
-export default function HistoryPage({ node, ancestors, data }: HistoryPageProps) {
-  const [searchParams] = useSearchParams();
+export default function HistoryPage({ node, ancestors, data, filterQuery = {} }: HistoryPageProps) {
 
   // Initialize filter state from URL params or first option
   const [filterState, setFilterState] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     for (const f of data.filters) {
-      initial[f.label] = searchParams.get(f.label.toLowerCase()) ?? f.options[0];
+      initial[f.label] = filterQuery[f.label.toLowerCase()] ?? f.options[0];
     }
     return initial;
   });

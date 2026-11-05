@@ -115,23 +115,24 @@ function BillingSection({ billing }: { billing: BillingDetails }) {
 /*  Context section                                                    */
 /* ------------------------------------------------------------------ */
 
-function ContextSection({ initialLayers }: { initialLayers: ContextLayer[] }) {
-  const [layers, setLayers] = useState(initialLayers);
+interface ContextActions {
+  /** Asks for access to a source of context, by its URL; it waits for approval. */
+  onRequestContextAccess: (url: string) => Promise<void>;
+  /** Disconnects a source of context, or cancels a request for one. */
+  onRemoveContextLayer: (id: string) => Promise<void>;
+}
+
+function ContextSection({
+  layers,
+  onRequestContextAccess,
+  onRemoveContextLayer,
+}: { layers: ContextLayer[] } & ContextActions) {
   const [url, setUrl] = useState("");
 
-  const requestAccess = () => {
+  const requestAccess = async () => {
     const trimmed = url.trim();
     if (!trimmed) return;
-    let host = trimmed;
-    try {
-      host = new URL(trimmed).host;
-    } catch {
-      // Not a full URL; show what was typed.
-    }
-    setLayers([
-      ...layers,
-      { id: `layer-${Date.now()}`, name: host, host: trimmed, url: trimmed, status: "pending" },
-    ]);
+    await onRequestContextAccess(trimmed);
     setUrl("");
   };
 
@@ -170,7 +171,7 @@ function ContextSection({ initialLayers }: { initialLayers: ContextLayer[] }) {
           variant="secondary"
           size="xs"
           icon={Unplug}
-          onClick={() => setLayers(layers.filter((x) => x.id !== l.id))}
+          onClick={() => void onRemoveContextLayer(l.id)}
         >
           {l.status === "connected" ? "Disconnect" : "Cancel request"}
         </Button>
@@ -231,9 +232,15 @@ function ContextSection({ initialLayers }: { initialLayers: ContextLayer[] }) {
 /*  Main template                                                      */
 /* ------------------------------------------------------------------ */
 
-export type InstanceSettingsPageProps = PageProps<InstanceSettingsPageData>;
+export interface InstanceSettingsPageProps extends PageProps<InstanceSettingsPageData>, ContextActions {}
 
-export default function InstanceSettingsPage({ node, ancestors, data }: InstanceSettingsPageProps) {
+export default function InstanceSettingsPage({
+  node,
+  ancestors,
+  data,
+  onRequestContextAccess,
+  onRemoveContextLayer,
+}: InstanceSettingsPageProps) {
   // The /instance-settings root shows the first section.
   const activeId = navItems.some((item) => item.id === node.id) ? node.id : navItems[0].id;
 
@@ -250,7 +257,13 @@ export default function InstanceSettingsPage({ node, ancestors, data }: Instance
     >
       {activeId === "collaboration" && <CollaborationSection members={data.members} />}
       {activeId === "billing" && <BillingSection billing={data.billing} />}
-      {activeId === "context" && <ContextSection initialLayers={data.contextLayers} />}
+      {activeId === "context" && (
+        <ContextSection
+          layers={data.contextLayers}
+          onRequestContextAccess={onRequestContextAccess}
+          onRemoveContextLayer={onRemoveContextLayer}
+        />
+      )}
     </SettingsLayout>
   );
 }

@@ -1,5 +1,5 @@
 /** A random 8-character hex id, like the short ids shown in history. */
-import type { AdaptorKind, RunDetails, RunStep, Workflow, WorkOrder } from "./workflow";
+import type { AdaptorKind, Dataclip, RunDetails, RunStep, Workflow, WorkOrder } from "./workflow";
 export function shortId(): string {
   return Math.floor(Math.random() * 0xffffffff)
     .toString(16)
@@ -302,4 +302,29 @@ export function workflowHealth(workflow: Workflow, workOrders: WorkOrder[], peri
     steps: [...steps.values()].sort((a, b) => b.failed - a.failed || a.label.localeCompare(b.label)),
     reasons: [...byReason.values()].sort((a, b) => b.count - a.count),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Starting runs from the editor.
+// ---------------------------------------------------------------------------
+
+/** A run the editor starts, and how far along it is. */
+export interface RunRequest {
+  /** The workflow as it stands, edits included. */
+  workflow: Workflow;
+  version: string;
+  input: Dataclip;
+  workOrderId: string;
+  runId: string;
+  /** The step to start from when retrying from a step; the trigger otherwise. */
+  fromJobId?: string;
+  startedBy: string;
+  /** How many steps have finished (0 when it has only just started); unset once the run is over. */
+  progress?: number;
+}
+
+/** A run as it stands, with the dataclips it has produced so far. */
+export interface RunProgress {
+  run: RunDetails;
+  dataclips: Dataclip[];
 }

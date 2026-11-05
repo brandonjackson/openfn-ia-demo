@@ -1,4 +1,3 @@
-import { useLocation } from "react-router-dom";
 import Link from "../primitives/Link";
 import {
   ChevronLeft,
@@ -22,15 +21,14 @@ import {
   X,
 } from "lucide-react";
 import { mainNavGroups, mainNavTree, openfnDocsUrl, supportTree } from "../../model/ia-tree";
-import { projects, recentProjects } from "../../fixtures/projects";
 import type { Project } from "../../model/projects";
-import { currentInstance, currentUser } from "../../fixtures/user";
 import { useDismiss } from "../primitives/use-popover";
 import IconButton from "../primitives/IconButton";
 import InstanceLogo from "../domain/InstanceLogo";
 import SidebarLink from "./SidebarLink";
 import SidebarSection from "./SidebarSection";
 import AccountMenu from "./AccountMenu";
+import { useShell } from "./shell-context";
 import type { LucideIcon } from "lucide-react";
 
 const navIcons: Record<string, LucideIcon> = {
@@ -82,7 +80,7 @@ function isAt(pathname: string, path: string) {
 }
 
 function ProjectNav({ project }: { project: Project }) {
-  const location = useLocation();
+  const { currentPath } = useShell();
   const base = "/projects/" + project.id;
   const sectionIds = projectNavGroups
     .flatMap((g) => g.sections.map((s) => s.id))
@@ -90,7 +88,7 @@ function ProjectNav({ project }: { project: Project }) {
   // Anything under the project that isn't its own nav section (services)
   // is reached from the Overview, so Overview stays lit.
   const activeSection =
-    sectionIds.find((id) => isAt(location.pathname, `${base}/${id}`)) ?? "";
+    sectionIds.find((id) => isAt(currentPath, `${base}/${id}`)) ?? "";
 
   return (
     <>
@@ -124,7 +122,7 @@ function ProjectNav({ project }: { project: Project }) {
 }
 
 function OrgNav() {
-  const { pathname } = useLocation();
+  const { currentPath: pathname, recentProjects } = useShell();
 
   return (
     <nav className="p-3 flex-1 overflow-y-auto space-y-5">
@@ -166,13 +164,6 @@ function OrgNav() {
   );
 }
 
-/** The project the current URL is inside, if any. */
-function useCurrentProject(): Project | undefined {
-  const location = useLocation();
-  const match = location.pathname.match(/^\/projects\/([^/]+)/);
-  return match ? projects.find((p) => p.id === match[1]) : undefined;
-}
-
 /**
  * App sidebar. At the instance level it shows the grouped top-level IA
  * (Overview; Organization; Monitoring; recent Projects). Once you open a project
@@ -184,8 +175,7 @@ function useCurrentProject(): Project | undefined {
  * slides back out on its close button, a tap outside or Escape.
  */
 export default function Sidebar({ open = false, onClose }: { open?: boolean; onClose?: () => void }) {
-  const project = useCurrentProject();
-  const { pathname } = useLocation();
+  const { project, currentPath: pathname, user, instance } = useShell();
   const getHelp = supportTree.find((n) => n.id === "get-help")!;
   const ref = useDismiss<HTMLElement>(open, () => onClose?.());
 
@@ -207,7 +197,7 @@ export default function Sidebar({ open = false, onClose }: { open?: boolean; onC
       >
         {/* Logo: always a clear way back to the root. */}
         <div data-ui="sidebar-logo" className="px-4 py-4 flex items-center justify-between gap-2">
-          <InstanceLogo />
+          <InstanceLogo instance={instance} />
           <div className="md:hidden">
             <IconButton icon={X} label="Close menu" size="md" onClick={onClose} />
           </div>
@@ -226,7 +216,7 @@ export default function Sidebar({ open = false, onClose }: { open?: boolean; onC
             />
           </SidebarSection>
           <div className="border-t border-gray-200 pt-3">
-            <AccountMenu user={currentUser} instance={currentInstance} />
+            <AccountMenu user={user} instance={instance} />
           </div>
         </div>
       </aside>

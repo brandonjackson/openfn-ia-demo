@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useLocation } from "react-router-dom";
 import type { PageProps } from "../model/ia-tree";
 import type { ProjectCreatePageData } from "../model/page-data";
 import Breadcrumbs from "../components/patterns/Breadcrumbs";
@@ -8,18 +7,27 @@ import Callout from "../components/primitives/Callout";
 import IdeaCard from "../components/domain/IdeaCard";
 import SectionHeading from "../components/primitives/SectionHeading";
 
-export type ProjectCreatePageProps = PageProps<ProjectCreatePageData>;
+export interface ProjectCreatePageProps extends PageProps<ProjectCreatePageData> {
+  /** A prompt started on the project Overview: it arrives already submitted. */
+  initialPrompt?: string;
+  /** A draft, e.g. from adding a component: it only pre-fills the box. */
+  initialDraft?: string;
+}
 
 /**
  * The project's starting point for something new: a "what would you like to
  * build?" prompt and starter ideas for public services.
  */
-export default function ProjectCreatePage({ node, ancestors, data }: ProjectCreatePageProps) {
-  // A prompt started on the project Overview arrives in router state, already
-  // submitted; a draft (e.g. from "New Component") only pre-fills the box.
-  const routeState = useLocation().state as { prompt?: string; draft?: string } | null;
-  const initialPrompt = routeState?.prompt ?? "";
-  const [prompt, setPrompt] = useState(initialPrompt || routeState?.draft || "");
+export default function ProjectCreatePage({
+  node,
+  ancestors,
+  data,
+  initialPrompt = "",
+  initialDraft,
+}: ProjectCreatePageProps) {
+  // A prompt started on the project Overview arrives already submitted; a
+  // draft (e.g. from "New Component") only pre-fills the box.
+  const [prompt, setPrompt] = useState(initialPrompt || initialDraft || "");
   const [submitted, setSubmitted] = useState<string | null>(initialPrompt || null);
 
   return (

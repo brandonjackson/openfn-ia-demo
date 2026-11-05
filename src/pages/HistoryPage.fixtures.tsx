@@ -1,3 +1,4 @@
+import { useSearchParams } from "react-router-dom";
 import type { PageRoute } from "../app/ia-utils";
 import type { TablePageData } from "../model/page-data";
 import { historyData } from "../fixtures/history";
@@ -17,8 +18,14 @@ function projectHistoryData(projectName: string): TablePageData {
 
 /** Feeds History from fixtures: the organisation's, or one project's. */
 export default function HistoryPageFixtures({ route }: { route: PageRoute }) {
+  const [searchParams] = useSearchParams();
+  // The first value of each query parameter, as URLSearchParams.get reads it.
+  const filterQuery: Record<string, string> = {};
+  searchParams.forEach((value, key) => {
+    if (!(key in filterQuery)) filterQuery[key] = value;
+  });
   const project = routeProject(route);
   if (project === null) return <NotFoundPage path={route.currentPath} reason="data" />;
   const data = project ? projectHistoryData(project.name) : historyData;
-  return <HistoryPage {...pageFrame(route)} data={data} />;
+  return <HistoryPage {...pageFrame(route)} data={data} filterQuery={filterQuery} />;
 }

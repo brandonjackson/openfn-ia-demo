@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { FolderKanban, Plus } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
 import type { ProjectsPageData } from "../model/page-data";
@@ -10,10 +9,12 @@ import { TextInput } from "../components/primitives/FormControls";
 import ProjectCard from "../components/domain/ProjectCard";
 import CreateProjectFlow from "../components/patterns/CreateProjectFlow";
 
-export type ProjectsPageProps = PageProps<ProjectsPageData>;
+export interface ProjectsPageProps extends PageProps<ProjectsPageData> {
+  /** Creates a project and opens it. */
+  onCreateProject: () => Promise<void>;
+}
 
-export default function ProjectsPage({ node, ancestors, data }: ProjectsPageProps) {
-  const navigate = useNavigate();
+export default function ProjectsPage({ node, ancestors, data, onCreateProject }: ProjectsPageProps) {
   const [query, setQuery] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -26,9 +27,8 @@ export default function ProjectsPage({ node, ancestors, data }: ProjectsPageProp
   );
 
   const handleCreateProject = () => {
-    // Prototype flow: a new project routes the user through to Project A.
     setCreateOpen(false);
-    navigate("/projects/project-a");
+    void onCreateProject();
   };
 
   return (

@@ -1,9 +1,32 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowEditorPage from "./WorkflowEditorPage";
 import { nationalIdWorkflow, nationalIdWorkflowAt, registerCaseWorkflow, surveillanceVersions, weeklyCaseReportWorkflow, workflowVersions } from "../fixtures/workflow";
-import { dataclips, failedRun, olderRun, runHistories, sampleRun, workOrders } from "../fixtures/runs";
+import { dataclips, failedRun, olderRun, runHistories, sampleRun, simulateRun, workOrders } from "../fixtures/runs";
 import { projects } from "../fixtures/projects";
-import { assistantConversations } from "../fixtures/assistant";
+import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
+import { adaptorChoices, adaptorInfo, adaptorSnippets, projectCredentials } from "../fixtures/adaptor-reference";
+import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
+import { connectedSystems } from "../fixtures/connected-systems";
+import { codeSummary } from "../fixtures/code-summaries";
+import { channelDetails } from "../fixtures/channels";
+import { componentPreview, serviceListing, workflowDocs } from "../fixtures/workflow-files";
+import type { ProjectComponent, ProjectService } from "../model/projects";
+import type { WorkflowFileContents } from "../model/workflow";
+
+/** The fake assistant "thinks" this long before answering. */
+const REPLY_DELAY_MS = 900;
+const later = <T,>(answer: () => T) => new Promise<T>((resolve) => setTimeout(() => resolve(answer()), REPLY_DELAY_MS));
+
+/** What opening a workflow's docs, service listing and components shows, for a project's components. */
+const contentsFor = (components: ProjectComponent[], service?: ProjectService): WorkflowFileContents => ({
+  docs: workflowDocs,
+  serviceListing: service ? serviceListing(service) : undefined,
+  componentPreviews: Object.fromEntries(components.map((c) => [c.id, componentPreview(c)])),
+  channels: Object.fromEntries(components.filter((c) => c.type === "Channel").map((c) => [c.id, channelDetails(c)])),
+});
+
+const projectA = projects[0];
+const projectAComponents = projectA.components.filter((c) => c.type !== "Workflow");
 
 const meta: Meta<typeof WorkflowEditorPage> = {
   title: "Pages/WorkflowEditorPage",
@@ -15,7 +38,7 @@ const meta: Meta<typeof WorkflowEditorPage> = {
     dataclips,
     graphForVersion: nationalIdWorkflowAt,
     projectName: "Project A",
-    components: projects[0].components.filter((c) => c.type !== "Workflow"),
+    components: projectAComponents,
     onOpenComponent: () => {},
     onAddComponent: () => {},
     sandboxes: projects[0].sandboxes,
@@ -25,6 +48,15 @@ const meta: Meta<typeof WorkflowEditorPage> = {
     onBack: () => {},
     service: projects[0].services[0],
     onSeeDetails: () => {},
+    adaptors: { info: adaptorInfo, snippets: adaptorSnippets, choices: adaptorChoices, credentials: projectCredentials },
+    catalog: { adaptors: adaptorCatalog, categories: catalogCategories, builtInTools, aiModels, aiActions },
+    systems: connectedSystems,
+    contents: contentsFor(projectAComponents, projectA.services[0]),
+    codeSummary,
+    onRun: simulateRun,
+    assistantSuggestions,
+    onAssistantSend: (prompt, jobLabel, mode) => later(() => assistantReply(prompt, jobLabel, mode)),
+    onAssistantCarryOutPlan: (plan) => later(() => assistantPlanResult(plan)),
   },
   decorators: [
     (Story) => (
@@ -201,6 +233,7 @@ export const AssistantOpen: Story = {
 };
 
 const surveillance = projects.find((p) => p.id === "case-surveillance")!;
+const surveillanceComponents = surveillance.components.filter((c) => c.type !== "Workflow");
 
 /**
  * Workflow A: facilities call it over X-Road, and its steps reach OpenMRS and
@@ -214,7 +247,8 @@ export const XRoadWorkflow: Story = {
     ...runHistories[registerCaseWorkflow.id],
     graphForVersion: () => registerCaseWorkflow,
     projectName: surveillance.name,
-    components: surveillance.components.filter((c) => c.type !== "Workflow"),
+    components: surveillanceComponents,
+    contents: contentsFor(surveillanceComponents, surveillance.services[0]),
     sandboxes: surveillance.sandboxes,
     versions: surveillanceVersions,
     assistantConversations: [],

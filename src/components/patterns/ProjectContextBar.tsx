@@ -1,9 +1,6 @@
-import { useLocation, useNavigate } from "react-router-dom";
 import Link from "../primitives/Link";
 import { ChevronRight, FlaskConical, Folder, FolderKanban } from "lucide-react";
-import { recentProjects } from "../../fixtures/projects";
 import type { Project } from "../../model/projects";
-import { useSandbox } from "../../app/sandbox-state";
 import Picker from "../primitives/Picker";
 
 interface Crumb {
@@ -17,6 +14,16 @@ interface Props {
   trail?: Crumb[];
   /** The current page, when it isn't the project Overview. */
   current?: string;
+  /** Projects opened lately, most recent first; the first four make the switcher's shortlist. */
+  recentProjects: Project[];
+  /** The sandbox selected in this project. */
+  sandbox: string;
+  /** Selects a sandbox in this project. */
+  onSelectSandbox: (sandbox: string) => void;
+  /** The URL being shown, so a project switch can stay on the same section. */
+  currentPath: string;
+  /** Goes to a page in the app. */
+  onNavigate: (path: string) => void;
 }
 
 /** Project sections that exist in every project, so a switch can keep them. */
@@ -27,10 +34,16 @@ const sharedSections = ["workflows", "channels", "sandboxes", "history", "settin
  * project picker and a sandbox picker make it clear you're inside a project
  * and let you switch either one; any deeper pages follow as crumbs.
  */
-export default function ProjectContextBar({ project, trail = [], current }: Props) {
-  const navigate = useNavigate();
-  const { pathname } = useLocation();
-  const [sandbox, setSandbox] = useSandbox(project.id);
+export default function ProjectContextBar({
+  project,
+  trail = [],
+  current,
+  recentProjects,
+  sandbox,
+  onSelectSandbox,
+  currentPath: pathname,
+  onNavigate: navigate,
+}: Props) {
 
   // Same shortlist as the sidebar's Projects section, plus the open project
   // if it isn't one of the recent ones.
@@ -63,7 +76,7 @@ export default function ProjectContextBar({ project, trail = [], current }: Prop
         ariaLabel="Switch sandbox"
         options={project.sandboxes.map((s) => ({ id: s, label: s }))}
         value={sandbox}
-        onChange={setSandbox}
+        onChange={onSelectSandbox}
         footerAction={{
           label: "View all",
           icon: FlaskConical,

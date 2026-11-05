@@ -34,3 +34,17 @@ export interface AiAction {
   /** The step's starting code: a prompt over the incoming data. */
   body: string;
 }
+
+/** Everything the "Connect a system" picker offers. */
+export interface AdaptorCatalog {
+  /** Every adaptor a step can use. */
+  adaptors: CatalogAdaptor[];
+  /** The picker's categories, after Connected and AI. */
+  categories: CatalogCategory[];
+  /** Adaptor ids of the tools that don't connect to a system of their own. */
+  builtInTools: string[];
+  /** Adaptor ids of the models behind the AI tab's actions. */
+  aiModels: string[];
+  /** What the AI tab offers. */
+  aiActions: AiAction[];
+}

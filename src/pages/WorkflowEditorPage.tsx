@@ -1,15 +1,33 @@
 import { useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
-import type { AdaptorKind, Dataclip, JobNode, RunDetails, RunStep, Workflow, WorkflowEdge, WorkflowNode, WorkflowVersion, WorkOrder } from "../model/workflow";
+import type {
+  AdaptorKind,
+  Dataclip,
+  JobNode,
+  RunDetails,
+  RunStep,
+  Workflow,
+  WorkflowEdge,
+  WorkflowFileContents,
+  WorkflowNode,
+  WorkflowVersion,
+  WorkOrder,
+} from "../model/workflow";
 import { defaultWorkflowSettings, workflowToYaml } from "../model/workflow";
 import type { WorkflowSettings } from "../model/workflow";
 import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../model/runs";
-import { simulateRun } from "../fixtures/runs";
-import type { ActivityPeriod } from "../model/runs";
-import { adaptorInfo, adaptorSnippets } from "../fixtures/adaptor-reference";
-import { builtInTools } from "../fixtures/adaptor-catalog";
-import { connectedSystems } from "../fixtures/connected-systems";
-import type { AssistantConversation, AssistantPlan, AssistantReference } from "../model/assistant";
+import type { ActivityPeriod, RunProgress, RunRequest } from "../model/runs";
+import type { AdaptorInfo, AdaptorReference } from "../model/adaptor-reference";
+import type { AdaptorCatalog } from "../model/adaptor-catalog";
+import type { ConnectedSystem } from "../model/connected-systems";
+import type {
+  AssistantConversation,
+  AssistantMessage,
+  AssistantMode,
+  AssistantPlan,
+  AssistantReference,
+  AssistantSuggestions,
+} from "../model/assistant";
 import type { ProjectComponent, ProjectService } from "../model/projects";
 import EditorShell from "../components/patterns/EditorShell";
 import EditorToolbar from "../components/patterns/EditorToolbar";
@@ -46,7 +64,6 @@ import Modal from "../components/primitives/Modal";
 import AddComponentPanel from "../components/patterns/AddComponentPanel";
 import WorkflowHealth from "../components/patterns/WorkflowHealth";
 import ChannelView from "../components/patterns/ChannelView";
-import { channelDetails } from "../fixtures/channels";
 import ConnectSystemPicker from "../components/patterns/ConnectSystemPicker";
 import type { ConnectChoice } from "../components/patterns/ConnectSystemPicker";
 import { componentTypes } from "../model/component-types";
@@ -89,8 +106,8 @@ function placeAfter(workflow: Workflow, source: WorkflowNode): { x: number; y: n
   return { x, y };
 }
 
-/** The workflow with this session's edits applied. */
-function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
+/** The workflow with this session's edits applied; `info` gives a re-adaptored step its package. */
+function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record<AdaptorKind, AdaptorInfo>): Workflow {
   const nodes: WorkflowNode[] = [...workflow.nodes, ...edits.added]
     .filter((n) => !edits.removed.includes(n.id))
     .map((n) => {
@@ -100,7 +117,7 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string): Workflow {
         ...n,
         label: edits.labels[n.id] ?? n.label,
         adaptor,
-        adaptorPackage: adaptorInfo[adaptor].package,
+        adaptorPackage: info[adaptor].package,
         body: edits.bodies[n.id] ?? n.body,
         system: n.id in edits.systems ? edits.systems[n.id] : n.system,
       };
@@ -192,6 +209,15 @@ export default function WorkflowEditorPage({
   defaultRunInputOpen = false,
   defaultRunsFilterOpen = false,
   assistantConversations = [],
+  adaptors,
+  catalog,
+  systems = [],
+  contents,
+  codeSummary,
+  onRun,
+  assistantSuggestions,
+  onAssistantSend,
+  onAssistantCarryOutPlan,
 }: {
   workflow: Workflow;
   /** Recent work orders, newest first. */
@@ -244,6 +270,28 @@ export default function WorkflowEditorPage({
   defaultRunsFilterOpen?: boolean;
   /** Saved assistant conversations for this workflow. */
   assistantConversations?: AssistantConversation[];
+  /** What the editor knows about each adaptor a step can use (name, version, snippets), and the project's credentials. */
+  adaptors: AdaptorReference;
+  /** Every adaptor by category, with the built-in tools and AI actions, for "Connect a system". */
+  catalog: AdaptorCatalog;
+  /** The project's connected systems. */
+  systems?: ConnectedSystem[];
+  /** What the workflow's docs, service listing and project components hold, for opening them in code mode. */
+  contents?: WorkflowFileContents;
+  /** What the assistant says a step's code does, one point per thing it does, for the inspector. */
+  codeSummary?: (step: JobNode) => string[];
+  /**
+   * Runs the workflow: the run as it stands once `progress` steps have finished, or done when
+   * `progress` is unset. Called to start a run and again for each step, to follow it live.
+   * Synchronous, so a run shows the moment it's started. Without it nothing runs.
+   */
+  onRun?: (request: RunRequest) => RunProgress;
+  /** Suggested first questions for the assistant. */
+  assistantSuggestions?: AssistantSuggestions;
+  /** Sends a message to the assistant; resolves with its reply. */
+  onAssistantSend?: (prompt: string, jobLabel: string | undefined, mode: AssistantMode) => Promise<AssistantMessage>;
+  /** Carries out a plan the assistant proposed; resolves with its message saying how it went. */
+  onAssistantCarryOutPlan?: (plan: AssistantPlan) => Promise<AssistantMessage>;
 }) {
   // ---- Where we are ---------------------------------------------------------
 
@@ -274,7 +322,9 @@ export default function WorkflowEditorPage({
 
   // The graph on the canvas: the latest with this session's edits, or an earlier version being viewed.
   const graph =
-    version === "latest" ? applyEdits(workflow, edits, name) : (graphForVersion?.(version) ?? applyEdits(workflow, edits, name));
+    version === "latest"
+      ? applyEdits(workflow, edits, name, adaptors.info)
+      : (graphForVersion?.(version) ?? applyEdits(workflow, edits, name, adaptors.info));
   const viewingVersion = version === "latest" ? latestVersion : version;
 
   // ---- Runs -----------------------------------------------------------------
@@ -427,7 +477,8 @@ export default function WorkflowEditorPage({
 
   /** Start a run on the latest version and follow it live, a step at a time, until its results are in. */
   const startRun = ({ workOrderId, input, fromJobId }: { workOrderId: string; input: Dataclip; fromJobId?: string }) => {
-    const latest = applyEdits(workflow, edits, name);
+    if (!onRun) return;
+    const latest = applyEdits(workflow, edits, name, adaptors.info);
     const args = {
       workflow: latest,
       version: latestVersion ?? "draft",
@@ -437,7 +488,7 @@ export default function WorkflowEditorPage({
       fromJobId: latest.nodes.some((n) => n.id === fromJobId) ? fromJobId : undefined,
       startedBy: CURRENT_USER,
     };
-    const started = simulateRun({ ...args, progress: 0 });
+    const started = onRun({ ...args, progress: 0 });
     upsertRun(started.run);
     setVersion("latest");
     setRunId(args.runId);
@@ -446,7 +497,7 @@ export default function WorkflowEditorPage({
     let progress = 0;
     const timer = setInterval(() => {
       progress += 1;
-      const next = progress < started.run.steps.length ? simulateRun({ ...args, progress }) : simulateRun(args);
+      const next = progress < started.run.steps.length ? onRun({ ...args, progress }) : onRun(args);
       upsertRun(next.run);
       addClips(next.dataclips);
       if (next.run.status !== "running") {
@@ -550,7 +601,7 @@ export default function WorkflowEditorPage({
       type: "job",
       label: "Untitled step",
       adaptor: "common",
-      adaptorPackage: adaptorInfo.common.package,
+      adaptorPackage: adaptors.info.common.package,
       body: "// Start writing your step here\nfn(state => state);",
       x: last?.x ?? 490,
       y: (last?.y ?? 70) + 170,
@@ -567,18 +618,18 @@ export default function WorkflowEditorPage({
   const [addAfterId, setAddAfterId] = useState<string>();
   const connectedAdaptors = [
     ...new Set([
-      ...connectedSystems.map((s) => s.adaptor),
+      ...systems.map((s) => s.adaptor),
       ...graph.nodes.flatMap((n) => (n.type === "job" ? [n.adaptor] : [])),
     ]),
-  ].filter((a) => !builtInTools.includes(a));
+  ].filter((a) => !catalog.builtInTools.includes(a));
 
   const addStepAfter = (sourceId: string, choice: ConnectChoice) => {
     const source = graph.nodes.find((n) => n.id === sourceId);
     if (!source) return;
     const id = `step-${shortId().slice(0, 4)}`;
     const adaptor = choice.kind === "ai" ? "claude" : choice.adaptor;
-    const info = adaptorInfo[adaptor];
-    const firstSnippet = adaptorSnippets[adaptor]?.[0]?.code;
+    const info = adaptors.info[adaptor];
+    const firstSnippet = adaptors.snippets[adaptor]?.[0]?.code;
     const job: JobNode = {
       id,
       type: "job",
@@ -795,12 +846,13 @@ export default function WorkflowEditorPage({
     typeof file === "object" && "componentId" in file
       ? components.find((c) => c.id === file.componentId && c.type === "Channel")
       : undefined;
-  const channelPane = openChannel && (
+  const openChannelDetails = openChannel && contents?.channels[openChannel.id];
+  const channelPane = openChannel && openChannelDetails && (
     <ChannelView
       key={openChannel.id}
       name={openChannel.name}
       description={openChannel.description}
-      channel={channelDetails(openChannel)}
+      channel={openChannelDetails}
       onOpenRun={(id) => {
         const r = orders.flatMap((o) => o.runs).find((run) => run.runId === id);
         if (r) selectRun(r);
@@ -833,6 +885,10 @@ export default function WorkflowEditorPage({
       <StepInspector
         key={focusNode.id}
         node={focusNode}
+        adaptor={focusJob ? adaptors.info[focusJob.adaptor] : undefined}
+        credentials={focusJob ? adaptors.credentials.filter((c) => c.adaptor === focusJob.adaptor) : undefined}
+        system={focusJob?.system ? systems.find((s) => s.id === focusJob.system) : undefined}
+        codeSummary={focusJob ? codeSummary?.(focusJob) : undefined}
         credentialId={focusJob ? edits.credentials[focusJob.id] : undefined}
         readOnly={onMain}
         url={url}
@@ -901,6 +957,9 @@ export default function WorkflowEditorPage({
         onPlanAccepted={onMain ? undefined : applyPlan}
         reference={assistantReference}
         onClearReference={() => setAssistantReference(undefined)}
+        suggestions={assistantSuggestions}
+        onSend={onAssistantSend}
+        onCarryOutPlan={onAssistantCarryOutPlan}
       />
     </EditorTray>
   );
@@ -984,6 +1043,7 @@ export default function WorkflowEditorPage({
           </Modal>
           <Modal open={addAfterId !== undefined} title="Connect a system" onClose={() => setAddAfterId(undefined)} widthClass="max-w-3xl">
             <ConnectSystemPicker
+              catalog={catalog}
               connected={connectedAdaptors}
               onSelect={(choice) => addAfterId && addStepAfter(addAfterId, choice)}
             />
@@ -1009,6 +1069,8 @@ export default function WorkflowEditorPage({
       {view === "canvas" && (
         <WorkflowCanvas
           workflow={graph}
+          adaptors={adaptors.info}
+          systems={systems}
           selectedId={selectedId}
           onSelect={selectNode}
           onOpen={openNode}
@@ -1026,6 +1088,9 @@ export default function WorkflowEditorPage({
         <div className="h-full p-4 pt-3">
           <CodeWorkspace
             workflow={graph}
+            adaptors={adaptors}
+            systems={systems}
+            contents={contents}
             file={file}
             onOpen={(f) => {
               openFile(f);

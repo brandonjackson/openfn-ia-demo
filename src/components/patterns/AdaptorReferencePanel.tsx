@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { ExternalLink } from "lucide-react";
-import type { AdaptorKind } from "../../model/workflow";
-import { adaptorInfo, adaptorSnippets } from "../../fixtures/adaptor-reference";
-import type { Snippet } from "../../model/adaptor-reference";
+import type { AdaptorInfo, Snippet } from "../../model/adaptor-reference";
 import SnippetCard from "../domain/SnippetCard";
 import { AdaptorIcon } from "../domain/AdaptorIcon";
 import SearchInput from "../primitives/SearchInput";
 
 interface Props {
-  /** The open step's adaptor; the snippets are always for it. */
-  adaptor: AdaptorKind;
+  /** The open step's adaptor: its name, package, version, docs and what it's for. */
+  adaptor: AdaptorInfo;
+  /** The adaptor's snippets; they are always for the open step's adaptor. */
+  snippets: Snippet[];
   /** Inserts a snippet at the cursor in the open step; unset when nothing editable is open. */
   onInsert?: (snippet: Snippet) => void;
   /** The step the snippets would go into, named in the hint. */
@@ -22,11 +22,10 @@ interface Props {
  * at the cursor. It always follows the step's adaptor; changing the adaptor
  * is the Config view's job.
  */
-export default function AdaptorReferencePanel({ adaptor, onInsert, stepLabel }: Props) {
+export default function AdaptorReferencePanel({ adaptor: info, snippets: allSnippets, onInsert, stepLabel }: Props) {
   const [query, setQuery] = useState("");
-  const info = adaptorInfo[adaptor];
   const q = query.trim().toLowerCase();
-  const snippets = adaptorSnippets[adaptor].filter(
+  const snippets = allSnippets.filter(
     (s) => !q || s.title.toLowerCase().includes(q) || s.description.toLowerCase().includes(q)
   );
 
@@ -34,7 +33,7 @@ export default function AdaptorReferencePanel({ adaptor, onInsert, stepLabel }: 
     <div className="flex h-full flex-col">
       <div className="space-y-3 border-b border-gray-100 p-4">
         <div className="flex items-start gap-3">
-          <AdaptorIcon adaptor={adaptor} size="md" />
+          <AdaptorIcon adaptor={info.id} size="md" />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-gray-900">{info.name}</span>

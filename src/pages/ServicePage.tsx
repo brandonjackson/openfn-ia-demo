@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Bot, ClipboardList, Clock, FileCode2, Folder, KeyRound, ListChecks, Network, Webhook, Workflow } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
 import type { ServiceApiField, ServicePageData } from "../model/page-data";
@@ -20,9 +19,18 @@ import PublishToXRoadModal from "../components/patterns/PublishToXRoadModal";
 import ServiceRecordList from "../components/domain/ServiceRecordList";
 import StatTile from "../components/primitives/StatTile";
 import { mcpToolSnippet, openApiUrl, webhookUrl, workflowCallSnippet, xroadCallerSnippet } from "../model/service-usage";
-import { openfnClientId, orgXRoad } from "../fixtures/xroad";
+import { clientIdOf, openfnSubsystemOf } from "../model/xroad";
 
-export type ServicePageProps = PageProps<ServicePageData>;
+export interface ServicePageProps extends PageProps<ServicePageData> {
+  /** Opens the project the service belongs to. */
+  onOpenProject: () => void;
+  /** Opens the workflow behind the service. */
+  onOpenWorkflow: (workflowId: string) => void;
+  /** Lets AI agents call the service as a tool on the organization's MCP server. */
+  onEnableMcp: () => Promise<void>;
+  /** Publishes the service to X-Road, once its checklist is done. */
+  onPublishToXRoad: () => Promise<void>;
+}
 
 const fieldColumns: DataTableColumn<ServiceApiField>[] = [
   { key: "name", header: "Field", render: (f) => <code className="font-mono text-sm text-gray-900">{f.name}</code> },
@@ -43,15 +51,22 @@ const fieldColumns: DataTableColumn<ServiceApiField>[] = [
  * trigger's annotations generate the OpenAPI 3 docs. Links through to that
  * workflow and its project.
  */
-export default function ServicePage({ ancestors, data }: ServicePageProps) {
-  const navigate = useNavigate();
-  const { service, workflow, api } = data;
+export default function ServicePage({
+  ancestors,
+  data,
+  onOpenProject,
+  onOpenWorkflow,
+  onEnableMcp,
+  onPublishToXRoad,
+}: ServicePageProps) {
+  const { service, workflow, api, xroadOrg } = data;
   const projectPath = `/projects/${data.projectId}`;
   const isWebhook = api.trigger === "webhook";
   const url = webhookUrl(api);
   const docsUrl = openApiUrl(api);
-  const [mcpEnabled, setMcpEnabled] = useState(!!service.mcpEnabled);
-  const [onXRoad, setOnXRoad] = useState(!!service.xroad?.published);
+  const mcpEnabled = !!service.mcpEnabled;
+  const onXRoad = !!service.xroad?.published;
+  const openfnClientId = clientIdOf(xroadOrg);
   const [publishOpen, setPublishOpen] = useState(false);
   const serviceCode = service.xroad?.serviceCode ?? service.id;
   const xroadServiceId = `${openfnClientId}/${serviceCode}`;
@@ -113,11 +128,11 @@ export default function ServicePage({ ancestors, data }: ServicePageProps) {
           description={service.description}
           actions={
             <>
-              <Button variant="secondary" size="sm" onClick={() => navigate(projectPath)}>
+              <Button variant="secondary" size="sm" onClick={onOpenProject}>
                 View project
               </Button>
               {workflow && (
-                <Button icon={Workflow} size="sm" onClick={() => navigate(`/workflow-editor/${workflow.id}`)}>
+                <Button icon={Workflow} size="sm" onClick={() => onOpenWorkflow(workflow.id)}>
                   Open workflow
                 </Button>
               )}
@@ -185,7 +200,7 @@ export default function ServicePage({ ancestors, data }: ServicePageProps) {
               {mcpEnabled ? (
                 <CodeBlock label="Tool definition" code={mcpToolSnippet(service, api)} />
               ) : (
-                <Button variant="outline-primary" size="sm" icon={Bot} onClick={() => setMcpEnabled(true)}>
+                <Button variant="outline-primary" size="sm" icon={Bot} onClick={() => void onEnableMcp()}>
                   Enable MCP
                 </Button>
               )}
@@ -195,7 +210,7 @@ export default function ServicePage({ ancestors, data }: ServicePageProps) {
               title="X-Road"
               description={
                 onXRoad
-                  ? `Other members call it through their Security Servers, as a service of your ${orgXRoad.subsystems.find((x) => x.openfn)?.code} subsystem.`
+                  ? `Other members call it through their Security Servers, as a service of your ${openfnSubsystemOf(xroadOrg).code} subsystem.`
                   : "Offer it to other government members through your Security Server, with their identity on every call."
               }
             >
@@ -257,8 +272,8 @@ export default function ServicePage({ ancestors, data }: ServicePageProps) {
           open={publishOpen}
           onClose={() => setPublishOpen(false)}
           onPublished={() => {
-            setOnXRoad(true);
             setPublishOpen(false);
+            void onPublishToXRoad();
           }}
           serviceName={service.name}
           serviceCode={serviceCode}
@@ -266,7 +281,7 @@ export default function ServicePage({ ancestors, data }: ServicePageProps) {
           backendUrl={url}
           subsystem={openfnClientId}
           clients={service.xroad?.clients}
-          securityServer={orgXRoad.securityServers[0].address}
+          securityServer={xroadOrg.securityServers[0].address}
         />
       )}
     </div>

@@ -3,6 +3,7 @@ import { connectedSystemSummaries, recommendedSystems } from "./connected-system
 import { openIssues } from "./status";
 import { projectSummaries } from "./projects";
 import { errorRate, errorTrend, runTrend, totalErrors, totalRuns } from "./insights";
+import { adaptors } from "./adaptors";
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const issueCount = openIssues.systems.length + openIssues.workflows.length;
@@ -102,6 +103,7 @@ export const suggestedServices: SuggestedService[] = [
 
 export const overviewData: DashboardPageData = {
   pageType: "dashboard",
+  adaptors,
   tiles: [
     {
       label: "Status",

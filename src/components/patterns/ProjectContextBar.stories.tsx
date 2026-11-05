@@ -1,13 +1,20 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ProjectContextBar from "./ProjectContextBar";
 import { withRouterAt } from "../../stories/decorators";
-import { projects } from "../../fixtures/projects";
+import { projects, recentProjects } from "../../fixtures/projects";
 
 const projectA = projects[0];
 
 const meta: Meta<typeof ProjectContextBar> = {
   title: "Patterns/ProjectContextBar",
   component: ProjectContextBar,
+  args: {
+    recentProjects,
+    sandbox: "main",
+    onSelectSandbox: () => {},
+    currentPath: "/projects/project-a",
+    onNavigate: () => {},
+  },
   decorators: [
     withRouterAt("/projects/project-a"),
     (Story) => (

@@ -11,6 +11,8 @@ const gaps: Record<StackGap, string> = {
 };
 
 const aligns = { start: "items-start", center: "items-center", baseline: "items-baseline", end: "items-end" };
+/** The same, from `sm` up, for a row that stacks on a phone. Written out so Tailwind sees each class. */
+const smAligns = { start: "sm:items-start", center: "sm:items-center", baseline: "sm:items-baseline", end: "sm:items-end" };
 const justifies = { start: "justify-start", between: "justify-between", end: "justify-end" };
 
 interface Props {
@@ -23,6 +25,8 @@ interface Props {
   wrap?: boolean;
   /** Takes the free width of a row it sits in, so its own contents can truncate. */
   grow?: boolean;
+  /** Puts the children one above the other on a phone, side by side from `sm` up. */
+  stackOnMobile?: boolean;
   children?: ReactNode;
 }
 
@@ -31,10 +35,11 @@ interface Props {
  * of the layout kit (with `Stack`): filter bars, action groups, a label and
  * its value.
  */
-export default function Inline({ gap = "sm", align = "center", justify = "start", wrap = false, grow = false, children }: Props) {
+export default function Inline({ gap = "sm", align = "center", justify = "start", wrap = false, grow = false, stackOnMobile = false, children }: Props) {
+  const direction = stackOnMobile ? `flex-col items-stretch sm:flex-row ${smAligns[align]}` : aligns[align];
   return (
     <div
-      className={`flex min-w-0 ${aligns[align]} ${justifies[justify]} ${gaps[gap]} ${wrap ? "flex-wrap" : ""} ${
+      className={`flex min-w-0 ${direction} ${justifies[justify]} ${gaps[gap]} ${wrap ? "flex-wrap" : ""} ${
         grow ? "flex-1" : ""
       }`}
     >

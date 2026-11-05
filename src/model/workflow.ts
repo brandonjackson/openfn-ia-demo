@@ -29,7 +29,8 @@ export type EdgeCondition =
   | "on_failure"
   | "js_expression";
 
-export type RunStatus = "success" | "failed" | "running" | "pending";
+/** Where a run, step or work order stands. A cancelled one was stopped before it started. */
+export type RunStatus = "success" | "failed" | "running" | "pending" | "cancelled";
 
 export interface TriggerNode {
   id: string;

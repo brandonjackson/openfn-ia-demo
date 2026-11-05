@@ -27,6 +27,8 @@ interface Props {
   truncate?: boolean;
   /** A paragraph rather than a run of text inside a line. */
   block?: boolean;
+  /** Keeps it on one line, e.g. a date in a table cell. */
+  nowrap?: boolean;
   children?: ReactNode;
 }
 
@@ -34,9 +36,9 @@ interface Props {
  * A run of text in one of the app's few tones and sizes, so components never
  * pick colours or font sizes for themselves.
  */
-export default function Text({ tone = "default", size = "sm", mono = false, truncate = false, block = false, children }: Props) {
+export default function Text({ tone = "default", size = "sm", mono = false, truncate = false, block = false, nowrap = false, children }: Props) {
   const sizes = { xs: "text-xs", sm: "text-sm", md: "text-base" };
-  const className = `${tones[tone]} ${sizes[size]} ${mono ? "font-mono" : ""} ${truncate ? "block min-w-0 truncate" : ""}`;
+  const className = `${tones[tone]} ${sizes[size]} ${mono ? "font-mono" : ""} ${truncate ? "block min-w-0 truncate" : ""} ${nowrap ? "whitespace-nowrap" : ""}`;
   const title = truncate && typeof children === "string" ? children : undefined;
   return block ? (
     <p className={className}>{children}</p>

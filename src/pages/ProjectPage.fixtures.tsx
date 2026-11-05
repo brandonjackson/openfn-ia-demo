@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import type { PageRoute } from "../app/ia-utils";
 import type { ProjectPageData } from "../model/page-data";
 import type { Project } from "../model/projects";
-import { mockEntries } from "../fixtures/history";
+import { projectWorkOrders } from "../fixtures/history";
 import { buildProjectOverviewTiles } from "../fixtures/insights";
 import { buildIdeas } from "../fixtures/build-ideas";
 import ProjectPage from "./ProjectPage";
@@ -17,9 +17,7 @@ import { componentsFor } from "./flagged.fixtures";
  * services and components, each only with its feature flag on.
  */
 function projectPageData(project: Project, flags: FeatureFlags): ProjectPageData {
-  const workOrderCount = mockEntries.filter(
-    (e) => e.type === "Work Order" && e.project === project.name
-  ).length;
+  const workOrderCount = projectWorkOrders(project).length;
 
   return {
     pageType: "project",

@@ -34,3 +34,15 @@ export const SpreadApart: Story = {
     ],
   },
 };
+
+/** Side by side from `sm` up, one above the other on a phone. */
+export const StackOnMobile: Story = {
+  args: {
+    justify: "between",
+    stackOnMobile: true,
+    children: [
+      <Text key="t" tone="strong">planning-application-workflow</Text>,
+      <Badge key="b" label="Live" />,
+    ],
+  },
+};

@@ -22,11 +22,14 @@ export function TextArea({ className = "", ...rest }: TextareaHTMLAttributes<HTM
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   options: string[];
+  /** As wide as its longest option rather than its container, for a filter in a row of them. */
+  fit?: boolean;
 }
 
-export function Select({ options, className = "w-auto", ...rest }: SelectProps) {
+export function Select({ options, fit = false, className = "w-auto", ...rest }: SelectProps) {
+  const classes = fit ? controlClasses.replace("w-full ", "w-auto ") : controlClasses;
   return (
-    <select className={`${controlClasses} py-2 ${className}`} {...rest}>
+    <select className={`${classes} py-2 ${className}`} {...rest}>
       {options.map((opt) => (
         <option key={opt} value={opt}>
           {opt}

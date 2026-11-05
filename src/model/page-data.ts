@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import type { ChannelRequest, HistoryWorkOrder } from "./history";
 import type { Adaptor } from "./adaptors";
 import type { RunStatus } from "./workflow";
 import type { ChannelDetails } from "./channels";
@@ -237,18 +238,32 @@ export interface CatalogPageData {
 /*  Table page (History)                                               */
 /* ------------------------------------------------------------------ */
 
-export interface TableColumn {
-  key: string;
-  label: string;
-  /** Shows matching cell values as badges in the given tone. */
-  toneMap?: Record<string, BadgeTone>;
+/** A workflow History can filter by, with its steps for retrying from one. */
+export interface HistoryWorkflowOption {
+  id: string;
+  name: string;
+  /** The project it belongs to, for History across every project. */
+  projectId: string;
+  /** Its steps in the order they run, to pick one to retry from. */
+  steps: { id: string; label: string }[];
+  /** Its latest version, so runs on an older one can be told apart. */
+  latestVersion: string;
 }
 
-export interface TablePageData {
+/**
+ * History: a project's (or every project's) work orders with their runs, and
+ * its channels' requests.
+ */
+export interface HistoryPageData {
   pageType: "table";
-  filters: FilterDef[];
-  columns: TableColumn[];
-  rows: Record<string, unknown>[];
+  /** Newest first. */
+  workOrders: HistoryWorkOrder[];
+  /** Newest first. Absent when channels aren't shown. */
+  channelRequests: ChannelRequest[];
+  /** The workflows the work orders belong to. */
+  workflows: HistoryWorkflowOption[];
+  /** Set for History across every project, to filter by project and say which one each order belongs to. */
+  projects?: { id: string; name: string }[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -759,7 +774,7 @@ export type PageData =
   | ListPageData
   | DetailPageData
   | CatalogPageData
-  | TablePageData
+  | HistoryPageData
   | DashboardPageData
   | StatusPageData
   | InsightsPageData

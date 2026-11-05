@@ -76,13 +76,14 @@ interface Member {
 
 /**
  * The roles you can give a collaborator; empty when you can't change theirs.
- * Owners and admins change other people's roles, never their own, and an
- * owner's role is never changed from here. Only an owner can hand ownership
- * on, which makes them an admin.
+ * Owners and admins change other people's roles, never their own. A project
+ * has exactly one owner and ownership can't be handed over (the API's
+ * `one_owner` rule), so the owner's role never changes and no one else can
+ * be made owner.
  */
 export function assignableRoles(you: ProjectRole, them: Member): ProjectRole[] {
   if (!hasRole(you, "admin") || them.isSelf || them.role === "owner") return [];
-  return you === "owner" ? ["owner", ...addableRoles] : addableRoles;
+  return addableRoles;
 }
 
 /**
@@ -203,6 +204,21 @@ export function formatBytes(bytes: number): string {
 
 /** The history and input/output retention periods a project can choose from. */
 export const retentionPeriods = ["7 Days", "14 Days", "30 Days", "90 Days", "180 Days", "1 Year"];
+
+/** A retention period's days, as the API sends them: "30 Days" → 30, "1 Year" → 365. */
+export function retentionDays(label: string): number {
+  const n = Number.parseInt(label, 10);
+  return /year/i.test(label) ? n * 365 : n;
+}
+
+/**
+ * A number of days as one of `retentionPeriods`. No period (keep everything,
+ * a new project's default) shows as the longest there is.
+ */
+export function retentionLabel(days: number | null): string {
+  if (days === null) return retentionPeriods[retentionPeriods.length - 1]!;
+  return retentionPeriods.find((p) => retentionDays(p) === days) ?? `${days} Days`;
+}
 
 /** Keep input/output data for every run, or never store it. */
 export type IoDataPolicy = "retain" | "zero-persistence";

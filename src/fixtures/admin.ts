@@ -153,8 +153,12 @@ export function asAdminUser(user: InstanceUser): AdminUser {
 /** Every account, as Admin settings shows them. */
 export const adminUsers: AdminUser[] = instanceUsers.map(asAdminUser);
 
-/** Who's in each of the demo's projects, by project id. */
-const memberships: Record<string, ProjectMembership[]> = {
+/**
+ * Who's in each of the demo's projects, by project id: the one list of
+ * members the fake server is seeded from. Jane, the signed-in user, is in
+ * every project she can open (the API refuses anyone else, superusers too).
+ */
+export const memberships: Record<string, ProjectMembership[]> = {
   "project-a": [
     { userId: "user-jane", role: "owner" },
     { userId: "user-amadou", role: "admin" },
@@ -175,13 +179,17 @@ const memberships: Record<string, ProjectMembership[]> = {
   ],
   "case-surveillance": [
     { userId: "user-priya", role: "owner" },
+    { userId: "user-jane", role: "admin" },
     { userId: "user-kofi", role: "editor" },
     { userId: "user-amadou", role: "viewer" },
   ],
-  "data-quality-checks": [{ userId: "user-priya", role: "owner" }],
+  "data-quality-checks": [
+    { userId: "user-priya", role: "owner" },
+    { userId: "user-jane", role: "editor" },
+  ],
 };
 
-const createdAt: Record<string, string> = {
+export const createdAt: Record<string, string> = {
   "project-a": "14 Mar 2024",
   "project-b": "2 Jul 2024",
   "malawi-chw-referrals": "19 Nov 2024",

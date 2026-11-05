@@ -12,13 +12,19 @@ export type LoadStatus =
   | { state: "forbidden" }
   | { state: "error"; message: string };
 
-/** A query's status. A failed reload keeps what's already on screen. */
+/**
+ * A query's status. A reload that couldn't reach the server keeps what's
+ * already on screen; one the server refused (the record is gone, being
+ * deleted, or no longer yours to see) shows the refusal, not the old data.
+ */
 export function statusOf(query: { data: unknown; error: Error | null }): LoadStatus {
+  const { error } = query;
+  if (isApiError(error, "not_found") || isApiError(error, "invalid_parameter")) return { state: "notFound" };
+  if (isApiError(error, "forbidden")) return { state: "forbidden" };
+  if (isApiError(error, "scheduled_for_deletion")) return { state: "error", message: "This is scheduled for deletion." };
   if (query.data !== undefined) return { state: "ready" };
-  if (!query.error) return { state: "loading" };
-  if (isApiError(query.error, "not_found") || isApiError(query.error, "invalid_parameter")) return { state: "notFound" };
-  if (isApiError(query.error, "forbidden")) return { state: "forbidden" };
-  return { state: "error", message: query.error.message };
+  if (!error) return { state: "loading" };
+  return { state: "error", message: error.message };
 }
 
 /** Several queries' status together: the first failure, else loading until every one is ready. */

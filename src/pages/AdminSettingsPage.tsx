@@ -66,8 +66,8 @@ interface UserActions {
   onScheduleUserDeletion: (id: string) => Promise<void>;
   /** Cancels a scheduled deletion. */
   onCancelUserDeletion: (id: string) => Promise<void>;
-  /** Deletes an account straight away, rather than at its scheduled date. */
-  onDeleteUserNow: (id: string) => Promise<void>;
+  /** Deletes an account straight away, rather than at its scheduled date. Left out where deletions can only be scheduled. */
+  onDeleteUserNow?: (id: string) => Promise<void>;
 }
 
 function UsersSection({
@@ -104,7 +104,7 @@ function UsersSection({
         onSetDisabled={(u, disabled) => void onSetUserDisabled(u.id, disabled)}
         onScheduleDeletion={(u) => setDeleting({ user: u, now: false })}
         onCancelDeletion={(u) => void onCancelUserDeletion(u.id)}
-        onDeleteNow={(u) => setDeleting({ user: u, now: true })}
+        onDeleteNow={onDeleteUserNow && ((u) => setDeleting({ user: u, now: true }))}
       />
       <Text tone="muted" size="xs" block>
         A superuser can reach everything on this instance, across every project, including these settings.
@@ -126,7 +126,7 @@ function UsersSection({
         onClose={() => setDeleting(null)}
         onConfirm={() => {
           if (!deleting) return;
-          void (deleting.now ? onDeleteUserNow : onScheduleUserDeletion)(deleting.user.id);
+          void (deleting.now && onDeleteUserNow ? onDeleteUserNow : onScheduleUserDeletion)(deleting.user.id);
           setDeleting(null);
         }}
       >
@@ -155,8 +155,8 @@ interface ProjectActions {
   onScheduleProjectDeletion: (id: string) => Promise<void>;
   /** Cancels a scheduled deletion. */
   onCancelProjectDeletion: (id: string) => Promise<void>;
-  /** Deletes a project straight away, rather than at its scheduled date. */
-  onDeleteProjectNow: (id: string) => Promise<void>;
+  /** Deletes a project straight away, rather than at its scheduled date. Left out where deletions can only be scheduled. */
+  onDeleteProjectNow?: (id: string) => Promise<void>;
 }
 
 function ProjectsSection({
@@ -193,7 +193,7 @@ function ProjectsSection({
         onEdit={setEditing}
         onScheduleDeletion={(p) => setDeleting({ project: p, now: false })}
         onCancelDeletion={(p) => void onCancelProjectDeletion(p.id)}
-        onDeleteNow={(p) => setDeleting({ project: p, now: true })}
+        onDeleteNow={onDeleteProjectNow && ((p) => setDeleting({ project: p, now: true }))}
       />
 
       {editing && (
@@ -213,7 +213,7 @@ function ProjectsSection({
         onClose={() => setDeleting(null)}
         onConfirm={() => {
           if (!deleting) return;
-          void (deleting.now ? onDeleteProjectNow : onScheduleProjectDeletion)(deleting.project.id);
+          void (deleting.now && onDeleteProjectNow ? onDeleteProjectNow : onScheduleProjectDeletion)(deleting.project.id);
           setDeleting(null);
         }}
       >

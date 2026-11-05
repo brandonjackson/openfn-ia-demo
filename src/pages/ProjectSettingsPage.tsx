@@ -1,3 +1,4 @@
+import { errorMessageOf, fieldErrorOf } from "../model/form-error";
 import { useState } from "react";
 import {
   Settings,
@@ -167,18 +168,20 @@ function SavedNote({ show }: { show: boolean }) {
 
 function ProjectIdentityCard({ data, onSave }: SectionProps & { onSave: ProjectSettingsPageProps["onSaveProjectIdentity"] }) {
   const [rawName, setRawName] = useState(data.projectName);
-  const [environment, setEnvironment] = useState(data.projectEnvironment);
   const [description, setDescription] = useState(data.projectDescription);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<unknown>(null);
   const name = urlSafeName(rawName);
-  const changed =
-    name !== data.projectName || environment.trim() !== data.projectEnvironment || description !== data.projectDescription;
+  const changed = name !== data.projectName || description !== data.projectDescription;
   const canEdit = data.permissions.canEditProject;
-  const valid = !!name && !!environment.trim() && description.length <= 240;
+  const valid = !!name && description.length <= 240;
   const edit = <T,>(set: (v: T) => void) => (v: T) => {
     set(v);
     setSaved(false);
+    setError(null);
   };
+  const nameError = fieldErrorOf(error, "name");
+  const descriptionError = fieldErrorOf(error, "description");
 
   return (
     <Card
@@ -189,7 +192,7 @@ function ProjectIdentityCard({ data, onSave }: SectionProps & { onSave: ProjectS
         <FormField
           label="Project name"
           htmlFor="project-name"
-          error={rawName && !name ? "can't be blank" : undefined}
+          error={rawName && !name ? "can't be blank" : nameError}
           hint={
             <>
               Your project will be named <Text mono>{name || "…"}</Text>.
@@ -201,20 +204,15 @@ function ProjectIdentityCard({ data, onSave }: SectionProps & { onSave: ProjectS
         <FormField
           label="Project environment"
           htmlFor="project-environment"
-          hint="Credentials will be loaded with values from this environment."
+          hint="Credentials will be loaded with values from this environment. It's set when the project is made."
         >
-          <TextInput
-            id="project-environment"
-            disabled={!canEdit}
-            value={environment}
-            onChange={(e) => edit(setEnvironment)(e.target.value)}
-          />
+          <TextInput id="project-environment" disabled value={data.projectEnvironment} readOnly />
         </FormField>
         <FormField
           label="Project description"
           htmlFor="project-description"
           hint={`A short description of a project (max 240 characters). ${240 - description.length} left.`}
-          error={description.length > 240 ? "should be at most 240 characters" : undefined}
+          error={description.length > 240 ? "should be at most 240 characters" : descriptionError}
         >
           <TextArea
             id="project-description"
@@ -225,13 +223,18 @@ function ProjectIdentityCard({ data, onSave }: SectionProps & { onSave: ProjectS
           />
         </FormField>
         <Inline justify="end" gap="md">
+          {error !== null && !nameError && !descriptionError && <Text tone="danger">{errorMessageOf(error)}</Text>}
           <SavedNote show={saved} />
           <Button
             disabled={!canEdit || !changed || !valid}
             onClick={async () => {
-              await onSave({ name, environment: environment.trim(), description });
-              setRawName(name);
-              setSaved(true);
+              try {
+                await onSave({ name, environment: data.projectEnvironment, description });
+                setRawName(name);
+                setSaved(true);
+              } catch (refused) {
+                setError(refused);
+              }
             }}
           >
             Save
@@ -875,6 +878,7 @@ function SyncToGitHubSection({
 function DataStorageSection({ data, onSaveDataStorage }: Pick<ProjectSettingsPageProps, "data" | "onSaveDataStorage">) {
   const [draft, setDraft] = useState<DataStorageSettings>(data.dataStorage);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<unknown>(null);
   const canEdit = data.permissions.canEditDataRetention;
   const saved0 = data.dataStorage;
   const changed =
@@ -884,6 +888,7 @@ function DataStorageSection({ data, onSaveDataStorage }: Pick<ProjectSettingsPag
   const set = (change: Partial<DataStorageSettings>) => {
     setDraft((d) => ({ ...d, ...change }));
     setSaved(false);
+    setError(null);
   };
 
   return (
@@ -951,6 +956,7 @@ function DataStorageSection({ data, onSaveDataStorage }: Pick<ProjectSettingsPag
         </Card>
       )}
       <Inline justify="end" gap="sm">
+        {error !== null && <Text tone="danger">{retentionErrorOf(error)}</Text>}
         <SavedNote show={saved} />
         <Button variant="secondary" disabled={!canEdit || !changed} onClick={() => setDraft(data.dataStorage)}>
           Cancel
@@ -958,8 +964,13 @@ function DataStorageSection({ data, onSaveDataStorage }: Pick<ProjectSettingsPag
         <Button
           disabled={!canEdit || !changed}
           onClick={async () => {
-            await onSaveDataStorage(draft);
-            setSaved(true);
+            setError(null);
+            try {
+              await onSaveDataStorage(draft);
+              setSaved(true);
+            } catch (refused) {
+              setError(refused);
+            }
           }}
         >
           Save
@@ -967,6 +978,12 @@ function DataStorageSection({ data, onSaveDataStorage }: Pick<ProjectSettingsPag
       </Inline>
     </Stack>
   );
+}
+
+/** Why the server refused the retention settings, in the form's words. */
+function retentionErrorOf(error: unknown): string {
+  if (fieldErrorOf(error, "dataclip_retention_period")) return "Input/output data can't be kept longer than the history.";
+  return fieldErrorOf(error, "history_retention_period") ?? errorMessageOf(error);
 }
 
 /* ------------------------------------------------------------------ */

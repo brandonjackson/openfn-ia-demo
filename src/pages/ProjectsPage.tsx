@@ -8,11 +8,11 @@ import Button from "../components/primitives/Button";
 import EmptyState from "../components/primitives/EmptyState";
 import { TextInput } from "../components/primitives/FormControls";
 import ProjectCard from "../components/domain/ProjectCard";
-import CreateProjectFlow from "../components/domain/CreateProjectFlow";
+import CreateProjectFlow, { type NewProjectInput } from "../components/domain/CreateProjectFlow";
 
 export interface ProjectsPageProps extends PageProps<ProjectsPageData> {
-  /** Creates a project and opens it. */
-  onCreateProject: () => Promise<void>;
+  /** Creates a project from the form, and opens it. Rejects with the server's refusal, which the form shows. */
+  onCreateProject: (project: NewProjectInput) => Promise<void>;
 }
 
 export default function ProjectsPage({ node, ancestors, data, onCreateProject }: ProjectsPageProps) {
@@ -27,9 +27,9 @@ export default function ProjectsPage({ node, ancestors, data, onCreateProject }:
       p.description.toLowerCase().includes(needle)
   );
 
-  const handleCreateProject = () => {
+  const handleCreateProject = async (project: NewProjectInput) => {
+    await onCreateProject(project);
     setCreateOpen(false);
-    void onCreateProject();
   };
 
   return (

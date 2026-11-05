@@ -1,6 +1,7 @@
 import { Check, Database, Minus, X, XCircle } from "lucide-react";
 import type { AssistantResult } from "../../model/assistant";
 import Button from "../primitives/Button";
+import Card from "../primitives/Card";
 
 interface Props {
   result: AssistantResult;
@@ -22,7 +23,7 @@ const outcomeStyle = {
  */
 export default function AssistantResultCard({ result, onOpenRuns, onAskToMerge }: Props) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-4">
+    <Card padding="sm">
       <div className="mb-2 font-mono text-[10px] uppercase tracking-widest text-gray-400">Result</div>
       <ul className="divide-y divide-gray-100">
         {result.items.map((item) => {
@@ -46,6 +47,6 @@ export default function AssistantResultCard({ result, onOpenRuns, onAskToMerge }
           </Button>
         )}
       </div>
-    </div>
+    </Card>
   );
 }

@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Activity, ChartColumn, LayoutDashboard, Lightbulb } from "lucide-react";
-import SidebarSection from "./SidebarSection";
-import NavItem from "../primitives/NavItem";
+import NavSection from "./NavSection";
+import NavItem from "./NavItem";
 import { withRouter } from "../../stories/decorators";
 
-const meta: Meta<typeof SidebarSection> = {
-  title: "Patterns/SidebarSection",
-  component: SidebarSection,
+const meta: Meta<typeof NavSection> = {
+  title: "Primitives/NavSection",
+  component: NavSection,
   decorators: [
     withRouter,
     (Story) => (
@@ -18,7 +18,7 @@ const meta: Meta<typeof SidebarSection> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof SidebarSection>;
+type Story = StoryObj<typeof NavSection>;
 
 export const Labelled: Story = {
   args: {

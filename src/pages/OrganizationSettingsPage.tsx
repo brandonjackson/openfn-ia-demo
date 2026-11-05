@@ -13,7 +13,7 @@ import { memberClassLabels, securityServerManagerLabels } from "../model/xroad";
 import { clientIdOf } from "../model/xroad";
 import SettingsLayout from "../components/patterns/SettingsLayout";
 import Breadcrumbs from "../components/domain/Breadcrumbs";
-import type { SettingsNavItem } from "../components/patterns/SettingsNav";
+import type { SettingsNavItem } from "../components/primitives/SettingsNav";
 import SectionHeading from "../components/primitives/SectionHeading";
 import Card from "../components/primitives/Card";
 import Button from "../components/primitives/Button";

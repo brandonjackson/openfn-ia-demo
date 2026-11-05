@@ -31,6 +31,9 @@ import type {
 import type { ProjectComponent, ProjectService } from "../model/projects";
 import EditorShell from "../components/patterns/EditorShell";
 import CanvasLayout from "../components/patterns/CanvasLayout";
+import CodeLayout from "../components/patterns/CodeLayout";
+import EditorTray from "../components/patterns/EditorTray";
+import EditorTopBar from "../components/patterns/EditorTopBar";
 import EditorToolbar from "../components/domain/EditorToolbar";
 import type { EditorView } from "../components/domain/EditorToolbar";
 import type { WorkflowMenuAction } from "../components/domain/WorkflowFileMenu";
@@ -1010,7 +1013,9 @@ export default function WorkflowEditorPage({
       onRunWithCustomInput={() => setRunInputOpen(true)}
       assistantOpen={layout.assistant}
       onToggleAssistant={toggleAssistant}
-    />
+    >
+      {(bar) => <EditorTopBar {...bar} />}
+    </EditorToolbar>
   );
 
   return (
@@ -1148,7 +1153,6 @@ export default function WorkflowEditorPage({
           onAddDoc={onMain ? undefined : addDoc}
           onAddComponent={onMain || !onAddComponent ? undefined : () => setAddComponentOpen(true)}
           pane={file === "health" ? healthPane : channelPane || undefined}
-          bottomTray={panel}
           showExplorer={layout.explorer}
           showDetails={shownLayout.details}
           detailsView={layout.detailsView}
@@ -1159,7 +1163,25 @@ export default function WorkflowEditorPage({
           dirtyStepIds={[
             ...new Set([...Object.keys(edits.bodies), ...Object.keys(edits.labels), ...Object.keys(edits.adaptors), ...edits.added.map((j) => j.id)]),
           ]}
-        />
+        >
+          {(code) => (
+            <CodeLayout
+              nav={code.nav}
+              header={code.header}
+              footer={code.footer}
+              bottomTray={panel}
+              rightTray={
+                code.details && (
+                  <EditorTray placement="right" tabs={code.details.tabs} actions={code.details.actions}>
+                    {code.details.body}
+                  </EditorTray>
+                )
+              }
+            >
+              {code.main}
+            </CodeLayout>
+          )}
+        </CodeWorkspace>
       )}
     </EditorShell>
   );

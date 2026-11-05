@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import PageHeader from "./PageHeader";
-import SettingsNav from "./SettingsNav";
-import type { SettingsNavItem } from "./SettingsNav";
+import SettingsNav from "../primitives/SettingsNav";
+import type { SettingsNavItem } from "../primitives/SettingsNav";
 
 interface Props {
   /** The trail above the title, e.g. the app's Breadcrumbs. */

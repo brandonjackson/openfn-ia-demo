@@ -1,8 +1,9 @@
-import Link from "../primitives/Link";
 import { ChevronRight } from "lucide-react";
 import type { IANode } from "../../model/ia-tree";
 import Badge from "../primitives/Badge";
+import Card from "../primitives/Card";
 
+/** A page under this one in the IA tree: its name, badges, description and how many pages sit under it. */
 export default function ChildCard({
   node,
   basePath,
@@ -10,32 +11,21 @@ export default function ChildCard({
   node: IANode;
   basePath: string;
 }) {
-  const to = basePath + "/" + node.id;
   return (
-    <Link
-      to={to}
-      className="group block rounded-lg border border-gray-200 p-4 hover:border-indigo-300 hover:shadow-sm transition-all"
-    >
+    <Card padding="sm" to={`${basePath}/${node.id}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="font-medium text-gray-900 group-hover:text-indigo-600">
-            {node.label}
-          </h3>
+          <h3 className="font-medium text-gray-900 group-hover:text-indigo-600">{node.label}</h3>
           {node.badges?.map((b) => <Badge key={b} label={b} />)}
         </div>
-        <ChevronRight
-          size={16}
-          className="text-gray-300 group-hover:text-indigo-400"
-        />
+        <ChevronRight size={16} className="text-gray-300 group-hover:text-indigo-400" />
       </div>
-      {node.description && (
-        <p className="mt-1 text-sm text-gray-500">{node.description}</p>
-      )}
+      {node.description && <p className="mt-1 text-sm text-gray-500">{node.description}</p>}
       {node.children && (
         <p className="mt-2 text-xs text-gray-400">
           {node.children.length} sub-page{node.children.length !== 1 ? "s" : ""}
         </p>
       )}
-    </Link>
+    </Card>
   );
 }

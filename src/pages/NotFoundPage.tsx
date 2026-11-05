@@ -1,5 +1,6 @@
 import { ToggleRight } from "lucide-react";
 import EmptyState from "../components/primitives/EmptyState";
+import Code from "../components/primitives/Code";
 
 export interface NotFoundPageProps {
   /** The URL that has nothing to show. */
@@ -30,7 +31,7 @@ export default function NotFoundPage({ path, reason, feature }: NotFoundPageProp
       <h1 className="text-2xl font-semibold text-gray-900">Page Not Found</h1>
       <p className="mt-2 text-gray-500">
         {reason === "page" ? "No IA node found for" : "No data found for"}{" "}
-        <code className="bg-gray-100 px-2 py-0.5 rounded">{path}</code>
+        <Code>{path}</Code>
       </p>
     </div>
   );

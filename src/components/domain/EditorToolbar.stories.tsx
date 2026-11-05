@@ -2,12 +2,15 @@ import { useState } from "react";
 import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import EditorToolbar from "./EditorToolbar";
+import EditorTopBar from "../patterns/EditorTopBar";
 import type { EditorView } from "./EditorToolbar";
 import { nationalIdWorkflow, workflowVersions } from "../../fixtures/workflow";
 import { projects } from "../../fixtures/projects";
 import { sampleRun } from "../../fixtures/runs";
 
-function Stateful(args: ComponentProps<typeof EditorToolbar>) {
+type Args = Omit<ComponentProps<typeof EditorToolbar>, "children">;
+
+function Stateful(args: Args) {
   const [view, setView] = useState<EditorView>(args.view);
   const [name, setName] = useState(args.name);
   const [sandbox, setSandbox] = useState(args.sandbox ?? "main");
@@ -24,13 +27,16 @@ function Stateful(args: ComponentProps<typeof EditorToolbar>) {
       onSelectSandbox={setSandbox}
       assistantOpen={assistantOpen}
       onToggleAssistant={() => setAssistantOpen((o) => !o)}
-    />
+    >
+      {/* Laid out as the page does, in the editor's top bar. */}
+      {(bar) => <EditorTopBar {...bar} />}
+    </EditorToolbar>
   );
 }
 
-const meta: Meta<typeof EditorToolbar> = {
+const meta: Meta<Args> = {
   title: "Domain/EditorToolbar",
-  component: EditorToolbar,
+  component: Stateful,
   parameters: { layout: "fullscreen" },
   decorators: [
     (Story) => (
@@ -54,7 +60,7 @@ const meta: Meta<typeof EditorToolbar> = {
 };
 
 export default meta;
-type Story = StoryObj<typeof EditorToolbar>;
+type Story = StoryObj<Args>;
 
 /** On main: read-only, with "Edit in sandbox" as the main action. */
 export const OnMain: Story = {};

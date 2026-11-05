@@ -50,7 +50,7 @@ export default function ProjectComponentsPage({ node, ancestors, data, onAddComp
                 title={`${group.plural} (${group.items.length})`}
                 description={group.description}
               />
-              <Card flush className="-mt-3">
+              <Card flush className="-mt-3 space-y-0.5 p-1.5">
                 {group.items.map((c) => (
                   <ComponentRow key={c.id} component={c} projectPath={projectPath} showDescription hideType />
                 ))}

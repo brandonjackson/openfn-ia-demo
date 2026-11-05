@@ -2,7 +2,7 @@ import { useState } from "react";
 import { ExternalLink } from "lucide-react";
 import type { AdaptorInfo, Snippet } from "../../model/adaptor-reference";
 import SnippetCard from "./SnippetCard";
-import { AdaptorIcon } from "./AdaptorIcon";
+import AdaptorLogo from "./AdaptorLogo";
 import SearchInput from "../primitives/SearchInput";
 
 interface Props {
@@ -33,7 +33,7 @@ export default function AdaptorReferencePanel({ adaptor: info, snippets: allSnip
     <div className="flex h-full flex-col">
       <div className="space-y-3 border-b border-gray-100 p-4">
         <div className="flex items-start gap-3">
-          <AdaptorIcon adaptor={info.id} size="md" />
+          <AdaptorLogo adaptor={info.id} size="md" />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-gray-900">{info.name}</span>

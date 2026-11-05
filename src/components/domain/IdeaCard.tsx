@@ -1,5 +1,6 @@
 import { Lightbulb } from "lucide-react";
 import type { BuildIdea } from "../../model/page-data";
+import Card from "../primitives/Card";
 import EntityPill from "./EntityPill";
 
 interface Props {
@@ -11,11 +12,7 @@ interface Props {
 /** A starter idea for a new service, showing which systems it connects. */
 export default function IdeaCard({ idea, onSelect }: Props) {
   return (
-    <button
-      type="button"
-      onClick={() => onSelect?.(idea)}
-      className="group flex h-full w-full flex-col rounded-lg border border-gray-200 bg-white p-4 text-left transition-all hover:border-indigo-300 hover:shadow-sm"
-    >
+    <Card padding="sm" onClick={() => onSelect?.(idea)} className="flex h-full flex-col">
       <div className="flex items-start gap-2">
         <Lightbulb size={16} className="mt-0.5 flex-shrink-0 text-amber-500" />
         <h3 className="text-sm font-medium text-gray-900 group-hover:text-indigo-600">{idea.title}</h3>
@@ -26,6 +23,6 @@ export default function IdeaCard({ idea, onSelect }: Props) {
           <EntityPill key={s} name={s} size="sm" />
         ))}
       </div>
-    </button>
+    </Card>
   );
 }

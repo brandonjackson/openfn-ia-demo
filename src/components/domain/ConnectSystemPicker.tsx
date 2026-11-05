@@ -17,10 +17,12 @@ import {
   Sparkles,
   Tags,
 } from "lucide-react";
-import SettingsNav from "../patterns/SettingsNav";
+import SettingsNav from "../primitives/SettingsNav";
 import SectionHeading from "../primitives/SectionHeading";
 import EmptyState from "../primitives/EmptyState";
-import ConnectOptionRow from "./ConnectOptionRow";
+import NavItem from "../primitives/NavItem";
+import IconTile from "../primitives/IconTile";
+import AdaptorLogo from "./AdaptorLogo";
 import type { AdaptorCatalog, AiAction, CatalogGroup } from "../../model/adaptor-catalog";
 import SearchInput from "../primitives/SearchInput";
 
@@ -85,19 +87,29 @@ export default function ConnectSystemPicker({
     ids.map((id) => {
       const a = catalogAdaptor(id);
       if (!a) return null;
-      return <ConnectOptionRow key={id} adaptor={id} name={a.name} description={a.description} onSelect={() => pickAdaptor(id)} />;
+      return (
+        <NavItem
+          variant="tree"
+          key={id}
+          leading={<AdaptorLogo adaptor={id} name={a.name} size="sm" />}
+          label={a.name}
+          description={a.description}
+          onClick={() => pickAdaptor(id)}
+        />
+      );
     });
 
   const actionRows = (actions: AiAction[]) =>
     actions.map((action) => {
       const Icon = actionIcons[action.id] ?? Sparkles;
       return (
-        <ConnectOptionRow
+        <NavItem
+          variant="tree"
           key={action.id}
-          icon={<Icon size={16} />}
-          name={action.label}
+          leading={<IconTile icon={Icon} size="sm" tone="white" />}
+          label={action.label}
           description={action.description}
-          onSelect={() => onSelect?.({ kind: "ai", action })}
+          onClick={() => onSelect?.({ kind: "ai", action })}
         />
       );
     });

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Link from "./Link";
 import { ChevronRight } from "lucide-react";
 import type { StatTileData } from "../../model/page-data";
 import Badge from "./Badge";

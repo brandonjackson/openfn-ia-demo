@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { X, Zap } from "lucide-react";
 import EntityPill from "./EntityPill";
 import IconButton from "../primitives/IconButton";
-import { TriggerIcon } from "./AdaptorIcon";
+import IconTile from "../primitives/IconTile";
 import { withRouter } from "../../stories/decorators";
 import { connectedSystemSummaries, recommendedSystems } from "../../fixtures/connected-systems";
 import { adaptorChoices, adaptorInfo } from "../../fixtures/adaptor-reference";
@@ -51,7 +51,7 @@ export const Trigger: Story = {
     name: triggerTypes.webhook.label,
     adaptor: undefined,
     size: "sm",
-    icon: <TriggerIcon triggerType="webhook" size="xs" />,
+    icon: <IconTile icon={triggerTypes.webhook.icon} size="2xs" tone="white" round />,
   },
 };
 

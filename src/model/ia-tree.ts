@@ -30,6 +30,7 @@ export interface IANode {
     | "channel"
     | "user-settings"
     | "organization-settings"
+    | "admin-settings"
     | "handbook"
     | "generic";
   /** When true, this node acts as a template that matches any sibling slug not found by exact ID */
@@ -38,6 +39,8 @@ export interface IANode {
   flag?: FlagId;
   /** What the page is called when a flag is off, for a page that narrows rather than goes. */
   whenOff?: { flag: FlagId; label: string; description: string };
+  /** Only superusers can reach the page and everything under it; for anyone else it doesn't exist. */
+  superuserOnly?: boolean;
 }
 
 /**
@@ -378,6 +381,52 @@ export const settingsTree: IANode[] = [
       },
     ],
   },
+  {
+    // Lightning's /settings area: the whole instance, across every organisation and project. Core, so no flag.
+    id: "admin-settings",
+    superuserOnly: true,
+    label: "Admin settings",
+    description: "Run the whole instance: every user and project, the audit trail, single sign-on, collections and maintenance.",
+    pageType: "admin-settings",
+    children: [
+      {
+        id: "users",
+        label: "Users",
+        description: "Every account on the instance: create, edit, disable and delete users, and who's a superuser.",
+        pageType: "admin-settings",
+      },
+      {
+        id: "projects",
+        label: "Projects",
+        description: "Every project on the instance, its owner and members, and scheduled deletions.",
+        pageType: "admin-settings",
+      },
+      {
+        id: "audit-trail",
+        label: "Audit trail",
+        description: "Who changed what across the instance, and when.",
+        pageType: "admin-settings",
+      },
+      {
+        id: "authentication",
+        label: "Authentication",
+        description: "Single sign-on through an OpenID Connect provider.",
+        pageType: "admin-settings",
+      },
+      {
+        id: "collections",
+        label: "Collections",
+        description: "Every collection, across all projects.",
+        pageType: "admin-settings",
+      },
+      {
+        id: "maintenance",
+        label: "Maintenance",
+        description: "Jobs that keep the instance up to date, such as refreshing the adaptor registry.",
+        pageType: "admin-settings",
+      },
+    ],
+  },
 ];
 
 /**
@@ -397,6 +446,14 @@ export function visibleTree(tree: IANode[], flags: FeatureFlags): IANode[] {
       const named = n.whenOff && !flags[n.whenOff.flag] ? { ...n, label: n.whenOff.label, description: n.whenOff.description } : n;
       return n.children ? { ...named, children: visibleTree(n.children, flags) } : named;
     });
+}
+
+/** The tree without the pages only superusers can reach, unless the viewer is one. */
+export function treeForViewer(tree: IANode[], isSuperuser: boolean): IANode[] {
+  if (isSuperuser) return tree;
+  return tree
+    .filter((n) => !n.superuserOnly)
+    .map((n) => (n.children ? { ...n, children: treeForViewer(n.children, isSuperuser) } : n));
 }
 
 /** The sidebar's groups, without the pages whose flag is off, and without groups left empty. */

@@ -26,6 +26,22 @@ export const DeleteWorkflow: Story = {
   },
 };
 
+/** The person types the account's email before the button wakes up, as when deleting a user. */
+export const TypeToConfirm: Story = {
+  args: {
+    title: "Delete user",
+    confirmLabel: "Schedule deletion",
+    confirmText: "lokafor@example.org",
+    confirmTextLabel: "Type the user's email to confirm",
+    children: (
+      <p>
+        Lena Okafor's account and credential data will be deleted 7 days from today. Make sure none of their credentials
+        are used in production workflows.
+      </p>
+    ),
+  },
+};
+
 export const Primary: Story = {
   args: { title: "Discard changes?", confirmLabel: "Discard", tone: "primary", children: <p>Your unsaved edits will be lost.</p> },
 };

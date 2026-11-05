@@ -10,6 +10,9 @@ export const currentUser: UserProfile = {
   githubConnected: false,
 };
 
+/** Whether the current user is a superuser, who can reach Admin settings and every project on the instance. */
+export const currentUserIsSuperuser = true;
+
 /** The OpenFn instance the current user is signed in to (named after the team that runs it). */
 export const currentInstance = {
   name: "Sim DTU",

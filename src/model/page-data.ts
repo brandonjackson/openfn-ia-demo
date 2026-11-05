@@ -709,8 +709,204 @@ export interface OrganizationSettingsPageData {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Union type                                                         */
+/*  Admin settings (instance administration, for superusers)          */
 /* ------------------------------------------------------------------ */
+
+/** What someone can do across the whole instance. A superuser can reach every project and Admin settings; a user only the projects they're a member of. */
+export type InstanceRole = "user" | "superuser";
+
+/** An account on this instance, as a superuser manages it. */
+export interface AdminUser {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  /** Their reach across the instance. */
+  role: InstanceRole;
+  /** Can open any project that allows support access, to help its members. */
+  supportUser: boolean;
+  /** A disabled user can't log in. */
+  disabled: boolean;
+  /** The day the account will be deleted, e.g. "12 Nov 2026". Absent unless a deletion is scheduled. */
+  scheduledDeletion?: string;
+  /** When they last logged in, e.g. "2 hours ago". Absent if they never have. */
+  lastLogin?: string;
+  /** The signed-in superuser's own account. */
+  isSelf?: boolean;
+  /** Whether the account can be deleted at all. Superusers and your own account can't. Decided by the server. */
+  canDelete: boolean;
+  /** Whether a scheduled deletion can be brought forward to now. Not while they have activity in projects. Decided by the server. */
+  canDeleteNow: boolean;
+}
+
+/** What a superuser fills in to create or edit a user. */
+export interface AdminUserDraft {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: InstanceRole;
+  supportUser: boolean;
+  disabled: boolean;
+  /** Only when creating a user: the password they first log in with. Never sent back. */
+  password?: string;
+}
+
+/** A member's role in one project, from most to least access. */
+export type ProjectRole = "owner" | "admin" | "editor" | "viewer";
+
+/** One user's place in a project. */
+export interface ProjectMembership {
+  /** The `AdminUser.id` of the member. */
+  userId: string;
+  role: ProjectRole;
+}
+
+/** A project on this instance, as a superuser manages it. */
+export interface AdminProject {
+  id: string;
+  name: string;
+  description: string;
+  /** When it was created, e.g. "14 Mar 2024". */
+  createdAt: string;
+  /** Everyone in the project and their role. Exactly one is the owner. */
+  members: ProjectMembership[];
+  /** The day the project will be deleted, e.g. "12 Nov 2026". Absent unless a deletion is scheduled. */
+  scheduledDeletion?: string;
+}
+
+/** What a superuser fills in to create or edit a project. */
+export interface AdminProjectDraft {
+  name: string;
+  description: string;
+  members: ProjectMembership[];
+}
+
+/** The kinds of record the audit trail follows. */
+export type AuditItemType = "workflow" | "credential" | "project" | "user" | "collection" | "channel" | "oauth_client";
+
+/** One field an audited change touched. */
+export interface AuditChange {
+  field: string;
+  /** The value before, absent when the field was new. */
+  before?: string;
+  /** The value after, absent when the field was removed. */
+  after?: string;
+}
+
+/** One entry in the audit trail. */
+export interface AuditEvent {
+  id: string;
+  /** When it happened, e.g. "5 Nov 2026, 09:14". */
+  occurredAt: string;
+  /** What happened, in Lightning's own words, e.g. "created", "snapshot_created", "collaborator_added". */
+  event: string;
+  itemType: AuditItemType;
+  /** The record it happened to: its name, where it has one, and its short id. */
+  item: { name?: string; id: string };
+  /** Who did it: a person's name, or a system actor such as "GitHub sync". */
+  actor: { label: string; identifier?: string };
+  /** The fields that changed, before and after. Empty when the event carries no diff. */
+  changes: AuditChange[];
+}
+
+/** Which audit events to show: the filters and the page. */
+export interface AuditQuery {
+  /** Matches the actor or the item's name or id. */
+  search: string;
+  /** One event name, or "" for every event. */
+  event: string;
+  /** One item type, or "" for every type. */
+  itemType: AuditItemType | "";
+  /** 1-based. */
+  page: number;
+}
+
+/** One page of the audit trail. */
+export interface AuditPage {
+  /** The events on this page, newest first. */
+  entries: AuditEvent[];
+  /** How many events match the filters, across all pages. */
+  total: number;
+  pageSize: number;
+  /** Every event name in the trail, for the event filter. */
+  eventNames: string[];
+}
+
+/** The instance's OpenID Connect provider for single sign-on. */
+export interface AuthProviderConfig {
+  /** Lower-case, used in the redirect URI, e.g. "sim-dtu-sso". */
+  name: string;
+  /** The provider's `.well-known/openid-configuration` URL. */
+  discoveryUrl: string;
+  clientId: string;
+  /** Whether a client secret is stored. The secret itself never comes back. */
+  hasClientSecret: boolean;
+  /** Where this instance is served from, the start of the redirect URI. */
+  redirectHost: string;
+  /** Let people in with an email the provider hasn't marked as verified. Off by default. */
+  allowUnverifiedEmail: boolean;
+}
+
+/** What a superuser fills in to set up or change the provider. */
+export interface AuthProviderDraft extends Omit<AuthProviderConfig, "hasClientSecret"> {
+  /** A new client secret. Blank keeps the one stored. */
+  clientSecret: string;
+}
+
+/** The result of the last test of a discovery URL. */
+export interface AuthProviderTest {
+  /** The URL tested; a result only applies while the form still shows it. */
+  discoveryUrl: string;
+  ok: boolean;
+  message: string;
+}
+
+/** A collection, from any project on the instance. */
+export interface AdminCollection {
+  id: string;
+  name: string;
+  /** The project it belongs to. */
+  projectName: string;
+  /** How many items it holds. */
+  items: number;
+  /** How much it stores, in bytes. */
+  bytes: number;
+}
+
+/** A job that keeps the instance up to date, which a superuser can run by hand. */
+export interface MaintenanceTask {
+  id: string;
+  title: string;
+  description: string;
+  /** When it last finished and what it did. Absent if it's never run. */
+  lastRun?: { at: string; result: string };
+}
+
+/** Everything Admin settings shows: the whole instance, for a superuser. */
+export interface AdminSettingsPageData {
+  pageType: "admin-settings";
+  /** Every account on the instance. */
+  users: AdminUser[];
+  /** Every project on the instance. */
+  projects: AdminProject[];
+  /** The page of audit events the query asks for. */
+  audit: AuditPage;
+  /** The audit trail's filters and page. */
+  auditQuery: AuditQuery;
+  /** The single sign-on provider. Absent when none is set up. */
+  authProvider?: AuthProviderConfig;
+  /** The last discovery URL test, if one has run. */
+  authTest?: AuthProviderTest;
+  /** Where this instance is served from, the redirect host for a new provider. */
+  instanceUrl: string;
+  /** Every collection, across all projects. */
+  collections: AdminCollection[];
+  maintenance: MaintenanceTask[];
+  /** Whether the instance sends OpenFn anonymous usage metrics. Set with environment variables. */
+  usageMetricsEnabled: boolean;
+  /** Days a scheduled deletion waits before it happens (`PURGE_DELETED_AFTER_DAYS`). */
+  deletionGraceDays: number;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Handbook                                                           */
@@ -774,4 +970,5 @@ export type PageData =
   | ChannelPageData
   | UserSettingsPageData
   | OrganizationSettingsPageData
+  | AdminSettingsPageData
   | HandbookPageData;

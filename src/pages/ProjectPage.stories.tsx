@@ -3,7 +3,7 @@ import ProjectPage from "./ProjectPage";
 import { withRouterAt } from "../stories/decorators";
 import type { IANode } from "../model/ia-tree";
 import type { ProjectPageData } from "../model/page-data";
-import { projects } from "../fixtures/projects";
+import { projects, projectWorkflowItems } from "../fixtures/projects";
 import { buildProjectOverviewTiles } from "../fixtures/insights";
 
 const project = projects[0];
@@ -23,6 +23,7 @@ const projectData: ProjectPageData = {
   pageType: "project",
   projectId: project.id,
   tiles: buildProjectOverviewTiles(project.id, 3),
+  workflows: projectWorkflowItems(project),
   services: project.services,
   components: project.components,
 };
@@ -30,6 +31,7 @@ const projectData: ProjectPageData = {
 const meta: Meta<typeof ProjectPage> = {
   title: "Pages/ProjectPage",
   component: ProjectPage,
+  args: { onNewWorkflow: () => {} },
   decorators: [withRouterAt(`/projects/${project.id}`)],
   parameters: { layout: "padded" },
 };
@@ -46,7 +48,7 @@ export const Default: Story = {
   },
 };
 
-/** A brand new project: no runs yet, nothing published, no components. */
+/** A brand new project: no runs yet, no workflows, nothing published, no components. */
 export const EmptyProject: Story = {
   args: {
     node: { id: "new-project", label: "New Project", description: "A brand new project with nothing in it yet." },
@@ -56,13 +58,14 @@ export const EmptyProject: Story = {
       pageType: "project",
       projectId: "new-project",
       tiles: buildProjectOverviewTiles("new-project", 0),
+      workflows: [],
           services: [],
       components: [],
     },
   },
 };
 
-/** With every feature flag off: just how the project's running, with no services or components. */
+/** With every feature flag off: how the project's running and its workflows, with no services or components. */
 export const Redesign: Story = {
   args: { ...Default.args, data: { ...projectData, services: undefined, components: undefined } },
 };

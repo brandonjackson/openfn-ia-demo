@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import CodePaneHeader from "./CodePaneHeader";
-import EntityPill from "../domain/EntityPill";
+import EntityPill from "./EntityPill";
 import { adaptorInfo } from "../../fixtures/adaptor-reference";
 
 const meta: Meta<typeof CodePaneHeader> = {
-  title: "Patterns/CodePaneHeader",
+  title: "Domain/CodePaneHeader",
   component: CodePaneHeader,
   decorators: [
     (Story) => (

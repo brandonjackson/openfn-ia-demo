@@ -4,7 +4,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 import CodeWorkspace from "./CodeWorkspace";
 import type { ExplorerFile } from "./EditorExplorer";
 import type { DetailsViewId } from "./editor-layout";
-import EditorTray from "../patterns/EditorTray";
+import EditorPanel from "../patterns/EditorPanel";
+import { panelViews } from "./panel-views";
 import StepRunDetails from "./StepRunDetails";
 import StatusPill from "./StatusPill";
 import { defaultWorkflowSettings } from "../../model/workflow";
@@ -56,7 +57,7 @@ const meta: Meta<typeof CodeWorkspace> = {
   parameters: { layout: "fullscreen" },
   decorators: [
     (Story) => (
-      <div className="h-screen bg-gray-50 p-4">
+      <div className="h-screen bg-gray-50">
         <Story />
       </div>
     ),
@@ -132,24 +133,27 @@ export const ChannelOpen: Story = {
   },
 };
 
-/** Following a failed run, with the step's output in an inline tray. */
+/** Following a failed run, with the step's log in the panel under the code. */
 export const FollowingRun: Story = {
   args: {
     file: { stepId: "create" },
     run: failedRun,
     statusNote: "Tested by the assistant",
     bottomTray: (
-      <EditorTray
-        title="Create new citizen in Identity"
-        badge={<StatusPill status="failed" />}
-        tabs={{ options: ["Log", "Input", "Output"], value: "Log", onChange: () => {} }}
-        meta={`Run ${failedRun.runId.slice(0, 6)} · ${failedRun.duration}`}
-        placement="bottom"
-        heightClass="h-56"
+      <EditorPanel
+        views={panelViews}
+        view="log"
+        onViewChange={() => {}}
+        context={
+          <>
+            <StatusPill status="failed" variant="dot" />
+            Run {failedRun.runId.slice(0, 6)} · {failedRun.duration}
+          </>
+        }
         onClose={() => {}}
       >
         <StepRunDetails run={failedRun} step={failedRun.steps.find((s) => s.jobId === "create")} dataclips={dataclips} tab="log" />
-      </EditorTray>
+      </EditorPanel>
     ),
   },
 };

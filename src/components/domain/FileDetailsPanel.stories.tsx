@@ -5,7 +5,7 @@ import Badge from "../primitives/Badge";
 import Button from "../primitives/Button";
 
 const meta: Meta<typeof FileDetailsPanel> = {
-  title: "Patterns/FileDetailsPanel",
+  title: "Domain/FileDetailsPanel",
   component: FileDetailsPanel,
   decorators: [
     (Story) => (

@@ -7,7 +7,7 @@ import Button from "../primitives/Button";
 import Picker from "../primitives/Picker";
 import SegmentedControl from "../primitives/SegmentedControl";
 import IconButton from "../primitives/IconButton";
-import Surface from "../primitives/Surface";
+import EditorTopBar from "../patterns/EditorTopBar";
 import WorkflowFileMenu from "./WorkflowFileMenu";
 import type { WorkflowMenuAction } from "./WorkflowFileMenu";
 import SandboxChip from "./SandboxChip";
@@ -163,118 +163,104 @@ export default function EditorToolbar({
     onMenuAction(action);
   };
 
-  const group = "flex h-10 items-center";
-
   return (
-    <div className="flex items-center justify-between gap-3">
-      {/* Workflow: file menu, name, sandbox, version */}
-      <Surface className={`${group} min-w-0 pr-2`}>
-        <WorkflowFileMenu
-          onSelect={menuAction}
-          onMain={onMain}
-          canRename={canRename}
-          live={live}
-          projectName={projectName}
-          url={url}
-          hasDetails={hasDetails}
-        />
-        <span className="h-6 w-px bg-gray-200" aria-hidden />
-        {renaming ? (
-          <input
-            ref={inputRef}
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={commitRename}
-            onKeyDown={onRenameKey}
-            aria-label="Workflow name"
-            className="mx-2 h-7 w-56 rounded-md border border-indigo-300 bg-indigo-50/40 px-2 text-sm text-gray-900 outline-none ring-2 ring-indigo-100"
+    <EditorTopBar
+      start={
+        <>
+          <WorkflowFileMenu
+            onSelect={menuAction}
+            onMain={onMain}
+            canRename={canRename}
+            live={live}
+            projectName={projectName}
+            url={url}
+            hasDetails={hasDetails}
           />
-        ) : versions.length > 0 && !run ? (
-          <span className="mx-1.5 min-w-0">
-            <Picker
-              ariaLabel="Switch version"
-              options={versionOptions(versions)}
-              value={version}
-              onChange={onSelectVersion}
-              menuWidthClass="w-80"
-              maxWidthClass="max-w-[20rem]"
-              trigger={(selected) => (
-                <>
-                  <span className="truncate font-semibold text-gray-900">{name}</span>
-                  <span className="text-gray-300" aria-hidden>
-                    •
-                  </span>
-                  <span
-                    className={`flex-none font-mono text-xs ${
-                      version !== "latest" ? "rounded bg-amber-100 px-1 text-amber-800" : "text-gray-500"
-                    }`}
-                  >
-                    {selected?.shortLabel ?? version}
-                  </span>
-                </>
-              )}
+          <span className="h-6 w-px bg-gray-200" aria-hidden />
+          {renaming ? (
+            <input
+              ref={inputRef}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commitRename}
+              onKeyDown={onRenameKey}
+              aria-label="Workflow name"
+              className="mx-2 h-7 w-56 rounded-md border border-indigo-300 bg-indigo-50/40 px-2 text-sm text-gray-900 outline-none ring-2 ring-indigo-100"
             />
-          </span>
-        ) : (
-          <span className="mx-2 min-w-[4rem] max-w-[16rem] truncate px-1.5 text-sm font-semibold text-gray-900" title={name}>
-            {name}
-          </span>
-        )}
-        <SandboxChip
-          sandboxes={sandboxes}
-          value={sandbox}
-          onChange={onSelectSandbox}
-          live={live}
-          onNewSandbox={onNewSandbox}
-          onViewAll={onViewAllSandboxes}
-        />
-      </Surface>
-
-      {/* View switcher, then the loaded run in code mode (the canvas has its own runs bar) */}
-      <div className="flex flex-none items-center gap-3">
-      <Surface className={`${group} px-1.5`}>
+          ) : versions.length > 0 && !run ? (
+            <span className="mx-1.5 min-w-0">
+              <Picker
+                ariaLabel="Switch version"
+                options={versionOptions(versions)}
+                value={version}
+                onChange={onSelectVersion}
+                menuWidthClass="w-80"
+                maxWidthClass="max-w-[20rem]"
+                trigger={(selected) => (
+                  <>
+                    <span className="truncate font-semibold text-gray-900">{name}</span>
+                    <span className="text-gray-300" aria-hidden>
+                      •
+                    </span>
+                    <span
+                      className={`flex-none font-mono text-xs ${
+                        version !== "latest" ? "rounded bg-amber-100 px-1 text-amber-800" : "text-gray-500"
+                      }`}
+                    >
+                      {selected?.shortLabel ?? version}
+                    </span>
+                  </>
+                )}
+              />
+            </span>
+          ) : (
+            <span className="mx-2 min-w-[4rem] max-w-[16rem] truncate px-1.5 text-sm font-semibold text-gray-900" title={name}>
+              {name}
+            </span>
+          )}
+          <SandboxChip
+            sandboxes={sandboxes}
+            value={sandbox}
+            onChange={onSelectSandbox}
+            live={live}
+            onNewSandbox={onNewSandbox}
+            onViewAll={onViewAllSandboxes}
+          />
+        </>
+      }
+      middle={
         <SegmentedControl variant="pill" size="md" options={editorViews} value={view} onChange={(v) => onViewChange(v as EditorView)} />
-      </Surface>
-      {run && view === "code" && <LoadedRunBar run={run} detail={run.version} onUnload={onCloseRun} />}
-      </div>
-
-      {/* Run and the main action, then the assistant on its own; these never shrink, the name and sandbox truncate instead */}
-      <div className="flex flex-none items-center gap-3">
-      <Surface className={`${group} gap-1.5 px-1.5`}>
-        <RunMenuButton
-          retry={retry}
-          fromStep={fromStep}
-          onRun={onRun}
-          onRunFromStep={onRunFromStep}
-          onRetry={onRetry}
-          onRunWithCustomInput={onRunWithCustomInput}
-        />
-        {onMain ? (
-          <Button variant="dark" size="sm" icon={FlaskConical} className="ml-1 rounded-lg" onClick={() => onMenuAction("edit-in-sandbox")}>
-            Edit in sandbox
-          </Button>
-        ) : (
-          <Button variant="dark" size="sm" icon={GitMerge} className="ml-1 rounded-lg" onClick={() => onMenuAction("promote")}>
-            Go live
-          </Button>
-        )}
-      </Surface>
-      {onToggleAssistant && (
-        // Folds to nothing (taking the gap before it along) on the same
-        // timing as the tray's slide, so the toolbar's right edge glides.
-        <div
-          inert={assistantOpen}
-          aria-hidden={assistantOpen}
-          className={`flex-none overflow-hidden transition-[max-width,margin,opacity] duration-300 ease-out motion-reduce:transition-none ${
-            assistantOpen ? "-ml-3 max-w-0 opacity-0" : "max-w-16 opacity-100"
-          }`}
-        >
-          <Surface className={`${group} px-1`}>
-            <IconButton variant="toggle" size="md" icon={Sparkles} label="Assistant" hint="Ctrl/⌘ + K" onClick={onToggleAssistant} />
-          </Surface>
-        </div>
-      )}
-      </div>
-    </div>
+      }
+      // The loaded run sits beside the switcher in code mode; the canvas has its own runs bar.
+      afterMiddle={run && view === "code" && <LoadedRunBar run={run} detail={run.version} onUnload={onCloseRun} />}
+      end={
+        <>
+          <RunMenuButton
+            retry={retry}
+            fromStep={fromStep}
+            onRun={onRun}
+            onRunFromStep={onRunFromStep}
+            onRetry={onRetry}
+            onRunWithCustomInput={onRunWithCustomInput}
+          />
+          {onMain ? (
+            <Button variant="dark" size="sm" icon={FlaskConical} className="ml-1 rounded-lg" onClick={() => onMenuAction("edit-in-sandbox")}>
+              Edit in sandbox
+            </Button>
+          ) : (
+            <Button variant="dark" size="sm" icon={GitMerge} className="ml-1 rounded-lg" onClick={() => onMenuAction("promote")}>
+              Go live
+            </Button>
+          )}
+        </>
+      }
+      aside={
+        onToggleAssistant && (
+          <IconButton variant="toggle" size="md" icon={Sparkles} label="Assistant" hint="Ctrl/⌘ + K" onClick={onToggleAssistant} />
+        )
+      }
+      // Folds away while the assistant is open, since its own header closes it.
+      asideHidden={assistantOpen}
+    />
   );
 }

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import EditorStatusBar from "./EditorStatusBar";
 
 const meta: Meta<typeof EditorStatusBar> = {
-  title: "Patterns/EditorStatusBar",
+  title: "Domain/EditorStatusBar",
   component: EditorStatusBar,
   decorators: [
     (Story) => (

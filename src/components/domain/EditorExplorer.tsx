@@ -3,8 +3,9 @@ import type { JobNode, RunDetails, TriggerNode, Workflow } from "../../model/wor
 import { triggerTypes } from "../../model/workflow";
 import type { ProjectComponent } from "../../model/projects";
 import { componentTypeIcons } from "../../model/component-types";
-import ExplorerRow from "./ExplorerRow";
+import NavItem from "../primitives/NavItem";
 import { AdaptorIcon } from "./AdaptorIcon";
+import StatusPill from "./StatusPill";
 
 /**
  * What the code view can have open: one of the workflow's files (a doc added
@@ -88,19 +89,20 @@ export default function EditorExplorer({
 
       {showWorkflowFiles && (
         <Section title="Workflow" addLabel="New doc" onAdd={onAddDoc} readOnly={readOnly}>
-          <ExplorerRow label="workflow.yaml" icon={WorkflowIcon} selected={current === "workflow"} onClick={() => onOpen("workflow")} />
-          <ExplorerRow label="context.md" icon={FileText} selected={current === "context"} onClick={() => onOpen("context")} />
-          <ExplorerRow label="spec.md" icon={FileText} selected={current === "spec"} onClick={() => onOpen("spec")} />
+          <NavItem variant="tree" label="workflow.yaml" icon={WorkflowIcon} active={current === "workflow"} onClick={() => onOpen("workflow")} />
+          <NavItem variant="tree" label="context.md" icon={FileText} active={current === "context"} onClick={() => onOpen("context")} />
+          <NavItem variant="tree" label="spec.md" icon={FileText} active={current === "spec"} onClick={() => onOpen("spec")} />
           {hasService && (
-            <ExplorerRow label="service.md" icon={BookOpen} selected={current === "service"} onClick={() => onOpen("service")} />
+            <NavItem variant="tree" label="service.md" icon={BookOpen} active={current === "service"} onClick={() => onOpen("service")} />
           )}
-          <ExplorerRow label="Health" icon={HeartPulse} selected={current === "health"} onClick={() => onOpen("health")} />
+          <NavItem variant="tree" label="Health" icon={HeartPulse} active={current === "health"} onClick={() => onOpen("health")} />
           {docs.map((name) => (
-            <ExplorerRow
+            <NavItem
+              variant="tree"
               key={name}
               label={name}
               icon={FileText}
-              selected={current === `doc:${name}`}
+              active={current === `doc:${name}`}
               onClick={() => onOpen({ docName: name })}
             />
           ))}
@@ -109,35 +111,41 @@ export default function EditorExplorer({
 
       <Section title="Steps" addLabel="Add step" onAdd={onAddStep} readOnly={readOnly}>
         {trigger && (
-          <ExplorerRow
+          <NavItem
+            variant="tree"
             label={trigger.label}
             icon={triggerTypes[trigger.triggerType].icon}
-            status={startedAtTrigger ? "success" : undefined}
-            selected={current === "trigger"}
+            trailing={startedAtTrigger && <StatusPill status="success" variant="mark" />}
+            active={current === "trigger"}
             onClick={() => onOpen("trigger")}
           />
         )}
-        {steps.map((step) => (
-          <ExplorerRow
-            key={step.id}
-            label={step.label}
-            leading={<AdaptorIcon adaptor={step.adaptor} size="xs" />}
-            status={run?.steps.find((s) => s.jobId === step.id)?.status}
-            selected={current === `step:${step.id}`}
-            onClick={() => onOpen({ stepId: step.id })}
-          />
-        ))}
+        {steps.map((step) => {
+          const status = run?.steps.find((s) => s.jobId === step.id)?.status;
+          return (
+            <NavItem
+              variant="tree"
+              key={step.id}
+              label={step.label}
+              leading={<AdaptorIcon adaptor={step.adaptor} size="xs" />}
+              trailing={status && <StatusPill status={status} variant="mark" />}
+              active={current === `step:${step.id}`}
+              onClick={() => onOpen({ stepId: step.id })}
+            />
+          );
+        })}
       </Section>
 
       {showComponents && (components.length > 0 || onAddComponent || readOnly) && (
         <Section title="Components" addLabel="Add project component" onAdd={onAddComponent} readOnly={readOnly}>
           {components.map((c) => (
-            <ExplorerRow
+            <NavItem
+              variant="tree"
               key={c.id}
               label={c.name}
               icon={componentTypeIcons[c.type]}
               trailing={<span className="text-xs text-gray-400">{c.type.toLowerCase()}</span>}
-              selected={current === `component:${c.id}`}
+              active={current === `component:${c.id}`}
               onClick={() => onOpen({ componentId: c.id })}
             />
           ))}

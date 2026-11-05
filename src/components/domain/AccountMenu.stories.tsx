@@ -4,7 +4,7 @@ import { withRouter } from "../../stories/decorators";
 import { currentInstance, currentUser } from "../../fixtures/user";
 
 const meta: Meta<typeof AccountMenu> = {
-  title: "Patterns/AccountMenu",
+  title: "Domain/AccountMenu",
   component: AccountMenu,
   decorators: [
     withRouter,

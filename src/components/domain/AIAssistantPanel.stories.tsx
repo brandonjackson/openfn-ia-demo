@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Sparkles } from "lucide-react";
 import AIAssistantPanel from "./AIAssistantPanel";
-import EditorTray from "../patterns/EditorTray";
+import EditorShell from "../patterns/EditorShell";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../../fixtures/assistant";
 import { sampleRun } from "../../fixtures/runs";
 
@@ -15,12 +15,10 @@ const meta: Meta<typeof AIAssistantPanel> = {
   parameters: { layout: "fullscreen" },
   decorators: [
     (Story) => (
-      <div className="flex h-screen justify-end bg-gray-50">
-        <div className="w-[400px]">
-          <EditorTray title="Assistant" icon={Sparkles} placement="right" onClose={() => {}} onMove={() => {}}>
-            <Story />
-          </EditorTray>
-        </div>
+      <div className="h-screen">
+        <EditorShell toolbar={null} side={<Story />} sideTitle="Assistant" sideIcon={Sparkles} onCloseSide={() => {}}>
+          {null}
+        </EditorShell>
       </div>
     ),
   ],

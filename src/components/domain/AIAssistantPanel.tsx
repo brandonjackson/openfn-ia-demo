@@ -21,7 +21,7 @@ import SearchInput from "../primitives/SearchInput";
 type View = "sessions" | "chat";
 
 /**
- * The assistant's body, shown inside an {@link EditorTray}: saved
+ * The assistant's body, shown in the editor's side column ({@link EditorShell}): saved
  * conversations for the workflow (or for the open step), and the open one.
  *
  * It opens on the list of saved conversations; typing a message starts a new

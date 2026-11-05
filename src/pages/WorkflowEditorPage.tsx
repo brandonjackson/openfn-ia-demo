@@ -30,10 +30,10 @@ import type {
 } from "../model/assistant";
 import type { ProjectComponent, ProjectService } from "../model/projects";
 import EditorShell from "../components/patterns/EditorShell";
+import CanvasLayout from "../components/patterns/CanvasLayout";
 import EditorToolbar from "../components/domain/EditorToolbar";
 import type { EditorView } from "../components/domain/EditorToolbar";
 import type { WorkflowMenuAction } from "../components/domain/WorkflowFileMenu";
-import EditorTray from "../components/patterns/EditorTray";
 import EditorPanel from "../components/patterns/EditorPanel";
 import LayoutMenu from "../components/domain/LayoutMenu";
 import { useEditorLayout, resetLayout } from "../components/domain/editor-layout";
@@ -960,24 +960,22 @@ export default function WorkflowEditorPage({
       />
     ) : undefined;
 
-  // Always rendered so the shell can slide it out; `rightTrayOpen` shows it.
-  const rightTray = (
-    <EditorTray title="Assistant" icon={Sparkles} placement="right" onClose={toggleAssistant}>
-      <AIAssistantPanel
-        conversations={assistantConversations}
-        jobLabel={focusJob?.label}
-        runId={selectedRun?.runId}
-        author={CURRENT_USER}
-        onOpenRuns={() => (view === "canvas" ? setRunsFilterOpen(true) : showPanel("runs"))}
-        onAskToMerge={onMain ? undefined : () => setPromoteOpen(true)}
-        onPlanAccepted={onMain ? undefined : applyPlan}
-        reference={assistantReference}
-        onClearReference={() => setAssistantReference(undefined)}
-        suggestions={assistantSuggestions}
-        onSend={onAssistantSend}
-        onCarryOutPlan={onAssistantCarryOutPlan}
-      />
-    </EditorTray>
+  // Always rendered so the shell can slide it out; `sideOpen` shows it.
+  const assistant = (
+    <AIAssistantPanel
+      conversations={assistantConversations}
+      jobLabel={focusJob?.label}
+      runId={selectedRun?.runId}
+      author={CURRENT_USER}
+      onOpenRuns={() => (view === "canvas" ? setRunsFilterOpen(true) : showPanel("runs"))}
+      onAskToMerge={onMain ? undefined : () => setPromoteOpen(true)}
+      onPlanAccepted={onMain ? undefined : applyPlan}
+      reference={assistantReference}
+      onClearReference={() => setAssistantReference(undefined)}
+      suggestions={assistantSuggestions}
+      onSend={onAssistantSend}
+      onCarryOutPlan={onAssistantCarryOutPlan}
+    />
   );
 
 
@@ -1020,10 +1018,11 @@ export default function WorkflowEditorPage({
       toolbar={toolbar}
       floatToolbar={view === "canvas"}
       accentEdge={!onMain}
-      bottom={view === "canvas" && onMain ? <ReadOnlyNotice onEditInSandbox={() => setEditInSandboxOpen(true)} /> : undefined}
-      rightTray={rightTray}
-      rightTrayOpen={layout.assistant}
-      rightOverlay={inspector}
+      side={assistant}
+      sideTitle="Assistant"
+      sideIcon={Sparkles}
+      sideOpen={layout.assistant}
+      onCloseSide={toggleAssistant}
       overlays={
         <>
           <RunInputModal open={runInputOpen} onClose={() => setRunInputOpen(false)} dataclips={clips} onRun={runWithInput} />
@@ -1086,78 +1085,81 @@ export default function WorkflowEditorPage({
       }
     >
       {view === "canvas" && (
-        <WorkflowCanvas
-          workflow={graph}
-          adaptors={adaptors.info}
-          systems={systems}
-          selectedId={selectedId}
-          onSelect={selectNode}
-          onOpen={openNode}
-          onNodeAction={onNodeAction}
-          readOnly={onMain}
-          run={selectedRun}
-          activity={activity}
-          onShowFailures={setSelectedId}
-          height={760}
-          header={runsBar}
-          onAddAfter={onMain || version !== "latest" || selectedRun ? undefined : setAddAfterId}
-        />
+        <CanvasLayout
+          bottom={onMain && <ReadOnlyNotice onEditInSandbox={() => setEditInSandboxOpen(true)} />}
+          rightOverlay={inspector}
+        >
+          <WorkflowCanvas
+            workflow={graph}
+            adaptors={adaptors.info}
+            systems={systems}
+            selectedId={selectedId}
+            onSelect={selectNode}
+            onOpen={openNode}
+            onNodeAction={onNodeAction}
+            readOnly={onMain}
+            run={selectedRun}
+            activity={activity}
+            onShowFailures={setSelectedId}
+            height={760}
+            header={runsBar}
+            onAddAfter={onMain || version !== "latest" || selectedRun ? undefined : setAddAfterId}
+          />
+        </CanvasLayout>
       )}
       {view === "code" && (
-        <div className="h-full p-4 pt-3">
-          <CodeWorkspace
-            workflow={graph}
-            adaptors={adaptors}
-            systems={systems}
-            contents={contents}
-            file={file}
-            onOpen={(f) => {
-              openFile(f);
-              if (typeof f === "object" && "stepId" in f && selectedRun?.steps.some((s) => s.jobId === f.stepId)) {
-                if (!["input", "output"].includes(layout.panelView)) showPanel("log");
-              }
-            }}
-            run={selectedRun}
-            dataclips={clips}
-            onExpandRunData={showPanel}
-            components={components}
-            onOpenComponent={onOpenComponent}
-            service={service}
-            onOpenService={onSeeDetails}
-            readOnly={onMain}
-            showWorkflowFiles={showWorkflowFiles}
-            showComponents={showComponents}
-            publishesServices={publishesServices}
-            url={url}
-            live={live}
-            onToggleLive={setLive}
-            settings={settings}
-            onSettingsChange={(s) => {
-              setSettings(s);
-              if (s.name.trim()) setName(s.name);
-            }}
-            credentials={edits.credentials}
-            onStepChange={onMain ? undefined : changeStep}
-            onCodeChange={onMain ? undefined : changeCode}
-            onDeleteStep={onMain ? undefined : deleteStep}
-            onAddStep={onMain ? undefined : addStep}
-            docs={docs}
-            onAddDoc={onMain ? undefined : addDoc}
-            onAddComponent={onMain || !onAddComponent ? undefined : () => setAddComponentOpen(true)}
-            pane={file === "health" ? healthPane : channelPane || undefined}
-            bottomTray={panel}
-            showExplorer={layout.explorer}
-            showDetails={shownLayout.details}
-            detailsView={layout.detailsView}
-            onDetailsViewChange={(v) => changeLayout({ details: true, detailsView: v })}
-            layoutMenu={layoutMenu}
-            onClose={() => setView("canvas")}
-            statusNote={statusNote}
-            dirtyStepIds={[
-              ...new Set([...Object.keys(edits.bodies), ...Object.keys(edits.labels), ...Object.keys(edits.adaptors), ...edits.added.map((j) => j.id)]),
-            ]}
-          />
-        </div>
+        <CodeWorkspace
+          workflow={graph}
+          adaptors={adaptors}
+          systems={systems}
+          contents={contents}
+          file={file}
+          onOpen={(f) => {
+            openFile(f);
+            if (typeof f === "object" && "stepId" in f && selectedRun?.steps.some((s) => s.jobId === f.stepId)) {
+              if (!["input", "output"].includes(layout.panelView)) showPanel("log");
+            }
+          }}
+          run={selectedRun}
+          dataclips={clips}
+          onExpandRunData={showPanel}
+          components={components}
+          onOpenComponent={onOpenComponent}
+          service={service}
+          onOpenService={onSeeDetails}
+          readOnly={onMain}
+          showWorkflowFiles={showWorkflowFiles}
+          showComponents={showComponents}
+          publishesServices={publishesServices}
+          url={url}
+          live={live}
+          onToggleLive={setLive}
+          settings={settings}
+          onSettingsChange={(s) => {
+            setSettings(s);
+            if (s.name.trim()) setName(s.name);
+          }}
+          credentials={edits.credentials}
+          onStepChange={onMain ? undefined : changeStep}
+          onCodeChange={onMain ? undefined : changeCode}
+          onDeleteStep={onMain ? undefined : deleteStep}
+          onAddStep={onMain ? undefined : addStep}
+          docs={docs}
+          onAddDoc={onMain ? undefined : addDoc}
+          onAddComponent={onMain || !onAddComponent ? undefined : () => setAddComponentOpen(true)}
+          pane={file === "health" ? healthPane : channelPane || undefined}
+          bottomTray={panel}
+          showExplorer={layout.explorer}
+          showDetails={shownLayout.details}
+          detailsView={layout.detailsView}
+          onDetailsViewChange={(v) => changeLayout({ details: true, detailsView: v })}
+          layoutMenu={layoutMenu}
+          onClose={() => setView("canvas")}
+          statusNote={statusNote}
+          dirtyStepIds={[
+            ...new Set([...Object.keys(edits.bodies), ...Object.keys(edits.labels), ...Object.keys(edits.adaptors), ...edits.added.map((j) => j.id)]),
+          ]}
+        />
       )}
     </EditorShell>
   );

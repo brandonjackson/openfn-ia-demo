@@ -52,7 +52,8 @@ const workflowColumns: DataTableColumn<WorkflowStatus>[] = [
  * summarised at the top and sorted to the top of each table.
  */
 export default function StatusPage({ node, ancestors, data }: StatusPageProps) {
-  const systemIssues = data.systems.filter((s) => s.status !== "operational");
+  const systems = data.systems ?? [];
+  const systemIssues = systems.filter((s) => s.status !== "operational");
   const workflowIssues = data.workflows.filter((w) => w.status !== "operational");
   const issues = [...workflowIssues, ...systemIssues];
 
@@ -69,7 +70,7 @@ export default function StatusPage({ node, ancestors, data }: StatusPageProps) {
 
       {issues.length === 0 ? (
         <Callout variant="success" title="Everything is operational">
-          All systems and workflows are running normally.
+          All {data.systems ? "systems and workflows" : "workflows"} are running normally.
         </Callout>
       ) : (
         <Callout variant="warning" title={`${plural(issues.length, "issue")} need attention`}>
@@ -77,13 +78,15 @@ export default function StatusPage({ node, ancestors, data }: StatusPageProps) {
         </Callout>
       )}
 
-      <section>
-        <SectionHeading
-          title="Systems"
-          description={`${plural(data.systems.length - systemIssues.length, "system")} of ${data.systems.length} operational.`}
-        />
-        <DataTable columns={systemColumns} rows={worstFirst(data.systems)} getRowKey={(s) => s.id} />
-      </section>
+      {data.systems && (
+        <section>
+          <SectionHeading
+            title="Systems"
+            description={`${plural(systems.length - systemIssues.length, "system")} of ${systems.length} operational.`}
+          />
+          <DataTable columns={systemColumns} rows={worstFirst(systems)} getRowKey={(s) => s.id} />
+        </section>
+      )}
 
       <section>
         <SectionHeading

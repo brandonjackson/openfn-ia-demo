@@ -36,6 +36,8 @@ export interface IANode {
   dynamic?: boolean;
   /** The feature flag this page belongs to. Off, the page and everything under it are gone. */
   flag?: FlagId;
+  /** What the page is called when a flag is off, for a page that narrows rather than goes. */
+  whenOff?: { flag: FlagId; label: string; description: string };
 }
 
 /**
@@ -82,6 +84,12 @@ export const projectTemplateTree: IANode[] = [
       {
         id: "components",
         label: "Components",
+        // Without components, the page lists channels only, as Lightning's Channels page does.
+        whenOff: {
+          flag: "components",
+          label: "Channels",
+          description: "Reads, writes and events on other systems, each with its own endpoint.",
+        },
         description:
           "Every building block in this project, grouped by type: channels, forms, artifacts, collections, AI skills, documents and static websites.",
         pageType: "project-components",
@@ -263,6 +271,7 @@ export const mainNavTree: IANode[] = [
     id: "projects",
     label: "Projects",
     description: "Every integration project in your organization.",
+    whenOff: { flag: "organizations", label: "Projects", description: "Every integration project you're part of." },
     pageType: "projects",
     children: projectTemplateTree,
   },
@@ -380,11 +389,14 @@ export const iaTree: IANode[] = [
   ...settingsTree,
 ];
 
-/** The tree without the pages whose feature flag is off. */
+/** The tree without the pages whose feature flag is off, and renamed where a flag narrows a page. */
 export function visibleTree(tree: IANode[], flags: FeatureFlags): IANode[] {
   return tree
     .filter((n) => !n.flag || flags[n.flag])
-    .map((n) => (n.children ? { ...n, children: visibleTree(n.children, flags) } : n));
+    .map((n) => {
+      const named = n.whenOff && !flags[n.whenOff.flag] ? { ...n, label: n.whenOff.label, description: n.whenOff.description } : n;
+      return n.children ? { ...named, children: visibleTree(n.children, flags) } : named;
+    });
 }
 
 /** The sidebar's groups, without the pages whose flag is off, and without groups left empty. */

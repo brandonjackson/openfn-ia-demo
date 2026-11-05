@@ -5,6 +5,7 @@ import "./index.css";
 import App from "./app/App.tsx";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import StylePicker from "./components/patterns/StylePicker";
+import FeatureFlags from "./app/FeatureFlags";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -12,8 +13,9 @@ createRoot(document.getElementById("root")!).render(
       <HashRouter>
         <App />
       </HashRouter>
-      {/* Global control — re-skins the whole app on every route. */}
+      {/* Global controls: re-skin the whole app, and turn its new features on and off. */}
       <StylePicker />
+      <FeatureFlags />
     </ThemeProvider>
   </StrictMode>
 );

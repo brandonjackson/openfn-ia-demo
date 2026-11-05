@@ -51,3 +51,6 @@ export const OnXRoadSystem: Story = {
 export const OnDirectSystem: Story = {
   args: { ...configFor(weeklyCaseReportWorkflow.nodes.find((n) => n.id === "send-dhis2") as JobNode), onChange: () => {} },
 };
+
+/** Without connected systems: a step is an adaptor and a credential, with no System field. */
+export const WithoutSystems: Story = { args: { systems: [], onChange: () => {} } };

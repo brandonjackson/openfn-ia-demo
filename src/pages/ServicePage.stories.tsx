@@ -80,3 +80,11 @@ export const NotOnXRoadYet: Story = {
     return { ...args, data: { ...args.data, service: { ...args.data.service, xroad: undefined, mcpEnabled: false } } };
   })(),
 };
+
+/** The organisation isn't on X-Road: two ways to call it, and nothing to publish to X-Road. */
+export const WithoutXRoad: Story = {
+  args: (() => {
+    const args = storyArgs(projects[0], 0);
+    return { ...args, data: { ...args.data, xroadOrg: undefined } };
+  })(),
+};

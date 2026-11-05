@@ -21,6 +21,8 @@ export type FlagId =
   | "handbook"
   | "aiBuild"
   | "deployments"
+  | "workflowDocs"
+  | "components"
   | "forms"
   | "staticWebsites"
   | "aiSkills"
@@ -38,7 +40,7 @@ export interface FeatureFlag {
   /** Flags this one needs. It's in effect only when all of them are. */
   requires: FlagId[];
   /** Heading the flag panel lists it under. */
-  group: "Organization" | "Projects" | "Component types";
+  group: "Organization" | "Projects" | "Components";
 }
 
 export const featureFlags: FeatureFlag[] = [
@@ -102,17 +104,33 @@ export const featureFlags: FeatureFlag[] = [
     requires: [],
     group: "Projects",
   },
-  { id: "forms", label: "Forms", description: "Form components.", requires: [], group: "Component types" },
+  {
+    id: "workflowDocs",
+    label: "Workflow docs",
+    description:
+      "The Workflow section of the editor's explorer: workflow.yaml, context.md, spec.md, service.md, Health and new docs.",
+    requires: [],
+    group: "Projects",
+  },
+  {
+    id: "components",
+    label: "Components",
+    description:
+      "A project's building blocks beyond workflows, on the Components page and in the editor. Off, the project has a Channels page, as Lightning does.",
+    requires: [],
+    group: "Components",
+  },
+  { id: "forms", label: "Forms", description: "Form components.", requires: ["components"], group: "Components" },
   {
     id: "staticWebsites",
     label: "Static websites",
     description: "Static website components.",
-    requires: [],
-    group: "Component types",
+    requires: ["components"],
+    group: "Components",
   },
-  { id: "aiSkills", label: "AI skills", description: "AI skill components.", requires: [], group: "Component types" },
-  { id: "documents", label: "Documents", description: "Document components.", requires: [], group: "Component types" },
-  { id: "artifacts", label: "Artifacts", description: "Artifact components.", requires: [], group: "Component types" },
+  { id: "aiSkills", label: "AI skills", description: "AI skill components.", requires: ["components"], group: "Components" },
+  { id: "documents", label: "Documents", description: "Document components.", requires: ["components"], group: "Components" },
+  { id: "artifacts", label: "Artifacts", description: "Artifact components.", requires: ["components"], group: "Components" },
 ];
 
 const flagIds = featureFlags.map((f) => f.id);

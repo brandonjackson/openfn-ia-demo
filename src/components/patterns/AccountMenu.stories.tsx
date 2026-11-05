@@ -28,3 +28,8 @@ export const Closed: Story = {};
 export const Open: Story = {
   args: { defaultOpen: true },
 };
+
+/** Without the Organizations flag there are no Organization settings. */
+export const WithoutOrganizationSettings: Story = {
+  args: { defaultOpen: true, showOrganizationSettings: false },
+};

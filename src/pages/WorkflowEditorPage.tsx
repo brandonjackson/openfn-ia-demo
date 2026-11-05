@@ -61,6 +61,7 @@ import type { SandboxStart } from "../components/patterns/EditInSandboxModal";
 import PromoteSandboxModal from "../components/patterns/PromoteSandboxModal";
 import ConfirmModal from "../components/primitives/ConfirmModal";
 import Modal from "../components/primitives/Modal";
+import type { ProjectComponentType } from "../model/page-data";
 import AddComponentPanel from "../components/patterns/AddComponentPanel";
 import WorkflowHealth from "../components/patterns/WorkflowHealth";
 import ChannelView from "../components/patterns/ChannelView";
@@ -197,6 +198,7 @@ export default function WorkflowEditorPage({
   components = [],
   onOpenComponent,
   onAddComponent,
+  componentTypeOptions,
   sandboxes = ["main"],
   sandbox: controlledSandbox,
   onSelectSandbox,
@@ -212,6 +214,9 @@ export default function WorkflowEditorPage({
   adaptors,
   catalog,
   systems = [],
+  showWorkflowFiles = true,
+  showComponents = true,
+  publishesServices = true,
   contents,
   codeSummary,
   onRun,
@@ -248,8 +253,10 @@ export default function WorkflowEditorPage({
   components?: ProjectComponent[];
   /** Opens a component's page in the project. */
   onOpenComponent?: (componentId: string) => void;
-  /** Starts a new project component of this type, picked from the code explorer. */
+  /** Starts a new project component of this type, picked from the code explorer. Without it there's no + to add one. */
   onAddComponent?: (type: string) => void;
+  /** The kinds of component that can be added. Defaults to every kind but Workflow. */
+  componentTypeOptions?: ProjectComponentType[];
   /** Sandboxes of the workflow's project, "main" first. */
   sandboxes?: string[];
   sandbox?: string;
@@ -276,6 +283,12 @@ export default function WorkflowEditorPage({
   catalog: AdaptorCatalog;
   /** The project's connected systems. */
   systems?: ConnectedSystem[];
+  /** List the workflow's own files (workflow.yaml, docs, service.md, Health) in the explorer. Defaults to true; off, code mode falls back to the trigger. */
+  showWorkflowFiles?: boolean;
+  /** List the project components the workflow uses in the explorer. Defaults to true. */
+  showComponents?: boolean;
+  /** Whether a workflow can be published as a service, from its webhook trigger. Defaults to true. */
+  publishesServices?: boolean;
   /** What the workflow's docs, service listing and project components hold, for opening them in code mode. */
   contents?: WorkflowFileContents;
   /** What the assistant says a step's code does, one point per thing it does, for the inspector. */
@@ -297,7 +310,9 @@ export default function WorkflowEditorPage({
 
   const [view, setView] = useState<EditorView>(initialView);
   const [selectedId, setSelectedId] = useState<string | undefined>(initialSelectedId);
-  const [file, setFile] = useState<ExplorerFile>(initialFile ?? (initialSelectedId ? { stepId: initialSelectedId } : "workflow"));
+  // With nothing chosen, code mode opens workflow.yaml, or the trigger when the explorer doesn't list the workflow's files.
+  const fallbackFile: ExplorerFile = showWorkflowFiles ? "workflow" : "trigger";
+  const [file, setFile] = useState<ExplorerFile>(initialFile ?? (initialSelectedId ? { stepId: initialSelectedId } : fallbackFile));
 
   const [localSandbox, setLocalSandbox] = useState("main");
   const sandbox = controlledSandbox ?? localSandbox;
@@ -417,7 +432,7 @@ export default function WorkflowEditorPage({
   /** Open a step's code, the trigger's settings, or the workflow's YAML. */
   const openInCode = (nodeId?: string) => {
     const node = graph.nodes.find((n) => n.id === nodeId);
-    setFile(node ? (node.type === "trigger" ? "trigger" : { stepId: node.id }) : "workflow");
+    setFile(node ? (node.type === "trigger" ? "trigger" : { stepId: node.id }) : fallbackFile);
     setView("code");
   };
 
@@ -663,7 +678,7 @@ export default function WorkflowEditorPage({
   const deleteStep = (stepId: string) => {
     edit((e) => ({ removed: [...e.removed, stepId] }));
     if (selectedId === stepId) setSelectedId(undefined);
-    if (typeof file === "object" && "stepId" in file && file.stepId === stepId) setFile("workflow");
+    if (typeof file === "object" && "stepId" in file && file.stepId === stepId) setFile(fallbackFile);
   };
 
   // What the assistant's chat input is about, loaded from a card's Improve.
@@ -1032,7 +1047,9 @@ export default function WorkflowEditorPage({
           />
           <Modal open={addComponentOpen} title="Add project component" onClose={() => setAddComponentOpen(false)} widthClass="max-w-2xl">
             <AddComponentPanel
-              options={componentTypes.filter((t) => t.type !== "Workflow")}
+              options={componentTypes.filter(
+                (t) => t.type !== "Workflow" && (!componentTypeOptions || componentTypeOptions.includes(t.type))
+              )}
               columns={2}
               bare
               onSelect={(type) => {
@@ -1106,6 +1123,9 @@ export default function WorkflowEditorPage({
             service={service}
             onOpenService={onSeeDetails}
             readOnly={onMain}
+            showWorkflowFiles={showWorkflowFiles}
+            showComponents={showComponents}
+            publishesServices={publishesServices}
             url={url}
             live={live}
             onToggleLive={setLive}
@@ -1121,7 +1141,7 @@ export default function WorkflowEditorPage({
             onAddStep={onMain ? undefined : addStep}
             docs={docs}
             onAddDoc={onMain ? undefined : addDoc}
-            onAddComponent={onMain ? undefined : () => setAddComponentOpen(true)}
+            onAddComponent={onMain || !onAddComponent ? undefined : () => setAddComponentOpen(true)}
             pane={file === "health" ? healthPane : channelPane || undefined}
             bottomTray={panel}
             showExplorer={layout.explorer}

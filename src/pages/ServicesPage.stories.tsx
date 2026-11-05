@@ -46,3 +46,8 @@ export const Empty: Story = {
 export const ServicesWeUse: Story = {
   args: { ...Default.args, initialView: "use" },
 };
+
+/** Without connected systems or X-Road: just the services we publish, callable from workflows and agents. */
+export const WithoutSystemsOrXRoad: Story = {
+  args: { ...Default.args, data: { ...serviceCatalogData, projects: projectOptions, connectedSystems: false, xroad: false } },
+};

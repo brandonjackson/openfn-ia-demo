@@ -1,3 +1,6 @@
+import { ToggleRight } from "lucide-react";
+import EmptyState from "../components/primitives/EmptyState";
+
 export interface NotFoundPageProps {
   /** The URL that has nothing to show. */
   path: string;
@@ -15,13 +18,11 @@ export interface NotFoundPageProps {
 export default function NotFoundPage({ path, reason, feature }: NotFoundPageProps) {
   if (reason === "flag") {
     return (
-      <div className="text-center py-20">
-        <h1 className="text-2xl font-semibold text-gray-900">This feature is turned off</h1>
-        <p className="mt-2 text-gray-500">
-          <code className="bg-gray-100 px-2 py-0.5 rounded">{path}</code> belongs to {feature ?? "a feature"}, which
-          is off in this demo. Turn it on from the feature flags in the bottom-right corner.
-        </p>
-      </div>
+      <EmptyState
+        icon={ToggleRight}
+        title="This feature is turned off"
+        description={`${path} belongs to ${feature ?? "a feature"}, which is off in this demo. Turn it on from the feature flags in the bottom-right corner.`}
+      />
     );
   }
   return (

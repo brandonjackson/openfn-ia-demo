@@ -3,6 +3,7 @@ import ProjectComponentsPage from "./ProjectComponentsPage";
 import { withRouterAt } from "../stories/decorators";
 import { projects } from "../fixtures/projects";
 import type { IANode } from "../model/ia-tree";
+import { componentTypes } from "../model/component-types";
 
 const node: IANode = {
   id: "components",
@@ -11,6 +12,9 @@ const node: IANode = {
 };
 
 const project = projects[2];
+
+/** Every kind of component, with every flag on. */
+const types = componentTypes.map((t) => t.type).filter((t) => t !== "Workflow");
 
 const ancestors = [
   { node: { id: "projects", label: "Projects" }, path: "/projects" },
@@ -33,7 +37,7 @@ export const Default: Story = {
     node,
     ancestors,
     currentPath: `/projects/${project.id}/components`,
-    data: { pageType: "project-components", projectId: project.id, components: project.components },
+    data: { pageType: "project-components", projectId: project.id, components: project.components, types },
   },
 };
 
@@ -43,7 +47,7 @@ export const AllTypes: Story = {
     node,
     ancestors,
     currentPath: `/projects/${projects[0].id}/components`,
-    data: { pageType: "project-components", projectId: projects[0].id, components: projects[0].components },
+    data: { pageType: "project-components", projectId: projects[0].id, components: projects[0].components, types },
   },
 };
 
@@ -52,6 +56,22 @@ export const Empty: Story = {
     node,
     ancestors,
     currentPath: "/projects/data-quality-checks/components",
-    data: { pageType: "project-components", projectId: "data-quality-checks", components: [] },
+    data: { pageType: "project-components", projectId: "data-quality-checks", components: [], types },
+  },
+};
+
+/** With the Components flag off: the project's Channels page, as in Lightning, and nothing to add without Create. */
+export const ChannelsOnly: Story = {
+  args: {
+    node: { id: "components", label: "Channels", description: "Reads, writes and events on other systems, each with its own endpoint." },
+    ancestors,
+    currentPath: `/projects/${projects[0].id}/components`,
+    data: {
+      pageType: "project-components",
+      projectId: projects[0].id,
+      components: projects[0].components.filter((c) => c.type === "Channel"),
+      types: ["Channel"],
+    },
+    onAddComponent: undefined,
   },
 };

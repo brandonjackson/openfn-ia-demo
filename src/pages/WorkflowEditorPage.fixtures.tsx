@@ -1,6 +1,6 @@
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import WorkflowEditorPage from "./WorkflowEditorPage";
-import { type Workflow, type WorkflowFileContents } from "../model/workflow";
+import { type WorkOrder, type Workflow, type WorkflowFileContents } from "../model/workflow";
 import { buildStarterWorkflow, nationalIdWorkflow, nationalIdWorkflowAt, surveillanceVersions, workflowGraphs, workflowVersions } from "../fixtures/workflow";
 import { dataclips, runHistories, simulateRun, workOrders } from "../fixtures/runs";
 import { projects, serviceForWorkflow } from "../fixtures/projects";
@@ -9,12 +9,13 @@ import { useSandbox } from "../app/sandbox-state";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
 import { adaptorChoices, adaptorInfo, adaptorSnippets, projectCredentials } from "../fixtures/adaptor-reference";
 import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
-import { connectedSystems } from "../fixtures/connected-systems";
 import { codeSummary } from "../fixtures/code-summaries";
 import { channelDetails } from "../fixtures/channels";
 import { componentPreview, serviceListing, workflowDocs } from "../fixtures/workflow-files";
 import type { AdaptorReference } from "../model/adaptor-reference";
 import type { AdaptorCatalog } from "../model/adaptor-catalog";
+import { useFlags } from "../app/feature-flags";
+import { componentTypesFor, componentsFor, systemsFor } from "./flagged.fixtures";
 
 /** The adaptors steps can use, and the project's credentials for them. */
 const adaptors: AdaptorReference = {
@@ -32,6 +33,12 @@ const catalog: AdaptorCatalog = {
   aiModels,
   aiActions,
 };
+
+/** Work orders without who called over X-Road, when the organisation isn't on it. */
+function withoutXRoadCalls(orders: WorkOrder[], xroad: boolean): WorkOrder[] {
+  if (xroad) return orders;
+  return orders.map((wo) => ({ ...wo, runs: wo.runs.map((r) => ({ ...r, xroad: undefined })) }));
+}
 
 /** How long the fake assistant "thinks" before answering. */
 const REPLY_DELAY_MS = 900;
@@ -96,9 +103,15 @@ function resolveWorkflow(workflowId?: string, version = "latest"): Workflow {
  *
  * The selected run is kept in the URL as `?run=<id>`, so a link to a run opens
  * the editor with that run on the canvas.
+ *
+ * The feature flags decide what the editor is handed: connected systems (none
+ * without the flag, none over X-Road without X-Road), whether the workflow
+ * backs a service, which components it lists, and whether the explorer lists
+ * the workflow's own files.
  */
 export default function WorkflowEditorPageFixtures() {
   const navigate = useNavigate();
+  const flags = useFlags();
   const { workflowId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const isNew = workflowId === "new";
@@ -107,11 +120,11 @@ export default function WorkflowEditorPageFixtures() {
   const project = projects.find((p) => p.name === workflow.project);
   const [sandbox, setSandbox] = useSandbox(project?.id ?? workflow.project);
   // "See details" opens the service listing that documents this workflow.
-  const service = isNew ? undefined : serviceForWorkflow(workflow.id);
+  const service = isNew || !flags.serviceCatalog ? undefined : serviceForWorkflow(workflow.id);
   // Workflows with a graph of their own have their own run history too.
   const history = workflowId ? runHistories[workflowId] : undefined;
   const ownGraph = !!(workflowId && workflowGraphs[workflowId]);
-  const components = project?.components.filter((c) => c.type !== "Workflow");
+  const components = project && componentsFor(project.components, flags).filter((c) => c.type !== "Workflow");
   // What opening the workflow's docs, its service listing and its components shows.
   const contents: WorkflowFileContents = {
     docs: workflowDocs,
@@ -136,7 +149,7 @@ export default function WorkflowEditorPageFixtures() {
     <div className="h-screen">
       <WorkflowEditorPage
         workflow={workflow}
-        workOrders={isNew ? [] : (history?.workOrders ?? workOrders)}
+        workOrders={isNew ? [] : withoutXRoadCalls(history?.workOrders ?? workOrders, flags.xroad)}
         dataclips={isNew ? [] : (history?.dataclips ?? dataclips)}
         graphForVersion={isNew ? undefined : (version) => resolveWorkflow(workflowId, version)}
         runId={runId}
@@ -147,13 +160,14 @@ export default function WorkflowEditorPageFixtures() {
         onOpenComponent={project ? (id) => navigate(`/projects/${project.id}/components/${id}`) : undefined}
         // Like the project's Components page: drafted from a plain-words description on Create.
         onAddComponent={
-          project
+          project && flags.components && flags.aiBuild
             ? (type) =>
                 navigate(`/projects/${project.id}/create`, {
                   state: { draft: `Add ${/^[aeiou]/i.test(type) ? "an" : "a"} ${type.toLowerCase()} to this project that ` },
                 })
             : undefined
         }
+        componentTypeOptions={componentTypesFor(flags)}
         sandboxes={project?.sandboxes ?? ["main"]}
         sandbox={sandbox}
         onSelectSandbox={setSandbox}
@@ -165,7 +179,10 @@ export default function WorkflowEditorPageFixtures() {
         assistantConversations={isNew || ownGraph ? [] : assistantConversations}
         adaptors={adaptors}
         catalog={catalog}
-        systems={connectedSystems}
+        systems={systemsFor(flags)}
+        showWorkflowFiles={flags.workflowDocs}
+        showComponents={flags.components}
+        publishesServices={flags.serviceCatalog}
         contents={contents}
         codeSummary={codeSummary}
         onRun={simulateRun}

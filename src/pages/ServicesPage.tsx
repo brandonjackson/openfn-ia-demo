@@ -38,10 +38,13 @@ function groupBy<T>(items: T[], key: (item: T) => string): [string, T[]][] {
  * workflow services others can call (from a workflow, as an agent tool, or
  * over X-Road), and **Services we use**, the methods of the systems you've
  * added, including other members' services on X-Road. Only systems you've
- * added show up under "we use".
+ * added show up under "we use". Without connected systems there's no "we
+ * use", and without X-Road nothing is offered over it.
  */
 export default function ServicesPage({ node, ancestors, data, initialView = "publish", onStartWorkflow }: ServicesPageProps) {
-  const [view, setView] = useState<CatalogView>(initialView);
+  const usesSystems = data.connectedSystems ?? true;
+  const xroad = data.xroad ?? true;
+  const [view, setView] = useState<CatalogView>(usesSystems ? initialView : "publish");
   const published = data.entries.filter((e): e is WorkflowCatalogEntry => e.kind === "workflow");
   const channels = data.entries.filter((e): e is ChannelCatalogEntry => e.kind === "channel");
   const usedServices = data.usedServices ?? [];
@@ -74,21 +77,23 @@ export default function ServicesPage({ node, ancestors, data, initialView = "pub
         description={node.description}
       />
 
-      <SegmentedControl
-        variant="pill"
-        size="md"
-        options={[
-          { id: "publish", label: "Services we publish", count: published.length },
-          { id: "use", label: "Services we use", count: usedCount },
-        ]}
-        value={view}
-        onChange={(v) => setView(v as CatalogView)}
-      />
+      {usesSystems && (
+        <SegmentedControl
+          variant="pill"
+          size="md"
+          options={[
+            { id: "publish", label: "Services we publish", count: published.length },
+            { id: "use", label: "Services we use", count: usedCount },
+          ]}
+          value={view}
+          onChange={(v) => setView(v as CatalogView)}
+        />
+      )}
 
       {view === "publish" && (
         <>
           {published.length > 0 && (
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className={`grid gap-3 ${xroad ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
               <UsageModeCard
                 icon={Workflow}
                 title="Call them from your workflows"
@@ -102,11 +107,13 @@ export default function ServicesPage({ node, ancestors, data, initialView = "pub
               >
                 {data.mcpServerUrl && <CodeBlock label="MCP server" code={data.mcpServerUrl} />}
               </UsageModeCard>
-              <UsageModeCard
-                icon={Network}
-                title="Offer them over X-Road"
-                description={`${onXRoad} service${onXRoad === 1 ? " is" : "s are"} published to X-Road, so other government members can call ${onXRoad === 1 ? "it" : "them"} through their Security Servers.`}
-              />
+              {xroad && (
+                <UsageModeCard
+                  icon={Network}
+                  title="Offer them over X-Road"
+                  description={`${onXRoad} service${onXRoad === 1 ? " is" : "s are"} published to X-Road, so other government members can call ${onXRoad === 1 ? "it" : "them"} through their Security Servers.`}
+                />
+              )}
             </div>
           )}
 
@@ -128,8 +135,8 @@ export default function ServicesPage({ node, ancestors, data, initialView = "pub
       {view === "use" && (
         <>
           <p className="text-xs text-gray-400">
-            Methods from the {used.length} systems you've added. Add a system, or a service from the X-Road directory, on
-            Systems to see its methods here.
+            Methods from the {used.length} systems you've added. Add a system
+            {xroad ? ", or a service from the X-Road directory," : ""} on Systems to see its methods here.
           </p>
 
           {used.length === 0 && <EmptyState icon={Network} title="You haven't added any systems yet." />}

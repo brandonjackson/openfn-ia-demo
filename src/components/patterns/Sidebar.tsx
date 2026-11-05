@@ -19,6 +19,7 @@ import {
   BookMarked,
   LifeBuoy,
   X,
+  ArrowLeftRight,
 } from "lucide-react";
 import { mainNavTree, openfnDocsUrl, supportTree, visibleNavGroups } from "../../model/ia-tree";
 import type { FlagId } from "../../model/feature-flags";
@@ -49,6 +50,8 @@ interface ProjectSection {
   icon: LucideIcon;
   /** The feature flag the section belongs to; off, it's left out. */
   flag?: FlagId;
+  /** What it's called when a flag is off, for a section that narrows rather than goes. */
+  whenOff?: { flag: FlagId; label: string; icon: LucideIcon };
 }
 
 /**
@@ -62,7 +65,12 @@ const projectNavGroups: { label?: string; sections: ProjectSection[] }[] = [
     sections: [
       { id: "create", label: "Create", icon: Sparkles, flag: "aiBuild" },
       { id: "workflows", label: "Workflows", icon: Workflow },
-      { id: "components", label: "Components", icon: Boxes },
+      {
+        id: "components",
+        label: "Components",
+        icon: Boxes,
+        whenOff: { flag: "components", label: "Channels", icon: ArrowLeftRight },
+      },
       { id: "sandboxes", label: "Sandboxes", icon: FlaskConical },
     ],
   },
@@ -87,7 +95,9 @@ function ProjectNav({ project }: { project: Project }) {
   const base = "/projects/" + project.id;
   const groups = projectNavGroups.map((g) => ({
     ...g,
-    sections: g.sections.filter((s) => !s.flag || flags[s.flag]),
+    sections: g.sections
+      .filter((s) => !s.flag || flags[s.flag])
+      .map((s) => (s.whenOff && !flags[s.whenOff.flag] ? { ...s, ...s.whenOff } : s)),
   }));
   const sectionIds = groups
     .flatMap((g) => g.sections.map((s) => s.id))

@@ -64,3 +64,13 @@ export interface EcosystemWorkflow {
   note?: string;
   color: LineColor;
 }
+
+/**
+ * The map without X-Road: systems reached over it and members calling in
+ * over it are gone, and so are the workflows that ran through them.
+ */
+export function ecosystemWithoutXRoad<E extends { stations: EcosystemStation[]; workflows: EcosystemWorkflow[] }>(eco: E): E {
+  const stations = eco.stations.filter((s) => !s.xroad);
+  const kept = new Set(stations.map((s) => s.id));
+  return { ...eco, stations, workflows: eco.workflows.filter((w) => w.stations.every((id) => kept.has(id))) };
+}

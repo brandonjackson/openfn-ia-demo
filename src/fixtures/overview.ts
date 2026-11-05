@@ -1,4 +1,4 @@
-import type { ActivityItem, DashboardPageData, SuggestedService } from "../model/page-data";
+import type { ActivityItem, DashboardPageData, StatTileData, SuggestedService } from "../model/page-data";
 import { connectedSystemSummaries, recommendedSystems } from "./connected-systems";
 import { openIssues } from "./status";
 import { projectSummaries } from "./projects";
@@ -6,7 +6,20 @@ import { errorRate, errorTrend, runTrend, totalErrors, totalRuns } from "./insig
 import { adaptors } from "./adaptors";
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
-const issueCount = openIssues.systems.length + openIssues.workflows.length;
+
+/** The Status tile: open issues, counting systems' only when the organisation has connected systems. */
+export function statusTile(withSystems: boolean): StatTileData {
+  const issueCount = openIssues.workflows.length + (withSystems ? openIssues.systems.length : 0);
+  return {
+    label: "Status",
+    value: issueCount === 0 ? "All clear" : `${issueCount} issue${issueCount === 1 ? "" : "s"}`,
+    detail: withSystems
+      ? `${plural(openIssues.systems.length, "system")}, ${plural(openIssues.workflows.length, "workflow")}`
+      : plural(openIssues.workflows.length, "workflow"),
+    badge: issueCount === 0 ? { label: "Operational", tone: "green" } : { label: "Needs attention", tone: "red" },
+    linkTo: "/status",
+  };
+}
 
 /** Open problems from Status, worst first. */
 export const attention: ActivityItem[] = [
@@ -105,16 +118,7 @@ export const overviewData: DashboardPageData = {
   pageType: "dashboard",
   adaptors,
   tiles: [
-    {
-      label: "Status",
-      value: issueCount === 0 ? "All clear" : `${issueCount} issue${issueCount === 1 ? "" : "s"}`,
-      detail: `${plural(openIssues.systems.length, "system")}, ${plural(openIssues.workflows.length, "workflow")}`,
-      badge:
-        issueCount === 0
-          ? { label: "Operational", tone: "green" }
-          : { label: "Needs attention", tone: "red" },
-      linkTo: "/status",
-    },
+    statusTile(true),
     {
       label: "Runs this week",
       value: totalRuns.toLocaleString("en-US"),

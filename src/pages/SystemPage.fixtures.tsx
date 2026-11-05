@@ -9,6 +9,8 @@ import { projectOptions } from "../fixtures/projects";
 import SystemPage from "./SystemPage";
 import NotFoundPage from "./NotFoundPage";
 import { pageFrame } from "./route.fixtures";
+import { useFlags } from "../app/feature-flags";
+import { systemsFor } from "./flagged.fixtures";
 
 /**
  * Build DetailPageData on the fly from the connectedSystems array.
@@ -58,10 +60,11 @@ function xroadContext(systemId: string): DetailPageData["xroad"] {
   return { org: orgXRoad, member: directoryMember(connection.route.memberId), service: routeService(connection.route) };
 }
 
-/** Feeds a connected system's page from fixtures. */
+/** Feeds a connected system's page from fixtures. A system reached over X-Road isn't there without X-Road. */
 export default function SystemPageFixtures({ route }: { route: PageRoute }) {
   const navigate = useNavigate();
-  const system = connectedSystems.find((s) => s.id === route.params["connected-system"]);
+  const flags = useFlags();
+  const system = systemsFor(flags).find((s) => s.id === route.params["connected-system"]);
   const data = system && buildSystemDetailData(system.id);
   if (!system || !data) return <NotFoundPage path={route.currentPath} reason="data" />;
   return (

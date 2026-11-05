@@ -45,7 +45,7 @@ const fieldColumns: DataTableColumn<ServiceApiField>[] = [
 
 /**
  * A published service's catalog entry: what it does, who uses it, the three
- * ways to call it (webhook, MCP and X-Road), what the catalogue records about
+ * ways to call it (webhook, MCP and, when the organisation is on it, X-Road), what the catalogue records about
  * it, and what goes in and comes back, like an API docs page for the
  * workflow behind it. Any webhook-triggered workflow can be a service; its
  * trigger's annotations generate the OpenAPI 3 docs. Links through to that
@@ -65,8 +65,8 @@ export default function ServicePage({
   const url = webhookUrl(api);
   const docsUrl = openApiUrl(api);
   const mcpEnabled = !!service.mcpEnabled;
-  const onXRoad = !!service.xroad?.published;
-  const openfnClientId = clientIdOf(xroadOrg);
+  const onXRoad = !!xroadOrg && !!service.xroad?.published;
+  const openfnClientId = xroadOrg ? clientIdOf(xroadOrg) : "";
   const [publishOpen, setPublishOpen] = useState(false);
   const serviceCode = service.xroad?.serviceCode ?? service.id;
   const xroadServiceId = `${openfnClientId}/${serviceCode}`;
@@ -173,10 +173,10 @@ export default function ServicePage({
       {isWebhook && (
         <section>
           <SectionHeading
-            title="Three ways to call it"
+            title={xroadOrg ? "Three ways to call it" : "Two ways to call it"}
             description="The same workflow answers each of them; only how the caller reaches it changes."
           />
-          <div className="-mt-3 grid items-start gap-3 lg:grid-cols-3">
+          <div className={`-mt-3 grid items-start gap-3 ${xroadOrg ? "lg:grid-cols-3" : "lg:grid-cols-2"}`}>
             <UsageModeCard
               icon={Webhook}
               title="Webhook"
@@ -205,34 +205,36 @@ export default function ServicePage({
                 </Button>
               )}
             </UsageModeCard>
-            <UsageModeCard
-              icon={Network}
-              title="X-Road"
-              description={
-                onXRoad
-                  ? `Other members call it through their Security Servers, as a service of your ${openfnSubsystemOf(xroadOrg).code} subsystem.`
-                  : "Offer it to other government members through your Security Server, with their identity on every call."
-              }
-            >
-              {onXRoad ? (
-                <div className="space-y-3">
-                  <CopyValue value={xroadServiceId} label="Copy X-Road service ID" />
-                  {service.xroad?.clients && (
-                    <p className="text-xs text-gray-500">
-                      Access granted to {service.xroad.clients.length} client subsystem
-                      {service.xroad.clients.length === 1 ? "" : "s"}.
-                    </p>
-                  )}
-                  <Button variant="secondary" size="sm" icon={ListChecks} onClick={() => setPublishOpen(true)}>
-                    Publishing checklist
+            {xroadOrg && (
+              <UsageModeCard
+                icon={Network}
+                title="X-Road"
+                description={
+                  onXRoad
+                    ? `Other members call it through their Security Servers, as a service of your ${openfnSubsystemOf(xroadOrg).code} subsystem.`
+                    : "Offer it to other government members through your Security Server, with their identity on every call."
+                }
+              >
+                {onXRoad ? (
+                  <div className="space-y-3">
+                    <CopyValue value={xroadServiceId} label="Copy X-Road service ID" />
+                    {service.xroad?.clients && (
+                      <p className="text-xs text-gray-500">
+                        Access granted to {service.xroad.clients.length} client subsystem
+                        {service.xroad.clients.length === 1 ? "" : "s"}.
+                      </p>
+                    )}
+                    <Button variant="secondary" size="sm" icon={ListChecks} onClick={() => setPublishOpen(true)}>
+                      Publishing checklist
+                    </Button>
+                  </div>
+                ) : (
+                  <Button size="sm" icon={Network} onClick={() => setPublishOpen(true)}>
+                    Publish to X-Road
                   </Button>
-                </div>
-              ) : (
-                <Button size="sm" icon={Network} onClick={() => setPublishOpen(true)}>
-                  Publish to X-Road
-                </Button>
-              )}
-            </UsageModeCard>
+                )}
+              </UsageModeCard>
+            )}
           </div>
         </section>
       )}
@@ -267,7 +269,7 @@ export default function ServicePage({
         </div>
       </section>
 
-      {isWebhook && url && docsUrl && (
+      {isWebhook && url && docsUrl && xroadOrg && (
         <PublishToXRoadModal
           open={publishOpen}
           onClose={() => setPublishOpen(false)}

@@ -8,9 +8,15 @@ import { buildIdeas } from "../fixtures/build-ideas";
 import ProjectPage from "./ProjectPage";
 import NotFoundPage from "./NotFoundPage";
 import { pageFrame, routeProject } from "./route.fixtures";
+import type { FeatureFlags } from "../model/feature-flags";
+import { useFlags } from "../app/feature-flags";
+import { componentsFor } from "./flagged.fixtures";
 
-/** A project's Overview: its Insights tiles, Create's starter ideas, and its services and components. */
-function projectPageData(project: Project): ProjectPageData {
+/**
+ * A project's Overview: its Insights tiles, Create's starter ideas, and its
+ * services and components, each only with its feature flag on.
+ */
+function projectPageData(project: Project, flags: FeatureFlags): ProjectPageData {
   const workOrderCount = mockEntries.filter(
     (e) => e.type === "Work Order" && e.project === project.name
   ).length;
@@ -19,21 +25,22 @@ function projectPageData(project: Project): ProjectPageData {
     pageType: "project",
     projectId: project.id,
     tiles: buildProjectOverviewTiles(project.id, workOrderCount),
-    ideas: buildIdeas,
-    services: project.services,
-    components: project.components,
+    ideas: flags.aiBuild ? buildIdeas : undefined,
+    services: flags.serviceCatalog ? project.services : undefined,
+    components: flags.components ? componentsFor(project.components, flags) : undefined,
   };
 }
 
 /** Feeds a project's Overview from fixtures. */
 export default function ProjectPageFixtures({ route }: { route: PageRoute }) {
   const navigate = useNavigate();
+  const flags = useFlags();
   const project = routeProject(route);
   if (!project) return <NotFoundPage path={route.currentPath} reason="data" />;
   return (
     <ProjectPage
       {...pageFrame(route, { label: project.name, description: project.description })}
-      data={projectPageData(project)}
+      data={projectPageData(project, flags)}
       onStartBuilding={(prompt) => navigate(`${route.currentPath}/create`, { state: { prompt } })}
     />
   );

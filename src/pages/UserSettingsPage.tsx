@@ -206,13 +206,15 @@ function CredentialsSection({ data }: { data: UserSettingsPageData }) {
           }
         />
 
-        <Callout variant="info" title="Organization credentials live in Systems">
-          Credentials your whole organization shares are managed on each{" "}
-          <Link to="/connected-systems" className="underline font-medium">
-            connected system
-          </Link>
-          .
-        </Callout>
+        {(data.orgCredentialsOnSystems ?? true) && (
+          <Callout variant="info" title="Organization credentials live in Systems">
+            Credentials your whole organization shares are managed on each{" "}
+            <Link to="/connected-systems" className="underline font-medium">
+              connected system
+            </Link>
+            .
+          </Callout>
+        )}
 
         <DataTable
           columns={credentialColumns}

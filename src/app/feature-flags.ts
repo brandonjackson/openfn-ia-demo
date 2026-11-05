@@ -48,6 +48,19 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
+/** Drops a `flags` parameter from the address bar once the panel takes over, so a reload keeps the panel's choice. */
+function clearUrlParam() {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  const [route, query] = url.hash.split("?");
+  const hashParams = new URLSearchParams(query ?? "");
+  if (!url.searchParams.has("flags") && !hashParams.has("flags")) return;
+  url.searchParams.delete("flags");
+  hashParams.delete("flags");
+  url.hash = hashParams.size > 0 ? `${route}?${hashParams}` : route;
+  window.history.replaceState(window.history.state, "", url);
+}
+
 /** Replaces every choice, e.g. with a preset. */
 export function setFlags(next: FeatureFlags) {
   chosen = next;
@@ -57,7 +70,16 @@ export function setFlags(next: FeatureFlags) {
   } catch {
     // Storage can be unavailable; the choice still holds for this session.
   }
+  clearUrlParam();
   listeners.forEach((l) => l());
+}
+
+/** A link to the demo, as it's open now, with these choices. */
+export function shareUrl(param: string): string {
+  if (typeof window === "undefined") return "";
+  const url = new URL(window.location.href);
+  url.searchParams.set("flags", param);
+  return url.toString();
 }
 
 /** Turns one flag on or off. */

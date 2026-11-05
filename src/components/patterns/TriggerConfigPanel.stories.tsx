@@ -30,3 +30,6 @@ export const Paused: Story = { args: { live: false } };
 export const PublishedAsService: Story = {
   args: { service: projects.find((p) => p.id === "case-surveillance")!.services[0] },
 };
+
+/** Without the service catalog: a webhook carries no service annotations. */
+export const WithoutServiceAnnotations: Story = { args: { showServiceAnnotations: false } };

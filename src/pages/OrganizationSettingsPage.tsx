@@ -8,7 +8,7 @@ import type {
   OrganizationSettingsPageData,
   VisibilityScope,
 } from "../model/page-data";
-import type { SecurityServer, SecurityServerManager, XRoadCertificate, XRoadSubsystem } from "../model/xroad";
+import type { OrgXRoadSettings, SecurityServer, SecurityServerManager, XRoadCertificate, XRoadSubsystem } from "../model/xroad";
 import { memberClassLabels, securityServerManagerLabels } from "../model/xroad";
 import { clientIdOf } from "../model/xroad";
 import SettingsLayout from "../components/patterns/SettingsLayout";
@@ -103,7 +103,7 @@ function VisibilitySection({ initial }: { initial: OrganizationSettingsPageData[
           </Button>
         }
       />
-      {visibilityKinds.map((kind) => (
+      {visibilityKinds.filter((kind) => initial[kind.id]).map((kind) => (
         <Card key={kind.id} title={kind.title} description={kind.description}>
           <div className="space-y-3" role="radiogroup" aria-label={`${kind.title} visible to`}>
             {scopes.map((scope) => (
@@ -296,8 +296,7 @@ const certificateColumns: DataTableColumn<XRoadCertificate>[] = [
   },
 ];
 
-function XRoadSection({ data }: { data: OrganizationSettingsPageData }) {
-  const { xroad, xroadUsage } = data;
+function XRoadSection({ xroad, xroadUsage }: { xroad: OrgXRoadSettings; xroadUsage: OrganizationSettingsPageData["xroadUsage"] }) {
   const [managedBy, setManagedBy] = useState<SecurityServerManager>(xroad.managedBy);
   return (
     <div className="space-y-8">
@@ -442,8 +441,9 @@ export default function OrganizationSettingsPage({
   onRequestContextAccess,
   onRemoveContextLayer,
 }: OrganizationSettingsPageProps) {
-  // The /organization-settings root shows the first section.
-  const activeId = navItems.some((item) => item.id === node.id) ? node.id : navItems[0].id;
+  // Without X-Road there's no X-Road section. The /organization-settings root shows the first section.
+  const items = navItems.filter((item) => item.id !== "xroad" || data.xroad);
+  const activeId = items.some((item) => item.id === node.id) ? node.id : items[0].id;
   return (
     <SettingsLayout
       breadcrumbs={{
@@ -451,8 +451,8 @@ export default function OrganizationSettingsPage({
         current: node.label,
       }}
       title="Organization settings"
-      description={`Who's in the ${data.name}, what others can see, the context you draw on, your identity on X-Road, and billing.`}
-      navItems={navItems}
+      description={`Who's in the ${data.name}, what others can see, the context you draw on, ${data.xroad ? "your identity on X-Road, " : ""}and billing.`}
+      navItems={items}
       activeId={activeId}
     >
       {activeId === "members" && <MembersSection members={data.members} name={data.name} />}
@@ -464,7 +464,7 @@ export default function OrganizationSettingsPage({
           onRemoveContextLayer={onRemoveContextLayer}
         />
       )}
-      {activeId === "xroad" && <XRoadSection data={data} />}
+      {activeId === "xroad" && data.xroad && <XRoadSection xroad={data.xroad} xroadUsage={data.xroadUsage} />}
       {activeId === "billing" && <BillingSection billing={data.billing} />}
     </SettingsLayout>
   );

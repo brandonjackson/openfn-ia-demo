@@ -65,3 +65,8 @@ export const EmptyProject: Story = {
     },
   },
 };
+
+/** With every feature flag off: just how the project's running, with no Create, services or components. */
+export const Redesign: Story = {
+  args: { ...Default.args, data: { ...projectData, ideas: undefined, services: undefined, components: undefined } },
+};

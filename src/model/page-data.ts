@@ -497,8 +497,6 @@ export interface ProjectPageData {
   projectId: string;
   /** Headline numbers from Insights and History, linking through. */
   tiles: StatTileData[];
-  /** Starter ideas from Create, to kick off something new. Absent without Create, which leaves the section out. */
-  ideas?: BuildIdea[];
   /** What the project publishes. Absent without the service catalog. */
   services?: ProjectServiceItem[];
   /** What it's built from. Absent without components. */

@@ -4,7 +4,6 @@ import { withRouterAt } from "../stories/decorators";
 import type { IANode } from "../model/ia-tree";
 import type { ProjectPageData } from "../model/page-data";
 import { projects } from "../fixtures/projects";
-import { buildIdeas } from "../fixtures/build-ideas";
 import { buildProjectOverviewTiles } from "../fixtures/insights";
 
 const project = projects[0];
@@ -24,7 +23,6 @@ const projectData: ProjectPageData = {
   pageType: "project",
   projectId: project.id,
   tiles: buildProjectOverviewTiles(project.id, 3),
-  ideas: buildIdeas,
   services: project.services,
   components: project.components,
 };
@@ -32,7 +30,6 @@ const projectData: ProjectPageData = {
 const meta: Meta<typeof ProjectPage> = {
   title: "Pages/ProjectPage",
   component: ProjectPage,
-  args: { onStartBuilding: () => {} },
   decorators: [withRouterAt(`/projects/${project.id}`)],
   parameters: { layout: "padded" },
 };
@@ -59,14 +56,13 @@ export const EmptyProject: Story = {
       pageType: "project",
       projectId: "new-project",
       tiles: buildProjectOverviewTiles("new-project", 0),
-      ideas: buildIdeas,
-      services: [],
+          services: [],
       components: [],
     },
   },
 };
 
-/** With every feature flag off: just how the project's running, with no Create, services or components. */
+/** With every feature flag off: just how the project's running, with no services or components. */
 export const Redesign: Story = {
-  args: { ...Default.args, data: { ...projectData, ideas: undefined, services: undefined, components: undefined } },
+  args: { ...Default.args, data: { ...projectData, services: undefined, components: undefined } },
 };

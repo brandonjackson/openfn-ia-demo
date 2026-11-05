@@ -27,7 +27,6 @@ export interface IANode {
     | "service"
     | "channel"
     | "user-settings"
-    | "instance-settings"
     | "organization-settings"
     | "handbook"
     | "generic";
@@ -317,35 +316,9 @@ export const settingsTree: IANode[] = [
     ],
   },
   {
-    id: "instance-settings",
-    label: "Instance settings",
-    description: "Manage who's in this instance, billing, and the context layers it draws on.",
-    pageType: "instance-settings",
-    children: [
-      {
-        id: "collaboration",
-        label: "Collaboration",
-        description: "Manage members of this instance and their roles.",
-        pageType: "instance-settings",
-      },
-      {
-        id: "billing",
-        label: "Billing",
-        description: "View and manage billing, usage, and subscription details.",
-        pageType: "instance-settings",
-      },
-      {
-        id: "context",
-        label: "Context",
-        description: "Context layers this instance draws its handbook, systems and services from.",
-        pageType: "instance-settings",
-      },
-    ],
-  },
-  {
     id: "organization-settings",
     label: "Organization settings",
-    description: "Who's in your organisation, what others can see by default, and your organisation's identity on X-Road.",
+    description: "Who's in your organisation, what others can see by default, the context it draws on, its identity on X-Road, and billing.",
     pageType: "organization-settings",
     children: [
       {
@@ -361,9 +334,21 @@ export const settingsTree: IANode[] = [
         pageType: "organization-settings",
       },
       {
+        id: "context",
+        label: "Context",
+        description: "Context layers the organisation draws its handbook, systems and services from.",
+        pageType: "organization-settings",
+      },
+      {
         id: "xroad",
         label: "X-Road",
         description: "Your organisation's X-Road identity: instance, member, subsystems, Security Servers and certificates.",
+        pageType: "organization-settings",
+      },
+      {
+        id: "billing",
+        label: "Billing",
+        description: "Your plan, usage this cycle and past invoices.",
         pageType: "organization-settings",
       },
     ],

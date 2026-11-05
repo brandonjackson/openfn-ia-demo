@@ -643,10 +643,10 @@ export interface UserSettingsPageData {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Instance settings                                                  */
+/*  Organization settings                                              */
 /* ------------------------------------------------------------------ */
 
-export interface InstanceMember {
+export interface OrganizationMember {
   id: string;
   name: string;
   email: string;
@@ -676,29 +676,22 @@ export interface ContextLayer {
   lastFetched?: string;
 }
 
-export interface InstanceSettingsPageData {
-  pageType: "instance-settings";
-  members: InstanceMember[];
-  billing: BillingDetails;
-  contextLayers: ContextLayer[];
-}
-
-/* ------------------------------------------------------------------ */
-/*  Organization settings                                              */
-/* ------------------------------------------------------------------ */
-
 /** Who can find and use something by default: its project's members, the whole organisation, or everyone on the server. */
 export type VisibilityScope = "project" | "organization" | "server";
 
+/** Everything the organisation sets once: who's in it, what others see, where its context comes from, X-Road and billing. */
 export interface OrganizationSettingsPageData {
   pageType: "organization-settings";
   name: string;
-  members: InstanceMember[];
+  members: OrganizationMember[];
   /** Default discoverability and access for new projects, systems and services. */
   visibility: { projects: VisibilityScope; systems: VisibilityScope; services: VisibilityScope };
+  /** Shared sources of handbook pages, systems and services the organisation draws on. */
+  contextLayers: ContextLayer[];
   xroad: OrgXRoadSettings;
   /** How many connected systems and published services use the X-Road settings. */
   xroadUsage: { systems: number; services: number };
+  billing: BillingDetails;
 }
 
 /* ------------------------------------------------------------------ */
@@ -766,6 +759,5 @@ export type PageData =
   | ServicePageData
   | ChannelPageData
   | UserSettingsPageData
-  | InstanceSettingsPageData
   | OrganizationSettingsPageData
   | HandbookPageData;

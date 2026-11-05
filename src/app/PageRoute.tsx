@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { useLocation } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { iaTree, type IANode } from "../model/ia-tree";
 import { findNodeByPath, type PageRoute as Route } from "./ia-utils";
 import NotFoundPage from "../pages/NotFoundPage";
@@ -20,7 +20,6 @@ import ChannelPageFixtures from "../pages/ChannelPage.fixtures";
 import StatusPageFixtures from "../pages/StatusPage.fixtures";
 import InsightsPageFixtures from "../pages/InsightsPage.fixtures";
 import UserSettingsPageFixtures from "../pages/UserSettingsPage.fixtures";
-import InstanceSettingsPageFixtures from "../pages/InstanceSettingsPage.fixtures";
 import OrganizationSettingsPageFixtures from "../pages/OrganizationSettingsPage.fixtures";
 import HandbookPageFixtures from "../pages/HandbookPage.fixtures";
 import PlaceholderPageFixtures from "../pages/PlaceholderPage.fixtures";
@@ -50,10 +49,20 @@ const wrappers: Record<PageType, ComponentType<{ route: Route }>> = {
   status: StatusPageFixtures,
   insights: InsightsPageFixtures,
   "user-settings": UserSettingsPageFixtures,
-  "instance-settings": InstanceSettingsPageFixtures,
   "organization-settings": OrganizationSettingsPageFixtures,
   handbook: HandbookPageFixtures,
   generic: PlaceholderPageFixtures,
+};
+
+/**
+ * Pages that moved, so old links still land somewhere. Instance settings
+ * folded into Organization settings, and Collaboration became Members.
+ */
+const movedPaths: Record<string, string> = {
+  "/instance-settings": "/organization-settings",
+  "/instance-settings/collaboration": "/organization-settings/members",
+  "/instance-settings/billing": "/organization-settings/billing",
+  "/instance-settings/context": "/organization-settings/context",
 };
 
 /**
@@ -65,6 +74,9 @@ export default function PageRoute() {
   const { pathname } = useLocation();
 
   if (pathname === "/" || pathname === "/overview") return <OverviewPageFixtures />;
+
+  const moved = movedPaths[pathname.replace(/\/$/, "")];
+  if (moved) return <Navigate to={moved} replace />;
 
   const result = findNodeByPath(iaTree, pathname);
   if (!result) return <NotFoundPage path={pathname} reason="page" />;

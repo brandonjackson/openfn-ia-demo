@@ -1,12 +1,12 @@
 import Link from "../primitives/Link";
-import { Building2, ChevronsUpDown, LogOut, Settings, Wrench } from "lucide-react";
+import { Building2, ChevronsUpDown, LogOut, Settings } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Surface from "../primitives/Surface";
 import { usePopover } from "../primitives/use-popover";
 
 interface Props {
   user: { firstName: string; lastName: string; email: string };
-  /** The instance you're signed in to; its settings live under Instance Settings. */
+  /** The organisation you're signed in to; its settings live under Organization settings. */
   instance: { name: string; initials: string };
   /** Called when "Log out" is chosen. */
   onLogOut?: () => void;
@@ -40,8 +40,8 @@ function MenuItem({
 
 /**
  * Account switcher pinned to the bottom of the sidebar. Shows who you are
- * and which instance you're in; opens upwards into your personal,
- * organisation and instance settings.
+ * and which organisation you're in; opens upwards into your personal and
+ * organisation settings.
  */
 export default function AccountMenu({ user, instance, onLogOut, defaultOpen = false }: Props) {
   const { open, setOpen, ref } = usePopover(defaultOpen);
@@ -63,12 +63,6 @@ export default function AccountMenu({ user, instance, onLogOut, defaultOpen = fa
             to="/organization-settings"
             icon={Building2}
             label="Organization settings"
-            onSelect={close}
-          />
-          <MenuItem
-            to="/instance-settings"
-            icon={Wrench}
-            label="Instance settings"
             onSelect={close}
           />
           <div className="my-1.5 border-t border-gray-200" />

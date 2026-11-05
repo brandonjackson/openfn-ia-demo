@@ -1,7 +1,13 @@
 import { useState } from "react";
-import { Eye, Network, Save, UserPlus, Users } from "lucide-react";
+import { CreditCard, Eye, Layers, Network, Plus, Save, Unplug, UserPlus, Users } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
-import type { InstanceMember, OrganizationSettingsPageData, VisibilityScope } from "../model/page-data";
+import type {
+  BillingDetails,
+  ContextLayer,
+  OrganizationMember,
+  OrganizationSettingsPageData,
+  VisibilityScope,
+} from "../model/page-data";
 import type { SecurityServer, SecurityServerManager, XRoadCertificate, XRoadSubsystem } from "../model/xroad";
 import { memberClassLabels, securityServerManagerLabels } from "../model/xroad";
 import { clientIdOf } from "../model/xroad";
@@ -15,15 +21,20 @@ import Callout from "../components/primitives/Callout";
 import CopyValue from "../components/primitives/CopyValue";
 import DataTable from "../components/primitives/DataTable";
 import type { DataTableColumn } from "../components/primitives/DataTable";
+import EmptyState from "../components/primitives/EmptyState";
+import FormField from "../components/primitives/FormField";
 import PropertyList from "../components/primitives/PropertyList";
-import { RadioOption } from "../components/primitives/FormControls";
+import StatTile from "../components/primitives/StatTile";
+import { RadioOption, TextInput } from "../components/primitives/FormControls";
 
 const BASE_PATH = "/organization-settings";
 
 const navItems: SettingsNavItem[] = [
   { id: "members", label: "Members", icon: Users, to: `${BASE_PATH}/members` },
   { id: "visibility", label: "Visibility", icon: Eye, to: `${BASE_PATH}/visibility` },
+  { id: "context", label: "Context", icon: Layers, to: `${BASE_PATH}/context` },
   { id: "xroad", label: "X-Road", icon: Network, to: `${BASE_PATH}/xroad` },
+  { id: "billing", label: "Billing", icon: CreditCard, to: `${BASE_PATH}/billing` },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -32,8 +43,8 @@ const navItems: SettingsNavItem[] = [
 
 const roleTones = { Owner: "indigo", Admin: "green", Member: "gray" } as const;
 
-function MembersSection({ members, name }: { members: InstanceMember[]; name: string }) {
-  const columns: DataTableColumn<InstanceMember>[] = [
+function MembersSection({ members, name }: { members: OrganizationMember[]; name: string }) {
+  const columns: DataTableColumn<OrganizationMember>[] = [
     {
       key: "name",
       header: "Name",
@@ -108,6 +119,118 @@ function VisibilitySection({ initial }: { initial: OrganizationSettingsPageData[
           </div>
         </Card>
       ))}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Context                                                            */
+/* ------------------------------------------------------------------ */
+
+interface ContextActions {
+  /** Asks for access to a source of context, by its URL; it waits for approval. */
+  onRequestContextAccess: (url: string) => Promise<void>;
+  /** Disconnects a source of context, or cancels a request for one. */
+  onRemoveContextLayer: (id: string) => Promise<void>;
+}
+
+function ContextSection({
+  layers,
+  onRequestContextAccess,
+  onRemoveContextLayer,
+}: { layers: ContextLayer[] } & ContextActions) {
+  const [url, setUrl] = useState("");
+
+  const requestAccess = async () => {
+    const trimmed = url.trim();
+    if (!trimmed) return;
+    await onRequestContextAccess(trimmed);
+    setUrl("");
+  };
+
+  const columns: DataTableColumn<ContextLayer>[] = [
+    {
+      key: "name",
+      header: "Context layer",
+      render: (l) => (
+        <div>
+          <p className="font-medium text-gray-900">{l.name}</p>
+          <p className="text-xs text-gray-400">{l.host}</p>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      render: (l) =>
+        l.status === "connected" ? (
+          <Badge label="Connected" tone="green" />
+        ) : (
+          <Badge label="Awaiting approval" tone="yellow" />
+        ),
+    },
+    {
+      key: "last-fetched",
+      header: "Last fetched",
+      render: (l) => l.lastFetched ?? "Not yet fetched",
+    },
+    {
+      key: "actions",
+      header: "",
+      align: "right",
+      render: (l) => (
+        <Button variant="secondary" size="xs" icon={Unplug} onClick={() => void onRemoveContextLayer(l.id)}>
+          {l.status === "connected" ? "Disconnect" : "Cancel request"}
+        </Button>
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <SectionHeading
+          title="Context layers"
+          description="Shared sources of handbook pages, systems and services that your organisation draws on."
+        />
+        {layers.length > 0 ? (
+          <DataTable columns={columns} rows={layers} getRowKey={(l) => l.id} />
+        ) : (
+          <EmptyState
+            icon={Layers}
+            title="No context layers connected"
+            description="Add one below to start drawing on shared context."
+          />
+        )}
+      </div>
+
+      <Card
+        title="Add a context layer"
+        description="Paste the URL of another context layer. Its owners will need to approve the request before it's loaded here."
+      >
+        <form
+          className="flex items-end gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            requestAccess();
+          }}
+        >
+          <div className="flex-1">
+            <FormField label="Context layer URL" htmlFor="context-layer-url">
+              <TextInput
+                id="context-layer-url"
+                type="url"
+                placeholder="https://example.org/context/my-layer"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+              />
+            </FormField>
+          </div>
+          <Button type="submit" icon={Plus} disabled={!url.trim()}>
+            Request access
+          </Button>
+        </form>
+      </Card>
     </div>
   );
 }
@@ -255,17 +378,71 @@ function XRoadSection({ data }: { data: OrganizationSettingsPageData }) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Billing                                                            */
+/* ------------------------------------------------------------------ */
+
+function BillingSection({ billing }: { billing: BillingDetails }) {
+  const usedPercent = Math.round((billing.runsUsed / billing.runsIncluded) * 100);
+  const columns: DataTableColumn<BillingDetails["invoices"][number]>[] = [
+    { key: "date", header: "Date", render: (i) => i.date },
+    { key: "amount", header: "Amount", render: (i) => <span className="text-gray-900">{i.amount}</span> },
+    {
+      key: "status",
+      header: "Status",
+      render: (i) => <Badge label={i.status} tone={i.status === "Paid" ? "green" : "yellow"} />,
+    },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <SectionHeading
+        title="Billing"
+        description="Your plan, how much of it you've used this cycle, and past invoices."
+        action={
+          <Button variant="secondary" size="sm">
+            Change plan
+          </Button>
+        }
+      />
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <StatTile label="Plan" value={billing.plan} detail={billing.price} />
+        <StatTile
+          label="Runs this cycle"
+          value={billing.runsUsed.toLocaleString()}
+          detail={`${usedPercent}% of ${billing.runsIncluded.toLocaleString()} included`}
+        />
+        <StatTile label="Renews on" value={billing.renewsOn} />
+      </div>
+
+      <div>
+        <SectionHeading title="Invoices" />
+        <DataTable columns={columns} rows={billing.invoices} getRowKey={(i) => i.id} />
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main template                                                      */
 /* ------------------------------------------------------------------ */
 
-export type OrganizationSettingsPageProps = PageProps<OrganizationSettingsPageData>;
+export interface OrganizationSettingsPageProps extends PageProps<OrganizationSettingsPageData>, ContextActions {}
 
 /**
- * The organisation's settings, from the account menu: its members, what
- * others can see by default, and its identity on X-Road, which connected
- * systems and published services reuse.
+ * The organisation's settings, from the account menu: everything it sets
+ * once. Its members, what others can see by default, the context layers it
+ * draws on, its identity on X-Road (which connected systems and published
+ * services reuse), and billing.
  */
-export default function OrganizationSettingsPage({ node, ancestors, data }: OrganizationSettingsPageProps) {
+export default function OrganizationSettingsPage({
+  node,
+  ancestors,
+  data,
+  onRequestContextAccess,
+  onRemoveContextLayer,
+}: OrganizationSettingsPageProps) {
+  // The /organization-settings root shows the first section.
   const activeId = navItems.some((item) => item.id === node.id) ? node.id : navItems[0].id;
   return (
     <SettingsLayout
@@ -274,13 +451,21 @@ export default function OrganizationSettingsPage({ node, ancestors, data }: Orga
         current: node.label,
       }}
       title="Organization settings"
-      description={`Who's in the ${data.name}, what others can see by default, and your identity on X-Road.`}
+      description={`Who's in the ${data.name}, what others can see, the context you draw on, your identity on X-Road, and billing.`}
       navItems={navItems}
       activeId={activeId}
     >
       {activeId === "members" && <MembersSection members={data.members} name={data.name} />}
       {activeId === "visibility" && <VisibilitySection initial={data.visibility} />}
+      {activeId === "context" && (
+        <ContextSection
+          layers={data.contextLayers}
+          onRequestContextAccess={onRequestContextAccess}
+          onRemoveContextLayer={onRemoveContextLayer}
+        />
+      )}
       {activeId === "xroad" && <XRoadSection data={data} />}
+      {activeId === "billing" && <BillingSection billing={data.billing} />}
     </SettingsLayout>
   );
 }

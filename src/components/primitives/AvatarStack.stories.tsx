@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import AvatarStack from "./AvatarStack";
-import { instanceSettingsData } from "../../fixtures/instance";
+import { organizationSettingsData } from "../../fixtures/organization";
 
-const names = instanceSettingsData.members.map((m) => m.name);
+const names = organizationSettingsData.members.map((m) => m.name);
 
 const meta: Meta<typeof AvatarStack> = {
   title: "Primitives/AvatarStack",

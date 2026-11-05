@@ -12,6 +12,7 @@ const section = (id: string, label: string): IANode => ({ id, label, pageType: "
 const meta: Meta<typeof OrganizationSettingsPage> = {
   title: "Pages/OrganizationSettingsPage",
   component: OrganizationSettingsPage,
+  args: { onRequestContextAccess: async () => {}, onRemoveContextLayer: async () => {} },
   decorators: [withRouter],
   parameters: { layout: "padded" },
 };
@@ -27,6 +28,35 @@ export const Visibility: Story = {
   args: { node: section("visibility", "Visibility"), ancestors, currentPath: "/organization-settings/visibility", data: organizationSettingsData },
 };
 
+export const Context: Story = {
+  args: { node: section("context", "Context"), ancestors, currentPath: "/organization-settings/context", data: organizationSettingsData },
+};
+
+export const ContextPendingRequest: Story = {
+  name: "Context (request awaiting approval)",
+  args: {
+    ...Context.args,
+    data: {
+      ...organizationSettingsData,
+      contextLayers: [
+        ...organizationSettingsData.contextLayers,
+        {
+          id: "layer-partner",
+          name: "partner.example.org",
+          host: "https://partner.example.org/context/health",
+          url: "https://partner.example.org/context/health",
+          status: "pending",
+        },
+      ],
+    },
+  },
+};
+
+export const NoContextLayers: Story = {
+  name: "Context (empty)",
+  args: { ...Context.args, data: { ...organizationSettingsData, contextLayers: [] } },
+};
+
 export const XRoad: Story = {
   name: "X-Road",
   args: { node: section("xroad", "X-Road"), ancestors, currentPath: "/organization-settings/xroad", data: organizationSettingsData },
@@ -38,4 +68,8 @@ export const XRoadRunByNationalOperator: Story = {
     ...XRoad.args,
     data: { ...organizationSettingsData, xroad: { ...organizationSettingsData.xroad, managedBy: "national-operator" } },
   },
+};
+
+export const Billing: Story = {
+  args: { node: section("billing", "Billing"), ancestors, currentPath: "/organization-settings/billing", data: organizationSettingsData },
 };

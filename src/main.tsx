@@ -2,9 +2,9 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { HashRouter } from "react-router-dom";
 import "./index.css";
-import App from "./App.tsx";
+import App from "./app/App.tsx";
 import { ThemeProvider } from "./theme/ThemeProvider";
-import StylePicker from "./components/StylePicker";
+import StylePicker from "./components/patterns/StylePicker";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

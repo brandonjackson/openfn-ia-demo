@@ -1,0 +1,101 @@
+import type { PageProps } from "../model/ia-tree";
+import type { HealthState, StatusPageData, SystemStatus, WorkflowStatus } from "../model/page-data";
+import PageHeader from "../components/patterns/PageHeader";
+import Callout from "../components/primitives/Callout";
+import SectionHeading from "../components/primitives/SectionHeading";
+import DataTable from "../components/primitives/DataTable";
+import type { DataTableColumn } from "../components/primitives/DataTable";
+import StatusBadge from "../components/domain/StatusBadge";
+import SystemLabel from "../components/domain/SystemLabel";
+import TextLink from "../components/primitives/TextLink";
+
+export type StatusPageProps = PageProps<StatusPageData>;
+
+const severity: Record<HealthState, number> = { down: 0, degraded: 1, operational: 2 };
+const worstFirst = <T extends { status: HealthState }>(rows: T[]) =>
+  [...rows].sort((a, b) => severity[a.status] - severity[b.status]);
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+const systemColumns: DataTableColumn<SystemStatus>[] = [
+  { key: "name", header: "System", render: (s) => <SystemLabel name={s.name} to={s.linkTo} /> },
+  { key: "status", header: "Status", render: (s) => <StatusBadge status={s.status} /> },
+  { key: "note", header: "Details", render: (s) => <span className="text-gray-500">{s.note}</span> },
+];
+
+const workflowColumns: DataTableColumn<WorkflowStatus>[] = [
+  {
+    key: "name",
+    header: "Workflow",
+    render: (w) => (
+      <span className="whitespace-nowrap font-mono">
+        <TextLink to={`/workflow-editor/${w.id}`}>{w.name}</TextLink>
+      </span>
+    ),
+  },
+  {
+    key: "project",
+    header: "Project",
+    render: (w) => (
+      <span className="block max-w-56 truncate" title={w.project}>
+        <TextLink to={`/projects/${w.projectId}/workflows`}>{w.project}</TextLink>
+      </span>
+    ),
+  },
+  { key: "status", header: "Status", render: (w) => <StatusBadge status={w.status} /> },
+  { key: "lastRun", header: "Last run", render: (w) => <span className="whitespace-nowrap text-gray-500">{w.lastRun}</span> },
+  { key: "note", header: "Details", render: (w) => <span className="text-gray-500">{w.note}</span> },
+];
+
+/**
+ * Monitoring, right now: what's up, degraded or failing. Problems are
+ * summarised at the top and sorted to the top of each table.
+ */
+export default function StatusPage({ node, ancestors, data }: StatusPageProps) {
+  const systemIssues = data.systems.filter((s) => s.status !== "operational");
+  const workflowIssues = data.workflows.filter((w) => w.status !== "operational");
+  const issues = [...workflowIssues, ...systemIssues];
+
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        breadcrumbs={{
+        ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
+        current: node.label,
+      }}
+        title={node.label}
+        description={`${node.description ?? ""} Checked ${data.checkedAt}.`.trim()}
+      />
+
+      {issues.length === 0 ? (
+        <Callout variant="success" title="Everything is operational">
+          All systems and workflows are running normally.
+        </Callout>
+      ) : (
+        <Callout variant="warning" title={`${plural(issues.length, "issue")} need attention`}>
+          {issues.map((i) => `${i.name} is ${i.status}`).join("; ")}.
+        </Callout>
+      )}
+
+      <section>
+        <SectionHeading
+          title="Systems"
+          description={`${plural(data.systems.length - systemIssues.length, "system")} of ${data.systems.length} operational.`}
+        />
+        <DataTable columns={systemColumns} rows={worstFirst(data.systems)} getRowKey={(s) => s.id} />
+      </section>
+
+      <section>
+        <SectionHeading
+          title="Workflows"
+          description={`${plural(data.workflows.length - workflowIssues.length, "workflow")} of ${data.workflows.length} operational.`}
+        />
+        <DataTable
+          columns={workflowColumns}
+          rows={worstFirst(data.workflows)}
+          getRowKey={(w) => w.projectId + w.id}
+        />
+      </section>
+    </div>
+  );
+}

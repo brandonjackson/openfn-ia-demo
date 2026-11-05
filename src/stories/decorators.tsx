@@ -1,12 +1,17 @@
 import { MemoryRouter } from "react-router-dom";
 import type { Decorator } from "@storybook/react";
+import ShellFixtures from "../app/Shell.fixtures";
 
 /**
- * Wraps a story in a MemoryRouter so components using Link / useLocation work.
+ * Wraps a story in a MemoryRouter, and in the shell's fixtures so chrome
+ * (the sidebar, the project bar in the breadcrumbs) renders as it does in the
+ * app at that URL.
  */
 export const withRouter: Decorator = (Story) => (
   <MemoryRouter initialEntries={["/"]}>
-    <Story />
+    <ShellFixtures>
+      <Story />
+    </ShellFixtures>
   </MemoryRouter>
 );
 
@@ -18,6 +23,8 @@ export const withRouterAt =
   (path: string): Decorator =>
   (Story) => (
     <MemoryRouter initialEntries={[path]}>
-      <Story />
+      <ShellFixtures>
+        <Story />
+      </ShellFixtures>
     </MemoryRouter>
   );

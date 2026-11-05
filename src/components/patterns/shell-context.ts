@@ -1,0 +1,45 @@
+import { createContext, useContext } from "react";
+import type { Project } from "../../model/projects";
+import type { UserProfile } from "../../model/page-data";
+
+/**
+ * What the app's chrome (the sidebar, and the project bar in the
+ * breadcrumbs) needs to know, wherever it's drawn. Pages are fed through
+ * props; the chrome sits around and above every page, so it's fed once,
+ * here, by the shell's wrapper (src/app/Shell.fixtures.tsx).
+ */
+export interface Shell {
+  /** The URL being shown. */
+  currentPath: string;
+  /** The instance you're signed in to, for the logo and the account menu. */
+  instance: { name: string; initials: string };
+  /** You, for the account menu. */
+  user: UserProfile;
+  /** Projects you've opened lately, most recent first: the sidebar's list and the project switcher's shortlist. */
+  recentProjects: Project[];
+  /** The project the URL is inside, if any. */
+  project?: Project;
+  /** The sandbox selected in that project. */
+  sandbox: string;
+  /** Selects a sandbox in that project. */
+  onSelectSandbox: (sandbox: string) => void;
+  /** Goes to a page in the app, e.g. after switching project. */
+  onNavigate: (path: string) => void;
+}
+
+const empty: Shell = {
+  currentPath: "/",
+  instance: { name: "", initials: "" },
+  user: { firstName: "", lastName: "", email: "", createdAt: "", contactPreference: "Critical only", mfaEnabled: false, githubConnected: false },
+  recentProjects: [],
+  sandbox: "main",
+  onSelectSandbox: () => {},
+  onNavigate: () => {},
+};
+
+export const ShellContext = createContext<Shell>(empty);
+
+/** The chrome's view of the app. Read it only from chrome (sidebar, crumbs); pages take props. */
+export function useShell(): Shell {
+  return useContext(ShellContext);
+}

@@ -26,11 +26,22 @@ export function activityPeriodLabel(period: ActivityPeriod): string {
 /** "Now" for the mock history, the morning its newest runs happened. */
 const MOCK_NOW = new Date(2026, 9, 20, 10, 0, 0).getTime();
 
-/** When a run started, from its "dd/mm/yyyy, HH:MM:SS" stamp. */
-function startedAt(run: RunDetails): number {
-  const m = /^(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})$/.exec(run.started);
+/** The time a "dd/mm/yyyy, HH:MM:SS" stamp names, or the mock's "now" if it isn't one. */
+export function stampTime(stamp: string): number {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})$/.exec(stamp);
   if (!m) return MOCK_NOW;
   return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5], +m[6]).getTime();
+}
+
+/** When a run started. */
+const startedAt = (run: RunDetails) => stampTime(run.started);
+
+/** Where `period` starts, counting back from the mock's "now", as a datetime-local value ("2026-10-13T10:00"). */
+export function periodStart(period: ActivityPeriod): string {
+  const hours = activityPeriods.find((p) => p.id === period)?.hours ?? 0;
+  const d = new Date(MOCK_NOW - hours * 3600_000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 /** The runs in `workOrders` that started within `period`, newest first. Runs started after the mock's "now" count as just now. */

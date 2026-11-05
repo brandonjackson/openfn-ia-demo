@@ -21,6 +21,7 @@ export interface ApiProject {
     requires_mfa?: boolean;
     allow_support_access?: boolean;
     parent_id?: string | null;
+    root_id?: string;
     scheduled_deletion?: string | null;
     inserted_at?: string;
     role?: ProjectRole | null;
@@ -51,6 +52,8 @@ export function toProject({ id, attributes: a }: ApiProject): ProjectDetails {
     description: a.description ?? "",
     env: a.env ?? "main",
     parentId: a.parent_id ?? null,
+    rootId: a.root_id ?? id,
+    color: a.color ?? null,
     concurrency: a.concurrency ?? null,
     retentionPolicy: a.retention_policy ?? "retain_all",
     historyRetentionDays: a.history_retention_period ?? null,

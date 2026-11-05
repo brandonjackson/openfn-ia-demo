@@ -632,3 +632,20 @@ export function fixtureProject(id: string | undefined): Project | undefined {
 
 /** A fixture project's id on the API. */
 export const apiProjectId = (slug: string) => seedId("project", slug);
+
+/**
+ * The fixture behind a workflow id from the API (or still a slug): its slug,
+ * and its row on the workflows list (latest run, members, counts), for the
+ * run history that hasn't moved to the API yet. Undefined for a workflow
+ * made on the API.
+ */
+export function fixtureWorkflow(id: string | undefined): { slug: string; item?: WorkflowListItem } | undefined {
+  if (!id) return undefined;
+  for (const p of projects) {
+    for (const item of projectWorkflowItems(p)) {
+      if (item.id === id || seedId("workflow", item.id) === id) return { slug: item.id, item };
+    }
+  }
+  if (id === "apply-national-id" || seedId("workflow", "apply-national-id") === id) return { slug: "apply-national-id" };
+  return undefined;
+}

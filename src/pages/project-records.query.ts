@@ -4,10 +4,11 @@
  * sandboxes) filled in from its fixture, and its card on the projects list.
  */
 import type { FeatureFlags } from "../model/feature-flags";
-import type { ProjectSummary } from "../model/page-data";
+import type { ProjectSummary, WorkflowListItem } from "../model/page-data";
+import { isLive, type WorkflowDocument } from "../model/workflow-document";
 import type { Project, ProjectDetails } from "../model/projects";
 import { timeAgo } from "../model/time";
-import { fixtureProject } from "../fixtures/projects";
+import { fixtureProject, fixtureWorkflow } from "../fixtures/projects";
 import { summaryFor } from "./flagged.fixtures";
 
 /**
@@ -52,3 +53,28 @@ export function asSummary(details: ProjectDetails, flags: FeatureFlags): Project
 
 /** The projects you're a member of that aren't being deleted: what the projects list and the sidebar show. */
 export const isOpenable = (p: ProjectDetails) => !!p.role && !p.scheduledDeletion;
+
+/**
+ * A workflow's row: what the API says (its name, whether it's on, its
+ * trigger, when it changed) and, until runs move to the API, its run
+ * activity from the fixtures. A workflow made on the API hasn't run yet.
+ */
+export function asListItem(doc: WorkflowDocument, serviceCatalog: boolean): WorkflowListItem {
+  const fixture = fixtureWorkflow(doc.id)?.item;
+  return {
+    id: doc.id,
+    name: doc.name,
+    description: fixture?.description ?? "",
+    type: "Workflow",
+    serviceStatus: serviceCatalog ? fixture?.serviceStatus : undefined,
+    latestRun: fixture?.latestRun,
+    lastRunAt: fixture?.lastRunAt,
+    members: fixture?.members ?? [],
+    updatedAt: doc.updated_at,
+    enabled: isLive(doc),
+    triggerType: doc.triggers[0]?.type,
+    workOrders: fixture?.workOrders ?? 0,
+    failedWorkOrders: fixture?.failedWorkOrders ?? 0,
+  };
+}
+

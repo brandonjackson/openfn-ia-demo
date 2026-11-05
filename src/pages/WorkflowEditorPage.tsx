@@ -1,3 +1,5 @@
+import { sandboxSlug } from "../model/sandboxes";
+import { errorMessageOf, firstProblemOf } from "../model/form-error";
 import { useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 import type {
@@ -112,7 +114,10 @@ function placeAfter(workflow: Workflow, source: WorkflowNode): { x: number; y: n
 
 /** The workflow with this session's edits applied; `info` gives a re-adaptored step its package. */
 function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record<AdaptorKind, AdaptorInfo>): Workflow {
-  const nodes: WorkflowNode[] = [...workflow.nodes, ...edits.added]
+  // Edits already saved are in the workflow too: adding them again changes nothing.
+  const added = edits.added.filter((a) => !workflow.nodes.some((n) => n.id === a.id));
+  const addedEdges = edits.addedEdges.filter((a) => !workflow.edges.some((e) => e.id === a.id));
+  const nodes: WorkflowNode[] = [...workflow.nodes, ...added]
     .filter((n) => !edits.removed.includes(n.id))
     .map((n) => {
       if (n.type !== "job") return n;
@@ -127,7 +132,7 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
       };
     });
   const ids = new Set(nodes.map((n) => n.id));
-  const edges = [...workflow.edges, ...edits.addedEdges].filter((e) => ids.has(e.source) && ids.has(e.target));
+  const edges = [...workflow.edges, ...addedEdges].filter((e) => ids.has(e.source) && ids.has(e.target));
   return { ...workflow, name, nodes, edges };
 }
 
@@ -226,6 +231,11 @@ export default function WorkflowEditorPage({
   assistantSuggestions,
   onAssistantSend,
   onAssistantCarryOutPlan,
+  onSaveWorkflow,
+  live: controlledLive,
+  onToggleLive,
+  onPromote,
+  onCreateSandbox,
 }: {
   workflow: Workflow;
   /** Recent work orders, newest first. */
@@ -308,6 +318,26 @@ export default function WorkflowEditorPage({
   onAssistantSend?: (prompt: string, jobLabel: string | undefined, mode: AssistantMode) => Promise<AssistantMessage>;
   /** Carries out a plan the assistant proposed; resolves with its message saying how it went. */
   onAssistantCarryOutPlan?: (plan: AssistantPlan) => Promise<AssistantMessage>;
+  /**
+   * Saves the graph as edited (renames, steps added or removed, code,
+   * adaptors), a moment after each change in a sandbox. Once it resolves,
+   * `workflow` holds the change. Rejects with why the server refused it,
+   * which the status bar shows; the edit stays, to be saved with the next.
+   * Without it, edits last as long as the page.
+   */
+  onSaveWorkflow?: (graph: Workflow) => Promise<void>;
+  /** Whether the workflow's trigger is on, when the caller holds it. */
+  live?: boolean;
+  /** Turns the workflow's trigger on or off. */
+  onToggleLive?: (live: boolean) => Promise<void>;
+  /**
+   * Promotes the sandbox's changes to main as a new version, with what was
+   * said about them. Once it resolves, `versions` has the new one. Without
+   * it, promoting adds a version for the session.
+   */
+  onPromote?: (message: string) => Promise<void>;
+  /** Makes a sandbox with this name from the one selected; once it resolves, `sandboxes` lists it. */
+  onCreateSandbox?: (name: string) => Promise<void>;
 }) {
   // ---- Where we are ---------------------------------------------------------
 
@@ -325,13 +355,20 @@ export default function WorkflowEditorPage({
   const [newSandboxes, setNewSandboxes] = useState<string[]>([]);
   const allSandboxes = [...sandboxes, ...newSandboxes.filter((s) => !sandboxes.includes(s))];
 
-  const [versions, setVersions] = useState(initialVersions);
+  const [localVersions, setVersions] = useState(initialVersions);
+  const versions = onPromote ? initialVersions : localVersions;
   const [version, setVersion] = useState(initialVersion);
   const latestVersion = versions[0]?.id;
 
   // ---- Edits ----------------------------------------------------------------
 
-  const [live, setLive] = useState(true);
+  const [localLive, setLocalLive] = useState(true);
+  const live = controlledLive ?? localLive;
+  const setLive = (next: boolean | ((l: boolean) => boolean)) => {
+    const value = typeof next === "function" ? next(live) : next;
+    if (onToggleLive) void onToggleLive(value).catch((e: unknown) => setStatusNote(errorMessageOf(e)));
+    else setLocalLive(value);
+  };
   const [name, setName] = useState(workflow.name);
   const [settings, setSettings] = useState<WorkflowSettings>(() => defaultWorkflowSettings(workflow));
   const [edits, setEdits] = useState<Edits>(noEdits);
@@ -344,6 +381,31 @@ export default function WorkflowEditorPage({
       ? applyEdits(workflow, edits, name, adaptors.info)
       : (graphForVersion?.(version) ?? applyEdits(workflow, edits, name, adaptors.info));
   const viewingVersion = version === "latest" ? latestVersion : version;
+
+  // Another copy of the workflow (another sandbox, or main): its own edits start afresh.
+  const [shownId, setShownId] = useState(workflow.id);
+  if (shownId !== workflow.id) {
+    setShownId(workflow.id);
+    setEdits(noEdits);
+    setName(workflow.name);
+  }
+
+  // In a sandbox, edits are saved a moment after they're made. Once saved they're in `workflow`,
+  // so they're cleared here unless more were made meanwhile.
+  useEffect(() => {
+    if (!onSaveWorkflow || onMain || (edits === noEdits && name === workflow.name)) return;
+    const timer = setTimeout(() => {
+      const saving = edits;
+      onSaveWorkflow(applyEdits(workflow, saving, name, adaptors.info)).then(
+        () => {
+          setStatusNote(undefined);
+          setEdits((current) => (current === saving ? noEdits : current));
+        },
+        (e: unknown) => setStatusNote(`Not saved: ${firstProblemOf(e)}`),
+      );
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [edits, name, workflow, onMain, onSaveWorkflow, adaptors.info]);
 
   // ---- Runs -----------------------------------------------------------------
 
@@ -579,18 +641,36 @@ export default function WorkflowEditorPage({
 
   // ---- Sandboxes ------------------------------------------------------------
 
-  const promote = (message: string) => {
+  const promote = async (message: string) => {
     setPromoteOpen(false);
-    setVersions([{ id: `v${versions.length + 1}`, message, author: CURRENT_USER, date: "20 Oct 2026" }, ...versions]);
+    if (onPromote) {
+      try {
+        await onPromote(message);
+      } catch (e) {
+        setStatusNote(errorMessageOf(e));
+        return;
+      }
+    } else {
+      setVersions([{ id: `v${versions.length + 1}`, message, author: CURRENT_USER, date: "20 Oct 2026" }, ...versions]);
+    }
     setVersion("latest");
     selectSandbox("main");
   };
 
-  const createSandbox = ({ name: sandboxName, start }: { name: string; start: SandboxStart }) => {
+  const createSandbox = ({ name: typed, start }: { name: string; start: SandboxStart }) => {
+    // Named by its slug, as the Sandboxes page names them.
+    const sandboxName = sandboxSlug(typed);
     // A reviewed copy of a run's input comes along as a named input.
     if (start.kind === "run") addInput(start.body, `Input from run ${start.runId}`);
-    setNewSandboxes((current) => [...current, sandboxName]);
     setEditInSandboxOpen(false);
+    if (onCreateSandbox) {
+      void onCreateSandbox(sandboxName).then(
+        () => selectSandbox(sandboxName),
+        (e: unknown) => setStatusNote(`Sandbox not made: ${firstProblemOf(e)}`),
+      );
+      return;
+    }
+    setNewSandboxes((current) => [...current, sandboxName]);
     selectSandbox(sandboxName);
   };
 
@@ -612,7 +692,7 @@ export default function WorkflowEditorPage({
   const changeCode = (stepId: string, body: string) => edit((e) => ({ bodies: { ...e.bodies, [stepId]: body } }));
 
   const addStep = () => {
-    const id = `step-${shortId().slice(0, 4)}`;
+    const id = crypto.randomUUID();
     const last = graph.nodes.filter((n): n is JobNode => n.type === "job").at(-1);
     const job: JobNode = {
       id,
@@ -626,7 +706,7 @@ export default function WorkflowEditorPage({
     };
     edit((e) => ({
       added: [...e.added, job],
-      addedEdges: last ? [...e.addedEdges, { id: `e-${last.id}-${id}`, source: last.id, target: id, condition: "on_success" }] : e.addedEdges,
+      addedEdges: last ? [...e.addedEdges, { id: crypto.randomUUID(), source: last.id, target: id, condition: "on_success" }] : e.addedEdges,
     }));
     setFile({ stepId: id });
     setView("code");
@@ -644,7 +724,7 @@ export default function WorkflowEditorPage({
   const addStepAfter = (sourceId: string, choice: ConnectChoice) => {
     const source = graph.nodes.find((n) => n.id === sourceId);
     if (!source) return;
-    const id = `step-${shortId().slice(0, 4)}`;
+    const id = crypto.randomUUID();
     const adaptor = choice.kind === "ai" ? "claude" : choice.adaptor;
     const info = adaptors.info[adaptor];
     const firstSnippet = adaptors.snippets[adaptor]?.[0]?.code;
@@ -661,7 +741,7 @@ export default function WorkflowEditorPage({
       added: [...e.added, job],
       addedEdges: [
         ...e.addedEdges,
-        { id: `e-${source.id}-${id}`, source: source.id, target: id, condition: source.type === "trigger" ? "always" : "on_success" },
+        { id: crypto.randomUUID(), source: source.id, target: id, condition: source.type === "trigger" ? "always" : "on_success" },
       ],
     }));
     setAddAfterId(undefined);

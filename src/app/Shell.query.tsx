@@ -2,10 +2,11 @@ import { useEffect, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ShellContext } from "../components/domain/shell-context";
 import { useProject, useProjectList } from "../api/projects";
+import { useSandboxes } from "../api/workflows";
 import { fixtureProject } from "../fixtures/projects";
 import { currentInstance, currentUser, currentUserIsSuperuser } from "../fixtures/user";
 import { asProject, isOpenable } from "../pages/project-records.query";
-import { useSandbox, useSavedSandboxes } from "./sandbox-state";
+import { useSandbox } from "./sandbox-state";
 import { noteOpened, useRecentProjectIds } from "./recent-projects";
 import { useFlags } from "./feature-flags";
 
@@ -27,11 +28,14 @@ export default function ShellQuery({ children }: { children: ReactNode }) {
     if (details && !details.scheduledDeletion) noteOpened(details.id);
   }, [details]);
 
-  // Sandboxes haven't moved to the API yet: they're still kept per fixture project.
+  // The selected sandbox is kept by the app, per project (by its fixture slug, for projects seeded from one).
   const sandboxKey = fixtureProject(details?.id)?.id ?? details?.id ?? "";
-  const [sandbox, setSandbox] = useSandbox(sandboxKey);
-  const savedSandboxes = useSavedSandboxes(sandboxKey);
-  const project = details && { ...asProject(details), ...(savedSandboxes && { sandboxes: savedSandboxes.map((s) => s.name) }) };
+  const [selected, setSandbox] = useSandbox(sandboxKey);
+  const { sandboxes } = useSandboxes(details?.id);
+  const live = sandboxes.filter((s) => !s.scheduledDeletion).map((s) => s.name);
+  // A sandbox that's gone (deleted, or never made) leaves you on main.
+  const sandbox = live.includes(selected) ? selected : "main";
+  const project = details && { ...asProject(details), sandboxes: ["main", ...live] };
 
   const openable = projects.filter(isOpenable);
   const recentProjects = [

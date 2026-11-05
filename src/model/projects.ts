@@ -55,6 +55,10 @@ export interface ProjectDetails {
   env: string;
   /** For a sandbox, the project it was made from. */
   parentId: string | null;
+  /** For a sandbox, the project at the top of its tree; for a project, itself. */
+  rootId: string;
+  /** A sandbox's colour, as a hex string. */
+  color: string | null;
   /** How many runs at once; null for no limit, 1 for one at a time. */
   concurrency: number | null;
   retentionPolicy: RetentionPolicy;

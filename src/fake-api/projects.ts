@@ -16,8 +16,9 @@
  */
 import { createdAt as fixtureCreatedAt, instanceUsers, memberships as fixtureMemberships } from "../fixtures/admin";
 import { projectMemberships as settingsMemberships, projectSettingsRecord } from "../fixtures/project-settings";
-import { projects as fixtureProjects } from "../fixtures/projects";
+import { projects as fixtureProjects, projectSandboxes } from "../fixtures/projects";
 import { hasRole, type DigestFrequency, type ProjectRole } from "../model/project-settings";
+import { sandboxColorHex } from "../model/sandboxes";
 import {
   badId,
   badInclude,
@@ -83,6 +84,24 @@ export interface MemberRow {
 /** A fixture project's id on the fake server, from its slug ("project-a"). */
 export const projectIdFor = (slug: string) => seedId("project", slug);
 
+/** A fixture sandbox's id on the fake server, from its project's slug and its name. */
+export const sandboxIdFor = (projectSlug: string, name: string) => seedId("sandbox", `${projectSlug}/${name}`);
+
+
+/** Every fixture sandbox: each project's sandboxes but main, made from main (or from another sandbox). */
+export function fixtureSandboxes() {
+  return fixtureProjects.flatMap((p) =>
+    projectSandboxes(p)
+      .filter((s) => !s.isMain)
+      .map((s) => ({
+        project: p,
+        sandbox: s,
+        id: sandboxIdFor(p.id, s.name),
+        parentId: !s.parent || s.parent === "main" ? projectIdFor(p.id) : sandboxIdFor(p.id, s.parent),
+      })),
+  );
+}
+
 /** Days an instance waits before removing a scheduled project (`purge_deleted_after_days`). */
 export const PURGE_DELETED_AFTER_DAYS = 7;
 const RETENTION_DAYS = [7, 14, 30, 90, 180, 365];
@@ -94,7 +113,7 @@ const daysFromLabel = (label: string): number | null => {
 };
 
 export const projects = table<ProjectRow>("projects", () =>
-  fixtureProjects.map((p) => {
+  fixtureProjects.map((p): ProjectRow => {
     const settings = projectSettingsRecord(p);
     const io = settings.dataStorage;
     return {
@@ -115,11 +134,29 @@ export const projects = table<ProjectRow>("projects", () =>
       inserted_at: seedTime(fixtureCreatedAt[p.id] ?? "1 Jan 2025"),
       updated_at: seedTime(p.lastActivity),
     };
-  }),
+  }).concat(
+    fixtureSandboxes().map(({ sandbox, id, parentId }): ProjectRow => ({
+      id,
+      name: sandbox.name,
+      description: sandbox.description || null,
+      env: "staging",
+      color: sandboxColorHex[sandbox.color] ?? null,
+      parent_id: parentId,
+      concurrency: null,
+      retention_policy: "retain_all",
+      history_retention_period: 30,
+      dataclip_retention_period: 7,
+      requires_mfa: false,
+      allow_support_access: false,
+      scheduled_deletion: null,
+      inserted_at: seedTime(sandbox.lastActivity, 7 * 86_400_000),
+      updated_at: seedTime(sandbox.lastActivity),
+    })),
+  ),
 );
 
-export const members = table<MemberRow>("project_members", () =>
-  fixtureProjects.flatMap((p) => {
+export const members = table<MemberRow>("project_members", () => {
+  const roots = fixtureProjects.flatMap((p) => {
     const alerts = settingsMemberships(p.id);
     return (fixtureMemberships[p.id] ?? []).map((m) => {
       const user = instanceUsers.find((u) => u.id === m.userId);
@@ -133,8 +170,17 @@ export const members = table<MemberRow>("project_members", () =>
         inserted_at: seedTime(fixtureCreatedAt[p.id] ?? "1 Jan 2025"),
       };
     });
-  }),
-);
+  });
+  // A sandbox copies its parent's members; the parent's owner becomes an admin, and whoever made it (Jane, here) its owner.
+  const maker = userIdFor("user-jane");
+  const sandboxes = fixtureSandboxes().flatMap(({ project, sandbox, id }) => [
+    ...roots
+      .filter((m) => m.project_id === projectIdFor(project.id) && m.user_id !== maker)
+      .map((m) => ({ ...m, project_id: id, role: m.role === "owner" ? ("admin" as const) : m.role, inserted_at: seedTime(sandbox.lastActivity, 7 * 86_400_000) })),
+    { project_id: id, user_id: maker, role: "owner" as const, failure_alert: true, digest: "never" as const, inserted_at: seedTime(sandbox.lastActivity, 7 * 86_400_000) },
+  ]);
+  return [...roots, ...sandboxes];
+});
 
 /* ------------------------------------------------------------------ */
 /*  Who may do what                                                    */
@@ -212,12 +258,6 @@ type StatsProvider = (projectId: string) => { workflows_count?: number; last_act
 const statsProviders: StatsProvider[] = [];
 export const addProjectStats = (provider: StatsProvider) => void statsProviders.push(provider);
 
-// Until workflows move to the API, a seeded project's workflows are its fixture's Workflow components.
-addProjectStats((id) => {
-  const fixture = fixtureProjects.find((f) => projectIdFor(f.id) === id);
-  if (!fixture) return {};
-  return { workflows_count: fixture.components.filter((c) => c.type === "Workflow").length, last_activity: seedTime(fixture.lastActivity) };
-});
 
 const memberEntry = (m: MemberRow) => {
   const u = findUser(m.user_id);
@@ -457,7 +497,9 @@ export const projectRoutes: Record<string, Handler> = {
   // Schedules deletion. The owner may; a superuser may (planned).
   "DELETE /api/projects/:id": ({ id }) => {
     const p = isUuid(id) ? findProject(id) : undefined;
-    if (!p || !(roleIn(p.id) === "owner" || isSuperuser())) return forbidden();
+    // A sandbox can also be deleted by its admins and by the owners and admins of its root.
+    const sandboxAdmin = (q: ProjectRow) => !!q.parent_id && [roleIn(q.id), roleIn(rootOf(q).id)].some((r) => r === "owner" || r === "admin");
+    if (!p || !(roleIn(p.id) === "owner" || isSuperuser() || sandboxAdmin(p))) return forbidden();
     if (p.scheduled_deletion) return conflict("scheduled_for_deletion", "This project is already scheduled for deletion.");
     const when = new Date(Date.now() + PURGE_DELETED_AFTER_DAYS * DAY_MS).toISOString().replace(/\.\d+Z$/, "Z");
     // A project's sandboxes go with it.

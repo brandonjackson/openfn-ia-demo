@@ -27,9 +27,9 @@ import type { Project } from "../../model/projects";
 import { useDismiss } from "../primitives/use-popover";
 import IconButton from "../primitives/IconButton";
 import InstanceLogo from "./InstanceLogo";
-import SidebarLink from "../patterns/SidebarLink";
+import NavItem from "../primitives/NavItem";
 import SidebarSection from "../patterns/SidebarSection";
-import AccountMenu from "../patterns/AccountMenu";
+import AccountMenu from "./AccountMenu";
 import { useShell } from "./shell-context";
 import type { LucideIcon } from "lucide-react";
 
@@ -123,7 +123,7 @@ function ProjectNav({ project }: { project: Project }) {
         {groups.map((group) => (
           <SidebarSection key={group.label ?? "top"} label={group.label}>
             {group.sections.map((section) => (
-              <SidebarLink
+              <NavItem
                 key={section.label}
                 to={section.id ? `${base}/${section.id}` : base}
                 icon={section.icon}
@@ -149,7 +149,7 @@ function OrgNav() {
             const node = mainNavTree.find((n) => n.id === id);
             if (!node) return null;
             return (
-              <SidebarLink
+              <NavItem
                 key={id}
                 to={"/" + id}
                 icon={navIcons[id] ?? LayoutDashboard}
@@ -163,14 +163,14 @@ function OrgNav() {
 
       <SidebarSection label="Projects">
         {recentProjects.slice(0, 4).map((project) => (
-          <SidebarLink
+          <NavItem
             key={project.id}
             to={"/projects/" + project.id}
             icon={Folder}
             label={project.name}
           />
         ))}
-        <SidebarLink
+        <NavItem
           to="/projects"
           icon={FolderKanban}
           label="View all"
@@ -228,8 +228,8 @@ export default function Sidebar({ open = false, onClose }: { open?: boolean; onC
 
         <div className="p-3 space-y-3">
           <SidebarSection label="Support">
-            <SidebarLink href={openfnDocsUrl} icon={BookMarked} label="OpenFn docs" />
-            <SidebarLink
+            <NavItem href={openfnDocsUrl} icon={BookMarked} label="OpenFn docs" />
+            <NavItem
               to={"/" + getHelp.id}
               icon={LifeBuoy}
               label={getHelp.label}

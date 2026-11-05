@@ -20,7 +20,7 @@ const ancestors = [
 const meta: Meta<typeof ProjectWorkflowsPage> = {
   title: "Pages/ProjectWorkflowsPage",
   component: ProjectWorkflowsPage,
-  args: { onNewWorkflow: () => {} },
+  args: { onNewWorkflow: () => {}, onToggleWorkflow: async () => {}, onDeleteWorkflow: async () => {} },
   decorators: [withRouterAt("/projects/malawi-chw-referrals/workflows")],
   parameters: { layout: "padded" },
 };
@@ -48,4 +48,9 @@ export const Empty: Story = {
     currentPath: "/projects/data-quality-checks/workflows",
     data: { pageType: "project-workflows", projectId: "data-quality-checks", workflows: [] },
   },
+};
+
+/** For a viewer: the wrapper leaves out toggling and deleting, so the rows have neither. */
+export const ReadOnly: Story = {
+  args: { ...Default.args, onToggleWorkflow: undefined, onDeleteWorkflow: undefined },
 };

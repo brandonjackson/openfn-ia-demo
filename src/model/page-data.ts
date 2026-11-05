@@ -1,7 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import type { ChannelRequest, HistoryWorkOrder } from "./history";
 import type { Adaptor } from "./adaptors";
-import type { RunStatus } from "./workflow";
+import type { RunStatus, TriggerType } from "./workflow";
 import type { ChannelDetails } from "./channels";
 import type { EcosystemStation, EcosystemWorkflow } from "./ecosystem";
 import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember, XRoadService } from "./xroad";
@@ -538,6 +538,14 @@ export interface WorkflowListItem extends ProjectComponentItem {
   members: string[];
   /** When it was last changed, as an ISO timestamp. */
   updatedAt: string;
+  /** Whether its triggers are on. Off, it only runs when someone starts it by hand. */
+  enabled: boolean;
+  /** The kind of its trigger, e.g. "webhook" or "cron", for saying what turning it off stops. Absent without a trigger. */
+  triggerType?: TriggerType;
+  /** Work orders in the last 30 days. */
+  workOrders: number;
+  /** Of those, how many ended in a failed state. */
+  failedWorkOrders: number;
 }
 
 export interface ProjectWorkflowsPageData {
@@ -834,31 +842,138 @@ export interface ProjectSettingsPageData {
 /*  User settings                                                      */
 /* ------------------------------------------------------------------ */
 
+/** How often OpenFn may get in touch about your account. */
+export type ContactPreference = "Anytime" | "Critical only";
+
+export const CONTACT_PREFERENCES: ContactPreference[] = ["Anytime", "Critical only"];
+
 export interface UserProfile {
   firstName: string;
   lastName: string;
   email: string;
+  /** When the account was made, e.g. "12 March 2024". */
   createdAt: string;
-  contactPreference: "Anytime" | "Critical only";
+  contactPreference: ContactPreference;
+  /** Whether signing in asks for a code from an authenticator app. */
   mfaEnabled: boolean;
+  /** Whether the account is linked to GitHub, for version control. */
   githubConnected: boolean;
+  /** A new address waiting for its confirmation link to be clicked. Absent when no change is pending. */
+  pendingEmail?: string;
+  /** When the account will be deleted, once you've asked for it, e.g. "12 Nov 2026". Absent otherwise. */
+  scheduledDeletion?: string;
+}
+
+/** A name, first and last, and how often to get in touch: what Profile's first form saves. */
+export type ProfileDetails = Pick<UserProfile, "firstName" | "lastName" | "contactPreference">;
+
+/** The secret for a new authenticator app, while setting up multi-factor authentication. */
+export interface MfaSetup {
+  /** The key to type into the app by hand, in base32. */
+  secret: string;
+  /** The otpauth:// link the QR code stands for. */
+  uri: string;
+}
+
+/** A one-time code for signing in without the authenticator app. */
+export interface BackupCode {
+  code: string;
+  /** When it was used, e.g. "3 Oct 2026". Absent while it's still good. */
+  usedAt?: string;
+}
+
+/** What kind of value a credential field takes, which decides its input. */
+export type CredentialFieldKind = "text" | "url" | "secret" | "number" | "boolean" | "json";
+
+/** One value a credential type asks for, from its adaptor's configuration schema. */
+export interface CredentialField {
+  /** Its key in the credential body, e.g. "hostUrl". */
+  key: string;
+  label: string;
+  kind: CredentialFieldKind;
+  /** One line on what to put in it. */
+  description?: string;
+  /** An example value shown in the empty input. */
+  placeholder?: string;
+  /** Whether the credential can't be saved without it. */
+  required?: boolean;
+  /** The value a new credential starts with, e.g. "5432" for a port. */
+  defaultValue?: string;
+}
+
+/** A kind of credential you can make: an adaptor's configuration schema, or raw JSON. */
+export interface CredentialSchema {
+  /** The schema's id, e.g. "dhis2" or "raw". */
+  id: string;
+  /** What it's called in the type picker, e.g. "DHIS2". */
+  name: string;
+  /** Adaptor id for its logo; absent for raw JSON. */
+  adaptor?: string;
+  /** One line on what it connects to. */
+  description: string;
+  /** What it asks for, in order. Raw JSON has one `json` field, `body`. */
+  fields: CredentialField[];
+}
+
+/**
+ * A credential's values for one environment. Secret fields never come back
+ * from the server: they're missing here even when they're set, and a blank
+ * secret on save keeps the one already stored. Booleans are "true" or "false";
+ * raw JSON is the whole body as text under `body`.
+ */
+export interface CredentialEnvironmentValues {
+  environment: Environment;
+  values: Record<string, string>;
 }
 
 export interface UserCredential {
   id: string;
   name: string;
-  type: string;
-  projects: string[];
-  environment: Environment;
+  /** Id of its `CredentialSchema`. */
+  schema: string;
+  /** An optional id it's known by in an outside system. */
+  externalId?: string;
+  /** Ids of the projects that can use it. */
+  projectIds: string[];
+  /** Its values per environment, at least one. A sandbox uses the environment its project names. */
+  environments: CredentialEnvironmentValues[];
   createdAt: string;
+  /** Email of the person it's being handed to, while they haven't accepted yet. */
+  transferPendingTo?: string;
 }
+
+/** A credential as the form saves it: no `id` for a new one, and secrets in the values. */
+export type CredentialDraft = Omit<UserCredential, "id" | "createdAt" | "transferPendingTo"> & { id?: string };
 
 export interface OAuthClient {
   id: string;
   name: string;
-  system: string;
-  scope: "Global" | "Project";
+  /** Where people are sent to sign in and grant access. */
+  authorizationEndpoint: string;
+  /** Where OpenFn swaps the grant for tokens. */
+  tokenEndpoint: string;
+  /** Where OpenFn revokes a token it no longer needs. */
+  revocationEndpoint?: string;
+  /** Where OpenFn checks whether a token is still good. */
+  introspectionEndpoint?: string;
+  /** Where OpenFn reads who signed in. */
+  userinfoEndpoint?: string;
+  /** The app's id at the provider. The client secret never comes back from the server. */
+  clientId: string;
+  /** Scopes every credential made with this client asks for. */
+  mandatoryScopes: string[];
+  /** Scopes a credential may add. */
+  optionalScopes: string[];
+  /** Where the provider documents its scopes. */
+  scopesDocUrl?: string;
+  /** Any project on the instance can use it. Only superusers make global clients. */
+  global: boolean;
+  /** Ids of the projects that can use it, when it isn't global. */
+  projectIds: string[];
 }
+
+/** An OAuth client as the form saves it: no `id` for a new one, and a secret when one is typed. */
+export type OAuthClientDraft = Omit<OAuthClient, "id"> & { id?: string; clientSecret?: string };
 
 export interface ApiToken {
   id: string;
@@ -868,12 +983,26 @@ export interface ApiToken {
   lastUsedAt?: string;
 }
 
+/** A project you could share a credential or OAuth client with. */
+export interface ProjectOption {
+  id: string;
+  name: string;
+}
+
 export interface UserSettingsPageData {
   pageType: "user-settings";
   profile: UserProfile;
   credentials: UserCredential[];
+  /** Every kind of credential you can make, in the type picker's order. */
+  credentialSchemas: CredentialSchema[];
   oauthClients: OAuthClient[];
+  /** Projects you're a member of, which you can share credentials and OAuth clients with. */
+  projects: ProjectOption[];
   apiTokens: ApiToken[];
+  /** Your backup codes, while multi-factor authentication is on. */
+  backupCodes?: BackupCode[];
+  /** Whether you may make an OAuth client every project can use (superusers only). */
+  canCreateGlobalOAuthClients?: boolean;
   /** Whether organization credentials live on connected systems, which the Credentials section points to. Defaults to true. */
   orgCredentialsOnSystems?: boolean;
 }

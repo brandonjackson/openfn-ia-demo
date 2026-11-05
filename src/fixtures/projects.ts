@@ -510,59 +510,98 @@ export function serviceForWorkflow(
 /** Recent activity for each workflow, as shown on a project's Workflows list. */
 const workflowActivity: Record<
   string,
-  Pick<WorkflowListItem, "latestRun" | "lastRunAt" | "members" | "updatedAt">
+  Pick<
+    WorkflowListItem,
+    "latestRun" | "lastRunAt" | "members" | "updatedAt" | "enabled" | "triggerType" | "workOrders" | "failedWorkOrders"
+  >
 > = {
   "planning-application-workflow": {
     latestRun: "failed",
     lastRunAt: "2026-10-30T09:12:00Z",
     members: ["Amadou Diallo", "Jane Doe", "Beth Wilson", "John Smith", "Priya Nair", "Kofi Boateng", "Lena Okafor"],
     updatedAt: "2026-07-09T17:24:00Z",
+    enabled: true,
+    triggerType: "webhook",
+    workOrders: 1284,
+    failedWorkOrders: 37,
   },
   "decision-notification-workflow": {
     latestRun: "success",
     lastRunAt: "2026-10-29T06:00:00Z",
     members: ["Jane Doe", "Beth Wilson"],
     updatedAt: "2026-09-18T11:05:00Z",
+    enabled: true,
+    triggerType: "cron",
+    workOrders: 30,
+    failedWorkOrders: 0,
   },
   "case-sync-workflow": {
     latestRun: "success",
     lastRunAt: "2026-10-30T08:41:00Z",
     members: ["John Smith", "Amadou Diallo", "Jane Doe"],
     updatedAt: "2026-10-02T14:30:00Z",
+    enabled: true,
+    triggerType: "webhook",
+    workOrders: 912,
+    failedWorkOrders: 4,
   },
   "chw-referral-workflow": {
     latestRun: "running",
     lastRunAt: "2026-10-30T10:02:00Z",
     members: ["Amadou Diallo", "Priya Nair", "Kofi Boateng", "Jane Doe", "John Smith"],
     updatedAt: "2026-10-27T16:48:00Z",
+    enabled: true,
+    triggerType: "webhook",
+    workOrders: 2417,
+    failedWorkOrders: 58,
   },
   "client-dedup-workflow": {
     latestRun: "success",
     lastRunAt: "2026-10-30T07:15:00Z",
     members: ["Priya Nair"],
     updatedAt: "2026-08-14T09:20:00Z",
+    enabled: true,
+    triggerType: "cron",
+    workOrders: 30,
+    failedWorkOrders: 1,
   },
   "referral-followup-workflow": {
     latestRun: "failed",
     lastRunAt: "2026-10-28T19:33:00Z",
     members: ["Kofi Boateng", "Amadou Diallo"],
     updatedAt: "2026-10-21T12:10:00Z",
+    enabled: false,
+    triggerType: "cron",
+    workOrders: 14,
+    failedWorkOrders: 9,
   },
   "register-case-workflow": {
     latestRun: "success",
     lastRunAt: "2026-10-20T09:51:00Z",
     members: ["Jane Doe", "Amadou Diallo"],
     updatedAt: "2026-10-15T10:40:00Z",
+    enabled: true,
+    triggerType: "webhook",
+    workOrders: 156,
+    failedWorkOrders: 3,
   },
   "weekly-case-report-workflow": {
     latestRun: "success",
     lastRunAt: "2026-10-19T06:00:00Z",
     members: ["Jane Doe"],
     updatedAt: "2026-10-06T08:12:00Z",
+    enabled: true,
+    triggerType: "cron",
+    workOrders: 4,
+    failedWorkOrders: 0,
   },
   "monthly-aggregate-workflow": {
     members: ["Jane Doe"],
     updatedAt: "2026-10-29T15:55:00Z",
+    enabled: false,
+    triggerType: "cron",
+    workOrders: 0,
+    failedWorkOrders: 0,
   },
 };
 
@@ -573,7 +612,7 @@ export function projectWorkflowItems(project: Project): WorkflowListItem[] {
     .map((c) => ({
       ...c,
       serviceStatus: project.services.find((s) => s.workflowId === c.id)?.status,
-      ...(workflowActivity[c.id] ?? { members: [], updatedAt: "2026-01-01T00:00:00Z" }),
+      ...(workflowActivity[c.id] ?? { members: [], updatedAt: "2026-01-01T00:00:00Z", enabled: false, workOrders: 0, failedWorkOrders: 0 }),
     }));
 }
 

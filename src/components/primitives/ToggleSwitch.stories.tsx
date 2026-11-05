@@ -28,3 +28,12 @@ export const WithDetail: Story = {
 export const Disabled: Story = {
   args: { checked: true, label: "Require MFA?", disabled: true, title: "You do not have permission to perform this action" },
 };
+
+export const HiddenLabel: Story = {
+  args: {
+    checked: true,
+    label: "Referral sync enabled",
+    hideLabel: true,
+    title: "This workflow is active (webhook trigger enabled)",
+  },
+};

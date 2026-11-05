@@ -72,6 +72,19 @@ export const WithActions: Story = {
   },
 };
 
+/** Labelled values lined up at the right of the row, hidden on narrow screens. */
+export const WithColumns: Story = {
+  args: {
+    ...Clickable.args,
+    meta: undefined,
+    columns: [
+      { label: "Runs", value: "1,204", width: "sm" },
+      { label: "Failed", value: "12", width: "sm" },
+      { label: "Last updated", value: "Oct 2, 2:30 PM", width: "lg" },
+    ],
+  },
+};
+
 /** Something you could add rather than one that exists, e.g. a suggested system. */
 export const Dashed: Story = {
   args: {

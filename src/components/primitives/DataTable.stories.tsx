@@ -9,12 +9,12 @@ import type { UserCredential } from "../../model/page-data";
 
 const columns: DataTableColumn<UserCredential>[] = [
   { key: "name", header: "Name", render: (c) => <span className="font-medium text-gray-900">{c.name}</span> },
-  { key: "type", header: "Type", render: (c) => c.type },
-  { key: "projects", header: "Projects", render: (c) => c.projects.join(", ") || "—" },
+  { key: "type", header: "Type", render: (c) => c.schema },
+  { key: "projects", header: "Projects", render: (c) => c.projectIds.join(", ") || "None" },
   {
     key: "environment",
     header: "Environment",
-    render: (c) => <EnvironmentBadge environment={c.environment} />,
+    render: (c) => <EnvironmentBadge environment={c.environments[0].environment} />,
   },
   {
     key: "actions",
@@ -47,7 +47,7 @@ export const WithDetailRow: Story = {
     columns,
     rows: userCredentials,
     getRowKey: (c) => c.id,
-    renderDetail: (c) => (c.projects.length > 1 ? `Shared with ${c.projects.join(" and ")}.` : null),
+    renderDetail: (c) => (c.projectIds.length > 1 ? `Shared with ${c.projectIds.join(" and ")}.` : null),
   },
 };
 

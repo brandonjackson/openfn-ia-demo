@@ -26,6 +26,11 @@ export const MultiLine: Story = {
   render: () => <TextArea rows={3} defaultValue="A short description of a project." />,
 };
 
+/** Monospaced, for a JSON body or code. */
+export const MonoTextArea: Story = {
+  render: () => <TextArea mono rows={4} defaultValue={'{\n  "apiKey": "demo-not-a-real-key"\n}'} />,
+};
+
 export const Dropdown: Story = {
   render: () => <Select options={["7 Days", "14 Days", "30 Days"]} defaultValue="14 Days" />,
 };

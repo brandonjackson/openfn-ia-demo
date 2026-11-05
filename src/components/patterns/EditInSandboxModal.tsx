@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ArrowRight, FlaskConical } from "lucide-react";
-import type { Dataclip, RunDetails } from "../../fixtures/workflow";
+import type { Dataclip, RunDetails } from "../../model/workflow";
 import { describeJsonProblem } from "./json-input";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";

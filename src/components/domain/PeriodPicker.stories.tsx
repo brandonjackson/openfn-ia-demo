@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import PeriodPicker from "./PeriodPicker";
-import type { ActivityPeriod } from "../../fixtures/runs";
+import type { ActivityPeriod } from "../../model/runs";
 
 function Stateful({ value: initial, compact }: { value: ActivityPeriod; compact?: boolean }) {
   const [value, setValue] = useState<ActivityPeriod>(initial);

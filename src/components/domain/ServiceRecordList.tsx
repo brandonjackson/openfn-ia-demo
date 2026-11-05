@@ -1,5 +1,5 @@
 import { ArrowLeftRight, Building2, Lock, Scale, ShieldCheck, Tag, Target, Timer } from "lucide-react";
-import type { ServiceClassification, ServiceRecord } from "../../fixtures/xroad";
+import type { ServiceClassification, ServiceRecord } from "../../model/xroad";
 import Badge from "../primitives/Badge";
 import type { BadgeTone } from "../primitives/Badge";
 import PropertyList from "../primitives/PropertyList";

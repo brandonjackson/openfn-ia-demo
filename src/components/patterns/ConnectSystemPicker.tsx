@@ -21,15 +21,8 @@ import SettingsNav from "./SettingsNav";
 import SectionHeading from "../primitives/SectionHeading";
 import EmptyState from "../primitives/EmptyState";
 import ConnectOptionRow from "../domain/ConnectOptionRow";
-import {
-  adaptorCatalog,
-  aiActions,
-  aiModels,
-  builtInTools,
-  catalogAdaptor,
-  catalogCategories,
-} from "../../fixtures/adaptor-catalog";
-import type { AiAction, CatalogGroup } from "../../fixtures/adaptor-catalog";
+import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogAdaptor, catalogCategories } from "../../fixtures/adaptor-catalog";
+import type { AiAction, CatalogGroup } from "../../model/adaptor-catalog";
 import SearchInput from "../primitives/SearchInput";
 
 /** What was picked: an adaptor to connect, or an AI action to run on the data. */

@@ -2,7 +2,8 @@ import { useState } from "react";
 import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowSettingsPanel from "./WorkflowSettingsPanel";
-import { defaultWorkflowSettings, nationalIdWorkflow } from "../../fixtures/workflow";
+import { defaultWorkflowSettings } from "../../model/workflow";
+import { nationalIdWorkflow } from "../../fixtures/workflow";
 
 function Stateful(args: ComponentProps<typeof WorkflowSettingsPanel>) {
     const [settings, setSettings] = useState(args.settings);

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, FileText, Info, MessagesSquare, MoreVertical, Plus, Sparkles, X, Zap } from "lucide-react";
-import type { AssistantConversation, AssistantMessage, AssistantMode, AssistantPlan, AssistantReference } from "../../fixtures/assistant";
+import type { AssistantConversation, AssistantMessage, AssistantMode, AssistantPlan, AssistantReference } from "../../model/assistant";
 import { assistantPlanResult, assistantReply, assistantSuggestions } from "../../fixtures/assistant";
-import { shortId } from "../../fixtures/runs";
+import { shortId } from "../../model/runs";
 import CodeBlock from "../primitives/CodeBlock";
 import DropdownMenu from "../primitives/DropdownMenu";
 import AssistantChatInput from "./AssistantChatInput";

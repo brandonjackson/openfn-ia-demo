@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import type { RunDetails, Workflow, WorkflowNode } from "../../fixtures/workflow";
-import type { RunActivity } from "../../fixtures/runs";
+import type { RunDetails, Workflow, WorkflowNode } from "../../model/workflow";
+import type { RunActivity } from "../../model/runs";
 import WorkflowNodeCard, { NODE_HEIGHT, NODE_WIDTH } from "../domain/WorkflowNodeCard";
 import type { NodeAction } from "../domain/WorkflowNodeCard";
 import EdgeBadge from "../domain/EdgeBadge";

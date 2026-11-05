@@ -1,12 +1,13 @@
 import { Trash2 } from "lucide-react";
-import type { AdaptorKind, JobNode } from "../../fixtures/workflow";
+import type { AdaptorKind, JobNode } from "../../model/workflow";
 import { adaptorChoices, adaptorInfo, credentialsFor } from "../../fixtures/adaptor-reference";
 import FormField from "../primitives/FormField";
 import { Select, TextInput } from "../primitives/FormControls";
 import Button from "../primitives/Button";
 import EntityPill from "../domain/EntityPill";
 import ConnectionMethodBadge from "../domain/ConnectionMethodBadge";
-import { connectedSystems, connectionOf } from "../../fixtures/connected-systems";
+import { connectionOf } from "../../model/connected-systems";
+import { connectedSystems } from "../../fixtures/connected-systems";
 
 export interface StepChanges {
   label?: string;

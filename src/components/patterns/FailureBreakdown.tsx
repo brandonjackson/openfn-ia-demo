@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import type { RunDetails } from "../../fixtures/workflow";
-import type { ActivityPeriod, FailureReason } from "../../fixtures/runs";
-import { activityPeriodLabel } from "../../fixtures/runs";
+import type { RunDetails } from "../../model/workflow";
+import type { ActivityPeriod, FailureReason } from "../../model/runs";
+import { activityPeriodLabel } from "../../model/runs";
 import SegmentedControl from "../primitives/SegmentedControl";
 import PeriodPicker from "../domain/PeriodPicker";
 import ProgressBar from "../primitives/ProgressBar";

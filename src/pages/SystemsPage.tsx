@@ -17,9 +17,10 @@ import ConnectionMethodBadge from "../components/domain/ConnectionMethodBadge";
 import SectionHeading from "../components/primitives/SectionHeading";
 import XRoadAccessBadge from "../components/domain/XRoadAccessBadge";
 import XRoadDirectory from "../components/patterns/XRoadDirectory";
-import type { ConnectionMethod } from "../fixtures/connected-systems";
-import type { XRoadConnectionStatus, XRoadRoute } from "../fixtures/xroad";
-import { directoryMember, routeKey, routeService } from "../fixtures/xroad";
+import type { ConnectionMethod } from "../model/connected-systems";
+import type { XRoadConnectionStatus, XRoadRoute } from "../model/xroad";
+import { routeKey } from "../model/xroad";
+import { directoryMember, routeService } from "../fixtures/xroad";
 
 interface Props {
   node: IANode;

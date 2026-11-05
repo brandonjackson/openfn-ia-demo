@@ -1,4 +1,4 @@
-import type { XRoadCall } from "../../fixtures/xroad";
+import type { XRoadCall } from "../../model/xroad";
 import CopyValue from "../primitives/CopyValue";
 import PropertyList from "../primitives/PropertyList";
 

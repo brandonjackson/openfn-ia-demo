@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ChevronRight, FlaskConical, Folder, FolderKanban } from "lucide-react";
 import { recentProjects } from "../../fixtures/projects";
-import type { Project } from "../../fixtures/projects";
+import type { Project } from "../../model/projects";
 import { useSandbox } from "../../app/sandbox-state";
 import Picker from "../primitives/Picker";
 

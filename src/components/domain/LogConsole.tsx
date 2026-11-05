@@ -1,5 +1,5 @@
 import { ChevronDown, SlidersHorizontal } from "lucide-react";
-import type { LogLine } from "../../fixtures/workflow";
+import type { LogLine } from "../../model/workflow";
 
 const sourceColor: Record<LogLine["source"], string> = {
   RTE: "text-sky-300",

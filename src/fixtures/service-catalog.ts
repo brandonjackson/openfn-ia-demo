@@ -1,8 +1,8 @@
-import type { CatalogPageData, UsedServiceEntry } from "../model/page-data";
-import { connectedSystems, connectionOf } from "./connected-systems";
-import { directoryMember, routeService, routeServiceId } from "./xroad";
-
 /** Services from the X-Road systems you've added, as the catalogue lists them. */
+import type { CatalogPageData, UsedServiceEntry } from "../model/page-data";
+import { connectionOf } from "../model/connected-systems";
+import { connectedSystems } from "./connected-systems";
+import { directoryMember, routeService, routeServiceId } from "./xroad";
 const xroadUsedServices: UsedServiceEntry[] = connectedSystems.flatMap((system) => {
   const connection = connectionOf(system);
   if (connection.method !== "xroad") return [];

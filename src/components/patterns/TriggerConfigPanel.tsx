@@ -1,6 +1,6 @@
 import { Copy } from "lucide-react";
-import type { TriggerNode } from "../../fixtures/workflow";
-import { triggerTypes } from "../../fixtures/workflow";
+import type { TriggerNode } from "../../model/workflow";
+import { triggerTypes } from "../../model/workflow";
 import type { ProjectServiceItem } from "../../model/page-data";
 import FormField from "../primitives/FormField";
 import { Select, TextArea, TextInput } from "../primitives/FormControls";

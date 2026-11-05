@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
-import type { RunDetails, WorkOrder } from "../../fixtures/workflow";
+import type { RunDetails, WorkOrder } from "../../model/workflow";
 import WorkOrderRow from "../domain/WorkOrderRow";
 import RunRow from "../domain/RunRow";
 

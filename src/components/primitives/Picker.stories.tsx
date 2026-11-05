@@ -4,7 +4,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Clock, FlaskConical, Folder, FolderKanban, Lock } from "lucide-react";
 import Picker from "./Picker";
 import { recentProjects } from "../../fixtures/projects";
-import { versionOptions, workflowVersions } from "../../fixtures/workflow";
+import { versionOptions } from "../../model/workflow";
+import { workflowVersions } from "../../fixtures/workflow";
 
 const projectOptions = recentProjects.map((p) => ({ id: p.id, label: p.name }));
 const sandboxOptions = recentProjects[1].sandboxes.map((s) =>

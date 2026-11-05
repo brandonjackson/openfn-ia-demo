@@ -1,5 +1,5 @@
 import { History } from "lucide-react";
-import type { Dataclip, RunDetails, RunStep } from "../../fixtures/workflow";
+import type { Dataclip, RunDetails, RunStep } from "../../model/workflow";
 import CodeBlock from "../primitives/CodeBlock";
 import EmptyState from "../primitives/EmptyState";
 import LogConsole from "../domain/LogConsole";

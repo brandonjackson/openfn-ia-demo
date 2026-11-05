@@ -1,16 +1,8 @@
 import { useState } from "react";
 import { Building2, FileText, Network, Paperclip, RefreshCw, Route, Server, ShieldCheck } from "lucide-react";
-import type { SystemConnection } from "../../fixtures/connected-systems";
-import {
-  directoryMember,
-  hasXRoadAccess,
-  openfnClientId,
-  orgXRoad,
-  routeService,
-  openfnSubsystem,
-  routeServiceId,
-  xroadHeaders,
-} from "../../fixtures/xroad";
+import type { SystemConnection } from "../../model/connected-systems";
+import { hasXRoadAccess } from "../../model/xroad";
+import { directoryMember, openfnClientId, orgXRoad, routeService, openfnSubsystem, routeServiceId, xroadHeaders } from "../../fixtures/xroad";
 import Badge from "../primitives/Badge";
 import Button from "../primitives/Button";
 import Card from "../primitives/Card";

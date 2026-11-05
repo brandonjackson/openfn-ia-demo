@@ -1,20 +1,9 @@
 import type { ReactNode } from "react";
 import { ArrowLeftRight, X } from "lucide-react";
-import type { EcosystemStation, EcosystemWorkflow } from "../../fixtures/ecosystem";
-import { triggerTypes } from "../../fixtures/workflow";
+import type { EcosystemStation, EcosystemWorkflow } from "../../model/ecosystem";
+import { triggerTypes } from "../../model/workflow";
 import type { EcosystemSelection, Traffic } from "../../model/ecosystem-map";
-import {
-  buildLinks,
-  healthOf,
-  healthStyles,
-  lineColors,
-  linkTraffic,
-  stationTraffic,
-  successPercent,
-  sumTraffic,
-  workflowTraffic,
-  workflowsAt,
-} from "../../model/ecosystem-map";
+import { buildLinks, healthOf, healthStyles, lineColors, linkTraffic, stationTraffic, successPercent, sumTraffic, workflowTraffic, workflowsAt } from "../../model/ecosystem-map";
 import AdaptorLogo from "../domain/AdaptorLogo";
 import Badge from "../primitives/Badge";
 import ConnectionMethodBadge from "../domain/ConnectionMethodBadge";

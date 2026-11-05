@@ -12,13 +12,7 @@ import {
   Fingerprint,
 } from "lucide-react";
 import type { IANode } from "../model/ia-tree";
-import type {
-  ApiToken,
-  OAuthClient,
-  UserCredential,
-  UserProfile,
-  UserSettingsPageData,
-} from "../model/page-data";
+import type { ApiToken, OAuthClient, UserCredential, UserProfile, UserSettingsPageData } from "../model/page-data";
 import SettingsLayout from "../components/patterns/SettingsLayout";
 import type { SettingsNavItem } from "../components/patterns/SettingsNav";
 import SectionHeading from "../components/primitives/SectionHeading";

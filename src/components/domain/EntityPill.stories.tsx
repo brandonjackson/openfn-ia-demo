@@ -6,7 +6,7 @@ import { TriggerIcon } from "./AdaptorIcon";
 import { withRouter } from "../../stories/decorators";
 import { connectedSystemSummaries, recommendedSystems } from "../../fixtures/connected-systems";
 import { adaptorChoices, adaptorInfo } from "../../fixtures/adaptor-reference";
-import { triggerTypes } from "../../fixtures/workflow";
+import { triggerTypes } from "../../model/workflow";
 
 const meta: Meta<typeof EntityPill> = {
   title: "Domain/EntityPill",

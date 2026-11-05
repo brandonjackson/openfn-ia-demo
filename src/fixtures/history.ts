@@ -1,14 +1,6 @@
 import type { TablePageData } from "../model/page-data";
 import { projects } from "./projects";
-
-export interface HistoryEntry {
-  id: number;
-  type: "Work Order" | "Channel Request";
-  name: string;
-  project: string;
-  status: "Success" | "Failed" | "Pending";
-  timestamp: string;
-}
+import type { HistoryEntry } from "../model/history";
 
 export const mockEntries: HistoryEntry[] = [
   { id: 1, type: "Work Order", name: "Sync patient records", project: "Project A", status: "Success", timestamp: "2026-03-27 09:12" },

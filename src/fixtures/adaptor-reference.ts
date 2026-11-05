@@ -1,32 +1,8 @@
-import type { AdaptorKind } from "./workflow";
+/** The rest of the catalog, with what the catalog knows; the adaptors below override it. */
+import type { AdaptorKind } from "../model/workflow";
 import { adaptorCatalog } from "./adaptor-catalog";
 import publishedSnippets from "./adaptor-snippets.json";
-
-/**
- * What the editor knows about each adaptor a step can use: its display name
- * and version, where its docs live, whether it needs a credential, and a
- * handful of code snippets for its most-used operations.
- */
-export interface AdaptorInfo {
-  id: AdaptorKind;
-  name: string;
-  /** The package version pinned in this project, e.g. "2.1". */
-  version: string;
-  package: string;
-  docsUrl: string;
-  needsCredential: boolean;
-  description: string;
-}
-
-export interface Snippet {
-  id: string;
-  /** What it does, e.g. "Send SMS" or "Search Registered Births". */
-  title: string;
-  description: string;
-  code: string;
-}
-
-/** The rest of the catalog, with what the catalog knows; the adaptors below override it. */
+import type { AdaptorInfo, ProjectCredential, Snippet } from "../model/adaptor-reference";
 const catalogInfo: Record<AdaptorKind, AdaptorInfo> = Object.fromEntries(
   adaptorCatalog.map((a) => [
     a.id,
@@ -159,14 +135,6 @@ export const adaptorSnippets: Record<AdaptorKind, Snippet[]> = {
     },
   ],
 };
-
-/** A credential in the project that a step can be given. */
-export interface ProjectCredential {
-  id: string;
-  name: string;
-  adaptor: AdaptorKind;
-  owner: string;
-}
 
 export const projectCredentials: ProjectCredential[] = [
   { id: "cred-identity-prod", name: "Identity API (production)", adaptor: "http", owner: "Brandon Jackson" },

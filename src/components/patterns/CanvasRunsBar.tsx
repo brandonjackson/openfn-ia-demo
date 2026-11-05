@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { ListFilter } from "lucide-react";
-import type { RunDetails, WorkOrder } from "../../fixtures/workflow";
-import type { ActivityPeriod, RunActivity } from "../../fixtures/runs";
-import { activityPeriodLabel, filterWorkOrders } from "../../fixtures/runs";
+import type { RunDetails, WorkOrder } from "../../model/workflow";
+import type { ActivityPeriod, RunActivity } from "../../model/runs";
+import { activityPeriodLabel, filterWorkOrders } from "../../model/runs";
 import Button from "../primitives/Button";
 import PeriodPicker from "../domain/PeriodPicker";
 import RunHistoryList from "./RunHistoryList";

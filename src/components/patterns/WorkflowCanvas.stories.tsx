@@ -2,7 +2,8 @@ import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowCanvas from "./WorkflowCanvas";
 import CanvasRunsBar from "./CanvasRunsBar";
 import { nationalIdWorkflow, nationalIdWorkflowV1 } from "../../fixtures/workflow";
-import { failedRun, olderRun, runActivity, sampleRun, workOrders } from "../../fixtures/runs";
+import { runActivity } from "../../model/runs";
+import { failedRun, olderRun, sampleRun, workOrders } from "../../fixtures/runs";
 
 const activity = runActivity(nationalIdWorkflow, workOrders);
 

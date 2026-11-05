@@ -17,7 +17,8 @@ import TextLink from "../components/primitives/TextLink";
 import ConnectionMethodBadge from "../components/domain/ConnectionMethodBadge";
 import XRoadAccessBadge from "../components/domain/XRoadAccessBadge";
 import XRoadConnectionDetails from "../components/patterns/XRoadConnectionDetails";
-import { connectedSystems, connectionOf } from "../fixtures/connected-systems";
+import { connectionOf } from "../model/connected-systems";
+import { connectedSystems } from "../fixtures/connected-systems";
 
 interface Props {
   node: IANode;

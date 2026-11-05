@@ -1,6 +1,7 @@
 import type { OrganizationSettingsPageData } from "../model/page-data";
 import { instanceSettingsData } from "./instance";
-import { connectedSystems, connectionOf } from "./connected-systems";
+import { connectionOf } from "../model/connected-systems";
+import { connectedSystems } from "./connected-systems";
 import { orgXRoad } from "./xroad";
 import { projects } from "./projects";
 

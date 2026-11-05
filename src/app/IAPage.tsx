@@ -15,20 +15,7 @@ import { buildProjectInsightsData, buildProjectOverviewTiles } from "../fixtures
 import { buildCreatePageData, buildIdeas } from "../fixtures/build-ideas";
 import { templateMap } from "./template-map";
 import PageShell from "../components/patterns/PageShell";
-import type {
-  DashboardPageData,
-  DetailPageData,
-  ProjectComponentsPageData,
-  ProjectPageData,
-  ProjectSettingsPageData,
-  ProjectWorkflowsPageData,
-  ProjectSandboxesPageData,
-  ServiceApiSpec,
-  ServicePageData,
-  ChannelPageData,
-  TablePageData,
-  PageData,
-} from "../model/page-data";
+import type { DashboardPageData, DetailPageData, ProjectComponentsPageData, ProjectPageData, ProjectSettingsPageData, ProjectWorkflowsPageData, ProjectSandboxesPageData, ServiceApiSpec, ServicePageData, ChannelPageData, TablePageData, PageData } from "../model/page-data";
 import OverviewPage from "../pages/OverviewPage";
 
 /**

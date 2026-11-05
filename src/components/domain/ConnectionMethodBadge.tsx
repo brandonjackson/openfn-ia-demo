@@ -1,5 +1,5 @@
 import { KeyRound, Network } from "lucide-react";
-import type { ConnectionMethod } from "../../fixtures/connected-systems";
+import type { ConnectionMethod } from "../../model/connected-systems";
 import Badge from "../primitives/Badge";
 
 const methods: Record<

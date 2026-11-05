@@ -1,14 +1,8 @@
-export interface Adaptor {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-}
-
 /**
  * OpenFn supported adaptors list.
  * Source: https://docs.openfn.org/adaptors
  */
+import type { Adaptor } from "../model/adaptors";
 export const adaptors: Adaptor[] = [
   { id: "arcgis", name: "ArcGIS", description: "Geospatial data and mapping", category: "GIS & Mapping" },
   { id: "asana", name: "Asana", description: "Project and task management", category: "Productivity" },

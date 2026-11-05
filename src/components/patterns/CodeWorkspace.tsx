@@ -1,11 +1,11 @@
 import { useRef } from "react";
 import type { ReactNode } from "react";
 import { BookOpen, Calendar, ExternalLink, FolderKanban, Globe, History, Layers, Plug, Radio, User, X } from "lucide-react";
-import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../fixtures/workflow";
+import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowSettings } from "../../model/workflow";
 import type { DetailsViewId } from "./editor-layout";
-import { triggerTypes, workflowToYaml } from "../../fixtures/workflow";
+import { triggerTypes, workflowToYaml } from "../../model/workflow";
 import { adaptorInfo } from "../../fixtures/adaptor-reference";
-import type { ProjectComponent, ProjectService } from "../../fixtures/projects";
+import type { ProjectComponent, ProjectService } from "../../model/projects";
 import { componentPreview, serviceListing, workflowDocs } from "../../fixtures/workflow-files";
 import { channelDetails } from "../../fixtures/channels";
 import { channelTypeConfig } from "../../model/channel-types";

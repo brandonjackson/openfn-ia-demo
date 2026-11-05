@@ -1,6 +1,5 @@
-import type { ProjectServiceItem, ServiceApiSpec } from "./page-data";
-
 /** The tool name agents see for a service, e.g. `client_registry_lookup`. */
+import type { ProjectServiceItem, ServiceApiSpec } from "./page-data";
 export function mcpToolName(service: ProjectServiceItem): string {
   return service.id.replace(/-/g, "_");
 }

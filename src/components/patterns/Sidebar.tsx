@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { mainNavGroups, mainNavTree, openfnDocsUrl, supportTree } from "../../model/ia-tree";
 import { projects, recentProjects } from "../../fixtures/projects";
-import type { Project } from "../../fixtures/projects";
+import type { Project } from "../../model/projects";
 import { currentInstance, currentUser } from "../../fixtures/user";
 import { useDismiss } from "../primitives/use-popover";
 import IconButton from "../primitives/IconButton";

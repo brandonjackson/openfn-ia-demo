@@ -1,4 +1,4 @@
-import type { Dataclip, RunDetails } from "../../fixtures/workflow";
+import type { Dataclip, RunDetails } from "../../model/workflow";
 import DataSnippet from "../primitives/DataSnippet";
 import type { RunDataSection } from "./panel-views";
 

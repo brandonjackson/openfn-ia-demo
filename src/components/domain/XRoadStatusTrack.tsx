@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
-import type { XRoadConnectionStatus } from "../../fixtures/xroad";
-import { xroadStatusSteps } from "../../fixtures/xroad";
+import type { XRoadConnectionStatus } from "../../model/xroad";
+import { xroadStatusSteps } from "../../model/xroad";
 
 interface Props {
   status: XRoadConnectionStatus;

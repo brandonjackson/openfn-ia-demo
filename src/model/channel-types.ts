@@ -1,9 +1,8 @@
+/** "default" is the HTTP channel created automatically when a system gets a URL. */
 import { Eye, PenLine, Plug, Zap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ChannelType } from "./page-data";
 import type { BadgeTone } from "../components/primitives/Badge";
-
-/** "default" is the HTTP channel created automatically when a system gets a URL. */
 export type ChannelRowType = ChannelType | "default";
 
 /** Label, icon and badge tone for each kind of channel. */

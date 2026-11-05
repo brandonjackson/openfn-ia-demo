@@ -1,5 +1,5 @@
-import type { AdaptorKind, TriggerType } from "../../fixtures/workflow";
-import { triggerTypes } from "../../fixtures/workflow";
+import type { AdaptorKind, TriggerType } from "../../model/workflow";
+import { triggerTypes } from "../../model/workflow";
 import { hasAdaptorLogo } from "./adaptor-lookup";
 import AdaptorLogo from "./AdaptorLogo";
 

@@ -1,6 +1,6 @@
 import type { KeyboardEvent } from "react";
 import { Lock, Plus } from "lucide-react";
-import type { Snippet } from "../../fixtures/adaptor-reference";
+import type { Snippet } from "../../model/adaptor-reference";
 
 interface Props {
   snippet: Snippet;

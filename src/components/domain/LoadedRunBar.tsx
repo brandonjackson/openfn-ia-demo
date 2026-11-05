@@ -1,4 +1,4 @@
-import type { RunDetails } from "../../fixtures/workflow";
+import type { RunDetails } from "../../model/workflow";
 import RunLabel from "./RunLabel";
 import Surface from "../primitives/Surface";
 

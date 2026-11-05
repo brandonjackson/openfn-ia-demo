@@ -1,6 +1,6 @@
-import type { RunDetails } from "../../fixtures/workflow";
-import type { ActivityPeriod, WorkflowHealth as Health } from "../../fixtures/runs";
-import { activityPeriodLabel } from "../../fixtures/runs";
+import type { RunDetails } from "../../model/workflow";
+import type { ActivityPeriod, WorkflowHealth as Health } from "../../model/runs";
+import { activityPeriodLabel } from "../../model/runs";
 import Card from "../primitives/Card";
 import StatTile from "../primitives/StatTile";
 import BarChart from "../primitives/BarChart";

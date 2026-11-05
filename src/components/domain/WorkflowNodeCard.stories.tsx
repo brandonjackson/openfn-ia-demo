@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowNodeCard from "./WorkflowNodeCard";
 import { nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "../../fixtures/workflow";
-import { failedRun, runActivity, sampleRun, workOrders } from "../../fixtures/runs";
+import { runActivity } from "../../model/runs";
+import { failedRun, sampleRun, workOrders } from "../../fixtures/runs";
 
 const trigger = nationalIdWorkflow.nodes.find((n) => n.type === "trigger")!;
 const httpJob = nationalIdWorkflow.nodes.find((n) => n.id === "search")!;

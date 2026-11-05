@@ -1,4 +1,4 @@
-import type { Workflow, WorkflowSettings } from "../../fixtures/workflow";
+import type { Workflow, WorkflowSettings } from "../../model/workflow";
 import FormField from "../primitives/FormField";
 import { Select, TextArea, TextInput } from "../primitives/FormControls";
 import ToggleSwitch from "../primitives/ToggleSwitch";

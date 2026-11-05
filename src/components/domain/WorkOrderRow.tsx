@@ -1,5 +1,5 @@
 import { ChevronRight } from "lucide-react";
-import type { WorkOrder } from "../../fixtures/workflow";
+import type { WorkOrder } from "../../model/workflow";
 import StatusPill from "./StatusPill";
 
 /**

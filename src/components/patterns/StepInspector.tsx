@@ -1,12 +1,13 @@
 import type { ReactNode } from "react";
 import { Code2, Copy, Play, Sparkles, Trash2, X } from "lucide-react";
-import type { AdaptorKind, Dataclip, JobNode, RunDetails, TriggerNode, WorkflowNode } from "../../fixtures/workflow";
-import { triggerTypes } from "../../fixtures/workflow";
-import type { ActivityPeriod, FailureReason } from "../../fixtures/runs";
-import { activityPeriodLabel } from "../../fixtures/runs";
+import type { AdaptorKind, Dataclip, JobNode, RunDetails, TriggerNode, WorkflowNode } from "../../model/workflow";
+import { triggerTypes } from "../../model/workflow";
+import type { ActivityPeriod, FailureReason } from "../../model/runs";
+import { activityPeriodLabel } from "../../model/runs";
 import { adaptorInfo, credentialsFor } from "../../fixtures/adaptor-reference";
 import { codeSummary } from "../../fixtures/code-summaries";
-import { connectedSystems, connectionOf } from "../../fixtures/connected-systems";
+import { connectionOf } from "../../model/connected-systems";
+import { connectedSystems } from "../../fixtures/connected-systems";
 import ConnectionMethodBadge from "../domain/ConnectionMethodBadge";
 import XRoadCallDetails from "../domain/XRoadCallDetails";
 import Button from "../primitives/Button";

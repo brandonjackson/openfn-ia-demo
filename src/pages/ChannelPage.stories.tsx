@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import ChannelPage from "./ChannelPage";
 import { withRouter } from "../stories/decorators";
 import { projects } from "../fixtures/projects";
-import type { Project } from "../fixtures/projects";
+import type { Project } from "../model/projects";
 import { channelDetails } from "../fixtures/channels";
 import type { IANode } from "../model/ia-tree";
 import type { ChannelPageData } from "../model/page-data";

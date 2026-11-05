@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import type { RunDetails } from "../../fixtures/workflow";
+import type { RunDetails } from "../../model/workflow";
 import Button from "../primitives/Button";
 import StatusPill from "./StatusPill";
 

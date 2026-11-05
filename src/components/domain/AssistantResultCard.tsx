@@ -1,5 +1,5 @@
 import { Check, Database, Minus, X, XCircle } from "lucide-react";
-import type { AssistantResult } from "../../fixtures/assistant";
+import type { AssistantResult } from "../../model/assistant";
 import Button from "../primitives/Button";
 
 interface Props {

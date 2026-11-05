@@ -1,26 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
-import type {
-  AdaptorKind,
-  Dataclip,
-  JobNode,
-  RunDetails,
-  RunStep,
-  Workflow,
-  WorkflowEdge,
-  WorkflowNode,
-  WorkflowVersion,
-  WorkOrder,
-} from "../fixtures/workflow";
-import { defaultWorkflowSettings, workflowToYaml } from "../fixtures/workflow";
-import type { WorkflowSettings } from "../fixtures/workflow";
-import { failureReasons, filterWorkOrders, runActivity, shortId, simulateRun, workflowHealth } from "../fixtures/runs";
-import type { ActivityPeriod } from "../fixtures/runs";
+import type { AdaptorKind, Dataclip, JobNode, RunDetails, RunStep, Workflow, WorkflowEdge, WorkflowNode, WorkflowVersion, WorkOrder } from "../model/workflow";
+import { defaultWorkflowSettings, workflowToYaml } from "../model/workflow";
+import type { WorkflowSettings } from "../model/workflow";
+import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../model/runs";
+import { simulateRun } from "../fixtures/runs";
+import type { ActivityPeriod } from "../model/runs";
 import { adaptorInfo, adaptorSnippets } from "../fixtures/adaptor-reference";
 import { builtInTools } from "../fixtures/adaptor-catalog";
 import { connectedSystems } from "../fixtures/connected-systems";
-import type { AssistantConversation, AssistantPlan, AssistantReference } from "../fixtures/assistant";
-import type { ProjectComponent, ProjectService } from "../fixtures/projects";
+import type { AssistantConversation, AssistantPlan, AssistantReference } from "../model/assistant";
+import type { ProjectComponent, ProjectService } from "../model/projects";
 import EditorShell from "../components/patterns/EditorShell";
 import EditorToolbar from "../components/patterns/EditorToolbar";
 import type { EditorView } from "../components/patterns/EditorToolbar";

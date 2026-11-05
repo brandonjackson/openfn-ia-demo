@@ -1,9 +1,8 @@
-import type { EcosystemStation, EcosystemWorkflow, LineColor } from "../fixtures/ecosystem";
-
 /**
  * Geometry and numbers for the ecosystem's transport map. Everything here is
  * pure data: `EcosystemMap` turns it into SVG and `EcosystemPanel` into text.
  */
+import type { EcosystemStation, EcosystemWorkflow, LineColor } from "./ecosystem";
 
 /** Edge of one grid cell, in map units. */
 export const CELL = 120;

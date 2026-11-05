@@ -1,4 +1,4 @@
-import type { Dataclip, DataclipType } from "../../fixtures/workflow";
+import type { Dataclip, DataclipType } from "../../model/workflow";
 import Badge from "../primitives/Badge";
 
 const typeLabel: Record<DataclipType, string> = {

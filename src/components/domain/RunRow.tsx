@@ -1,5 +1,5 @@
 import { Network, X } from "lucide-react";
-import type { RunDetails } from "../../fixtures/workflow";
+import type { RunDetails } from "../../model/workflow";
 import Badge from "../primitives/Badge";
 import StatusPill from "./StatusPill";
 import IconButton from "../primitives/IconButton";

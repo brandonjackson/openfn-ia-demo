@@ -3,9 +3,10 @@ import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import CanvasRunsBar from "./CanvasRunsBar";
 import { nationalIdWorkflow } from "../../fixtures/workflow";
-import type { RunDetails } from "../../fixtures/workflow";
-import { failedRun, filterWorkOrders, runActivity, workOrders } from "../../fixtures/runs";
-import type { ActivityPeriod } from "../../fixtures/runs";
+import type { RunDetails } from "../../model/workflow";
+import { filterWorkOrders, runActivity } from "../../model/runs";
+import { failedRun, workOrders } from "../../fixtures/runs";
+import type { ActivityPeriod } from "../../model/runs";
 
 /** The bar with its state kept, so the period, list and loaded run all work. */
 function Stateful(args: Partial<ComponentProps<typeof CanvasRunsBar>>) {

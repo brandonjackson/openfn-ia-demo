@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import TriggerConfigPanel from "./TriggerConfigPanel";
 import { nationalIdWorkflow } from "../../fixtures/workflow";
-import type { TriggerNode } from "../../fixtures/workflow";
+import type { TriggerNode } from "../../model/workflow";
 import { projects } from "../../fixtures/projects";
 
 const trigger = nationalIdWorkflow.nodes.find((n) => n.type === "trigger") as TriggerNode;

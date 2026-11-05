@@ -1,4 +1,4 @@
-import type { AssistantPlan } from "../../fixtures/assistant";
+import type { AssistantPlan } from "../../model/assistant";
 import Button from "../primitives/Button";
 
 interface Props {

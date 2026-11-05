@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Check, Network, Plus, RefreshCw } from "lucide-react";
-import type { XRoadMember, XRoadMemberClass, XRoadRoute } from "../../fixtures/xroad";
-import { memberClassLabels, routeKey, subsystemId } from "../../fixtures/xroad";
+import type { XRoadMember, XRoadMemberClass, XRoadRoute } from "../../model/xroad";
+import { memberClassLabels, routeKey } from "../../model/xroad";
+import { subsystemId } from "../../fixtures/xroad";
 import Badge from "../primitives/Badge";
 import Button from "../primitives/Button";
 import EmptyState from "../primitives/EmptyState";

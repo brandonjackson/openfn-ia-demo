@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { KeyRound } from "lucide-react";
-import type { ChannelDetails, ChannelMessage } from "../../fixtures/channels";
+import type { ChannelDetails, ChannelMessage } from "../../model/channels";
 import { channelTypeConfig } from "../../model/channel-types";
 import Badge from "../primitives/Badge";
 import Card from "../primitives/Card";

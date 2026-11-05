@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import StepConfigPanel from "./StepConfigPanel";
 import { nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "../../fixtures/workflow";
-import type { JobNode } from "../../fixtures/workflow";
+import type { JobNode } from "../../model/workflow";
 
 const search = nationalIdWorkflow.nodes.find((n) => n.id === "search") as JobNode;
 const queue = nationalIdWorkflow.nodes.find((n) => n.id === "queue") as JobNode;

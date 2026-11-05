@@ -1,26 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { Maximize2, Minus, Plus } from "lucide-react";
-import type { EcosystemStation, EcosystemWorkflow } from "../../fixtures/ecosystem";
+import type { EcosystemStation, EcosystemWorkflow } from "../../model/ecosystem";
 import type { EcosystemSelection, LineMode, Link, Point } from "../../model/ecosystem-map";
-import {
-  buildLinks,
-  healthOf,
-  healthStyles,
-  lineColors,
-  lineLength,
-  linkId,
-  linkPoints,
-  linkTraffic,
-  mapBounds,
-  offsetLine,
-  laneOffset,
-  roundedPath,
-  stationPoint,
-  workflowLine,
-  workflowTraffic,
-  xroadZone,
-} from "../../model/ecosystem-map";
+import { buildLinks, healthOf, healthStyles, lineColors, lineLength, linkId, linkPoints, linkTraffic, mapBounds, offsetLine, laneOffset, roundedPath, stationPoint, workflowLine, workflowTraffic, xroadZone } from "../../model/ecosystem-map";
 import AdaptorLogo from "../domain/AdaptorLogo";
 import IconButton from "../primitives/IconButton";
 import Surface from "../primitives/Surface";

@@ -1,13 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowEditorPage from "./WorkflowEditorPage";
-import {
-  nationalIdWorkflow,
-  nationalIdWorkflowAt,
-  registerCaseWorkflow,
-  surveillanceVersions,
-  weeklyCaseReportWorkflow,
-  workflowVersions,
-} from "../fixtures/workflow";
+import { nationalIdWorkflow, nationalIdWorkflowAt, registerCaseWorkflow, surveillanceVersions, weeklyCaseReportWorkflow, workflowVersions } from "../fixtures/workflow";
 import { dataclips, failedRun, olderRun, runHistories, sampleRun, workOrders } from "../fixtures/runs";
 import { projects } from "../fixtures/projects";
 import { assistantConversations } from "../fixtures/assistant";

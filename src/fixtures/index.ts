@@ -1,6 +1,8 @@
 import type { PageData } from "../model/page-data";
-import { connectedSystemListItems, connectedSystems, connectedSystemsIntro, connectionOf } from "./connected-systems";
-import { routeKey, xroadDirectory } from "./xroad";
+import { connectionOf } from "../model/connected-systems";
+import { connectedSystemListItems, connectedSystems, connectedSystemsIntro } from "./connected-systems";
+import { routeKey } from "../model/xroad";
+import { xroadDirectory } from "./xroad";
 import { ecosystemRoutes, ecosystemStations, ecosystemWorkflows } from "./ecosystem";
 import { serviceCatalogData } from "./service-catalog";
 import { historyData } from "./history";
@@ -11,7 +13,6 @@ import { projectSummaries } from "./projects";
 import { handbookData } from "./handbook";
 
 export { mockEntries } from "./history";
-export type { HistoryEntry } from "./history";
 export { connectedSystems, connectedSystemSummaries, connectedSystemListItems } from "./connected-systems";
 
 export const pageDataRegistry = new Map<string, PageData>();

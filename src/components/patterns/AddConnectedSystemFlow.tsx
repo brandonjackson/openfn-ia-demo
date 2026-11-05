@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { X, ChevronRight, Check } from "lucide-react";
-import { adaptors, type Adaptor } from "../../fixtures/adaptors";
+import { type Adaptor } from "../../model/adaptors";
+import { adaptors } from "../../fixtures/adaptors";
 import AdaptorLogo from "../domain/AdaptorLogo";
 import Button from "../primitives/Button";
 import EmptyState from "../primitives/EmptyState";

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { FlaskConical, GitMerge, Sparkles } from "lucide-react";
-import type { RunDetails, WorkflowVersion } from "../../fixtures/workflow";
-import { versionOptions } from "../../fixtures/workflow";
+import type { RunDetails, WorkflowVersion } from "../../model/workflow";
+import { versionOptions } from "../../model/workflow";
 import Button from "../primitives/Button";
 import Picker from "../primitives/Picker";
 import SegmentedControl from "../primitives/SegmentedControl";

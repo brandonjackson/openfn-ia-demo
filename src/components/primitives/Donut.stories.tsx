@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import Donut from "./Donut";
-import { workflowHealth, workOrders } from "../../fixtures/runs";
+import { workflowHealth } from "../../model/runs";
+import { workOrders } from "../../fixtures/runs";
 import { nationalIdWorkflow } from "../../fixtures/workflow";
 
 const health = workflowHealth(nationalIdWorkflow, workOrders, "30d");

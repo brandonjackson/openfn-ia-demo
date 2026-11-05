@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import XRoadAccessBadge from "./XRoadAccessBadge";
-import { xroadStatusSteps } from "../../fixtures/xroad";
+import { xroadStatusSteps } from "../../model/xroad";
 
 const meta: Meta<typeof XRoadAccessBadge> = {
   title: "Domain/XRoadAccessBadge",

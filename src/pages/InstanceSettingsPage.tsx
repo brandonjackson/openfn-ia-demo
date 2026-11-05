@@ -1,12 +1,7 @@
 import { useState } from "react";
 import { CreditCard, Layers, Plus, Unplug, UserPlus, Users } from "lucide-react";
 import type { IANode } from "../model/ia-tree";
-import type {
-  BillingDetails,
-  ContextLayer,
-  InstanceMember,
-  InstanceSettingsPageData,
-} from "../model/page-data";
+import type { BillingDetails, ContextLayer, InstanceMember, InstanceSettingsPageData } from "../model/page-data";
 import SettingsLayout from "../components/patterns/SettingsLayout";
 import type { SettingsNavItem } from "../components/patterns/SettingsNav";
 import SectionHeading from "../components/primitives/SectionHeading";

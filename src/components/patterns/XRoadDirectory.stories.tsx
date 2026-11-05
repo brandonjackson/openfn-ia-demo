@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import XRoadDirectory from "./XRoadDirectory";
-import { routeKey, xroadDirectory } from "../../fixtures/xroad";
-import type { XRoadRoute } from "../../fixtures/xroad";
+import { routeKey } from "../../model/xroad";
+import { xroadDirectory } from "../../fixtures/xroad";
+import type { XRoadRoute } from "../../model/xroad";
 
 const meta: Meta<typeof XRoadDirectory> = {
   title: "Patterns/XRoadDirectory",

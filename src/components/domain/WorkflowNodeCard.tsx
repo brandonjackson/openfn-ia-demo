@@ -1,12 +1,13 @@
 import { Maximize2, MoreVertical, Play, Plus, Sparkles, Trash2 } from "lucide-react";
-import type { RunStep, WorkflowNode } from "../../fixtures/workflow";
-import { triggerTypes } from "../../fixtures/workflow";
-import type { NodeActivity } from "../../fixtures/runs";
+import type { RunStep, WorkflowNode } from "../../model/workflow";
+import { triggerTypes } from "../../model/workflow";
+import type { NodeActivity } from "../../model/runs";
 import DropdownMenu from "../primitives/DropdownMenu";
 import type { DropdownMenuItem } from "../primitives/DropdownMenu";
 import EntityPill from "./EntityPill";
 import { adaptorInfo } from "../../fixtures/adaptor-reference";
-import { connectedSystems, connectionOf } from "../../fixtures/connected-systems";
+import { connectionOf } from "../../model/connected-systems";
+import { connectedSystems } from "../../fixtures/connected-systems";
 import ConnectionMethodBadge from "./ConnectionMethodBadge";
 import { TriggerIcon } from "./AdaptorIcon";
 import StatusPill from "./StatusPill";

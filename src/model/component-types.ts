@@ -1,17 +1,7 @@
-import {
-  ArrowLeftRight,
-  Database,
-  FileSpreadsheet,
-  FileText,
-  PanelsTopLeft,
-  ScrollText,
-  Sparkles,
-  Workflow,
-} from "lucide-react";
+/** Display order, icon and blurb for each kind of project component. */
+import { ArrowLeftRight, Database, FileSpreadsheet, FileText, PanelsTopLeft, ScrollText, Sparkles, Workflow } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ProjectComponentType } from "./page-data";
-
-/** Display order, icon and blurb for each kind of project component. */
 export const componentTypes: {
   type: ProjectComponentType;
   plural: string;

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import XRoadStatusTrack from "./XRoadStatusTrack";
-import { connectedSystems, connectionOf } from "../../fixtures/connected-systems";
+import { connectionOf } from "../../model/connected-systems";
+import { connectedSystems } from "../../fixtures/connected-systems";
 
 const meta: Meta<typeof XRoadStatusTrack> = {
   title: "Domain/XRoadStatusTrack",

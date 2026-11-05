@@ -1,6 +1,6 @@
 import { Check, CheckCircle2, Circle, Loader2, X, XCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { RunStatus } from "../../fixtures/workflow";
+import type { RunStatus } from "../../model/workflow";
 
 const config: Record<
   RunStatus,

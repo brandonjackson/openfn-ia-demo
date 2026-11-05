@@ -1,5 +1,5 @@
 import { Info } from "lucide-react";
-import type { RunDetails, RunStep } from "../../fixtures/workflow";
+import type { RunDetails, RunStep } from "../../model/workflow";
 import StatusPill from "../domain/StatusPill";
 
 function MetaRow({ label, children }: { label: string; children: React.ReactNode }) {

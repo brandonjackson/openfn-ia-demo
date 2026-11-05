@@ -3,7 +3,7 @@ import ServicePage from "./ServicePage";
 import { withRouter } from "../stories/decorators";
 import { projects } from "../fixtures/projects";
 import type { IANode } from "../model/ia-tree";
-import type { Project } from "../fixtures/projects";
+import type { Project } from "../model/projects";
 import type { ServicePageData } from "../model/page-data";
 
 const node: IANode = { id: "service", label: "Service", pageType: "service" };

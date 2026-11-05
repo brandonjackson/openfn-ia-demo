@@ -1,9 +1,8 @@
-import type { BuildIdea, ProjectCreatePageData } from "../model/page-data";
-
 /**
  * Starter ideas for new public services, each built from systems and
  * channels this organization already has.
  */
+import type { BuildIdea, ProjectCreatePageData } from "../model/page-data";
 export const buildIdeas: BuildIdea[] = [
   {
     id: "birth-to-benefits",

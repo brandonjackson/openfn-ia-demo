@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import type { RunStatus } from "../../fixtures/workflow";
+import type { RunStatus } from "../../model/workflow";
 import StatusPill from "./StatusPill";
 
 interface Props {

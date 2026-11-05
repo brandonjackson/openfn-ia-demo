@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import XRoadConnectionDetails from "./XRoadConnectionDetails";
 import { withRouter } from "../../stories/decorators";
-import { connectedSystems, connectionOf } from "../../fixtures/connected-systems";
+import { connectionOf } from "../../model/connected-systems";
+import { connectedSystems } from "../../fixtures/connected-systems";
 
 const meta: Meta<typeof XRoadConnectionDetails> = {
   title: "Patterns/XRoadConnectionDetails",

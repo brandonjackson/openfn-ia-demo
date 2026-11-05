@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { ExternalLink } from "lucide-react";
-import type { AdaptorKind } from "../../fixtures/workflow";
+import type { AdaptorKind } from "../../model/workflow";
 import { adaptorInfo, adaptorSnippets } from "../../fixtures/adaptor-reference";
-import type { Snippet } from "../../fixtures/adaptor-reference";
+import type { Snippet } from "../../model/adaptor-reference";
 import SnippetCard from "../domain/SnippetCard";
 import { AdaptorIcon } from "../domain/AdaptorIcon";
 import SearchInput from "../primitives/SearchInput";

@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import RunCountBadge from "./RunCountBadge";
-import { runActivity, workOrders } from "../../fixtures/runs";
+import { runActivity } from "../../model/runs";
+import { workOrders } from "../../fixtures/runs";
 import { nationalIdWorkflow } from "../../fixtures/workflow";
 
 const activity = runActivity(nationalIdWorkflow, workOrders);

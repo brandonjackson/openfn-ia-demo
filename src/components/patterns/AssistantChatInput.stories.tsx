@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import AssistantChatInput from "./AssistantChatInput";
-import type { AssistantMode } from "../../fixtures/assistant";
+import type { AssistantMode } from "../../model/assistant";
 import { sampleRun } from "../../fixtures/runs";
 
 function Stateful(args: ComponentProps<typeof AssistantChatInput>) {

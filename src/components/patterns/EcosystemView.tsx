@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import type { EcosystemStation, EcosystemWorkflow } from "../../fixtures/ecosystem";
-import type { ActivityPeriod } from "../../fixtures/runs";
-import { activityPeriods } from "../../fixtures/runs";
+import type { EcosystemStation, EcosystemWorkflow } from "../../model/ecosystem";
+import type { ActivityPeriod } from "../../model/runs";
+import { activityPeriods } from "../../model/runs";
 import type { EcosystemSelection, LineMode } from "../../model/ecosystem-map";
 import EcosystemMap from "./EcosystemMap";
 import EcosystemPanel from "./EcosystemPanel";

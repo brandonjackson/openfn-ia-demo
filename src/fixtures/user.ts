@@ -1,10 +1,4 @@
-import type {
-  ApiToken,
-  OAuthClient,
-  UserCredential,
-  UserProfile,
-  UserSettingsPageData,
-} from "../model/page-data";
+import type { ApiToken, OAuthClient, UserCredential, UserProfile, UserSettingsPageData } from "../model/page-data";
 
 export const currentUser: UserProfile = {
   firstName: "Jane",

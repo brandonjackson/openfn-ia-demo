@@ -1,5 +1,5 @@
-import type { ActivityPeriod } from "../../fixtures/runs";
-import { activityPeriods } from "../../fixtures/runs";
+import type { ActivityPeriod } from "../../model/runs";
+import { activityPeriods } from "../../model/runs";
 import SegmentedControl from "../primitives/SegmentedControl";
 
 /**

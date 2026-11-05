@@ -1,10 +1,10 @@
 import type { BadgeTone } from "../components/primitives/Badge";
 import type { FeatureIntroItem } from "../components/patterns/FeatureIntro";
-import type { RunStatus } from "../fixtures/workflow";
-import type { ChannelDetails } from "../fixtures/channels";
-import type { EcosystemStation, EcosystemWorkflow } from "../fixtures/ecosystem";
-import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember } from "../fixtures/xroad";
-import type { ConnectionMethod } from "../fixtures/connected-systems";
+import type { RunStatus } from "./workflow";
+import type { ChannelDetails } from "./channels";
+import type { EcosystemStation, EcosystemWorkflow } from "./ecosystem";
+import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember } from "./xroad";
+import type { ConnectionMethod } from "./connected-systems";
 
 /* ------------------------------------------------------------------ */
 /*  Shared primitive types                                             */

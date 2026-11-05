@@ -1,5 +1,5 @@
 import { Check, Clock, Search } from "lucide-react";
-import type { XRoadConnectionStatus } from "../../fixtures/xroad";
+import type { XRoadConnectionStatus } from "../../model/xroad";
 import Badge from "../primitives/Badge";
 import type { BadgeTone } from "../primitives/Badge";
 

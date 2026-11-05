@@ -1,18 +1,4 @@
-/**
- * Every adaptor a step can use, sorted into the categories the "Connect a
- * system" picker shows. Ids, names and versions come from the adaptors
- * storybook (github.com/brandonjackson/adaptors-storybook, packages/*); the
- * categories are ours.
- */
-
-export interface CatalogAdaptor {
-  id: string;
-  name: string;
-  /** One line on what the system is. */
-  description: string;
-  /** Latest published version. */
-  version: string;
-}
+import type { AiAction, CatalogAdaptor, CatalogCategory } from "../model/adaptor-catalog";
 
 export const adaptorCatalog: CatalogAdaptor[] = [
   { id: "arcgis", name: "ArcGIS", description: "Geospatial data and mapping", version: "1.1.2" },
@@ -130,18 +116,6 @@ export function catalogAdaptor(id: string): CatalogAdaptor | undefined {
   return byId.get(id);
 }
 
-/** A titled list of adaptors inside a category, e.g. "Email" under Messaging. */
-export interface CatalogGroup {
-  label: string;
-  adaptors: string[];
-}
-
-export interface CatalogCategory {
-  id: string;
-  label: string;
-  groups: CatalogGroup[];
-}
-
 /**
  * The picker's categories, after Connected and AI. Every adaptor in the
  * catalog sits in exactly one group, except the built-in tools, which the
@@ -218,14 +192,6 @@ export const builtInTools = ["common", "http", "collections", "openfn", "pdfshif
 
 /** The models behind the AI tab's actions. */
 export const aiModels = ["claude", "chatgpt", "gemini"];
-
-export interface AiAction {
-  id: string;
-  label: string;
-  description: string;
-  /** The step's starting code: a prompt over the incoming data. */
-  body: string;
-}
 
 const prompt = (instruction: string) =>
   `// ${instruction}\nprompt(state => \`${instruction}\n\n\${JSON.stringify(state.data)}\`);\n`;

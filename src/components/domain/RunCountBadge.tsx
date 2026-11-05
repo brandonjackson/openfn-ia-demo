@@ -1,4 +1,4 @@
-import type { NodeActivity } from "../../fixtures/runs";
+import type { NodeActivity } from "../../model/runs";
 
 /**
  * A node's share of the run history, on its canvas card: how many runs

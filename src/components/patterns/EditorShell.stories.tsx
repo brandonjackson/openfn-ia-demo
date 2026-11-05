@@ -6,7 +6,8 @@ import WorkflowCanvas from "./WorkflowCanvas";
 import ReadOnlyNotice from "../domain/ReadOnlyNotice";
 import CanvasRunsBar from "./CanvasRunsBar";
 import { nationalIdWorkflow } from "../../fixtures/workflow";
-import { runActivity, workOrders } from "../../fixtures/runs";
+import { runActivity } from "../../model/runs";
+import { workOrders } from "../../fixtures/runs";
 
 const meta: Meta<typeof EditorShell> = {
   title: "Patterns/EditorShell",

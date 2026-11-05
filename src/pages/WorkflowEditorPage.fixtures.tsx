@@ -1,14 +1,7 @@
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import WorkflowEditorPage from "./WorkflowEditorPage";
-import {
-  buildStarterWorkflow,
-  nationalIdWorkflow,
-  nationalIdWorkflowAt,
-  surveillanceVersions,
-  workflowGraphs,
-  workflowVersions,
-  type Workflow,
-} from "../fixtures/workflow";
+import { type Workflow } from "../model/workflow";
+import { buildStarterWorkflow, nationalIdWorkflow, nationalIdWorkflowAt, surveillanceVersions, workflowGraphs, workflowVersions } from "../fixtures/workflow";
 import { dataclips, runHistories, workOrders } from "../fixtures/runs";
 import { projects, serviceForWorkflow } from "../fixtures/projects";
 import { serviceCatalogData } from "../fixtures/service-catalog";

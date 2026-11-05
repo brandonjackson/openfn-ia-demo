@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import CodeEditor from "./CodeEditor";
-import { nationalIdWorkflow, type JobNode } from "../../fixtures/workflow";
+import { type JobNode } from "../../model/workflow";
+import { nationalIdWorkflow } from "../../fixtures/workflow";
 
 const searchJob = nationalIdWorkflow.nodes.find((n) => n.id === "search") as JobNode;
 

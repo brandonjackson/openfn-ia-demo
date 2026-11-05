@@ -1,7 +1,7 @@
 import { BookOpen, FileText, HeartPulse, Plus, Workflow as WorkflowIcon } from "lucide-react";
-import type { JobNode, RunDetails, TriggerNode, Workflow } from "../../fixtures/workflow";
-import { triggerTypes } from "../../fixtures/workflow";
-import type { ProjectComponent } from "../../fixtures/projects";
+import type { JobNode, RunDetails, TriggerNode, Workflow } from "../../model/workflow";
+import { triggerTypes } from "../../model/workflow";
+import type { ProjectComponent } from "../../model/projects";
 import { componentTypeIcons } from "../../model/component-types";
 import ExplorerRow from "../domain/ExplorerRow";
 import { AdaptorIcon } from "../domain/AdaptorIcon";

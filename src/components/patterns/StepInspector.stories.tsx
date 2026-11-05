@@ -2,18 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react";
 import StepInspector from "./StepInspector";
 import { nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "../../fixtures/workflow";
 import { withRouter } from "../../stories/decorators";
-import type { JobNode } from "../../fixtures/workflow";
-import {
-  accessNotGrantedRun,
-  dataclips,
-  failedRun,
-  failureReasons,
-  registerCaseDataclips,
-  registerCaseWorkOrders,
-  runActivity,
-  sampleRun,
-  workOrders,
-} from "../../fixtures/runs";
+import type { JobNode } from "../../model/workflow";
+import { failureReasons, runActivity } from "../../model/runs";
+import { accessNotGrantedRun, dataclips, failedRun, registerCaseDataclips, registerCaseWorkOrders, sampleRun, workOrders } from "../../fixtures/runs";
 
 const job = (id: string) => nationalIdWorkflow.nodes.find((n): n is JobNode => n.type === "job" && n.id === id)!;
 const trigger = nationalIdWorkflow.nodes.find((n) => n.type === "trigger")!;

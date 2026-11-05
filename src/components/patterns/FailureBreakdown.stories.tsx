@@ -3,8 +3,9 @@ import type { ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import FailureBreakdown from "./FailureBreakdown";
 import type { FailureScope } from "./FailureBreakdown";
-import { failureReasons, workOrders } from "../../fixtures/runs";
-import type { ActivityPeriod } from "../../fixtures/runs";
+import { failureReasons } from "../../model/runs";
+import { workOrders } from "../../fixtures/runs";
+import type { ActivityPeriod } from "../../model/runs";
 import { nationalIdWorkflow } from "../../fixtures/workflow";
 
 function ForStep(args: Partial<ComponentProps<typeof FailureBreakdown>>) {

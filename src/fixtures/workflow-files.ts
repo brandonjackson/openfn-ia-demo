@@ -1,9 +1,8 @@
-import type { ProjectComponent, ProjectService } from "./projects";
-
 /**
  * The documents kept alongside a workflow, and previews of the project
  * components it uses, as they appear in the code explorer.
  */
+import type { ProjectComponent, ProjectService } from "../model/projects";
 
 export const workflowDocs = {
   context: `# Context

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 import { ArrowUp, ChevronDown, Loader2, Plus, X, Zap } from "lucide-react";
-import type { AssistantMode, AssistantReference } from "../../fixtures/assistant";
-import { assistantModes } from "../../fixtures/assistant";
+import type { AssistantMode, AssistantReference } from "../../model/assistant";
+import { assistantModes } from "../../model/assistant";
 import DropdownMenu from "../primitives/DropdownMenu";
 import EntityPill from "../domain/EntityPill";
 import IconButton from "../primitives/IconButton";

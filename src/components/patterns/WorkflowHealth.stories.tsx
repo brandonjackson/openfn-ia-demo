@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import WorkflowHealth from "./WorkflowHealth";
-import type { ActivityPeriod } from "../../fixtures/runs";
-import { workflowHealth, workOrders } from "../../fixtures/runs";
+import type { ActivityPeriod } from "../../model/runs";
+import { workflowHealth } from "../../model/runs";
+import { workOrders } from "../../fixtures/runs";
 import { nationalIdWorkflow } from "../../fixtures/workflow";
 
 const meta: Meta<typeof WorkflowHealth> = {

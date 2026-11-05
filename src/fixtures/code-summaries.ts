@@ -4,7 +4,7 @@
  * code has been edited this session) gets one put together from the
  * operations its code calls.
  */
-import type { JobNode } from "./workflow";
+import type { JobNode } from "../model/workflow";
 import { adaptorInfo } from "./adaptor-reference";
 
 /** Summaries of the national ID workflow's steps, as first loaded. */

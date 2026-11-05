@@ -1,5 +1,5 @@
 import { Check, X, Repeat, Code } from "lucide-react";
-import type { EdgeCondition } from "../../fixtures/workflow";
+import type { EdgeCondition } from "../../model/workflow";
 
 const config: Record<
   EdgeCondition,

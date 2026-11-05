@@ -13,7 +13,8 @@ import { record } from "./audit";
 import { seedTime, table } from "./db";
 import { findProject, guardProject, projectIdFor } from "./projects";
 import { currentUserId } from "./session";
-import { findUser, fullName, users } from "./users";
+import { findUser, fullName, userIdFor } from "./users";
+import { instanceUsers } from "../fixtures/admin";
 
 export interface HistoryExportRow {
   id: string;
@@ -33,13 +34,14 @@ const COMPLETED_AFTER_MS = 3000;
 export const historyExports = table<HistoryExportRow>("history_exports", () =>
   fixtureProjects.flatMap((p) =>
     projectHistoryExports(p.id).map((e) => {
-      const by = users.rows().find((u) => `${u.first_name} ${u.last_name}` === e.requestedBy);
+      // A seed reads fixtures, never another table.
+      const by = instanceUsers.find((u) => `${u.firstName} ${u.lastName}` === e.requestedBy);
       return {
         id: seedId("history_export", e.id),
         project_id: projectIdFor(p.id),
         state: e.status === "processing" ? "in_progress" : e.status,
         filename: e.fileName ?? null,
-        created_by_id: by?.id ?? null,
+        created_by_id: by ? userIdFor(by.id) : null,
         created_by_name: e.requestedBy,
         inserted_at: seedTime(e.createdAt.replace(",", "")),
         updated_at: seedTime(e.createdAt.replace(",", "")),

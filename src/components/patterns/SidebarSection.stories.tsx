@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Activity, ChartColumn, LayoutDashboard, Lightbulb } from "lucide-react";
 import SidebarSection from "./SidebarSection";
-import SidebarLink from "./SidebarLink";
+import NavItem from "../primitives/NavItem";
 import { withRouter } from "../../stories/decorators";
 
 const meta: Meta<typeof SidebarSection> = {
@@ -25,9 +25,9 @@ export const Labelled: Story = {
     label: "Monitoring",
     children: (
       <>
-        <SidebarLink to="/status" icon={Activity} label="Status" active />
-        <SidebarLink to="/insights" icon={Lightbulb} label="Insights" />
-        <SidebarLink to="/history" icon={ChartColumn} label="History" />
+        <NavItem to="/status" icon={Activity} label="Status" active />
+        <NavItem to="/insights" icon={Lightbulb} label="Insights" />
+        <NavItem to="/history" icon={ChartColumn} label="History" />
       </>
     ),
   },
@@ -36,6 +36,6 @@ export const Labelled: Story = {
 /** The top group has no heading. */
 export const Unlabelled: Story = {
   args: {
-    children: <SidebarLink to="/overview" icon={LayoutDashboard} label="Overview" />,
+    children: <NavItem to="/overview" icon={LayoutDashboard} label="Overview" />,
   },
 };

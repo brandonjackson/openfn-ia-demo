@@ -103,6 +103,24 @@ The fixture wrappers apply a change straight away and return an already-resolved
 
 **The chrome.** The sidebar and the project bar in the breadcrumbs sit around every page, so they're fed once, by the shell's wrapper (`src/app/Shell.fixtures.tsx`), through a small `ShellContext` (`src/components/domain/shell-context.ts`). Only chrome reads it (`Sidebar`, `Breadcrumbs`, and the app when it fills `Layout`'s slots); pages take props.
 
+### The API
+
+The demo is moving onto Lightning's API, as written down in [openfn-3-poc's `api/` folder](https://github.com/OpenFn/openfn-3-poc/tree/main/api), so the data behaves the way it will against a real Lightning: every record has a UUID, a create can be refused with a 422 naming the field, a delete can be refused with a 409, and a change made on one page is what every other page reads next.
+
+```
+XPage.query.tsx ──→ src/api/<resource>.ts ──→ src/api/client.ts ──→ src/fake-api/ ──→ db (seeded from src/fixtures/)
+     wrapper          hooks: types, mapper,      request(), errors      the pretend         kept in localStorage
+                      keys, queries, saves                              Lightning server
+```
+
+- **`src/fake-api/`** is a pretend Lightning server. `fakeFetch` takes what `fetch` takes and answers as `api/` says Lightning would: status codes, JSON bodies, and RFC 9457 problem documents for refusals (`api/errors.md`). A route the API marks Planned is answered as its spec says. Its database (`db.ts`) has a table per resource, seeded from `src/fixtures/`, with a fixture's slug turned into a stable UUID (`seedId("project", "project-a")`). Every write is saved in localStorage, so the demo keeps what you did across reloads; when the fixtures change, the next load starts from them again. "Reset demo data", in the feature flag panel, goes back to the seed. Only `src/api/client.ts` imports this folder, so going real is deleting it.
+- **`src/api/client.ts`** is the only thing that sends requests. A refusal throws an `ApiError`: show its `message`, branch on its `code`, and put `fieldError("name")` under the field it names.
+- **`src/api/<resource>.ts`** holds, in this order: the API's type (snake_case, as sent), the mapper onto the `model/` type the page takes, the query keys, the queries, and the saves. A save is a mutation that invalidates every key it changed, so it resolves once the lists have reloaded: the page's `onX` gets that promise, and the page redraws from fresh props. Only `src/api/` imports TanStack Query.
+- **`XPage.query.tsx`** replaces the page's `.fixtures.tsx` wrapper once the page's data is on the API. It calls the hooks, reads the route, and hands the page its data and callbacks, wrapped in `Loaded` (`src/app/Loaded.tsx`), which shows a spinner while the data loads and Not Found when the record isn't there. Point the page's line in `PageRoute.tsx` at it and delete the old wrapper.
+- **Areas the API doesn't describe** (connected systems, X-Road, organisations, services and the rest of the demo's new features) get routes under `/api/demo/`, shaped by `api/conventions.md`, so they work the same way and are easy to tell apart from Lightning's own.
+
+Tests for the fake server's lifecycles live beside it (`*.test.ts`, `npm test`).
+
 ### Links and navigation
 
 Only primitives and wrappers talk to the router. Components link with the `Link` primitive (or `TextLink`, which looks like a link), so a page mounted where there's no React Router changes one file. Anything else a component used to do with the router becomes a prop: a URL, or an `onX` callback the wrapper implements with `navigate`.

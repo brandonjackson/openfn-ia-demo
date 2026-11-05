@@ -6,16 +6,19 @@ import App from "./app/App.tsx";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import StylePicker from "./components/patterns/StylePicker";
 import FeatureFlags from "./app/FeatureFlags";
+import ApiProvider from "./api/ApiProvider";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
-      <HashRouter>
-        <App />
-      </HashRouter>
-      {/* Global controls: re-skin the whole app, and turn its new features on and off. */}
-      <StylePicker />
-      <FeatureFlags />
+      <ApiProvider>
+        <HashRouter>
+          <App />
+        </HashRouter>
+        {/* Global controls: re-skin the whole app, turn its new features on and off, and reset its data. */}
+        <StylePicker />
+        <FeatureFlags />
+      </ApiProvider>
     </ThemeProvider>
   </StrictMode>
 );

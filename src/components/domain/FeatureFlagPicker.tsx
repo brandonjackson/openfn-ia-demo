@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from "react";
-import { Check, Link2, ToggleRight, X } from "lucide-react";
+import { Check, Link2, RotateCcw, ToggleRight, X } from "lucide-react";
 import { flagParent, type FeatureFlag, type FeatureFlags, type FlagId, type FlagPreset } from "../../model/feature-flags";
 import { usePopover } from "../primitives/use-popover";
 
@@ -18,6 +18,11 @@ interface Props {
   shareUrl?: string;
   /** Start with the panel open. Used by stories; the app omits it. */
   defaultOpen?: boolean;
+  /**
+   * Puts the demo's data back to its starting point, forgetting everything
+   * made, changed or deleted in this browser. Left out, there's no reset.
+   */
+  onResetData?: () => Promise<void>;
 }
 
 /**
@@ -40,9 +45,12 @@ export default function FeatureFlagPicker({
   onApplyPreset,
   shareUrl,
   defaultOpen = false,
+  onResetData,
 }: Props) {
   const { open, setOpen, ref } = usePopover(defaultOpen);
   const [copied, setCopied] = useState(false);
+  // "confirm" after the first click, so one stray click doesn't throw away a demo's changes.
+  const [reset, setReset] = useState<"idle" | "confirm" | "resetting" | "done">("idle");
   const groups = [...new Set(flags.map((f) => f.group))];
   const label = (id: FlagId) => flags.find((f) => f.id === id)?.label ?? id;
   const activePreset = presets.find((p) => flags.every((f) => p.flags[f.id] === chosen[f.id]));
@@ -148,6 +156,36 @@ export default function FeatureFlagPicker({
               {copied ? "Copied" : "Copy link with these flags"}
             </button>
           )}
+
+          {onResetData && (
+            <div style={styles.data}>
+              <span style={styles.groupLabel}>Demo data</span>
+              <p style={styles.subtitle}>What you make, change or delete is kept in this browser.</p>
+              <button
+                type="button"
+                disabled={reset === "resetting"}
+                onClick={() => {
+                  if (reset !== "confirm") return setReset("confirm");
+                  setReset("resetting");
+                  void onResetData().then(
+                    () => setReset("done"),
+                    () => setReset("idle"),
+                  );
+                }}
+                onBlur={() => setReset((r) => (r === "confirm" ? "idle" : r))}
+                style={styles.copy}
+              >
+                {reset === "done" ? <Check size={14} /> : <RotateCcw size={14} />}
+                {reset === "confirm"
+                  ? "Click again to reset everything"
+                  : reset === "resetting"
+                    ? "Resetting…"
+                    : reset === "done"
+                      ? "Back to the starting data"
+                      : "Reset demo data"}
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -170,6 +208,7 @@ export default function FeatureFlagPicker({
 /* Theme-independent styling, as for the Style Picker: the --picker-* tokens
    in theme.css, which no theme redefines. */
 const styles: Record<string, CSSProperties> = {
+  data: { display: "flex", flexDirection: "column", gap: 6, marginTop: 12, borderTop: "1px solid var(--picker-border)", paddingTop: 12 },
   root: {
     position: "fixed",
     right: 80,

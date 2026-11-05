@@ -27,6 +27,9 @@ function storyArgs(project: Project, componentId: string) {
     ],
     currentPath: `/projects/${project.id}/components/${component.id}`,
     data,
+    // As the wrapper does: a channel whose messages come from a workflow can open it.
+    onOpenWorkflow: data.channel.workflowId ? () => {} : undefined,
+    onOpenRun: data.channel.workflowId ? () => {} : undefined,
   };
 }
 

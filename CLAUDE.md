@@ -8,12 +8,14 @@ React + TypeScript app built with Vite 8 and Tailwind CSS 4. **Read [docs/archit
 - `src/pages/`: one `XPage.tsx` per screen (draws, nothing else) and its `XPage.fixtures.tsx` wrapper (feeds it).
 - `src/model/`: types, fixed vocabulary and pure functions. `src/fixtures/`: the fake records a server would send.
 - `src/app/`: routing (`PageRoute.tsx` holds the table of which wrapper feeds each page), the shell's wrapper and app state.
+- `src/api/`: the API client and a file of hooks per resource. `src/fake-api/`: the pretend Lightning server that answers it, seeded from fixtures and kept in localStorage. How they fit is in [docs/architecture.md](docs/architecture.md#the-api).
 
 ## Commands
 
 - `npm run dev` — start dev server
 - `npm run build` — typecheck and build
 - `npm run lint` — run ESLint, including the layer rules
+- `npm test` — run the fake server's lifecycle tests (Vitest)
 - `npm run metrics` / `metrics:check` / `metrics:update` — the ratchet (see the guide)
 - `npm run storybook` — start Storybook on port 6006
 - `npm run build-storybook` — build Storybook static site
@@ -28,6 +30,7 @@ The app is built from a component library in four layers, and Storybook is its c
 - **Domain components carry meaning, not rules.** They know what colour "crashed" is or how a cron string reads, but who can delete, rename or retry arrives as a prop (`canDelete`, `onRetry`, or leaving `onRename` out on main), decided by the page's wrapper. Domain is one flat folder; subfolders by part of the product are fine if it gets hard to scan, with no import rules of their own.
 - **Pages (`src/pages/XPage.tsx`) are composed from components only.** They should not define their own styled helpers (no local `Card`, `SaveButton`, `ToggleSwitch`, etc.) or hand-roll styled `<button>`/`<input>`/`<table>` markup.
 - **Pages draw, and nothing else.** A page takes everything as props: `PageProps<Data>` (`node`, `ancestors`, `currentPath`, `data`) plus an `onX` callback for each thing the user can do. A server action returns a `Promise`; navigation is a plain callback. The page's props type, exported as `XPageProps`, is its contract: write it by hand, with a comment on every prop, and put new data shapes in `src/model/page-data.ts`.
+- **Data comes from the API.** A page on the API has an `XPage.query.tsx` wrapper that calls hooks from `src/api/<resource>.ts`; the hooks talk to the fake server in `src/fake-api/`, which follows openfn-3-poc's `api/` contract (ids are UUIDs, refusals are problem documents with a `code`, creates and deletes cascade as the API says). A new action is a route on the fake server (in its resource file, as `api/` documents it), a mutation in the resource's hooks that invalidates what it changed, and an `onX` that returns its promise. Areas `api/` doesn't cover go under `/api/demo/`, following `api/conventions.md`. Write a test of the lifecycle beside the route (`npm test`).
 - **Only wrappers read fixtures or the router.** The page's `XPage.fixtures.tsx` reads the route and fixtures, implements the callbacks, and renders the page; register a new page's wrapper in `src/app/PageRoute.tsx`. Components and pages never import `src/fixtures/`, `src/app/` or `react-router-dom` (links go through the `Link` primitive or `TextLink`). Lint enforces all of this; don't silence it. The one exception is marked `debt:` and new work never adds one.
 - **Need something that doesn't exist yet? Create the component first**, add its story, then use it in the page. If an existing component is close, extend it (add a prop or variant) rather than copying it.
 - Settings pages use `SettingsLayout` (a breadcrumbs slot, title, `SettingsNav` side menu, content). Reuse it for any new settings-style page.

@@ -16,7 +16,12 @@ import { defineConfig, globalIgnores } from 'eslint/config'
  *   patterns     the shape of a screen, no OpenFn nouns    (primitives, patterns)
  *   domain       anything in OpenFn's words                (primitives, domain, model)
  *   pages        one screen; draws, and nothing else       (any component, model)
- *   wrappers     XPage.fixtures.tsx: feeds a page          (anything)
+ *   wrappers     XPage.query.tsx / XPage.fixtures.tsx      (anything)
+ *
+ * Data comes from the API: src/api/ holds the client and a hook per resource,
+ * and src/fake-api/ is the pretend server that answers it, seeded from
+ * fixtures. Only wrappers and src/app call the hooks, and only the client
+ * reaches the fake server, so going real is deleting src/fake-api/.
  *
  * Patterns and domain both sit on primitives, side by side, and neither
  * imports the other: a pattern gets OpenFn content through slots, and the
@@ -32,6 +37,18 @@ const fixtures = {
 const wrappers = {
   group: ['**/*.fixtures'],
   message: `A wrapper feeds one page and nothing imports it but the routes in src/app. ${docs}#the-seam`,
+}
+const api = {
+  group: ['**/api', '**/api/**'],
+  message: `Only a page's wrapper (XPage.query.tsx) and src/app call the API's hooks. Take the data as a prop and an onX callback instead. ${docs}#the-seam`,
+}
+const fakeApi = {
+  group: ['**/fake-api', '**/fake-api/**'],
+  message: `src/fake-api is the pretend server. Only src/api/client.ts sends it requests, so going real is deleting the folder. Call the resource's hook in src/api instead. ${docs}#the-api`,
+}
+const tanstack = {
+  name: '@tanstack/react-query',
+  message: `TanStack Query lives in src/api: call the resource's hook from there, so every page loads the same data the same way. ${docs}#the-api`,
 }
 const app = {
   group: ['**/app', '**/app/**'],
@@ -109,10 +126,13 @@ export default defineConfig([
       'no-restricted-imports': [
         'error',
         {
+          paths: [tanstack],
           patterns: [
             fixtures,
             wrappers,
             app,
+            api,
+            fakeApi,
             above('Primitives', ['domain', 'patterns', 'pages']),
             {
               group: ['**/model', '**/model/**'],
@@ -130,7 +150,7 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': [
         'error',
-        { paths: [router], patterns: [fixtures, wrappers, app, noPatternsInDomain, above('Domain components', ['pages'])] },
+        { paths: [router, tanstack], patterns: [fixtures, wrappers, app, api, fakeApi, noPatternsInDomain, above('Domain components', ['pages'])] },
       ],
     },
   },
@@ -140,15 +160,61 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': [
         'error',
-        { paths: [router], patterns: [fixtures, wrappers, app, ...noOpenFnInPatterns, above('Patterns', ['pages'])] },
+        { paths: [router, tanstack], patterns: [fixtures, wrappers, app, api, fakeApi, ...noOpenFnInPatterns, above('Patterns', ['pages'])] },
       ],
     },
   },
   {
     files: ['src/pages/**/*.{ts,tsx}'],
-    ignores: ['**/*.stories.tsx', '**/*.fixtures.{ts,tsx}'],
+    ignores: ['**/*.stories.tsx', '**/*.fixtures.{ts,tsx}', '**/*.query.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['error', { paths: [router], patterns: [fixtures, wrappers, app] }],
+      'no-restricted-imports': ['error', { paths: [router, tanstack], patterns: [fixtures, wrappers, app, api, fakeApi] }],
+    },
+  },
+  {
+    // Wrappers and the app call the API's hooks; neither reaches the fake server or TanStack Query itself.
+    files: ['src/pages/**/*.{fixtures,query}.{ts,tsx}', 'src/app/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': ['error', { paths: [tanstack], patterns: [fakeApi] }],
+    },
+  },
+  {
+    // The data code: the client, and a file per resource with its types, mapper, keys and hooks.
+    files: ['src/api/**/*.{ts,tsx}'],
+    ignores: ['src/api/client.ts', '**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [router],
+          patterns: [
+            fakeApi,
+            {
+              group: ['**/components', '**/components/**', '**/pages', '**/pages/**', '**/app', '**/app/**', '**/fixtures', '**/fixtures/**'],
+              message: `src/api talks to the server and maps its answers onto model/ types. It draws nothing and never reads fixtures: those are the fake server's database. ${docs}#the-api`,
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // The pretend server: fixtures are its database, model/ its vocabulary.
+    files: ['src/fake-api/**/*.{ts,tsx}'],
+    ignores: ['**/*.test.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [router, tanstack],
+          patterns: [
+            {
+              group: ['**/components', '**/components/**', '**/pages', '**/pages/**', '**/app', '**/app/**', '**/api', '**/api/**'],
+              message: `The fake server only knows its database (fixtures) and model/. It answers HTTP; it never reaches into the app. ${docs}#the-api`,
+            },
+          ],
+        },
+      ],
     },
   },
 ])

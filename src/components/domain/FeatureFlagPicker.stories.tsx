@@ -11,7 +11,7 @@ import {
 } from "../../model/feature-flags";
 
 /** The picker with its own choices, so the switches and presets work in the story. */
-function Playground({ initial, defaultOpen }: { initial: FeatureFlags; defaultOpen?: boolean }) {
+function Playground({ initial, defaultOpen, resettable }: { initial: FeatureFlags; defaultOpen?: boolean; resettable?: boolean }) {
   const [chosen, setChosen] = useState(initial);
   return (
     <div className="h-screen w-full bg-gray-50 p-8">
@@ -24,6 +24,7 @@ function Playground({ initial, defaultOpen }: { initial: FeatureFlags; defaultOp
         onApplyPreset={setChosen}
         shareUrl="https://example.org/?flags=redesign"
         defaultOpen={defaultOpen}
+        onResetData={resettable ? () => new Promise((resolve) => setTimeout(resolve, 600)) : undefined}
       />
     </div>
   );
@@ -56,3 +57,6 @@ export const BlockedByRequirement: Story = {
 export const ParentOff: Story = {
   render: () => <Playground initial={{ ...allFlagsOn, organizations: false }} defaultOpen />,
 };
+
+/** With a reset for the demo's data: the first click asks to confirm, the second puts every record back to the fixtures. */
+export const WithDataReset: Story = { render: () => <Playground initial={allFlagsOn} defaultOpen resettable /> };

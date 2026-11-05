@@ -1,0 +1,44 @@
+import { Plus, Minus, Maximize, Crosshair, LayoutGrid, Undo2, Redo2 } from "lucide-react";
+import Surface from "./Surface";
+
+/**
+ * The vertical zoom / fit / layout control stack pinned to the bottom-left of
+ * the canvas. Center puts a panned canvas back where it started; the rest are
+ * placeholders for the prototype unless given a handler.
+ */
+export default function CanvasControls({
+  onZoomIn,
+  onZoomOut,
+  onCenter,
+}: {
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  /** Puts the canvas back where it started. */
+  onCenter?: () => void;
+}) {
+  const buttons: { icon: React.ElementType; title: string; onClick?: () => void }[] = [
+    { icon: Plus, title: "Zoom in", onClick: onZoomIn },
+    { icon: Minus, title: "Zoom out", onClick: onZoomOut },
+    { icon: Maximize, title: "Fit to view" },
+    { icon: Crosshair, title: "Center", onClick: onCenter },
+    { icon: LayoutGrid, title: "Auto layout" },
+    { icon: Undo2, title: "Undo" },
+    { icon: Redo2, title: "Redo" },
+  ];
+
+  return (
+    <Surface className="flex flex-col overflow-hidden">
+      {buttons.map(({ icon: Icon, title, onClick }) => (
+        <button
+          key={title}
+          type="button"
+          title={title}
+          onClick={onClick}
+          className="p-2 text-gray-500 hover:bg-gray-50 hover:text-gray-700 border-b border-gray-100 last:border-b-0"
+        >
+          <Icon size={16} />
+        </button>
+      ))}
+    </Surface>
+  );
+}

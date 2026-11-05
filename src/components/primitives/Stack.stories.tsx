@@ -2,6 +2,9 @@ import type { Meta, StoryObj } from "@storybook/react";
 import Stack from "./Stack";
 import Card from "./Card";
 import Text from "./Text";
+import Inline from "./Inline";
+import SearchInput from "./SearchInput";
+import Button from "./Button";
 
 const meta: Meta<typeof Stack> = {
   title: "Primitives/Stack",
@@ -21,6 +24,20 @@ export const Default: Story = {
       <Card key="3" title="Export" />,
     ],
   },
+};
+
+/** In a row, `grow` takes the free width, so the search fills it and the button keeps its size. */
+export const Grow: Story = {
+  render: () => (
+    <Inline gap="sm">
+      <Stack grow>
+        <SearchInput compact placeholder="Filter by actor or item" />
+      </Stack>
+      <Button size="sm" variant="secondary">
+        Export
+      </Button>
+    </Inline>
+  ),
 };
 
 export const Divided: Story = {

@@ -29,6 +29,11 @@ export const Open: Story = {
   args: { defaultOpen: true },
 };
 
+/** A superuser also gets Admin settings, the whole instance's. */
+export const Superuser: Story = {
+  args: { defaultOpen: true, showAdminSettings: true },
+};
+
 /** Without the Organizations flag there are no Organization settings. */
 export const WithoutOrganizationSettings: Story = {
   args: { defaultOpen: true, showOrganizationSettings: false },

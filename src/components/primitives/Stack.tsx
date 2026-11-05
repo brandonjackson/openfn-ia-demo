@@ -18,6 +18,8 @@ interface Props {
   divided?: boolean;
   /** Labels the stack as a region for screen readers. */
   label?: string;
+  /** Takes the free width of a row it sits in, so a control inside it fills that width, e.g. a search beside filters. */
+  grow?: boolean;
   children?: ReactNode;
 }
 
@@ -26,12 +28,12 @@ interface Props {
  * half of the layout kit (with `Inline`), so pages and components lay
  * themselves out without styling of their own.
  */
-export default function Stack({ gap = "md", divided = false, label, children }: Props) {
+export default function Stack({ gap = "md", divided = false, label, grow = false, children }: Props) {
   return (
     <div
       aria-label={label}
       role={label ? "region" : undefined}
-      className={`flex min-w-0 flex-col ${divided ? "divide-y divide-gray-100" : gaps[gap]}`}
+      className={`flex min-w-0 flex-col ${divided ? "divide-y divide-gray-100" : gaps[gap]} ${grow ? "flex-1" : ""}`}
     >
       {children}
     </div>

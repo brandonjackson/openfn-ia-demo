@@ -28,6 +28,8 @@ export interface Shell {
   onNavigate: (path: string) => void;
   /** The feature flags in effect, for which menu items to show. */
   flags: FeatureFlags;
+  /** Whether you're a superuser, who can reach Admin settings. */
+  isSuperuser: boolean;
 }
 
 const empty: Shell = {
@@ -39,6 +41,7 @@ const empty: Shell = {
   onSelectSandbox: () => {},
   onNavigate: () => {},
   flags: allFlagsOn,
+  isSuperuser: false,
 };
 
 export const ShellContext = createContext<Shell>(empty);

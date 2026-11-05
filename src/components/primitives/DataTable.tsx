@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import type { ReactNode } from "react";
 
 export interface DataTableColumn<T> {
@@ -17,6 +18,12 @@ interface Props<T> {
   onRowClick?: (row: T) => void;
   /** Tints the selected row when rows are clickable. */
   selectedKey?: string;
+  /**
+   * Content for a full-width row under a row, e.g. the changes behind an
+   * audit event. Return nothing to leave a row without one; the caller
+   * decides which rows are open.
+   */
+  renderDetail?: (row: T) => ReactNode;
 }
 
 /**
@@ -29,6 +36,7 @@ export default function DataTable<T>({
   emptyMessage = "Nothing here yet.",
   onRowClick,
   selectedKey,
+  renderDetail,
 }: Props<T>) {
   return (
     <div data-ui="table" className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
@@ -55,25 +63,36 @@ export default function DataTable<T>({
               </td>
             </tr>
           ) : (
-            rows.map((row) => (
-              <tr
-                key={getRowKey(row)}
-                onClick={onRowClick ? () => onRowClick(row) : undefined}
-                aria-selected={onRowClick ? getRowKey(row) === selectedKey : undefined}
-                className={`${onRowClick ? "cursor-pointer" : ""} ${
-                  getRowKey(row) === selectedKey ? "bg-indigo-50" : "hover:bg-gray-50"
-                }`}
-              >
-                {columns.map((col) => (
-                  <td
-                    key={col.key}
-                    className={`px-4 py-3 text-sm text-gray-500 ${col.align === "right" ? "text-right" : ""}`}
+            rows.map((row) => {
+              const detail = renderDetail?.(row);
+              return (
+                <Fragment key={getRowKey(row)}>
+                  <tr
+                    onClick={onRowClick ? () => onRowClick(row) : undefined}
+                    aria-selected={onRowClick ? getRowKey(row) === selectedKey : undefined}
+                    className={`${onRowClick ? "cursor-pointer" : ""} ${
+                      getRowKey(row) === selectedKey ? "bg-indigo-50" : "hover:bg-gray-50"
+                    }`}
                   >
-                    {col.render(row)}
-                  </td>
-                ))}
-              </tr>
-            ))
+                    {columns.map((col) => (
+                      <td
+                        key={col.key}
+                        className={`px-4 py-3 text-sm text-gray-500 ${col.align === "right" ? "text-right" : ""}`}
+                      >
+                        {col.render(row)}
+                      </td>
+                    ))}
+                  </tr>
+                  {detail && (
+                    <tr className="bg-gray-50">
+                      <td colSpan={columns.length} className="px-4 py-3">
+                        {detail}
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })
           )}
         </tbody>
       </table>

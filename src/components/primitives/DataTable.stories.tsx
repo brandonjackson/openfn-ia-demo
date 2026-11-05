@@ -41,6 +41,16 @@ export const Default: Story = {
   args: { columns, rows: userCredentials, getRowKey: (c) => c.id },
 };
 
+/** A full-width row under some rows, as the audit trail shows a change's before and after. */
+export const WithDetailRow: Story = {
+  args: {
+    columns,
+    rows: userCredentials,
+    getRowKey: (c) => c.id,
+    renderDetail: (c) => (c.projects.length > 1 ? `Shared with ${c.projects.join(" and ")}.` : null),
+  },
+};
+
 export const Empty: Story = {
   args: { columns, rows: [], getRowKey: (c) => c.id, emptyMessage: "You have no credentials yet." },
 };

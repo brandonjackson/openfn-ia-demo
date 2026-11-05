@@ -1,5 +1,5 @@
 import Link from "../primitives/Link";
-import { Building2, ChevronsUpDown, LogOut, Settings } from "lucide-react";
+import { Building2, ChevronsUpDown, LogOut, Settings, ShieldCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import Surface from "../primitives/Surface";
 import { usePopover } from "../primitives/use-popover";
@@ -10,6 +10,8 @@ interface Props {
   instance: { name: string; initials: string };
   /** Offer Organization settings. Off when the demo's Organizations flag is. */
   showOrganizationSettings?: boolean;
+  /** Offer Admin settings, the whole instance's. Only for a superuser. */
+  showAdminSettings?: boolean;
   /** Called when "Log out" is chosen. */
   onLogOut?: () => void;
   /** Start with the menu open (useful for stories and screenshots). */
@@ -43,12 +45,13 @@ function MenuItem({
 /**
  * Account switcher pinned to the bottom of the sidebar. Shows who you are
  * and which organisation you're in; opens upwards into your personal and
- * organisation settings.
+ * organisation settings, and, for a superuser, the instance's admin settings.
  */
 export default function AccountMenu({
   user,
   instance,
   showOrganizationSettings = true,
+  showAdminSettings = false,
   onLogOut,
   defaultOpen = false,
 }: Props) {
@@ -74,6 +77,9 @@ export default function AccountMenu({
               label="Organization settings"
               onSelect={close}
             />
+          )}
+          {showAdminSettings && (
+            <MenuItem to="/admin-settings" icon={ShieldCheck} label="Admin settings" onSelect={close} />
           )}
           <div className="my-1.5 border-t border-gray-200" />
           <button

@@ -27,3 +27,12 @@ export const fieldErrorOf = (error: unknown, field: string): string | undefined 
 /** What to say about a failed save when no field explains it. */
 export const errorMessageOf = (error: unknown): string =>
   error instanceof Error ? error.message : "Something went wrong. Try again.";
+
+/** The most specific thing to say about a refusal: the first problem with a field, else the message. */
+export const firstProblemOf = (error: unknown): string => {
+  if (error instanceof FormError) {
+    const first = Object.values(error.fieldErrors)[0]?.[0];
+    if (first) return first;
+  }
+  return errorMessageOf(error);
+};

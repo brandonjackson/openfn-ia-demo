@@ -17,6 +17,8 @@ import { refuse, sessionRoutes, signInAs } from "./session";
 import { projectRoutes } from "./projects";
 import { userRoutes } from "./user-routes";
 import { auditRoutes } from "./audit";
+import { workflowRoutes } from "./workflows";
+import { sandboxRoutes } from "./sandboxes";
 
 export type { Problem } from "./answers";
 export { signInAs } from "./session";
@@ -29,6 +31,8 @@ const routes: Record<string, Handler> = {
   ...projectRoutes,
   ...userRoutes,
   ...auditRoutes,
+  ...workflowRoutes,
+  ...sandboxRoutes,
   // The demo's own: back to the fixtures.
   "POST /api/demo/reset": () => {
     resetDb();

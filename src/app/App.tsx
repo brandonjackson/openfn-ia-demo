@@ -5,7 +5,7 @@ import InstanceLogo from "../components/domain/InstanceLogo";
 import { useShell } from "../components/domain/shell-context";
 import PageRoute from "./PageRoute";
 import ShellQuery from "./Shell.query";
-import WorkflowEditorPageFixtures from "../pages/WorkflowEditorPage.fixtures";
+import WorkflowEditorPageQuery from "../pages/WorkflowEditorPage.query";
 
 /** The page frame, with OpenFn's sidebar and the instance's logo in its slots. */
 function Framed() {
@@ -26,8 +26,8 @@ export default function App() {
     <ShellQuery>
       <Routes>
         {/* Full-screen editor lives outside the standard sidebar layout. */}
-        <Route path="/workflow-editor" element={<WorkflowEditorPageFixtures />} />
-        <Route path="/workflow-editor/:workflowId" element={<WorkflowEditorPageFixtures />} />
+        <Route path="/workflow-editor" element={<WorkflowEditorPageQuery />} />
+        <Route path="/workflow-editor/:workflowId" element={<WorkflowEditorPageQuery />} />
         <Route element={<Framed />}>
           <Route path="*" element={<PageRoute />} />
         </Route>

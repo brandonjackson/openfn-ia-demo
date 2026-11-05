@@ -1,5 +1,4 @@
 import { useSyncExternalStore } from "react";
-import type { SandboxItem } from "../model/page-data";
 
 /**
  * Which sandbox (branch) is selected in each project. The choice sticks as you
@@ -43,23 +42,4 @@ export function useSandbox(projectId: string): [string, (sandbox: string) => voi
     () => selected[projectId] ?? DEFAULT_SANDBOX
   );
   return [sandbox, (next) => setSandbox(projectId, next)];
-}
-
-/**
- * Each project's sandboxes as changed this session (made, renamed, merged or
- * deleted on the Sandboxes page): the fixtures' stand-in for the server,
- * shared so the project bar and the editor list a new sandbox too. Gone on
- * reload.
- */
-let savedLists: Record<string, SandboxItem[]> = {};
-
-/** Saves a project's sandboxes as they are now. */
-export function saveSandboxes(projectId: string, sandboxes: SandboxItem[]) {
-  savedLists = { ...savedLists, [projectId]: sandboxes };
-  listeners.forEach((l) => l());
-}
-
-/** A project's sandboxes as changed this session, or nothing when they haven't been. */
-export function useSavedSandboxes(projectId: string): SandboxItem[] | undefined {
-  return useSyncExternalStore(subscribe, () => savedLists[projectId]);
 }

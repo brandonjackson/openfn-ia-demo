@@ -14,10 +14,10 @@ import HistoryPageFixtures from "../pages/HistoryPage.fixtures";
 import ServicesPageFixtures from "../pages/ServicesPage.fixtures";
 import ProjectsPageQuery from "../pages/ProjectsPage.query";
 import ProjectPageQuery from "../pages/ProjectPage.query";
-import ProjectWorkflowsPageFixtures from "../pages/ProjectWorkflowsPage.fixtures";
+import ProjectWorkflowsPageQuery from "../pages/ProjectWorkflowsPage.query";
 import ProjectComponentsPageFixtures from "../pages/ProjectComponentsPage.fixtures";
 import ProjectCreatePageFixtures from "../pages/ProjectCreatePage.fixtures";
-import ProjectSandboxesPageFixtures from "../pages/ProjectSandboxesPage.fixtures";
+import ProjectSandboxesPageQuery from "../pages/ProjectSandboxesPage.query";
 import ProjectSettingsPageQuery from "../pages/ProjectSettingsPage.query";
 import ServicePageFixtures from "../pages/ServicePage.fixtures";
 import ChannelPageFixtures from "../pages/ChannelPage.fixtures";
@@ -44,10 +44,10 @@ const wrappers: Record<PageType, ComponentType<{ route: Route }>> = {
   catalog: ServicesPageFixtures,
   projects: ProjectsPageQuery,
   project: ProjectPageQuery,
-  "project-workflows": ProjectWorkflowsPageFixtures,
+  "project-workflows": ProjectWorkflowsPageQuery,
   "project-components": ProjectComponentsPageFixtures,
   "project-create": ProjectCreatePageFixtures,
-  "project-sandboxes": ProjectSandboxesPageFixtures,
+  "project-sandboxes": ProjectSandboxesPageQuery,
   "project-settings": ProjectSettingsPageQuery,
   service: ServicePageFixtures,
   channel: ChannelPageFixtures,

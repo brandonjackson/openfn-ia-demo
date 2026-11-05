@@ -32,3 +32,12 @@ export function seedId(kind: string, slug: string): string {
 
 /** A new id for a record made on the fake server. */
 export const newId = () => crypto.randomUUID();
+
+/** A fixture workflow's id on the API, from its slug ("planning-application-workflow"). */
+export const apiWorkflowId = (slug: string) => seedId("workflow", slug);
+
+/** A seeded workflow's step, trigger or edge id on the API, from its workflow's slug and its id in the fixture graph. */
+export const apiNodeId = (workflowSlug: string, nodeId: string) => seedId("node", `${workflowSlug}/${nodeId}`);
+
+/** A step's id in a sandbox's copy of a workflow, from the sandbox and the step it was copied from. */
+export const cloneNodeId = (sandboxId: string, nodeId: string) => seedId("clone", `${sandboxId}/${nodeId}`);

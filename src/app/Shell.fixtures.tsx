@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ShellContext } from "../components/domain/shell-context";
 import { projects, recentProjects } from "../fixtures/projects";
 import { currentInstance, currentUser, currentUserIsSuperuser } from "../fixtures/user";
-import { useSandbox, useSavedSandboxes } from "./sandbox-state";
+import { useSandbox } from "./sandbox-state";
 import { useFlags } from "./feature-flags";
 import type { FeatureFlags } from "../model/feature-flags";
 
@@ -25,9 +25,7 @@ export default function ShellFixtures({
   const match = pathname.match(/^\/projects\/([^/]+)/);
   const fixtureProject = match ? projects.find((p) => p.id === match[1]) : undefined;
   const [sandbox, setSandbox] = useSandbox(fixtureProject?.id ?? "");
-  // Sandboxes made or deleted this session show in the project bar too.
-  const savedSandboxes = useSavedSandboxes(fixtureProject?.id ?? "");
-  const project = fixtureProject && savedSandboxes ? { ...fixtureProject, sandboxes: savedSandboxes.map((s) => s.name) } : fixtureProject;
+  const project = fixtureProject;
   const stored = useFlags();
   const flags = override ?? stored;
 

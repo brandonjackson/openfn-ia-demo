@@ -570,13 +570,53 @@ export interface ProjectCreatePageData {
 /*  Project Sandboxes page                                             */
 /* ------------------------------------------------------------------ */
 
+/** The colours a sandbox can be marked with, so you can tell at a glance which one you're in. */
+export type SandboxColor = "indigo" | "green" | "yellow" | "red" | "pink" | "gray";
+
+export const SANDBOX_COLORS: SandboxColor[] = ["indigo", "green", "yellow", "red", "pink", "gray"];
+
+/** A workflow changed in a sandbox, which merging would bring into its target. */
+export interface SandboxChange {
+  workflowId: string;
+  workflowName: string;
+  /** The target has changed this workflow too since the sandbox was made, so merging overwrites those changes. */
+  diverged: boolean;
+}
+
 export interface SandboxItem {
+  /** Its slug, e.g. "intake-validation-v2", which is how it's named everywhere. */
   name: string;
   /** The project's main line, which every other sandbox merges back into. */
   isMain: boolean;
   description: string;
   createdBy: string;
   lastActivity: string;
+  color: SandboxColor;
+  /** The sandbox it was made from, and merges into by default. Main has none. */
+  parent?: string;
+  /** Workflows changed in it since it was made. */
+  changes: SandboxChange[];
+  /** Credentials that exist only in this sandbox, which merging can bring along. */
+  credentials: string[];
+}
+
+/** What creating or editing a sandbox asks for. */
+export interface SandboxDraft {
+  /** As typed; the sandbox is named its slug. */
+  name: string;
+  color: SandboxColor;
+  /** The sandbox to make it from. Only when creating. */
+  parent?: string;
+}
+
+/** What merging a sandbox brings, and where. */
+export interface SandboxMerge {
+  /** The sandbox to merge into, usually its parent. */
+  target: string;
+  /** The changed workflows to bring across. */
+  workflowIds: string[];
+  /** The sandbox-only credentials to bring across. */
+  credentials: string[];
 }
 
 export interface ProjectSandboxesPageData {

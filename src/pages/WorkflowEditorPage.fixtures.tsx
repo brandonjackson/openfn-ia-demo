@@ -7,7 +7,7 @@ import { useChangedHistories } from "../app/history-state";
 import { simulateRun } from "../fixtures/runs";
 import { projects, serviceForWorkflow } from "../fixtures/projects";
 import { serviceCatalogData } from "../fixtures/service-catalog";
-import { useSandbox } from "../app/sandbox-state";
+import { useSandbox, useSavedSandboxes } from "../app/sandbox-state";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
 import { adaptorChoices, adaptorInfo, adaptorSnippets, projectCredentials } from "../fixtures/adaptor-reference";
 import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
@@ -91,6 +91,8 @@ export default function WorkflowEditorPageFixtures() {
   // The editor shares the project's selected sandbox with the rest of the app.
   const project = projects.find((p) => p.name === workflow.project);
   const [sandbox, setSandbox] = useSandbox(project?.id ?? workflow.project);
+  // Sandboxes made or deleted this session are offered too.
+  const savedSandboxes = useSavedSandboxes(project?.id ?? "");
   // "See details" opens the service listing that documents this workflow.
   const service = isNew || !flags.serviceCatalog ? undefined : serviceForWorkflow(workflow.id);
   // The workflow's run history, with any runs retried or cancelled from History this session.
@@ -146,7 +148,7 @@ export default function WorkflowEditorPageFixtures() {
             : undefined
         }
         componentTypeOptions={componentTypesFor(flags)}
-        sandboxes={project?.sandboxes ?? ["main"]}
+        sandboxes={savedSandboxes?.map((s) => s.name) ?? project?.sandboxes ?? ["main"]}
         sandbox={sandbox}
         onSelectSandbox={setSandbox}
         onViewAllSandboxes={project ? () => navigate(`/projects/${project.id}/sandboxes`) : undefined}

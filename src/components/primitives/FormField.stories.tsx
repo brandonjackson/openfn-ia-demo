@@ -28,3 +28,12 @@ export const WithHint: Story = {
   },
 };
 
+
+export const WithError: Story = {
+  args: {
+    label: "Name",
+    htmlFor: "name",
+    error: "There's already a sandbox called decision-sync-fix.",
+    children: <TextInput id="name" defaultValue="decision-sync-fix" />,
+  },
+};

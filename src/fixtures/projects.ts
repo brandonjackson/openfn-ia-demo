@@ -420,7 +420,7 @@ export const recentProjects: Project[] = [
   .filter((p): p is Project => p !== undefined);
 
 /** Details for each sandbox shown on a project's Sandboxes list. */
-const sandboxDetails: Record<string, Omit<SandboxItem, "name" | "isMain">> = {
+const sandboxDetails: Record<string, Pick<SandboxItem, "description" | "createdBy" | "lastActivity">> = {
   "intake-validation-v2": {
     description: "Stricter validation of incoming planning applications before routing.",
     createdBy: "Amara Okafor",
@@ -453,9 +453,16 @@ const sandboxDetails: Record<string, Omit<SandboxItem, "name" | "isMain">> = {
   },
 };
 
-/** A project's sandboxes with their details, "main" first. */
+const sandboxColors: SandboxItem["color"][] = ["green", "pink", "yellow", "indigo", "red"];
+
+/**
+ * A project's sandboxes with their details, "main" first. Each sandbox was
+ * made from main and has changed one of the project's workflows (the second
+ * also another, which main has changed since), with a credential of its own.
+ */
 export function projectSandboxes(project: Project): SandboxItem[] {
-  return project.sandboxes.map((name) =>
+  const workflows = project.components.filter((c) => c.type === "Workflow");
+  return project.sandboxes.map((name, i) =>
     name === "main"
       ? {
           name,
@@ -463,6 +470,9 @@ export function projectSandboxes(project: Project): SandboxItem[] {
           description: "The live version of this project. Sandboxes merge back into main.",
           createdBy: "Project owner",
           lastActivity: project.lastActivity,
+          color: "gray",
+          changes: [],
+          credentials: [],
         }
       : {
           name,
@@ -472,6 +482,10 @@ export function projectSandboxes(project: Project): SandboxItem[] {
             createdBy: "Unknown",
             lastActivity: "Never",
           }),
+          color: sandboxColors[(i - 1) % sandboxColors.length],
+          parent: "main",
+          changes: workflows.slice(0, i === 2 ? 2 : 1).map((w, j) => ({ workflowId: w.id, workflowName: w.name, diverged: j === 1 })),
+          credentials: [`${name} test credential`],
         }
   );
 }

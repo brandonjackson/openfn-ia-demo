@@ -19,6 +19,9 @@ import { userRoutes } from "./user-routes";
 import { auditRoutes } from "./audit";
 import { workflowRoutes } from "./workflows";
 import { sandboxRoutes } from "./sandboxes";
+import { collectionRoutes } from "./collections";
+import { webhookAuthRoutes } from "./webhook-auth";
+import { historyExportRoutes } from "./history-exports";
 
 export type { Problem } from "./answers";
 export { signInAs } from "./session";
@@ -33,6 +36,9 @@ const routes: Record<string, Handler> = {
   ...auditRoutes,
   ...workflowRoutes,
   ...sandboxRoutes,
+  ...collectionRoutes,
+  ...webhookAuthRoutes,
+  ...historyExportRoutes,
   // The demo's own: back to the fixtures.
   "POST /api/demo/reset": () => {
     resetDb();

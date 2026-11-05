@@ -60,12 +60,19 @@ function storage(): Storage | undefined {
 
 // A fingerprint of every table's seed, so data saved against old fixtures is dropped.
 let fingerprint: string | undefined;
+let fingerprinting = false;
 function seedFingerprint(): string {
   if (fingerprint) return fingerprint;
   const clock = seededAt;
   seededAt = 0;
-  const text = JSON.stringify([...tables.entries()].map(([name, t]) => [name, t.seed()]));
-  seededAt = clock;
+  fingerprinting = true;
+  let text: string;
+  try {
+    text = JSON.stringify([...tables.entries()].map(([name, t]) => [name, t.seed()]));
+  } finally {
+    fingerprinting = false;
+    seededAt = clock;
+  }
   let h = 0;
   for (let i = 0; i < text.length; i++) h = (Math.imul(31, h) + text.charCodeAt(i)) | 0;
   fingerprint = `${tables.size}:${text.length}:${h}`;
@@ -122,6 +129,8 @@ export function table<T>(name: string, seed: () => T[]) {
   fingerprint = undefined;
 
   const rows = (): T[] => {
+    // A seed that reads another table mustn't leave it cached with the fingerprint's clock.
+    if (fingerprinting) return seed();
     if (!t.rows) t.rows = ((load()?.tables[name] as T[] | undefined) ?? seed()).map((r) => structuredClone(r));
     return t.rows;
   };

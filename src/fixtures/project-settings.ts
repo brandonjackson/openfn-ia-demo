@@ -146,7 +146,7 @@ export function webhookTriggers(project: Project): WebhookTriggerOption[] {
     .map((c) => ({ id: `${c.id}:webhook`, workflowName: c.name }));
 }
 
-const authMethods: Record<string, WebhookAuthMethod[]> = {
+export const authMethods: Record<string, WebhookAuthMethod[]> = {
   "project-a": [
     {
       id: "wam-a-1",

@@ -4,10 +4,13 @@ import type { PageRoute } from "../app/ia-utils";
 import Loaded from "../app/Loaded";
 import { useMemberSaves, useProject, useProjectMembers, useProjectSaves } from "../api/projects";
 import { combine } from "../api/status";
-import type { Collaborator, HistoryExport, ProjectSettingsPageData, WebhookAuthMethod } from "../model/page-data";
+import { fetchCollectionItems, useCollections, useCollectionSaves } from "../api/collections";
+import { useWebhookAuthMethods, useWebhookAuthSaves, webhookTriggerOptions } from "../api/webhook-auth";
+import { useHistoryExports, useHistoryExportSaves } from "../api/history-exports";
+import { useProjectWorkflows } from "../api/workflows";
+import type { Collaborator, ProjectSettingsPageData } from "../model/page-data";
 import {
   assignableRoles,
-  maskSecret,
   removeBlockedReason,
   retentionDays,
   retentionLabel,
@@ -30,12 +33,6 @@ import { saveFile } from "../components/primitives/save-file";
 import ProjectSettingsPage from "./ProjectSettingsPage";
 import { pageFrame } from "./route.fixtures";
 import { asProject } from "./project-records.query";
-
-/** A key like Lightning's: 32 random bytes as hex. */
-function generateApiKey(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(32));
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-}
 
 const now = () => new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
 
@@ -93,17 +90,24 @@ function asCollaborator(m: ProjectMember, yourRole: ProjectRole): Collaborator {
 }
 
 /**
- * Feeds a project's Settings. The project, its members, its MFA requirement
- * and its data retention come from the API. Its collections, webhook auth
- * methods, GitHub connection and history exports are still the fixtures'
- * record, copied into state on first visit, until each moves to the API.
+ * Feeds a project's Settings from the API: the project, its members, its
+ * MFA requirement and data retention, its collections, its webhook auth
+ * methods (and the triggers each guards), and its history exports, which the
+ * server makes in the background. Its GitHub connection is still the
+ * fixtures' record, copied into state on first visit, until it moves to the
+ * API.
  */
 export default function ProjectSettingsPageQuery({ route }: { route: PageRoute }) {
   const id = route.params["project"] ?? "";
   const { status: projectStatus, project: details } = useProject(id);
   const { status: membersStatus, members } = useProjectMembers(id);
+  // Only owners and admins may list collections.
+  const { status: collectionsStatus } = useCollections(id, !!details?.permissions?.manage_collection);
+  const { status: methodsStatus } = useWebhookAuthMethods(id);
+  const { status: exportsStatus } = useHistoryExports(id);
+  const { status: workflowsStatus } = useProjectWorkflows(id);
   return (
-    <Loaded status={combine(projectStatus, membersStatus)} path={route.currentPath}>
+    <Loaded status={combine(projectStatus, membersStatus, collectionsStatus, methodsStatus, exportsStatus, workflowsStatus)} path={route.currentPath}>
       {() => <ProjectSettings route={route} details={details!} members={members} />}
     </Loaded>
   );
@@ -123,10 +127,13 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
       const current = all[project.id] ?? projectSettingsRecord(project);
       return { ...all, [project.id]: { ...current, ...change(current) } };
     });
-  const updateMethod = (id: string, change: Partial<WebhookAuthMethod>) =>
-    update((r) => ({ webhookAuthMethods: r.webhookAuthMethods.map((m) => (m.id === id ? { ...m, ...change } : m)) }));
-  const updateExport = (id: string, change: Partial<HistoryExport>) =>
-    update((r) => ({ historyExports: r.historyExports.map((e) => (e.id === id ? { ...e, ...change } : e)) }));
+  const { collections } = useCollections(details.id, !!details.permissions?.manage_collection);
+  const collectionSaves = useCollectionSaves();
+  const { workflows } = useProjectWorkflows(details.id);
+  const { methods } = useWebhookAuthMethods(details.id);
+  const methodSaves = useWebhookAuthSaves(details.id, workflows);
+  const { exports } = useHistoryExports(details.id);
+  const exportSaves = useHistoryExportSaves(details.id);
 
   const yourRole = members.find((m) => m.email === currentUser.email)?.role ?? "viewer";
   const fromRecord = projectSettingsPageData(project, record);
@@ -140,13 +147,17 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
     concurrencyDisabled: details.concurrency === 1,
     collaborators: members.map((m) => asCollaborator(m, yourRole)),
     mfaRequired: details.requiresMfa,
+    collections,
+    webhookAuthMethods: methods,
+    webhookTriggers: webhookTriggerOptions(workflows),
+    historyExports: exports,
     dataStorage: {
       retentionPeriod: retentionLabel(details.historyRetentionDays),
       ioDataPolicy: details.retentionPolicy === "erase_all" ? "zero-persistence" : "retain",
       ioRetentionPeriod: retentionLabel(details.dataclipRetentionDays ?? details.historyRetentionDays),
     },
   };
-  const exportRecord = { ...record, name: details.name, environment: details.env, description: details.description };
+  const exportRecord = { ...record, name: details.name, environment: details.env, description: details.description, collections };
 
   return (
     <ProjectSettingsPage
@@ -184,36 +195,13 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
           dataclip_retention_period: settings.ioDataPolicy === "zero-persistence" ? null : retentionDays(settings.ioRetentionPeriod),
         })
       }
-      onCreateCollection={(name) =>
-        update((r) => ({
-          collections: [
-            ...r.collections,
-            { id: `col-${Date.now()}`, name, itemCount: 0, byteSize: 0, updatedAt: "Just now" },
-          ],
-        }))
-      }
-      onRenameCollection={(id, name) =>
-        update((r) => ({ collections: r.collections.map((c) => (c.id === id ? { ...c, name } : c)) }))
-      }
-      onDeleteCollection={(id) => update((r) => ({ collections: r.collections.filter((c) => c.id !== id) }))}
-      onPreviewCollection={async (id) => (record.collectionItems[id] ?? []).slice(0, 5)}
-      onCreateWebhookAuthMethod={async ({ name, type, username, password, triggerIds }) => {
-        const apiKey = type === "api" ? generateApiKey() : undefined;
-        const method: WebhookAuthMethod = {
-          id: `wam-${Date.now()}`,
-          name,
-          type,
-          username,
-          maskedSecret: apiKey ? maskSecret(apiKey) : "•".repeat(password?.length ?? 8),
-          triggerIds,
-        };
-        await update((r) => ({ webhookAuthMethods: [...r.webhookAuthMethods, method] }));
-        return { secret: apiKey };
-      }}
-      onUpdateWebhookAuthMethod={(id, { name, triggerIds }) => updateMethod(id, { name, triggerIds })}
-      onDeleteWebhookAuthMethod={(id) =>
-        update((r) => ({ webhookAuthMethods: r.webhookAuthMethods.filter((m) => m.id !== id) }))
-      }
+      onCreateCollection={(name) => collectionSaves.create(details.id, name)}
+      onRenameCollection={(collectionId, name) => collectionSaves.rename(details.id, collectionId, name)}
+      onDeleteCollection={(collectionId) => collectionSaves.remove(details.id, collectionId)}
+      onPreviewCollection={(collectionId) => fetchCollectionItems(details.id, collections.find((c) => c.id === collectionId)?.name ?? "")}
+      onCreateWebhookAuthMethod={methodSaves.create}
+      onUpdateWebhookAuthMethod={methodSaves.update}
+      onDeleteWebhookAuthMethod={methodSaves.remove}
       onConnectGitHubAccount={() => update((r) => ({ github: { ...r.github, accountConnected: true } }))}
       onConnectGitHub={(settings) =>
         update((r) => ({ github: { ...r.github, connection: { ...settings, lastSyncedAt: now() } } }))
@@ -224,27 +212,14 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
         }))
       }
       onDisconnectGitHub={() => update((r) => ({ github: { ...r.github, connection: undefined } }))}
-      onCreateHistoryExport={async () => {
-        const id = `exp-${Date.now()}`;
-        await update((r) => ({
-          historyExports: [
-            { id, requestedBy: `${currentUser.firstName} ${currentUser.lastName}`, createdAt: now(), status: "processing" },
-            ...r.historyExports,
-          ],
-        }));
-        // The export is made in the background, and is ready a moment later.
-        const date = new Date().toISOString().slice(0, 10);
-        setTimeout(
-          () => void updateExport(id, { status: "completed", fileName: `${record.name}-history-${date}.json` }),
-          3000
-        );
-      }}
+      onCreateHistoryExport={exportSaves.create}
       onDownloadHistoryExport={(id) => {
-        const file = record.historyExports.find((e) => e.id === id);
+        // Work orders aren't on the API yet: the file is made here from the fixtures' history.
+        const file = exports.find((e) => e.id === id);
         const workOrders = projectWorkOrders(project).map((o) => ({ id: o.workOrder.id, workflow: o.workflowName, status: o.workOrder.status, receivedAt: o.receivedAt, runs: o.workOrder.runs }));
         saveFile(
-          file?.fileName ?? `${record.name}-history.json`,
-          JSON.stringify({ project: record.name, exportedAt: file?.createdAt, workOrders }, null, 2),
+          file?.fileName ?? `${details.name}-history.json`,
+          JSON.stringify({ project: details.name, exportedAt: file?.createdAt, workOrders }, null, 2),
           "application/json"
         );
       }}

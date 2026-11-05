@@ -13,15 +13,22 @@
  */
 import { noContent, problem, type Body, type Handler, type Problem } from "./answers";
 import { resetDb } from "./db";
-import { refuse, sessionRoutes } from "./session";
+import { refuse, sessionRoutes, signInAs } from "./session";
+import { projectRoutes } from "./projects";
+import { userRoutes } from "./user-routes";
+import { auditRoutes } from "./audit";
 
 export type { Problem } from "./answers";
+export { signInAs } from "./session";
 
 /** How long each answer takes. Enough to see a pending state, short enough not to drag a demo. */
 let waitMs = 120;
 
 const routes: Record<string, Handler> = {
   ...sessionRoutes,
+  ...projectRoutes,
+  ...userRoutes,
+  ...auditRoutes,
   // The demo's own: back to the fixtures.
   "POST /api/demo/reset": () => {
     resetDb();
@@ -100,5 +107,6 @@ export function setWait(ms: number) {
 /** For tests: the starting data, nothing set to fail. */
 export function resetFakeApi() {
   resetDb();
+  signInAs(null);
   failures.clear();
 }

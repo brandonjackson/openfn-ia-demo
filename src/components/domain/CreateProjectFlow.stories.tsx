@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import CreateProjectFlow from "./CreateProjectFlow";
+import { FormError } from "../../model/form-error";
 
 const meta: Meta<typeof CreateProjectFlow> = {
   title: "Domain/CreateProjectFlow",
@@ -11,7 +12,7 @@ const meta: Meta<typeof CreateProjectFlow> = {
   args: {
     open: true,
     onClose: () => {},
-    onCreate: (project) => console.log("create project", project),
+    onCreate: async (project) => console.log("create project", project),
   },
 };
 
@@ -51,7 +52,8 @@ function InteractiveDemo() {
       <CreateProjectFlow
         open={open}
         onClose={() => setOpen(false)}
-        onCreate={(project) => {
+        onCreate={async (project) => {
+          await new Promise((resolve) => setTimeout(resolve, 500));
           setCreated(project.name);
           setOpen(false);
         }}
@@ -63,4 +65,14 @@ function InteractiveDemo() {
 export const Interactive: Story = {
   name: "Triggered from a button",
   render: () => <InteractiveDemo />,
+};
+
+/** The server refused the name: the form stays open and says why under the field. Type a name and press Create. */
+export const Refused: Story = {
+  args: {
+    onCreate: async () => {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      throw new FormError("The request body is not valid.", { name: ["has already been taken"] });
+    },
+  },
 };

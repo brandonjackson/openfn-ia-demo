@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { errorMessageOf, fieldErrorOf } from "../../model/form-error";
 import type { AdminUser, AdminUserDraft, InstanceRole } from "../../model/page-data";
 import { fullName, instanceRoleLabels } from "../../model/admin";
 import Button from "../primitives/Button";
@@ -38,6 +39,8 @@ export default function UserFormModal({ user, onSave, onClose }: Props) {
     password: user ? undefined : "",
   });
   const [saving, setSaving] = useState(false);
+  // A save the server refused: shown above the form, which stays open.
+  const [error, setError] = useState<unknown>(null);
   const set = (patch: Partial<AdminUserDraft>) => setDraft((d) => ({ ...d, ...patch }));
 
   const complete =
@@ -45,9 +48,12 @@ export default function UserFormModal({ user, onSave, onClose }: Props) {
 
   const save = async () => {
     setSaving(true);
+    setError(null);
     try {
       await onSave(draft);
       onClose();
+    } catch (refused) {
+      setError(refused);
     } finally {
       setSaving(false);
     }
@@ -70,6 +76,11 @@ export default function UserFormModal({ user, onSave, onClose }: Props) {
       }
     >
       <Stack gap="md">
+        {error !== null && (
+          <Callout variant="danger" title="The account wasn't saved">
+            {saveErrorOf(error)}
+          </Callout>
+        )}
         <FormField label="First name" htmlFor={`${id}-first`}>
           <TextInput id={`${id}-first`} value={draft.firstName} onChange={(e) => set({ firstName: e.target.value })} />
         </FormField>
@@ -125,4 +136,14 @@ export default function UserFormModal({ user, onSave, onClose }: Props) {
       </Stack>
     </Modal>
   );
+}
+
+/** A refused save in the form's words: which field, and what's wrong with it. */
+function saveErrorOf(error: unknown): string {
+  const fields: [string, string][] = [["email", "Email"], ["password", "Password"], ["first_name", "First name"], ["last_name", "Last name"], ["role", "Role"]];
+  for (const [field, label] of fields) {
+    const problem = fieldErrorOf(error, field);
+    if (problem) return `${label} ${problem}.`;
+  }
+  return errorMessageOf(error);
 }

@@ -1,5 +1,6 @@
 import type { ProjectSummary, SandboxItem, WorkflowListItem } from "../model/page-data";
 import { summarizeProject } from "../model/projects";
+import { seedId } from "./ids";
 import type { Project, ProjectService } from "../model/projects";
 
 export const projects: Project[] = [
@@ -618,3 +619,16 @@ export function projectWorkflowItems(project: Project): WorkflowListItem[] {
 
 /** Every project by id and name, for anything that offers a choice of project. */
 export const projectOptions = projects.map((p) => ({ id: p.id, name: p.name }));
+
+/**
+ * The fixture project behind an id from the API (or still a fixture slug), for
+ * the parts of a project that haven't moved to the API yet: its services,
+ * components and sandboxes. Undefined for a project made on the API.
+ */
+export function fixtureProject(id: string | undefined): Project | undefined {
+  if (!id) return undefined;
+  return projects.find((p) => p.id === id || seedId("project", p.id) === id);
+}
+
+/** A fixture project's id on the API. */
+export const apiProjectId = (slug: string) => seedId("project", slug);

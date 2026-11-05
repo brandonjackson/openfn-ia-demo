@@ -3,12 +3,16 @@ import { X, FolderPlus } from "lucide-react";
 import Button from "../primitives/Button";
 import FormField from "../primitives/FormField";
 import { TextArea, TextInput } from "../primitives/FormControls";
+import Callout from "../primitives/Callout";
+import { urlSafeName } from "../../model/project-settings";
+import { errorMessageOf, fieldErrorOf } from "../../model/form-error";
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
 /* ------------------------------------------------------------------ */
 
 export interface NewProjectInput {
+  /** URL-safe, as Lightning names projects: lowercase letters, digits and hyphens. */
   name: string;
   environment: string;
   description: string;
@@ -17,8 +21,12 @@ export interface NewProjectInput {
 interface Props {
   open: boolean;
   onClose: () => void;
-  /** Called with the form values when the user creates the project. */
-  onCreate: (project: NewProjectInput) => void;
+  /**
+   * Creates the project from the form's values. While it's saving the form
+   * waits; if it's refused, the form stays open and shows why, under the
+   * field the refusal names.
+   */
+  onCreate: (project: NewProjectInput) => Promise<void>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -36,22 +44,32 @@ function CreateProjectModal({
   onCreate,
 }: {
   onClose: () => void;
-  onCreate: (project: NewProjectInput) => void;
+  onCreate: (project: NewProjectInput) => Promise<void>;
 }) {
   const [name, setName] = useState("");
   const [environment, setEnvironment] = useState("main");
   const [description, setDescription] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<unknown>(null);
 
-  const canCreate = name.trim().length > 0;
+  const slug = urlSafeName(name);
+  const canCreate = slug.length > 0 && !saving;
+  const nameError = fieldErrorOf(error, "name");
+  const descriptionError = fieldErrorOf(error, "description");
+  const envError = fieldErrorOf(error, "env");
+  const otherError = error && !nameError && !descriptionError && !envError ? errorMessageOf(error) : undefined;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canCreate) return;
-    onCreate({
-      name: name.trim(),
-      environment: environment.trim(),
-      description: description.trim(),
-    });
+    setSaving(true);
+    setError(null);
+    try {
+      await onCreate({ name: slug, environment: environment.trim(), description: description.trim() });
+    } catch (refused) {
+      setError(refused);
+      setSaving(false);
+    }
   };
 
   return (
@@ -96,7 +114,11 @@ function CreateProjectModal({
           {/* Form fields */}
           <div className="space-y-5">
             {/* Name */}
-            <FormField label="Project name" hint="A unique name to identify this project.">
+            <FormField
+              label="Project name"
+              hint={slug ? `Your project will be named ${slug}` : "Lowercase letters, numbers and hyphens."}
+              error={nameError}
+            >
               <TextInput
                 type="text"
                 value={name}
@@ -107,7 +129,7 @@ function CreateProjectModal({
             </FormField>
 
             {/* Environment */}
-            <FormField label="Project environment" hint="Credentials will be loaded with values from this environment.">
+            <FormField label="Project environment" hint="Credentials will be loaded with values from this environment." error={envError}>
               <TextInput
                 type="text"
                 value={environment}
@@ -116,7 +138,7 @@ function CreateProjectModal({
             </FormField>
 
             {/* Description */}
-            <FormField label="Project description" hint={`${description.length}/240 characters`}>
+            <FormField label="Project description" hint={`${description.length}/240 characters`} error={descriptionError}>
               <TextArea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -126,13 +148,15 @@ function CreateProjectModal({
               />
             </FormField>
 
+            {otherError && <Callout variant="danger" title="The project wasn't created">{otherError}</Callout>}
+
             {/* Actions */}
             <div className="flex items-center justify-end gap-3 pt-2">
               <Button variant="secondary" onClick={onClose}>
                 Cancel
               </Button>
               <Button type="submit" disabled={!canCreate}>
-                Create project
+                {saving ? "Creating…" : "Create project"}
               </Button>
             </div>
           </div>

@@ -7,7 +7,7 @@ import { allFlagsOn, type FeatureFlags } from "../../model/feature-flags";
  * What the app's chrome (the sidebar, and the project bar in the
  * breadcrumbs) needs to know, wherever it's drawn. Pages are fed through
  * props; the chrome sits around and above every page, so it's fed once,
- * here, by the shell's wrapper (src/app/Shell.fixtures.tsx).
+ * here, by the shell's wrapper (src/app/Shell.query.tsx; Shell.fixtures.tsx in stories).
  */
 export interface Shell {
   /** The URL being shown. */

@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { errorMessageOf, fieldErrorOf, FormError } from "../../model/form-error";
 import type { AdminProject, AdminProjectDraft, AdminUser, ProjectRole } from "../../model/page-data";
 import { fullName, projectOwnerError, projectRoleLabels, projectRoles, projectSlug } from "../../model/admin";
 import Button from "../primitives/Button";
@@ -41,6 +42,8 @@ export default function ProjectFormModal({ project, users, onSave, onClose }: Pr
   );
   const [filter, setFilter] = useState("");
   const [saving, setSaving] = useState(false);
+  // A save the server refused: shown above the form, which stays open.
+  const [error, setError] = useState<unknown>(null);
 
   const members = Object.entries(roles).flatMap(([userId, role]) => (role ? [{ userId, role }] : []));
   const ownerError = projectOwnerError(members);
@@ -50,9 +53,12 @@ export default function ProjectFormModal({ project, users, onSave, onClose }: Pr
 
   const save = async () => {
     setSaving(true);
+    setError(null);
     try {
-      await onSave({ name: name.trim(), description: description.trim(), members });
+      await onSave({ name: slug, description: description.trim(), members });
       onClose();
+    } catch (refused) {
+      setError(refused);
     } finally {
       setSaving(false);
     }
@@ -109,6 +115,11 @@ export default function ProjectFormModal({ project, users, onSave, onClose }: Pr
       }
     >
       <Stack gap="lg">
+        {error !== null && (
+          <Callout variant="danger" title="The project wasn't saved">
+            {saveErrorOf(error)}
+          </Callout>
+        )}
         <Stack gap="md">
           <FormField
             label="Name"
@@ -139,4 +150,13 @@ export default function ProjectFormModal({ project, users, onSave, onClose }: Pr
       </Stack>
     </Modal>
   );
+}
+
+/** A refused save in the form's words. */
+function saveErrorOf(error: unknown): string {
+  const name = fieldErrorOf(error, "name");
+  if (name) return `The name ${name}.`;
+  const members = error instanceof FormError && Object.keys(error.fieldErrors).some((k) => k.startsWith("members") || k === "role");
+  if (members) return "Every member needs an account, and the project needs exactly one owner. The owner can't be changed once the project exists.";
+  return errorMessageOf(error);
 }

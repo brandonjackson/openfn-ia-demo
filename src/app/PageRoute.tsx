@@ -5,26 +5,27 @@ import { flagById } from "../model/feature-flags";
 import { useFlags } from "./feature-flags";
 import { findNodeByPath, type PageRoute as Route } from "./ia-utils";
 import { useShell } from "../components/domain/shell-context";
+import { apiProjectId, projects as fixtureProjects } from "../fixtures/projects";
 import NotFoundPage from "../pages/NotFoundPage";
-import OverviewPageFixtures from "../pages/OverviewPage.fixtures";
+import OverviewPageQuery from "../pages/OverviewPage.query";
 import SystemsPageFixtures from "../pages/SystemsPage.fixtures";
 import SystemPageFixtures from "../pages/SystemPage.fixtures";
 import HistoryPageFixtures from "../pages/HistoryPage.fixtures";
 import ServicesPageFixtures from "../pages/ServicesPage.fixtures";
-import ProjectsPageFixtures from "../pages/ProjectsPage.fixtures";
-import ProjectPageFixtures from "../pages/ProjectPage.fixtures";
+import ProjectsPageQuery from "../pages/ProjectsPage.query";
+import ProjectPageQuery from "../pages/ProjectPage.query";
 import ProjectWorkflowsPageFixtures from "../pages/ProjectWorkflowsPage.fixtures";
 import ProjectComponentsPageFixtures from "../pages/ProjectComponentsPage.fixtures";
 import ProjectCreatePageFixtures from "../pages/ProjectCreatePage.fixtures";
 import ProjectSandboxesPageFixtures from "../pages/ProjectSandboxesPage.fixtures";
-import ProjectSettingsPageFixtures from "../pages/ProjectSettingsPage.fixtures";
+import ProjectSettingsPageQuery from "../pages/ProjectSettingsPage.query";
 import ServicePageFixtures from "../pages/ServicePage.fixtures";
 import ChannelPageFixtures from "../pages/ChannelPage.fixtures";
 import StatusPageFixtures from "../pages/StatusPage.fixtures";
 import InsightsPageFixtures from "../pages/InsightsPage.fixtures";
 import UserSettingsPageFixtures from "../pages/UserSettingsPage.fixtures";
 import OrganizationSettingsPageFixtures from "../pages/OrganizationSettingsPage.fixtures";
-import AdminSettingsPageFixtures from "../pages/AdminSettingsPage.fixtures";
+import AdminSettingsPageQuery from "../pages/AdminSettingsPage.query";
 import HandbookPageFixtures from "../pages/HandbookPage.fixtures";
 import PlaceholderPageFixtures from "../pages/PlaceholderPage.fixtures";
 
@@ -36,25 +37,25 @@ type PageType = NonNullable<IANode["pageType"]>;
  * fixtures wrapper and point its line here at it. The page doesn't change.
  */
 const wrappers: Record<PageType, ComponentType<{ route: Route }>> = {
-  dashboard: OverviewPageFixtures,
+  dashboard: OverviewPageQuery,
   list: SystemsPageFixtures,
   detail: SystemPageFixtures,
   table: HistoryPageFixtures,
   catalog: ServicesPageFixtures,
-  projects: ProjectsPageFixtures,
-  project: ProjectPageFixtures,
+  projects: ProjectsPageQuery,
+  project: ProjectPageQuery,
   "project-workflows": ProjectWorkflowsPageFixtures,
   "project-components": ProjectComponentsPageFixtures,
   "project-create": ProjectCreatePageFixtures,
   "project-sandboxes": ProjectSandboxesPageFixtures,
-  "project-settings": ProjectSettingsPageFixtures,
+  "project-settings": ProjectSettingsPageQuery,
   service: ServicePageFixtures,
   channel: ChannelPageFixtures,
   status: StatusPageFixtures,
   insights: InsightsPageFixtures,
   "user-settings": UserSettingsPageFixtures,
   "organization-settings": OrganizationSettingsPageFixtures,
-  "admin-settings": AdminSettingsPageFixtures,
+  "admin-settings": AdminSettingsPageQuery,
   handbook: HandbookPageFixtures,
   generic: PlaceholderPageFixtures,
 };
@@ -78,12 +79,18 @@ const movedPaths: Record<string, string> = {
  * settings only exist for a superuser.
  */
 export default function PageRoute() {
-  const { pathname } = useLocation();
+  const { pathname, search, hash } = useLocation();
   const flags = useFlags();
   const { isSuperuser } = useShell();
 
+  // Projects are named by their id on the API now; an old link by the fixture's slug still lands.
+  const slug = pathname.match(/^\/projects\/([^/]+)/)?.[1];
+  if (slug && fixtureProjects.some((p) => p.id === slug)) {
+    return <Navigate to={`${pathname.replace(`/projects/${slug}`, `/projects/${apiProjectId(slug)}`)}${search}${hash}`} replace />;
+  }
+
   if (pathname === "/" || pathname === "/overview") {
-    return flags.organizations ? <OverviewPageFixtures /> : <Navigate to="/projects" replace />;
+    return flags.organizations ? <OverviewPageQuery /> : <Navigate to="/projects" replace />;
   }
 
   const moved = movedPaths[pathname.replace(/\/$/, "")];

@@ -101,7 +101,7 @@ The fixture wrappers apply a change straight away and return an already-resolved
 
 **Switching a data source.** `src/app/PageRoute.tsx` holds the route table that says which wrapper feeds each kind of page. To move a page onto the API, write `XPage.query.tsx` beside the fixtures wrapper and point its line in the table at it. The page doesn't change.
 
-**The chrome.** The sidebar and the project bar in the breadcrumbs sit around every page, so they're fed once, by the shell's wrapper (`src/app/Shell.fixtures.tsx`), through a small `ShellContext` (`src/components/domain/shell-context.ts`). Only chrome reads it (`Sidebar`, `Breadcrumbs`, and the app when it fills `Layout`'s slots); pages take props.
+**The chrome.** The sidebar and the project bar in the breadcrumbs sit around every page, so they're fed once, by the shell's wrapper (`src/app/Shell.query.tsx` in the app, `Shell.fixtures.tsx` in stories), through a small `ShellContext` (`src/components/domain/shell-context.ts`). Only chrome reads it (`Sidebar`, `Breadcrumbs`, and the app when it fills `Layout`'s slots); pages take props.
 
 ### The API
 
@@ -135,7 +135,7 @@ When a helper needs a record (the org's X-Road instance, the directory), it take
 
 Follow `/projects/project-a/workflows` from the URL to the pixels. Each stop says what that layer is for.
 
-1. **The route.** `src/app/App.tsx` wraps everything in `ShellFixtures` and sends the URL to `PageRoute`. *The app decides what's on screen; it doesn't draw any of it.*
+1. **The route.** `src/app/App.tsx` wraps everything in `ShellQuery` and sends the URL to `PageRoute`. *The app decides what's on screen; it doesn't draw any of it.*
 2. **The route table.** `PageRoute` finds the node in the IA tree (`model/ia-tree.ts`): its `pageType` is `project-workflows`, so `ProjectWorkflowsPageFixtures` gets the route. *One line per kind of page is all it takes to swap where that page's data comes from.*
 3. **The wrapper.** `ProjectWorkflowsPage.fixtures.tsx` finds the project in fixtures, or shows Not Found. It builds the page's data, and turns "New workflow" into `navigate("/workflow-editor/new?project=…")`. *This is the only file that knows about fixtures and the router. A LiveView island or a query wrapper would do the same job differently.*
 4. **The page.** `ProjectWorkflowsPage.tsx` takes `ProjectWorkflowsPageProps` and draws them. It keeps one bit of UI state, the sort order. *It draws, and nothing else, so the same file can be copied into Lightning unchanged.*

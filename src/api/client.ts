@@ -6,6 +6,7 @@
  * request throws an `ApiError`: show its `message`, branch on its `code`.
  */
 import { fakeFetch } from "../fake-api";
+import { FormError } from "../model/form-error";
 
 const send: (path: string, init?: RequestInit) => Promise<Response> = fakeFetch;
 
@@ -86,30 +87,23 @@ export interface ProblemEntry {
  * `fieldErrors`, keyed by the pointer without `#/` (`#/name` → `name`,
  * `#/members/0/email` → `members.0.email`).
  */
-export class ApiError extends Error {
+export class ApiError extends FormError {
   readonly status: number;
   readonly code: string;
   readonly errors: ProblemEntry[];
-  readonly fieldErrors: Record<string, string[]>;
 
   constructor(status: number, code: string, detail: string, errors: ProblemEntry[] = []) {
-    super(detail);
-    this.name = "ApiError";
-    this.status = status;
-    this.code = code;
-    this.errors = errors;
     const fieldErrors: Record<string, string[]> = {};
     for (const e of errors) {
       if (!e.pointer) continue;
       const key = e.pointer.replace(/^#\//, "").replaceAll("/", ".");
       (fieldErrors[key] ??= []).push(e.detail);
     }
-    this.fieldErrors = fieldErrors;
-  }
-
-  /** The first problem with one field of the body (`name`, `members.0.email`), as a sentence for under that field. */
-  fieldError(field: string): string | undefined {
-    return this.fieldErrors[field]?.[0];
+    super(detail, fieldErrors);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+    this.errors = errors;
   }
 }
 

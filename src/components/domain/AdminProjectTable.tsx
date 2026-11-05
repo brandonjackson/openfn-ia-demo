@@ -18,18 +18,22 @@ interface Props {
   /** Asks to delete a project after the grace period. */
   onScheduleDeletion: (project: AdminProject) => void;
   onCancelDeletion: (project: AdminProject) => void;
-  /** Asks to delete a project right away, once its deletion is scheduled. */
-  onDeleteNow: (project: AdminProject) => void;
+  /**
+   * Asks to delete a project right away, once its deletion is scheduled.
+   * Left out where the server only schedules deletions (Lightning's API has
+   * no immediate purge), and the menu doesn't offer it.
+   */
+  onDeleteNow?: (project: AdminProject) => void;
   /** Shown when no project matches, e.g. a search with no results. */
   emptyMessage?: string;
 }
 
-function actionsFor(project: AdminProject): DropdownMenuItem[] {
+function actionsFor(project: AdminProject, canDeleteNow: boolean): DropdownMenuItem[] {
   return project.scheduledDeletion
     ? [
         { id: "edit", label: "Edit" },
         { id: "cancel-deletion", label: "Cancel deletion", divider: true },
-        { id: "delete-now", label: "Delete now", tone: "danger" },
+        ...(canDeleteNow ? [{ id: "delete-now", label: "Delete now", tone: "danger" as const }] : []),
       ]
     : [
         { id: "edit", label: "Edit" },
@@ -60,7 +64,7 @@ export default function AdminProjectTable({
     if (id === "edit") onEdit(project);
     if (id === "delete") onScheduleDeletion(project);
     if (id === "cancel-deletion") onCancelDeletion(project);
-    if (id === "delete-now") onDeleteNow(project);
+    if (id === "delete-now") onDeleteNow?.(project);
   };
 
   const columns: DataTableColumn<AdminProject>[] = [
@@ -97,7 +101,7 @@ export default function AdminProjectTable({
         <DropdownMenu
           ariaLabel={`Actions for ${p.name}`}
           align="right"
-          items={actionsFor(p)}
+          items={actionsFor(p, !!onDeleteNow)}
           onSelect={(id) => select(p, id)}
           trigger={({ open, toggle }) => (
             <IconButton

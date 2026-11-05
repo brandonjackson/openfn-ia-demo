@@ -19,8 +19,12 @@ interface Props {
   /** Asks to delete an account after the grace period. Offered when the user's `canDelete`. */
   onScheduleDeletion: (user: AdminUser) => void;
   onCancelDeletion: (user: AdminUser) => void;
-  /** Asks to delete an account right away. Offered once a deletion is scheduled, when the user's `canDeleteNow`. */
-  onDeleteNow: (user: AdminUser) => void;
+  /**
+   * Asks to delete an account right away. Offered once a deletion is
+   * scheduled, when the user's `canDeleteNow`. Left out where the server only
+   * schedules deletions (Lightning's API has no immediate purge).
+   */
+  onDeleteNow?: (user: AdminUser) => void;
   /** Shown when no user matches, e.g. a search with no results. */
   emptyMessage?: string;
 }
@@ -32,7 +36,7 @@ function deleteReason(user: AdminUser): string | undefined {
   return "Can't be deleted";
 }
 
-function actionsFor(user: AdminUser): DropdownMenuItem[] {
+function actionsFor(user: AdminUser, canDeleteNow: boolean): DropdownMenuItem[] {
   const items: DropdownMenuItem[] = [
     { id: "edit", label: "Edit" },
     {
@@ -43,16 +47,15 @@ function actionsFor(user: AdminUser): DropdownMenuItem[] {
     },
   ];
   if (user.scheduledDeletion) {
-    items.push(
-      { id: "cancel-deletion", label: "Cancel deletion", divider: true },
-      {
+    items.push({ id: "cancel-deletion", label: "Cancel deletion", divider: true });
+    if (canDeleteNow)
+      items.push({
         id: "delete-now",
         label: "Delete now",
         tone: "danger",
         disabled: !user.canDeleteNow,
         description: user.canDeleteNow ? undefined : "Not while they have activity in projects",
-      }
-    );
+      });
   } else {
     items.push({
       id: "delete",
@@ -88,7 +91,7 @@ export default function AdminUserTable({
     if (id === "enable") onSetDisabled(user, false);
     if (id === "delete") onScheduleDeletion(user);
     if (id === "cancel-deletion") onCancelDeletion(user);
-    if (id === "delete-now") onDeleteNow(user);
+    if (id === "delete-now") onDeleteNow?.(user);
   };
 
   const columns: DataTableColumn<AdminUser>[] = [
@@ -140,7 +143,7 @@ export default function AdminUserTable({
         <DropdownMenu
           ariaLabel={`Actions for ${fullName(u)}`}
           align="right"
-          items={actionsFor(u)}
+          items={actionsFor(u, !!onDeleteNow)}
           onSelect={(id) => select(u, id)}
           trigger={({ open, toggle }) => (
             <IconButton

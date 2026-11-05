@@ -17,7 +17,35 @@ const tables = new Map<string, Table<unknown>>();
 
 interface Stored {
   seed: string;
+  /** When the stored data was seeded: the moment its "12 minutes ago"s count back from. */
+  seededAt?: number;
   tables: Record<string, unknown[]>;
+}
+
+// The moment seeds count back from. Fixed while fingerprinting, so the fingerprint only
+// changes when the fixtures do; otherwise the moment the data was first seeded.
+let seededAt = Date.now();
+
+/** A seed's timestamp: this long before the data was seeded, whole seconds, UTC. */
+export function ago(ms: number): string {
+  return new Date(seededAt - ms).toISOString().replace(/\.\d+Z$/, "Z");
+}
+
+const UNIT_MS: Record<string, number> = { second: 1e3, minute: 6e4, hour: 36e5, day: 864e5, week: 6048e5, month: 2592e6, year: 31536e6 };
+
+/**
+ * A fixture's relative time ("12 minutes ago", "Yesterday", "Just now") as a
+ * seed timestamp; a date ("14 Mar 2024") as itself. Anything else is `fallback` ago.
+ */
+export function seedTime(text: string | undefined, fallback = UNIT_MS.day!): string {
+  const t = (text ?? "").trim().toLowerCase();
+  if (t === "just now" || t === "now") return ago(30_000);
+  if (t === "yesterday") return ago(UNIT_MS.day!);
+  const rel = /^(an?|\d+)\s+(second|minute|hour|day|week|month|year)s?\s+ago$/.exec(t);
+  if (rel) return ago((rel[1] === "a" || rel[1] === "an" ? 1 : Number(rel[1])) * UNIT_MS[rel[2]!]!);
+  const parsed = Date.parse(`${text} UTC`);
+  if (text && !Number.isNaN(parsed)) return new Date(parsed).toISOString().replace(/\.\d+Z$/, "Z");
+  return ago(fallback);
 }
 
 let stored: Stored | null | undefined;
@@ -34,7 +62,10 @@ function storage(): Storage | undefined {
 let fingerprint: string | undefined;
 function seedFingerprint(): string {
   if (fingerprint) return fingerprint;
+  const clock = seededAt;
+  seededAt = 0;
   const text = JSON.stringify([...tables.entries()].map(([name, t]) => [name, t.seed()]));
+  seededAt = clock;
   let h = 0;
   for (let i = 0; i < text.length; i++) h = (Math.imul(31, h) + text.charCodeAt(i)) | 0;
   fingerprint = `${tables.size}:${text.length}:${h}`;
@@ -48,7 +79,10 @@ function load(): Stored | null {
   if (!raw) return stored;
   try {
     const parsed = JSON.parse(raw) as Stored;
-    if (parsed.seed === seedFingerprint()) stored = parsed;
+    if (parsed.seed === seedFingerprint()) {
+      stored = parsed;
+      seededAt = parsed.seededAt ?? seededAt;
+    }
   } catch {
     // Unreadable: start from the seed.
   }
@@ -63,8 +97,12 @@ function save() {
     pending = false;
     const store = storage();
     if (!store) return;
-    const data: Stored = { seed: seedFingerprint(), tables: {} };
-    for (const [name, t] of tables) if (t.rows) data.tables[name] = t.rows;
+    const data: Stored = { seed: seedFingerprint(), seededAt, tables: {} };
+    // A table not read this session keeps what was stored for it.
+    for (const [name, t] of tables) {
+      const rows = t.rows ?? stored?.tables[name];
+      if (rows) data.tables[name] = rows;
+    }
     try {
       store.setItem(STORAGE_KEY, JSON.stringify(data));
     } catch {
@@ -106,6 +144,7 @@ export function table<T>(name: string, seed: () => T[]) {
 /** Back to the seed: forgets every change, here and in localStorage. */
 export function resetDb() {
   for (const t of tables.values()) t.rows = undefined;
+  seededAt = Date.now();
   stored = null;
   storage()?.removeItem(STORAGE_KEY);
 }

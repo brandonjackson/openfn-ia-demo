@@ -3,6 +3,7 @@ import type { PageProps } from "../model/ia-tree";
 import type { ChannelPageData } from "../model/page-data";
 import { channelTypeConfig } from "../components/domain/channel-types";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import Badge from "../components/primitives/Badge";
 import Button from "../components/primitives/Button";
 import ChannelView from "../components/domain/ChannelView";
@@ -27,10 +28,7 @@ export default function ChannelPage({ ancestors, data, onOpenWorkflow, onOpenRun
   return (
     <div className="space-y-8">
       <PageHeader
-        breadcrumbs={{
-          ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-          current: component.name,
-        }}
+        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={component.name} />}
         icon={ArrowLeftRight}
         title={component.name}
         badges={<Badge label={type.label} tone={type.tone} icon={type.icon} />}

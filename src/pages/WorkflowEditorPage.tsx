@@ -45,7 +45,7 @@ import type { ExplorerFile } from "../components/domain/EditorExplorer";
 import VersionMismatchBanner from "../components/domain/VersionMismatchBanner";
 import StepRunDetails from "../components/domain/StepRunDetails";
 import StepInspector from "../components/domain/StepInspector";
-import type { RunDataSection } from "../components/domain/panel-views";
+import { panelViews, type RunDataSection } from "../components/domain/panel-views";
 import CanvasRunsBar from "../components/domain/CanvasRunsBar";
 import ReadOnlyNotice from "../components/domain/ReadOnlyNotice";
 import FailureBreakdown from "../components/domain/FailureBreakdown";
@@ -912,6 +912,7 @@ export default function WorkflowEditorPage({
   // The panel lives under the code; the canvas has none.
   const panel = shownLayout.panel ? (
     <EditorPanel
+      views={panelViews}
       view={panelView}
       onViewChange={(v) => updateLayout({ panelView: v })}
       disabledViews={disabledViews}
@@ -970,7 +971,7 @@ export default function WorkflowEditorPage({
   const toolbar = (
     <EditorToolbar
       name={name}
-      onRename={setName}
+      onRename={onMain ? undefined : setName}
       onMenuAction={onMenuAction}
       projectName={projectName}
       url={url}
@@ -1003,7 +1004,7 @@ export default function WorkflowEditorPage({
     <EditorShell
       toolbar={toolbar}
       floatToolbar={view === "canvas"}
-      sandboxed={!onMain}
+      accentEdge={!onMain}
       bottom={view === "canvas" && onMain ? <ReadOnlyNotice onEditInSandbox={() => setEditInSandboxOpen(true)} /> : undefined}
       rightTray={rightTray}
       rightTrayOpen={layout.assistant}
@@ -1015,6 +1016,7 @@ export default function WorkflowEditorPage({
             open={editInSandboxOpen}
             onClose={() => setEditInSandboxOpen(false)}
             sandboxes={allSandboxes.filter((s) => s !== "main")}
+            reservedNames={["main"]}
             run={selectedRun}
             runInput={selectedRun ? clips.find((d) => d.id === selectedRun.inputId) : undefined}
             latestVersion={latestVersion}

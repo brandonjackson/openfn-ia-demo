@@ -26,7 +26,7 @@ export const OnMain: Story = {
 
 /** In a sandbox, renaming is allowed and the menu offers "Go live". */
 export const InSandbox: Story = {
-  args: { onMain: false },
+  args: { onMain: false, canRename: true },
 };
 
 export const Paused: Story = {

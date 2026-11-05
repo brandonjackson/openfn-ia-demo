@@ -24,6 +24,7 @@ const editorViews: { id: EditorView; label: string }[] = [
 
 interface Props {
   name: string;
+  /** Renames the workflow. Leave it out where it can't be renamed, e.g. on main. */
   onRename?: (name: string) => void;
   /** Start in rename mode (useful for stories). */
   defaultRenaming?: boolean;
@@ -113,7 +114,7 @@ export default function EditorToolbar({
   onToggleAssistant,
 }: Props) {
   const onMain = sandbox === "main";
-  const canRename = !onMain && onRename !== undefined;
+  const canRename = onRename !== undefined;
   const [renaming, setRenaming] = useState(defaultRenaming && canRename);
   const [draft, setDraft] = useState(name);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -171,6 +172,7 @@ export default function EditorToolbar({
         <WorkflowFileMenu
           onSelect={menuAction}
           onMain={onMain}
+          canRename={canRename}
           live={live}
           projectName={projectName}
           url={url}

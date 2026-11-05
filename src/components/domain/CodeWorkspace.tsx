@@ -4,7 +4,7 @@ import { BookOpen, Calendar, ExternalLink, FolderKanban, Globe, History, Layers,
 import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowFileContents, WorkflowSettings } from "../../model/workflow";
 import type { DetailsViewId } from "./editor-layout";
 import { triggerTypes, workflowToYaml } from "../../model/workflow";
-import type { AdaptorReference } from "../../model/adaptor-reference";
+import { adaptorOperations, type AdaptorReference } from "../../model/adaptor-reference";
 import type { ConnectedSystem } from "../../model/connected-systems";
 import type { ProjectComponent, ProjectService } from "../../model/projects";
 import { channelTypeConfig } from "./channel-types";
@@ -375,6 +375,7 @@ export default function CodeWorkspace({
               ref={editor}
               key={step?.id ?? path.join("/")}
               code={code}
+              calls={adaptorOperations}
               onChange={step && editable ? (next) => onCodeChange!(step.id, next) : undefined}
             />
           )}

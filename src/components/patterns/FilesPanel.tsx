@@ -1,12 +1,25 @@
 import { useRef } from "react";
 import { Plus } from "lucide-react";
-import type { HandbookFile } from "../../model/page-data";
 import Button from "../primitives/Button";
 import FileDropzone from "../primitives/FileDropzone";
 import FileTile from "../primitives/FileTile";
+import type { FileKind } from "../primitives/FileTile";
+
+/** One uploaded file in the panel. */
+export interface PanelFile {
+  id: string;
+  name: string;
+  kind: FileKind;
+  /** Human-readable size, e.g. "240 KB". */
+  size: string;
+  /** Size in bytes, counted against the panel's capacity. */
+  bytes: number;
+  addedBy: string;
+  addedAt: string;
+}
 
 interface Props {
-  files: HandbookFile[];
+  files: PanelFile[];
   /** Total bytes the panel can hold, used for the capacity meter. */
   capacityBytes: number;
   title?: string;

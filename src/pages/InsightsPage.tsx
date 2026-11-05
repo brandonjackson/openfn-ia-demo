@@ -1,6 +1,7 @@
 import type { PageProps } from "../model/ia-tree";
 import type { InsightsPageData, ProjectInsight } from "../model/page-data";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import Badge from "../components/primitives/Badge";
 import Card from "../components/primitives/Card";
 import StatTile from "../components/primitives/StatTile";
@@ -43,10 +44,7 @@ export default function InsightsPage({ node, ancestors, data }: InsightsPageProp
   return (
     <div className="space-y-8">
       <PageHeader
-        breadcrumbs={{
-        ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-        current: node.label,
-      }}
+        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
         description={node.description}
         actions={<Badge label={data.range} />}

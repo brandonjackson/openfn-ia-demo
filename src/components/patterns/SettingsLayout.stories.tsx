@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { UserCircle, KeyRound, Terminal } from "lucide-react";
 import SettingsLayout from "./SettingsLayout";
+import Breadcrumbs from "../domain/Breadcrumbs";
 import SectionHeading from "../primitives/SectionHeading";
 import Card from "../primitives/Card";
 import { withRouter } from "../../stories/decorators";
@@ -17,10 +18,7 @@ type Story = StoryObj<typeof SettingsLayout>;
 
 export const Default: Story = {
   args: {
-    breadcrumbs: {
-      ancestors: [{ label: "User settings", path: "/user-settings" }],
-      current: "Profile",
-    },
+    breadcrumbs: <Breadcrumbs ancestors={[{ label: "User settings", path: "/user-settings" }]} current="Profile" />,
     title: "User settings",
     description: "Manage your profile, personal credentials and API tokens.",
     activeId: "profile",

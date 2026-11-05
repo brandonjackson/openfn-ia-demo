@@ -16,7 +16,8 @@ function Stateful(args: ComponentProps<typeof EditorToolbar>) {
     <EditorToolbar
       {...args}
       name={name}
-      onRename={setName}
+      // The story plays the wrapper here: a workflow can't be renamed on main.
+      onRename={sandbox === "main" ? undefined : setName}
       view={view}
       onViewChange={setView}
       sandbox={sandbox}

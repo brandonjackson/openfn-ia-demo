@@ -6,6 +6,7 @@ import Callout from "../components/primitives/Callout";
 import ChildCard from "../components/domain/ChildCard";
 import EmptyState from "../components/primitives/EmptyState";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import SectionHeading from "../components/primitives/SectionHeading";
 import SegmentedControl from "../components/primitives/SegmentedControl";
 import TextLink from "../components/primitives/TextLink";
@@ -21,10 +22,7 @@ export default function PlaceholderPage({ node, ancestors, currentPath }: Placeh
   return (
     <div className="space-y-8">
       <PageHeader
-        breadcrumbs={{
-          ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-          current: node.label,
-        }}
+        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
         badges={node.badges?.map((b) => <Badge key={b} label={b} />)}
         actions={

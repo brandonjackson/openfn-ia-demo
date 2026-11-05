@@ -12,6 +12,7 @@ const meta: Meta<typeof EditInSandboxModal> = {
   args: {
     open: true,
     onClose: () => {},
+    reservedNames: ["main"],
     onCreate: () => {},
     onJoin: () => {},
     sandboxes: projects[0].sandboxes.filter((s) => s !== "main"),

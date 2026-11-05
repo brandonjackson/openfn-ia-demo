@@ -102,5 +102,5 @@ export const WithRightOverlay: Story = {
 };
 
 export const Sandboxed: Story = {
-  args: { sandboxed: true },
+  args: { accentEdge: true },
 };

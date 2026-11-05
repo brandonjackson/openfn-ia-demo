@@ -12,11 +12,14 @@ import { defineConfig, globalIgnores } from 'eslint/config'
  *
  *   model        types, fixed vocabulary, pure functions   (imports nothing of ours)
  *   fixtures     fake records                              (model)
- *   primitives   no OpenFn words                           (primitives, types from model)
- *   domain       one OpenFn thing                          (primitives, domain, model)
- *   patterns     a region or layout of a screen            (primitives, domain, patterns, model)
+ *   primitives   the smallest pieces, no OpenFn words      (primitives, types from model)
+ *   patterns     the shape of a screen, no OpenFn nouns    (primitives, patterns)
+ *   domain       anything in OpenFn's words                (primitives, patterns, domain, model)
  *   pages        one screen; draws, and nothing else       (any component, model)
  *   wrappers     XPage.fixtures.tsx: feeds a page          (anything)
+ *
+ * The line is primitives → patterns → domain → pages. Patterns sit below
+ * domain on purpose: they get OpenFn content only through slots.
  */
 
 const docs = 'See docs/architecture.md'
@@ -39,8 +42,15 @@ const router = {
 }
 const above = (layer, names) => ({
   group: names.flatMap((n) => [`**/${n}`, `**/${n}/**`]),
-  message: `${layer} only import from the layers below them (primitives < domain < patterns < pages). If you need something from a higher layer, the component is probably in the wrong layer. ${docs}#the-layers`,
+  message: `${layer} only import from the layers below them (primitives < patterns < domain < pages). If you need something from a higher layer, the component is probably in the wrong layer. ${docs}#the-layers`,
 })
+// Patterns sit below domain, so the general rule above covers domain too; this
+// one says why, since it's the import that's tempting.
+const slot = `Patterns can't know OpenFn's nouns, so they stay reusable everywhere; take the content as a slot instead (children or a ReactNode prop) and let whoever uses the pattern pass the domain component in. ${docs}#patterns-take-openfn-content-through-slots`
+const noOpenFnInPatterns = [
+  { group: ['**/domain', '**/domain/**'], message: slot },
+  { group: ['**/model', '**/model/**'], message: `Model types are OpenFn nouns too. ${slot}` },
+]
 const ourLayers = {
   group: ['**/components', '**/components/**', '**/pages', '**/pages/**', '**/fixtures', '**/fixtures/**', '**/app', '**/app/**'],
   message: `model/ is the vocabulary every layer shares, so it can't depend on any of them. ${docs}#model-and-fixtures`,
@@ -112,7 +122,7 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': [
         'error',
-        { paths: [router], patterns: [fixtures, wrappers, app, above('Domain elements', ['patterns', 'pages'])] },
+        { paths: [router], patterns: [fixtures, wrappers, app, above('Domain components', ['pages'])] },
       ],
     },
   },
@@ -122,7 +132,7 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': [
         'error',
-        { paths: [router], patterns: [fixtures, wrappers, app, above('Patterns', ['pages'])] },
+        { paths: [router], patterns: [fixtures, wrappers, app, ...noOpenFnInPatterns, above('Patterns', ['pages'])] },
       ],
     },
   },

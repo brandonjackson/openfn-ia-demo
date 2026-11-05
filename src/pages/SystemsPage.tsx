@@ -10,6 +10,7 @@ import EmptyState from "../components/primitives/EmptyState";
 import FeatureIntro from "../components/patterns/FeatureIntro";
 import ListRow from "../components/primitives/ListRow";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import SegmentedControl from "../components/primitives/SegmentedControl";
 import SuggestedSystemsToAdd from "../components/domain/SuggestedSystemsToAdd";
 import AddConnectedSystemFlow from "../components/domain/AddConnectedSystemFlow";
@@ -79,10 +80,7 @@ export default function SystemsPage({ node, ancestors, currentPath, data, onAddX
   return (
     <div className="space-y-8">
       <PageHeader
-        breadcrumbs={{
-          ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-          current: node.label,
-        }}
+        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
         description={node.description}
         actions={

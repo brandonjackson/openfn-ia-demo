@@ -2,6 +2,7 @@ import { Pencil } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
 import type { HandbookPageData } from "../model/page-data";
 import PageHeader from "../components/patterns/PageHeader";
+import Breadcrumbs from "../components/domain/Breadcrumbs";
 import Button from "../components/primitives/Button";
 import FilesPanel from "../components/patterns/FilesPanel";
 import WikiArticle from "../components/patterns/WikiArticle";
@@ -23,10 +24,7 @@ export default function HandbookPage({ node, ancestors, data, onUploadFiles, onR
   return (
     <div className="space-y-8">
       <PageHeader
-        breadcrumbs={{
-        ancestors: ancestors.map((a) => ({ label: a.node.label, path: a.path })),
-        current: node.label,
-      }}
+        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
         description={`Last edited ${data.updatedAt} by ${data.updatedBy}`}
         actions={

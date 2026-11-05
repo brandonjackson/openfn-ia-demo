@@ -1,10 +1,11 @@
 import { FileImage, FileSpreadsheet, FileText, FileType, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { HandbookFileKind } from "../../model/page-data";
+/** The kinds of file a tile can show, each with its own icon and tag. */
+export type FileKind = "pdf" | "doc" | "sheet" | "text" | "image";
 
 interface Props {
   name: string;
-  kind: HandbookFileKind;
+  kind: FileKind;
   /** Human-readable size, e.g. "240 KB". */
   size: string;
   /** Shown on hover, e.g. who added the file and when. */
@@ -13,7 +14,7 @@ interface Props {
   onRemove?: () => void;
 }
 
-const kinds: Record<HandbookFileKind, { label: string; icon: LucideIcon; color: string }> = {
+const kinds: Record<FileKind, { label: string; icon: LucideIcon; color: string }> = {
   pdf: { label: "PDF", icon: FileType, color: "text-red-500" },
   doc: { label: "DOC", icon: FileText, color: "text-indigo-500" },
   sheet: { label: "SHEET", icon: FileSpreadsheet, color: "text-green-600" },

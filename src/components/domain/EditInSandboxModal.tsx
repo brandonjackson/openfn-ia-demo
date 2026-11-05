@@ -26,6 +26,8 @@ interface Props {
   onClose: () => void;
   /** Sandboxes already open in the project, which you can join instead. */
   sandboxes: string[];
+  /** Names a new sandbox can't take besides the open ones, e.g. "main". */
+  reservedNames?: string[];
   /** The run being followed, whose input the sandbox can start from. */
   run?: RunDetails;
   /** That run's input; missing when the project doesn't keep inputs. */
@@ -60,6 +62,7 @@ export default function EditInSandboxModal({ open, ...rest }: Props) {
 function EditInSandboxForm({
   onClose,
   sandboxes,
+  reservedNames = [],
   run,
   runInput,
   latestVersion,
@@ -77,7 +80,7 @@ function EditInSandboxForm({
   const [reviewBody, setReviewBody] = useState(runInput?.body ?? "");
 
   const trimmed = name.trim();
-  const nameTaken = sandboxes.includes(trimmed) || trimmed === "main";
+  const nameTaken = sandboxes.includes(trimmed) || reservedNames.includes(trimmed);
   const named = dataclips.filter((d) => d.name);
   const travelling = named.filter(canTravel);
   const runInputMissing = choice === "run" && !runInput;

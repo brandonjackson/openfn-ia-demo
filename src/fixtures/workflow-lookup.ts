@@ -6,7 +6,10 @@
 import type { Dataclip, RunDetails, Workflow, WorkOrder } from "../model/workflow";
 import { nationalIdWorkflow, nationalIdWorkflowAt, workflowGraphs } from "./workflow";
 import { dataclips, runHistories, workOrders } from "./runs";
-import { projects } from "./projects";
+import { projectWorkflowDetails, projects } from "./projects";
+import type { Project } from "../model/projects";
+import type { WorkflowListItem } from "../model/page-data";
+import { workOrderActivity, type ActivityPeriod } from "../model/runs";
 
 /**
  * Resolve a workflow to open from its id, at a version ("latest" by default).
@@ -119,4 +122,17 @@ export function workflowHistory(workflowId: string): { workOrders: WorkOrder[]; 
   // About half of them have one waiting to run.
   const waiting = parseInt(hexId(workflowId).slice(6, 8), 16) % 2 === 0 ? [enqueued(workflowId, firstInput)] : [];
   return { workOrders: [...waiting, ...borrowed], dataclips };
+}
+
+/** Every work order in a fixture project, across its workflows. */
+export function projectHistory(project: Project): WorkOrder[] {
+  return projectWorkflowDetails(project).flatMap((w) => workflowHistory(w.id).workOrders);
+}
+
+/** A fixture project's workflows as its Workflows list shows them, with what their history adds up to over `period`. */
+export function projectWorkflowItems(project: Project, period: ActivityPeriod = "30d"): WorkflowListItem[] {
+  return projectWorkflowDetails(project).map((w) => {
+    const { workOrders, failedWorkOrders, latestRun, lastRunAt } = workOrderActivity(workflowHistory(w.id).workOrders, period);
+    return { ...w, workOrders, failedWorkOrders, latestRun, lastRunAt };
+  });
 }

@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ProjectWorkflowsPage from "./ProjectWorkflowsPage";
 import { withRouterAt } from "../stories/decorators";
-import { projectWorkflowItems, projects } from "../fixtures/projects";
+import { projects } from "../fixtures/projects";
+import { projectWorkflowItems } from "../fixtures/workflow-lookup";
 import type { IANode } from "../model/ia-tree";
 
 const node: IANode = {

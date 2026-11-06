@@ -1,5 +1,6 @@
 import { Download, FolderDown } from "lucide-react";
-import type { BadgeTone, HistoryExport } from "../../model/page-data";
+import type { HistoryExport } from "../../model/page-data";
+import type { BadgeTone } from "../primitives/Badge";
 import type { HistoryExportStatus } from "../../model/project-settings";
 import DataTable, { type DataTableColumn } from "../primitives/DataTable";
 import Badge from "../primitives/Badge";

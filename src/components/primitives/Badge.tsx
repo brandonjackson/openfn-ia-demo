@@ -1,8 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 
-import type { BadgeTone } from "../../model/page-data";
-
-export type { BadgeTone };
+/** The colours a badge comes in. */
+export type BadgeTone = "green" | "yellow" | "red" | "indigo" | "pink" | "gray";
 
 const toneClasses: Record<BadgeTone, string> = {
   green: "bg-green-100 text-green-700",

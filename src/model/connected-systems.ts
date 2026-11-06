@@ -1,10 +1,10 @@
+import type { Environment } from "./credentials";
 /**
  * How OpenFn reaches a system. Workflows and adaptors reference the system,
  * never the transport: a step on an X-Road system looks the same as one on
  * a direct system, and the X-Road route and headers come from here and the
  * organisation's X-Road settings.
  */
-import type { Environment, SystemEnvironment } from "./page-data";
 import type { XRoadAgreement, XRoadConnectionStatus, XRoadRoute } from "./xroad";
 export type SystemConnection =
   | { method: "direct" }
@@ -69,6 +69,40 @@ export function systemListItem(s: ConnectedSystem): import("./page-data").ListIt
 }
 
 /** A system as the Overview summarises it. */
-export function systemSummary(s: ConnectedSystem): import("./page-data").ConnectedSystemSummary {
+export function systemSummary(s: ConnectedSystem): ConnectedSystemSummary {
   return { id: s.id, name: s.name, credentialType: s.credentialType, hasAccess: s.hasAccess, color: s.color, adaptor: s.adaptor };
+}
+
+/** What editing a connected system changes. */
+export interface SystemChanges {
+  name: string;
+  description: string;
+  /** Where its API is documented; blank for none. */
+  docsUrl: string;
+  /** Where it lives in each environment. Left out for a system reached over X-Road, whose route says where. */
+  urls?: Record<Environment, string>;
+}
+
+/** How one connected system is reached in one environment. */
+export interface SystemEnvironment {
+  url?: string;
+  /** Name of the credential used in this environment, if one has been added. */
+  credential?: string;
+}
+
+export interface ConnectedSystemSummary {
+  id: string;
+  name: string;
+  credentialType: "user" | "org";
+  hasAccess: boolean;
+  color: string;
+  /** OpenFn adaptor package id, used for the system's logo. */
+  adaptor?: string;
+}
+
+/** A system we suggest connecting. */
+export interface SuggestedSystem {
+  name: string;
+  description: string;
+  adaptor?: string;
 }

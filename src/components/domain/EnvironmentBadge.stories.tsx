@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import EnvironmentBadge from "./EnvironmentBadge";
-import { ENVIRONMENTS } from "../../model/page-data";
+import { ENVIRONMENTS } from "../../model/credentials";
 
 const meta: Meta<typeof EnvironmentBadge> = {
   title: "Domain/EnvironmentBadge",

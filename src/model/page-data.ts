@@ -1,3 +1,6 @@
+import type { ProjectServiceItem, ServiceApiSpec } from "./services";
+import type { ConnectedSystemSummary, SuggestedSystem, ConnectedSystem, ConnectionMethod } from "./connected-systems";
+import type { Environment } from "./credentials";
 import type { CollectionContents, ComponentContent } from "./project-components";
 import type { LucideIcon } from "lucide-react";
 import type { ChannelRequest, HistoryWorkOrder } from "./history";
@@ -6,7 +9,6 @@ import type { RunStatus, TriggerType } from "./workflow";
 import type { ChannelDetails } from "./channels";
 import type { EcosystemStation, EcosystemWorkflow } from "./ecosystem";
 import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember, XRoadService } from "./xroad";
-import type { ConnectedSystem, ConnectionMethod } from "./connected-systems";
 import type { ProjectSummary } from "./projects";
 import type {
   DigestFrequency,
@@ -21,9 +23,6 @@ import type {
 /* ------------------------------------------------------------------ */
 /*  Shared primitive types                                             */
 /* ------------------------------------------------------------------ */
-
-/** The colours a badge comes in. */
-export type BadgeTone = "green" | "yellow" | "red" | "indigo" | "pink" | "gray";
 
 /** One point in a feature's intro banner. */
 export interface FeatureIntroItem {
@@ -248,57 +247,8 @@ export interface HistoryPageData {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Environments                                                       */
-/* ------------------------------------------------------------------ */
-
-/**
- * Every connected system has these three environments, and every credential
- * belongs to exactly one of them.
- * - production: the live system, real data.
- * - staging: a real instance of the system used for testing, test data.
- * - mock: a simulated stand-in (no real system behind it) for building offline.
- */
-export type Environment = "production" | "staging" | "mock";
-
-export const ENVIRONMENTS: Environment[] = ["production", "staging", "mock"];
-
-/** How one connected system is reached in one environment. */
-/** What editing a connected system changes. */
-export interface SystemChanges {
-  name: string;
-  description: string;
-  /** Where its API is documented; blank for none. */
-  docsUrl: string;
-  /** Where it lives in each environment. Left out for a system reached over X-Road, whose route says where. */
-  urls?: Record<Environment, string>;
-}
-
-export interface SystemEnvironment {
-  url?: string;
-  /** Name of the credential used in this environment, if one has been added. */
-  credential?: string;
-}
-
-/* ------------------------------------------------------------------ */
 /*  Dashboard page (Overview / Home)                                   */
 /* ------------------------------------------------------------------ */
-
-export interface ConnectedSystemSummary {
-  id: string;
-  name: string;
-  credentialType: "user" | "org";
-  hasAccess: boolean;
-  color: string;
-  /** OpenFn adaptor package id, used for the system's logo. */
-  adaptor?: string;
-}
-
-/** A system we suggest connecting. */
-export interface SuggestedSystem {
-  name: string;
-  description: string;
-  adaptor?: string;
-}
 
 export interface DashboardPageData {
   pageType: "dashboard";
@@ -372,57 +322,8 @@ export interface InsightsPageData {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Project page                                                       */
-/* ------------------------------------------------------------------ */
-
-export interface ProjectServiceItem {
-  id: string;
-  name: string;
-  description: string;
-  status: "Live" | "Draft";
-  /** The workflow component that runs this service. */
-  workflowId?: string;
-  /** How other teams call the service. Generated from the workflow when absent. */
-  api?: ServiceApiSpec;
-  /** What the catalogue records about it: owner, purpose, legal basis and so on. */
-  record?: ServiceRecord;
-  /** Who uses it: how many organisations, and how many calls in the last 30 days. */
-  usage?: { organisations: number; calls30d: number; trend?: number[] };
-  /** Whether agents can call it as a tool on the organisation's MCP server. */
-  mcpEnabled?: boolean;
-  /** Its X-Road service code, once published to X-Road. */
-  xroad?: { serviceCode: string; published: boolean; clients?: string[] };
-}
-
-/* ------------------------------------------------------------------ */
 /*  Service page (a published service's catalog entry / API docs)      */
 /* ------------------------------------------------------------------ */
-
-export interface ServiceApiField {
-  name: string;
-  type: string;
-  required: boolean;
-  description: string;
-}
-
-export interface ServiceApiSpec {
-  /**
-   * `webhook` services are called over HTTP; `schedule` services run on a
-   * timer and only publish what they produce.
-   */
-  trigger: "webhook" | "schedule";
-  /** Webhook: `POST https://…`. Schedule: e.g. "Every 15 minutes". */
-  invocation: string;
-  /** How callers authenticate (webhook only). */
-  auth?: string;
-  /** Fields the caller sends (webhook only). */
-  inputFields?: ServiceApiField[];
-  /** A sample request, e.g. a curl command (webhook only). */
-  requestExample?: string;
-  /** What the service returns or publishes. */
-  outputDescription: string;
-  outputExample: string;
-}
 
 export interface ServicePageData {
   pageType: "service";
@@ -1067,8 +968,6 @@ export interface AdminUserDraft {
   /** Only when creating a user: the password they first log in with. Never sent back. */
   password?: string;
 }
-
-export type { ProjectRole };
 
 /** One user's place in a project. */
 export interface ProjectMembership {

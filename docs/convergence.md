@@ -13,26 +13,28 @@ and to mark what would change the look.
 
 ## Now
 
-- **Branch:** `claude/intelligent-newton-2pncy4`. Each session works on its
-  designated branch and opens one PR; if that PR has merged, restart the
-  branch from `main` before the next.
-- **PR in progress:** PR 1, the worked example (Projects list),
-  https://github.com/brandonjackson/openfn-ia-demo/pull/191. Open, waiting
-  for review and merge.
+- **Branch:** `claude/intelligent-newton-2pncy4`. Each PR is shipped
+  (merged once CI is green) and the branch restarted from `main` before the
+  next: `git fetch origin main && git checkout -B
+  claude/intelligent-newton-2pncy4 origin/main`.
+- **PR in progress:** PR 2, shared and UI-only types out of page-data.ts.
 - **Next three items**, one PR each:
-  1. **UI-only and shared types out of page-data.ts.** `BadgeTone` (10
-     importers) moves to the `Badge` primitive; `Environment`/`ENVIRONMENTS`
-     (12) to `model/connected-systems.ts`; `ProjectRole` (12, a re-export) to
-     its home in `model/project-settings.ts`, imported from there.
-     `ProjectServiceItem` (6) to a new `model/services.ts`.
+  1. **Raw values in summaries** (see below): `lastActivity` as the API's
+     time, worded by the component.
   2. **Credentials** (`api/credentials.md`): `UserCredential`,
-     `CredentialSchema`, `OAuthClient` and their drafts move from page-data.ts
-     to `model/credentials.ts`; then the credentials part of User settings.
+     `CredentialSchema`, `CredentialField`, `OAuthClient`, `ApiToken` and
+     their drafts move from page-data.ts to `model/credentials.ts` /
+     `model/account.ts` (named as in api/); then the credentials part of
+     User settings.
   3. **Admin settings into its folder** (`src/pages/admin-settings/`), with
      its admin types (`AdminUser`, `AdminProject`, `AuditEvent`…) moved to
-     `model/admin.ts` / `model/users.ts` named as in `api/users.md` and
-     `api/audit-events.md`, page and query tests, and its wrapper off fixtures.
+     `model/users.ts` / `model/audit-events.ts` named as in `api/users.md`
+     and `api/audit-events.md`, page and query tests, and its wrapper off
+     fixtures.
   After those, the biggest pages: WorkflowEditorPage, ProjectSettingsPage.
+- **Moving types:** `python3 scripts/move-types.py <from> <to> Name…` moves
+  exported declarations (with their doc comments) and rewrites every import
+  under src/. Then `npx tsc -b` and add the target's own imports.
 - **Decide before moving page 2** (both from the PR 1 architecture review):
   - **Formatted text in summaries.** `ProjectSummary.lastActivity` arrives
     already worded ("3 days ago") and `ProjectCard` branches on `"Never"`.
@@ -87,8 +89,19 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    classNamesInPages 110 → 107; wrappers reading fixtures 25 → 23 of 25;
    page-data.ts 1322 → 1300 lines; files importing it 140 → 138; pages in
    their own folder 0 → 1 of 24; page and query tests 0 → 2; tests 84 → 96.
+   ([#191](https://github.com/brandonjackson/openfn-ia-demo/pull/191))
+2. **Shared and UI-only types out of page-data.ts.** `BadgeTone` now lives
+   in the `Badge` primitive; `Environment` and `ENVIRONMENTS` in
+   `model/credentials.ts` (credentials own environments in api/); the system
+   shapes (`SystemChanges`, `SystemEnvironment`, `ConnectedSystemSummary`,
+   `SuggestedSystem`) in `model/connected-systems.ts`; `ProjectServiceItem`
+   and its API spec types in a new `model/services.ts`; `ProjectRole` is
+   imported from `model/project-settings.ts`, not re-exported. Adds
+   `scripts/move-types.py`. No runtime change, so only the architecture reviewer
+   ran. Counts: page-data.ts 1300 → 1199 lines;
+   files importing it 138 → 127; ratchet unchanged.
 
-**PRs done: 1 of 10.** Pull openfn-3-poc again at PR 5.
+**PRs done: 2 of 10.** Pull openfn-3-poc again at PR 5.
 
 ## Waiting on Brandon
 

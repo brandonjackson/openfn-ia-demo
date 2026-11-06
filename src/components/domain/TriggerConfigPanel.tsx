@@ -1,7 +1,7 @@
 import { Copy } from "lucide-react";
 import type { TriggerNode } from "../../model/workflow";
 import { triggerTypes } from "../../model/workflow";
-import type { ProjectServiceItem } from "../../model/page-data";
+import type { ProjectServiceItem } from "../../model/services";
 import FormField from "../primitives/FormField";
 import { Select, TextArea, TextInput } from "../primitives/FormControls";
 import SectionHeading from "../primitives/SectionHeading";
@@ -20,7 +20,6 @@ function requestSchema(service?: ProjectServiceItem): string {
     2
   );
 }
-
 
 interface Props {
   trigger: TriggerNode;

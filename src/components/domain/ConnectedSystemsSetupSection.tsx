@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import type { ConnectedSystemSummary, SuggestedSystem } from "../../model/page-data";
+import type { ConnectedSystemSummary, SuggestedSystem } from "../../model/connected-systems";
 import Button from "../primitives/Button";
 import Card from "../primitives/Card";
 import ProgressBar from "../primitives/ProgressBar";

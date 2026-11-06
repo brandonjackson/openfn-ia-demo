@@ -1,5 +1,5 @@
 import { FlaskConical, Radio, ToyBrick } from "lucide-react";
-import type { Environment } from "../../model/page-data";
+import type { Environment } from "../../model/credentials";
 import Badge from "../primitives/Badge";
 
 const config = {

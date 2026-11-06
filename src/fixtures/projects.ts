@@ -117,6 +117,24 @@ export const projects: Project[] = [
           "Lookup table of planning authority codes and jurisdictions.",
         type: "Collection",
       },
+      {
+        id: "planning-officer-guide",
+        name: "planning-officer-guide",
+        description: "How planning officers handle an application from submission to decision.",
+        type: "Document",
+      },
+      {
+        id: "triage-planning-applications",
+        name: "triage-planning-applications",
+        description: "Lets the assistant sort new applications by type and urgency before they're routed.",
+        type: "AI Skill",
+      },
+      {
+        id: "application-status-site",
+        name: "application-status-site",
+        description: "A public page where applicants check where their application has got to.",
+        type: "Static Website",
+      },
     ],
   },
   {

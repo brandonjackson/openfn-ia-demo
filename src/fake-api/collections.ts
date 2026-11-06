@@ -13,7 +13,8 @@
  * - Owners and admins manage collections; any member reads items; editors
  *   and up write them.
  */
-import { collectionItems as fixtureItems, projectCollections } from "../fixtures/project-settings";
+import { collectionItems as settingsItems, projectCollections } from "../fixtures/project-settings";
+import { componentCollectionItems } from "../fixtures/project-components";
 import { instanceCollections } from "../fixtures/admin";
 import { projects as fixtureProjects } from "../fixtures/projects";
 import { seedId } from "../fixtures/ids";
@@ -46,11 +47,18 @@ export interface ItemRow {
 
 const NAME = /^[a-z0-9]+([._-][a-z0-9]+)*$/;
 
-/** Every fixture collection, once per project and name: the settings' and Admin settings' lists together. */
+const fixtureItems = { ...settingsItems, ...componentCollectionItems };
+
+/** Every fixture collection, once per project and name: the settings', Admin settings' and the projects' components lists together. */
 function fixtureCollections() {
   const rows: { slug: string; projectSlug: string; name: string; count: number; bytes: number; updatedAt: string }[] = [];
   for (const p of fixtureProjects) {
     for (const c of projectCollections(p.id)) rows.push({ slug: c.id, projectSlug: p.id, name: c.name, count: c.itemCount, bytes: c.byteSize, updatedAt: c.updatedAt });
+    for (const c of p.components.filter((x) => x.type === "Collection")) {
+      if (rows.some((r) => r.projectSlug === p.id && r.name === c.name)) continue;
+      const sample = componentCollectionItems[c.id] ?? [];
+      rows.push({ slug: c.id, projectSlug: p.id, name: c.name, count: sample.length, bytes: 0, updatedAt: sample[0]?.updatedAt ?? "1 day ago" });
+    }
   }
   for (const c of instanceCollections) {
     const project = fixtureProjects.find((p) => p.name === c.projectName);

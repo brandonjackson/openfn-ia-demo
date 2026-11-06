@@ -1,3 +1,4 @@
+import type { CollectionContents, ComponentContent } from "./project-components";
 import type { LucideIcon } from "lucide-react";
 import type { ChannelRequest, HistoryWorkOrder } from "./history";
 import type { Adaptor } from "./adaptors";
@@ -463,6 +464,21 @@ export interface ChannelPageData {
   projectName: string;
   component: ProjectComponentItem;
   channel: ChannelDetails;
+}
+
+/**
+ * The page of one of a project's components that isn't a workflow or a
+ * channel: a collection's keys, or the file a form, artifact, AI skill,
+ * document or static website is.
+ */
+export interface ComponentPageData {
+  pageType: "component";
+  projectId: string;
+  component: ProjectComponentItem;
+  /** For a form, artifact, AI skill, document or static website: what it holds. */
+  content?: ComponentContent;
+  /** For a collection: its keys, how many it holds in all and their size. */
+  collection?: CollectionContents;
 }
 
 /** Kinds of building block a project is made from. */

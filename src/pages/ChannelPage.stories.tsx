@@ -7,7 +7,7 @@ import { channelDetails } from "../fixtures/channels";
 import type { IANode } from "../model/ia-tree";
 import type { ChannelPageData } from "../model/page-data";
 
-const node: IANode = { id: "component", label: "Component", pageType: "channel" };
+const node: IANode = { id: "component", label: "Component", pageType: "component" };
 
 function storyArgs(project: Project, componentId: string) {
   const component = project.components.find((c) => c.id === componentId)!;

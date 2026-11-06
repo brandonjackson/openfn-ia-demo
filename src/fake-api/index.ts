@@ -31,6 +31,7 @@ import { systemRoutes } from "./connected-systems";
 import { serviceRoutes } from "./services";
 import { organizationRoutes } from "./organization";
 import { handbookRoutes } from "./handbook";
+import { componentRoutes } from "./project-components";
 
 export type { Problem } from "./answers";
 export { signInAs } from "./session";
@@ -57,6 +58,7 @@ const routes: Record<string, Handler> = {
   ...serviceRoutes,
   ...organizationRoutes,
   ...handbookRoutes,
+  ...componentRoutes,
   // The demo's own: back to the fixtures.
   "POST /api/demo/reset": () => {
     resetDb();

@@ -1,9 +1,9 @@
 /** Collections and their items on Lightning's API (api/collections.md): shapes, mappers, keys and hooks. */
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AdminCollection, CollectionItem, ProjectCollection } from "../model/page-data";
 import { timeAgo } from "../model/time";
 import { listAll, request } from "./client";
-import { statusOf, type LoadStatus } from "./status";
+import { combine, statusOf, type LoadStatus } from "./status";
 
 /** A collection as the API lists it: planned `byte_size_sum`, and the demo's count and last write. */
 interface ApiCollection {
@@ -80,8 +80,63 @@ export function useCollectionSaves() {
     onSuccess: refresh,
   });
   return {
-    create: async (projectId: string, name: string) => void (await put.mutateAsync({ projectId, id: crypto.randomUUID(), name })),
+    /** Makes a collection; answers with its id. */
+    create: async (projectId: string, name: string) => {
+      const id = crypto.randomUUID();
+      await put.mutateAsync({ projectId, id, name });
+      return id;
+    },
     rename: async (projectId: string, id: string, name: string) => void (await put.mutateAsync({ projectId, id, name })),
     remove: async (projectId: string, id: string) => void (await remove.mutateAsync({ projectId, id })),
+  };
+}
+
+export const collectionItemKeys = { of: (projectId: string, name: string) => ["collections", "items", projectId, name] as const };
+
+/** Every key of one of a project's collections (up to the API's page of 1,000), newest first. Any member reads them. */
+export function useCollectionItems(projectId: string | undefined, name: string | undefined): { status: LoadStatus; items: CollectionItem[] } {
+  const query = useQuery({
+    queryKey: collectionItemKeys.of(projectId ?? "", name ?? ""),
+    enabled: !!projectId && !!name,
+    queryFn: () => fetchCollectionItems(projectId!, name!, 1000),
+  });
+  return { status: projectId && name ? statusOf(query) : { state: "ready" }, items: query.data ?? [] };
+}
+
+/** Every key of each of these collections of a project, by collection name, for a view that may open any of them. */
+export function useCollectionsItems(projectId: string | undefined, names: string[]): { status: LoadStatus; items: Record<string, CollectionItem[]> } {
+  const queries = useQueries({
+    queries: names.map((name) => ({
+      queryKey: collectionItemKeys.of(projectId ?? "", name),
+      enabled: !!projectId,
+      queryFn: () => fetchCollectionItems(projectId!, name, 1000),
+    })),
+  });
+  return {
+    status: projectId ? combine(...queries.map(statusOf)) : { state: "ready" },
+    items: Object.fromEntries(names.map((name, i) => [name, queries[i]?.data ?? []])),
+  };
+}
+
+/**
+ * Writing and deleting a collection's keys, by the collection's name. Each
+ * resolves once its keys and the project's collections have reloaded.
+ * Editors and up write keys; a viewer is refused.
+ */
+export function useCollectionItemSaves(projectId: string) {
+  const queryClient = useQueryClient();
+  const refresh = () => queryClient.invalidateQueries({ queryKey: collectionKeys.all });
+  const put = useMutation({
+    mutationFn: ({ name, key, value }: { name: string; key: string; value: string }) =>
+      request("PUT", `/collections/${encodeURIComponent(name)}/${encodeURIComponent(key)}?project_id=${projectId}`, { value }),
+    onSuccess: refresh,
+  });
+  const remove = useMutation({
+    mutationFn: ({ name, key }: { name: string; key: string }) => request("DELETE", `/collections/${encodeURIComponent(name)}/${encodeURIComponent(key)}?project_id=${projectId}`),
+    onSuccess: refresh,
+  });
+  return {
+    save: async (name: string, key: string, value: string) => void (await put.mutateAsync({ name, key, value })),
+    remove: async (name: string, key: string) => void (await remove.mutateAsync({ name, key })),
   };
 }

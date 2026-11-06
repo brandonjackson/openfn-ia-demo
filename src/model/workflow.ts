@@ -2,6 +2,7 @@
  * The adaptor a job uses, by package id (e.g. "http" or "dhis2"): any adaptor
  * in `adaptorCatalog`. Drives the icon shown on the node.
  */
+import type { CollectionContents, ComponentContent } from "./project-components";
 import { Clock, Globe, Radio } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { XRoadCall } from "./xroad";
@@ -278,8 +279,10 @@ export interface WorkflowFileContents {
   docs: { context: string; spec: string };
   /** service.md, when the workflow backs a published service. */
   serviceListing?: string;
-  /** What each project component looks like when opened, by component id. */
-  componentPreviews: Record<string, string>;
+  /** What each form, artifact, AI skill, document and static website holds, by component id. */
+  componentContents: Record<string, ComponentContent>;
+  /** What each collection holds, by component id. */
+  collections: Record<string, CollectionContents>;
   /** Each channel component's system, endpoint, traffic and messages, by component id. */
   channels: Record<string, ChannelDetails>;
 }

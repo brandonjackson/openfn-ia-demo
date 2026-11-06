@@ -9,7 +9,8 @@ import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } 
 import { connectedSystems } from "../fixtures/connected-systems";
 import { codeSummary } from "../fixtures/code-summaries";
 import { channelDetails } from "../fixtures/channels";
-import { componentPreview, serviceListing, workflowDocs } from "../fixtures/workflow-files";
+import { serviceListing, workflowDocs } from "../fixtures/workflow-files";
+import { fixtureComponentContents } from "../fixtures/project-components";
 import type { ProjectComponent, ProjectService } from "../model/projects";
 import type { WorkflowFileContents } from "../model/workflow";
 
@@ -21,7 +22,7 @@ const later = <T,>(answer: () => T) => new Promise<T>((resolve) => setTimeout(()
 const contentsFor = (components: ProjectComponent[], service?: ProjectService): WorkflowFileContents => ({
   docs: workflowDocs,
   serviceListing: service ? serviceListing(service) : undefined,
-  componentPreviews: Object.fromEntries(components.map((c) => [c.id, componentPreview(c)])),
+  ...fixtureComponentContents(components),
   channels: Object.fromEntries(components.filter((c) => c.type === "Channel").map((c) => [c.id, channelDetails(c)])),
 });
 
@@ -40,7 +41,14 @@ const meta: Meta<typeof WorkflowEditorPage> = {
     projectName: "Project A",
     components: projectAComponents,
     onOpenComponent: () => {},
-    onAddComponent: () => {},
+    onCreateChannel: async () => "new-channel",
+    onCreateCollection: async () => "new-collection",
+    onCreateComponent: async () => "new-component",
+    onDraftComponentWithAI: () => {},
+    channelCredentials: ["DHIS2 production", "Case Management API"],
+    onSaveComponent: async () => {},
+    onSaveCollectionItem: async () => {},
+    onDeleteCollectionItem: async () => {},
     sandboxes: projects[0].sandboxes,
     versions: workflowVersions,
     assistantConversations,
@@ -174,9 +182,19 @@ export const ServiceListing: Story = {
   args: { initialView: "code", initialFile: "service" },
 };
 
-/** A collection the workflow uses, opened from the explorer's Components group. */
+/** A collection the workflow uses, opened from the explorer's Components group: its keys, to add, edit and delete. */
 export const ComponentOpen: Story = {
   args: { initialView: "code", initialFile: { componentId: "planning-authority-codes" } },
+};
+
+/** An artifact opened from the explorer's Components group: its file, to edit and save, as on its page in the project. */
+export const ArtifactOpen: Story = {
+  args: { initialView: "code", initialFile: { componentId: "application-field-mapping" } },
+};
+
+/** An AI skill opened from the explorer's Components group. */
+export const AISkillOpen: Story = {
+  args: { initialView: "code", initialFile: { componentId: "triage-planning-applications" } },
 };
 
 /** A channel the workflow uses, opened from the explorer's Components group: its traffic, recent messages and message shape. */

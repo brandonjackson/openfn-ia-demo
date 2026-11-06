@@ -27,7 +27,7 @@ export interface IANode {
     | "project-sandboxes"
     | "project-settings"
     | "service"
-    | "channel"
+    | "component"
     | "user-settings"
     | "organization-settings"
     | "admin-settings"
@@ -100,8 +100,8 @@ export const projectTemplateTree: IANode[] = [
           {
             id: "component",
             label: "Component",
-            // A channel's page; other kinds of component show a placeholder for now.
-            pageType: "channel",
+            // A channel's, collection's or other component's page.
+            pageType: "component",
             dynamic: true,
           },
         ],

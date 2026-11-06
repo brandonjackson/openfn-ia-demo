@@ -71,6 +71,10 @@ interface Props {
   ref?: Ref<CodeEditorHandle>;
   /** Names coloured as calls, e.g. an adaptor's operations. */
   calls?: readonly string[];
+  /** Fills its parent (the default, for an editor's main area), or sits in a bordered box of its own height, e.g. in a card. */
+  frame?: "fill" | "box";
+  /** What a screen reader calls the code, e.g. "form.json". */
+  label?: string;
 }
 
 /**
@@ -81,7 +85,7 @@ interface Props {
  */
 const noCalls: readonly string[] = [];
 
-export default function CodeEditor({ code, onChange, ref, calls = noCalls }: Props) {
+export default function CodeEditor({ code, onChange, ref, calls = noCalls, frame = "fill", label = "Code" }: Props) {
   const lines = code.split("\n");
   const callSet = useMemo(() => new Set(calls), [calls]);
   const textarea = useRef<HTMLTextAreaElement>(null);
@@ -163,7 +167,9 @@ export default function CodeEditor({ code, onChange, ref, calls = noCalls }: Pro
   };
 
   return (
-    <div className="flex h-full overflow-auto bg-white font-mono text-[13px] leading-6">
+    <div
+      className={`flex overflow-auto bg-white font-mono text-[13px] leading-6 ${frame === "box" ? "h-96 rounded-md border border-gray-200" : "h-full"}`}
+    >
       {/* Gutter */}
       <div className="sticky left-0 z-10 h-max min-h-full select-none border-r border-gray-100 bg-gray-50 px-3 py-3 text-right text-gray-300">
         {lines.map((_, i) => (
@@ -191,7 +197,7 @@ export default function CodeEditor({ code, onChange, ref, calls = noCalls }: Pro
             autoComplete="off"
             autoCorrect="off"
             wrap="off"
-            aria-label="Code"
+            aria-label={label}
             className="absolute inset-0 m-0 h-full w-full resize-none overflow-hidden whitespace-pre border-0 bg-transparent py-3 pl-4 pr-6 font-mono text-[13px] leading-6 text-transparent caret-gray-800 outline-none selection:bg-sky-200/60"
           />
         )}

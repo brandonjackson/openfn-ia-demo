@@ -71,3 +71,13 @@ export function passwordErrors(password: string, confirmation: string): { passwo
 export function isTotpCode(code: string): boolean {
   return /^\d{6}$/.test(code.trim());
 }
+
+/** The instance, as GET /api/instance describes it. */
+export interface InstanceInfo {
+  /** The instance's own base URL: a sign-on provider's redirect host. */
+  url: string;
+  /** Days a scheduled deletion waits before it happens (`purge_deleted_after_days`). */
+  deletionGraceDays: number;
+  /** Whether it sends OpenFn anonymous usage metrics. The demo's own field (docs/api-gaps.md). */
+  usageMetricsEnabled: boolean;
+}

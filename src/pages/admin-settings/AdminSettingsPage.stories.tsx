@@ -59,7 +59,7 @@ const meta: Meta<typeof AdminSettingsPage> = {
     onCancelProjectDeletion: async () => {},
     onDeleteProjectNow: async () => {},
     onChangeAuditQuery: () => {},
-    onTestAuthProvider: async () => {},
+    onTestAuthProvider: async (draft) => ({ discoveryUrl: draft.discoveryUrl, ok: true, message: "Found the provider's authorization, token and user info endpoints." }),
     onSaveAuthProvider: async () => {},
     onRemoveAuthProvider: async () => {},
     onDeleteCollection: async () => {},
@@ -105,14 +105,15 @@ export const AuthenticationTestFailed: Story = {
   name: "Authentication (test failed)",
   args: {
     ...section("authentication", "Authentication"),
-    data: {
-      ...adminSettingsData,
-      authTest: {
-        discoveryUrl: adminSettingsData.authProvider!.discoveryUrl,
-        ok: false,
-        message: "No OpenID configuration at that URL. Check it's HTTPS and ends in .well-known/openid-configuration.",
-      },
-    },
+    onTestAuthProvider: async (draft) => ({
+      discoveryUrl: draft.discoveryUrl,
+      ok: false,
+      message: "No OpenID configuration at that URL. Check it's HTTPS and ends in .well-known/openid-configuration.",
+    }),
+  },
+  // The result is the answer to pressing Test.
+  play: async ({ canvasElement }) => {
+    [...canvasElement.querySelectorAll("button")].find((b) => b.textContent?.trim() === "Test")?.click();
   },
 };
 

@@ -10,11 +10,11 @@ import AdminSettingsPageQuery from "./AdminSettingsPage.query";
 
 const wait = { timeout: 3000 };
 
-function renderRoute() {
-  const route = { ...findNodeByPath(iaTree, "/admin-settings/users")!, currentPath: "/admin-settings/users" };
+function renderRoute(path = "/admin-settings/users") {
+  const route = { ...findNodeByPath(iaTree, path)!, currentPath: path };
   render(
     <ApiProvider retry={false}>
-      <MemoryRouter initialEntries={["/admin-settings/users"]}>
+      <MemoryRouter initialEntries={[path]}>
         <AdminSettingsPageQuery route={route} />
       </MemoryRouter>
     </ApiProvider>,
@@ -66,5 +66,19 @@ describe("AdminSettingsPageQuery", () => {
     failNext("GET /api/users", { status: 500, code: "internal", detail: "Something went wrong in Lightning." });
     renderRoute();
     expect(await screen.findByText("Something went wrong in Lightning.", {}, wait)).toBeTruthy();
+  });
+
+  it("runs a maintenance job on the server and shows what it did", async () => {
+    renderRoute("/admin-settings/maintenance");
+    fireEvent.click((await screen.findAllByRole("button", { name: "Run" }, wait))[0]!);
+    expect(await screen.findByText(/214 adaptors, 2 new versions/, {}, wait)).toBeTruthy();
+    const { data } = await request<{ data: { id: string; last_run_result: string }[] }>("GET", "/api/demo/maintenance");
+    expect(data.find((j) => j.id === "refresh-adaptors")?.last_run_result).toBe("214 adaptors, 2 new versions");
+  });
+
+  it("asks the server to test a discovery URL and shows its answer", async () => {
+    renderRoute("/admin-settings/authentication");
+    fireEvent.click(await screen.findByRole("button", { name: "Test" }, wait));
+    expect(await screen.findByText(/Discovery URL works|Test failed/, {}, wait)).toBeTruthy();
   });
 });

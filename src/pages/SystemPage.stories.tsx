@@ -5,7 +5,6 @@ import type { IANode } from "../model/ia-tree";
 import type { DetailPageData } from "../model/page-data";
 import { connectionOf } from "../model/connected-systems";
 import { connectedSystems } from "../fixtures/connected-systems";
-import { projectOptions } from "../fixtures/projects";
 import { directoryMember, orgXRoad, routeService } from "../fixtures/xroad";
 
 /** A system's record, and where its X-Road route goes when it has one, as the page's wrapper passes them. */
@@ -31,42 +30,14 @@ const ancestors = [
 
 const detailData: DetailPageData = {
   pageType: "detail",
-  projects: projectOptions,
   ...systemData("dhis2"),
   headerBadge: { label: "Shared", variant: "shared" },
-  sections: [
-    {
-      id: "channels",
-      title: "Channels",
-      display: "cards",
-      items: [
-        {
-          id: "ch-write",
-          name: "Upsert tracked entity",
-          description: "Create or update a tracked entity instance in DHIS2.",
-          metadata: { channelType: "write" },
-        },
-        {
-          id: "ch-read",
-          name: "Get tracked entities",
-          description: "Retrieve tracked entities matching a query.",
-          metadata: { channelType: "read" },
-        },
-        {
-          id: "ch-event",
-          name: "Tracked entity updated",
-          description: "Fires whenever a tracked entity is updated in DHIS2.",
-          metadata: { channelType: "event" },
-        },
-      ],
-    },
-  ],
 };
 
 const meta: Meta<typeof SystemPage> = {
   title: "Pages/SystemPage",
   component: SystemPage,
-  args: { onStartWorkflow: () => {}, onSaveSystem: async () => {}, onRevokeGrant: async () => {}, onDeleteSystem: async () => {} },
+  args: { onSaveSystem: async () => {}, onRevokeGrant: async () => {}, onDeleteSystem: async () => {} },
   decorators: [withRouter],
   parameters: { layout: "padded" },
 };
@@ -92,36 +63,6 @@ export const PrivateSystem: Story = {
       ...detailData,
       ...systemData("kobo-toolbox"),
       headerBadge: { label: "Private", variant: "private" },
-      sections: [
-        {
-          id: "channels",
-          title: "Channels",
-          display: "cards",
-          items: [
-            {
-              id: "ch-read",
-              name: "Get survey data",
-              description: "Retrieve survey submissions.",
-              metadata: { channelType: "read" },
-            },
-          ],
-        },
-      ],
-    },
-  },
-};
-
-export const NoChannels: Story = {
-  args: {
-    node: { ...node, id: "google-sheets", label: "Google Sheets" },
-    ancestors,
-    currentPath: "/connected-systems/google-sheets",
-    data: {
-      pageType: "detail",
-  projects: projectOptions,
-      ...systemData("google-sheets"),
-      headerBadge: { label: "Shared", variant: "shared" },
-      sections: [],
     },
   },
 };
@@ -133,7 +74,7 @@ export const ViaXRoad: Story = {
     node: { id: "national-id", label: "National ID verification" },
     ancestors,
     currentPath: "/connected-systems/national-id",
-    data: { pageType: "detail", projects: projectOptions, ...systemData("national-id"), headerBadge: { label: "Shared", variant: "shared" }, sections: [] },
+    data: { pageType: "detail", ...systemData("national-id"), headerBadge: { label: "Shared", variant: "shared" } },
   },
 };
 
@@ -144,7 +85,7 @@ export const ViaXRoadAgreementPending: Story = {
     node: { id: "social-registry", label: "Social registry" },
     ancestors,
     currentPath: "/connected-systems/social-registry",
-    data: { pageType: "detail", projects: projectOptions, ...systemData("social-registry"), headerBadge: { label: "Shared", variant: "shared" }, sections: [] },
+    data: { pageType: "detail", ...systemData("social-registry"), headerBadge: { label: "Shared", variant: "shared" } },
   },
 };
 

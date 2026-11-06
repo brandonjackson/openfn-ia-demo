@@ -3,12 +3,10 @@ import { BookOpen, FolderOpen, Globe, KeyRound, Lock, Network, Pencil, ShieldX, 
 import ConfirmModal from "../components/primitives/ConfirmModal";
 import Text from "../components/primitives/Text";
 import type { PageProps } from "../model/ia-tree";
-import type { AccessGrant, DetailPageData, DetailSectionItem, SystemChanges } from "../model/page-data";
+import type { AccessGrant, DetailPageData, SystemChanges } from "../model/page-data";
 import AdaptorLogo from "../components/domain/AdaptorLogo";
 import Badge from "../components/primitives/Badge";
 import Button from "../components/primitives/Button";
-import ChannelRow from "../components/domain/ChannelRow";
-import type { ChannelRowType } from "../components/domain/ChannelRow";
 import DataTable from "../components/primitives/DataTable";
 import type { DataTableColumn } from "../components/primitives/DataTable";
 import PageHeader from "../components/patterns/PageHeader";
@@ -26,8 +24,6 @@ import XRoadConnectionDetails from "../components/domain/XRoadConnectionDetails"
 import { connectionOf } from "../model/connected-systems";
 
 export interface SystemPageProps extends PageProps<DetailPageData> {
-  /** Starts a new workflow in a project, triggered by one of the system's event channels. */
-  onStartWorkflow: (projectId: string, channelId: string) => void;
   /** Takes away one person's or project's access to the system. Without it, there's no Revoke. */
   onRevokeGrant?: (grantId: string) => Promise<void>;
   /** Saves changes to the system's name, description, API docs and environment URLs. Rejects with what the server refused. Without it, there's no Edit. */
@@ -72,65 +68,13 @@ const grantColumns = (onRevoke?: (grant: AccessGrant) => void): DataTableColumn<
   },
 ];
 
-interface StartWorkflow {
-  /** Projects a new workflow can be started in, from an event channel. */
-  projects?: { id: string; name: string }[];
-  /** Starts a new workflow in a project, triggered by an event channel. */
-  onStartWorkflow?: (projectId: string, channelId: string) => void;
-}
-
-function ChannelSection({
-  title,
-  items,
-  projects,
-  onStartWorkflow,
-}: { title: string; items: DetailSectionItem[] } & StartWorkflow) {
-  return (
-    <section>
-      <SectionHeading title={title} description={plural(items.length, title.toLowerCase().replace(/s$/, ""))} />
-      <div className="space-y-2">
-        {items.map((item) => (
-          <ChannelRow
-            key={item.id}
-            id={item.id}
-            name={item.name}
-            description={item.description}
-            channelType={item.metadata?.channelType as ChannelRowType | undefined}
-            autoCreated={item.metadata?.isDefault === "true"}
-            projects={projects}
-            onStartWorkflow={onStartWorkflow}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-export default function SystemPage({ node, ancestors, data, onStartWorkflow, onRevokeGrant, onSaveSystem, onDeleteSystem }: SystemPageProps) {
+export default function SystemPage({ node, ancestors, data, onRevokeGrant, onSaveSystem, onDeleteSystem }: SystemPageProps) {
   const { system } = data;
   const [revoking, setRevoking] = useState<AccessGrant | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
   const connection = system ? connectionOf(system) : undefined;
   const xroad = connection?.method === "xroad" ? connection : undefined;
-  const productionUrl = system?.environments.production.url;
-
-  // Build channel items, prepending a default HTTP channel if the system has a URL
-  const channelsSection = data.sections.find((s) => s.id === "channels");
-  const otherSections = data.sections.filter((s) => s.id !== "channels");
-
-  const allChannelItems: DetailSectionItem[] = [];
-  if (productionUrl && channelsSection) {
-    allChannelItems.push({
-      id: "default-http",
-      name: "HTTP",
-      description: `Default channel created when the URL was added. Sends requests directly to ${productionUrl}.`,
-      metadata: { channelType: "default", isDefault: "true" },
-    });
-  }
-  if (channelsSection) {
-    allChannelItems.push(...channelsSection.items);
-  }
 
   const properties: Property[] = [];
   if (system) {
@@ -215,8 +159,6 @@ export default function SystemPage({ node, ancestors, data, onStartWorkflow, onR
         </section>
       )}
 
-      {channelsSection && !xroad && <ChannelSection title={channelsSection.title} items={allChannelItems} projects={data.projects} onStartWorkflow={onStartWorkflow} />}
-
       {data.accessGrants && data.accessGrants.length > 0 && (
         <section>
           <SectionHeading title="Access" description={plural(data.accessGrants.length, "grant")} />
@@ -224,15 +166,6 @@ export default function SystemPage({ node, ancestors, data, onStartWorkflow, onR
         </section>
       )}
 
-      {otherSections.map((section) => (
-        <ChannelSection
-          key={section.id}
-          title={section.title}
-          items={section.items}
-          projects={data.projects}
-          onStartWorkflow={onStartWorkflow}
-        />
-      ))}
       {system && onSaveSystem && (
         <SystemFormModal open={editing} onClose={() => setEditing(false)} system={system} direct={!xroad} onSave={onSaveSystem} />
       )}

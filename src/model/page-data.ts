@@ -106,22 +106,6 @@ export interface FeatureIntroData {
 /*  Detail page (OpenCRVS, DHIS2, etc.)                                */
 /* ------------------------------------------------------------------ */
 
-export interface DetailSectionItem {
-  id: string;
-  name: string;
-  description: string;
-  metadata?: Record<string, string>;
-  linkTo?: string;
-  badges?: string[];
-}
-
-export interface DetailSection {
-  id: string;
-  title: string;
-  items: DetailSectionItem[];
-  display: "cards" | "rows" | "links";
-}
-
 export interface AccessGrant {
   id: string;
   grantedTo: string;
@@ -147,10 +131,7 @@ export interface DetailPageData {
   /** For a system reached over X-Road: the organisation's X-Road settings, and the member and service the route goes to. */
   xroad?: XRoadRouteContext;
   metrics?: MetricCard[];
-  sections: DetailSection[];
   accessGrants?: AccessGrant[];
-  /** Projects a new workflow can be started in, from an event channel. */
-  projects?: { id: string; name: string }[];
 }
 
 /* ------------------------------------------------------------------ */

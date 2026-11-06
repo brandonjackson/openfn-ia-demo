@@ -16,13 +16,13 @@ import { useSandbox } from "../app/sandbox-state";
 import Loaded from "../app/Loaded";
 import { useProject } from "../api/projects";
 import { useProjectCredentials } from "../api/credentials";
+import { useProjectChannels } from "./channel-records.query";
 import { combine } from "../api/status";
 import { asGraph, useProjectWorkflows, useSandboxes, useSandboxSaves, useWorkflow, useWorkflowSaves, useWorkflowSnapshots } from "../api/workflows";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
 import { adaptorChoices, adaptorInfo, adaptorSnippets } from "../fixtures/adaptor-reference";
 import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
 import { codeSummary } from "../fixtures/code-summaries";
-import { channelDetails } from "../fixtures/channels";
 import { componentPreview, serviceListing, workflowDocs } from "../fixtures/workflow-files";
 import type { AdaptorReference } from "../model/adaptor-reference";
 import type { AdaptorCatalog } from "../model/adaptor-catalog";
@@ -188,13 +188,18 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
     workOrders: onCopy(changedHistory?.workOrders ?? fixtureHistory.workOrders, stepOnCopy),
     dataclips: [...fixtureHistory.dataclips, ...(changedHistory?.dataclips ?? [])],
   };
-  const components = fixtureRoot && componentsFor(fixtureRoot.components, flags).filter((c) => c.type !== "Workflow");
+  // The project's channels from the API, and its other kinds of component from its fixture until they move too.
+  const { channels } = useProjectChannels(root.id);
+  const components = componentsFor(
+    [...(fixtureRoot?.components ?? []).filter((c) => c.type !== "Workflow" && c.type !== "Channel"), ...channels.map((c) => c.component)],
+    flags,
+  );
   // What opening the workflow's docs, its service listing and its components shows.
   const contents: WorkflowFileContents = {
     docs: workflowDocs,
     serviceListing: service ? serviceListing(service.service) : undefined,
-    componentPreviews: Object.fromEntries((components ?? []).map((c) => [c.id, componentPreview(c)])),
-    channels: Object.fromEntries((components ?? []).filter((c) => c.type === "Channel").map((c) => [c.id, channelDetails(c)])),
+    componentPreviews: Object.fromEntries(components.map((c) => [c.id, componentPreview(c)])),
+    channels: Object.fromEntries(channels.map((c) => [c.component.id, c.details])),
   };
   const graph: Workflow = asGraph(shown, root.name);
   const versionGraph = (version: string) => {

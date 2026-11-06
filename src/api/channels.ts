@@ -2,6 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ChannelDetails, ChannelDraft, ChannelMessage } from "../model/channels";
 import type { ProjectComponent } from "../model/projects";
+import type { ChannelRequest } from "../model/history";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
@@ -138,4 +139,48 @@ export function useChannelSaves(projectId: string, credentialLink: (name: string
       void (await put.mutateAsync({ id: channel.component.id, body: { enabled, lock_version: channel.lockVersion } })),
     remove: async (id: string) => void (await remove.mutateAsync(id)),
   };
+}
+
+/** Every request the channels of these projects carried, newest first, as History's channel requests tab lists them. */
+export function useChannelRequests(projects: { id: string; name: string }[]): { status: LoadStatus; requests: ChannelRequest[] } {
+  const ids = projects.map((p) => p.id);
+  const query = useQuery({
+    queryKey: ["channels", "requests", ...ids],
+    enabled: ids.length > 0,
+    queryFn: async () =>
+      (
+        await Promise.all(
+          ids.map(async (projectId) => {
+            const [list, requests] = await Promise.all([
+              listAll<ApiChannel>(`/api/projects/${projectId}/channels`),
+              listAll<ApiChannelRequest>(`/api/projects/${projectId}/channel_requests`),
+            ]);
+            return requests.flatMap((r): ChannelRequest[] => {
+              const channel = list.find((c) => c.id === r.attributes.channel_id);
+              if (!channel) return [];
+              const a = channel.attributes;
+              return [
+                {
+                  id: r.id,
+                  channelId: channel.id,
+                  channelName: a.name,
+                  channelType: a.channel_type,
+                  system: a.system.name,
+                  method: a.method,
+                  endpoint: a.destination_url,
+                  status: r.attributes.status,
+                  durationMs: r.attributes.duration_ms,
+                  at: r.attributes.at,
+                  summary: r.attributes.summary,
+                  projectId,
+                  projectName: projects.find((p) => p.id === projectId)?.name ?? "",
+                  ...(r.attributes.run_id && { runId: r.attributes.run_id, workflowId: a.workflow_id ?? undefined }),
+                },
+              ];
+            });
+          }),
+        )
+      ).flat(),
+  });
+  return { status: ids.length ? statusOf(query) : { state: "ready" }, requests: query.data ?? [] };
 }

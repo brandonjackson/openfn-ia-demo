@@ -10,7 +10,7 @@ import NotFoundPage from "../pages/NotFoundPage";
 import OverviewPageQuery from "../pages/OverviewPage.query";
 import SystemsPageFixtures from "../pages/SystemsPage.fixtures";
 import SystemPageFixtures from "../pages/SystemPage.fixtures";
-import HistoryPageFixtures from "../pages/HistoryPage.fixtures";
+import HistoryPageQuery from "../pages/HistoryPage.query";
 import ServicesPageFixtures from "../pages/ServicesPage.fixtures";
 import ProjectsPageQuery from "../pages/ProjectsPage.query";
 import ProjectPageQuery from "../pages/ProjectPage.query";
@@ -40,7 +40,7 @@ const wrappers: Record<PageType, ComponentType<{ route: Route }>> = {
   dashboard: OverviewPageQuery,
   list: SystemsPageFixtures,
   detail: SystemPageFixtures,
-  table: HistoryPageFixtures,
+  table: HistoryPageQuery,
   catalog: ServicesPageFixtures,
   projects: ProjectsPageQuery,
   project: ProjectPageQuery,

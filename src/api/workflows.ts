@@ -232,3 +232,14 @@ export function useSandboxChanges(rootId: string | undefined, sandboxes: Project
   });
   return { status: statusOf(query), changes: query.data ?? {} };
 }
+
+/** The live workflows of several projects at once (History across projects), by project. */
+export function useWorkflowsInProjects(projectIds: string[]): { status: LoadStatus; workflows: WorkflowDocument[] } {
+  const query = useQuery({
+    queryKey: [...workflowKeys.all, "projects", ...projectIds],
+    enabled: projectIds.length > 0,
+    queryFn: async () =>
+      (await Promise.all(projectIds.map((p) => request<{ workflows: WorkflowDocument[] }>("GET", `/api/projects/${p}/workflows`).then((a) => a.workflows)))).flat(),
+  });
+  return { status: projectIds.length ? statusOf(query) : { state: "ready" }, workflows: query.data ?? [] };
+}

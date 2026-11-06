@@ -233,6 +233,7 @@ export default function WorkflowEditorPage({
   onAssistantSend,
   onAssistantCarryOutPlan,
   onSaveWorkflow,
+  onRunFinished,
   live: controlledLive,
   onToggleLive,
   onPromote,
@@ -327,6 +328,12 @@ export default function WorkflowEditorPage({
    * Without it, edits last as long as the page.
    */
   onSaveWorkflow?: (graph: Workflow) => Promise<void>;
+  /**
+   * A run started here has finished: the run, the dataclips it used and made
+   * (its input first), and whether it's another run of a work order that was
+   * already there (a retry). The caller keeps it, so History has it too.
+   */
+  onRunFinished?: (run: RunDetails, dataclips: Dataclip[], retryOf?: string) => void;
   /** Whether the workflow's trigger is on, when the caller holds it. */
   live?: boolean;
   /** Turns the workflow's trigger on or off. */
@@ -412,6 +419,17 @@ export default function WorkflowEditorPage({
 
   const [orders, setOrders] = useState(initialWorkOrders);
   const [clips, setClips] = useState(initialDataclips);
+  // When the caller's history changes (a run recorded, a retry from History, another copy shown), it's the truth again.
+  const [givenOrders, setGivenOrders] = useState(initialWorkOrders);
+  if (givenOrders !== initialWorkOrders) {
+    setGivenOrders(initialWorkOrders);
+    setOrders(initialWorkOrders);
+  }
+  const [givenClips, setGivenClips] = useState(initialDataclips);
+  if (givenClips !== initialDataclips) {
+    setGivenClips(initialDataclips);
+    setClips(initialDataclips);
+  }
   const [localRunId, setLocalRunId] = useState(controlledRunId);
   const runId = onRunChange ? controlledRunId : localRunId;
   const setRunId = onRunChange ?? setLocalRunId;
@@ -559,6 +577,8 @@ export default function WorkflowEditorPage({
   /** Start a run on the latest version and follow it live, a step at a time, until its results are in. */
   const startRun = ({ workOrderId, input, fromJobId }: { workOrderId: string; input: Dataclip; fromJobId?: string }) => {
     if (!onRun) return;
+    const retryOf = orders.some((o) => o.id === workOrderId) ? workOrderId : undefined;
+    const made: Dataclip[] = [];
     const latest = applyEdits(workflow, edits, name, adaptors.info);
     const args = {
       workflow: latest,
@@ -581,9 +601,11 @@ export default function WorkflowEditorPage({
       const next = progress < started.run.steps.length ? onRun({ ...args, progress }) : onRun(args);
       upsertRun(next.run);
       addClips(next.dataclips);
+      made.push(...next.dataclips.filter((d) => !made.some((m) => m.id === d.id)));
       if (next.run.status !== "running") {
         clearInterval(timer);
         runTimers.current = runTimers.current.filter((t) => t !== timer);
+        onRunFinished?.(next.run, [input, ...made.filter((d) => d.id !== input.id)], retryOf);
       }
     }, STEP_TIME_MS);
     runTimers.current.push(timer);

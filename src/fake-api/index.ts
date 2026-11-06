@@ -25,6 +25,7 @@ import { historyExportRoutes } from "./history-exports";
 import { credentialRoutes } from "./credentials";
 import { accountRoutes } from "./account";
 import { channelRoutes } from "./channels";
+import { workOrderRoutes } from "./work-orders";
 
 export type { Problem } from "./answers";
 export { signInAs } from "./session";
@@ -45,6 +46,7 @@ const routes: Record<string, Handler> = {
   ...credentialRoutes,
   ...accountRoutes,
   ...channelRoutes,
+  ...workOrderRoutes,
   // The demo's own: back to the fixtures.
   "POST /api/demo/reset": () => {
     resetDb();

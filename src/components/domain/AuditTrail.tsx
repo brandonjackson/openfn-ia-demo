@@ -42,9 +42,10 @@ function eventTone(event: string): BadgeTone {
 }
 
 /**
- * The instance's audit trail: who changed what and when, newest first.
- * Filter by text, event or kind of record; open a row to see the fields it
- * changed, before and after. Pages of events come from the server.
+ * The instance's audit trail: who changed what and when, newest first. It
+ * answers "what happened to this thing?", so the item leads: search by item
+ * or actor, narrow by kind of record, then by event. Open a row to see the
+ * fields it changed, before and after. Pages of events come from the server.
  */
 export default function AuditTrail({ page, query, onChangeQuery }: Props) {
   const [open, setOpen] = useState<string[]>([]);
@@ -66,21 +67,6 @@ export default function AuditTrail({ page, query, onChangeQuery }: Props) {
       ),
     },
     { key: "occurred", header: "Occurred", render: (e) => <Text tone="muted">{e.occurredAt}</Text> },
-    { key: "event", header: "Event", render: (e) => <Badge label={eventLabel(e.event)} tone={eventTone(e.event)} /> },
-    {
-      key: "actor",
-      header: "Actor",
-      render: (e) => (
-        <Stack gap="none">
-          <Text tone="strong">{e.actor.label}</Text>
-          {e.actor.identifier && (
-            <Text tone="subtle" size="xs">
-              {e.actor.identifier}
-            </Text>
-          )}
-        </Stack>
-      ),
-    },
     {
       key: "item",
       header: "Item",
@@ -96,6 +82,21 @@ export default function AuditTrail({ page, query, onChangeQuery }: Props) {
         </Stack>
       ),
     },
+    { key: "event", header: "Event", render: (e) => <Badge label={eventLabel(e.event)} tone={eventTone(e.event)} /> },
+    {
+      key: "actor",
+      header: "Actor",
+      render: (e) => (
+        <Stack gap="none">
+          <Text tone="strong">{e.actor.label}</Text>
+          {e.actor.identifier && (
+            <Text tone="subtle" size="xs">
+              {e.actor.identifier}
+            </Text>
+          )}
+        </Stack>
+      ),
+    },
   ];
 
   return (
@@ -103,7 +104,7 @@ export default function AuditTrail({ page, query, onChangeQuery }: Props) {
       <Inline gap="sm" wrap>
         <Stack grow>
           <SearchInput
-            placeholder="Filter by actor or item"
+            placeholder="Filter by item or actor"
             value={query.search}
             onChange={(e) => filter({ search: e.target.value })}
           />
@@ -111,18 +112,18 @@ export default function AuditTrail({ page, query, onChangeQuery }: Props) {
         {/* Each select in its own stack, so it's as wide as its options rather than the whole row. */}
         <Stack>
           <Select
-            aria-label="Event"
-            options={[ALL_EVENTS, ...page.eventNames.map(eventLabel)]}
-            value={query.event ? eventLabel(query.event) : ALL_EVENTS}
-            onChange={(e) => filter({ event: page.eventNames.find((n) => eventLabel(n) === e.target.value) ?? "" })}
-          />
-        </Stack>
-        <Stack>
-          <Select
             aria-label="Item type"
             options={[ALL_ITEMS, ...itemTypes.map((t) => auditItemTypeLabels[t])]}
             value={query.itemType ? auditItemTypeLabels[query.itemType] : ALL_ITEMS}
             onChange={(e) => filter({ itemType: itemTypes.find((t) => auditItemTypeLabels[t] === e.target.value) ?? "" })}
+          />
+        </Stack>
+        <Stack>
+          <Select
+            aria-label="Event"
+            options={[ALL_EVENTS, ...page.eventNames.map(eventLabel)]}
+            value={query.event ? eventLabel(query.event) : ALL_EVENTS}
+            onChange={(e) => filter({ event: page.eventNames.find((n) => eventLabel(n) === e.target.value) ?? "" })}
           />
         </Stack>
       </Inline>

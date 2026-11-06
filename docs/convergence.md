@@ -18,19 +18,28 @@ and to mark what would change the look.
   CI is green) and the branch restarted from `main` before the next: `git
   fetch origin main && git checkout -B <branch> origin/main`.
 - **PR in progress:** none. The brief's 10 PRs are done; the work now is
-  Brandon's decisions (6 Nov 2026, "Decided by Brandon" below), one PR each:
-  1. **Every other submit button enabled** (decision 4): 40-odd
-     `disabled={!…}` across `src/components/domain/` and the pages; each
-     says what's missing under its field on submit. Disabled while saving
-     stays.
-  2. **The section loading pattern** (decision 1): a page draws its frame at
+  Brandon's decisions (6 Nov 2026, "Decided by Brandon" below). Decisions
+  3, 5 and 6 are done, and 4 on Create project. Next, one PR each:
+  1. **Credential types load when picked** (decision 2). Plan: split
+     `CredentialSchema` into a `CredentialSchemaSummary` (`id`, `name`,
+     `adaptor`: what the list sends, enough for `CredentialTable` and the
+     picker) and the full schema. `useCredentialSchemas` loads only the
+     list; the page takes `onLoadCredentialSchema(id): Promise<CredentialSchema>`
+     (the wrapper fetches `GET /api/credential_schemas/:name` through a
+     query-client `fetchQuery`, cached). `CredentialFormModal` calls it on
+     "Configure credential" (busy "Loading…", a refusal in a callout) and,
+     when editing, as it opens. The picker drops its description line and
+     its search matches the name only. Tests: page (pending, success,
+     refusal), wrapper (the schema fetched once picked, not before).
+  2. **Every other submit button enabled** (decision 4): the `disabled={!…}`
+     across `src/components/domain/` and the pages (`grep -rn
+     "disabled={!" src`); each says what's missing under its field on
+     submit and focuses it, and is `aria-disabled` while saving, as Create
+     project does (`CreateProjectFlow.tsx`).
+  3. **The section loading pattern** (decision 1): a page draws its frame at
      once, each section its own loading and error. Projects first, then
      Admin settings' audit trail, User settings' credential types,
      Organization settings' X-Road.
-  3. **Credential types load when picked** (decision 2), dropping the
-     picker's description line.
-  4. **Audit trail: item type leads** (decision 3): the item type filter
-     first, the event filter after it.
   Then the convergence items: ProjectSettingsPage into its folder; the
   system and service pages reading the X-Road identity from the API;
   WorkflowEditorPage.
@@ -215,7 +224,12 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     106; tests 168 → 170.
     ([#201](https://github.com/brandonjackson/openfn-ia-demo/pull/201))
 
-**PRs done: 11** (10 for the brief, then Brandon's decisions). Pull openfn-3-poc again at PR 10.
+12. **The audit trail leads with the item** (decision 3). The Item column
+    comes before Event, the item type filter before the event filter, and
+    the search reads "Filter by item or actor". The event filter keeps its
+    fixed list. ([#202](https://github.com/brandonjackson/openfn-ia-demo/pull/202))
+
+**PRs done: 12** (10 for the brief, then Brandon's decisions). Pull openfn-3-poc again at PR 10.
 
 ## Decided by Brandon (6 Nov 2026)
 

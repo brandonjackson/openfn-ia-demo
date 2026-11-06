@@ -128,6 +128,7 @@ export default function AuthProviderForm({ provider, defaultRedirectHost, test, 
               icon={Save}
               aria-disabled={busy !== null}
               onClick={() =>
+                !busy &&
                 !blocked(fields) &&
                 run("save", async () => {
                   await onSave(draft);
@@ -142,7 +143,7 @@ export default function AuthProviderForm({ provider, defaultRedirectHost, test, 
               variant="secondary"
               icon={PlugZap}
               aria-disabled={busy !== null}
-              onClick={() => !blocked(["discoveryUrl"]) && run("test", () => onTest(draft))}
+              onClick={() => !busy && !blocked(["discoveryUrl"]) && run("test", () => onTest(draft))}
             >
               {busy === "test" ? "Testing…" : "Test"}
             </Button>

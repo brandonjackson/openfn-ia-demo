@@ -94,7 +94,11 @@ describe("AdminSettingsPage", () => {
     expect(host.calls("onCreateUser")).toEqual([
       [{ firstName: "Lena", lastName: "Okafor", email: "lena@example.org", role: "user", supportUser: false, disabled: false, password: "a long enough password" }],
     ]);
-    expect(screen.getByRole("button", { name: "Saving…" }).getAttribute("aria-disabled")).toBe("true");
+    // Busy, not disabled, while it saves: a second press sends nothing more.
+    const busy = screen.getByRole("button", { name: "Saving…" });
+    expect(busy.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(busy);
+    expect(host.calls("onCreateUser")).toHaveLength(1);
     await host.resolve("onCreateUser");
     expect(screen.queryByLabelText("First name")).toBeNull();
   });

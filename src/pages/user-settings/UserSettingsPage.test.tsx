@@ -170,7 +170,7 @@ describe("UserSettingsPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "New credential" }));
     fireEvent.click(screen.getByRole("button", { name: "Configure credential" }));
     expect(screen.getByRole("alert").textContent).toContain("Choose a credential type");
-    expect(document.activeElement).toBe(screen.getByPlaceholderText("Search credential types"));
+    expect(document.activeElement).toBe(within(screen.getByRole("dialog")).getByRole("button", { name: /DHIS2/ }));
     expect(host.calls("onLoadCredentialSchema")).toEqual([]);
   });
 
@@ -178,7 +178,17 @@ describe("UserSettingsPage", () => {
     const host = draw("profile", "Profile");
     fireEvent.click(screen.getByRole("button", { name: "Update password" }));
     expect(document.activeElement).toBe(screen.getByLabelText(/^New password/));
+    expect(screen.getByLabelText(/^New password/).getAttribute("aria-invalid")).toBe("true");
     expect(host.calls("onChangePassword")).toEqual([]);
+  });
+
+  it("takes focus to the first field that's missing when a credential is saved without it", async () => {
+    const host = draw("credentials", "Credentials");
+    await pickDhis2(host);
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Health ministry" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save credential" }));
+    expect(document.activeElement).toBe(screen.getByLabelText(/^Host URL/));
+    expect(host.calls("onSaveCredential")).toEqual([]);
   });
 
   it("shows a new token once, when it's been made", async () => {

@@ -54,13 +54,13 @@ export default function ProjectFormModal({ project, users, onSave, onClose }: Pr
   const search = filter.trim().toLowerCase();
   const shown = users.filter((u) => !search || `${fullName(u)} ${u.email}`.toLowerCase().includes(search));
 
-  // Set when Save is pressed; from then on the name says if it's missing, and the owner problem is read out.
-  const [attempted, setAttempted] = useState(false);
-  const nameMissing = attempted && !slug ? "Enter a project name" : undefined;
+  // How often Save has been pressed: from the first press the name says if it's missing, and each press reads the owner problem out again.
+  const [attempts, setAttempts] = useState(0);
+  const nameMissing = attempts > 0 && !slug ? "Enter a project name" : undefined;
 
   const save = async () => {
     if (saving) return;
-    setAttempted(true);
+    setAttempts((n) => n + 1);
     if (focusFirstProblem([[`${id}-name`, !slug]]) || ownerError) return;
     setSaving(true);
     setError(null);
@@ -155,7 +155,8 @@ export default function ProjectFormModal({ project, users, onSave, onClose }: Pr
             title="Members"
             description="Give each person a role in this project. Exactly one of them is its owner."
           />
-          {ownerError && <Callout variant="danger" role={attempted ? "alert" : undefined} title={ownerError} />}
+          {/* A fresh alert on each press, so it's read out even though it was already on screen. */}
+          {ownerError && <Callout key={attempts} variant="danger" role={attempts > 0 ? "alert" : undefined} title={ownerError} />}
           <SearchInput compact placeholder="Filter users" value={filter} onChange={(e) => setFilter(e.target.value)} />
           <DataTable columns={columns} rows={shown} getRowKey={(u) => u.id} emptyMessage="No users match." />
         </Stack>

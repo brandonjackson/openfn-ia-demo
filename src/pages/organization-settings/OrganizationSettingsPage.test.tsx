@@ -89,6 +89,14 @@ describe("OrganizationSettingsPage", () => {
     expect(host.calls("onInviteMember")).toEqual([]);
   });
 
+  it("says a context layer URL is missing when access is requested without one", () => {
+    const host = draw("context", "Context");
+    fireEvent.click(screen.getByRole("button", { name: "Request access" }));
+    expect(screen.getByText("Enter a context layer URL")).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByLabelText(/^Context layer URL/));
+    expect(host.calls("onRequestContextAccess")).toEqual([]);
+  });
+
   it("reads only, with no invite button, when it's given no actions", () => {
     renderPage(OrganizationSettingsPage, frame("members", "Members", data), []);
     expect(screen.queryByRole("button", { name: "Invite member" })).toBeNull();
@@ -106,7 +114,7 @@ describe("OrganizationSettingsPage", () => {
     fireEvent.click(screen.getByLabelText(/^National operator/));
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(host.calls("onSaveSecurityServerManager")).toEqual([["national-operator"]]);
-    expect(screen.getByRole("button", { name: "Save" }).getAttribute("aria-disabled")).toBe("true");
+    expect(screen.getByRole("button", { name: "Saving…" }).getAttribute("aria-disabled")).toBe("true");
     await host.reject("onSaveSecurityServerManager", new Error("You are not allowed to do that."));
     expect(screen.getByText("The X-Road settings weren't saved")).toBeTruthy();
     expect(screen.getByText("You are not allowed to do that.")).toBeTruthy();

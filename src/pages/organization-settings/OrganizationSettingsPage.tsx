@@ -195,7 +195,7 @@ function VisibilitySection({ initial, onSave }: { initial: Visibility; onSave?: 
         action={
           onSave && (
             <Button size="sm" icon={Save} disabled={!changed} aria-disabled={save.saving} onClick={() => void save.run(visibility)}>
-              Save
+              {save.saving ? "Saving…" : "Save"}
             </Button>
           )
         }
@@ -333,6 +333,7 @@ function ContextSection({
       >
         <form
           className="flex items-end gap-2"
+          noValidate
           onSubmit={(e) => {
             e.preventDefault();
             requestAccess();
@@ -441,7 +442,7 @@ function XRoadSection({
         action={
           onSave && (
             <Button size="sm" icon={Save} disabled={!changed} aria-disabled={save.saving} onClick={() => void save.run(managedBy)}>
-              Save
+              {save.saving ? "Saving…" : "Save"}
             </Button>
           )
         }

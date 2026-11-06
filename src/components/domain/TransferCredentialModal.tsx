@@ -95,6 +95,7 @@ export default function TransferCredentialModal({ open, credential, onTransfer, 
           <Button
             aria-disabled={busy}
             onClick={() => {
+              if (busy) return;
               setTouched(true);
               if (!focusFirstProblem([["transfer-email", emailError(email)]])) void run(() => onTransfer(email.trim()));
             }}

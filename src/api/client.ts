@@ -71,6 +71,24 @@ export async function listAll<T>(path: string, key = "data"): Promise<T[]> {
   return rows;
 }
 
+/**
+ * One page of a paged list (api/conventions.md), which page it is (the server
+ * answers the last page for one past the end) and how many rows the whole
+ * list holds. Lists that send no `meta` say only which page is last, so the
+ * total is read from that page: the full pages before it plus its own rows.
+ */
+export async function listPage<T>(path: string, page: number, pageSize: number): Promise<{ rows: T[]; page: number; total: number }> {
+  type Page = { data: T[]; links: { self: string; last: string }; meta?: { total_entries: number } };
+  const pageOf = (link: string) => Number(new URL(link).searchParams.get("page"));
+  const at = (n: number) => `${path}${path.includes("?") ? "&" : "?"}page=${n}&page_size=${pageSize}`;
+  const shown: Page = await request("GET", at(page));
+  const served = pageOf(shown.links.self);
+  if (shown.meta) return { rows: shown.data, page: served, total: shown.meta.total_entries };
+  const last = pageOf(shown.links.last);
+  const tail: Page = last === served ? shown : await request("GET", at(last));
+  return { rows: shown.data, page: served, total: (last - 1) * pageSize + tail.data.length };
+}
+
 /** One entry of a problem document's `errors` (api/errors.md): a `code`, a `detail` and one location. */
 export interface ProblemEntry {
   code: string;

@@ -53,8 +53,19 @@ path in its hook file.
   `usage_metrics_enabled` to it.
 - **Audit trail: free-text search** (Admin settings, Audit trail;
   api/audit-events.md). The route filters by item type, item, actor, event
-  and dates, but the page also searches by any text. Until the server pages
-  the trail (convergence.md, Next), the wrapper filters the whole list.
+  and dates, but the page also searches the actor and the item's name and
+  id. Would need a `q` parameter. Until then the server pages and filters the
+  trail, and only a search reads every event that passes the other filters
+  (`useAuditTrail` in `src/api/admin.ts`) and searches and pages them in the
+  browser.
+- **Audit trail: its total and its event names** (Admin settings, Audit
+  trail). The list sends no `meta` (only runs, work orders and log lines
+  do), so "Showing 11–20 of 26 events" comes from the last page's link and
+  rows (`listPage` in `src/api/client.ts`: one extra request when you're not
+  on the last page). Nothing lists which event names exist, so the event
+  filter offers a fixed list of the ones Lightning records
+  (`auditEventNames` in `model/audit-events.ts`). Would need `meta` on the
+  list, and the event names in api/audit-events.md.
 
 - **Projects: a superuser's own projects** (api/projects.md). The list
   answers only your projects, but the demo's fake server answers a

@@ -1,8 +1,8 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../../api/ApiProvider";
-import { forgetCsrfToken, request } from "../../api/client";
+import { forgetCsrfToken, listAll, request } from "../../api/client";
 import { findNodeByPath } from "../../app/ia-utils";
 import { failNext, resetFakeApi, setWait } from "../../fake-api";
 import { iaTree } from "../../model/ia-tree";
@@ -10,11 +10,12 @@ import AdminSettingsPageQuery from "./AdminSettingsPage.query";
 
 const wait = { timeout: 3000 };
 
-function renderRoute(path = "/admin-settings/users") {
+function renderRoute(url = "/admin-settings/users") {
+  const path = url.split("?")[0]!;
   const route = { ...findNodeByPath(iaTree, path)!, currentPath: path };
   render(
     <ApiProvider retry={false}>
-      <MemoryRouter initialEntries={[path]}>
+      <MemoryRouter initialEntries={[url]}>
         <AdminSettingsPageQuery route={route} />
       </MemoryRouter>
     </ApiProvider>,
@@ -88,5 +89,42 @@ describe("AdminSettingsPageQuery", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Test" }, wait));
     expect(await screen.findByText("Test failed", {}, wait)).toBeTruthy();
     expect(screen.getByText("You are not allowed to do that.")).toBeTruthy();
+  });
+
+  describe("the audit trail", () => {
+    type Event = { attributes: { event: string; actor_display: { label: string } } };
+    const rows = () => screen.getAllByRole("row").slice(1);
+
+    it("opens on the page and filters the URL holds, asking the server for that page", async () => {
+      const all = await listAll<Event>("/api/audit_events");
+      renderRoute("/admin-settings/audit-trail?page=2");
+      expect(await screen.findByText(`Showing 11–20 of ${all.length} events`, {}, wait)).toBeTruthy();
+    });
+
+    it("filters by event on the server, and goes back to the first page", async () => {
+      const created = (await listAll<Event>("/api/audit_events?event=created")).length;
+      renderRoute("/admin-settings/audit-trail?page=2");
+      await screen.findByText(/Showing 11–20/, {}, wait);
+      fireEvent.change(screen.getByLabelText("Event"), { target: { value: "Created" } });
+      await waitFor(() => expect(rows()).toHaveLength(Math.min(created, 10)), wait);
+      expect(rows().every((r) => r.textContent?.includes("Created"))).toBe(true);
+    });
+
+    it("searches every event that passes the filters, not just the page showing", async () => {
+      const all = await listAll<Event>("/api/audit_events");
+      const oldest = all.at(-1)!.attributes.actor_display.label;
+      const matching = all.filter((e) => e.attributes.actor_display.label === oldest).length;
+      renderRoute("/admin-settings/audit-trail");
+      await screen.findByText(/Showing 1–10/, {}, wait);
+      fireEvent.change(screen.getByPlaceholderText("Filter by actor or item"), { target: { value: oldest } });
+      await waitFor(() => expect(rows().every((r) => r.textContent?.includes(oldest))).toBe(true), wait);
+      expect(rows()).toHaveLength(Math.min(matching, 10));
+    });
+
+    it("shows the server's message when the trail fails to load", async () => {
+      failNext("GET /api/audit_events", { status: 500, code: "internal", detail: "The audit trail is unavailable." });
+      renderRoute("/admin-settings/audit-trail");
+      expect(await screen.findByText("The audit trail is unavailable.", {}, wait)).toBeTruthy();
+    });
   });
 });

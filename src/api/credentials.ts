@@ -62,7 +62,7 @@ const toOAuthClient = (o: ApiOAuthClient): OAuthClient => ({
 });
 
 /** A credential schema as GET /api/credential_schemas/:name sends it. `raw` has no `schema`. */
-interface ApiCredentialSchema {
+export interface ApiCredentialSchema {
   name: string;
   title: string;
   schema?: {
@@ -92,22 +92,36 @@ function fieldKind(p: ApiSchemaProperty): CredentialFieldKind {
   return "text";
 }
 
-/** A schema's fields in the order its properties come, under the short name the forms use (`dhis2`). */
-function toCredentialSchema({ name, title, schema }: ApiCredentialSchema): CredentialSchema {
-  if (!schema) return { ...rawCredentialSchema, name: title };
+/** The short name the forms know a schema by: `@openfn/language-dhis2` is `dhis2`. Lightning stores names in full. */
+export const schemaIdOf = (name: string) => name.replace(/^@openfn\/language-/, "");
+
+/** A schema value as the form's text: strings as they are, anything else as JSON. */
+const asText = (v: unknown) => (typeof v === "string" ? v : JSON.stringify(v));
+
+/**
+ * A schema's fields in the order its properties come, under the short name
+ * the forms use (`dhis2`). `raw`, and an adaptor whose schema has no
+ * properties, take any JSON body.
+ */
+export function toCredentialSchema({ name, title, schema }: ApiCredentialSchema): CredentialSchema {
+  const id = schemaIdOf(name);
+  if (name === "raw") return { ...rawCredentialSchema, name: title };
+  if (!schema?.properties || Object.keys(schema.properties).length === 0)
+    return { ...rawCredentialSchema, id, name: title, adaptor: id, description: schema?.description ?? "" };
   const required = new Set(schema.required ?? []);
-  const fields: CredentialField[] = Object.entries(schema.properties ?? {}).map(([key, p]) => ({
+  const fields: CredentialField[] = Object.entries(schema.properties).map(([key, p]) => ({
     key,
     label: p.title ?? key,
     kind: fieldKind(p),
     ...(p.description && { description: p.description }),
-    ...(p.examples?.[0] !== undefined && { placeholder: String(p.examples[0]) }),
+    ...(p.examples?.[0] !== undefined && { placeholder: asText(p.examples[0]) }),
     ...(required.has(key) && { required: true }),
-    ...(p.default !== undefined && { defaultValue: String(p.default) }),
+    ...(p.default !== undefined && { defaultValue: asText(p.default) }),
   }));
-  const id = name.replace(/^@openfn\/language-/, "");
   return { id, name: title, adaptor: id, description: schema.description ?? "", fields };
 }
+
+const toCredentialSchemas = (rows: ApiCredentialSchema[]) => rows.map(toCredentialSchema);
 
 export const credentialKeys = {
   all: ["credentials"] as const,
@@ -130,7 +144,7 @@ export function useCredentialSchemas(): { status: LoadStatus; schemas: Credentia
         data.map(async ({ name }) => (await request<{ data: ApiCredentialSchema }>("GET", `/api/credential_schemas/${encodeURIComponent(name)}`)).data),
       );
     },
-    select: (rows) => rows.map(toCredentialSchema),
+    select: toCredentialSchemas,
     // Schemas change only when adaptors do.
     staleTime: Infinity,
   });
@@ -158,7 +172,7 @@ export function useMyCredentials(rootProjects: string[]): { status: LoadStatus; 
     ({ c, envs }): UserCredential => ({
       id: c.id,
       name: c.name,
-      schema: c.schema,
+      schema: schemaIdOf(c.schema),
       ...(c.external_id && { externalId: c.external_id }),
       projectIds: c.projects.map((p) => p.id).filter((id) => rootProjects.includes(id)),
       environments: envs.map((e) => ({ environment: e.name as Environment, values: e.values })),
@@ -182,7 +196,7 @@ export function useProjectCredentials(projectId: string | undefined): { status: 
       rows.flatMap((c) =>
         c.project_credentials
           .filter((l) => l.project_id === projectId)
-          .map((l) => ({ id: l.id, name: c.name, adaptor: c.schema, owner: c.owner ? `${c.owner.first_name} ${c.owner.last_name}` : "Unknown" })),
+          .map((l) => ({ id: l.id, name: c.name, adaptor: schemaIdOf(c.schema), owner: c.owner ? `${c.owner.first_name} ${c.owner.last_name}` : "Unknown" })),
       ),
   });
   return { status: projectId ? statusOf(query) : { state: "ready" }, credentials: query.data ?? [] };

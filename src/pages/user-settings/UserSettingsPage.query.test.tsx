@@ -42,16 +42,17 @@ describe("UserSettingsPageQuery", () => {
     expect(picker.getByText("Raw JSON")).toBeTruthy();
     fireEvent.click(picker.getByText("DHIS2"));
     fireEvent.click(screen.getByRole("button", { name: "Configure credential" }));
-    expect(screen.getByLabelText(/^Host URL/)).toBeTruthy();
-    expect(screen.getByLabelText(/^Password/)).toBeTruthy();
+    expect(screen.getByLabelText(/^Host URL/).getAttribute("inputmode")).toBe("url");
+    expect((screen.getByLabelText(/^Password/) as HTMLInputElement).type).toBe("password");
   });
 
   it("makes a token on the server and shows it once", async () => {
+    const before = (await request<{ data: unknown[] }>("GET", "/api/me/tokens")).data.length;
     renderRoute("/user-settings/api-tokens");
     fireEvent.click((await screen.findAllByRole("button", { name: "Generate new token" }, wait))[0]!);
     expect(await screen.findByText("Copy your token now. You won't be able to see it again.", {}, wait)).toBeTruthy();
     const { data } = await request<{ data: unknown[] }>("GET", "/api/me/tokens");
-    expect(data.length).toBeGreaterThan(0);
+    expect(data).toHaveLength(before + 1);
   });
 
   it("shows the server's message when the credential schemas fail to load", async () => {

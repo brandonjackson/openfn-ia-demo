@@ -156,10 +156,12 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    `GET /api/credential_schemas/:name` (`useCredentialSchemas`), which the
    fake server answers as JSON Schema (`src/fake-api/credential-schemas.ts`:
    secrets `writeOnly`, URLs `format: uri`, `required`, `examples`,
-   `default`); raw JSON is `rawCredentialSchema` in the model. One api-gaps
+   `default`); raw JSON is `rawCredentialSchema` in the model. Credentials
+   now store their schema in full (`@openfn/language-dhis2`), as api/ says,
+   and `schemaIdOf` reads it back as the form's short name. One api-gaps
    entry. Counts: wrappers reading fixtures 22 → 21 of 25; page-data.ts 833
    → 809 lines; files importing it 91 → 89; pages in their own folder 2 → 3
-   of 24; page and query tests 4 → 6; tests 128 → 141.
+   of 24; page and query tests 4 → 6; tests 128 → 145.
    ([#198](https://github.com/brandonjackson/openfn-ia-demo/pull/198))
 
 **PRs done: 8 of 10.** Pull openfn-3-poc again at PR 10.
@@ -201,3 +203,11 @@ says what and why.
   records (33 names, from a fixed list) rather than only those already in
   the trail, so some choices find nothing. If that's too long, group the
   names by item type, or ask for the list in api/audit-events.md.
+- **Credential types loaded with the whole page** (React and architecture
+  reviews, PR 8): User settings waits for the schema list and every schema
+  before drawing any section, so a slow or refused schema (Lightning answers
+  503 `not_ready` while it loads adaptors) blanks Profile and API tokens
+  too; against a real instance that's one request per adaptor. The fix is
+  to load only the list for the picker and fetch a schema when it's picked,
+  but that means the picker loses its description line (api-gaps) and the
+  form needs a loading state of its own.

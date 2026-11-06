@@ -17,13 +17,13 @@
  * - OAuth clients: yours and the global ones; a global one needs a superuser.
  *   Its secret never comes back.
  */
-import { credentialSchemas } from "../fixtures/credential-schemas";
 import { projectCredentials as fixtureProjectCredentials } from "../fixtures/adaptor-reference";
 import { userCredentials, userOAuthClients } from "../fixtures/user";
 import { newId, seedId } from "../fixtures/ids";
 import { withoutSecrets } from "../model/credentials";
 import { badId, conflict, forbidden, invalid, isUuid, json, noContent, notFound, now, paged, unknownKeys, type Body, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
+import { findSchema, fullSchemaName } from "./credential-schemas";
 import { seedTime, table } from "./db";
 import { findProject, fixtureSandboxes, guardProject, members, onMemberRemoved, projectIdFor, projects, roleIn, type ProjectRow } from "./projects";
 import { currentUserId } from "./session";
@@ -85,7 +85,7 @@ export const credentials = table<CredentialRow>("credentials", () => [
     id: seedId("credential", c.id),
     user_id: userIdFor("user-jane"),
     name: c.name,
-    schema: c.schema,
+    schema: fullSchemaName(c.schema),
     external_id: c.externalId ?? null,
     environments: c.environments.map((e) => ({ name: e.environment, body: e.values, inserted_at: seedTime(c.createdAt), updated_at: seedTime(c.createdAt) })),
     scheduled_deletion: null,
@@ -99,7 +99,7 @@ export const credentials = table<CredentialRow>("credentials", () => [
     user_id: userIdFor(fixtureOwner[c.owner] ?? "user-jane"),
     name: c.name,
     // A credential's schema is its adaptor's, whether or not the form has fields for it.
-    schema: c.adaptor,
+    schema: fullSchemaName(c.adaptor),
     external_id: null,
     environments: [{ name: "production", body: {}, inserted_at: seedTime("1 Jun 2026"), updated_at: seedTime("1 Jun 2026") }],
     scheduled_deletion: null,
@@ -294,7 +294,7 @@ function create(body: Body): Response {
     id: newId(),
     user_id: me(),
     name,
-    schema: body["schema"] as string,
+    schema: fullSchemaName(body["schema"] as string),
     external_id: externalId,
     environments: bodies.map((b) => ({ name: b.name as string, body: mergeBody(undefined, b.body as Record<string, unknown>), inserted_at: at, updated_at: at })),
     scheduled_deletion: null,
@@ -367,7 +367,7 @@ export const credentialRoutes: Record<string, Handler> = {
         ? c.environments.map((e) => (e.name === env.name ? { ...e, body: mergeBody(e.body, env.body), updated_at: now() } : e))
         : [...c.environments, { name: env.name, body: mergeBody(undefined, env.body), inserted_at: now(), updated_at: now() }];
     }
-    const next = { ...c, name, schema: (body["schema"] as string | undefined) ?? c.schema, external_id: externalId, environments, updated_at: now() };
+    const next = { ...c, name, schema: body["schema"] ? fullSchemaName(body["schema"] as string) : c.schema, external_id: externalId, environments, updated_at: now() };
     credentials.update((r) => r.id === c.id, () => next);
     if (name !== c.name || next.schema !== c.schema || externalId !== c.external_id) {
       record("updated", { type: "credential", id: c.id, name }, { before: { name: c.name }, after: { name } }, true);
@@ -446,7 +446,7 @@ export const credentialRoutes: Record<string, Handler> = {
   "GET /api/credentials/:id/environments": ({ id }) => {
     const c = owned(id);
     if (c instanceof Response) return c;
-    const schema = credentialSchemas.find((s) => s.id === c.schema);
+    const schema = findSchema(c.schema);
     return json(200, {
       data: c.environments.map((e) => ({
         name: e.name,

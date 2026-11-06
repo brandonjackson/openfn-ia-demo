@@ -1,5 +1,5 @@
 import { Trash2 } from "lucide-react";
-import type { AdminCollection } from "../../model/page-data";
+import type { AdminCollection } from "../../model/collections";
 import { formatBytes } from "../../model/admin";
 import Button from "../primitives/Button";
 import DataTable from "../primitives/DataTable";

@@ -4,7 +4,9 @@
  * superuser's view) and the audit trail (api/audit-events.md).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { AdminProject, AdminProjectDraft, AdminUser, AdminUserDraft, AuditChange, AuditEvent, AuditItemType } from "../model/page-data";
+import type { AuditChange, AuditEvent, AuditItemType } from "../model/audit-events";
+import type { AdminProject, AdminProjectDraft } from "../model/projects";
+import type { AdminUser, AdminUserDraft } from "../model/users";
 import { formatDate, formatDateTime, timeAgo } from "../model/time";
 import { listAll, request } from "./client";
 import { projectKeys, toProject, userKeys, type ApiMember, type ApiProject } from "./projects";

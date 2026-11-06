@@ -17,15 +17,20 @@ and to mark what would change the look.
   (merged once CI is green) and the branch restarted from `main` before the
   next: `git fetch origin main && git checkout -B
   claude/intelligent-newton-2pncy4 origin/main`.
-- **PR in progress:** PR 4, credential and account types.
+- **PR in progress:** PR 5, Admin settings into its folder.
 - **Next three items**, one PR each:
-  1. **Admin settings into its folder** (`src/pages/admin-settings/`), with
-     its admin types (`AdminUser`, `AdminProject`, `AuditEvent`…) moved to
-     `model/users.ts` / `model/audit-events.ts` named as in `api/users.md`
-     and `api/audit-events.md`, page and query tests, and its wrapper off
-     fixtures.
-  2. **User settings into its folder**, on the credential and account
-     types (now in `model/credentials.ts` and `model/account.ts`).
+  1. **Admin settings off fixtures.** Its wrapper still reads six fixture
+     values and fakes two actions with local state. Move each to the API:
+     the signed-in user from `useMe` (`src/api/account.ts`); maintenance
+     jobs and "Test" for a sign-on provider to `/api/demo/` routes (api/
+     has neither; add them to api-gaps); `instanceUrl`, `deletionGraceDays`
+     and `usageMetricsEnabled` to an `/api/demo/instance` route. The audit
+     trail should be paged and filtered by the server (`GET
+     /api/audit_events` takes `item_type`, `item_id`, `actor_id`, `event` and
+     dates; its free-text search is an api-gap), with `auditQuery` kept in
+     the URL by the wrapper, not in its state.
+  2. **User settings into its folder**, on the credential and account types
+     (in `model/credentials.ts` and `model/account.ts`).
   3. **Organization settings into its folder** (`OrganizationMember`,
      `ContextLayer` and the rest to `model/organization.ts`).
   After those, the biggest pages: WorkflowEditorPage, ProjectSettingsPage.
@@ -111,8 +116,20 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    rules move to a new `model/account.ts`, named as in `api/account.md`. No
    runtime change. Counts: page-data.ts 1200 → 1054 lines; files importing
    it 127 → 113.
+   ([#194](https://github.com/brandonjackson/openfn-ia-demo/pull/194))
+5. **Admin settings into its folder.** `src/pages/admin-settings/` with its
+   first page and query tests (accounts: list, create, a refusal). Its types
+   left page-data.ts for files named as in api/: `model/users.ts`,
+   `model/audit-events.ts`, `model/authentication.ts` (the sign-on
+   provider), `model/collections.ts` (with the project collection types),
+   `AdminProject` into `model/projects.ts`, `MaintenanceTask` into
+   `model/admin.ts`; `AdminSettingsPageData` sits in the page file. Pulled
+   openfn-3-poc first: no change since PR 1 (still `a3e3d02`). Counts:
+   page-data.ts 1054 → 837 lines; files importing it 113 → 91; pages in
+   their own folder 1 → 2 of 24; page and query tests 2 → 4; tests 105 →
+   111.
 
-**PRs done: 4 of 10.** Next PR (5) starts by pulling openfn-3-poc.
+**PRs done: 5 of 10.** Pull openfn-3-poc again at PR 10.
 
 ## Waiting on Brandon
 

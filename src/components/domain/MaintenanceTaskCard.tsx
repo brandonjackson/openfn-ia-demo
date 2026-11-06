@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Check, Play, RefreshCw } from "lucide-react";
-import type { MaintenanceTask } from "../../model/page-data";
+import type { MaintenanceTask } from "../../model/admin";
 import Button from "../primitives/Button";
 import Card from "../primitives/Card";
 import Inline from "../primitives/Inline";

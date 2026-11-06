@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import { errorMessageOf, fieldErrorOf } from "../../model/form-error";
-import type { AdminUser, AdminUserDraft, InstanceRole } from "../../model/page-data";
+import type { AdminUser, AdminUserDraft, InstanceRole } from "../../model/users";
 import { fullName, instanceRoleLabels } from "../../model/admin";
 import Button from "../primitives/Button";
 import Callout from "../primitives/Callout";

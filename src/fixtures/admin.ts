@@ -1,13 +1,9 @@
-import type {
-  AdminCollection,
-  AdminProject,
-  AdminSettingsPageData,
-  AdminUser,
-  AuditEvent,
-  AuthProviderConfig,
-  MaintenanceTask,
-  ProjectMembership,
-} from "../model/page-data";
+import type { MaintenanceTask } from "../model/admin";
+import type { AdminCollection } from "../model/collections";
+import type { AuthProviderConfig } from "../model/authentication";
+import type { AuditEvent, AuditPage, AuditQuery } from "../model/audit-events";
+import type { AdminProject, ProjectMembership } from "../model/projects";
+import type { AdminUser } from "../model/users";
 import { projects } from "./projects";
 import { currentUser } from "./user";
 
@@ -509,22 +505,13 @@ export const auditEvents: AuditEvent[] = [
 /** How many audit events show on one page. */
 export const auditPageSize = 10;
 
-/** Admin settings as it first loads: the first page of the audit trail, unfiltered. For stories. */
-export const adminSettingsData: AdminSettingsPageData = {
-  pageType: "admin-settings",
-  users: adminUsers,
-  projects: instanceProjects,
-  audit: {
-    entries: auditEvents.slice(0, auditPageSize),
-    total: auditEvents.length,
-    pageSize: auditPageSize,
-    eventNames: [...new Set(auditEvents.map((e) => e.event))].sort(),
-  },
-  auditQuery: { search: "", event: "", itemType: "", page: 1 },
-  authProvider: instanceAuthProvider,
-  instanceUrl,
-  collections: instanceCollections,
-  maintenance: maintenanceTasks,
-  usageMetricsEnabled,
-  deletionGraceDays,
+/** The audit trail's first page, unfiltered, newest first. For stories. */
+export const firstAuditPage: AuditPage = {
+  entries: auditEvents.slice(0, auditPageSize),
+  total: auditEvents.length,
+  pageSize: auditPageSize,
+  eventNames: [...new Set(auditEvents.map((e) => e.event))].sort(),
 };
+
+/** The audit trail with no filters, on its first page. */
+export const emptyAuditQuery: AuditQuery = { search: "", event: "", itemType: "", page: 1 };

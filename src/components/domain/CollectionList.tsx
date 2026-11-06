@@ -1,5 +1,5 @@
 import { Eye, Pencil, PlusCircle, Trash2 } from "lucide-react";
-import type { ProjectCollection } from "../../model/page-data";
+import type { ProjectCollection } from "../../model/collections";
 import { formatBytes } from "../../model/project-settings";
 import DataTable, { type DataTableColumn } from "../primitives/DataTable";
 import Button from "../primitives/Button";

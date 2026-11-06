@@ -1,15 +1,5 @@
-import type {
-  Collaborator,
-  CollectionItem,
-  DataStorageSettings,
-  GitHubInstallation,
-  GitHubSyncState,
-  HistoryExport,
-  ProjectCollection,
-  ProjectSettingsPageData,
-  WebhookAuthMethod,
-  WebhookTriggerOption,
-} from "../model/page-data";
+import type { Collaborator, DataStorageSettings, GitHubInstallation, GitHubSyncState, HistoryExport, ProjectSettingsPageData, WebhookAuthMethod, WebhookTriggerOption } from "../model/page-data";
+import type { CollectionItem, ProjectCollection } from "../model/collections";
 import {
   assignableRoles,
   permissionsFor,

@@ -1,5 +1,6 @@
 import { MoreVertical } from "lucide-react";
-import type { AdminProject, AdminUser } from "../../model/page-data";
+import type { AdminProject } from "../../model/projects";
+import type { AdminUser } from "../../model/users";
 import { fullName } from "../../model/admin";
 import Badge from "../primitives/Badge";
 import DataTable from "../primitives/DataTable";

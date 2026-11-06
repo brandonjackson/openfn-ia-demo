@@ -5,7 +5,7 @@
 #   scripts/convergence-counts.sh HEAD~1   before the last commit
 cd "$(dirname "$0")/.." || exit 1
 ref=${1:-}
-list() { if [ -n "$ref" ]; then git ls-tree -r --name-only "$ref" src; else git ls-files -co --exclude-standard src; fi; }
+list() { if [ -n "$ref" ]; then git ls-tree -r --name-only "$ref" src; else git ls-files -co --exclude-standard src | while read -r f; do [ -e "$f" ] && echo "$f"; done; fi; }
 show() { if [ -n "$ref" ]; then git show "$ref:$1"; else cat "$1"; fi; }
 # A wrapper reads fixtures when it imports them, a *.fixtures helper, or a shared helper that does.
 reads='from "[./]+(fixtures/|[a-z-]+\.fixtures"|project-records\.query"|channel-records\.query"|component-records\.query")'

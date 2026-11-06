@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Database, Pencil, Plus, Trash2 } from "lucide-react";
-import type { CollectionItem } from "../../model/page-data";
+import type { CollectionItem } from "../../model/collections";
 import { formatBytes } from "../../model/project-settings";
 import Badge from "../primitives/Badge";
 import Button from "../primitives/Button";

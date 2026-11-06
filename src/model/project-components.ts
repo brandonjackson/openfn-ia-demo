@@ -3,7 +3,8 @@
  * artifacts, AI skills, documents and static websites. (Workflows, channels
  * and collections have their own shapes and their own API.)
  */
-import type { CollectionItem, ProjectComponentType } from "./page-data";
+import type { ProjectComponentType } from "./page-data";
+import type { CollectionItem } from "./collections";
 
 /** The kinds of component that are one file of content. */
 export type ContentComponentType = Extract<ProjectComponentType, "Form" | "Artifact" | "AI Skill" | "Document" | "Static Website">;

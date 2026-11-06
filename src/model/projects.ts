@@ -1,5 +1,6 @@
 import type { ProjectComponentType } from "./page-data";
 import type { ProjectServiceItem } from "./services";
+import type { DigestFrequency, ProjectRole } from "./project-settings";
 
 export type ProjectService = ProjectServiceItem;
 
@@ -105,7 +106,7 @@ export interface ProjectDetails {
   scheduledDeletion: string | null;
   createdAt: string;
   /** Your role in it; absent when you're not a member (a superuser listing every project). */
-  role?: import("./project-settings").ProjectRole;
+  role?: ProjectRole;
   workflowsCount?: number;
   collaboratorsCount?: number;
   /** When a workflow in it last changed, or null. */
@@ -149,9 +150,9 @@ export interface ProjectMember {
   email: string;
   firstName: string;
   lastName: string;
-  role: import("./project-settings").ProjectRole;
+  role: ProjectRole;
   failureAlert: boolean;
-  digest: import("./project-settings").DigestFrequency;
+  digest: DigestFrequency;
 }
 
 /** Someone with an account on the instance. */
@@ -160,4 +161,31 @@ export interface InstanceUserSummary {
   email: string;
   firstName: string;
   lastName: string;
+}
+
+/** One user's place in a project. */
+export interface ProjectMembership {
+  /** The `AdminUser.id` of the member. */
+  userId: string;
+  role: ProjectRole;
+}
+
+/** A project on this instance, as a superuser manages it. */
+export interface AdminProject {
+  id: string;
+  name: string;
+  description: string;
+  /** When it was created, e.g. "14 Mar 2024". */
+  createdAt: string;
+  /** Everyone in the project and their role. Exactly one is the owner. */
+  members: ProjectMembership[];
+  /** The day the project will be deleted, e.g. "12 Nov 2026". Absent unless a deletion is scheduled. */
+  scheduledDeletion?: string;
+}
+
+/** What a superuser fills in to create or edit a project. */
+export interface AdminProjectDraft {
+  name: string;
+  description: string;
+  members: ProjectMembership[];
 }

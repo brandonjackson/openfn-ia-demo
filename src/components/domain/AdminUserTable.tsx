@@ -1,5 +1,5 @@
 import { LifeBuoy, MoreVertical } from "lucide-react";
-import type { AdminUser } from "../../model/page-data";
+import type { AdminUser } from "../../model/users";
 import { fullName, instanceRoleLabels } from "../../model/admin";
 import Badge from "../primitives/Badge";
 import DataTable from "../primitives/DataTable";

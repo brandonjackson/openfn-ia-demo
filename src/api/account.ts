@@ -9,7 +9,7 @@ import { useRef } from "react";
 import type { AuthProviderConfig, AuthProviderTest } from "../model/authentication";
 import type { ApiToken, BackupCode, ContactPreference, InstanceInfo, MfaSetup, ProfileDetails, UserProfile } from "../model/account";
 import { formatDate, timeAgo } from "../model/time";
-import { request } from "./client";
+import { isApiError, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 /** You, as `GET /api/me` answers with a session. */
@@ -227,8 +227,14 @@ export function useAuthProviderSaves() {
     remove: async () => void (await remove.mutateAsync()),
     /** Checks a discovery URL answers with an OpenID configuration, without saving. The demo's own route. */
     test: async (discoveryUrl: string): Promise<AuthProviderTest> => {
-      const { data } = await request<{ data: { discovery_url: string; ok: boolean; message: string } }>("POST", "/api/demo/auth_provider/test", { discovery_url: discoveryUrl });
-      return { discoveryUrl: data.discovery_url, ok: data.ok, message: data.message };
+      try {
+        const { data } = await request<{ data: { discovery_url: string; message: string } }>("POST", "/api/demo/auth_provider/test", { discovery_url: discoveryUrl });
+        return { discoveryUrl: data.discovery_url, ok: true, message: data.message };
+      } catch (error) {
+        // No configuration there is an answer, not a failure: the same refusal saving gives.
+        if (isApiError(error, "invalid") && error.fieldErrors["discovery_url"]) return { discoveryUrl, ok: false, message: error.message };
+        throw error;
+      }
     },
   };
 }

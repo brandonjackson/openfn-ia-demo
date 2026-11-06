@@ -7,6 +7,7 @@ import type { AuditPage, AuditQuery } from "../../model/audit-events";
 import type { AdminProject, AdminProjectDraft } from "../../model/projects";
 import type { AdminUser, AdminUserDraft } from "../../model/users";
 import { fullName, type MaintenanceTask } from "../../model/admin";
+import { errorMessageOf } from "../../model/form-error";
 import SettingsLayout from "../../components/patterns/SettingsLayout";
 import type { SettingsNavItem } from "../../components/primitives/SettingsNav";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
@@ -375,7 +376,14 @@ export default function AdminSettingsPage({
             provider={data.authProvider}
             defaultRedirectHost={data.instanceUrl}
             test={authTest}
-            onTest={async (draft) => setAuthTest(await onTestAuthProvider(draft))}
+            onTest={async (draft) => {
+              try {
+                setAuthTest(await onTestAuthProvider(draft));
+              } catch (refused) {
+                // A test the server wouldn't run says why, where a result would.
+                setAuthTest({ discoveryUrl: draft.discoveryUrl, ok: false, message: errorMessageOf(refused) });
+              }
+            }}
             onSave={onSaveAuthProvider}
             onRemove={async () => {
               await onRemoveAuthProvider();

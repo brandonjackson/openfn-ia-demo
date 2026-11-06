@@ -72,13 +72,21 @@ describe("AdminSettingsPageQuery", () => {
     renderRoute("/admin-settings/maintenance");
     fireEvent.click((await screen.findAllByRole("button", { name: "Run" }, wait))[0]!);
     expect(await screen.findByText(/214 adaptors, 2 new versions/, {}, wait)).toBeTruthy();
-    const { data } = await request<{ data: { id: string; last_run_result: string }[] }>("GET", "/api/demo/maintenance");
-    expect(data.find((j) => j.id === "refresh-adaptors")?.last_run_result).toBe("214 adaptors, 2 new versions");
+    const { data } = await request<{ data: { title: string; last_run_result: string }[] }>("GET", "/api/demo/maintenance");
+    expect(data.find((j) => j.title === "Refresh adaptor registry")?.last_run_result).toBe("214 adaptors, 2 new versions");
   });
 
-  it("asks the server to test a discovery URL and shows its answer", async () => {
+  it("asks the server to test the provider's discovery URL and shows that it works", async () => {
     renderRoute("/admin-settings/authentication");
     fireEvent.click(await screen.findByRole("button", { name: "Test" }, wait));
-    expect(await screen.findByText(/Discovery URL works|Test failed/, {}, wait)).toBeTruthy();
+    expect(await screen.findByText("Discovery URL works", {}, wait)).toBeTruthy();
+  });
+
+  it("says why when the server won't run the test", async () => {
+    failNext("POST /api/demo/auth_provider/test", { status: 403, code: "forbidden", detail: "You are not allowed to do that." });
+    renderRoute("/admin-settings/authentication");
+    fireEvent.click(await screen.findByRole("button", { name: "Test" }, wait));
+    expect(await screen.findByText("Test failed", {}, wait)).toBeTruthy();
+    expect(screen.getByText("You are not allowed to do that.")).toBeTruthy();
   });
 });

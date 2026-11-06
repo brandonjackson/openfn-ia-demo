@@ -48,17 +48,29 @@ const actions = [
   "onRunMaintenance",
 ] satisfies (keyof AdminSettingsPageProps)[];
 
-const draw = () =>
+const draw = (section = "users", label = "Users", pageData: AdminSettingsPageData = data) =>
   renderPage(
     AdminSettingsPage,
     {
-      node: { id: "users", label: "Users", pageType: "admin-settings" },
+      node: { id: section, label, pageType: "admin-settings" },
       ancestors: [{ node: { id: "admin-settings", label: "Admin settings" }, path: "/admin-settings" }],
-      currentPath: "/admin-settings/users",
-      data,
+      currentPath: `/admin-settings/${section}`,
+      data: pageData,
     },
     actions,
   );
+
+const withProvider: AdminSettingsPageData = {
+  ...data,
+  authProvider: {
+    name: "keycloak",
+    discoveryUrl: "https://id.example.org/.well-known/openid-configuration",
+    clientId: "openfn",
+    hasClientSecret: true,
+    redirectHost: "https://openfn.example.org",
+    allowUnverifiedEmail: false,
+  },
+};
 
 function fillInNewUser() {
   fireEvent.click(screen.getByRole("button", { name: "New user" }));
@@ -94,5 +106,23 @@ describe("AdminSettingsPage", () => {
     expect(screen.getByText("The account wasn't saved")).toBeTruthy();
     expect(screen.getByText("Email has already been taken.")).toBeTruthy();
     expect(screen.getByLabelText("First name")).toBeTruthy();
+  });
+
+  it("tests the provider's discovery URL and shows what came back", async () => {
+    const host = draw("authentication", "Authentication", withProvider);
+    fireEvent.click(screen.getByRole("button", { name: "Test" }));
+    expect(screen.getByRole("button", { name: "Testing…" })).toBeTruthy();
+    expect(host.calls("onTestAuthProvider")[0]![0].discoveryUrl).toBe("https://id.example.org/.well-known/openid-configuration");
+    await host.resolve("onTestAuthProvider", { discoveryUrl: "https://id.example.org/.well-known/openid-configuration", ok: true, message: "Found the endpoints." });
+    expect(screen.getByText("Discovery URL works")).toBeTruthy();
+    expect(screen.getByText("Found the endpoints.")).toBeTruthy();
+  });
+
+  it("says why when the test is refused", async () => {
+    const host = draw("authentication", "Authentication", withProvider);
+    fireEvent.click(screen.getByRole("button", { name: "Test" }));
+    await host.reject("onTestAuthProvider", new FormError("You are not allowed to do that."));
+    expect(screen.getByText("Test failed")).toBeTruthy();
+    expect(screen.getByText("You are not allowed to do that.")).toBeTruthy();
   });
 });

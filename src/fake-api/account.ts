@@ -11,7 +11,7 @@
 import { userApiTokens, demoBackupCodes, currentUser } from "../fixtures/user";
 import { deletionGraceDays, instanceAuthProvider, instanceUrl, usageMetricsEnabled } from "../fixtures/admin";
 import { newId, seedId } from "../fixtures/ids";
-import { conflict, forbidden, invalid, json, noContent, notFound, now, unknownKeys, type Body, type Entry, type Handler } from "./answers";
+import { conflict, forbidden, invalid, json, noContent, notFound, now, problem, unknownKeys, type Body, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
 import { seedTime, table } from "./db";
 import { currentUserId } from "./session";
@@ -243,16 +243,16 @@ export const accountRoutes: Record<string, Handler> = {
     if (!isSuperuser()) return forbidden();
     const url = body["discovery_url"];
     if (typeof url !== "string" || !url) return invalid([{ code: "required", detail: "can't be blank", pointer: "#/discovery_url" }]);
-    const ok = /^https:\/\/.+\/\.well-known\/openid-configuration$/.test(url);
-    return json(200, {
-      data: {
-        discovery_url: url,
-        ok,
-        message: ok
-          ? "Found the provider's authorization, token and user info endpoints."
-          : "No OpenID configuration at that URL. Check it's HTTPS and ends in .well-known/openid-configuration.",
-      },
-    });
+    // Refused as PUT /api/auth_provider refuses it, so the form reads both the same way.
+    if (!/^https:\/\/.+\/\.well-known\/openid-configuration$/.test(url)) {
+      return problem({
+        status: 422,
+        code: "invalid",
+        detail: "No OpenID configuration at that URL. Check it's HTTPS and ends in .well-known/openid-configuration.",
+        errors: [{ code: "discovery_failed", detail: "has no OpenID configuration", pointer: "#/discovery_url" }],
+      });
+    }
+    return json(200, { data: { discovery_url: url, message: "Found the provider's authorization, token and user info endpoints." } });
   },
   "PUT /api/auth_provider": (_params, body) => {
     if (!isSuperuser()) return forbidden();

@@ -17,7 +17,8 @@ and to mark what would change the look.
   (merged once CI is green) and the branch restarted from `main` before the
   next: `git fetch origin main && git checkout -B
   claude/intelligent-newton-2pncy4 origin/main`.
-- **PR in progress:** PR 6, Admin settings off fixtures.
+- **PR in progress:** none. PRs 1 to 6 are merged; the next session starts
+  item 1 below on a branch restarted from `main`.
 - **Next three items**, one PR each:
   1. **Admin settings' audit trail paged by the server.** `useAuditTrail`
      takes the query; `GET /api/audit_events` filters by `event` and
@@ -129,10 +130,12 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    deletion grace period, and the demo's `usage_metrics_enabled`), the
    maintenance jobs from `/api/demo/maintenance` (`src/api/maintenance.ts`),
    and testing a sign-on provider from `/api/demo/auth_provider/test`, whose
-   answer comes back as the action's reply (the page keeps it as UI state).
+   answer comes back as the action's reply (the page keeps it as UI state;
+   a URL with no configuration is refused as saving refuses it, and any other
+   refusal shows in the same "Test failed" callout).
    Maintenance runs record an ISO time, which `MaintenanceTaskCard` words.
    Three api-gaps entries. Counts: wrappers reading fixtures 23 → 22 of 25;
-   tests 112 → 116.
+   tests 112 → 119. ([#196](https://github.com/brandonjackson/openfn-ia-demo/pull/196))
 
 **PRs done: 6 of 10.** Pull openfn-3-poc again at PR 10.
 

@@ -32,7 +32,7 @@ export function useMaintenanceTasks(): { status: LoadStatus; tasks: MaintenanceT
 export function useMaintenanceSaves() {
   const queryClient = useQueryClient();
   const run = useMutation({
-    mutationFn: (id: string) => request("POST", `/api/demo/maintenance/${id}/runs`),
+    mutationFn: (id: string) => request("POST", `/api/demo/maintenance/${id}/run`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.all }),
   });
   return { run: async (id: string) => void (await run.mutateAsync(id)) };

@@ -3,16 +3,19 @@
  * (docs/api-gaps.md). Superusers only, as Lightning's /settings/maintenance.
  *
  *   GET  /api/demo/maintenance            the jobs, with when each last ran
- *   POST /api/demo/maintenance/:id/runs   runs one; answers with the job as it now stands
+ *   POST /api/demo/maintenance/:id/run    runs one; answers 200 with the job as it now stands
  */
 import { maintenanceTasks } from "../fixtures/admin";
-import { forbidden, json, notFound, now, paged, type Handler } from "./answers";
+import { seedId } from "../fixtures/ids";
+import { badId, forbidden, isUuid, json, notFound, now, paged, type Handler } from "./answers";
 import { table } from "./db";
 import { currentUserId } from "./session";
 import { findUser } from "./users";
 
 interface MaintenanceRow {
   id: string;
+  /** Which job it is, for what it reports. Not sent. */
+  key: string;
   title: string;
   description: string;
   last_run_at: string | null;
@@ -21,7 +24,8 @@ interface MaintenanceRow {
 
 const jobs = table<MaintenanceRow>("maintenance", () =>
   maintenanceTasks.map((t) => ({
-    id: t.id,
+    id: seedId("maintenance_job", t.id),
+    key: t.id,
     title: t.title,
     description: t.description,
     last_run_at: t.lastRun?.at ?? null,
@@ -35,20 +39,24 @@ const results: Record<string, string> = {
   "refresh-icons": "3 updated, 211 unchanged",
 };
 
+/** A job as the routes send it: everything but its key. */
+const entry = (j: MaintenanceRow) => ({ id: j.id, title: j.title, description: j.description, last_run_at: j.last_run_at, last_run_result: j.last_run_result });
+
 const isSuperuser = () => findUser(currentUserId())?.role === "superuser";
 
 export const maintenanceRoutes: Record<string, Handler> = {
   "GET /api/demo/maintenance": (_params, _body, query) => {
     if (!isSuperuser()) return forbidden();
-    return json(200, paged("/api/demo/maintenance", jobs.rows(), query));
+    return json(200, paged("/api/demo/maintenance", jobs.rows().map(entry), query));
   },
-  "POST /api/demo/maintenance/:id/runs": ({ id }) => {
+  "POST /api/demo/maintenance/:id/run": ({ id }) => {
     if (!isSuperuser()) return forbidden();
+    if (!isUuid(id)) return badId("/api/demo/maintenance/:id/run");
     if (!jobs.rows().some((j) => j.id === id)) return notFound();
     jobs.update(
       (j) => j.id === id,
-      (j) => ({ ...j, last_run_at: now(), last_run_result: results[id!] ?? "Done" }),
+      (j) => ({ ...j, last_run_at: now(), last_run_result: results[j.key] ?? "Done" }),
     );
-    return json(201, { data: jobs.rows().find((j) => j.id === id) });
+    return json(200, { data: entry(jobs.rows().find((j) => j.id === id)!) });
   },
 };

@@ -16,7 +16,8 @@ and to mark what would change the look.
 - **Branch:** `claude/intelligent-newton-2pncy4`. Each session works on its
   designated branch and opens one PR; if that PR has merged, restart the
   branch from `main` before the next.
-- **PR in progress:** PR 1, the worked example (Projects list). Open, waiting
+- **PR in progress:** PR 1, the worked example (Projects list),
+  https://github.com/brandonjackson/openfn-ia-demo/pull/191. Open, waiting
   for review and merge.
 - **Next three items**, one PR each:
   1. **UI-only and shared types out of page-data.ts.** `BadgeTone` (10

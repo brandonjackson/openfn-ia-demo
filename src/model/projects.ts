@@ -1,6 +1,5 @@
 import type { ProjectComponentType } from "./page-data";
 import type { ProjectServiceItem } from "./services";
-import { isoAgo } from "./time";
 
 export type ProjectService = ProjectServiceItem;
 
@@ -17,7 +16,7 @@ export interface Project {
   description: string;
   /** Environment shown on the project card (e.g. "production"). */
   environment: string;
-  /** Human-readable time since the project last ran or changed. */
+  /** How long ago it last ran or changed, in the fixtures' words ("3 days ago"). Never shown as is: cards get a time. */
   lastActivity: string;
   memberCount: number;
   /** Sandboxes (branches) of this project. The first is always "main". */
@@ -39,21 +38,6 @@ export interface ProjectSummary {
   /** Its published services, and how many are live. Absent without the service catalog. */
   serviceCount?: number;
   liveServiceCount?: number;
-}
-
-/** A fixture project's card, for stories. */
-export function summarizeProject(project: Project): ProjectSummary {
-  return {
-    id: project.id,
-    name: project.name,
-    description: project.description,
-    environment: project.environment,
-    lastActivity: isoAgo(project.lastActivity),
-    memberCount: project.memberCount,
-    workflowCount: project.components.filter((c) => c.type === "Workflow").length,
-    serviceCount: project.services.length,
-    liveServiceCount: project.services.filter((s) => s.status === "Live").length,
-  };
 }
 
 /**

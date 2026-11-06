@@ -1,8 +1,8 @@
 import type { SandboxItem, WorkflowListItem } from "../model/page-data";
-import { summarizeProject, type ProjectSummary } from "../model/projects";
+
 import { isoAgo } from "../model/time";
 import { seedId } from "./ids";
-import type { Project, ProjectService } from "../model/projects";
+import type { Project, ProjectService, ProjectSummary } from "../model/projects";
 
 export const projects: Project[] = [
   {
@@ -425,6 +425,21 @@ export const projects: Project[] = [
     components: [],
   },
 ];
+
+/** A fixture project's card, for stories. */
+function summarizeProject(project: Project): ProjectSummary {
+  return {
+    id: project.id,
+    name: project.name,
+    description: project.description,
+    environment: project.environment,
+    lastActivity: isoAgo(project.lastActivity),
+    memberCount: project.memberCount,
+    workflowCount: project.components.filter((c) => c.type === "Workflow").length,
+    serviceCount: project.services.length,
+    liveServiceCount: project.services.filter((s) => s.status === "Live").length,
+  };
+}
 
 export const projectSummaries: ProjectSummary[] = projects.map(summarizeProject);
 

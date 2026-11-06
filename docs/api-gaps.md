@@ -27,8 +27,10 @@ path in its hook file.
   `connected_systems` resource with its environments and grants. Demo:
   `/api/demo/connected_systems` (`src/api/connected-systems.ts`).
 - **The organisation** (Organization settings: members and invitations,
-  visibility defaults, context layers, Security Server). Lightning has no
-  organisations. Demo: `/api/demo/organization` (`src/api/organization.ts`).
+  visibility defaults, context layers, Security Server, and its X-Road
+  identity, read only). Lightning has no organisations. Demo:
+  `/api/demo/organization` and `/api/demo/organization/xroad`
+  (`src/api/organization.ts`).
 - **The handbook** (Handbook: its files and its article). Demo:
   `/api/demo/handbook` (`src/api/handbook.ts`).
 - **Project components besides workflows, channels and collections** (forms,

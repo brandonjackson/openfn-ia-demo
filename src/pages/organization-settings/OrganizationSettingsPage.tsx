@@ -1,38 +1,29 @@
 import { useState } from "react";
 import { CreditCard, Eye, Layers, Network, Plus, Save, Unplug, UserPlus, Users } from "lucide-react";
-import type { PageProps } from "../model/ia-tree";
-import type {
-  BillingDetails,
-  ContextLayer,
-  OrganizationInvite,
-  OrganizationMember,
-  OrganizationSettingsPageData,
-  VisibilityScope,
-} from "../model/page-data";
-import { organizationRoles } from "../model/page-data";
-import { errorMessageOf, fieldErrorOf } from "../model/form-error";
-import type { OrgXRoadSettings, SecurityServer, SecurityServerManager, XRoadCertificate, XRoadSubsystem } from "../model/xroad";
-import { memberClassLabels, securityServerManagerLabels } from "../model/xroad";
-import { clientIdOf } from "../model/xroad";
-import SettingsLayout from "../components/patterns/SettingsLayout";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import type { SettingsNavItem } from "../components/primitives/SettingsNav";
-import SectionHeading from "../components/primitives/SectionHeading";
-import Card from "../components/primitives/Card";
-import Button from "../components/primitives/Button";
-import Badge from "../components/primitives/Badge";
-import Callout from "../components/primitives/Callout";
-import CopyValue from "../components/primitives/CopyValue";
-import DataTable from "../components/primitives/DataTable";
-import type { DataTableColumn } from "../components/primitives/DataTable";
-import EmptyState from "../components/primitives/EmptyState";
-import FormField from "../components/primitives/FormField";
-import PropertyList from "../components/primitives/PropertyList";
-import StatTile from "../components/primitives/StatTile";
-import { RadioOption, TextInput } from "../components/primitives/FormControls";
-import ActionMenu from "../components/primitives/ActionMenu";
-import ConfirmModal from "../components/primitives/ConfirmModal";
-import InviteOrgMemberModal from "../components/domain/InviteOrgMemberModal";
+import type { PageProps } from "../../model/ia-tree";
+import type { OrganizationSettings } from "../../model/organization";
+import { type BillingDetails, type ContextLayer, type OrganizationInvite, type OrganizationMember, type VisibilityScope, organizationRoles } from "../../model/organization";
+import { errorMessageOf, fieldErrorOf } from "../../model/form-error";
+import { type OrgXRoadSettings, type SecurityServer, type SecurityServerManager, type XRoadCertificate, type XRoadSubsystem, memberClassLabels, securityServerManagerLabels, clientIdOf } from "../../model/xroad";
+import SettingsLayout from "../../components/patterns/SettingsLayout";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import type { SettingsNavItem } from "../../components/primitives/SettingsNav";
+import SectionHeading from "../../components/primitives/SectionHeading";
+import Card from "../../components/primitives/Card";
+import Button from "../../components/primitives/Button";
+import Badge from "../../components/primitives/Badge";
+import Callout from "../../components/primitives/Callout";
+import CopyValue from "../../components/primitives/CopyValue";
+import DataTable from "../../components/primitives/DataTable";
+import type { DataTableColumn } from "../../components/primitives/DataTable";
+import EmptyState from "../../components/primitives/EmptyState";
+import FormField from "../../components/primitives/FormField";
+import PropertyList from "../../components/primitives/PropertyList";
+import StatTile from "../../components/primitives/StatTile";
+import { RadioOption, TextInput } from "../../components/primitives/FormControls";
+import ActionMenu from "../../components/primitives/ActionMenu";
+import ConfirmModal from "../../components/primitives/ConfirmModal";
+import InviteOrgMemberModal from "../../components/domain/InviteOrgMemberModal";
 
 const BASE_PATH = "/organization-settings";
 
@@ -568,6 +559,9 @@ function BillingSection({ billing }: { billing: BillingDetails }) {
 /* ------------------------------------------------------------------ */
 /*  Main template                                                      */
 /* ------------------------------------------------------------------ */
+
+/** What Organization settings shows: the organisation's settings, as the API gives them. */
+export type OrganizationSettingsPageData = OrganizationSettings;
 
 export interface OrganizationSettingsPageProps extends PageProps<OrganizationSettingsPageData>, ContextActions, MemberActions {
   /** Saves the defaults for what others can see. Left out when you can't change the organisation. */

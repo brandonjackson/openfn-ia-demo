@@ -11,19 +11,21 @@
  *   and only an owner makes or unmakes another.
  * - Visibility defaults and who manages the Security Server are saved with
  *   `PATCH /api/demo/organization`; the rest of the X-Road identity is set
- *   by the X-Road operator, not here.
+ *   by the X-Road operator, not here, and read from
+ *   `GET /api/demo/organization/xroad`.
  * - A context layer is requested by its URL and waits for its owners'
  *   approval; it's removed (or the request cancelled) with `DELETE`.
  * - Billing is read only.
  * Anyone in the organisation reads all of it; owners and admins change it.
  */
 import { organizationSettingsData } from "../fixtures/organization";
+import { orgXRoad } from "../fixtures/xroad";
 import { seedId } from "../fixtures/ids";
-import type { ContextLayer, OrganizationMember, VisibilityScope } from "../model/page-data";
+import type { ContextLayer, OrganizationMember, VisibilityScope } from "../model/organization";
 import { securityServerManagerLabels, type SecurityServerManager } from "../model/xroad";
 import { badId, conflict, forbidden, invalid, isUuid, json, noContent, notFound, now, ORIGIN, paged, unknownKeys, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
-import { ago, table } from "./db";
+import { ago, seedTime, table } from "./db";
 import { currentUserId } from "./session";
 import { findUser, findUserByEmail, fullName } from "./users";
 import { systems } from "./connected-systems";
@@ -142,6 +144,34 @@ function roleProblem(m: OrgMemberRow, role: OrgRole | null): Response | undefine
   return undefined;
 }
 
+/** The organisation's X-Road identity, as the X-Road operator set it. Read only, so seeded once. */
+interface XRoadIdentityRow {
+  id: string;
+  instance: string;
+  member_class: string;
+  member_code: string;
+  member_name: string;
+  subsystems: { code: string; description: string; openfn: boolean }[];
+  certificates: { id: string; kind: string; subject: string; issuer: string; expires_at: string; status: string }[];
+  security_servers: { id: string; code: string; address: string; version: string; enabled: boolean; last_seen_at: string }[];
+}
+
+const xroadIdentity = table<XRoadIdentityRow>("xroad_identity", () => {
+  const x = orgXRoad;
+  return [
+    {
+      id: seedId("xroad_identity", `${x.instance}/${x.memberClass}/${x.memberCode}`),
+      instance: x.instance,
+      member_class: x.memberClass,
+      member_code: x.memberCode,
+      member_name: x.memberName,
+      subsystems: x.subsystems.map((v) => ({ code: v.code, description: v.description, openfn: v.openfn })),
+      certificates: x.certificates.map((c) => ({ id: seedId("xroad_certificate", c.id), kind: c.kind, subject: c.subject, issuer: c.issuer, expires_at: seedTime(c.expires), status: c.status })),
+      security_servers: x.securityServers.map((v) => ({ id: seedId("security_server", v.id), code: v.code, address: v.address, version: v.version, enabled: v.enabled, last_seen_at: seedTime(v.lastSeen) })),
+    },
+  ];
+});
+
 export const organizationRoutes: Record<string, Handler> = {
   "GET /api/demo/organization": () => {
     const o = org.rows()[0]!;
@@ -165,6 +195,11 @@ export const organizationRoutes: Record<string, Handler> = {
         },
       },
     });
+  },
+  // The organisation's identity on X-Road, which the X-Road operator sets: read only. Who manages its Security Server is on the organisation.
+  "GET /api/demo/organization/xroad": () => {
+    const { id, ...attributes } = xroadIdentity.rows()[0]!;
+    return json(200, { data: { type: "xroad_identities", id, attributes } });
   },
   "PATCH /api/demo/organization": (_params, body) => {
     if (!canManage()) return forbidden();

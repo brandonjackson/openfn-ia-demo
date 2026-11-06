@@ -17,18 +17,20 @@ and to mark what would change the look.
   used `claude/intelligent-newton-2pncy4`). Each PR is shipped (merged once
   CI is green) and the branch restarted from `main` before the next: `git
   fetch origin main && git checkout -B <branch> origin/main`.
-- **PR in progress:** none. PRs 1 to 8 are merged; the next session starts
-  item 1 below on a branch restarted from `main`.
+- **PR in progress:** none. PRs 1 to 9 are merged. PR 10 is the last the
+  brief asks for: pull openfn-3-poc first (`git -C ../openfn-3-poc pull`)
+  and follow any change in api/ or its patterns.
 - **Next three items**, one PR each:
-  1. **Organization settings into its folder** (`OrganizationMember`,
-     `ContextLayer` and the rest to `model/organization.ts`;
-     `OrganizationSettingsPageData` into the page file).
+  1. **Handbook into its folder** (already on the API; `HandbookPageData`
+     and the `Wiki*` types out of page-data.ts, the types to a
+     `model/handbook.ts`).
   2. **ProjectSettingsPage into its folder**, starting with the types it
      takes from page-data.ts (`Collaborator`, `WebhookAuthMethod`,
      `GitHub*`, `HistoryExport`, `DataStorageSettings`).
-  3. **Handbook into its folder** (already on the API; small).
-  After those, WorkflowEditorPage. PR 10 is the stop point the brief sets,
-  and the time to pull openfn-3-poc again.
+  3. **The system and service pages read the X-Road identity from the API**
+     (`useOrganizationXRoad`, as Organization settings now does), taking
+     `orgXRoad` out of `SystemPage.query.tsx` and `ServicePage.query.tsx`.
+  After those, WorkflowEditorPage.
 - **Moving types:** `python3 scripts/move-types.py <from> <to> Name…` moves
   exported declarations (with their doc comments) and rewrites every import
   under src/. Then `npx tsc -b` and add the target's own imports.
@@ -164,7 +166,23 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    of 24; page and query tests 4 → 6; tests 128 → 145.
    ([#198](https://github.com/brandonjackson/openfn-ia-demo/pull/198))
 
-**PRs done: 8 of 10.** Pull openfn-3-poc again at PR 10.
+9. **Organization settings into its folder, X-Road identity from the API.**
+   `src/pages/organization-settings/` with its first page and query tests.
+   The organisation's types left page-data.ts for `model/organization.ts`
+   (`OrganizationMember`, `BillingDetails`, `ContextLayer`,
+   `VisibilityScope`, `organizationRoles`, `OrganizationInvite`, and
+   `OrganizationSettings`, which the fixture, the fake server's seed and the
+   page share; the page's `OrganizationSettingsPageData` names it). The
+   organisation's X-Road identity is read from a new read-only
+   `GET /api/demo/organization/xroad` (`useOrganizationXRoad`, loaded only
+   with X-Road on), seeded once, with UUIDs, and certificate expiry and a
+   Security Server's last contact sent as timestamps. The wrapper reads no fixtures. Counts:
+   wrappers reading fixtures 21 → 20 of 25; page-data.ts 809 → 746 lines;
+   files importing it 89 → 83; pages in their own folder 3 → 4 of 24; page
+   and query tests 6 → 8; tests 145 → 156.
+   ([#199](https://github.com/brandonjackson/openfn-ia-demo/pull/199))
+
+**PRs done: 9 of 10.** Pull openfn-3-poc again at PR 10.
 
 ## Waiting on Brandon
 
@@ -211,3 +229,10 @@ says what and why.
   to load only the list for the picker and fetch a schema when it's picked,
   but that means the picker loses its description line (api-gaps) and the
   form needs a loading state of its own.
+- **Organization settings' X-Road section** (reviews, PR 9): the X-Road
+  identity's status is combined into the whole page's, so if it fails to
+  load, Members, Visibility, Context and Billing show the error too. Scoping
+  it to the X-Road section would change what shows. And a Security Server's
+  "Last seen" is now a seeded timestamp, so it ages with the demo's data
+  ("2 minutes ago" becomes "3 hours ago" later on) instead of always reading
+  the fixture's words, as every other seeded time already does.

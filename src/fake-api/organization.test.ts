@@ -70,3 +70,15 @@ describe("organisation settings", () => {
     expect((await layers()).some((l) => l.id === data.id)).toBe(false);
   });
 });
+
+describe("the organisation's X-Road identity", () => {
+  it("is read only, with times as timestamps, and takes who manages the Security Server from the organisation", async () => {
+    type Identity = { data: { attributes: Record<string, unknown> & { certificates: { expires_at: string }[]; security_servers: { last_seen_at: string }[] } } };
+    const { data } = await request<Identity>("GET", "/api/demo/organization/xroad");
+    expect(data.attributes).toMatchObject({ instance: expect.any(String), member_class: expect.any(String), member_code: expect.any(String) });
+    expect(data.attributes).not.toHaveProperty("security_server_managed_by");
+    expect(Number.isNaN(Date.parse(data.attributes.certificates[0]!.expires_at))).toBe(false);
+    expect(Number.isNaN(Date.parse(data.attributes.security_servers[0]!.last_seen_at))).toBe(false);
+    expect((await refusal(request("PATCH", "/api/demo/organization/xroad", { member_code: "X" })))?.status).toBe(404);
+  });
+});

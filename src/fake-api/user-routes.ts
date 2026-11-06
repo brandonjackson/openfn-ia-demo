@@ -12,6 +12,9 @@ import { diff, record } from "./audit";
 import { newId } from "../fixtures/ids";
 import { currentUserId } from "./session";
 import { findUser, findUserByEmail, userEntry, users, type UserRow } from "./users";
+import { updateSelf } from "./account";
+
+const SELF_KEYS = ["first_name", "last_name", "contact_preference", "email", "password"];
 
 const PURGE_DAYS = 7;
 const isSuperuser = () => findUser(currentUserId())?.role === "superuser";
@@ -71,6 +74,9 @@ export const userRoutes: Record<string, Handler> = {
       has_activity_in_projects: false,
       last_login_at: null,
       mfa_enabled: false,
+      contact_preference: "critical",
+      pending_email: null,
+      github_connected: false,
       inserted_at: now(),
     };
     users.insert(created);
@@ -80,6 +86,8 @@ export const userRoutes: Record<string, Handler> = {
 
   // first_name, last_name, role, password; planned: support_user, disabled, and the superuser's email and scheduled_deletion edit.
   "PATCH /api/users/:id": ({ id }, body) => {
+    // Planned: a person changes their own name, contact preference, email (once they confirm it) and password.
+    if (id === currentUserId() && Object.keys(body).every((k) => SELF_KEYS.includes(k))) return updateSelf(body);
     if (!isSuperuser()) return forbidden();
     if (!isUuid(id)) return badId("id");
     const u = findUser(id);

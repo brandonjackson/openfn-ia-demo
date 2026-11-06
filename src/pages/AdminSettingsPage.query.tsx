@@ -4,13 +4,13 @@ import Loaded from "../app/Loaded";
 import { useAdminProjects, useAdminSaves, useAdminUsers, useAuditTrail } from "../api/admin";
 import { combine } from "../api/status";
 import { useCollectionSaves, useInstanceCollections } from "../api/collections";
-import type { AuditQuery, AuthProviderConfig, AuthProviderTest, MaintenanceTask } from "../model/page-data";
+import { useAuthProvider, useAuthProviderSaves } from "../api/account";
+import type { AuditQuery, AuthProviderTest, MaintenanceTask } from "../model/page-data";
 import { filterAuditEvents } from "../model/admin";
 import { formatDateTime } from "../model/time";
 import {
   auditPageSize,
   deletionGraceDays,
-  instanceAuthProvider,
   instanceUrl,
   maintenanceTasks,
   usageMetricsEnabled,
@@ -32,9 +32,9 @@ const maintenanceResults: Record<string, string> = {
  * trail come from the API, so a change here is what every other page sees,
  * and every change lands in the audit trail as Lightning records it.
  * Deletions are only ever scheduled: the API has no "delete now". Every
- * collection on the instance comes from the API too. The single sign-on
- * provider and maintenance jobs are still held here for the session until
- * they move to the API.
+ * collection on the instance and the single sign-on provider come from the
+ * API too. Testing a provider before saving it, and the maintenance jobs,
+ * are still played here: the API has no routes for them.
  */
 export default function AdminSettingsPageQuery({ route }: { route: PageRoute }) {
   const { status: usersStatus, users } = useAdminUsers(currentUser.email);
@@ -44,7 +44,8 @@ export default function AdminSettingsPageQuery({ route }: { route: PageRoute }) 
   const { status: collectionsStatus, collections } = useInstanceCollections();
   const collectionSaves = useCollectionSaves();
   const [auditQuery, setAuditQuery] = useState<AuditQuery>({ search: "", event: "", itemType: "", page: 1 });
-  const [authProvider, setAuthProvider] = useState<AuthProviderConfig | undefined>(instanceAuthProvider);
+  const { status: providerStatus, provider: authProvider } = useAuthProvider(instanceUrl);
+  const providerSaves = useAuthProviderSaves();
   const [authTest, setAuthTest] = useState<AuthProviderTest>();
   const [maintenance, setMaintenance] = useState<MaintenanceTask[]>(maintenanceTasks);
 
@@ -53,7 +54,7 @@ export default function AdminSettingsPageQuery({ route }: { route: PageRoute }) 
   const emailOf = (userId: string) => users.find((u) => u.id === userId)?.email;
 
   return (
-    <Loaded status={combine(usersStatus, projectsStatus, auditStatus, collectionsStatus)} path={route.currentPath}>
+    <Loaded status={combine(usersStatus, projectsStatus, auditStatus, collectionsStatus, providerStatus)} path={route.currentPath}>
       {() => (
         <AdminSettingsPage
           {...pageFrame(route)}
@@ -97,12 +98,9 @@ export default function AdminSettingsPageQuery({ route }: { route: PageRoute }) 
                 : "No OpenID configuration at that URL. Check it's HTTPS and ends in .well-known/openid-configuration.",
             });
           }}
-          onSaveAuthProvider={async (draft) => {
-            const { clientSecret, ...config } = draft;
-            setAuthProvider({ ...config, hasClientSecret: !!clientSecret || !!authProvider?.hasClientSecret });
-          }}
+          onSaveAuthProvider={(draft) => providerSaves.save(draft)}
           onRemoveAuthProvider={async () => {
-            setAuthProvider(undefined);
+            await providerSaves.remove();
             setAuthTest(undefined);
           }}
           onDeleteCollection={(id) => collectionSaves.remove(collections.find((c) => c.id === id)!.projectId!, id)}

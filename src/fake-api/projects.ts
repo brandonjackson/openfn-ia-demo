@@ -696,6 +696,9 @@ export const projectRoutes: Record<string, Handler> = {
       has_activity_in_projects: false,
       last_login_at: null,
       mfa_enabled: false,
+      contact_preference: "critical" as const,
+      pending_email: null,
+      github_connected: false,
       inserted_at: at,
     };
     users.insert(user);

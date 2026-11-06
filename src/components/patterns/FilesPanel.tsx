@@ -1,6 +1,7 @@
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { Plus } from "lucide-react";
 import Button from "../primitives/Button";
+import Stack from "../primitives/Stack";
 import FileDropzone from "../primitives/FileDropzone";
 import FileTile from "../primitives/FileTile";
 import type { FileKind } from "../primitives/FileTile";
@@ -26,6 +27,8 @@ interface Props {
   description?: string;
   onAdd?: (files: File[]) => void;
   onRemove?: (id: string) => void;
+  /** Something to say under the capacity meter, such as why an upload was refused. */
+  notice?: ReactNode;
 }
 
 const ACCEPT = ".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.md,.png,.jpg,.jpeg";
@@ -41,6 +44,7 @@ export default function FilesPanel({
   description,
   onAdd,
   onRemove,
+  notice,
 }: Props) {
   const input = useRef<HTMLInputElement>(null);
   const used = files.reduce((sum, f) => sum + f.bytes, 0);
@@ -51,11 +55,18 @@ export default function FilesPanel({
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
-          {description && <p className="mt-0.5 text-xs text-gray-500">{description}</p>}
+          {description && (
+            <p className="mt-0.5 text-xs text-gray-500">{description}</p>
+          )}
         </div>
         {onAdd && (
           <>
-            <Button variant="secondary" size="xs" icon={Plus} onClick={() => input.current?.click()}>
+            <Button
+              variant="secondary"
+              size="xs"
+              icon={Plus}
+              onClick={() => input.current?.click()}
+            >
               Add
             </Button>
             <input
@@ -74,13 +85,20 @@ export default function FilesPanel({
       </div>
 
       <div className="mt-4">
-        <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
-          <div
-            className={`h-full rounded-full ${percent >= 90 ? "bg-red-500" : "bg-indigo-500"}`}
-            style={{ width: `${Math.max(percent, used > 0 ? 1 : 0)}%` }}
-          />
-        </div>
-        <p className="mt-1.5 text-xs text-gray-500">{percent}% of capacity used</p>
+        <Stack gap="md">
+          <div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-gray-100">
+              <div
+                className={`h-full rounded-full ${percent >= 90 ? "bg-red-500" : "bg-indigo-500"}`}
+                style={{ width: `${Math.max(percent, used > 0 ? 1 : 0)}%` }}
+              />
+            </div>
+            <p className="mt-1.5 text-xs text-gray-500">
+              {percent}% of capacity used
+            </p>
+          </div>
+          {notice}
+        </Stack>
       </div>
 
       {onAdd && (
@@ -89,8 +107,16 @@ export default function FilesPanel({
             onFiles={onAdd}
             accept={ACCEPT}
             compact={files.length > 0}
-            title={files.length > 0 ? "Drop files to add them" : "Drop files here or click to upload"}
-            description={files.length > 0 ? undefined : "PDF, DOCX, XLSX, CSV, TXT, MD or images"}
+            title={
+              files.length > 0
+                ? "Drop files to add them"
+                : "Drop files here or click to upload"
+            }
+            description={
+              files.length > 0
+                ? undefined
+                : "PDF, DOCX, XLSX, CSV, TXT, MD or images"
+            }
           />
         </div>
       )}
@@ -109,7 +135,11 @@ export default function FilesPanel({
           ))}
         </div>
       ) : (
-        !onAdd && <p className="mt-4 text-center text-xs text-gray-400">No files yet.</p>
+        !onAdd && (
+          <p className="mt-4 text-center text-xs text-gray-400">
+            No files yet.
+          </p>
+        )
       )}
     </div>
   );

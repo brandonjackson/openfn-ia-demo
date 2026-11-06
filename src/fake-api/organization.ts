@@ -107,6 +107,8 @@ const myRole = (): OrgRole | undefined => {
   const email = findUser(currentUserId())?.email.toLowerCase();
   return orgMembers.rows().find((m) => m.email.toLowerCase() === email && m.joined_at)?.role;
 };
+/** Whether you're in the organisation (and have joined). */
+export const inOrganization = () => myRole() !== undefined;
 const canManage = () => myRole() === "Owner" || myRole() === "Admin";
 const owners = () => orgMembers.rows().filter((m) => m.role === "Owner" && m.joined_at);
 

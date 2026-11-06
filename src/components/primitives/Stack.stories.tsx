@@ -31,7 +31,7 @@ export const Grow: Story = {
   render: () => (
     <Inline gap="sm">
       <Stack grow>
-        <SearchInput compact placeholder="Filter by actor or item" />
+        <SearchInput compact placeholder="Filter by item or actor" />
       </Stack>
       <Button size="sm" variant="secondary">
         Export

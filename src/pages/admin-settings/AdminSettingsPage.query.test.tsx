@@ -116,7 +116,7 @@ describe("AdminSettingsPageQuery", () => {
       const matching = all.filter((e) => e.attributes.actor_display.label === oldest).length;
       renderRoute("/admin-settings/audit-trail");
       await screen.findByText(/Showing 1–10/, {}, wait);
-      fireEvent.change(screen.getByPlaceholderText("Filter by actor or item"), { target: { value: oldest } });
+      fireEvent.change(screen.getByPlaceholderText("Filter by item or actor"), { target: { value: oldest } });
       await waitFor(() => expect(rows().every((r) => r.textContent?.includes(oldest))).toBe(true), wait);
       expect(rows()).toHaveLength(Math.min(matching, 10));
     });

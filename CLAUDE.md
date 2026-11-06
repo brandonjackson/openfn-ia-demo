@@ -49,7 +49,7 @@ Projects, their members and the people on the instance live on the API (`src/api
 
 ### Project settings
 
-A project's collections (`src/api/collections.ts`; items by name under `/collections/:name`), webhook auth methods (`src/api/webhook-auth.ts`) and history exports (`src/api/history-exports.ts`) are on the API, as are its members, MFA requirement and data retention. Collection names are unique in the project; deleting one deletes its items. A method's API key is made by the server and shown once, in the answer to creating it; which triggers a method guards is set on the workflows' triggers (`webhook_auth_method_ids`), and deleting a method takes it off them. An export is made in the background: the list polls until it's done. The GitHub connection is still local to the page.
+A project's collections (`src/api/collections.ts`; items by name under `/collections/:name`), webhook auth methods (`src/api/webhook-auth.ts`) and history exports (`src/api/history-exports.ts`) are on the API, as are its members, MFA requirement and data retention. Collection names are unique in the project; deleting one deletes its items. A method's API key is made by the server and shown once, in the answer to creating it; which triggers a method guards is set on the workflows' triggers (`webhook_auth_method_ids`), and deleting a method takes it off them. An export is made in the background: the list polls until it's done. The GitHub connection is on the API too (`src/api/github.ts`): making one needs your account linked to GitHub, and a sandbox family can't sync one repo and branch twice.
 
 ### Your account
 

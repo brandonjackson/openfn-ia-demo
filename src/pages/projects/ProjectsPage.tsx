@@ -64,7 +64,7 @@ export default function ProjectsPage({ node, ancestors, data, onCreateProject }:
       />
 
       <Stack gap="md">
-        <Text size="xs" tone="muted" block>
+        <Text size="xs" tone="muted" block role="status">
           {filtered.length} project{filtered.length !== 1 ? "s" : ""}
         </Text>
 

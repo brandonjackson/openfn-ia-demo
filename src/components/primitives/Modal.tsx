@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { X } from "lucide-react";
 import IconButton from "./IconButton";
@@ -25,6 +25,12 @@ const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), selec
  */
 export default function Modal({ open, title, onClose, children, footer, widthClass = "max-w-lg" }: Props) {
   const dialog = useRef<HTMLDivElement>(null);
+  // Who had focus when it opened, read while rendering: by the time effects run, a field inside may have taken focus with autoFocus.
+  const [openedFrom, setOpenedFrom] = useState<{ open: boolean; opener: HTMLElement | null }>({ open: false, opener: null });
+  if (openedFrom.open !== open) {
+    setOpenedFrom({ open, opener: open && document.activeElement instanceof HTMLElement ? document.activeElement : null });
+  }
+  const opener = openedFrom.opener;
   // Read through a ref, so a new onClose each render doesn't move focus again.
   const close = useRef(onClose);
   useEffect(() => {
@@ -33,8 +39,8 @@ export default function Modal({ open, title, onClose, children, footer, widthCla
 
   useEffect(() => {
     if (!open) return;
-    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const box = dialog.current!;
+    const box = dialog.current;
+    if (!box) return;
     const focusables = () => [...box.querySelectorAll<HTMLElement>(FOCUSABLE)];
     if (!box.contains(document.activeElement)) (focusables()[0] ?? box).focus();
 
@@ -58,7 +64,7 @@ export default function Modal({ open, title, onClose, children, footer, widthCla
       document.removeEventListener("keydown", onKey);
       if (opener?.isConnected) opener.focus();
     };
-  }, [open]);
+  }, [open, opener]);
 
   if (!open) return null;
 

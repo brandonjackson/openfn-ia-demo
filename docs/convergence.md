@@ -54,11 +54,6 @@ and to mark what would change the look.
     copy it.
 - **Half-done:** nothing. Pages other than Projects are still flat in
   `src/pages/` and still take their data shapes from page-data.ts.
-- **Small follow-ups that don't change the look** (fold into a nearby PR):
-  `FormField` should give its hint and error an id and pass
-  `aria-describedby`/`aria-invalid` to its control (accessibility review,
-  PR 1); `Text` could take a `role` so the Projects count can be
-  `role="status"`.
 
 ### How to move a page (from PR 1)
 
@@ -206,9 +201,14 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
 11. **Brandon's decisions recorded; design-system tidy-ups (decision 6) and
     Create project's button (decision 4, first form).** `Modal` traps focus:
     it moves in on open, Tab wraps, Escape closes, and focus goes back to the
-    opener. Create project is a `Modal` titled "Create project", its button
-    always enabled, saying "Enter a project name" under the field (and
-    focusing it) when pressed without one. Projects search is `SearchInput`,
+    opener (read while rendering, before a field can autofocus). Create
+    project is a `Modal` titled "Create project", its button always enabled,
+    saying "Enter a project name" under the field (and focusing it) when
+    pressed without one, `aria-disabled` while it creates, and focusing the
+    field a refusal names. `FormField` now ties its hint or error to its
+    control (`aria-describedby`, `aria-invalid`, `aria-required`) and draws
+    hints at gray-500; `Text` takes `role="status"`, which the Projects count
+    uses. Projects search is `SearchInput`,
     the list sits at 16px, and the count and "No description" are gray-500.
     CLAUDE.md now says no form disables its submit button to say it isn't
     ready. Counts: classNamesInDomain 707 → 699; classNamesInPages 107 →

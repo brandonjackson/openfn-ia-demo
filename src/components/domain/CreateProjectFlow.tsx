@@ -77,6 +77,9 @@ function CreateProjectModal({
     } catch (refused) {
       setError(refused);
       setSaving(false);
+      // Take the person to the first field the server named.
+      const field = ["name", "env", "description"].find((f) => fieldErrorOf(refused, f));
+      if (field) document.getElementById(`${id}-${field}`)?.focus();
     }
   };
 
@@ -90,7 +93,8 @@ function CreateProjectModal({
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" form={`${id}-form`} disabled={saving}>
+          {/* Busy rather than disabled while it saves, so it keeps focus and "Creating…" is read out. */}
+          <Button type="submit" form={`${id}-form`} aria-disabled={saving}>
             {saving ? "Creating…" : "Create project"}
           </Button>
         </>

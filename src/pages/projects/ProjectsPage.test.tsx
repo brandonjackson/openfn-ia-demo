@@ -78,16 +78,22 @@ describe("ProjectsPage", () => {
     expect(document.activeElement).toBe(screen.getByLabelText(/^Project name/));
   });
 
-  it("closes the form on Escape and keeps Tab inside it", () => {
+  it("keeps Tab inside the form both ways, closes on Escape, and gives focus back to New project", () => {
     draw([]);
-    fireEvent.click(screen.getAllByRole("button", { name: "New project" })[0]!);
+    const opener = screen.getAllByRole("button", { name: "New project" })[0]!;
+    opener.focus();
+    fireEvent.click(opener);
     const dialog = screen.getByRole("dialog", { name: "Create project" });
-    const create = screen.getByRole("button", { name: "Create project" });
-    create.focus();
+    expect(document.activeElement).toBe(screen.getByLabelText(/^Project name/));
+    screen.getByRole("button", { name: "Create project" }).focus();
     fireEvent.keyDown(document, { key: "Tab" });
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Close" }));
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Create project" }));
     expect(dialog.contains(document.activeElement)).toBe(true);
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(opener);
   });
 
   it("keeps the form open with the server's reason under the field it names when the create is refused", async () => {

@@ -40,7 +40,7 @@ describe("HandbookPage", () => {
     const host = draw();
     edit("## Who we are\n\nA new first line.");
     expect(host.calls("onSaveArticle")).toEqual([[[{ id: "who-we-are", title: "Who we are", blocks: [{ type: "paragraph", content: ["A new first line."] }] }]]]);
-    expect((screen.getByRole("button", { name: "Saving…" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByRole("button", { name: "Saving…" }).getAttribute("aria-disabled")).toBe("true");
     await host.resolve("onSaveArticle");
     expect(screen.queryByLabelText("Article")).toBeNull();
   });

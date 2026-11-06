@@ -21,23 +21,25 @@ and to mark what would change the look.
 - **PR in progress:** none. The brief's 10 PRs are done; the work now is
   Brandon's decisions (6 Nov 2026, "Decided by Brandon" below). Decisions
   2, 3, 5 and 6 are done, and 4 on Create project. Next, one PR each:
-  1. **Every other submit button enabled** (decision 4), in two PRs: (a)
-     account, credential, admin and organisation forms (`UserFormModal`,
-     `DeleteAccountModal`, `InviteOrgMemberModal`, `TransferCredentialModal`,
-     `CredentialFormModal`'s "Configure credential", `ProjectFormModal`,
-     `AuthProviderForm`, `ProfileDetailsForm`'s validity, Organization
-     settings' context layer URL, and every `disabled={saving|busy}` among
-     them, which becomes `aria-disabled`); (b) project, sandbox, component
-     and editor forms (`InviteCollaboratorsModal`, `AddCollaboratorsModal`,
-     `GitHubSyncForm`, `RunInputModal`, `WebhookAuthMethodModal`,
-     `SystemFormModal`, `ComponentView`, `EditInSandboxModal`,
-     `CollectionNameModal`, `SandboxFormModal`, `AddConnectedSystemFlow`,
-     `PromoteSandboxModal`, Project settings' name). Each says what's
-     missing under its field on submit ("Enter …", as Create project
-     does) and focuses it (`CreateProjectFlow.tsx`). Out of scope, on
-     Waiting on Brandon: Save disabled until something changes, chat send
-     buttons, and actions off for a reason other than the form (bulk
-     retry, merge with nothing to merge, read-only fields).
+  1. **Every other submit button enabled** (decision 4), second half:
+     project, sandbox, component and editor forms (`InviteCollaboratorsModal`,
+     `AddCollaboratorsModal`, `GitHubSyncForm`, `RunInputModal`,
+     `WebhookAuthMethodModal`, `SystemFormModal`, `ComponentView`'s
+     validity, `EditInSandboxModal`, `CollectionNameModal`,
+     `SandboxFormModal`, `AddConnectedSystemFlow`, `PromoteSandboxModal`,
+     Project settings' name, `ComponentFormModal`, `CollectionItemModal`,
+     and `ConfirmModal`'s `confirmPhrase`). Use `focusFirstProblem`
+     (`src/components/primitives/focus-field.ts`) with ids from `useId`;
+     say "Enter …" under the field; busy label and `aria-disabled` while it
+     runs, checking busy before anything else in the handler. Out of scope,
+     on Waiting on Brandon: Save disabled until something changes, chat send
+     buttons, and actions off for a reason other than the form (bulk retry,
+     merge with nothing to merge, read-only fields).
+     Watch for: `InviteCollaboratorsModal` and `AddCollaboratorsModal` lay
+     out each person as a row of bare inputs with no `FormField`, so
+     there's no "under the field" yet: give each row's inputs their own
+     error line (a `FormField` per input changes the row's look, so check it
+     against the stories, and put it on Waiting on Brandon if it does).
   2. **The section loading pattern** (decision 1): a page draws its frame at
      once, each section its own loading and error. Projects first, then
      Admin settings' audit trail, User settings' credential types,
@@ -246,7 +248,27 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     `aria-disabled` while saving. Counts: tests 170 → 176; the rest
     unchanged.
 
-**PRs done: 13** (10 for the brief, then Brandon's decisions). Pull openfn-3-poc again at PR 10.
+14. **Submit buttons enabled on account, credential, admin and
+    organisation forms** (decision 4, first half). `UserFormModal`,
+    `ProjectFormModal`, `InviteOrgMemberModal`, `DeleteAccountModal`,
+    `TransferCredentialModal`, `AuthProviderForm` (Save and Test),
+    `ProfileDetailsForm`'s validity, the credential picker's "Configure
+    credential" and Organization settings' context layer URL stay enabled:
+    pressed with something missing, each says so under the field ("Enter a
+    first name", "Enter a project name", "Enter a context layer URL"; the
+    picker's "Choose a credential type") and focuses it, sending nothing.
+    Those and `OAuthClientModal`, `ChangeEmailForm`, `ChangePasswordForm`,
+    `MfaSetupFlow`, the credential form's Save, Handbook's Save and
+    Organization settings' Saves are `aria-disabled` with a busy label while
+    they run, and ignore a second press. A new primitive helper,
+    `focusFirstProblem` (`focus-field.ts`), which `CreateProjectFlow` uses
+    too; `ListRow` takes an `id`; the credential form, saved with a field
+    wrong on another environment, switches to it and focuses the field; the
+    owner problem in `ProjectFormModal` is a fresh alert on each press;
+    AuthProviderForm's errors use `FormField`'s `error`; the context layer
+    form is `noValidate`. Counts: tests 176 → 183; the rest unchanged.
+
+**PRs done: 14** (10 for the brief, then Brandon's decisions). Pull openfn-3-poc again at PR 10.
 
 ## Decided by Brandon (6 Nov 2026)
 
@@ -293,3 +315,18 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
    don't always re-read a focused button whose label changes. Would add a
    busy look to `Button` (as `disabled:` has) and a visually hidden status
    line, in the primitive, for every busy button at once.
+3. **One wording for a missing field** (from PR 14's reviewers). New
+   messages say "Enter a first name"; older ones say Lightning's "can't be
+   blank" (`ProfileDetailsForm`, `ChangeEmailForm`, `ChangePasswordForm`,
+   `OAuthClientModal`, `emailError` in `model/credentials.ts`) or
+   "Required." (`authProviderErrors`), and `ProfileDetailsForm` shows its
+   errors while you type, not after a press. Would move them all to
+   "Enter …", after a press, with one email check in `model/`.
+4. **Save disabled until something changes** (`ProfileDetailsForm`,
+   Organization settings' visibility and X-Road, Project settings,
+   `ComponentView`). Decision 4 says a button is disabled only while it
+   runs; enabling these needs something to say when there's nothing to
+   save ("No changes to save"), or a save that does nothing.
+5. **"Choose a credential type" as a callout** above the picker. The
+   picker has no field to put it under; a labelled group of types carrying
+   the message would read better but changes the picker's look.

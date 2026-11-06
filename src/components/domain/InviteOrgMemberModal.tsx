@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { errorMessageOf, fieldErrorOf } from "../../model/form-error";
 import type { OrganizationInvite, OrganizationMember } from "../../model/organization";
 import Button from "../primitives/Button";
+import { focusFirstProblem } from "../primitives/focus-field";
 import Callout from "../primitives/Callout";
 import FormField from "../primitives/FormField";
 import { Select, TextInput } from "../primitives/FormControls";
@@ -31,9 +32,14 @@ export default function InviteOrgMemberModal({ roles, onInvite, onClose }: Props
   const [invite, setInvite] = useState<OrganizationInvite>({ email: "", role: roles.includes("Member") ? "Member" : roles[0]! });
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<unknown>(null);
-  const complete = /\S+@\S+\.\S+/.test(invite.email);
+  // Set when Send is pressed with no usable email; the field says what's wrong until it's fixed.
+  const [attempted, setAttempted] = useState(false);
+  const missing = !invite.email.trim() ? "Enter an email address" : /\S+@\S+\.\S+/.test(invite.email) ? undefined : "Enter a valid email address";
 
   const send = async () => {
+    if (sending) return;
+    setAttempted(true);
+    if (focusFirstProblem([[`${id}-email`, missing]])) return;
     setSending(true);
     setError(null);
     try {
@@ -46,7 +52,7 @@ export default function InviteOrgMemberModal({ roles, onInvite, onClose }: Props
     }
   };
 
-  const emailError = fieldErrorOf(error, "email");
+  const emailError = (attempted ? missing : undefined) ?? fieldErrorOf(error, "email");
   return (
     <Modal
       open
@@ -57,8 +63,9 @@ export default function InviteOrgMemberModal({ roles, onInvite, onClose }: Props
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={send} disabled={!complete || sending}>
-            Send invitation
+          {/* Enabled until it sends: pressed with no usable email, it says why under the field. */}
+          <Button onClick={send} aria-disabled={sending}>
+            {sending ? "Sending…" : "Send invitation"}
           </Button>
         </>
       }

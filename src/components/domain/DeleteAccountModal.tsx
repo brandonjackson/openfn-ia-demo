@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";
+import { focusFirstProblem } from "../primitives/focus-field";
 import FormField from "../primitives/FormField";
 import { TextInput } from "../primitives/FormControls";
 import Stack from "../primitives/Stack";
@@ -23,6 +24,12 @@ export default function DeleteAccountModal({ open, onDelete, onClose }: Props) {
   const [busy, setBusy] = useState(false);
 
   const confirm = async () => {
+    if (busy) return;
+    if (!email.trim()) {
+      setError("Enter your email");
+      focusFirstProblem([["delete-account-email", true]]);
+      return;
+    }
     setBusy(true);
     setError(undefined);
     try {
@@ -45,7 +52,8 @@ export default function DeleteAccountModal({ open, onDelete, onClose }: Props) {
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant="danger" disabled={busy || !email.trim()} onClick={confirm}>
+          {/* Enabled until it runs: pressed with no email, it says so under the field. */}
+          <Button variant="danger" aria-disabled={busy} onClick={confirm}>
             {busy ? "Deleting…" : "Delete account"}
           </Button>
         </>

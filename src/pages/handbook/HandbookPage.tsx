@@ -43,7 +43,7 @@ export default function HandbookPage({ node, ancestors, data, onSaveArticle, onU
     setDraft(toMarkdown(data.sections));
   };
   const saveArticle = async () => {
-    if (draft === null || !onSaveArticle) return;
+    if (draft === null || !onSaveArticle || saving) return;
     setSaving(true);
     setArticleError(null);
     try {
@@ -80,7 +80,7 @@ export default function HandbookPage({ node, ancestors, data, onSaveArticle, onU
               <Button variant="secondary" size="sm" onClick={() => setDraft(null)}>
                 Cancel
               </Button>
-              <Button size="sm" disabled={saving} onClick={saveArticle}>
+              <Button size="sm" aria-disabled={saving} onClick={saveArticle}>
                 {saving ? "Saving…" : "Save"}
               </Button>
             </Inline>

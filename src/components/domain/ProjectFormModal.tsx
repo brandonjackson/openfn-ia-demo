@@ -5,6 +5,7 @@ import type { AdminUser } from "../../model/users";
 import type { ProjectRole } from "../../model/project-settings";
 import { fullName, projectOwnerError, projectRoleLabels, projectRoles, projectSlug } from "../../model/admin";
 import Button from "../primitives/Button";
+import { focusFirstProblem } from "../primitives/focus-field";
 import Callout from "../primitives/Callout";
 import DataTable from "../primitives/DataTable";
 import type { DataTableColumn } from "../primitives/DataTable";
@@ -53,7 +54,14 @@ export default function ProjectFormModal({ project, users, onSave, onClose }: Pr
   const search = filter.trim().toLowerCase();
   const shown = users.filter((u) => !search || `${fullName(u)} ${u.email}`.toLowerCase().includes(search));
 
+  // How often Save has been pressed: from the first press the name says if it's missing, and each press reads the owner problem out again.
+  const [attempts, setAttempts] = useState(0);
+  const nameMissing = attempts > 0 && !slug ? "Enter a project name" : undefined;
+
   const save = async () => {
+    if (saving) return;
+    setAttempts((n) => n + 1);
+    if (focusFirstProblem([[`${id}-name`, !slug]]) || ownerError) return;
     setSaving(true);
     setError(null);
     try {
@@ -110,8 +118,9 @@ export default function ProjectFormModal({ project, users, onSave, onClose }: Pr
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={save} disabled={!slug || !!ownerError || saving}>
-            {project ? "Save" : "Create project"}
+          {/* Enabled until it saves: pressed with no name or no single owner, it says what's wrong. */}
+          <Button onClick={save} aria-disabled={saving}>
+            {saving ? "Saving…" : project ? "Save" : "Create project"}
           </Button>
         </>
       }
@@ -126,6 +135,7 @@ export default function ProjectFormModal({ project, users, onSave, onClose }: Pr
           <FormField
             label="Name"
             htmlFor={`${id}-name`}
+            error={nameMissing}
             hint={project ? undefined : slug ? `Its id will be ${slug}.` : "Its id is made from the name, in lower case with dashes."}
           >
             <TextInput id={`${id}-name`} value={name} onChange={(e) => setName(e.target.value)} />
@@ -145,7 +155,8 @@ export default function ProjectFormModal({ project, users, onSave, onClose }: Pr
             title="Members"
             description="Give each person a role in this project. Exactly one of them is its owner."
           />
-          {ownerError && <Callout variant="danger" title={ownerError} />}
+          {/* A fresh alert on each press, so it's read out even though it was already on screen. */}
+          {ownerError && <Callout key={attempts} variant="danger" role={attempts > 0 ? "alert" : undefined} title={ownerError} />}
           <SearchInput compact placeholder="Filter users" value={filter} onChange={(e) => setFilter(e.target.value)} />
           <DataTable columns={columns} rows={shown} getRowKey={(u) => u.id} emptyMessage="No users match." />
         </Stack>

@@ -94,9 +94,23 @@ describe("AdminSettingsPage", () => {
     expect(host.calls("onCreateUser")).toEqual([
       [{ firstName: "Lena", lastName: "Okafor", email: "lena@example.org", role: "user", supportUser: false, disabled: false, password: "a long enough password" }],
     ]);
-    expect((screen.getByRole("button", { name: "Create user" }) as HTMLButtonElement).disabled).toBe(true);
+    // Busy, not disabled, while it saves: a second press sends nothing more.
+    const busy = screen.getByRole("button", { name: "Saving…" });
+    expect(busy.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(busy);
+    expect(host.calls("onCreateUser")).toHaveLength(1);
     await host.resolve("onCreateUser");
     expect(screen.queryByLabelText("First name")).toBeNull();
+  });
+
+  it("says what's missing under each field when Create user is pressed on an empty form, and focuses the first", () => {
+    const host = draw();
+    fireEvent.click(screen.getByRole("button", { name: "New user" }));
+    fireEvent.click(screen.getByRole("button", { name: "Create user" }));
+    expect(screen.getByText("Enter a first name")).toBeTruthy();
+    expect(screen.getByText("Enter a password")).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByLabelText("First name"));
+    expect(host.calls("onCreateUser")).toEqual([]);
   });
 
   it("keeps the form open, naming the field the server refused", async () => {
@@ -116,6 +130,14 @@ describe("AdminSettingsPage", () => {
     await host.resolve("onTestAuthProvider", { discoveryUrl: "https://id.example.org/.well-known/openid-configuration", ok: true, message: "Found the endpoints." });
     expect(screen.getByText("Discovery URL works")).toBeTruthy();
     expect(screen.getByText("Found the endpoints.")).toBeTruthy();
+  });
+
+  it("says what's wrong under the discovery URL when Test is pressed without a usable one", () => {
+    const host = draw("authentication", "Authentication");
+    fireEvent.click(screen.getByRole("button", { name: "Test" }));
+    expect(screen.getByText("Required.")).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByLabelText("Discovery URL"));
+    expect(host.calls("onTestAuthProvider")).toEqual([]);
   });
 
   it("says why when the test is refused", async () => {

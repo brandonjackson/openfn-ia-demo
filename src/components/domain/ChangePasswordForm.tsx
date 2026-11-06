@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { PASSWORD_MIN, passwordErrors } from "../../model/account";
 import Button from "../primitives/Button";
+import { focusFirstProblem } from "../primitives/focus-field";
 import Card from "../primitives/Card";
 import FormField from "../primitives/FormField";
 import { TextInput } from "../primitives/FormControls";
@@ -34,10 +35,18 @@ export default function ChangePasswordForm({ onChangePassword }: Props) {
   const shown: Partial<typeof errors> = attempted ? errors : {};
 
   const submit = async () => {
+    if (busy) return;
     setAttempted(true);
     setServerError(undefined);
     setDone(false);
-    if (errors.password || errors.confirmation || errors.current) return;
+    if (
+      focusFirstProblem([
+        ["new-password", errors.password],
+        ["confirm-password", errors.confirmation],
+        ["current-password", errors.current],
+      ])
+    )
+      return;
     setBusy(true);
     try {
       await onChangePassword(password, current);
@@ -88,7 +97,7 @@ export default function ChangePasswordForm({ onChangePassword }: Props) {
         </FormField>
         <Inline justify="end" gap="md">
           {done && <Text tone="success">Password changed successfully.</Text>}
-          <Button disabled={busy} onClick={submit}>
+          <Button aria-disabled={busy} onClick={submit}>
             {busy ? "Saving…" : "Update password"}
           </Button>
         </Inline>

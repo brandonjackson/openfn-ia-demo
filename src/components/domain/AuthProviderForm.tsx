@@ -3,6 +3,7 @@ import { PlugZap, Save, Trash2 } from "lucide-react";
 import type { AuthProviderConfig, AuthProviderDraft, AuthProviderTest } from "../../model/authentication";
 import { authProviderErrors, authRedirectUri } from "../../model/admin";
 import Button from "../primitives/Button";
+import { focusFirstProblem } from "../primitives/focus-field";
 import Callout from "../primitives/Callout";
 import Card from "../primitives/Card";
 import Checkbox from "../primitives/Checkbox";
@@ -51,11 +52,12 @@ export default function AuthProviderForm({ provider, defaultRedirectHost, test, 
   const [confirmRemove, setConfirmRemove] = useState(false);
 
   const errors = authProviderErrors(draft, !!provider?.hasClientSecret);
-  const valid = Object.keys(errors).length === 0;
+  const fields = ["name", "discoveryUrl", "clientId", "clientSecret", "redirectHost"] as const;
   const result = test && test.discoveryUrl === draft.discoveryUrl ? test : undefined;
   const set = (patch: Partial<AuthProviderDraft>) => setDraft((d) => ({ ...d, ...patch }));
 
   const run = async (kind: "test" | "save" | "remove", action: () => Promise<void>) => {
+    if (busy) return;
     setBusy(kind);
     try {
       await action();
@@ -64,12 +66,14 @@ export default function AuthProviderForm({ provider, defaultRedirectHost, test, 
     }
   };
 
+  /** Pressed with these fields wrong: show what's wrong with each and take focus to the first. */
+  const blocked = (keys: readonly (typeof fields)[number][]) => {
+    setTouched((t) => ({ ...t, ...Object.fromEntries(keys.map((k) => [k, true])) }));
+    return focusFirstProblem(keys.map((k) => [`${id}-${k}`, errors[k]]));
+  };
+
   const field = (key: keyof AuthProviderDraft, label: string, hint: ReactNode, input: ReactNode) => (
-    <FormField
-      label={label}
-      htmlFor={`${id}-${key}`}
-      hint={touched[key] && errors[key] ? <Text tone="danger" size="xs">{errors[key]}</Text> : hint}
-    >
+    <FormField label={label} htmlFor={`${id}-${key}`} hint={hint} error={touched[key] ? errors[key] : undefined}>
       {input}
     </FormField>
   );
@@ -119,7 +123,13 @@ export default function AuthProviderForm({ provider, defaultRedirectHost, test, 
             </Callout>
           )}
           <Inline gap="sm">
-            <Button icon={Save} disabled={!valid || busy !== null} onClick={() =>
+            {/* Enabled until something runs: pressed with a field wrong, it says what under the field. */}
+            <Button
+              icon={Save}
+              aria-disabled={busy !== null}
+              onClick={() =>
+                !busy &&
+                !blocked(fields) &&
                 run("save", async () => {
                   await onSave(draft);
                   // The server holds the secret now; the box goes back to "stored".
@@ -132,8 +142,8 @@ export default function AuthProviderForm({ provider, defaultRedirectHost, test, 
             <Button
               variant="secondary"
               icon={PlugZap}
-              disabled={!!errors.discoveryUrl || busy !== null}
-              onClick={() => run("test", () => onTest(draft))}
+              aria-disabled={busy !== null}
+              onClick={() => !busy && !blocked(["discoveryUrl"]) && run("test", () => onTest(draft))}
             >
               {busy === "test" ? "Testing…" : "Test"}
             </Button>

@@ -1,10 +1,12 @@
-import { useEffect, useEffectEvent, useState } from "react";
+import { useEffect, useEffectEvent, useId, useState } from "react";
+import { flushSync } from "react-dom";
 import { Braces, Plus, Trash2 } from "lucide-react";
 import type { CredentialDraft, CredentialEnvironmentValues, CredentialField, CredentialSchema, CredentialSchemaSummary, ProjectOption, UserCredential } from "../../model/credentials";
 import { errorMessageOf } from "../../model/form-error";
 import { ENVIRONMENTS, credentialDraftErrors, environmentLabels, hasCredentialErrors, type Environment } from "../../model/credentials";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";
+import { focusFirstProblem } from "../primitives/focus-field";
 import Callout from "../primitives/Callout";
 import Checkbox from "../primitives/Checkbox";
 import DropdownMenu from "../primitives/DropdownMenu";
@@ -101,11 +103,14 @@ function FieldInput({
  * Secrets are never shown back: a blank one keeps what's saved.
  */
 export default function CredentialFormModal({ open, credential, schemas, projects, onSave, onLoadSchema, onClose, initialSchema }: Props) {
+  const formId = useId();
   const startSchema = credential?.schema ?? initialSchema ?? "";
   const [step, setStep] = useState<"type" | "form">(startSchema ? "form" : "type");
   // The type picked in the picker; the form configures the one whose fields have loaded.
   const [pickedId, setPickedId] = useState(startSchema);
   const [query, setQuery] = useState("");
+  // Set when Configure is pressed with no type picked; cleared once one is.
+  const [typeMissing, setTypeMissing] = useState(false);
   const [load, setLoad] = useState<SchemaLoad>(startSchema ? { state: "loading" } : { state: "idle" });
   const schema = load.state === "ready" ? load.schema : undefined;
   const schemaId = schema?.id ?? startSchema;
@@ -160,7 +165,13 @@ export default function CredentialFormModal({ open, credential, schemas, project
   }, [startSchema]);
 
   const pickSchema = async () => {
-    if (load.state === "loading" || !pickedId) return;
+    if (load.state === "loading") return;
+    if (!pickedId) {
+      setTypeMissing(true);
+      // Take the person to the types, where the choice is missing.
+      focusFirstProblem([[`${formId}-first-type`, true]]);
+      return;
+    }
     setLoad({ state: "loading" });
     try {
       const loaded = await onLoadSchema(pickedId);
@@ -196,9 +207,12 @@ export default function CredentialFormModal({ open, credential, schemas, project
     setServerError(undefined);
     if (!schema) return;
     if (hasCredentialErrors(errors)) {
-      // Show the first environment with a problem, if the open one has none.
-      const bad = environments.find((e) => errors.fields[e.environment]);
-      if (bad && !errors.fields[currentEnv]) setCurrentEnv(bad.environment);
+      // Show the first environment with a problem, if the open one has none, then take focus to the first field that's wrong.
+      const bad = errors.fields[currentEnv] ? currentEnv : environments.find((e) => errors.fields[e.environment])?.environment;
+      // The tab's fields must be on screen before one can take focus.
+      if (bad && bad !== currentEnv) flushSync(() => setCurrentEnv(bad));
+      const fields = schema.fields.map((f): [string, unknown] => [`credential-${bad}-${f.key}`, bad && errors.fields[bad]?.[f.key]]);
+      focusFirstProblem([["credential-name", errors.name], ...fields]);
       return;
     }
     setSaving(true);
@@ -219,6 +233,7 @@ export default function CredentialFormModal({ open, credential, schemas, project
     const pick = (id: string) => {
       if (loading) return;
       setPickedId(id);
+      setTypeMissing(false);
       if (load.state === "error") setLoad({ state: "idle" });
     };
     return (
@@ -232,8 +247,8 @@ export default function CredentialFormModal({ open, credential, schemas, project
             <Button key="cancel" variant="secondary" onClick={onClose}>
               Cancel
             </Button>
-            {/* Busy rather than disabled while the type's fields load, so it keeps focus and "Loading…" is read out. */}
-            <Button key="configure" disabled={!pickedId} aria-disabled={loading} onClick={pickSchema}>
+            {/* Never disabled: pressed with no type, it says to choose one; busy while the type's fields load. */}
+            <Button key="configure" aria-disabled={loading} onClick={pickSchema}>
               {loading ? "Loading…" : "Configure credential"}
             </Button>
           </>
@@ -241,12 +256,14 @@ export default function CredentialFormModal({ open, credential, schemas, project
       >
         <Stack gap="md">
           {load.state === "error" && <Callout variant="danger" role="alert" title={load.message} />}
+          {typeMissing && <Callout variant="danger" role="alert" title="Choose a credential type" />}
           <SearchInput compact placeholder="Search credential types" value={query} onChange={(e) => setQuery(e.target.value)} />
           {matches.length > 0 ? (
             <Grid columns={2} gap="sm">
-              {matches.map((s) => (
+              {matches.map((s, i) => (
                 <ListRow
                   key={s.id}
+                  id={i === 0 ? `${formId}-first-type` : undefined}
                   icon={Braces}
                   logo={s.adaptor ? <AdaptorLogo adaptor={s.adaptor} name={s.name} size="sm" /> : undefined}
                   title={s.name}

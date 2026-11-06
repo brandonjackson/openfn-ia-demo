@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Mail } from "lucide-react";
 import { emailError } from "../../model/credentials";
 import Button from "../primitives/Button";
+import { focusFirstProblem } from "../primitives/focus-field";
 import Callout from "../primitives/Callout";
 import Card from "../primitives/Card";
 import FormField from "../primitives/FormField";
@@ -40,9 +41,10 @@ export default function ChangeEmailForm({ currentEmail, pendingEmail, onChangeEm
   };
 
   const submit = async () => {
+    if (busy) return;
     setAttempted(true);
     setServerError(undefined);
-    if (errors.email || errors.password) return;
+    if (focusFirstProblem([["new-email", errors.email], ["email-password", errors.password]])) return;
     setBusy(true);
     try {
       await onChangeEmail(email.trim(), password);
@@ -78,7 +80,7 @@ export default function ChangeEmailForm({ currentEmail, pendingEmail, onChangeEm
           />
         </FormField>
         <Inline justify="end">
-          <Button disabled={busy} onClick={submit}>
+          <Button aria-disabled={busy} onClick={submit}>
             {busy ? "Sending confirmation email…" : "Update email"}
           </Button>
         </Inline>

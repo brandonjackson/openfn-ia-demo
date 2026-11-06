@@ -27,6 +27,8 @@ interface Props {
   /** Where the row goes. Without `to` or `onClick` the row is static. */
   to?: string;
   onClick?: () => void;
+  /** The id of the row's link or button, so a form can move focus to it. */
+  id?: string;
   /**
    * Labelled values at the right of the row (latest run, counts, last
    * updated), hidden on narrow screens where there's no room to line them up.
@@ -60,6 +62,7 @@ export default function ListRow({
   meta,
   to,
   onClick,
+  id,
   columns,
   trailing,
   actions,
@@ -118,11 +121,11 @@ export default function ListRow({
   );
 
   const row = to ? (
-    <Link to={to} className={className}>
+    <Link id={id} to={to} className={className}>
       {content}
     </Link>
   ) : onClick ? (
-    <button type="button" onClick={onClick} aria-pressed={selected} className={className}>
+    <button id={id} type="button" onClick={onClick} aria-pressed={selected} className={className}>
       {content}
     </button>
   ) : (

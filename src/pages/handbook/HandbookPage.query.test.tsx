@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../../api/ApiProvider";
@@ -35,7 +35,8 @@ describe("HandbookPageQuery", () => {
     const article = await request<Article>("GET", "/api/demo/handbook");
     const files = await request<Files>("GET", "/api/demo/handbook/files");
     renderRoute();
-    expect((await screen.findAllByText(article.data.attributes.sections[0]!.title, {}, wait)).length).toBeGreaterThan(0);
+    // Its first heading shows twice: in the article and in its contents.
+    await screen.findAllByText(article.data.attributes.sections[0]!.title, {}, wait);
     expect(screen.getByText(files.data[0]!.attributes.name)).toBeTruthy();
   });
 
@@ -55,7 +56,19 @@ describe("HandbookPageQuery", () => {
     fireEvent.change(screen.getByLabelText("Article"), { target: { value: "## Same\n\nOne.\n\n## Same\n\nTwo." } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(await screen.findByText("That didn't save", {}, wait)).toBeTruthy();
+    expect(screen.getByText(/There's already a section called "Same"/)).toBeTruthy();
     expect(screen.getByLabelText("Article")).toBeTruthy();
+  });
+
+  it("adds a file on the server and removes it again", async () => {
+    renderRoute();
+    await screen.findByRole("button", { name: "Edit" }, wait);
+    const file = new File(["name,phone"], "Contacts.csv", { type: "text/csv" });
+    fireEvent.change(document.querySelector("input[type=file]")!, { target: { files: [file] } });
+    fireEvent.click(await screen.findByRole("button", { name: "Remove Contacts.csv" }, wait));
+    await waitFor(() => expect(screen.queryByText("Contacts.csv")).toBeNull(), wait);
+    const files = await request<Files>("GET", "/api/demo/handbook/files");
+    expect(files.data.some((f) => f.attributes.name === "Contacts.csv")).toBe(false);
   });
 
   it("shows the server's message when the handbook fails to load", async () => {

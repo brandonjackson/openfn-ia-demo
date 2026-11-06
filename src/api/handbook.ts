@@ -17,8 +17,8 @@ const keys = { handbook: ["handbook"] as const, files: ["handbook", "files"] as 
 
 const formatSize = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`);
 
-/** The handbook: its article, who last edited it, how much it holds, and whether you can change it (anyone in the organisation can). */
-export interface Handbook {
+/** The handbook's article, who last edited it, how much it holds, and whether you can change it (anyone in the organisation can). */
+export interface HandbookArticle {
   sections: WikiSection[];
   updatedBy: string;
   updatedAt: string;
@@ -34,11 +34,11 @@ interface ApiHandbook {
   updated_at: string;
 }
 
-export function useHandbook(): { status: LoadStatus; handbook: Handbook | undefined } {
+export function useHandbook(): { status: LoadStatus; handbook: HandbookArticle | undefined } {
   const query = useQuery({
     queryKey: keys.handbook,
     queryFn: () => request<{ data: { attributes: ApiHandbook } }>("GET", "/api/demo/handbook"),
-    select: ({ data: { attributes: a } }): Handbook => ({
+    select: ({ data: { attributes: a } }): HandbookArticle => ({
       sections: a.sections,
       updatedBy: a.updated_by,
       updatedAt: timeAgo(a.updated_at),

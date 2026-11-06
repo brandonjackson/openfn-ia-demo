@@ -188,12 +188,14 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
 
 10. **Handbook into its folder.** `src/pages/handbook/` with its first page
     and query tests (reading, saving the article, a heading used twice
-    refused, a load failure). The handbook's types left page-data.ts for
+    refused with the server's reason, adding and removing a file, a load
+    failure). The API hook's article type is now `HandbookArticle`, so it
+    isn't confused with the model's `Handbook`. The handbook's types left page-data.ts for
     `model/handbook.ts`, with `Handbook`, the shape the fixture and the page
     share. Pulled openfn-3-poc first: no change since PR 1 (still
     `a3e3d02`). Counts: page-data.ts 746 → 702 lines; files importing it
     83 → 78; pages in their own folder 4 → 5 of 24; page and query tests 8
-    → 10; tests 157 → 165.
+    → 10; tests 157 → 168.
     ([#200](https://github.com/brandonjackson/openfn-ia-demo/pull/200))
 
 **PRs done: 10 of 10.** The brief's stop point. Pull openfn-3-poc again at PR 10.

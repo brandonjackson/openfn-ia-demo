@@ -272,6 +272,7 @@ function CollectionsSection({
 /*  Main page                                                          */
 /* ------------------------------------------------------------------ */
 
+/** Everything Admin settings shows: the whole instance, for a superuser. */
 export interface AdminSettingsPageData {
   /** Every account on the instance. */
   users: AdminUser[];
@@ -420,5 +421,3 @@ export default function AdminSettingsPage({
     </SettingsLayout>
   );
 }
-
-/** Everything Admin settings shows: the whole instance, for a superuser. */

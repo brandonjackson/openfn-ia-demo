@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../../api/ApiProvider";
@@ -54,11 +54,17 @@ describe("AdminSettingsPageQuery", () => {
     expect(data.some((u) => u.attributes.email === "lena@example.org")).toBe(true);
   });
 
-  it("keeps the form open with the server's reason when it refuses the account", async () => {
-    failNext("POST /api/users", { status: 422, code: "invalid", detail: "Email has already been taken." });
+  it("keeps the form open, naming the email, when the server already has an account with it", async () => {
+    const { data } = await request<Many>("GET", "/api/users?page_size=100");
     renderRoute();
-    await createUser("lena@example.org");
+    await createUser(data[1]!.attributes.email);
     expect(await screen.findByText("Email has already been taken.", {}, wait)).toBeTruthy();
-    await waitFor(() => expect(screen.getByLabelText("First name")).toBeTruthy());
+    expect(screen.getByLabelText("First name")).toBeTruthy();
+  });
+
+  it("shows the server's message when the list fails to load", async () => {
+    failNext("GET /api/users", { status: 500, code: "internal", detail: "Something went wrong in Lightning." });
+    renderRoute();
+    expect(await screen.findByText("Something went wrong in Lightning.", {}, wait)).toBeTruthy();
   });
 });

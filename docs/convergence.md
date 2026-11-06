@@ -127,7 +127,7 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    openfn-3-poc first: no change since PR 1 (still `a3e3d02`). Counts:
    page-data.ts 1054 → 837 lines; files importing it 113 → 91; pages in
    their own folder 1 → 2 of 24; page and query tests 2 → 4; tests 105 →
-   111.
+   112.
 
 **PRs done: 5 of 10.** Pull openfn-3-poc again at PR 10.
 

@@ -123,6 +123,8 @@ def merge_imports(text):
                 prefix = "type " if match.group(2) else ""
                 return [prefix + n.strip() if not n.strip().startswith("type ") else n.strip() for n in match.group(3).split(",") if n.strip()]
             both = names(first) + names(m)
+            values = {n for n in both if not n.startswith("type ")}
+            both = [n for n in both if not (n.startswith("type ") and n[5:] in values)]
             all_types = all(n.startswith("type ") for n in both)
             listed = [n[5:] for n in both] if all_types else both
             kind = f"{m.group(1)} type" if all_types else m.group(1)

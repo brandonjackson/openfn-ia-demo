@@ -87,10 +87,10 @@ describe("AdminSettingsPage", () => {
     expect(screen.queryByLabelText("First name")).toBeNull();
   });
 
-  it("keeps the form open with the server's reason when the account is refused", async () => {
+  it("keeps the form open, naming the field the server refused", async () => {
     const host = draw();
     fillInNewUser();
-    await host.reject("onCreateUser", new FormError("Email has already been taken."));
+    await host.reject("onCreateUser", new FormError("The account could not be saved.", { email: ["has already been taken"] }));
     expect(screen.getByText("The account wasn't saved")).toBeTruthy();
     expect(screen.getByText("Email has already been taken.")).toBeTruthy();
     expect(screen.getByLabelText("First name")).toBeTruthy();

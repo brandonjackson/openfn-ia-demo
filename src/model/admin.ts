@@ -1,4 +1,7 @@
-import type { AdminUser, AuditEvent, AuditItemType, AuditQuery, AuthProviderDraft, InstanceRole, ProjectMembership } from "./page-data";
+import type { AuthProviderDraft } from "./authentication";
+import type { AuditEvent, AuditItemType, AuditQuery } from "./audit-events";
+import type { ProjectMembership } from "./projects";
+import type { AdminUser, InstanceRole } from "./users";
 import type { ProjectRole } from "./project-settings";
 
 /*
@@ -118,4 +121,13 @@ export function filterAuditEvents(events: AuditEvent[], query: AuditQuery): Audi
       (!search ||
         [e.actor.label, e.actor.identifier, e.item.name, e.item.id].some((v) => v?.toLowerCase().includes(search)))
   );
+}
+
+/** A job that keeps the instance up to date, which a superuser can run by hand. */
+export interface MaintenanceTask {
+  id: string;
+  title: string;
+  description: string;
+  /** When it last finished and what it did. Absent if it's never run. */
+  lastRun?: { at: string; result: string };
 }

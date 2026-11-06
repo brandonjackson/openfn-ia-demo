@@ -1,39 +1,34 @@
 import { useState } from "react";
 import { Database, FolderKanban, FolderPlus, KeyRound, ScrollText, UserPlus, Users, Wrench } from "lucide-react";
-import type { PageProps } from "../model/ia-tree";
-import type {
-  AdminCollection,
-  AdminProject,
-  AdminProjectDraft,
-  AdminSettingsPageData,
-  AdminUser,
-  AdminUserDraft,
-  AuditQuery,
-  AuthProviderDraft,
-} from "../model/page-data";
-import { fullName } from "../model/admin";
-import SettingsLayout from "../components/patterns/SettingsLayout";
-import type { SettingsNavItem } from "../components/primitives/SettingsNav";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import AdminUserTable from "../components/domain/AdminUserTable";
-import UserFormModal from "../components/domain/UserFormModal";
-import AdminProjectTable from "../components/domain/AdminProjectTable";
-import ProjectFormModal from "../components/domain/ProjectFormModal";
-import AuditTrail from "../components/domain/AuditTrail";
-import AuthProviderForm from "../components/domain/AuthProviderForm";
-import AdminCollectionTable from "../components/domain/AdminCollectionTable";
-import MaintenanceTaskCard from "../components/domain/MaintenanceTaskCard";
-import Badge from "../components/primitives/Badge";
-import Button from "../components/primitives/Button";
-import Callout from "../components/primitives/Callout";
-import Card from "../components/primitives/Card";
-import ConfirmModal from "../components/primitives/ConfirmModal";
-import Inline from "../components/primitives/Inline";
-import SearchInput from "../components/primitives/SearchInput";
-import SectionHeading from "../components/primitives/SectionHeading";
-import Stack from "../components/primitives/Stack";
-import Text from "../components/primitives/Text";
-import TextLink from "../components/primitives/TextLink";
+import type { PageProps } from "../../model/ia-tree";
+import type { AdminCollection } from "../../model/collections";
+import type { AuthProviderConfig, AuthProviderDraft, AuthProviderTest } from "../../model/authentication";
+import type { AuditPage, AuditQuery } from "../../model/audit-events";
+import type { AdminProject, AdminProjectDraft } from "../../model/projects";
+import type { AdminUser, AdminUserDraft } from "../../model/users";
+import { fullName, type MaintenanceTask } from "../../model/admin";
+import SettingsLayout from "../../components/patterns/SettingsLayout";
+import type { SettingsNavItem } from "../../components/primitives/SettingsNav";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import AdminUserTable from "../../components/domain/AdminUserTable";
+import UserFormModal from "../../components/domain/UserFormModal";
+import AdminProjectTable from "../../components/domain/AdminProjectTable";
+import ProjectFormModal from "../../components/domain/ProjectFormModal";
+import AuditTrail from "../../components/domain/AuditTrail";
+import AuthProviderForm from "../../components/domain/AuthProviderForm";
+import AdminCollectionTable from "../../components/domain/AdminCollectionTable";
+import MaintenanceTaskCard from "../../components/domain/MaintenanceTaskCard";
+import Badge from "../../components/primitives/Badge";
+import Button from "../../components/primitives/Button";
+import Callout from "../../components/primitives/Callout";
+import Card from "../../components/primitives/Card";
+import ConfirmModal from "../../components/primitives/ConfirmModal";
+import Inline from "../../components/primitives/Inline";
+import SearchInput from "../../components/primitives/SearchInput";
+import SectionHeading from "../../components/primitives/SectionHeading";
+import Stack from "../../components/primitives/Stack";
+import Text from "../../components/primitives/Text";
+import TextLink from "../../components/primitives/TextLink";
 
 const BASE_PATH = "/admin-settings";
 
@@ -276,6 +271,31 @@ function CollectionsSection({
 /* ------------------------------------------------------------------ */
 /*  Main page                                                          */
 /* ------------------------------------------------------------------ */
+
+/** Everything Admin settings shows: the whole instance, for a superuser. */
+export interface AdminSettingsPageData {
+  /** Every account on the instance. */
+  users: AdminUser[];
+  /** Every project on the instance. */
+  projects: AdminProject[];
+  /** The page of audit events the query asks for. */
+  audit: AuditPage;
+  /** The audit trail's filters and page. */
+  auditQuery: AuditQuery;
+  /** The single sign-on provider. Absent when none is set up. */
+  authProvider?: AuthProviderConfig;
+  /** The last discovery URL test, if one has run. */
+  authTest?: AuthProviderTest;
+  /** Where this instance is served from, the redirect host for a new provider. */
+  instanceUrl: string;
+  /** Every collection, across all projects. */
+  collections: AdminCollection[];
+  maintenance: MaintenanceTask[];
+  /** Whether the instance sends OpenFn anonymous usage metrics. Set with environment variables. */
+  usageMetricsEnabled: boolean;
+  /** Days a scheduled deletion waits before it happens (`PURGE_DELETED_AFTER_DAYS`). */
+  deletionGraceDays: number;
+}
 
 export interface AdminSettingsPageProps extends PageProps<AdminSettingsPageData>, UserActions, ProjectActions {
   /** Shows other audit events: new filters or another page. Like changing the URL, it waits for nothing. */

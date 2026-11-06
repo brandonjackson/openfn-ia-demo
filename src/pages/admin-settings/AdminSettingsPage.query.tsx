@@ -1,23 +1,24 @@
 import { useState } from "react";
-import type { PageRoute } from "../app/ia-utils";
-import Loaded from "../app/Loaded";
-import { useAdminProjects, useAdminSaves, useAdminUsers, useAuditTrail } from "../api/admin";
-import { combine } from "../api/status";
-import { useCollectionSaves, useInstanceCollections } from "../api/collections";
-import { useAuthProvider, useAuthProviderSaves } from "../api/account";
-import type { AuditQuery, AuthProviderTest, MaintenanceTask } from "../model/page-data";
-import { filterAuditEvents } from "../model/admin";
-import { formatDateTime } from "../model/time";
+import type { PageRoute } from "../../app/ia-utils";
+import Loaded from "../../app/Loaded";
+import { useAdminProjects, useAdminSaves, useAdminUsers, useAuditTrail } from "../../api/admin";
+import { combine } from "../../api/status";
+import { useCollectionSaves, useInstanceCollections } from "../../api/collections";
+import { useAuthProvider, useAuthProviderSaves } from "../../api/account";
+import { type MaintenanceTask, filterAuditEvents } from "../../model/admin";
+import type { AuthProviderTest } from "../../model/authentication";
+import type { AuditQuery } from "../../model/audit-events";
+import { formatDateTime } from "../../model/time";
 import {
   auditPageSize,
   deletionGraceDays,
   instanceUrl,
   maintenanceTasks,
   usageMetricsEnabled,
-} from "../fixtures/admin";
-import { currentUser } from "../fixtures/user";
+} from "../../fixtures/admin";
+import { currentUser } from "../../fixtures/user";
 import AdminSettingsPage from "./AdminSettingsPage";
-import { pageFrame } from "../app/page-frame";
+import { pageFrame } from "../../app/page-frame";
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -59,7 +60,6 @@ export default function AdminSettingsPageQuery({ route }: { route: PageRoute }) 
         <AdminSettingsPage
           {...pageFrame(route)}
           data={{
-            pageType: "admin-settings",
             users,
             projects,
             audit: {

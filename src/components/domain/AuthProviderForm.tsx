@@ -1,7 +1,6 @@
-import { useId, useState } from "react";
-import type { ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 import { PlugZap, Save, Trash2 } from "lucide-react";
-import type { AuthProviderConfig, AuthProviderDraft, AuthProviderTest } from "../../model/page-data";
+import type { AuthProviderConfig, AuthProviderDraft, AuthProviderTest } from "../../model/authentication";
 import { authProviderErrors, authRedirectUri } from "../../model/admin";
 import Button from "../primitives/Button";
 import Callout from "../primitives/Callout";

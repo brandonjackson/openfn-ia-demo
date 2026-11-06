@@ -6,7 +6,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
-import type { AuthProviderConfig } from "../model/page-data";
+import type { AuthProviderConfig } from "../model/authentication";
 import type { ApiToken, BackupCode, ContactPreference, MfaSetup, ProfileDetails, UserProfile } from "../model/account";
 import { formatDate, timeAgo } from "../model/time";
 import { request } from "./client";

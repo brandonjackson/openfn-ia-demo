@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { CollectionItem } from "../../model/page-data";
+import type { CollectionItem } from "../../model/collections";
 import { errorMessageOf } from "../../model/form-error";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";

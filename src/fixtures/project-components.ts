@@ -3,7 +3,7 @@
  * static websites hold, and the sample keys of the collections listed among
  * their components: the records the fake server seeds them from.
  */
-import type { CollectionItem } from "../model/page-data";
+import type { CollectionItem } from "../model/collections";
 import type { ProjectComponent } from "../model/projects";
 import { isContentComponentType, starterContent, type CollectionContents, type ComponentContent } from "../model/project-components";
 

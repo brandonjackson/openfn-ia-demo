@@ -15,19 +15,8 @@ import {
   FileCode2,
 } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
-import type {
-  CollaboratorDraft,
-  CollaboratorInvite,
-  CollectionItem,
-  Collaborator,
-  DataStorageSettings,
-  GitHubConnectionSettings,
-  OrgCredential,
-  ProjectCollection,
-  ProjectSettingsPageData,
-  WebhookAuthMethod,
-  WebhookAuthMethodDraft,
-} from "../model/page-data";
+import type { CollaboratorDraft, CollaboratorInvite, Collaborator, DataStorageSettings, GitHubConnectionSettings, OrgCredential, ProjectSettingsPageData, WebhookAuthMethod, WebhookAuthMethodDraft } from "../model/page-data";
+import type { CollectionItem, ProjectCollection } from "../model/collections";
 import {
   countLabel,
   retentionPeriods,

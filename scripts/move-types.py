@@ -113,14 +113,22 @@ NAMED = re.compile(r'^(import|export)( type)? \{ ([^}]*) \} from "([^"]+)";\n', 
 
 
 def merge_imports(text):
-    """Folds two `import { … } from "x"` lines of the same kind into one."""
+    """Folds imports from one module into one line: `import { b, type A } from "x"`."""
     seen = {}
     for m in list(NAMED.finditer(text)):
-        key = (m.group(1), m.group(2), m.group(4))
+        key = (m.group(1), m.group(4))
         if key in seen:
             first = seen[key]
-            names = [n.strip() for n in (first.group(3) + "," + m.group(3)).split(",") if n.strip()]
-            merged = f'{m.group(1)}{m.group(2) or ""} {{ {", ".join(dict.fromkeys(names))} }} from "{m.group(4)}";\n'
+            def names(match):
+                prefix = "type " if match.group(2) else ""
+                return [prefix + n.strip() if not n.strip().startswith("type ") else n.strip() for n in match.group(3).split(",") if n.strip()]
+            both = names(first) + names(m)
+            values = {n for n in both if not n.startswith("type ")}
+            both = [n for n in both if not (n.startswith("type ") and n[5:] in values)]
+            all_types = all(n.startswith("type ") for n in both)
+            listed = [n[5:] for n in both] if all_types else both
+            kind = f"{m.group(1)} type" if all_types else m.group(1)
+            merged = f'{kind} {{ {", ".join(dict.fromkeys(listed))} }} from "{m.group(4)}";\n'
             text = text.replace(m.group(0), "", 1).replace(first.group(0), merged, 1)
             return merge_imports(text)
         seen[key] = m

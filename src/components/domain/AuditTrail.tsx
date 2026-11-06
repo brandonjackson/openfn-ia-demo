@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import type { AuditEvent, AuditItemType, AuditPage, AuditQuery } from "../../model/page-data";
+import type { AuditEvent, AuditItemType, AuditPage, AuditQuery } from "../../model/audit-events";
 import type { BadgeTone } from "../primitives/Badge";
 import { auditItemTypeLabels } from "../../model/admin";
 import Badge from "../primitives/Badge";

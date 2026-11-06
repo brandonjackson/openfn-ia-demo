@@ -1,4 +1,4 @@
-import type { CollectionItem, ProjectCollection } from "../../model/page-data";
+import type { CollectionItem, ProjectCollection } from "../../model/collections";
 import Modal from "../primitives/Modal";
 import CodeBlock from "../primitives/CodeBlock";
 import Inline from "../primitives/Inline";

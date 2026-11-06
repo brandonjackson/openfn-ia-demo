@@ -1,4 +1,4 @@
-import type { AuditChange } from "../../model/page-data";
+import type { AuditChange } from "../../model/audit-events";
 import DataTable from "../primitives/DataTable";
 import type { DataTableColumn } from "../primitives/DataTable";
 import Text from "../primitives/Text";

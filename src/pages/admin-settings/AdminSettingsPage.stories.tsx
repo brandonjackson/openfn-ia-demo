@@ -1,9 +1,35 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import AdminSettingsPage from "./AdminSettingsPage";
-import { withRouter } from "../stories/decorators";
-import type { IANode } from "../model/ia-tree";
-import { adminSettingsData, auditEvents } from "../fixtures/admin";
-import { filterAuditEvents } from "../model/admin";
+import AdminSettingsPage, { type AdminSettingsPageData } from "./AdminSettingsPage";
+import { withRouter } from "../../stories/decorators";
+import type { IANode } from "../../model/ia-tree";
+import {
+  adminUsers,
+  auditEvents,
+  deletionGraceDays,
+  emptyAuditQuery,
+  firstAuditPage,
+  instanceAuthProvider,
+  instanceCollections,
+  instanceProjects,
+  instanceUrl,
+  maintenanceTasks,
+  usageMetricsEnabled,
+} from "../../fixtures/admin";
+import { filterAuditEvents } from "../../model/admin";
+
+/** Admin settings as it first loads: the first page of the audit trail, unfiltered. */
+const adminSettingsData: AdminSettingsPageData = {
+  users: adminUsers,
+  projects: instanceProjects,
+  audit: firstAuditPage,
+  auditQuery: emptyAuditQuery,
+  authProvider: instanceAuthProvider,
+  instanceUrl,
+  collections: instanceCollections,
+  maintenance: maintenanceTasks,
+  usageMetricsEnabled,
+  deletionGraceDays,
+};
 
 const root: IANode = { id: "admin-settings", label: "Admin settings", pageType: "admin-settings" };
 const ancestors = [{ node: root, path: "/admin-settings" }];

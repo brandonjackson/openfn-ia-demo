@@ -1,6 +1,6 @@
 /** Collections and their items on Lightning's API (api/collections.md): shapes, mappers, keys and hooks. */
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { AdminCollection, CollectionItem, ProjectCollection } from "../model/page-data";
+import type { AdminCollection, CollectionItem, ProjectCollection } from "../model/collections";
 import { timeAgo } from "../model/time";
 import { listAll, request } from "./client";
 import { combine, statusOf, type LoadStatus } from "./status";

@@ -123,14 +123,22 @@ export interface CredentialField {
   defaultValue?: string;
 }
 
-/** A kind of credential you can make: an adaptor's configuration schema, or raw JSON. */
-export interface CredentialSchema {
+/**
+ * A kind of credential you can make, as the schema list names it: enough for
+ * the type picker and the credentials table. Its fields come with the full
+ * `CredentialSchema`, fetched once it's picked.
+ */
+export interface CredentialSchemaSummary {
   /** The schema's id, e.g. "dhis2" or "raw". */
   id: string;
   /** What it's called in the type picker, e.g. "DHIS2". */
   name: string;
   /** Adaptor id for its logo; absent for raw JSON. */
   adaptor?: string;
+}
+
+/** A kind of credential in full: an adaptor's configuration schema, or raw JSON. */
+export interface CredentialSchema extends CredentialSchemaSummary {
   /** One line on what it connects to. */
   description: string;
   /** What it asks for, in order. Raw JSON has one `json` field, `body`. */

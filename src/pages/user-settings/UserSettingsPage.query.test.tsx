@@ -42,8 +42,29 @@ describe("UserSettingsPageQuery", () => {
     expect(picker.getByText("Raw JSON")).toBeTruthy();
     fireEvent.click(picker.getByText("DHIS2"));
     fireEvent.click(screen.getByRole("button", { name: "Configure credential" }));
-    expect(screen.getByLabelText(/^Host URL/).getAttribute("inputmode")).toBe("url");
+    expect(((await screen.findByLabelText(/^Host URL/, {}, wait)) as HTMLInputElement).getAttribute("inputmode")).toBe("url");
     expect((screen.getByLabelText(/^Password/) as HTMLInputElement).type).toBe("password");
+  });
+
+  it("fetches a credential type's fields once it's picked, not before", async () => {
+    // Set before the page loads: had the page fetched every schema up front, this refusal would be spent already.
+    failNext("GET /api/credential_schemas/:name", { status: 503, code: "not_ready", detail: "Lightning is still loading the adaptors." });
+    renderRoute();
+    fireEvent.click((await screen.findAllByRole("button", { name: "New credential" }, wait))[0]!);
+    fireEvent.click(within(screen.getByRole("dialog")).getByText("DHIS2"));
+    fireEvent.click(screen.getByRole("button", { name: "Configure credential" }));
+    expect(await screen.findByText("Lightning is still loading the adaptors.", {}, wait)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Configure credential" }));
+    expect(await screen.findByLabelText(/^Host URL/, {}, wait)).toBeTruthy();
+  });
+
+  it("fetches a credential's fields as you open it to edit", async () => {
+    const { credentials } = await request<{ credentials: { name: string; schema: string }[] }>("GET", "/api/credentials");
+    const dhis2 = credentials.find((c) => c.schema === "@openfn/language-dhis2")!;
+    renderRoute();
+    fireEvent.click(await screen.findByRole("button", { name: `Actions for ${dhis2.name}` }, wait));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    expect(await screen.findByLabelText(/^Host URL/, {}, wait)).toBeTruthy();
   });
 
   it("makes a token on the server and shows it once", async () => {

@@ -1,6 +1,6 @@
 import type { PageRoute } from "../../app/ia-utils";
 import Loaded from "../../app/Loaded";
-import { useCredentialSaves, useCredentialSchemas, useMyCredentials, useOAuthClients } from "../../api/credentials";
+import { useCredentialSaves, useCredentialSchemaLoader, useCredentialSchemas, useMyCredentials, useOAuthClients } from "../../api/credentials";
 import { useAccountSaves, useApiTokens, useBackupCodes, useMe } from "../../api/account";
 import { useProjectList } from "../../api/projects";
 import { combine } from "../../api/status";
@@ -14,7 +14,8 @@ import { useFlags } from "../../app/feature-flags";
  * account deletion; your credentials (with their environments and the
  * projects they're shared with) and OAuth clients; your API tokens; MFA and
  * its backup codes; your GitHub link; and the kinds of credential you can
- * make, from the credential schemas. The demo's session counts as
+ * make, from the credential schemas' list (a kind's fields are fetched
+ * once it's picked). The demo's session counts as
  * stepped up, so the current password the forms ask for isn't checked.
  */
 export default function UserSettingsPageQuery({ route }: { route: PageRoute }) {
@@ -25,6 +26,7 @@ export default function UserSettingsPageQuery({ route }: { route: PageRoute }) {
   const { status: credentialsStatus, credentials } = useMyCredentials(projects.map((p) => p.id));
   const { status: clientsStatus, clients: oauthClients } = useOAuthClients();
   const { status: schemasStatus, schemas: credentialSchemas } = useCredentialSchemas();
+  const loadCredentialSchema = useCredentialSchemaLoader();
   const { status: tokensStatus, tokens } = useApiTokens();
   const { status: codesStatus, backupCodes } = useBackupCodes();
   const credentialSaves = useCredentialSaves(credentials);
@@ -59,6 +61,7 @@ export default function UserSettingsPageQuery({ route }: { route: PageRoute }) {
             if (email !== me!.email) throw new Error("This email doesn't match your current email");
             await account.deleteAccount();
           }}
+          onLoadCredentialSchema={loadCredentialSchema}
           onSaveCredential={credentialSaves.save}
           onDeleteCredential={credentialSaves.remove}
           onTransferCredential={credentialSaves.transfer}

@@ -39,7 +39,7 @@ interface Props {
    * so they can be pressed without also opening the row (e.g. Delete).
    */
   actions?: ReactNode;
-  /** Highlights the row, e.g. the currently selected item. */
+  /** Highlights the row, e.g. the currently selected item. Given with `onClick`, the row is a toggle button that says whether it's picked. */
   selected?: boolean;
   /** Renders the title in a monospace font (names like branches or slugs). */
   monoTitle?: boolean;
@@ -63,7 +63,7 @@ export default function ListRow({
   columns,
   trailing,
   actions,
-  selected = false,
+  selected,
   monoTitle = false,
   dashed = false,
 }: Props) {
@@ -122,7 +122,7 @@ export default function ListRow({
       {content}
     </Link>
   ) : onClick ? (
-    <button type="button" onClick={onClick} className={className}>
+    <button type="button" onClick={onClick} aria-pressed={selected} className={className}>
       {content}
     </button>
   ) : (

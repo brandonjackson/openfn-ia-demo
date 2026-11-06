@@ -17,16 +17,18 @@ interface Props {
   /** Overrides the variant's default icon. */
   icon?: LucideIcon;
   children?: ReactNode;
+  /** `alert` for a refusal that appears after something was pressed, so it's read out at once. */
+  role?: "alert" | "status";
 }
 
 /**
  * Highlighted message box: notices, warnings and danger zones.
  */
-export default function Callout({ variant = "info", title, icon, children }: Props) {
+export default function Callout({ variant = "info", title, icon, children, role }: Props) {
   const s = styles[variant];
   const Icon = icon ?? s.Icon;
   return (
-    <div data-ui="callout" data-tone={variant} className={`rounded-lg px-5 py-4 ${s.box}`}>
+    <div data-ui="callout" data-tone={variant} role={role} className={`rounded-lg px-5 py-4 ${s.box}`}>
       <div className="flex items-start gap-3">
         <Icon size={18} className={`flex-shrink-0 mt-0.5 ${s.icon}`} />
         <div className="flex-1 min-w-0">

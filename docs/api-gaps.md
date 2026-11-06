@@ -89,8 +89,10 @@ path in its hook file.
   sends a name and a title only. The picker's one-line description ("District
   Health Information System") comes from the top-level `description` of the
   schema's JSON Schema, which the fake server fills; an adaptor whose schema
-  has none shows no line. Would need a `description` on each list entry, or a
-  promise that schemas carry one.
+  has none shows no line. **Requested** (Brandon, 6 Nov 2026): a
+  `description` on each entry of `GET /api/credential_schemas`. Until it's
+  there the picker leaves the line out and loads a schema only once it's
+  picked.
 - **Credentials: an environment's values that aren't secret**
   (api/credentials.md never sends a body). The edit form shows each
   environment's non-secret fields. Would need `GET

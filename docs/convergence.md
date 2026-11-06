@@ -200,55 +200,37 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
 
 **PRs done: 10 of 10.** The brief's stop point. Pull openfn-3-poc again at PR 10.
 
+## Decided by Brandon (6 Nov 2026)
+
+Each is a PR (or part of one) on the list below **Now**'s items; tick it off
+in Done when it ships.
+
+1. **One loading and error pattern, defined once.** A page draws its frame
+   (header, side menu) at once; each section owns its loading and error
+   state, so a failure in one section stays in it. Write it once (on
+   Projects first), then use it on Admin settings' audit trail, User
+   settings' credential types and Organization settings' X-Road section.
+   Replaces "Loading state" and the three "whole page" items.
+2. **Credential types load when picked.** Load only the schema list for the
+   picker; fetch a type's schema once it's picked. Drop the picker's
+   description line for now, and ask for `description` on
+   `GET /api/credential_schemas` (docs/api-gaps.md).
+3. **The audit trail answers "what happened to this thing?"** Item type
+   (and a search on the item) lead; the event filter is secondary. Keep its
+   fixed list; don't ask api/ for the event names.
+4. **No submit button disabled to say a form isn't ready.** Keep it enabled
+   and, on submit, say what's missing under the field (WCAG: a disabled
+   button can't be focused and doesn't say why). A button stays disabled
+   only while its action is running. Written down in CLAUDE.md for every
+   form; Create project first, then the rest.
+5. **"Last seen" ages with the data.** Accepted; nothing to do.
+6. **Design-system tidy-ups, all yes:** `Modal` traps focus and returns it;
+   Create project on `Modal` with "Create project" in sentence case;
+   Projects search on `SearchInput`; the Projects list at 16px (`Stack
+   gap="md"`); quiet text at `muted` (gray-500).
+
 ## Waiting on Brandon
 
 Changes that would alter how a screen looks or what it says. Not made; each
-says what and why.
-
-- **Create project dialog** (`CreateProjectFlow`): rebuild it on the `Modal`
-  primitive with an `IconButton` close. Today it isn't announced as a
-  dialog, Escape doesn't close it, and focus can leave it (accessibility
-  review). Its frame, header and close button would change to Modal's. Its
-  title reads "Create Project"; sentence case would be "Create project".
-- **Modal focus**: `Modal` itself doesn't trap focus or return it to the
-  opener on close. Fixing it there fixes every dialog; no visual change, but
-  it touches every modal, so worth a look first.
-- **Projects page search**: use `SearchInput` (adds the magnifier) in place
-  of a plain search box with a fixed width.
-- **Projects page spacing**: the list's 12px gap (`space-y-3`) has no step
-  in `Stack` (8px or 16px). Either add a step or move to 16px.
-- **Quiet text contrast**: the project count and "No description" use
-  gray-400, about 2.5:1 on white, below WCAG AA. `muted` (gray-500) would
-  pass for the count.
-- **Create project's disabled button**: "Create project" is disabled until a
-  name is typed, with nothing saying why. Keeping it enabled and saying
-  "Enter a project name" on submit would be clearer.
-- **Loading state** (decide before page 2): openfn-3's pattern 5 draws a page's header while its
-  data loads, with the spinner or error in the content's place. Here
-  `Loaded` replaces the whole page. Moving to the openfn-3 way changes what
-  shows while loading.
-- **Audit trail's own loading and error state** (React and architecture
-  reviews, PR 7): the trail's status is combined into the whole page's, so
-  a failed audit request replaces every Admin settings tab with the error,
-  and nothing marks the old rows while the next page loads. Giving
-  `AuditTrail` its own status (a spinner or callout in the table's place,
-  dimmed rows while pending) would fix both; it changes what shows.
-- **Audit trail's event filter**: it now offers every event Lightning
-  records (33 names, from a fixed list) rather than only those already in
-  the trail, so some choices find nothing. If that's too long, group the
-  names by item type, or ask for the list in api/audit-events.md.
-- **Credential types loaded with the whole page** (React and architecture
-  reviews, PR 8): User settings waits for the schema list and every schema
-  before drawing any section, so a slow or refused schema (Lightning answers
-  503 `not_ready` while it loads adaptors) blanks Profile and API tokens
-  too; against a real instance that's one request per adaptor. The fix is
-  to load only the list for the picker and fetch a schema when it's picked,
-  but that means the picker loses its description line (api-gaps) and the
-  form needs a loading state of its own.
-- **Organization settings' X-Road section** (reviews, PR 9): the X-Road
-  identity's status is combined into the whole page's, so if it fails to
-  load, Members, Visibility, Context and Billing show the error too. Scoping
-  it to the X-Road section would change what shows. And a Security Server's
-  "Last seen" is now a seeded timestamp, so it ages with the demo's data
-  ("2 minutes ago" becomes "3 hours ago" later on) instead of always reading
-  the fixture's words, as every other seeded time already does.
+says what and why. Nothing waiting: every item was decided on 6 Nov 2026
+(above).

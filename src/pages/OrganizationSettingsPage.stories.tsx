@@ -12,7 +12,15 @@ const section = (id: string, label: string): IANode => ({ id, label, pageType: "
 const meta: Meta<typeof OrganizationSettingsPage> = {
   title: "Pages/OrganizationSettingsPage",
   component: OrganizationSettingsPage,
-  args: { onRequestContextAccess: async () => {}, onRemoveContextLayer: async () => {} },
+  args: {
+    onRequestContextAccess: async () => {},
+    onRemoveContextLayer: async () => {},
+    onInviteMember: async () => {},
+    onChangeMemberRole: async () => {},
+    onRemoveMember: async () => {},
+    onSaveVisibility: async () => {},
+    onSaveSecurityServerManager: async () => {},
+  },
   decorators: [withRouter],
   parameters: { layout: "padded" },
 };
@@ -24,9 +32,33 @@ export const Members: Story = {
   args: { node: section("members", "Members"), ancestors, currentPath: "/organization-settings/members", data: organizationSettingsData },
 };
 
+/** A member who can't manage the organisation reads who's in it, with no invite or row actions. */
+export const MembersReadOnly: Story = {
+  args: {
+    ...Members.args,
+    onInviteMember: undefined,
+    onChangeMemberRole: undefined,
+    onRemoveMember: undefined,
+  },
+};
+
+/** Someone invited by email who hasn't joined yet. */
+export const MembersWithInvitation: Story = {
+  args: {
+    ...Members.args,
+    data: {
+      ...organizationSettingsData,
+      members: [...organizationSettingsData.members, { id: "m-5", name: "new.person@example.org", email: "new.person@example.org", role: "Member", lastActive: "Invited" }],
+    },
+  },
+};
+
 export const Visibility: Story = {
   args: { node: section("visibility", "Visibility"), ancestors, currentPath: "/organization-settings/visibility", data: organizationSettingsData },
 };
+
+/** Without the right to change them, the defaults show but can't be picked or saved. */
+export const VisibilityReadOnly: Story = { args: { ...Visibility.args, onSaveVisibility: undefined } };
 
 export const Context: Story = {
   args: { node: section("context", "Context"), ancestors, currentPath: "/organization-settings/context", data: organizationSettingsData },

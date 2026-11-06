@@ -1304,3 +1304,12 @@ export type PageData =
   | OrganizationSettingsPageData
   | AdminSettingsPageData
   | HandbookPageData;
+
+/** A role in the organisation, from most to least it can do. */
+export const organizationRoles: OrganizationMember["role"][] = ["Owner", "Admin", "Member"];
+
+/** Someone to invite to the organisation. */
+export interface OrganizationInvite {
+  email: string;
+  role: OrganizationMember["role"];
+}

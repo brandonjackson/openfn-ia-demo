@@ -4,10 +4,13 @@ import type { PageProps } from "../model/ia-tree";
 import type {
   BillingDetails,
   ContextLayer,
+  OrganizationInvite,
   OrganizationMember,
   OrganizationSettingsPageData,
   VisibilityScope,
 } from "../model/page-data";
+import { organizationRoles } from "../model/page-data";
+import { errorMessageOf, fieldErrorOf } from "../model/form-error";
 import type { OrgXRoadSettings, SecurityServer, SecurityServerManager, XRoadCertificate, XRoadSubsystem } from "../model/xroad";
 import { memberClassLabels, securityServerManagerLabels } from "../model/xroad";
 import { clientIdOf } from "../model/xroad";
@@ -27,6 +30,9 @@ import FormField from "../components/primitives/FormField";
 import PropertyList from "../components/primitives/PropertyList";
 import StatTile from "../components/primitives/StatTile";
 import { RadioOption, TextInput } from "../components/primitives/FormControls";
+import ActionMenu from "../components/primitives/ActionMenu";
+import ConfirmModal from "../components/primitives/ConfirmModal";
+import InviteOrgMemberModal from "../components/domain/InviteOrgMemberModal";
 
 const BASE_PATH = "/organization-settings";
 
@@ -44,7 +50,37 @@ const navItems: SettingsNavItem[] = [
 
 const roleTones = { Owner: "indigo", Admin: "green", Member: "gray" } as const;
 
-function MembersSection({ members, name }: { members: OrganizationMember[]; name: string }) {
+interface MemberActions {
+  /** The roles you may give: an admin can't make or unmake an owner. Left out with the actions when you can't manage members. */
+  assignableRoles?: OrganizationMember["role"][];
+  /** Invites someone by email with a role. */
+  onInviteMember?: (invite: OrganizationInvite) => Promise<void>;
+  /** Gives a member another role. The organisation always keeps an owner. */
+  onChangeMemberRole?: (memberId: string, role: OrganizationMember["role"]) => Promise<void>;
+  /** Removes a member, or withdraws an invitation. */
+  onRemoveMember?: (memberId: string) => Promise<void>;
+}
+
+function MembersSection({ members, name, assignableRoles = [], onInviteMember, onChangeMemberRole, onRemoveMember }: { members: OrganizationMember[]; name: string } & MemberActions) {
+  const [inviting, setInviting] = useState(false);
+  const [removing, setRemoving] = useState<OrganizationMember>();
+  // A change the server refused, such as taking away the last owner.
+  const [error, setError] = useState<unknown>(null);
+  const attempt = async (work: () => Promise<void>) => {
+    setError(null);
+    try {
+      await work();
+    } catch (refused) {
+      setError(refused);
+    }
+  };
+  const actionsFor = (m: OrganizationMember) => {
+    // Only someone who can give Owner can change an owner.
+    if (m.role === "Owner" && !assignableRoles.includes("Owner")) return [];
+    const roles = onChangeMemberRole ? assignableRoles.filter((r) => r !== m.role).map((r) => ({ id: `role:${r}`, label: `Make ${r.toLowerCase()}` })) : [];
+    const remove = onRemoveMember ? [{ id: "remove", label: m.lastActive === "Invited" ? "Withdraw invitation" : "Remove from organisation", tone: "danger" as const, divider: roles.length > 0 }] : [];
+    return [...roles, ...remove];
+  };
   const columns: DataTableColumn<OrganizationMember>[] = [
     {
       key: "name",
@@ -57,7 +93,29 @@ function MembersSection({ members, name }: { members: OrganizationMember[]; name
       ),
     },
     { key: "role", header: "Role", render: (m) => <Badge label={m.role} tone={roleTones[m.role]} /> },
-    { key: "last-active", header: "Last active", render: (m) => m.lastActive },
+    { key: "last-active", header: "Last active", render: (m) => (m.lastActive === "Invited" ? <Badge label="Invited" tone="yellow" /> : m.lastActive) },
+    ...(onChangeMemberRole || onRemoveMember
+      ? [
+          {
+            key: "actions",
+            header: "",
+            align: "right" as const,
+            render: (m: OrganizationMember) => {
+              const items = actionsFor(m);
+              return items.length > 0 ? (
+                <ActionMenu
+                  label={`Actions for ${m.name}`}
+                  items={items}
+                  onSelect={(id) => {
+                    if (id === "remove") setRemoving(m);
+                    else void attempt(() => onChangeMemberRole!(m.id, id.slice(5) as OrganizationMember["role"]));
+                  }}
+                />
+              ) : null;
+            },
+          },
+        ]
+      : []),
   ];
   return (
     <div className="space-y-6">
@@ -65,12 +123,36 @@ function MembersSection({ members, name }: { members: OrganizationMember[]; name
         title="Members"
         description={`Everyone in the ${name}, and what they're allowed to do.`}
         action={
-          <Button size="sm" icon={UserPlus}>
-            Invite member
-          </Button>
+          onInviteMember && (
+            <Button size="sm" icon={UserPlus} onClick={() => setInviting(true)}>
+              Invite member
+            </Button>
+          )
         }
       />
+      {error !== null && (
+        <Callout variant="danger" title="That didn't change">
+          {errorMessageOf(error)}
+        </Callout>
+      )}
       <DataTable columns={columns} rows={members} getRowKey={(m) => m.id} />
+      {inviting && onInviteMember && <InviteOrgMemberModal roles={assignableRoles} onInvite={onInviteMember} onClose={() => setInviting(false)} />}
+      <ConfirmModal
+        open={!!removing}
+        title={removing?.lastActive === "Invited" ? "Withdraw invitation" : `Remove ${removing?.name ?? ""}`}
+        confirmLabel={removing?.lastActive === "Invited" ? "Withdraw" : "Remove"}
+        tone="danger"
+        onClose={() => setRemoving(undefined)}
+        onConfirm={() => {
+          const m = removing!;
+          setRemoving(undefined);
+          void attempt(() => onRemoveMember!(m.id));
+        }}
+      >
+        {removing?.lastActive === "Invited"
+          ? `${removing.email} won't be able to join with this invitation.`
+          : `${removing?.name ?? ""} loses access to the organisation's settings. Their projects keep them as members until they're removed there.`}
+      </ConfirmModal>
     </div>
   );
 }
@@ -91,19 +173,47 @@ const visibilityKinds = [
   { id: "services", title: "Services", thing: "services", description: "Who can find a published service in the catalogue and call it." },
 ] as const;
 
-function VisibilitySection({ initial }: { initial: OrganizationSettingsPageData["visibility"] }) {
+type Visibility = OrganizationSettingsPageData["visibility"];
+
+/** Saves something and says how it went: the state behind each section's Save button. */
+function useSave<T>(save: ((value: T) => Promise<void>) | undefined) {
+  const [state, setState] = useState<{ saving?: boolean; saved?: boolean; error?: unknown }>({});
+  const run = async (value: T) => {
+    if (!save) return;
+    setState({ saving: true });
+    try {
+      await save(value);
+      setState({ saved: true });
+    } catch (error) {
+      setState({ error });
+    }
+  };
+  return { ...state, run };
+}
+
+function VisibilitySection({ initial, onSave }: { initial: Visibility; onSave?: (visibility: Visibility) => Promise<void> }) {
   const [visibility, setVisibility] = useState(initial);
+  const save = useSave(onSave);
+  const changed = visibilityKinds.some((k) => visibility[k.id] !== initial[k.id]);
   return (
     <div className="space-y-6">
       <SectionHeading
         title="Visibility"
         description="The defaults for anything new. Each project, system and service can still change its own."
         action={
-          <Button size="sm" icon={Save}>
-            Save
-          </Button>
+          onSave && (
+            <Button size="sm" icon={Save} disabled={!changed || save.saving} onClick={() => void save.run(visibility)}>
+              Save
+            </Button>
+          )
         }
       />
+      {save.error !== undefined && (
+        <Callout variant="danger" title="The defaults weren't saved">
+          {errorMessageOf(save.error)}
+        </Callout>
+      )}
+      {save.saved && !changed && <Callout variant="success" title="Saved">New projects, systems and services start with these defaults.</Callout>}
       {visibilityKinds.filter((kind) => initial[kind.id]).map((kind) => (
         <Card key={kind.id} title={kind.title} description={kind.description}>
           <div className="space-y-3" role="radiogroup" aria-label={`${kind.title} visible to`}>
@@ -114,6 +224,7 @@ function VisibilitySection({ initial }: { initial: OrganizationSettingsPageData[
                 label={scope.label}
                 hint={scope.hint(kind.thing)}
                 checked={visibility[kind.id] === scope.id}
+                disabled={!onSave}
                 onChange={() => setVisibility({ ...visibility, [kind.id]: scope.id })}
               />
             ))}
@@ -129,10 +240,10 @@ function VisibilitySection({ initial }: { initial: OrganizationSettingsPageData[
 /* ------------------------------------------------------------------ */
 
 interface ContextActions {
-  /** Asks for access to a source of context, by its URL; it waits for approval. */
-  onRequestContextAccess: (url: string) => Promise<void>;
+  /** Asks for access to a source of context, by its URL; it waits for approval. Left out when you can't change the organisation. */
+  onRequestContextAccess?: (url: string) => Promise<void>;
   /** Disconnects a source of context, or cancels a request for one. */
-  onRemoveContextLayer: (id: string) => Promise<void>;
+  onRemoveContextLayer?: (id: string) => Promise<void>;
 }
 
 function ContextSection({
@@ -141,12 +252,18 @@ function ContextSection({
   onRemoveContextLayer,
 }: { layers: ContextLayer[] } & ContextActions) {
   const [url, setUrl] = useState("");
+  const [error, setError] = useState<unknown>(null);
 
   const requestAccess = async () => {
     const trimmed = url.trim();
-    if (!trimmed) return;
-    await onRequestContextAccess(trimmed);
-    setUrl("");
+    if (!trimmed || !onRequestContextAccess) return;
+    setError(null);
+    try {
+      await onRequestContextAccess(trimmed);
+      setUrl("");
+    } catch (refused) {
+      setError(refused);
+    }
   };
 
   const columns: DataTableColumn<ContextLayer>[] = [
@@ -175,16 +292,20 @@ function ContextSection({
       header: "Last fetched",
       render: (l) => l.lastFetched ?? "Not yet fetched",
     },
-    {
-      key: "actions",
-      header: "",
-      align: "right",
-      render: (l) => (
-        <Button variant="secondary" size="xs" icon={Unplug} onClick={() => void onRemoveContextLayer(l.id)}>
-          {l.status === "connected" ? "Disconnect" : "Cancel request"}
-        </Button>
-      ),
-    },
+    ...(onRemoveContextLayer
+      ? [
+          {
+            key: "actions",
+            header: "",
+            align: "right" as const,
+            render: (l: ContextLayer) => (
+              <Button variant="secondary" size="xs" icon={Unplug} onClick={() => void onRemoveContextLayer(l.id)}>
+                {l.status === "connected" ? "Disconnect" : "Cancel request"}
+              </Button>
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -205,6 +326,7 @@ function ContextSection({
         )}
       </div>
 
+      {onRequestContextAccess && (
       <Card
         title="Add a context layer"
         description="Paste the URL of another context layer. Its owners will need to approve the request before it's loaded here."
@@ -217,7 +339,7 @@ function ContextSection({
           }}
         >
           <div className="flex-1">
-            <FormField label="Context layer URL" htmlFor="context-layer-url">
+            <FormField label="Context layer URL" htmlFor="context-layer-url" error={error !== null ? (fieldErrorOf(error, "url") ?? errorMessageOf(error)) : undefined}>
               <TextInput
                 id="context-layer-url"
                 type="url"
@@ -232,6 +354,7 @@ function ContextSection({
           </Button>
         </form>
       </Card>
+      )}
     </div>
   );
 }
@@ -297,19 +420,37 @@ const certificateColumns: DataTableColumn<XRoadCertificate>[] = [
   },
 ];
 
-function XRoadSection({ xroad, xroadUsage }: { xroad: OrgXRoadSettings; xroadUsage: OrganizationSettingsPageData["xroadUsage"] }) {
+function XRoadSection({
+  xroad,
+  xroadUsage,
+  onSave,
+}: {
+  xroad: OrgXRoadSettings;
+  xroadUsage: OrganizationSettingsPageData["xroadUsage"];
+  onSave?: (managedBy: SecurityServerManager) => Promise<void>;
+}) {
   const [managedBy, setManagedBy] = useState<SecurityServerManager>(xroad.managedBy);
+  const save = useSave(onSave);
+  const changed = managedBy !== xroad.managedBy;
   return (
     <div className="space-y-8">
       <SectionHeading
         title="X-Road"
         description="Who your organisation is on X-Road. OpenFn is a subsystem under your organisation, never a member of its own."
         action={
-          <Button size="sm" icon={Save}>
-            Save
-          </Button>
+          onSave && (
+            <Button size="sm" icon={Save} disabled={!changed || save.saving} onClick={() => void save.run(managedBy)}>
+              Save
+            </Button>
+          )
         }
       />
+      {save.error !== undefined && (
+        <Callout variant="danger" title="The X-Road settings weren't saved">
+          {errorMessageOf(save.error)}
+        </Callout>
+      )}
+      {save.saved && !changed && <Callout variant="success" title="Saved">Who manages your Security Server is updated.</Callout>}
 
       <Callout title="Set once, used everywhere">
         {xroadUsage.systems} connected systems and {xroadUsage.services} published service
@@ -362,6 +503,7 @@ function XRoadSection({ xroad, xroadUsage }: { xroad: OrgXRoadSettings; xroadUsa
                 label={securityServerManagerLabels[id].label}
                 hint={securityServerManagerLabels[id].hint}
                 checked={managedBy === id}
+                disabled={!onSave}
                 onChange={() => setManagedBy(id)}
               />
             ))}
@@ -427,7 +569,12 @@ function BillingSection({ billing }: { billing: BillingDetails }) {
 /*  Main template                                                      */
 /* ------------------------------------------------------------------ */
 
-export interface OrganizationSettingsPageProps extends PageProps<OrganizationSettingsPageData>, ContextActions {}
+export interface OrganizationSettingsPageProps extends PageProps<OrganizationSettingsPageData>, ContextActions, MemberActions {
+  /** Saves the defaults for what others can see. Left out when you can't change the organisation. */
+  onSaveVisibility?: (visibility: OrganizationSettingsPageData["visibility"]) => Promise<void>;
+  /** Saves who manages the organisation's Security Server. Left out when you can't change the organisation. */
+  onSaveSecurityServerManager?: (managedBy: SecurityServerManager) => Promise<void>;
+}
 
 /**
  * The organisation's settings, from the account menu: everything it sets
@@ -441,6 +588,12 @@ export default function OrganizationSettingsPage({
   data,
   onRequestContextAccess,
   onRemoveContextLayer,
+  assignableRoles = organizationRoles,
+  onInviteMember,
+  onChangeMemberRole,
+  onRemoveMember,
+  onSaveVisibility,
+  onSaveSecurityServerManager,
 }: OrganizationSettingsPageProps) {
   // Without X-Road there's no X-Road section. The /organization-settings root shows the first section.
   const items = navItems.filter((item) => item.id !== "xroad" || data.xroad);
@@ -453,8 +606,17 @@ export default function OrganizationSettingsPage({
       navItems={items}
       activeId={activeId}
     >
-      {activeId === "members" && <MembersSection members={data.members} name={data.name} />}
-      {activeId === "visibility" && <VisibilitySection initial={data.visibility} />}
+      {activeId === "members" && (
+        <MembersSection
+          members={data.members}
+          name={data.name}
+          assignableRoles={assignableRoles}
+          onInviteMember={onInviteMember}
+          onChangeMemberRole={onChangeMemberRole}
+          onRemoveMember={onRemoveMember}
+        />
+      )}
+      {activeId === "visibility" && <VisibilitySection initial={data.visibility} onSave={onSaveVisibility} />}
       {activeId === "context" && (
         <ContextSection
           layers={data.contextLayers}
@@ -462,7 +624,7 @@ export default function OrganizationSettingsPage({
           onRemoveContextLayer={onRemoveContextLayer}
         />
       )}
-      {activeId === "xroad" && data.xroad && <XRoadSection xroad={data.xroad} xroadUsage={data.xroadUsage} />}
+      {activeId === "xroad" && data.xroad && <XRoadSection xroad={data.xroad} xroadUsage={data.xroadUsage} onSave={onSaveSecurityServerManager} />}
       {activeId === "billing" && <BillingSection billing={data.billing} />}
     </SettingsLayout>
   );

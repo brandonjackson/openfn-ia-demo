@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { FolderPlus } from "lucide-react";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";
+import { focusFirstProblem } from "../primitives/focus-field";
 import FormField from "../primitives/FormField";
 import { TextArea, TextInput } from "../primitives/FormControls";
 import Callout from "../primitives/Callout";
@@ -67,7 +68,7 @@ function CreateProjectModal({
     if (saving) return;
     if (!slug) {
       setMissingName(true);
-      document.getElementById(`${id}-name`)?.focus();
+      focusFirstProblem([[`${id}-name`, true]]);
       return;
     }
     setSaving(true);
@@ -78,8 +79,7 @@ function CreateProjectModal({
       setError(refused);
       setSaving(false);
       // Take the person to the first field the server named.
-      const field = ["name", "env", "description"].find((f) => fieldErrorOf(refused, f));
-      if (field) document.getElementById(`${id}-${field}`)?.focus();
+      focusFirstProblem(["name", "env", "description"].map((f) => [`${id}-${f}`, fieldErrorOf(refused, f)]));
     }
   };
 

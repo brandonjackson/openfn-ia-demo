@@ -165,6 +165,22 @@ describe("UserSettingsPage", () => {
     expect(screen.getByRole("button", { name: "Save credential" })).toBeTruthy();
   });
 
+  it("asks for a type when Configure credential is pressed with none picked", () => {
+    const host = draw("credentials", "Credentials");
+    fireEvent.click(screen.getByRole("button", { name: "New credential" }));
+    fireEvent.click(screen.getByRole("button", { name: "Configure credential" }));
+    expect(screen.getByRole("alert").textContent).toContain("Choose a credential type");
+    expect(document.activeElement).toBe(screen.getByPlaceholderText("Search credential types"));
+    expect(host.calls("onLoadCredentialSchema")).toEqual([]);
+  });
+
+  it("says what's missing and focuses it when a password change is sent empty", () => {
+    const host = draw("profile", "Profile");
+    fireEvent.click(screen.getByRole("button", { name: "Update password" }));
+    expect(document.activeElement).toBe(screen.getByLabelText(/^New password/));
+    expect(host.calls("onChangePassword")).toEqual([]);
+  });
+
   it("shows a new token once, when it's been made", async () => {
     const host = draw("api-tokens", "API tokens");
     fireEvent.click(screen.getByRole("button", { name: "Generate new token" }));

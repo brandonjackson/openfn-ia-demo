@@ -67,7 +67,7 @@ describe("OrganizationSettingsPage", () => {
     const host = draw();
     invite("new.person@example.org");
     expect(host.calls("onInviteMember")).toEqual([[{ email: "new.person@example.org", role: "Member" }]]);
-    expect((screen.getByRole("button", { name: "Send invitation" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByRole("button", { name: "Sending…" }).getAttribute("aria-disabled")).toBe("true");
     await host.resolve("onInviteMember");
     expect(screen.queryByRole("button", { name: "Send invitation" })).toBeNull();
   });
@@ -78,6 +78,15 @@ describe("OrganizationSettingsPage", () => {
     await host.reject("onInviteMember", new FormError("The invitation could not be sent.", { email: ["is already in the organisation"] }));
     expect(screen.getByText(/is already in the organisation/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Send invitation" })).toBeTruthy();
+  });
+
+  it("says what's missing under the email when an invitation is sent without one, and sends nothing", () => {
+    const host = draw();
+    fireEvent.click(screen.getByRole("button", { name: "Invite member" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send invitation" }));
+    expect(screen.getByText("Enter an email address")).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByLabelText(/^Email/));
+    expect(host.calls("onInviteMember")).toEqual([]);
   });
 
   it("reads only, with no invite button, when it's given no actions", () => {
@@ -97,7 +106,7 @@ describe("OrganizationSettingsPage", () => {
     fireEvent.click(screen.getByLabelText(/^National operator/));
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(host.calls("onSaveSecurityServerManager")).toEqual([["national-operator"]]);
-    expect((screen.getByRole("button", { name: "Save" }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByRole("button", { name: "Save" }).getAttribute("aria-disabled")).toBe("true");
     await host.reject("onSaveSecurityServerManager", new Error("You are not allowed to do that."));
     expect(screen.getByText("The X-Road settings weren't saved")).toBeTruthy();
     expect(screen.getByText("You are not allowed to do that.")).toBeTruthy();

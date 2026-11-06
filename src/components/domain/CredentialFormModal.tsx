@@ -5,6 +5,7 @@ import { errorMessageOf } from "../../model/form-error";
 import { ENVIRONMENTS, credentialDraftErrors, environmentLabels, hasCredentialErrors, type Environment } from "../../model/credentials";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";
+import { focusFirstProblem } from "../primitives/focus-field";
 import Callout from "../primitives/Callout";
 import Checkbox from "../primitives/Checkbox";
 import DropdownMenu from "../primitives/DropdownMenu";
@@ -160,7 +161,12 @@ export default function CredentialFormModal({ open, credential, schemas, project
   }, [startSchema]);
 
   const pickSchema = async () => {
-    if (load.state === "loading" || !pickedId) return;
+    if (load.state === "loading") return;
+    if (!pickedId) {
+      setLoad({ state: "error", message: "Choose a credential type" });
+      focusFirstProblem([["credential-type-search", true]]);
+      return;
+    }
     setLoad({ state: "loading" });
     try {
       const loaded = await onLoadSchema(pickedId);
@@ -232,8 +238,8 @@ export default function CredentialFormModal({ open, credential, schemas, project
             <Button key="cancel" variant="secondary" onClick={onClose}>
               Cancel
             </Button>
-            {/* Busy rather than disabled while the type's fields load, so it keeps focus and "Loading…" is read out. */}
-            <Button key="configure" disabled={!pickedId} aria-disabled={loading} onClick={pickSchema}>
+            {/* Never disabled: pressed with no type, it says to choose one; busy while the type's fields load. */}
+            <Button key="configure" aria-disabled={loading} onClick={pickSchema}>
               {loading ? "Loading…" : "Configure credential"}
             </Button>
           </>
@@ -241,7 +247,7 @@ export default function CredentialFormModal({ open, credential, schemas, project
       >
         <Stack gap="md">
           {load.state === "error" && <Callout variant="danger" role="alert" title={load.message} />}
-          <SearchInput compact placeholder="Search credential types" value={query} onChange={(e) => setQuery(e.target.value)} />
+          <SearchInput id="credential-type-search" compact placeholder="Search credential types" value={query} onChange={(e) => setQuery(e.target.value)} />
           {matches.length > 0 ? (
             <Grid columns={2} gap="sm">
               {matches.map((s) => (

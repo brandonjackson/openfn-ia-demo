@@ -11,6 +11,7 @@ import type { SettingsNavItem } from "../../components/primitives/SettingsNav";
 import SectionHeading from "../../components/primitives/SectionHeading";
 import Card from "../../components/primitives/Card";
 import Button from "../../components/primitives/Button";
+import { focusFirstProblem } from "../../components/primitives/focus-field";
 import Badge from "../../components/primitives/Badge";
 import Callout from "../../components/primitives/Callout";
 import CopyValue from "../../components/primitives/CopyValue";
@@ -170,7 +171,7 @@ type Visibility = OrganizationSettingsPageData["visibility"];
 function useSave<T>(save: ((value: T) => Promise<void>) | undefined) {
   const [state, setState] = useState<{ saving?: boolean; saved?: boolean; error?: unknown }>({});
   const run = async (value: T) => {
-    if (!save) return;
+    if (!save || state.saving) return;
     setState({ saving: true });
     try {
       await save(value);
@@ -193,7 +194,7 @@ function VisibilitySection({ initial, onSave }: { initial: Visibility; onSave?: 
         description="The defaults for anything new. Each project, system and service can still change its own."
         action={
           onSave && (
-            <Button size="sm" icon={Save} disabled={!changed || save.saving} onClick={() => void save.run(visibility)}>
+            <Button size="sm" icon={Save} disabled={!changed} aria-disabled={save.saving} onClick={() => void save.run(visibility)}>
               Save
             </Button>
           )
@@ -244,16 +245,24 @@ function ContextSection({
 }: { layers: ContextLayer[] } & ContextActions) {
   const [url, setUrl] = useState("");
   const [error, setError] = useState<unknown>(null);
+  // Set when Request access is pressed with no URL; the field says so until one is typed.
+  const [missing, setMissing] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const requestAccess = async () => {
     const trimmed = url.trim();
-    if (!trimmed || !onRequestContextAccess) return;
+    if (!onRequestContextAccess || sending) return;
+    setMissing(!trimmed);
+    if (focusFirstProblem([["context-layer-url", !trimmed]])) return;
     setError(null);
+    setSending(true);
     try {
       await onRequestContextAccess(trimmed);
       setUrl("");
     } catch (refused) {
       setError(refused);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -330,7 +339,7 @@ function ContextSection({
           }}
         >
           <div className="flex-1">
-            <FormField label="Context layer URL" htmlFor="context-layer-url" error={error !== null ? (fieldErrorOf(error, "url") ?? errorMessageOf(error)) : undefined}>
+            <FormField label="Context layer URL" htmlFor="context-layer-url" error={missing && !url.trim() ? "Enter a context layer URL" : error !== null ? (fieldErrorOf(error, "url") ?? errorMessageOf(error)) : undefined}>
               <TextInput
                 id="context-layer-url"
                 type="url"
@@ -340,8 +349,9 @@ function ContextSection({
               />
             </FormField>
           </div>
-          <Button type="submit" icon={Plus} disabled={!url.trim()}>
-            Request access
+          {/* Enabled until it sends: pressed with no URL, it says so under the field. */}
+          <Button type="submit" icon={Plus} aria-disabled={sending}>
+            {sending ? "Requesting…" : "Request access"}
           </Button>
         </form>
       </Card>
@@ -430,7 +440,7 @@ function XRoadSection({
         description="Who your organisation is on X-Road. OpenFn is a subsystem under your organisation, never a member of its own."
         action={
           onSave && (
-            <Button size="sm" icon={Save} disabled={!changed || save.saving} onClick={() => void save.run(managedBy)}>
+            <Button size="sm" icon={Save} disabled={!changed} aria-disabled={save.saving} onClick={() => void save.run(managedBy)}>
               Save
             </Button>
           )

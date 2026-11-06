@@ -3,6 +3,7 @@ import { errorMessageOf, fieldErrorOf } from "../../model/form-error";
 import type { AdminUser, AdminUserDraft, InstanceRole } from "../../model/users";
 import { fullName, instanceRoleLabels } from "../../model/admin";
 import Button from "../primitives/Button";
+import { focusFirstProblem } from "../primitives/focus-field";
 import Callout from "../primitives/Callout";
 import Checkbox from "../primitives/Checkbox";
 import FormField from "../primitives/FormField";
@@ -41,12 +42,22 @@ export default function UserFormModal({ user, onSave, onClose }: Props) {
   const [saving, setSaving] = useState(false);
   // A save the server refused: shown above the form, which stays open.
   const [error, setError] = useState<unknown>(null);
+  // Set when Save is pressed; from then on each field says what it's missing.
+  const [attempted, setAttempted] = useState(false);
   const set = (patch: Partial<AdminUserDraft>) => setDraft((d) => ({ ...d, ...patch }));
 
-  const complete =
-    draft.firstName.trim() && draft.lastName.trim() && /\S+@\S+\.\S+/.test(draft.email) && (user || draft.password);
+  const problems = {
+    first: draft.firstName.trim() ? undefined : "Enter a first name",
+    last: draft.lastName.trim() ? undefined : "Enter a last name",
+    email: !draft.email.trim() ? "Enter an email address" : /\S+@\S+\.\S+/.test(draft.email) ? undefined : "Enter a valid email address",
+    password: user || draft.password ? undefined : "Enter a password",
+  };
+  const shown: Partial<typeof problems> = attempted ? problems : {};
 
   const save = async () => {
+    if (saving) return;
+    setAttempted(true);
+    if (focusFirstProblem((["first", "last", "email", "password"] as const).map((k) => [`${id}-${k}`, problems[k]]))) return;
     setSaving(true);
     setError(null);
     try {
@@ -69,8 +80,9 @@ export default function UserFormModal({ user, onSave, onClose }: Props) {
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={save} disabled={!complete || saving} title={complete ? undefined : "All fields are required"}>
-            {user ? "Save" : "Create user"}
+          {/* Enabled until it saves: pressed with a field missing, it says what under the field. */}
+          <Button onClick={save} aria-disabled={saving}>
+            {saving ? "Saving…" : user ? "Save" : "Create user"}
           </Button>
         </>
       }
@@ -81,13 +93,13 @@ export default function UserFormModal({ user, onSave, onClose }: Props) {
             {saveErrorOf(error)}
           </Callout>
         )}
-        <FormField label="First name" htmlFor={`${id}-first`}>
+        <FormField label="First name" htmlFor={`${id}-first`} error={shown.first}>
           <TextInput id={`${id}-first`} value={draft.firstName} onChange={(e) => set({ firstName: e.target.value })} />
         </FormField>
-        <FormField label="Last name" htmlFor={`${id}-last`}>
+        <FormField label="Last name" htmlFor={`${id}-last`} error={shown.last}>
           <TextInput id={`${id}-last`} value={draft.lastName} onChange={(e) => set({ lastName: e.target.value })} />
         </FormField>
-        <FormField label="Email" htmlFor={`${id}-email`}>
+        <FormField label="Email" htmlFor={`${id}-email`} error={shown.email}>
           <TextInput
             id={`${id}-email`}
             type="email"
@@ -96,7 +108,7 @@ export default function UserFormModal({ user, onSave, onClose }: Props) {
           />
         </FormField>
         {!user && (
-          <FormField label="Password" htmlFor={`${id}-password`} hint="They can change it once they've logged in.">
+          <FormField label="Password" htmlFor={`${id}-password`} hint="They can change it once they've logged in." error={shown.password}>
             <TextInput
               id={`${id}-password`}
               type="password"

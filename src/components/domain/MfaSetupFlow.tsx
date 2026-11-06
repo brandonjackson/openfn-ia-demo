@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { isTotpCode, type MfaSetup } from "../../model/account";
 import Button from "../primitives/Button";
+import { focusFirstProblem } from "../primitives/focus-field";
 import CopyValue from "../primitives/CopyValue";
 import FormField from "../primitives/FormField";
 import { TextInput } from "../primitives/FormControls";
@@ -30,8 +31,10 @@ export default function MfaSetupFlow({ setup, onVerify, onCancel }: Props) {
   const [busy, setBusy] = useState(false);
 
   const verify = async () => {
+    if (busy) return;
     if (!isTotpCode(code)) {
       setError("Enter the 6-digit code from your app");
+      focusFirstProblem([["mfa-code", true]]);
       return;
     }
     setBusy(true);
@@ -87,7 +90,7 @@ export default function MfaSetupFlow({ setup, onVerify, onCancel }: Props) {
         <Button variant="secondary" onClick={onCancel}>
           Cancel
         </Button>
-        <Button disabled={busy} onClick={verify}>
+        <Button aria-disabled={busy} onClick={verify}>
           {busy ? "Verifying…" : "Verify and turn on"}
         </Button>
       </Inline>

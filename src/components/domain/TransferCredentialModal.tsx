@@ -3,6 +3,7 @@ import type { UserCredential } from "../../model/credentials";
 import { emailError } from "../../model/credentials";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";
+import { focusFirstProblem } from "../primitives/focus-field";
 import FormField from "../primitives/FormField";
 import { TextInput } from "../primitives/FormControls";
 import Stack from "../primitives/Stack";
@@ -37,6 +38,7 @@ export default function TransferCredentialModal({ open, credential, onTransfer, 
   const formatError = touched ? emailError(email) : undefined;
 
   const run = async (action: () => Promise<void>) => {
+    if (busy) return;
     setBusy(true);
     setServerError(undefined);
     try {
@@ -60,7 +62,7 @@ export default function TransferCredentialModal({ open, credential, onTransfer, 
             <Button variant="secondary" onClick={onClose}>
               Cancel
             </Button>
-            <Button disabled={busy} onClick={() => run(onRevoke)}>
+            <Button aria-disabled={busy} onClick={() => run(onRevoke)}>
               {busy ? "Revoking…" : "Revoke"}
             </Button>
           </>
@@ -89,11 +91,12 @@ export default function TransferCredentialModal({ open, credential, onTransfer, 
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
+          {/* Enabled until it's sent: pressed with a bad email, it says why under the field. */}
           <Button
-            disabled={busy || Boolean(emailError(email))}
+            aria-disabled={busy}
             onClick={() => {
               setTouched(true);
-              if (!emailError(email)) void run(() => onTransfer(email.trim()));
+              if (!focusFirstProblem([["transfer-email", emailError(email)]])) void run(() => onTransfer(email.trim()));
             }}
           >
             {busy ? "Transferring…" : "Transfer"}

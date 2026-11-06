@@ -4,6 +4,7 @@ import { isUrl, parseScopes } from "../../model/credentials";
 import Modal from "../primitives/Modal";
 import Badge from "../primitives/Badge";
 import Button from "../primitives/Button";
+import { focusFirstProblem } from "../primitives/focus-field";
 import Callout from "../primitives/Callout";
 import Checkbox from "../primitives/Checkbox";
 import FormField from "../primitives/FormField";
@@ -89,9 +90,12 @@ export default function OAuthClientModal({ open, client, projects, canMakeGlobal
   const shown = attempted ? errors : {};
 
   const save = async () => {
+    if (saving) return;
     setAttempted(true);
     setServerError(undefined);
-    if (Object.keys(errors).length > 0) return;
+    const fieldIds = ["name", ...endpoints.map((e) => e.key), "clientId", "clientSecret", "docsUrl"];
+    const ids: Record<string, string> = { name: "oauth-name", clientId: "oauth-client-id", clientSecret: "oauth-client-secret", docsUrl: "oauth-docs" };
+    if (focusFirstProblem(fieldIds.map((k) => [ids[k] ?? `oauth-${k}`, errors[k]]))) return;
     const opt = (v: string) => v.trim() || undefined;
     setSaving(true);
     try {
@@ -129,7 +133,8 @@ export default function OAuthClientModal({ open, client, projects, canMakeGlobal
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button disabled={saving} onClick={save}>
+          {/* Busy rather than disabled while it saves, so it keeps focus and "Saving…" is read out. */}
+          <Button aria-disabled={saving} onClick={save}>
             {saving ? "Saving…" : client ? "Save changes" : "Add OAuth client"}
           </Button>
         </>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CONTACT_PREFERENCES, type ContactPreference, type ProfileDetails } from "../../model/account";
 import Button from "../primitives/Button";
+import { focusFirstProblem } from "../primitives/focus-field";
 import Card from "../primitives/Card";
 import FormField from "../primitives/FormField";
 import { Select, TextInput } from "../primitives/FormControls";
@@ -33,9 +34,10 @@ export default function ProfileDetailsForm({ details, onSave }: Props) {
     firstName: draft.firstName.trim() ? undefined : "can't be blank",
     lastName: draft.lastName.trim() ? undefined : "can't be blank",
   };
-  const valid = !errors.firstName && !errors.lastName;
 
   const save = async () => {
+    if (busy) return;
+    if (focusFirstProblem([["first-name", errors.firstName], ["last-name", errors.lastName]])) return;
     setBusy(true);
     setStatus(undefined);
     try {
@@ -83,7 +85,8 @@ export default function ProfileDetailsForm({ details, onSave }: Props) {
         </FormField>
         <Inline justify="end" gap="md">
           {status && <Text tone={status.tone}>{status.message}</Text>}
-          <Button disabled={busy || !changed || !valid} onClick={save}>
+          {/* Off only while there's nothing to save; busy rather than disabled while it saves. */}
+          <Button disabled={!changed} aria-disabled={busy} onClick={save}>
             {busy ? "Saving…" : "Save"}
           </Button>
         </Inline>

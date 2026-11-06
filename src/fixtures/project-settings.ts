@@ -200,7 +200,7 @@ export const githubInstallations: GitHubInstallation[] = [
   },
 ];
 
-const githubConnections: Record<string, GitHubSyncState["connection"]> = {
+export const githubConnections: Record<string, GitHubSyncState["connection"]> = {
   "project-a": {
     installationId: "48211907",
     repo: "openfn-dtu/planning-integrations",

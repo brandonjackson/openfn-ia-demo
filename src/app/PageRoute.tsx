@@ -23,7 +23,7 @@ import ServicePageQuery from "../pages/ServicePage.query";
 import ComponentPageQuery from "../pages/ComponentPage.query";
 import StatusPageFixtures from "../pages/StatusPage.fixtures";
 import InsightsPageQuery from "../pages/InsightsPage.query";
-import UserSettingsPageQuery from "../pages/UserSettingsPage.query";
+import UserSettingsPageQuery from "../pages/user-settings/UserSettingsPage.query";
 import OrganizationSettingsPageQuery from "../pages/OrganizationSettingsPage.query";
 import AdminSettingsPageQuery from "../pages/admin-settings/AdminSettingsPage.query";
 import HandbookPageQuery from "../pages/HandbookPage.query";

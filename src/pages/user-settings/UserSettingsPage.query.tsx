@@ -1,20 +1,20 @@
-import type { PageRoute } from "../app/ia-utils";
-import Loaded from "../app/Loaded";
-import { useCredentialSaves, useMyCredentials, useOAuthClients } from "../api/credentials";
-import { useAccountSaves, useApiTokens, useBackupCodes, useMe } from "../api/account";
-import { useProjectList } from "../api/projects";
-import { combine } from "../api/status";
-import { userSettingsData } from "../fixtures/user";
-import { isOpenable } from "../model/projects";
+import type { PageRoute } from "../../app/ia-utils";
+import Loaded from "../../app/Loaded";
+import { useCredentialSaves, useCredentialSchemas, useMyCredentials, useOAuthClients } from "../../api/credentials";
+import { useAccountSaves, useApiTokens, useBackupCodes, useMe } from "../../api/account";
+import { useProjectList } from "../../api/projects";
+import { combine } from "../../api/status";
+import { isOpenable } from "../../model/projects";
 import UserSettingsPage from "./UserSettingsPage";
-import { pageFrame } from "../app/page-frame";
-import { useFlags } from "../app/feature-flags";
+import { pageFrame } from "../../app/page-frame";
+import { useFlags } from "../../app/feature-flags";
 
 /**
  * Feeds User settings from the API: your profile, email, password and
  * account deletion; your credentials (with their environments and the
  * projects they're shared with) and OAuth clients; your API tokens; MFA and
- * its backup codes; and your GitHub link. The demo's session counts as
+ * its backup codes; your GitHub link; and the kinds of credential you can
+ * make, from the credential schemas. The demo's session counts as
  * stepped up, so the current password the forms ask for isn't checked.
  */
 export default function UserSettingsPageQuery({ route }: { route: PageRoute }) {
@@ -24,20 +24,21 @@ export default function UserSettingsPageQuery({ route }: { route: PageRoute }) {
   const projects = allProjects.filter((p) => isOpenable(p) && !p.parentId);
   const { status: credentialsStatus, credentials } = useMyCredentials(projects.map((p) => p.id));
   const { status: clientsStatus, clients: oauthClients } = useOAuthClients();
+  const { status: schemasStatus, schemas: credentialSchemas } = useCredentialSchemas();
   const { status: tokensStatus, tokens } = useApiTokens();
   const { status: codesStatus, backupCodes } = useBackupCodes();
   const credentialSaves = useCredentialSaves(credentials);
   const account = useAccountSaves(me?.id ?? "");
 
   return (
-    <Loaded status={combine(meStatus, projectsStatus, credentialsStatus, clientsStatus, tokensStatus, codesStatus)} path={route.currentPath}>
+    <Loaded status={combine(meStatus, projectsStatus, credentialsStatus, clientsStatus, schemasStatus, tokensStatus, codesStatus)} path={route.currentPath}>
       {() => (
         <UserSettingsPage
           {...pageFrame(route)}
           data={{
-            ...userSettingsData,
             profile: me!,
             credentials,
+            credentialSchemas,
             oauthClients,
             projects: projects.map((p) => ({ id: p.id, name: p.name })),
             apiTokens: tokens,

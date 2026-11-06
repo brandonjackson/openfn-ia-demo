@@ -1,7 +1,5 @@
-import type { UserSettingsPageData } from "../model/page-data";
 import type { ApiToken, BackupCode, MfaSetup, UserProfile } from "../model/account";
 import type { OAuthClient, UserCredential } from "../model/credentials";
-import { credentialSchemas } from "./credential-schemas";
 import { projectOptions } from "./projects";
 
 export const currentUser: UserProfile = {
@@ -134,13 +132,3 @@ export const demoBackupCodes: BackupCode[] = [
   "DEMOX7BFJ",
   "DEMOZ1GHK",
 ].map((code, i) => (i === 3 ? { code, usedAt: "3 Oct 2026" } : { code }));
-
-export const userSettingsData: UserSettingsPageData = {
-  pageType: "user-settings",
-  profile: currentUser,
-  credentials: userCredentials,
-  credentialSchemas,
-  oauthClients: userOAuthClients,
-  projects: projectOptions,
-  apiTokens: userApiTokens,
-};

@@ -5,7 +5,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ProjectCredential } from "../model/adaptor-reference";
-import type { CredentialDraft, OAuthClient, UserCredential, Environment } from "../model/credentials";
+import { rawCredentialSchema, type CredentialDraft, type CredentialField, type CredentialFieldKind, type CredentialSchema, type OAuthClient, type UserCredential, type Environment } from "../model/credentials";
 import { formatDate } from "../model/time";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
@@ -61,12 +61,81 @@ const toOAuthClient = (o: ApiOAuthClient): OAuthClient => ({
   projectIds: o.project_ids,
 });
 
+/** A credential schema as GET /api/credential_schemas/:name sends it. `raw` has no `schema`. */
+interface ApiCredentialSchema {
+  name: string;
+  title: string;
+  schema?: {
+    description?: string;
+    properties?: Record<string, ApiSchemaProperty>;
+    required?: string[];
+  };
+}
+
+/** One property of an adaptor's configuration schema (JSON Schema). */
+interface ApiSchemaProperty {
+  type?: string;
+  title?: string;
+  description?: string;
+  format?: string;
+  writeOnly?: boolean;
+  examples?: unknown[];
+  default?: unknown;
+}
+
+function fieldKind(p: ApiSchemaProperty): CredentialFieldKind {
+  if (p.writeOnly) return "secret";
+  if (p.format === "uri") return "url";
+  if (p.type === "number" || p.type === "integer") return "number";
+  if (p.type === "boolean") return "boolean";
+  if (p.type === "object" || p.type === "array") return "json";
+  return "text";
+}
+
+/** A schema's fields in the order its properties come, under the short name the forms use (`dhis2`). */
+function toCredentialSchema({ name, title, schema }: ApiCredentialSchema): CredentialSchema {
+  if (!schema) return { ...rawCredentialSchema, name: title };
+  const required = new Set(schema.required ?? []);
+  const fields: CredentialField[] = Object.entries(schema.properties ?? {}).map(([key, p]) => ({
+    key,
+    label: p.title ?? key,
+    kind: fieldKind(p),
+    ...(p.description && { description: p.description }),
+    ...(p.examples?.[0] !== undefined && { placeholder: String(p.examples[0]) }),
+    ...(required.has(key) && { required: true }),
+    ...(p.default !== undefined && { defaultValue: String(p.default) }),
+  }));
+  const id = name.replace(/^@openfn\/language-/, "");
+  return { id, name: title, adaptor: id, description: schema.description ?? "", fields };
+}
+
 export const credentialKeys = {
   all: ["credentials"] as const,
   mine: ["credentials", "mine"] as const,
   inProject: (projectId: string) => ["credentials", "project", projectId] as const,
   oauthClients: ["oauth_clients"] as const,
+  schemas: ["credential_schemas"] as const,
 };
+
+/**
+ * Every kind of credential you can make, in the API's order, each with the
+ * fields its schema asks for: the list, then each schema by name.
+ */
+export function useCredentialSchemas(): { status: LoadStatus; schemas: CredentialSchema[] } {
+  const query = useQuery({
+    queryKey: credentialKeys.schemas,
+    queryFn: async () => {
+      const { data } = await request<{ data: { name: string }[] }>("GET", "/api/credential_schemas");
+      return Promise.all(
+        data.map(async ({ name }) => (await request<{ data: ApiCredentialSchema }>("GET", `/api/credential_schemas/${encodeURIComponent(name)}`)).data),
+      );
+    },
+    select: (rows) => rows.map(toCredentialSchema),
+    // Schemas change only when adaptors do.
+    staleTime: Infinity,
+  });
+  return { status: statusOf(query), schemas: query.data ?? [] };
+}
 
 /**
  * Your credentials, each with its environments and their values that

@@ -1,8 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import UserSettingsPage from "./UserSettingsPage";
-import { withRouter } from "../stories/decorators";
-import type { IANode } from "../model/ia-tree";
-import { demoBackupCodes, demoMfaSetup, userSettingsData } from "../fixtures/user";
+import UserSettingsPage, { type UserSettingsPageData } from "./UserSettingsPage";
+import { withRouter } from "../../stories/decorators";
+import type { IANode } from "../../model/ia-tree";
+import { credentialSchemas } from "../../fixtures/credential-schemas";
+import { projectOptions } from "../../fixtures/projects";
+import { currentUser, demoBackupCodes, demoMfaSetup, userApiTokens, userCredentials, userOAuthClients } from "../../fixtures/user";
+
+const userSettingsData: UserSettingsPageData = {
+  profile: currentUser,
+  credentials: userCredentials,
+  credentialSchemas,
+  oauthClients: userOAuthClients,
+  projects: projectOptions,
+  apiTokens: userApiTokens,
+};
 
 const root: IANode = { id: "user-settings", label: "User settings", pageType: "user-settings" };
 const ancestors = [{ node: root, path: "/user-settings" }];

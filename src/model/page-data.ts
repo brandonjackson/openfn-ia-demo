@@ -1,7 +1,6 @@
 import type { ProjectCollection } from "./collections";
 import type { ProjectSummary } from "./projects";
-import type { UserProfile, BackupCode, ApiToken } from "./account";
-import type { CredentialSchema, UserCredential, OAuthClient, ProjectOption, Environment } from "./credentials";
+import type { Environment } from "./credentials";
 import type { ProjectServiceItem, ServiceApiSpec } from "./services";
 import type { ConnectedSystemSummary, SuggestedSystem, ConnectedSystem, ConnectionMethod } from "./connected-systems";
 import type { CollectionContents, ComponentContent } from "./project-components";
@@ -686,28 +685,6 @@ export interface ProjectSettingsPageData {
 }
 
 /* ------------------------------------------------------------------ */
-/*  User settings                                                      */
-/* ------------------------------------------------------------------ */
-
-export interface UserSettingsPageData {
-  pageType: "user-settings";
-  profile: UserProfile;
-  credentials: UserCredential[];
-  /** Every kind of credential you can make, in the type picker's order. */
-  credentialSchemas: CredentialSchema[];
-  oauthClients: OAuthClient[];
-  /** Projects you're a member of, which you can share credentials and OAuth clients with. */
-  projects: ProjectOption[];
-  apiTokens: ApiToken[];
-  /** Your backup codes, while multi-factor authentication is on. */
-  backupCodes?: BackupCode[];
-  /** Whether you may make an OAuth client every project can use (superusers only). */
-  canCreateGlobalOAuthClients?: boolean;
-  /** Whether organization credentials live on connected systems, which the Credentials section points to. Defaults to true. */
-  orgCredentialsOnSystems?: boolean;
-}
-
-/* ------------------------------------------------------------------ */
 /*  Organization settings                                              */
 /* ------------------------------------------------------------------ */
 
@@ -819,7 +796,6 @@ export type PageData =
   | ProjectSettingsPageData
   | ServicePageData
   | ChannelPageData
-  | UserSettingsPageData
   | OrganizationSettingsPageData
   | HandbookPageData;
 

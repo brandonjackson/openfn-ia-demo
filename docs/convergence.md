@@ -109,10 +109,10 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    `model/credentials.ts`; your account's (`UserProfile`, `MfaSetup`,
    `BackupCode`, `ApiToken`, contact preferences) and the password and TOTP
    rules move to a new `model/account.ts`, named as in `api/account.md`. No
-   runtime change. Counts: page-data.ts 1199 → 1054 lines; files importing
+   runtime change. Counts: page-data.ts 1200 → 1054 lines; files importing
    it 127 → 113.
 
-**PRs done: 4 of 10.** Next PR (5) starts by pulling openfn-3-poc. Pull openfn-3-poc again at PR 5.
+**PRs done: 4 of 10.** Next PR (5) starts by pulling openfn-3-poc.
 
 ## Waiting on Brandon
 

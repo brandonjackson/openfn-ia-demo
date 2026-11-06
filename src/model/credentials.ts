@@ -1,9 +1,8 @@
 /*
- * The rules a credential, an OAuth client or an account form checks before
- * it's sent, written as pure functions over the values typed. They mirror
- * Lightning's changesets, so the form says what the server would say; the
- * server still has the last word (an email already taken, a code that's
- * wrong), and its answer comes back as a rejected promise.
+ * Credentials and OAuth clients as api/credentials.md has them, and the rules
+ * their forms check before they're sent: pure functions over the values
+ * typed, mirroring Lightning's changesets. The server still has the last
+ * word, and its answer comes back as a rejected promise.
  */
 
 /** What each environment is called in a form. */

@@ -1,6 +1,8 @@
 /**
  * You, as /api/me and its routes have it (api/account.md): your profile, your
- * multi-factor authentication and your API tokens.
+ * multi-factor authentication and your API tokens, and the rules their forms
+ * check before they're sent. They mirror Lightning's changesets; the server
+ * still has the last word (an email already taken, a code that's wrong).
  */
 
 /** How often OpenFn may get in touch about your account. */
@@ -53,7 +55,6 @@ export interface ApiToken {
 
 /** Shortest and longest password Lightning accepts. */
 export const PASSWORD_MIN = 12;
-
 export const PASSWORD_MAX = 72;
 
 /** What's wrong with a new password and its confirmation, field by field. */

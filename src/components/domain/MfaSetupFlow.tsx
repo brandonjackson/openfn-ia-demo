@@ -1,6 +1,5 @@
 import { useState } from "react";
-import type { MfaSetup } from "../../model/account";
-import { isTotpCode } from "../../model/account";
+import { isTotpCode, type MfaSetup } from "../../model/account";
 import Button from "../primitives/Button";
 import CopyValue from "../primitives/CopyValue";
 import FormField from "../primitives/FormField";

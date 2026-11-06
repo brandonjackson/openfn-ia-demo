@@ -1,6 +1,5 @@
 import { useState } from "react";
-import type { ContactPreference, ProfileDetails } from "../../model/account";
-import { CONTACT_PREFERENCES } from "../../model/account";
+import { CONTACT_PREFERENCES, type ContactPreference, type ProfileDetails } from "../../model/account";
 import Button from "../primitives/Button";
 import Card from "../primitives/Card";
 import FormField from "../primitives/FormField";

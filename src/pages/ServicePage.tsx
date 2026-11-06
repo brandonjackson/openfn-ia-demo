@@ -27,10 +27,10 @@ export interface ServicePageProps extends PageProps<ServicePageData> {
   onOpenProject: () => void;
   /** Opens the workflow behind the service. */
   onOpenWorkflow: (workflowId: string) => void;
-  /** Lets AI agents call the service as a tool on the organization's MCP server. */
-  onEnableMcp: () => Promise<void>;
-  /** Publishes the service to X-Road, once its checklist is done. */
-  onPublishToXRoad: () => Promise<void>;
+  /** Lets AI agents call the service as a tool on the organization's MCP server. Left out when you can't change the service. */
+  onEnableMcp?: () => Promise<void>;
+  /** Publishes the service to X-Road, once its checklist is done. Left out when you can't change the service. */
+  onPublishToXRoad?: () => Promise<void>;
 }
 
 const fieldColumns: DataTableColumn<ServiceApiField>[] = [
@@ -203,9 +203,11 @@ export default function ServicePage({
               {mcpEnabled ? (
                 <CodeBlock label="Tool definition" code={mcpToolSnippet(service, api)} />
               ) : (
-                <Button variant="outline-primary" size="sm" icon={Bot} onClick={() => void onEnableMcp()}>
-                  Enable MCP
-                </Button>
+                onEnableMcp && (
+                  <Button variant="outline-primary" size="sm" icon={Bot} onClick={() => void onEnableMcp()}>
+                    Enable MCP
+                  </Button>
+                )
               )}
             </UsageModeCard>
             {xroadOrg && (
@@ -232,9 +234,11 @@ export default function ServicePage({
                     </Button>
                   </div>
                 ) : (
-                  <Button size="sm" icon={Network} onClick={() => setPublishOpen(true)}>
-                    Publish to X-Road
-                  </Button>
+                  onPublishToXRoad && (
+                    <Button size="sm" icon={Network} onClick={() => setPublishOpen(true)}>
+                      Publish to X-Road
+                    </Button>
+                  )
                 )}
               </UsageModeCard>
             )}
@@ -278,7 +282,7 @@ export default function ServicePage({
           onClose={() => setPublishOpen(false)}
           onPublished={() => {
             setPublishOpen(false);
-            void onPublishToXRoad();
+            void onPublishToXRoad?.();
           }}
           serviceName={service.name}
           serviceCode={serviceCode}

@@ -49,6 +49,9 @@ type Story = StoryObj<typeof ServicePage>;
 /** A live webhook service: endpoint, request fields and examples. */
 export const Webhook: Story = { args: storyArgs(projects[0], 0) };
 
+/** Someone who can't change the service reads it, without Enable MCP or Publish to X-Road. */
+export const ReadOnly: Story = { args: { ...storyArgs(projects[0], 0), onEnableMcp: undefined, onPublishToXRoad: undefined } };
+
 /** A scheduled service has no request, only what it produces. */
 export const Scheduled: Story = { args: storyArgs(projects[2], 0) };
 

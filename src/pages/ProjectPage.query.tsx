@@ -4,11 +4,12 @@ import Loaded from "../app/Loaded";
 import { useFlags } from "../app/feature-flags";
 import { useProject } from "../api/projects";
 import { useProjectWorkflows } from "../api/workflows";
+import { useProjectServices } from "../api/services";
 import { combine } from "../api/status";
 import type { WorkflowDocument } from "../model/workflow-document";
 import type { ProjectDetails } from "../model/projects";
 import type { FeatureFlags } from "../model/feature-flags";
-import type { ProjectPageData } from "../model/page-data";
+import type { ProjectPageData, ProjectServiceItem } from "../model/page-data";
 import { fixtureProject } from "../fixtures/projects";
 import { projectWorkOrders } from "../fixtures/history";
 import { buildProjectOverviewTiles } from "../fixtures/insights";
@@ -20,11 +21,11 @@ import { useProjectChannels } from "./channel-records.query";
 import type { ProjectComponent } from "../model/projects";
 
 /**
- * A project's Overview: the project from the API, and its Insights tiles,
- * workflows, services and components from its fixture until those move to
- * the API (a project made on the API has none yet).
+ * A project's Overview: the project, its workflows, channels and services
+ * from the API, and its Insights tiles and other components from its fixture
+ * until those move to the API (a project made on the API has none yet).
  */
-function projectPageData(details: ProjectDetails, workflows: WorkflowDocument[], channels: ProjectComponent[], flags: FeatureFlags): ProjectPageData {
+function projectPageData(details: ProjectDetails, workflows: WorkflowDocument[], channels: ProjectComponent[], services: ProjectServiceItem[], flags: FeatureFlags): ProjectPageData {
   const project = asProject(details);
   const slug = fixtureProject(details.id)?.id ?? details.id;
   const tiles = buildProjectOverviewTiles(slug, projectWorkOrders(project).length).map((t) => ({
@@ -36,7 +37,7 @@ function projectPageData(details: ProjectDetails, workflows: WorkflowDocument[],
     projectId: details.id,
     tiles,
     workflows: workflows.map((w) => asListItem(w, flags.serviceCatalog)).sort((a, b) => (b.lastRunAt ?? "").localeCompare(a.lastRunAt ?? "")),
-    services: flags.serviceCatalog ? project.services : undefined,
+    services: flags.serviceCatalog ? services : undefined,
     // Its workflows and channels from the API; other kinds of component from its fixture until they move too.
     components: flags.components
       ? componentsFor(
@@ -58,12 +59,13 @@ export default function ProjectPageQuery({ route }: { route: PageRoute }) {
   const { status, project } = useProject(route.params["project"]);
   const { status: workflowsStatus, workflows } = useProjectWorkflows(route.params["project"]);
   const { status: channelsStatus, channels } = useProjectChannels(route.params["project"]);
+  const { status: servicesStatus, services } = useProjectServices(route.params["project"]);
   return (
-    <Loaded status={combine(status, workflowsStatus, channelsStatus)} path={route.currentPath}>
+    <Loaded status={combine(status, workflowsStatus, channelsStatus, servicesStatus)} path={route.currentPath}>
       {() => (
         <ProjectPage
           {...pageFrame(route, { label: project!.name, description: project!.description }, project!.name)}
-          data={projectPageData(project!, workflows, channels.map((c) => c.component), flags)}
+          data={projectPageData(project!, workflows, channels.map((c) => c.component), services, flags)}
           onNewWorkflow={() => navigate(`/workflow-editor/new?project=${fixtureProject(project!.id)?.id ?? project!.id}`)}
         />
       )}

@@ -47,3 +47,28 @@ export interface ConnectedSystem {
 export function connectionOf(system: ConnectedSystem): SystemConnection {
   return system.connection ?? { method: "direct" };
 }
+
+/** A system's row on the Systems list: how it's reached, whether you have access, and its production address. */
+export function systemListItem(s: ConnectedSystem): import("./page-data").ListItem {
+  const url = s.environments.production.url;
+  const connection = connectionOf(s);
+  return {
+    id: s.id,
+    name: s.name,
+    description: s.description,
+    metadata: {
+      credentialType: s.credentialType,
+      access: s.hasAccess ? "yes" : "no",
+      adaptor: s.adaptor,
+      connection: connection.method,
+      ...(connection.method === "xroad" ? { xroadStatus: connection.status } : {}),
+      ...(url ? { url } : {}),
+    },
+    linkTo: s.linkTo,
+  };
+}
+
+/** A system as the Overview summarises it. */
+export function systemSummary(s: ConnectedSystem): import("./page-data").ConnectedSystemSummary {
+  return { id: s.id, name: s.name, credentialType: s.credentialType, hasAccess: s.hasAccess, color: s.color, adaptor: s.adaptor };
+}

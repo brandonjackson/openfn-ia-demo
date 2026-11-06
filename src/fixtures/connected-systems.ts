@@ -3,7 +3,7 @@ import { KeyRound, Sparkles, Zap } from "lucide-react";
 import type { ListItem, ConnectedSystemSummary, AccessGrant, Environment, OrgCredential, SystemEnvironment, FeatureIntroData, SuggestedSystem } from "../model/page-data";
 import type { XRoadRoute } from "../model/xroad";
 import { routeUrl } from "./xroad";
-import { connectionOf } from "../model/connected-systems";
+import { systemListItem, systemSummary } from "../model/connected-systems";
 import type { ConnectedSystem } from "../model/connected-systems";
 function xroadEnvironments(route: XRoadRoute): Record<Environment, SystemEnvironment> {
   return {
@@ -276,34 +276,10 @@ export const orgCredentials: OrgCredential[] = [
 ];
 
 /** ListItem shape for the list template */
-export const connectedSystemListItems: ListItem[] = connectedSystems.map((s) => {
-  const url = s.environments.production.url;
-  const connection = connectionOf(s);
-  return {
-    id: s.id,
-    name: s.name,
-    description: s.description,
-    metadata: {
-      credentialType: s.credentialType,
-      access: s.hasAccess ? "yes" : "no",
-      adaptor: s.adaptor,
-      connection: connection.method,
-      ...(connection.method === "xroad" ? { xroadStatus: connection.status } : {}),
-      ...(url ? { url } : {}),
-    },
-    linkTo: s.linkTo,
-  };
-});
+export const connectedSystemListItems: ListItem[] = connectedSystems.map(systemListItem);
 
 /** Dashboard summary shape */
-export const connectedSystemSummaries: ConnectedSystemSummary[] = connectedSystems.map((s) => ({
-  id: s.id,
-  name: s.name,
-  credentialType: s.credentialType,
-  hasAccess: s.hasAccess,
-  color: s.color,
-  adaptor: s.adaptor,
-}));
+export const connectedSystemSummaries: ConnectedSystemSummary[] = connectedSystems.map(systemSummary);
 
 /** Systems we suggest connecting next, shown on the Overview. */
 export const recommendedSystems: SuggestedSystem[] = [

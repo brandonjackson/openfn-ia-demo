@@ -13,7 +13,7 @@ import PageHeader from "../components/patterns/PageHeader";
 import Breadcrumbs from "../components/domain/Breadcrumbs";
 import SegmentedControl from "../components/primitives/SegmentedControl";
 import SuggestedSystemsToAdd from "../components/domain/SuggestedSystemsToAdd";
-import AddConnectedSystemFlow from "../components/domain/AddConnectedSystemFlow";
+import AddConnectedSystemFlow, { type NewSystemInput } from "../components/domain/AddConnectedSystemFlow";
 import ConnectionMethodBadge from "../components/domain/ConnectionMethodBadge";
 import SectionHeading from "../components/primitives/SectionHeading";
 import XRoadAccessBadge from "../components/domain/XRoadAccessBadge";
@@ -24,6 +24,8 @@ import type { XRoadConnectionStatus, XRoadRoute } from "../model/xroad";
 export interface SystemsPageProps extends PageProps<ListPageData> {
   /** Adds a service from the X-Road directory to your systems, with its route filled in. */
   onAddXRoadService: (route: XRoadRoute) => Promise<void>;
+  /** Adds a system from the "Add connected system" form. Without it the form only pretends. */
+  onAddSystem?: (system: NewSystemInput) => Promise<void>;
 }
 
 function ListItemRow({ item, basePath }: { item: ListItem; basePath: string }) {
@@ -57,7 +59,7 @@ function ListItemRow({ item, basePath }: { item: ListItem; basePath: string }) {
   );
 }
 
-export default function SystemsPage({ node, ancestors, currentPath, data, onAddXRoadService }: SystemsPageProps) {
+export default function SystemsPage({ node, ancestors, currentPath, data, onAddXRoadService, onAddSystem }: SystemsPageProps) {
   const firstFilter = data.filters[0];
   const [selected, setSelected] = useState(firstFilter?.options[0] ?? "All");
   const [addFlowOpen, setAddFlowOpen] = useState(false);
@@ -166,6 +168,7 @@ export default function SystemsPage({ node, ancestors, currentPath, data, onAddX
         onClose={() => setAddFlowOpen(false)}
         adaptors={data.adaptors}
         preselectedSystem={preselectedSystem}
+        onAdd={onAddSystem}
       />
     </div>
   );

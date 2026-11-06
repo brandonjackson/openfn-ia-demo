@@ -1,3 +1,5 @@
+import { firstProblemOf } from "../../model/form-error";
+import Text from "../primitives/Text";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { X, ChevronRight, Check } from "lucide-react";
 import { type Adaptor } from "../../model/adaptors";
@@ -19,6 +21,21 @@ interface Props {
   adaptors: Adaptor[];
   /** Pre-select a system by name (e.g. from "Suggested to add") */
   preselectedSystem?: string;
+  /**
+   * Adds the system. The form waits for it, and shows why if it's refused.
+   * Left out, adding just shows the success state (for stories).
+   */
+  onAdd?: (system: NewSystemInput) => Promise<void>;
+}
+
+/** What the form asks for when adding a system. */
+export interface NewSystemInput {
+  name: string;
+  description: string;
+  /** The adaptor it's connected with, by id. */
+  adaptor: string;
+  endpointUrl: string;
+  docsUrl: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -125,16 +142,32 @@ function ConfigForm({
   adaptor,
   onBack,
   onClose,
+  onAdd,
 }: {
   adaptor: Adaptor;
   onBack: () => void;
   onClose: () => void;
+  onAdd?: Props["onAdd"];
 }) {
   const [name, setName] = useState(adaptor.name);
   const [description, setDescription] = useState("");
   const [endpointUrl, setEndpointUrl] = useState("");
   const [docsUrl, setDocsUrl] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+  const add = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      await onAdd?.({ name: name.trim(), description: description.trim(), adaptor: adaptor.id, endpointUrl: endpointUrl.trim(), docsUrl: docsUrl.trim() });
+      setSubmitted(true);
+    } catch (refused) {
+      setError(refused);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   if (submitted) {
     return (
@@ -217,10 +250,13 @@ function ConfigForm({
 
         {/* Submit */}
         <div className="flex items-center justify-end gap-3 pt-2">
+          {error !== null && <Text tone="danger">{firstProblemOf(error)}</Text>}
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={() => setSubmitted(true)}>Add connected system</Button>
+          <Button onClick={() => void add()} disabled={saving || !name.trim()}>
+            {saving ? "Adding…" : "Add connected system"}
+          </Button>
         </div>
       </div>
     </div>
@@ -236,6 +272,7 @@ export default function AddConnectedSystemFlow({
   onClose,
   adaptors,
   preselectedSystem,
+  onAdd,
 }: Props) {
   const findPreselected = () =>
     preselectedSystem
@@ -292,6 +329,7 @@ export default function AddConnectedSystemFlow({
             adaptor={selectedAdaptor}
             onBack={() => setSelectedAdaptor(null)}
             onClose={handleClose}
+            onAdd={onAdd}
           />
         ) : (
           <AdaptorSearchList adaptors={adaptors} onSelect={setSelectedAdaptor} />

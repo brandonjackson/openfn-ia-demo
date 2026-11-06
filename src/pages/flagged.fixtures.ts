@@ -17,9 +17,9 @@ export function isXRoadSystem(system: ConnectedSystem): boolean {
 }
 
 /** The organisation's connected systems: none without the flag, and none reached over X-Road without X-Road. */
-export function systemsFor(flags: FeatureFlags): ConnectedSystem[] {
+export function systemsFor(flags: FeatureFlags, systems: ConnectedSystem[] = connectedSystems): ConnectedSystem[] {
   if (!flags.connectedSystems) return [];
-  return flags.xroad ? connectedSystems : connectedSystems.filter((s) => !isXRoadSystem(s));
+  return flags.xroad ? systems : systems.filter((s) => !isXRoadSystem(s));
 }
 
 /** A project's summary without its service counts when there's no service catalog. */

@@ -1,4 +1,7 @@
-import { BookOpen, FolderOpen, Globe, KeyRound, Lock, Network, ShieldX, User, Users } from "lucide-react";
+import { useState } from "react";
+import { BookOpen, FolderOpen, Globe, KeyRound, Lock, Network, ShieldX, Trash2, User, Users } from "lucide-react";
+import ConfirmModal from "../components/primitives/ConfirmModal";
+import Text from "../components/primitives/Text";
 import type { PageProps } from "../model/ia-tree";
 import type { AccessGrant, DetailPageData, DetailSectionItem } from "../model/page-data";
 import AdaptorLogo from "../components/domain/AdaptorLogo";
@@ -23,11 +26,15 @@ import { connectionOf } from "../model/connected-systems";
 export interface SystemPageProps extends PageProps<DetailPageData> {
   /** Starts a new workflow in a project, triggered by one of the system's event channels. */
   onStartWorkflow: (projectId: string, channelId: string) => void;
+  /** Takes away one person's or project's access to the system. Without it, there's no Revoke. */
+  onRevokeGrant?: (grantId: string) => Promise<void>;
+  /** Removes the system from the organisation, with everyone's access to it. Without it, there's no Delete. */
+  onDeleteSystem?: () => Promise<void>;
 }
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
-const grantColumns: DataTableColumn<AccessGrant>[] = [
+const grantColumns = (onRevoke?: (grant: AccessGrant) => void): DataTableColumn<AccessGrant>[] => [
   {
     key: "grantedTo",
     header: "Granted to",
@@ -52,11 +59,12 @@ const grantColumns: DataTableColumn<AccessGrant>[] = [
     key: "actions",
     header: "",
     align: "right",
-    render: () => (
-      <Button variant="outline-danger" size="xs" icon={ShieldX}>
-        Revoke
-      </Button>
-    ),
+    render: (g) =>
+      onRevoke && (
+        <Button variant="outline-danger" size="xs" icon={ShieldX} onClick={() => onRevoke(g)}>
+          Revoke
+        </Button>
+      ),
   },
 ];
 
@@ -94,8 +102,10 @@ function ChannelSection({
   );
 }
 
-export default function SystemPage({ node, ancestors, data, onStartWorkflow }: SystemPageProps) {
+export default function SystemPage({ node, ancestors, data, onStartWorkflow, onRevokeGrant, onDeleteSystem }: SystemPageProps) {
   const { system } = data;
+  const [revoking, setRevoking] = useState<AccessGrant | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const connection = system ? connectionOf(system) : undefined;
   const xroad = connection?.method === "xroad" ? connection : undefined;
   const productionUrl = system?.environments.production.url;
@@ -164,6 +174,13 @@ export default function SystemPage({ node, ancestors, data, onStartWorkflow }: S
             </>
           }
           description={system?.description ?? node.description}
+          actions={
+            onDeleteSystem && (
+              <Button variant="outline-danger" size="sm" icon={Trash2} onClick={() => setDeleting(true)}>
+                Delete system
+              </Button>
+            )
+          }
         />
         {properties.length > 0 && (
           <div className="mt-6">
@@ -189,7 +206,7 @@ export default function SystemPage({ node, ancestors, data, onStartWorkflow }: S
       {data.accessGrants && data.accessGrants.length > 0 && (
         <section>
           <SectionHeading title="Access" description={plural(data.accessGrants.length, "grant")} />
-          <DataTable columns={grantColumns} rows={data.accessGrants} getRowKey={(g) => g.id} />
+          <DataTable columns={grantColumns(onRevokeGrant && setRevoking)} rows={data.accessGrants} getRowKey={(g) => g.id} />
         </section>
       )}
 
@@ -202,6 +219,38 @@ export default function SystemPage({ node, ancestors, data, onStartWorkflow }: S
           onStartWorkflow={onStartWorkflow}
         />
       ))}
+      <ConfirmModal
+        open={!!revoking}
+        title="Revoke access"
+        confirmLabel="Revoke"
+        onClose={() => setRevoking(null)}
+        onConfirm={async () => {
+          if (revoking) await onRevokeGrant?.(revoking.id);
+          setRevoking(null);
+        }}
+      >
+        <Text block>
+          {revoking?.grantedTo} will no longer reach {node.label}
+          {revoking?.scope && revoking.scope !== "All Resources" ? ` (${revoking.scope})` : ""}.
+        </Text>
+      </ConfirmModal>
+      <ConfirmModal
+        open={deleting}
+        title="Delete system"
+        confirmLabel="Delete system"
+        confirmPhrase={node.label}
+        confirmPhraseLabel="Type the system's name to confirm"
+        onClose={() => setDeleting(false)}
+        onConfirm={async () => {
+          await onDeleteSystem?.();
+          setDeleting(false);
+        }}
+      >
+        <Text block>
+          {node.label} is removed from the organisation, with everyone's access to it. Workflows that use it keep their
+          steps, but lose the system they talk to.
+        </Text>
+      </ConfirmModal>
     </div>
   );
 }

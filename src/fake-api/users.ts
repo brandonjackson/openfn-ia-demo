@@ -26,6 +26,12 @@ export interface UserRow {
   has_activity_in_projects: boolean;
   last_login_at: string | null;
   mfa_enabled: boolean;
+  /** Planned, set by the person: which emails they get. */
+  contact_preference: "critical" | "any";
+  /** A new address waiting for its confirmation link. */
+  pending_email: string | null;
+  /** Whether they've linked a GitHub account. */
+  github_connected: boolean;
   inserted_at: string;
 }
 
@@ -45,7 +51,10 @@ export const users = table<UserRow>("users", () =>
     has_activity_in_projects: u.hasActivity,
     last_login_at: u.lastLogin ? seedTime(u.lastLogin) : null,
     mfa_enabled: u.email === currentUser.email ? currentUser.mfaEnabled : false,
-    inserted_at: seedTime("1 Mar 2024"),
+    contact_preference: u.email === currentUser.email && currentUser.contactPreference === "Anytime" ? "any" : "critical",
+    pending_email: null,
+    github_connected: u.email === currentUser.email ? currentUser.githubConnected : false,
+    inserted_at: u.email === currentUser.email ? seedTime(currentUser.createdAt) : seedTime("1 Mar 2024"),
   })),
 );
 

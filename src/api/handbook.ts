@@ -3,7 +3,7 @@
  * (`/api/demo/handbook`; Lightning's API has no handbook).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { HandbookFile, HandbookFileKind } from "../model/page-data";
+import type { HandbookFile, HandbookFileKind, WikiSection } from "../model/page-data";
 import { timeAgo } from "../model/time";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
@@ -17,12 +17,34 @@ const keys = { handbook: ["handbook"] as const, files: ["handbook", "files"] as 
 
 const formatSize = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`);
 
-/** How much the handbook holds, and whether you can change it (anyone in the organisation can). */
-export function useHandbook(): { status: LoadStatus; handbook: { capacityBytes: number; canEdit: boolean } | undefined } {
+/** The handbook: its article, who last edited it, how much it holds, and whether you can change it (anyone in the organisation can). */
+export interface Handbook {
+  sections: WikiSection[];
+  updatedBy: string;
+  updatedAt: string;
+  capacityBytes: number;
+  canEdit: boolean;
+}
+
+interface ApiHandbook {
+  capacity_bytes: number;
+  can_edit: boolean;
+  sections: WikiSection[];
+  updated_by: string;
+  updated_at: string;
+}
+
+export function useHandbook(): { status: LoadStatus; handbook: Handbook | undefined } {
   const query = useQuery({
     queryKey: keys.handbook,
-    queryFn: () => request<{ data: { attributes: { capacity_bytes: number; can_edit: boolean } } }>("GET", "/api/demo/handbook"),
-    select: ({ data: { attributes: a } }) => ({ capacityBytes: a.capacity_bytes, canEdit: a.can_edit }),
+    queryFn: () => request<{ data: { attributes: ApiHandbook } }>("GET", "/api/demo/handbook"),
+    select: ({ data: { attributes: a } }): Handbook => ({
+      sections: a.sections,
+      updatedBy: a.updated_by,
+      updatedAt: timeAgo(a.updated_at),
+      capacityBytes: a.capacity_bytes,
+      canEdit: a.can_edit,
+    }),
   });
   return { status: statusOf(query), handbook: query.data };
 }
@@ -47,7 +69,7 @@ export function useHandbookFiles(): { status: LoadStatus; files: HandbookFile[] 
 }
 
 /**
- * Adding and removing files. Uploading sends each file in turn and stops at
+ * Saving the article, and adding and removing files. Uploading sends each file in turn and stops at
  * the first the server refuses; the ones before it are kept. Each resolves
  * once the list has reloaded.
  */
@@ -64,6 +86,8 @@ export function useHandbookSaves() {
           for (const f of files) await request("POST", "/api/demo/handbook/files", { name: f.name, bytes: f.size });
         })
         .then(() => undefined),
+    /** Replaces the article's sections. Rejects with what the server refused. */
+    saveArticle: (sections: WikiSection[]) => run.mutateAsync(() => request("PUT", "/api/demo/handbook/article", { sections })).then(() => undefined),
     remove: (id: string) => run.mutateAsync(() => request("DELETE", `/api/demo/handbook/files/${id}`)).then(() => undefined),
   };
 }

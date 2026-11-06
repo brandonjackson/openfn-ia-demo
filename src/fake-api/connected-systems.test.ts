@@ -21,6 +21,20 @@ describe("connected systems", () => {
     expect((await list()).some((s) => s.id === id)).toBe(true);
   });
 
+  it("edits a system's details and URLs, keeping what it isn't sent, and refuses a name another has", async () => {
+    const dhis2 = apiSystemId("dhis2");
+    type Env = { url: string; credential: string };
+    const get = () =>
+      request<{ data: { attributes: { name: string; description: string; adaptor: string; environments: Record<string, Env> } } }>("GET", `/api/demo/connected_systems/${dhis2}`).then((r) => r.data.attributes);
+    const before = await get();
+    expect((await refusal(request("PUT", `/api/demo/connected_systems/${dhis2}`, { name: "CommCare" })))?.fieldErrors["name"]).toEqual(["has already been taken"]);
+    const staging = { ...before.environments["staging"]!, url: "https://staging.example.org" };
+    await request("PUT", `/api/demo/connected_systems/${dhis2}`, { name: "DHIS2 national", description: "The HMIS", environments: { ...before.environments, staging } });
+    expect(await get()).toMatchObject({ name: "DHIS2 national", description: "The HMIS", adaptor: before.adaptor, environments: { staging } });
+    const bad = await refusal(request("PUT", `/api/demo/connected_systems/${dhis2}`, { environments: { ...before.environments, mock: { url: "nope", credential: "" } } }));
+    expect(bad?.fieldErrors["environments.mock.url"]).toBeTruthy();
+  });
+
   it("revokes one grant, and deletes a system with all its grants", async () => {
     const dhis2 = apiSystemId("dhis2");
     const grants = () => request<{ data: { id: string }[] }>("GET", `/api/demo/connected_systems/${dhis2}/access_grants`).then((r) => r.data);

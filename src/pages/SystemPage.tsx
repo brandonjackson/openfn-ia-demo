@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { BookOpen, FolderOpen, Globe, KeyRound, Lock, Network, ShieldX, Trash2, User, Users } from "lucide-react";
+import { BookOpen, FolderOpen, Globe, KeyRound, Lock, Network, Pencil, ShieldX, Trash2, User, Users } from "lucide-react";
 import ConfirmModal from "../components/primitives/ConfirmModal";
 import Text from "../components/primitives/Text";
 import type { PageProps } from "../model/ia-tree";
-import type { AccessGrant, DetailPageData, DetailSectionItem } from "../model/page-data";
+import type { AccessGrant, DetailPageData, DetailSectionItem, SystemChanges } from "../model/page-data";
 import AdaptorLogo from "../components/domain/AdaptorLogo";
 import Badge from "../components/primitives/Badge";
 import Button from "../components/primitives/Button";
@@ -18,6 +18,8 @@ import type { Property } from "../components/primitives/PropertyList";
 import SectionHeading from "../components/primitives/SectionHeading";
 import SystemEnvironments from "../components/domain/SystemEnvironments";
 import TextLink from "../components/primitives/TextLink";
+import SystemFormModal from "../components/domain/SystemFormModal";
+import Inline from "../components/primitives/Inline";
 import ConnectionMethodBadge from "../components/domain/ConnectionMethodBadge";
 import XRoadAccessBadge from "../components/domain/XRoadAccessBadge";
 import XRoadConnectionDetails from "../components/domain/XRoadConnectionDetails";
@@ -28,6 +30,8 @@ export interface SystemPageProps extends PageProps<DetailPageData> {
   onStartWorkflow: (projectId: string, channelId: string) => void;
   /** Takes away one person's or project's access to the system. Without it, there's no Revoke. */
   onRevokeGrant?: (grantId: string) => Promise<void>;
+  /** Saves changes to the system's name, description, API docs and environment URLs. Rejects with what the server refused. Without it, there's no Edit. */
+  onSaveSystem?: (changes: SystemChanges) => Promise<void>;
   /** Removes the system from the organisation, with everyone's access to it. Without it, there's no Delete. */
   onDeleteSystem?: () => Promise<void>;
 }
@@ -102,10 +106,11 @@ function ChannelSection({
   );
 }
 
-export default function SystemPage({ node, ancestors, data, onStartWorkflow, onRevokeGrant, onDeleteSystem }: SystemPageProps) {
+export default function SystemPage({ node, ancestors, data, onStartWorkflow, onRevokeGrant, onSaveSystem, onDeleteSystem }: SystemPageProps) {
   const { system } = data;
   const [revoking, setRevoking] = useState<AccessGrant | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [editing, setEditing] = useState(false);
   const connection = system ? connectionOf(system) : undefined;
   const xroad = connection?.method === "xroad" ? connection : undefined;
   const productionUrl = system?.environments.production.url;
@@ -175,10 +180,19 @@ export default function SystemPage({ node, ancestors, data, onStartWorkflow, onR
           }
           description={system?.description ?? node.description}
           actions={
-            onDeleteSystem && (
-              <Button variant="outline-danger" size="sm" icon={Trash2} onClick={() => setDeleting(true)}>
-                Delete system
-              </Button>
+            (onSaveSystem || onDeleteSystem) && (
+              <Inline gap="sm">
+                {onSaveSystem && system && (
+                  <Button variant="secondary" size="sm" icon={Pencil} onClick={() => setEditing(true)}>
+                    Edit
+                  </Button>
+                )}
+                {onDeleteSystem && (
+                  <Button variant="outline-danger" size="sm" icon={Trash2} onClick={() => setDeleting(true)}>
+                    Delete system
+                  </Button>
+                )}
+              </Inline>
             )
           }
         />
@@ -219,6 +233,9 @@ export default function SystemPage({ node, ancestors, data, onStartWorkflow, onR
           onStartWorkflow={onStartWorkflow}
         />
       ))}
+      {system && onSaveSystem && (
+        <SystemFormModal open={editing} onClose={() => setEditing(false)} system={system} direct={!xroad} onSave={onSaveSystem} />
+      )}
       <ConfirmModal
         open={!!revoking}
         title="Revoke access"

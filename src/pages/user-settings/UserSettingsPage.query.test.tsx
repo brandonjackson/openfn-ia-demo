@@ -58,6 +58,15 @@ describe("UserSettingsPageQuery", () => {
     expect(await screen.findByLabelText(/^Host URL/, {}, wait)).toBeTruthy();
   });
 
+  it("fetches a credential's fields as you open it to edit", async () => {
+    const { credentials } = await request<{ credentials: { name: string; schema: string }[] }>("GET", "/api/credentials");
+    const dhis2 = credentials.find((c) => c.schema === "@openfn/language-dhis2")!;
+    renderRoute();
+    fireEvent.click(await screen.findByRole("button", { name: `Actions for ${dhis2.name}` }, wait));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    expect(await screen.findByLabelText(/^Host URL/, {}, wait)).toBeTruthy();
+  });
+
   it("makes a token on the server and shows it once", async () => {
     const before = (await request<{ data: unknown[] }>("GET", "/api/me/tokens")).data.length;
     renderRoute("/user-settings/api-tokens");

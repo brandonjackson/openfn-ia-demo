@@ -13,30 +13,32 @@ and to mark what would change the look.
 
 ## Now
 
-- **Branch:** `claude/openfn-3-poc-convergence-upt3ey` (earlier sessions
-  used `claude/intelligent-newton-2pncy4`). Each PR is shipped (merged once
+- **Branch:** `claude/openfn-convergence-decisions-9bf5gi` (earlier sessions
+  used `claude/openfn-3-poc-convergence-upt3ey` and
+  `claude/intelligent-newton-2pncy4`). Each PR is shipped (merged once
   CI is green) and the branch restarted from `main` before the next: `git
   fetch origin main && git checkout -B <branch> origin/main`.
 - **PR in progress:** none. The brief's 10 PRs are done; the work now is
   Brandon's decisions (6 Nov 2026, "Decided by Brandon" below). Decisions
-  3, 5 and 6 are done, and 4 on Create project. Next, one PR each:
-  1. **Credential types load when picked** (decision 2). Plan: split
-     `CredentialSchema` into a `CredentialSchemaSummary` (`id`, `name`,
-     `adaptor`: what the list sends, enough for `CredentialTable` and the
-     picker) and the full schema. `useCredentialSchemas` loads only the
-     list; the page takes `onLoadCredentialSchema(id): Promise<CredentialSchema>`
-     (the wrapper fetches `GET /api/credential_schemas/:name` through a
-     query-client `fetchQuery`, cached). `CredentialFormModal` calls it on
-     "Configure credential" (busy "Loading…", a refusal in a callout) and,
-     when editing, as it opens. The picker drops its description line and
-     its search matches the name only. Tests: page (pending, success,
-     refusal), wrapper (the schema fetched once picked, not before).
-  2. **Every other submit button enabled** (decision 4): the `disabled={!…}`
-     across `src/components/domain/` and the pages (`grep -rn
-     "disabled={!" src`); each says what's missing under its field on
-     submit and focuses it, and is `aria-disabled` while saving, as Create
-     project does (`CreateProjectFlow.tsx`).
-  3. **The section loading pattern** (decision 1): a page draws its frame at
+  2, 3, 5 and 6 are done, and 4 on Create project. Next, one PR each:
+  1. **Every other submit button enabled** (decision 4), in two PRs: (a)
+     account, credential, admin and organisation forms (`UserFormModal`,
+     `DeleteAccountModal`, `InviteOrgMemberModal`, `TransferCredentialModal`,
+     `CredentialFormModal`'s "Configure credential", `ProjectFormModal`,
+     `AuthProviderForm`, `ProfileDetailsForm`'s validity, Organization
+     settings' context layer URL, and every `disabled={saving|busy}` among
+     them, which becomes `aria-disabled`); (b) project, sandbox, component
+     and editor forms (`InviteCollaboratorsModal`, `AddCollaboratorsModal`,
+     `GitHubSyncForm`, `RunInputModal`, `WebhookAuthMethodModal`,
+     `SystemFormModal`, `ComponentView`, `EditInSandboxModal`,
+     `CollectionNameModal`, `SandboxFormModal`, `AddConnectedSystemFlow`,
+     `PromoteSandboxModal`, Project settings' name). Each says what's
+     missing under its field on submit ("Enter …", as Create project
+     does) and focuses it (`CreateProjectFlow.tsx`). Out of scope, on
+     Waiting on Brandon: Save disabled until something changes, chat send
+     buttons, and actions off for a reason other than the form (bulk
+     retry, merge with nothing to merge, read-only fields).
+  2. **The section loading pattern** (decision 1): a page draws its frame at
      once, each section its own loading and error. Projects first, then
      Admin settings' audit trail, User settings' credential types,
      Organization settings' X-Road.
@@ -229,7 +231,22 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     the search reads "Filter by item or actor". The event filter keeps its
     fixed list. ([#202](https://github.com/brandonjackson/openfn-ia-demo/pull/202))
 
-**PRs done: 12** (10 for the brief, then Brandon's decisions). Pull openfn-3-poc again at PR 10.
+13. **Credential types load when picked** (decision 2). The picker reads
+    only `GET /api/credential_schemas` (`CredentialSchemaSummary`: id, name,
+    adaptor); a type's JSON Schema is fetched when "Configure credential" is
+    pressed, or as a credential opens for editing, through the page's
+    `onLoadCredentialSchema` (`useCredentialSchemaLoader`: a stable
+    `fetchQuery`, kept for the session). The button says "Loading…" and is
+    `aria-disabled` meanwhile; a refusal shows in an alert callout and the
+    picker stays; a type clicked mid-load is ignored. The picker's rows lost
+    their description line and its search matches names only. Also:
+    `Callout` takes `role="alert"`, a `ListRow` with `selected` and
+    `onClick` is a toggle button (`aria-pressed`), the credential form
+    focuses its Name field when it opens on a type, and its Save is
+    `aria-disabled` while saving. Counts: tests 170 → 176; the rest
+    unchanged.
+
+**PRs done: 13** (10 for the brief, then Brandon's decisions). Pull openfn-3-poc again at PR 10.
 
 ## Decided by Brandon (6 Nov 2026)
 
@@ -263,5 +280,16 @@ in Done when it ships.
 ## Waiting on Brandon
 
 Changes that would alter how a screen looks or what it says. Not made; each
-says what and why. Nothing waiting: every item was decided on 6 Nov 2026
-(above).
+says what and why. Everything up to 6 Nov 2026 was decided (above); new:
+
+1. **A credential's fields that won't load when editing** (from PR 13's
+   reviewers). The form shows the server's reason where the fields go, but
+   offers no "Try again", and Save does nothing while the fields load or
+   after they're refused. Would add a "Try again" button in that callout and
+   a line under Save ("The credential's fields haven't loaded").
+2. **Busy buttons look the same as ready ones.** `Button` styles only
+   `disabled`, so an `aria-disabled` button (Create project, the credential
+   form) only changes its label ("Loading…", "Creating…"). Screen readers
+   don't always re-read a focused button whose label changes. Would add a
+   busy look to `Button` (as `disabled:` has) and a visually hidden status
+   line, in the primitive, for every busy button at once.

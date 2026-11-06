@@ -164,7 +164,9 @@ export function useCredentialSchemaLoader(): (id: string) => Promise<CredentialS
         .fetchQuery({
           queryKey: credentialKeys.schema(id),
           queryFn: async () => (await request<{ data: ApiCredentialSchema }>("GET", `/api/credential_schemas/${encodeURIComponent(id)}`)).data,
+          // Kept for the session: nothing watches a fetched query, so it would otherwise be dropped after five minutes.
           staleTime: Infinity,
+          gcTime: Infinity,
         })
         .then(toCredentialSchema),
     [queryClient],

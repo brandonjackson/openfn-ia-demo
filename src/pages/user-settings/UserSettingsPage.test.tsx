@@ -114,6 +114,28 @@ describe("UserSettingsPage", () => {
     expect(screen.queryByLabelText(/^Host URL/)).toBeNull();
   });
 
+  it("keeps the type it's loading when another is clicked mid-load", async () => {
+    const host = draw("credentials", "Credentials");
+    fireEvent.click(screen.getByRole("button", { name: "New credential" }));
+    const picker = within(screen.getByRole("dialog"));
+    fireEvent.click(picker.getByText("DHIS2"));
+    fireEvent.click(screen.getByRole("button", { name: "Configure credential" }));
+    fireEvent.click(picker.getByText("Raw JSON"));
+    expect(picker.getByRole("button", { name: /DHIS2/ }).getAttribute("aria-pressed")).toBe("true");
+    await host.resolve("onLoadCredentialSchema", dhis2);
+    expect(screen.getByRole("dialog", { name: "Create DHIS2 credential" })).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByLabelText(/^Name/));
+  });
+
+  it("says why when a credential's fields can't load for editing", async () => {
+    const host = draw("credentials", "Credentials");
+    fireEvent.click(screen.getByRole("button", { name: "Actions for Ministry DHIS2" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    await host.reject("onLoadCredentialSchema", new Error("Lightning is still loading the adaptors."));
+    expect(screen.getByRole("alert").textContent).toContain("Lightning is still loading the adaptors.");
+    expect(screen.queryByLabelText(/^Host URL/)).toBeNull();
+  });
+
   it("fetches a credential's fields as its form opens for editing", async () => {
     const host = draw("credentials", "Credentials");
     fireEvent.click(screen.getByRole("button", { name: "Actions for Ministry DHIS2" }));

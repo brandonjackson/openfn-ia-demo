@@ -1,20 +1,23 @@
 import { useState } from "react";
 import { Pencil } from "lucide-react";
-import type { PageProps } from "../model/ia-tree";
-import type { HandbookPageData, WikiSection } from "../model/page-data";
-import { firstProblemOf } from "../model/form-error";
-import { fromMarkdown, toMarkdown } from "../model/handbook-markdown";
-import FormField from "../components/primitives/FormField";
-import { TextArea } from "../components/primitives/FormControls";
-import Inline from "../components/primitives/Inline";
-import Stack from "../components/primitives/Stack";
-import Text from "../components/primitives/Text";
-import Callout from "../components/primitives/Callout";
-import PageHeader from "../components/patterns/PageHeader";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import Button from "../components/primitives/Button";
-import FilesPanel from "../components/patterns/FilesPanel";
-import WikiArticle from "../components/patterns/WikiArticle";
+import type { PageProps } from "../../model/ia-tree";
+import type { Handbook, WikiSection } from "../../model/handbook";
+import { firstProblemOf } from "../../model/form-error";
+import { fromMarkdown, toMarkdown } from "../../model/handbook-markdown";
+import FormField from "../../components/primitives/FormField";
+import { TextArea } from "../../components/primitives/FormControls";
+import Inline from "../../components/primitives/Inline";
+import Stack from "../../components/primitives/Stack";
+import Text from "../../components/primitives/Text";
+import Callout from "../../components/primitives/Callout";
+import PageHeader from "../../components/patterns/PageHeader";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import Button from "../../components/primitives/Button";
+import FilesPanel from "../../components/patterns/FilesPanel";
+import WikiArticle from "../../components/patterns/WikiArticle";
+
+/** What the Handbook shows: the handbook, as the API gives it. */
+export type HandbookPageData = Handbook;
 
 export interface HandbookPageProps extends PageProps<HandbookPageData> {
   /** Saves the article's sections. Rejects with what the server refused. Left out when you can't change the handbook, and there's no Edit. */

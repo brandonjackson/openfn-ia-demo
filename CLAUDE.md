@@ -95,7 +95,7 @@ The organisation is on the demo's own routes (`/api/demo/organization`, `src/api
 
 ### Handbook
 
-The handbook's files are on the demo's own routes (`/api/demo/handbook`, `src/api/handbook.ts`). Anyone in the organisation adds or removes one; a file's name is unique, its type is one the handbook takes, and together they fit its capacity, with a refusal shown in `FilesPanel`'s `notice`. The demo keeps a file's name and size, not its contents. The article is on the API too (`PUT /api/demo/handbook/article`, seeded from the fixture): Edit turns it into Markdown (`toMarkdown`/`fromMarkdown` in `src/model/handbook-markdown.ts`: `## ` sections, `- ` lists, `| Label | Detail |` facts, `[text](/path)` links), and the server refuses a section without a heading or one named twice and records who last edited it.
+The handbook's files are on the demo's own routes (`/api/demo/handbook`, `src/api/handbook.ts`). Anyone in the organisation adds or removes one; a file's name is unique, its type is one the handbook takes, and together they fit its capacity, with a refusal shown in `FilesPanel`'s `notice`. The demo keeps a file's name and size, not its contents. The article is on the API too (`PUT /api/demo/handbook/article`, seeded from the fixture): Edit turns it into Markdown (`toMarkdown`/`fromMarkdown` in `src/model/handbook-markdown.ts`: `## ` sections, `- ` lists, `| Label | Detail |` facts, `[text](/path)` links), and the server refuses a section without a heading or one named twice and records who last edited it. The page and its wrapper are in `src/pages/handbook/`; the handbook's types (`Handbook`, `WikiSection`, `HandbookFile`) are in `src/model/handbook.ts`.
 
 ### X-Road
 

@@ -17,23 +17,27 @@ and to mark what would change the look.
   used `claude/intelligent-newton-2pncy4`). Each PR is shipped (merged once
   CI is green) and the branch restarted from `main` before the next: `git
   fetch origin main && git checkout -B <branch> origin/main`.
-- **PR in progress:** none. PRs 1 to 9 are merged. PR 10 is the last the
-  brief asks for: pull openfn-3-poc first (`git -C ../openfn-3-poc pull`)
-  and follow any change in api/ or its patterns.
-- **Next three items**, one PR each:
-  1. **Handbook into its folder** (already on the API; `HandbookPageData`
-     and the `Wiki*` types out of page-data.ts, the types to a
-     `model/handbook.ts`).
-  2. **ProjectSettingsPage into its folder**, starting with the types it
+- **PR in progress:** none. PRs 1 to 10 are merged, which is where the
+  brief says to stop. A new session starts only if Brandon asks for more;
+  then restart the branch from `main` and take the next items below.
+- **Next items**, if the work goes on, one PR each:
+  1. **ProjectSettingsPage into its folder**, starting with the types it
      takes from page-data.ts (`Collaborator`, `WebhookAuthMethod`,
      `GitHub*`, `HistoryExport`, `DataStorageSettings`).
-  3. **The system and service pages read the X-Road identity from the API**
-     (`useOrganizationXRoad`, as Organization settings now does), taking
+  2. **The system and service pages read the X-Road identity from the API**
+     (`useOrganizationXRoad`, as Organization settings does), taking
      `orgXRoad` out of `SystemPage.query.tsx` and `ServicePage.query.tsx`.
-  After those, WorkflowEditorPage.
+  3. **WorkflowEditorPage**, its types first.
+  Pull openfn-3-poc again first (it was still at `a3e3d02` at PR 10).
 - **Moving types:** `python3 scripts/move-types.py <from> <to> Name…` moves
   exported declarations (with their doc comments) and rewrites every import
-  under src/. Then `npx tsc -b` and add the target's own imports.
+  under src/. Then `npx tsc -b` and add the target's own imports. It cuts a
+  union type short at a comment between its members (`WikiBlock`, PR 10):
+  check a moved union is whole.
+- **A page whose data is one resource** (Organization settings, Handbook):
+  the shape goes in the resource's `model/` file (`OrganizationSettings`,
+  `Handbook`), which the fixture and the fake server's seed use too, and the
+  page file names it: `export type HandbookPageData = Handbook`.
 - **Decide before moving page 2** (from the PR 1 architecture review). Raw
   values, not words, in every summary type (PR 3 did it for projects and
   sandboxes); and:
@@ -182,7 +186,19 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    and query tests 6 → 8; tests 145 → 156.
    ([#199](https://github.com/brandonjackson/openfn-ia-demo/pull/199))
 
-**PRs done: 9 of 10.** Pull openfn-3-poc again at PR 10.
+10. **Handbook into its folder.** `src/pages/handbook/` with its first page
+    and query tests (reading, saving the article, a heading used twice
+    refused with the server's reason, adding and removing a file, a load
+    failure). The API hook's article type is now `HandbookArticle`, so it
+    isn't confused with the model's `Handbook`. The handbook's types left page-data.ts for
+    `model/handbook.ts`, with `Handbook`, the shape the fixture and the page
+    share. Pulled openfn-3-poc first: no change since PR 1 (still
+    `a3e3d02`). Counts: page-data.ts 746 → 702 lines; files importing it
+    83 → 78; pages in their own folder 4 → 5 of 24; page and query tests 8
+    → 10; tests 157 → 168.
+    ([#200](https://github.com/brandonjackson/openfn-ia-demo/pull/200))
+
+**PRs done: 10 of 10.** The brief's stop point. Pull openfn-3-poc again at PR 10.
 
 ## Waiting on Brandon
 

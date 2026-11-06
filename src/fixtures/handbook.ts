@@ -1,4 +1,4 @@
-import type { HandbookFile, HandbookPageData, WikiSection } from "../model/page-data";
+import type { Handbook, HandbookFile, WikiSection } from "../model/handbook";
 import { currentInstance } from "./user";
 
 const MB = 1024 * 1024;
@@ -164,8 +164,7 @@ export const handbookFiles: HandbookFile[] = [
   },
 ];
 
-export const handbookData: HandbookPageData = {
-  pageType: "handbook",
+export const handbookData: Handbook = {
   updatedAt: "2 Oct 2026",
   updatedBy: "Brandon Jackson",
   sections: handbookSections,

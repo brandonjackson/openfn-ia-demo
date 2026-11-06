@@ -15,7 +15,7 @@
  */
 import { handbookData } from "../fixtures/handbook";
 import { seedId } from "../fixtures/ids";
-import type { HandbookFileKind, WikiBlock, WikiSection } from "../model/page-data";
+import type { HandbookFileKind, WikiBlock, WikiSection } from "../model/handbook";
 import { badId, forbidden, invalid, isUuid, json, noContent, notFound, now, ORIGIN, paged, unknownKeys, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
 import { seedTime, table } from "./db";

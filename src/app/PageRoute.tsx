@@ -26,7 +26,7 @@ import InsightsPageQuery from "../pages/InsightsPage.query";
 import UserSettingsPageQuery from "../pages/user-settings/UserSettingsPage.query";
 import OrganizationSettingsPageQuery from "../pages/organization-settings/OrganizationSettingsPage.query";
 import AdminSettingsPageQuery from "../pages/admin-settings/AdminSettingsPage.query";
-import HandbookPageQuery from "../pages/HandbookPage.query";
+import HandbookPageQuery from "../pages/handbook/HandbookPage.query";
 import PlaceholderPageQuery from "../pages/PlaceholderPage.query";
 
 type PageType = NonNullable<IANode["pageType"]>;

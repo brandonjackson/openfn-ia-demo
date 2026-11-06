@@ -47,3 +47,6 @@ export const apiChannelId = (projectSlug: string, slug: string) => seedId("chann
 
 /** A fixture connected system's id on the API, from its slug ("dhis2"). */
 export const apiSystemId = (slug: string) => seedId("connected_system", slug);
+
+/** A fixture service's id on the API, from its project's slug and its own. */
+export const apiServiceId = (projectSlug: string, slug: string) => seedId("service", `${projectSlug}/${slug}`);

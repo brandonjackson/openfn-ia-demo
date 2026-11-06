@@ -28,6 +28,7 @@ import { channelRoutes } from "./channels";
 import { workOrderRoutes } from "./work-orders";
 import { githubRoutes } from "./github-sync";
 import { systemRoutes } from "./connected-systems";
+import { serviceRoutes } from "./services";
 
 export type { Problem } from "./answers";
 export { signInAs } from "./session";
@@ -51,6 +52,7 @@ const routes: Record<string, Handler> = {
   ...workOrderRoutes,
   ...githubRoutes,
   ...systemRoutes,
+  ...serviceRoutes,
   // The demo's own: back to the fixtures.
   "POST /api/demo/reset": () => {
     resetDb();

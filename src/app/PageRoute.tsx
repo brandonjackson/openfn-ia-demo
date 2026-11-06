@@ -11,7 +11,7 @@ import OverviewPageQuery from "../pages/OverviewPage.query";
 import SystemsPageQuery from "../pages/SystemsPage.query";
 import SystemPageQuery from "../pages/SystemPage.query";
 import HistoryPageQuery from "../pages/HistoryPage.query";
-import ServicesPageFixtures from "../pages/ServicesPage.fixtures";
+import ServicesPageQuery from "../pages/ServicesPage.query";
 import ProjectsPageQuery from "../pages/ProjectsPage.query";
 import ProjectPageQuery from "../pages/ProjectPage.query";
 import ProjectWorkflowsPageQuery from "../pages/ProjectWorkflowsPage.query";
@@ -19,7 +19,7 @@ import ProjectComponentsPageQuery from "../pages/ProjectComponentsPage.query";
 import ProjectCreatePageFixtures from "../pages/ProjectCreatePage.fixtures";
 import ProjectSandboxesPageQuery from "../pages/ProjectSandboxesPage.query";
 import ProjectSettingsPageQuery from "../pages/ProjectSettingsPage.query";
-import ServicePageFixtures from "../pages/ServicePage.fixtures";
+import ServicePageQuery from "../pages/ServicePage.query";
 import ChannelPageQuery from "../pages/ChannelPage.query";
 import StatusPageFixtures from "../pages/StatusPage.fixtures";
 import InsightsPageFixtures from "../pages/InsightsPage.fixtures";
@@ -41,7 +41,7 @@ const wrappers: Record<PageType, ComponentType<{ route: Route }>> = {
   list: SystemsPageQuery,
   detail: SystemPageQuery,
   table: HistoryPageQuery,
-  catalog: ServicesPageFixtures,
+  catalog: ServicesPageQuery,
   projects: ProjectsPageQuery,
   project: ProjectPageQuery,
   "project-workflows": ProjectWorkflowsPageQuery,
@@ -49,7 +49,7 @@ const wrappers: Record<PageType, ComponentType<{ route: Route }>> = {
   "project-create": ProjectCreatePageFixtures,
   "project-sandboxes": ProjectSandboxesPageQuery,
   "project-settings": ProjectSettingsPageQuery,
-  service: ServicePageFixtures,
+  service: ServicePageQuery,
   channel: ChannelPageQuery,
   status: StatusPageFixtures,
   insights: InsightsPageFixtures,

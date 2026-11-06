@@ -26,10 +26,16 @@ export function adaptorForSystem(name?: string): string | undefined {
   return name ? byName.get(name.toLowerCase()) : undefined;
 }
 
-// Square logos copied from github.com/OpenFn/adaptors (packages/<id>/assets/square.png).
+/*
+ * Square logos copied from github.com/OpenFn/adaptors (packages/<id>/assets/square.png),
+ * shrunk to 96px and 256 colours. They're inlined as data URLs so they arrive
+ * with the code: as ~90 separate files, a list like "Add Connected System"
+ * fired one request per row and any that dropped left an empty tile. Shrink a
+ * new one the same way before adding it, so the bundle stays small.
+ */
 const logos = import.meta.glob<string>("../../assets/adaptors/*.png", {
   eager: true,
-  query: "?url",
+  query: "?inline",
   import: "default",
 });
 

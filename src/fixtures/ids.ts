@@ -41,3 +41,6 @@ export const apiNodeId = (workflowSlug: string, nodeId: string) => seedId("node"
 
 /** A step's id in a sandbox's copy of a workflow, from the sandbox and the step it was copied from. */
 export const cloneNodeId = (sandboxId: string, nodeId: string) => seedId("clone", `${sandboxId}/${nodeId}`);
+
+/** A fixture channel's id on the API, from its project's slug and its own. */
+export const apiChannelId = (projectSlug: string, slug: string) => seedId("channel", `${projectSlug}/${slug}`);

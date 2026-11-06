@@ -24,6 +24,7 @@ import { webhookAuthRoutes } from "./webhook-auth";
 import { historyExportRoutes } from "./history-exports";
 import { credentialRoutes } from "./credentials";
 import { accountRoutes } from "./account";
+import { channelRoutes } from "./channels";
 
 export type { Problem } from "./answers";
 export { signInAs } from "./session";
@@ -43,6 +44,7 @@ const routes: Record<string, Handler> = {
   ...historyExportRoutes,
   ...credentialRoutes,
   ...accountRoutes,
+  ...channelRoutes,
   // The demo's own: back to the fixtures.
   "POST /api/demo/reset": () => {
     resetDb();

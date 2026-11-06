@@ -15,12 +15,12 @@ import ServicesPageFixtures from "../pages/ServicesPage.fixtures";
 import ProjectsPageQuery from "../pages/ProjectsPage.query";
 import ProjectPageQuery from "../pages/ProjectPage.query";
 import ProjectWorkflowsPageQuery from "../pages/ProjectWorkflowsPage.query";
-import ProjectComponentsPageFixtures from "../pages/ProjectComponentsPage.fixtures";
+import ProjectComponentsPageQuery from "../pages/ProjectComponentsPage.query";
 import ProjectCreatePageFixtures from "../pages/ProjectCreatePage.fixtures";
 import ProjectSandboxesPageQuery from "../pages/ProjectSandboxesPage.query";
 import ProjectSettingsPageQuery from "../pages/ProjectSettingsPage.query";
 import ServicePageFixtures from "../pages/ServicePage.fixtures";
-import ChannelPageFixtures from "../pages/ChannelPage.fixtures";
+import ChannelPageQuery from "../pages/ChannelPage.query";
 import StatusPageFixtures from "../pages/StatusPage.fixtures";
 import InsightsPageFixtures from "../pages/InsightsPage.fixtures";
 import UserSettingsPageQuery from "../pages/UserSettingsPage.query";
@@ -45,12 +45,12 @@ const wrappers: Record<PageType, ComponentType<{ route: Route }>> = {
   projects: ProjectsPageQuery,
   project: ProjectPageQuery,
   "project-workflows": ProjectWorkflowsPageQuery,
-  "project-components": ProjectComponentsPageFixtures,
+  "project-components": ProjectComponentsPageQuery,
   "project-create": ProjectCreatePageFixtures,
   "project-sandboxes": ProjectSandboxesPageQuery,
   "project-settings": ProjectSettingsPageQuery,
   service: ServicePageFixtures,
-  channel: ChannelPageFixtures,
+  channel: ChannelPageQuery,
   status: StatusPageFixtures,
   insights: InsightsPageFixtures,
   "user-settings": UserSettingsPageQuery,

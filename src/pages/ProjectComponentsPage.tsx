@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Boxes, Plus } from "lucide-react";
 import type { ChannelDraft } from "../model/channels";
+import { isContentComponentType, type ComponentDraft, type ContentComponentType } from "../model/project-components";
+import type { ProjectComponentType } from "../model/page-data";
 import ChannelFormModal from "../components/domain/ChannelFormModal";
+import ComponentFormModal from "../components/domain/ComponentFormModal";
+import CollectionNameModal from "../components/domain/CollectionNameModal";
 import Button from "../components/primitives/Button";
 import Callout from "../components/primitives/Callout";
 import Stack from "../components/primitives/Stack";
@@ -17,10 +21,14 @@ import EmptyState from "../components/primitives/EmptyState";
 import SectionHeading from "../components/primitives/SectionHeading";
 
 export interface ProjectComponentsPageProps extends PageProps<ProjectComponentsPageData> {
-  /** Starts a new component of a type. Components are drafted from a plain-words description on Create, so without it there's no panel for adding. */
-  onAddComponent?: (type: string) => void;
   /** Makes a channel, as Lightning's Channels page does. Left out where you can't. */
   onCreateChannel?: (draft: ChannelDraft) => Promise<void>;
+  /** Makes a collection with a URL-safe name. Left out where you can't. */
+  onCreateCollection?: (name: string) => Promise<void>;
+  /** Makes a form, artifact, AI skill, document or static website, which then opens. Left out where you can't. */
+  onCreateComponent?: (type: ContentComponentType, draft: ComponentDraft) => Promise<void>;
+  /** Hands a kind of component to AI to draft from a plain-words description instead. Left out without Build with AI. */
+  onDraftWithAI?: (type: ProjectComponentType) => void;
   /** The project's credentials, by name, that a new channel can sign in with. */
   channelCredentials?: string[];
   /** Where an event channel with a given name would listen. */
@@ -29,26 +37,36 @@ export interface ProjectComponentsPageProps extends PageProps<ProjectComponentsP
 
 /**
  * Every component in the project, grouped by type, under a panel for adding
- * a new one. Workflows have their own page, so they are left out here, as
- * are empty groups. Lists only the kinds in `data.types`: with just
- * channels, it's the project's Channels page.
+ * a new one: picking a kind opens its form (a channel's, a collection's
+ * name, or a name and description for the rest), and the new component
+ * opens. Workflows have their own page, so they are left out here, as are
+ * empty groups. Lists only the kinds in `data.types`: with just channels,
+ * it's the project's Channels page, with a New channel button.
  */
 export default function ProjectComponentsPage({
   node,
   ancestors,
   data,
-  onAddComponent,
   onCreateChannel,
+  onCreateCollection,
+  onCreateComponent,
+  onDraftWithAI,
   channelCredentials = [],
   channelAddress = (name) => name,
 }: ProjectComponentsPageProps) {
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState<ProjectComponentType>();
   const [created, setCreated] = useState<string>();
   const projectPath = `/projects/${data.projectId}`;
   const types = componentTypes.filter((t) => t.type !== "Workflow" && data.types.includes(t.type));
   const groups = types
     .map((t) => ({ ...t, items: data.components.filter((c) => c.type === t.type) }))
     .filter((g) => g.items.length > 0);
+  const canCreate = (type: ProjectComponentType) =>
+    type === "Channel" ? !!onCreateChannel : type === "Collection" ? !!onCreateCollection : isContentComponentType(type) && !!onCreateComponent;
+  const creatable = types.filter((t) => canCreate(t.type));
+  // With more than channels, the panel offers every kind; with just channels, a button does.
+  const showPanel = types.length > 1 && creatable.length > 0;
+  const takenNames = (type: ProjectComponentType) => data.components.filter((c) => c.type === type).map((c) => c.name);
 
   return (
     <Stack gap="xl">
@@ -57,8 +75,9 @@ export default function ProjectComponentsPage({
         title={node.label}
         description={node.description}
         actions={
-          onCreateChannel && (
-            <Button icon={Plus} size="sm" variant={onAddComponent ? "secondary" : "primary"} onClick={() => setCreating(true)}>
+          onCreateChannel &&
+          !showPanel && (
+            <Button icon={Plus} size="sm" onClick={() => setCreating("Channel")}>
               New channel
             </Button>
           )
@@ -67,9 +86,9 @@ export default function ProjectComponentsPage({
 
       {created && <Callout variant="success" title={`Created ${created}.`} />}
 
-      {onAddComponent && (
+      {showPanel && (
         <div>
-          <AddComponentPanel options={types} onSelect={onAddComponent} />
+          <AddComponentPanel options={creatable} onSelect={(type) => setCreating(type as ProjectComponentType)} />
         </div>
       )}
 
@@ -95,7 +114,7 @@ export default function ProjectComponentsPage({
           title={`No ${node.label.toLowerCase()} yet`}
           description={
             types.length > 1
-              ? `Components are the building blocks of a project: ${types.map((t) => t.plural.toLowerCase()).join(", ")}.${onAddComponent ? " Add one above." : ""}`
+              ? `Components are the building blocks of a project: ${types.map((t) => t.plural.toLowerCase()).join(", ")}.${showPanel ? " Add one above." : ""}`
               : undefined
           }
         />
@@ -103,15 +122,39 @@ export default function ProjectComponentsPage({
 
       {onCreateChannel && (
         <ChannelFormModal
-          open={creating}
-          takenNames={data.components.filter((c) => c.type === "Channel").map((c) => c.name)}
+          open={creating === "Channel"}
+          takenNames={takenNames("Channel")}
           credentials={channelCredentials}
           eventAddress={channelAddress}
-          onClose={() => setCreating(false)}
+          onClose={() => setCreating(undefined)}
           onSubmit={async (draft) => {
             await onCreateChannel(draft);
             setCreated(draft.name.trim());
           }}
+        />
+      )}
+      {onCreateCollection && (
+        <CollectionNameModal
+          open={creating === "Collection"}
+          takenNames={takenNames("Collection")}
+          onClose={() => setCreating(undefined)}
+          onSave={async (name) => {
+            await onCreateCollection(name);
+            setCreated(name);
+          }}
+        />
+      )}
+      {onCreateComponent && creating && isContentComponentType(creating) && (
+        <ComponentFormModal
+          open
+          type={creating}
+          takenNames={takenNames(creating)}
+          onClose={() => setCreating(undefined)}
+          onSubmit={async (draft) => {
+            await onCreateComponent(creating, draft);
+            setCreated(draft.name.trim());
+          }}
+          onDraftWithAI={onDraftWithAI ? () => onDraftWithAI(creating) : undefined}
         />
       )}
     </Stack>

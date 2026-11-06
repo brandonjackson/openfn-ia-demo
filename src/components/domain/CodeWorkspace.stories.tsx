@@ -20,14 +20,17 @@ import { channelDetails } from "../../fixtures/channels";
 import { projects } from "../../fixtures/projects";
 import { adaptorChoices, adaptorInfo, adaptorSnippets, projectCredentials } from "../../fixtures/adaptor-reference";
 import { connectedSystems } from "../../fixtures/connected-systems";
-import { componentPreview, serviceListing, workflowDocs } from "../../fixtures/workflow-files";
+import { serviceListing, workflowDocs } from "../../fixtures/workflow-files";
+import { fixtureComponentContents } from "../../fixtures/project-components";
+import CollectionView from "./CollectionView";
+import ComponentView from "./ComponentView";
 
 const components = projects[0].components.filter((c) => c.type !== "Workflow");
 const adaptors = { info: adaptorInfo, snippets: adaptorSnippets, choices: adaptorChoices, credentials: projectCredentials };
 const contents = {
   docs: workflowDocs,
   serviceListing: serviceListing(projects[0].services[0]),
-  componentPreviews: Object.fromEntries(components.map((c) => [c.id, componentPreview(c)])),
+  ...fixtureComponentContents(components),
   channels: Object.fromEntries(components.filter((c) => c.type === "Channel").map((c) => [c.id, channelDetails(c)])),
 };
 
@@ -142,9 +145,24 @@ export const DetailsHidden: Story = { args: { showDetails: false } };
 /** A step edited in this session, not yet promoted. */
 export const UnsavedChanges: Story = { args: { dirtyStepIds: ["search"], onStepChange: () => {} } };
 
-/** A collection the workflow uses, opened from the Components group. */
+const collection = components.find((c) => c.type === "Collection")!;
+
+/** A collection the workflow uses, opened from the Components group: its keys in the code's place. */
 export const CollectionOpen: Story = {
-  args: { file: { componentId: components.find((c) => c.type === "Collection")!.id } },
+  args: {
+    file: { componentId: collection.id },
+    pane: <CollectionView name={collection.name} {...contents.collections[collection.id]!} onSaveItem={async () => {}} onDeleteItem={async () => {}} />,
+  },
+};
+
+const artifact = components.find((c) => c.type === "Artifact")!;
+
+/** An artifact opened from the Components group: its file to edit and save in the code's place. */
+export const ArtifactOpen: Story = {
+  args: {
+    file: { componentId: artifact.id },
+    pane: <ComponentView name={artifact.name} description={artifact.description} type="Artifact" content={contents.componentContents[artifact.id]!} onSave={async () => {}} />,
+  },
 };
 
 const channel = components.find((c) => c.type === "Channel")!;

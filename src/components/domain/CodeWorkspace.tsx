@@ -211,7 +211,7 @@ export default function CodeWorkspace({
   const code = step
     ? step.body
     : component
-      ? (contents?.componentPreviews[component.id] ?? "")
+      ? ""
       : file === "trigger"
         ? triggerYaml
         : doc

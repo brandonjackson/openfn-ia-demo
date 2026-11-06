@@ -70,6 +70,13 @@ import type { ProjectComponentType } from "../model/page-data";
 import AddComponentPanel from "../components/domain/AddComponentPanel";
 import WorkflowHealth from "../components/domain/WorkflowHealth";
 import ChannelView from "../components/domain/ChannelView";
+import ComponentView from "../components/domain/ComponentView";
+import CollectionView from "../components/domain/CollectionView";
+import ComponentFormModal from "../components/domain/ComponentFormModal";
+import ChannelFormModal from "../components/domain/ChannelFormModal";
+import CollectionNameModal from "../components/domain/CollectionNameModal";
+import { isContentComponentType, type ComponentDraft, type ContentComponentType } from "../model/project-components";
+import type { ChannelDraft } from "../model/channels";
 import ConnectSystemPicker from "../components/domain/ConnectSystemPicker";
 import type { ConnectChoice } from "../components/domain/ConnectSystemPicker";
 import { componentTypes } from "../model/component-types";
@@ -206,8 +213,16 @@ export default function WorkflowEditorPage({
   projectName,
   components = [],
   onOpenComponent,
-  onAddComponent,
   componentTypeOptions,
+  onCreateChannel,
+  onCreateCollection,
+  onCreateComponent,
+  onDraftComponentWithAI,
+  channelCredentials = [],
+  channelAddress = (name) => name,
+  onSaveComponent,
+  onSaveCollectionItem,
+  onDeleteCollectionItem,
   sandboxes = ["main"],
   sandbox: controlledSandbox,
   onSelectSandbox,
@@ -268,10 +283,26 @@ export default function WorkflowEditorPage({
   components?: ProjectComponent[];
   /** Opens a component's page in the project. */
   onOpenComponent?: (componentId: string) => void;
-  /** Starts a new project component of this type, picked from the code explorer. Without it there's no + to add one. */
-  onAddComponent?: (type: string) => void;
   /** The kinds of component that can be added. Defaults to every kind but Workflow. */
   componentTypeOptions?: ProjectComponentType[];
+  /** Makes a channel from the code explorer's +; resolves with its id, and it opens. Left out where you can't. */
+  onCreateChannel?: (draft: ChannelDraft) => Promise<string>;
+  /** Makes a collection with a URL-safe name from the code explorer's +; resolves with its id, and it opens. Left out where you can't. */
+  onCreateCollection?: (name: string) => Promise<string>;
+  /** Makes a form, artifact, AI skill, document or static website from the code explorer's +; resolves with its id, and it opens. Left out where you can't. */
+  onCreateComponent?: (type: ContentComponentType, draft: ComponentDraft) => Promise<string>;
+  /** Hands a kind of component to AI to draft from a description instead. Left out without Build with AI. */
+  onDraftComponentWithAI?: (type: ProjectComponentType) => void;
+  /** The project's credentials, by name, that a new channel can sign in with. */
+  channelCredentials?: string[];
+  /** Where an event channel with a given name would listen. */
+  channelAddress?: (name: string) => string;
+  /** Saves a form's, artifact's, AI skill's, document's or static website's new content, opened from the explorer. Left out where you can't. */
+  onSaveComponent?: (componentId: string, content: string) => Promise<void>;
+  /** Writes a key's value in a collection opened from the explorer. Left out where you can't. */
+  onSaveCollectionItem?: (componentId: string, key: string, value: string) => Promise<void>;
+  /** Deletes a key from a collection opened from the explorer. Left out where you can't. */
+  onDeleteCollectionItem?: (componentId: string, key: string) => Promise<void>;
   /** Sandboxes of the workflow's project, "main" first. */
   sandboxes?: string[];
   sandbox?: string;
@@ -531,6 +562,19 @@ export default function WorkflowEditorPage({
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [addComponentOpen, setAddComponentOpen] = useState(false);
+  // The kind picked from "Add project component", whose form is open.
+  const [creatingComponent, setCreatingComponent] = useState<ProjectComponentType>();
+  const addableTypes = componentTypes.filter(
+    (t) =>
+      t.type !== "Workflow" &&
+      (!componentTypeOptions || componentTypeOptions.includes(t.type)) &&
+      (t.type === "Channel" ? !!onCreateChannel : t.type === "Collection" ? !!onCreateCollection : isContentComponentType(t.type) && !!onCreateComponent),
+  );
+  /** Once a new component is made, open it in the code view. */
+  const openCreated = (id: string) => {
+    setCreatingComponent(undefined);
+    setFile({ componentId: id });
+  };
 
   // ---- Running --------------------------------------------------------------
 
@@ -961,25 +1005,45 @@ export default function WorkflowEditorPage({
     />
   );
 
-  // A channel, opened from the explorer's Components, shows its traffic in the code's place.
-  // A message from a run loads that run.
-  const openChannel =
-    typeof file === "object" && "componentId" in file
-      ? components.find((c) => c.id === file.componentId && c.type === "Channel")
-      : undefined;
-  const openChannelDetails = openChannel && contents?.channels[openChannel.id];
-  const channelPane = openChannel && openChannelDetails && (
+  // A component, opened from the explorer's Components, shows in the code's place: the same view as
+  // its page in the project. A channel shows its traffic, where a message from a run loads that run;
+  // a collection its keys; anything else the file it is, to edit and save.
+  const openComponent =
+    typeof file === "object" && "componentId" in file ? components.find((c) => c.id === file.componentId) : undefined;
+  const openChannelDetails = openComponent?.type === "Channel" ? contents?.channels[openComponent.id] : undefined;
+  const openCollection = openComponent?.type === "Collection" ? contents?.collections[openComponent.id] : undefined;
+  const openContent = openComponent && isContentComponentType(openComponent.type) ? contents?.componentContents[openComponent.id] : undefined;
+  const componentPane = !openComponent ? undefined : openChannelDetails ? (
     <ChannelView
-      key={openChannel.id}
-      name={openChannel.name}
-      description={openChannel.description}
+      key={openComponent.id}
+      name={openComponent.name}
+      description={openComponent.description}
       channel={openChannelDetails}
       onOpenRun={(id) => {
         const r = orders.flatMap((o) => o.runs).find((run) => run.runId === id);
         if (r) selectRun(r);
       }}
     />
-  );
+  ) : openCollection ? (
+    <CollectionView
+      key={openComponent.id}
+      name={openComponent.name}
+      items={openCollection.items}
+      itemCount={openCollection.itemCount}
+      byteSize={openCollection.byteSize}
+      onSaveItem={onSaveCollectionItem && ((key, value) => onSaveCollectionItem(openComponent.id, key, value))}
+      onDeleteItem={onDeleteCollectionItem && ((key) => onDeleteCollectionItem(openComponent.id, key))}
+    />
+  ) : openContent && isContentComponentType(openComponent.type) ? (
+    <ComponentView
+      key={openComponent.id}
+      name={openComponent.name}
+      description={openComponent.description}
+      type={openComponent.type}
+      content={openContent}
+      onSave={onSaveComponent && ((content) => onSaveComponent(openComponent.id, content))}
+    />
+  ) : undefined;
 
   const layoutMenu = <LayoutMenu layout={shownLayout} onChange={changeLayout} onReset={resetLayout} />;
 
@@ -1156,17 +1220,43 @@ export default function WorkflowEditorPage({
           />
           <Modal open={addComponentOpen} title="Add project component" onClose={() => setAddComponentOpen(false)} widthClass="max-w-2xl">
             <AddComponentPanel
-              options={componentTypes.filter(
-                (t) => t.type !== "Workflow" && (!componentTypeOptions || componentTypeOptions.includes(t.type))
-              )}
+              options={addableTypes}
               columns={2}
               bare
               onSelect={(type) => {
                 setAddComponentOpen(false);
-                onAddComponent?.(type);
+                setCreatingComponent(type as ProjectComponentType);
               }}
             />
           </Modal>
+          {onCreateChannel && (
+            <ChannelFormModal
+              open={creatingComponent === "Channel"}
+              takenNames={components.filter((c) => c.type === "Channel").map((c) => c.name)}
+              credentials={channelCredentials}
+              eventAddress={channelAddress}
+              onClose={() => setCreatingComponent(undefined)}
+              onSubmit={async (draft) => openCreated(await onCreateChannel(draft))}
+            />
+          )}
+          {onCreateCollection && (
+            <CollectionNameModal
+              open={creatingComponent === "Collection"}
+              takenNames={components.filter((c) => c.type === "Collection").map((c) => c.name)}
+              onClose={() => setCreatingComponent(undefined)}
+              onSave={async (name) => openCreated(await onCreateCollection(name))}
+            />
+          )}
+          {onCreateComponent && creatingComponent && isContentComponentType(creatingComponent) && (
+            <ComponentFormModal
+              open
+              type={creatingComponent}
+              takenNames={components.filter((c) => c.type === creatingComponent).map((c) => c.name)}
+              onClose={() => setCreatingComponent(undefined)}
+              onSubmit={async (draft) => openCreated(await onCreateComponent(creatingComponent, draft))}
+              onDraftWithAI={onDraftComponentWithAI ? () => onDraftComponentWithAI(creatingComponent) : undefined}
+            />
+          )}
           <Modal open={addAfterId !== undefined} title="Connect a system" onClose={() => setAddAfterId(undefined)} widthClass="max-w-3xl">
             <ConnectSystemPicker
               catalog={catalog}
@@ -1254,8 +1344,8 @@ export default function WorkflowEditorPage({
           onAddStep={onMain ? undefined : addStep}
           docs={docs}
           onAddDoc={onMain ? undefined : addDoc}
-          onAddComponent={onMain || !onAddComponent ? undefined : () => setAddComponentOpen(true)}
-          pane={file === "health" ? healthPane : channelPane || undefined}
+          onAddComponent={onMain || addableTypes.length === 0 ? undefined : () => setAddComponentOpen(true)}
+          pane={file === "health" ? healthPane : componentPane}
           showExplorer={layout.explorer}
           showDetails={shownLayout.details}
           detailsView={layout.detailsView}

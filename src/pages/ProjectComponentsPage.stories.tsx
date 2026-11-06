@@ -24,7 +24,13 @@ const ancestors = [
 const meta: Meta<typeof ProjectComponentsPage> = {
   title: "Pages/ProjectComponentsPage",
   component: ProjectComponentsPage,
-  args: { onAddComponent: () => {} },
+  args: {
+    onCreateChannel: async () => {},
+    onCreateCollection: async () => {},
+    onCreateComponent: async () => {},
+    onDraftWithAI: () => {},
+    channelCredentials: ["DHIS2 production", "Case Management API"],
+  },
   decorators: [withRouterAt(`/projects/${project.id}/components`)],
   parameters: { layout: "padded" },
 };
@@ -60,7 +66,7 @@ export const Empty: Story = {
   },
 };
 
-/** With the Components flag off: the project's Channels page, as in Lightning, and nothing to add without Create. */
+/** With the Components flag off: the project's Channels page, as in Lightning, with a New channel button. */
 export const ChannelsOnly: Story = {
   args: {
     node: { id: "components", label: "Channels", description: "Reads, writes and events on other systems, each with its own endpoint." },
@@ -72,9 +78,23 @@ export const ChannelsOnly: Story = {
       components: projects[0].components.filter((c) => c.type === "Channel"),
       types: ["Channel"],
     },
-    onAddComponent: undefined,
-    onCreateChannel: async () => {},
-    channelCredentials: ["DHIS2 production", "Case Management API"],
+    onCreateCollection: undefined,
+    onCreateComponent: undefined,
+    onDraftWithAI: undefined,
     channelAddress: (name: string) => `https://app.openfn.org/c/project-a/${name}`,
+  },
+};
+
+/** For a viewer: the components to read, and nothing to add. */
+export const ReadOnly: Story = {
+  args: {
+    node,
+    ancestors,
+    currentPath: `/projects/${projects[0].id}/components`,
+    data: { pageType: "project-components", projectId: projects[0].id, components: projects[0].components, types },
+    onCreateChannel: undefined,
+    onCreateCollection: undefined,
+    onCreateComponent: undefined,
+    onDraftWithAI: undefined,
   },
 };

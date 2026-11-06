@@ -20,7 +20,7 @@ import ProjectCreatePageQuery from "../pages/ProjectCreatePage.query";
 import ProjectSandboxesPageQuery from "../pages/ProjectSandboxesPage.query";
 import ProjectSettingsPageQuery from "../pages/ProjectSettingsPage.query";
 import ServicePageQuery from "../pages/ServicePage.query";
-import ChannelPageQuery from "../pages/ChannelPage.query";
+import ComponentPageQuery from "../pages/ComponentPage.query";
 import StatusPageFixtures from "../pages/StatusPage.fixtures";
 import InsightsPageQuery from "../pages/InsightsPage.query";
 import UserSettingsPageQuery from "../pages/UserSettingsPage.query";
@@ -50,7 +50,7 @@ const wrappers: Record<PageType, ComponentType<{ route: Route }>> = {
   "project-sandboxes": ProjectSandboxesPageQuery,
   "project-settings": ProjectSettingsPageQuery,
   service: ServicePageQuery,
-  channel: ChannelPageQuery,
+  component: ComponentPageQuery,
   status: StatusPageFixtures,
   insights: InsightsPageQuery,
   "user-settings": UserSettingsPageQuery,

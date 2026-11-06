@@ -6,6 +6,8 @@ interface Props {
   title?: ReactNode;
   /** Optional helper text shown under the title. */
   description?: ReactNode;
+  /** Controls on the right of the title, e.g. a Save button. Not for a card that's a link or a button. */
+  actions?: ReactNode;
   /** Removes inner padding, e.g. when the card wraps a table. */
   flush?: boolean;
   /** `md` (the default) for settings sections; `sm` for cards in a grid or a feed. */
@@ -26,6 +28,7 @@ interface Props {
 export default function Card({
   title,
   description,
+  actions,
   flush = false,
   padding = "md",
   to,
@@ -37,7 +40,7 @@ export default function Card({
   const frame = `rounded-lg border border-gray-200 bg-white ${
     flush ? "overflow-hidden" : padding === "sm" ? "p-4" : "p-5"
   } ${interactive ? "group w-full text-left transition-all hover:border-indigo-300 hover:shadow-sm" : ""} ${className}`;
-  const content = (
+  const heading = (title || description) && (
     <>
       {title && (
         <h3 className={`text-sm font-semibold text-gray-900 mb-1 ${interactive ? "group-hover:text-indigo-600" : ""}`}>
@@ -45,6 +48,18 @@ export default function Card({
         </h3>
       )}
       {description && <div className="text-xs text-gray-500 mb-4 space-y-2">{description}</div>}
+    </>
+  );
+  const content = (
+    <>
+      {actions && !interactive ? (
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">{heading}</div>
+          <div className="flex flex-none items-center gap-2">{actions}</div>
+        </div>
+      ) : (
+        heading
+      )}
       {children}
     </>
   );

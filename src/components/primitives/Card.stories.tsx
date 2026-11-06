@@ -21,6 +21,16 @@ export const Default: Story = {
   },
 };
 
+/** Controls beside the heading, such as a Save button for what the card holds. */
+export const WithActions: Story = {
+  args: {
+    title: "form.json",
+    description: "The form's fields, in the order they're asked.",
+    actions: <Button size="sm">Save</Button>,
+    children: <p className="text-sm text-gray-700">The card's content.</p>,
+  },
+};
+
 export const ContentOnly: Story = {
   args: {
     children: <p className="text-sm text-gray-700">A card with no heading.</p>,

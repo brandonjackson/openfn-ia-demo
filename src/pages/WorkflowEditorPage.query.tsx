@@ -16,14 +16,17 @@ import { useProject } from "../api/projects";
 import { useProjectCredentials } from "../api/credentials";
 import { useConnectedSystems } from "../api/connected-systems";
 import { useDataclips, useRunSaves, useWorkOrders } from "../api/work-orders";
-import { useProjectChannels } from "./channel-records.query";
+import { useProjectComponents } from "./component-records.query";
+import { eventAddress } from "./channel-records.query";
+import { useCollectionsItems } from "../api/collections";
+import { starterContent } from "../model/project-components";
 import { combine } from "../api/status";
 import { asGraph, useProjectWorkflows, useSandboxes, useSandboxSaves, useWorkflow, useWorkflowSaves, useWorkflowSnapshots } from "../api/workflows";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
 import { adaptorChoices, adaptorInfo, adaptorSnippets } from "../fixtures/adaptor-reference";
 import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
 import { codeSummary } from "../fixtures/code-summaries";
-import { componentPreview, serviceListing, workflowDocs } from "../fixtures/workflow-files";
+import { serviceListing, workflowDocs } from "../fixtures/workflow-files";
 import type { AdaptorReference } from "../model/adaptor-reference";
 import type { AdaptorCatalog } from "../model/adaptor-catalog";
 import { useFlags } from "../app/feature-flags";
@@ -178,19 +181,25 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
     }),
     [projectOrders, projectClips, shown.id],
   );
-  // The project's channels from the API, and its other kinds of component from its fixture until they move too.
-  const { channels } = useProjectChannels(root.id);
-  const components = componentsFor(
-    [...(fixtureRoot?.components ?? []).filter((c) => c.type !== "Workflow" && c.type !== "Channel"), ...channels.map((c) => c.component)],
-    flags,
-  );
+  // The project's components from the API: its channels, collections and the rest. Components belong
+  // to the project, so a sandbox's editor shows and changes its project's.
+  const records = useProjectComponents(root);
+  const components = componentsFor(records.items, flags);
+  const { items: collectionItems } = useCollectionsItems(root.id, records.collections.map((c) => c.name));
+  // Editors and up change a project's components, as they do its workflows.
+  const canEditComponents = !!root.permissions?.edit_workflow;
   // What opening the workflow's docs, its service listing and its components shows.
   const contents: WorkflowFileContents = {
     docs: workflowDocs,
     serviceListing: service ? serviceListing(service.service) : undefined,
-    componentPreviews: Object.fromEntries(components.map((c) => [c.id, componentPreview(c)])),
-    channels: Object.fromEntries(channels.map((c) => [c.component.id, c.details])),
+    componentContents: Object.fromEntries(records.contents.map((c) => [c.component.id, c.details])),
+    collections: Object.fromEntries(
+      records.collections.map((c) => [c.id, { items: collectionItems[c.name] ?? [], itemCount: c.itemCount, byteSize: c.byteSize }]),
+    ),
+    channels: Object.fromEntries(records.channels.channels.map((c) => [c.component.id, c.details])),
   };
+  const collectionName = (id: string) => records.collections.find((c) => c.id === id)?.name ?? "";
+  const contentResource = (id: string) => records.contents.find((c) => c.component.id === id)!;
   const graph: Workflow = asGraph(shown, root.name);
   const versionGraph = (version: string) => {
     const s = snapshots.find((x) => x.version.id === version);
@@ -227,15 +236,23 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       projectName={root.name}
       components={components}
       onOpenComponent={(componentId) => navigate(`/projects/${root.id}/components/${componentId}`)}
+      onCreateChannel={canEditComponents ? (draft) => records.channels.saves.create(draft, eventAddress(root.name, draft.name)) : undefined}
+      onCreateCollection={records.canManageCollections ? (name) => records.saves.collections.create(root.id, name) : undefined}
+      onCreateComponent={canEditComponents ? (type, draft) => records.saves.components.create(type, draft, starterContent(type, draft.name.trim())) : undefined}
       // Like the project's Components page: drafted from a plain-words description on Create.
-      onAddComponent={
-        flags.components && flags.aiBuild
+      onDraftComponentWithAI={
+        flags.aiBuild
           ? (type) =>
               navigate(`/projects/${root.id}/create`, {
                 state: { draft: `Add ${/^[aeiou]/i.test(type) ? "an" : "a"} ${type.toLowerCase()} to this project that ` },
               })
           : undefined
       }
+      channelCredentials={records.channels.credentialNames}
+      channelAddress={(name) => eventAddress(root.name, name)}
+      onSaveComponent={canEditComponents ? (id, content) => records.saves.components.saveContent(contentResource(id), content) : undefined}
+      onSaveCollectionItem={canEditComponents ? (id, key, value) => records.saves.items.save(collectionName(id), key, value) : undefined}
+      onDeleteCollectionItem={canEditComponents ? (id, key) => records.saves.items.remove(collectionName(id), key) : undefined}
       componentTypeOptions={componentTypesFor(flags)}
       sandboxes={["main", ...sandboxes.filter((s) => !s.scheduledDeletion).map((s) => s.name)]}
       sandbox={selected.id === root.id ? "main" : selected.name}

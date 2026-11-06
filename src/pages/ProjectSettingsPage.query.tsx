@@ -197,7 +197,7 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
           dataclip_retention_period: settings.ioDataPolicy === "zero-persistence" ? null : retentionDays(settings.ioRetentionPeriod),
         })
       }
-      onCreateCollection={(name) => collectionSaves.create(details.id, name)}
+      onCreateCollection={async (name) => void (await collectionSaves.create(details.id, name))}
       onRenameCollection={(collectionId, name) => collectionSaves.rename(details.id, collectionId, name)}
       onDeleteCollection={(collectionId) => collectionSaves.remove(details.id, collectionId)}
       onPreviewCollection={(collectionId) => fetchCollectionItems(details.id, collections.find((c) => c.id === collectionId)?.name ?? "")}

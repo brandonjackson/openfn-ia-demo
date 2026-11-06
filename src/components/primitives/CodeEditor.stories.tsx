@@ -40,3 +40,15 @@ export const ShortJob: Story = {
     code: "// Send the applicant their new national ID\npost('https://.../notify', state => ({\n  body: state.nationalId,\n}));",
   },
 };
+
+/** In a bordered box of its own height, as a card shows a component's file. */
+export const Boxed: Story = {
+  args: { code: JSON.stringify({ applicant_name: "given_name", dob: "date_of_birth" }, null, 2), frame: "box", label: "artifact.json" },
+  decorators: [
+    (Story) => (
+      <div style={{ padding: 16 }}>
+        <Story />
+      </div>
+    ),
+  ],
+};

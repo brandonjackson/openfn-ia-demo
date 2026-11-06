@@ -35,6 +35,11 @@ and to mark what would change the look.
      on Waiting on Brandon: Save disabled until something changes, chat send
      buttons, and actions off for a reason other than the form (bulk retry,
      merge with nothing to merge, read-only fields).
+     Watch for: `InviteCollaboratorsModal` and `AddCollaboratorsModal` lay
+     out each person as a row of bare inputs with no `FormField`, so
+     there's no "under the field" yet: give each row's inputs their own
+     error line (a `FormField` per input changes the row's look, so check it
+     against the stories, and put it on Waiting on Brandon if it does).
   2. **The section loading pattern** (decision 1): a page draws its frame at
      once, each section its own loading and error. Projects first, then
      Admin settings' audit trail, User settings' credential types,

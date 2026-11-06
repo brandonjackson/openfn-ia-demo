@@ -17,18 +17,23 @@ and to mark what would change the look.
   used `claude/intelligent-newton-2pncy4`). Each PR is shipped (merged once
   CI is green) and the branch restarted from `main` before the next: `git
   fetch origin main && git checkout -B <branch> origin/main`.
-- **PR in progress:** none. PRs 1 to 10 are merged, which is where the
-  brief says to stop. A new session starts only if Brandon asks for more;
-  then restart the branch from `main` and take the next items below.
-- **Next items**, if the work goes on, one PR each:
-  1. **ProjectSettingsPage into its folder**, starting with the types it
-     takes from page-data.ts (`Collaborator`, `WebhookAuthMethod`,
-     `GitHub*`, `HistoryExport`, `DataStorageSettings`).
-  2. **The system and service pages read the X-Road identity from the API**
-     (`useOrganizationXRoad`, as Organization settings does), taking
-     `orgXRoad` out of `SystemPage.query.tsx` and `ServicePage.query.tsx`.
-  3. **WorkflowEditorPage**, its types first.
-  Pull openfn-3-poc again first (it was still at `a3e3d02` at PR 10).
+- **PR in progress:** none. The brief's 10 PRs are done; the work now is
+  Brandon's decisions (6 Nov 2026, "Decided by Brandon" below), one PR each:
+  1. **Every other submit button enabled** (decision 4): 40-odd
+     `disabled={!…}` across `src/components/domain/` and the pages; each
+     says what's missing under its field on submit. Disabled while saving
+     stays.
+  2. **The section loading pattern** (decision 1): a page draws its frame at
+     once, each section its own loading and error. Projects first, then
+     Admin settings' audit trail, User settings' credential types,
+     Organization settings' X-Road.
+  3. **Credential types load when picked** (decision 2), dropping the
+     picker's description line.
+  4. **Audit trail: item type leads** (decision 3): the item type filter
+     first, the event filter after it.
+  Then the convergence items: ProjectSettingsPage into its folder; the
+  system and service pages reading the X-Road identity from the API;
+  WorkflowEditorPage.
 - **Moving types:** `python3 scripts/move-types.py <from> <to> Name…` moves
   exported declarations (with their doc comments) and rewrites every import
   under src/. Then `npx tsc -b` and add the target's own imports. It cuts a
@@ -198,7 +203,19 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     → 10; tests 157 → 168.
     ([#200](https://github.com/brandonjackson/openfn-ia-demo/pull/200))
 
-**PRs done: 10 of 10.** The brief's stop point. Pull openfn-3-poc again at PR 10.
+11. **Brandon's decisions recorded; design-system tidy-ups (decision 6) and
+    Create project's button (decision 4, first form).** `Modal` traps focus:
+    it moves in on open, Tab wraps, Escape closes, and focus goes back to the
+    opener. Create project is a `Modal` titled "Create project", its button
+    always enabled, saying "Enter a project name" under the field (and
+    focusing it) when pressed without one. Projects search is `SearchInput`,
+    the list sits at 16px, and the count and "No description" are gray-500.
+    CLAUDE.md now says no form disables its submit button to say it isn't
+    ready. Counts: classNamesInDomain 707 → 699; classNamesInPages 107 →
+    106; tests 168 → 170.
+    ([#201](https://github.com/brandonjackson/openfn-ia-demo/pull/201))
+
+**PRs done: 11** (10 for the brief, then Brandon's decisions). Pull openfn-3-poc again at PR 10.
 
 ## Decided by Brandon (6 Nov 2026)
 

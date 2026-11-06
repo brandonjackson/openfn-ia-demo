@@ -20,7 +20,7 @@ export default function ProjectCard({ project }: Props) {
       icon={Folder}
       title={project.name}
       description={
-        project.description || <span className="italic text-gray-400">No description</span>
+        project.description || <span className="italic text-gray-500">No description</span>
       }
       meta={
         <>

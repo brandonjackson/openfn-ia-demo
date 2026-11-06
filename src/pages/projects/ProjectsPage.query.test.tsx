@@ -77,7 +77,7 @@ describe("ProjectsPageQuery", () => {
 
   async function createProject(name: string) {
     fireEvent.click((await screen.findAllByRole("button", { name: "New project" }, wait))[0]!);
-    fireEvent.change(screen.getByLabelText("Project name"), { target: { value: name } });
+    fireEvent.change(screen.getByLabelText(/^Project name/), { target: { value: name } });
     fireEvent.click(screen.getByRole("button", { name: "Create project" }));
   }
 
@@ -100,6 +100,6 @@ describe("ProjectsPageQuery", () => {
     renderRoute();
     await createProject("payroll");
     expect((await screen.findByRole("alert", {}, wait)).textContent).toBe("has already been taken");
-    expect(screen.getByLabelText("Project name")).toBeTruthy();
+    expect(screen.getByLabelText(/^Project name/)).toBeTruthy();
   });
 });

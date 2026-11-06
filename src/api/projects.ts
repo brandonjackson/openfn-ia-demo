@@ -1,7 +1,8 @@
 /** Projects and their members on Lightning's API (api/projects.md): the API's shape, its mappers, its keys, and the hooks a .query wrapper calls. */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { DigestFrequency, ProjectRole } from "../model/project-settings";
-import type { InstanceUserSummary, ProjectAction, ProjectDetails, ProjectMember, RetentionPolicy } from "../model/projects";
+import { projectSummaries, type InstanceUserSummary, type ProjectAction, type ProjectDetails, type ProjectMember, type ProjectSummary, type RetentionPolicy } from "../model/projects";
+import { useAllServices } from "./services";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
@@ -103,6 +104,20 @@ export function useProjectList(): { status: LoadStatus; projects: ProjectDetails
     select: (rows) => rows.map(toProject),
   });
   return { status: statusOf(query), projects: query.data ?? [] };
+}
+
+/**
+ * The cards for the projects you can open (members only, none being
+ * deleted), for the Projects list and Overview. With `withServices`, each
+ * counts its published services once they've loaded; without, or if they
+ * fail to load, the cards show no counts rather than wrong ones, and the list
+ * still shows.
+ */
+export function useProjectSummaries(withServices: boolean): { status: LoadStatus; projects: ProjectSummary[] } {
+  const { status, projects } = useProjectList();
+  const { status: servicesStatus, services } = useAllServices(withServices);
+  const counted = withServices && servicesStatus.state === "ready" ? services : undefined;
+  return { status, projects: projectSummaries(projects, counted) };
 }
 
 /** One project, with your permissions in it. Not found (or not yours to see) is `notFound`. */

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { X, FolderPlus } from "lucide-react";
 import Button from "../primitives/Button";
 import FormField from "../primitives/FormField";
@@ -46,6 +46,7 @@ function CreateProjectModal({
   onClose: () => void;
   onCreate: (project: NewProjectInput) => Promise<void>;
 }) {
+  const id = useId();
   const [name, setName] = useState("");
   const [environment, setEnvironment] = useState("main");
   const [description, setDescription] = useState("");
@@ -90,6 +91,7 @@ function CreateProjectModal({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close"
             className="rounded-md p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
           >
             <X size={18} />
@@ -118,8 +120,10 @@ function CreateProjectModal({
               label="Project name"
               hint={slug ? `Your project will be named ${slug}` : "Lowercase letters, numbers and hyphens."}
               error={nameError}
+              htmlFor={`${id}-name`}
             >
               <TextInput
+                id={`${id}-name`}
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -129,8 +133,9 @@ function CreateProjectModal({
             </FormField>
 
             {/* Environment */}
-            <FormField label="Project environment" hint="Credentials will be loaded with values from this environment." error={envError}>
+            <FormField label="Project environment" hint="Credentials will be loaded with values from this environment." error={envError} htmlFor={`${id}-env`}>
               <TextInput
+                id={`${id}-env`}
                 type="text"
                 value={environment}
                 onChange={(e) => setEnvironment(e.target.value)}
@@ -138,8 +143,9 @@ function CreateProjectModal({
             </FormField>
 
             {/* Description */}
-            <FormField label="Project description" hint={`${description.length}/240 characters`} error={descriptionError}>
+            <FormField label="Project description" hint={`${description.length}/240 characters`} error={descriptionError} htmlFor={`${id}-description`}>
               <TextArea
+                id={`${id}-description`}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe what this project is used for..."

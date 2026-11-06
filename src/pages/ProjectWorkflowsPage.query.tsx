@@ -8,7 +8,7 @@ import { combine } from "../api/status";
 import { useWorkOrders } from "../api/work-orders";
 import { fixtureProject } from "../fixtures/projects";
 import ProjectWorkflowsPage from "./ProjectWorkflowsPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 import { asListItem, byWorkflow } from "./project-records.query";
 
 /** Feeds a project's Workflows list from the API, each row counting its work orders there: switching one on or off goes through its trigger, and deleting marks it deleted. */

@@ -15,7 +15,7 @@ import type { WorkOrder } from "../model/workflow";
 import { activityTiles, workOrderActivity } from "../model/runs";
 import { fixtureProject } from "../fixtures/projects";
 import ProjectPage from "./ProjectPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 import { componentsFor } from "./flagged.fixtures";
 import { asListItem, asProject, byWorkflow, LIST_PERIOD } from "./project-records.query";
 import { useProjectChannels } from "./channel-records.query";

@@ -4,7 +4,7 @@ import { useProject } from "../api/projects";
 import { fixtureProject } from "../fixtures/projects";
 import { buildProjectInsightsData, insightsData } from "../fixtures/insights";
 import InsightsPage from "./InsightsPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 
 /**
  * Feeds Insights: the organisation's, or one project's. The project comes

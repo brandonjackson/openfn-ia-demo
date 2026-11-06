@@ -1,4 +1,5 @@
-import type { ProjectComponentType, ProjectServiceItem, ProjectSummary } from "./page-data";
+import type { ProjectComponentType, ProjectServiceItem } from "./page-data";
+import { timeAgo } from "./time";
 
 export type ProjectService = ProjectServiceItem;
 
@@ -24,7 +25,22 @@ export interface Project {
   components: ProjectComponent[];
 }
 
-/** Card-sized summary of a project, used by the Projects list. */
+/** A project's card on the Projects list and Overview. */
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  description: string;
+  environment: string;
+  /** How long ago a workflow in it last changed ("3 days ago"). */
+  lastActivity: string;
+  memberCount: number;
+  workflowCount: number;
+  /** Its published services, and how many are live. Absent without the service catalog. */
+  serviceCount?: number;
+  liveServiceCount?: number;
+}
+
+/** A fixture project's card, for stories. */
 export function summarizeProject(project: Project): ProjectSummary {
   return {
     id: project.id,
@@ -38,6 +54,36 @@ export function summarizeProject(project: Project): ProjectSummary {
     liveServiceCount: project.services.filter((s) => s.status === "Live").length,
   };
 }
+
+/**
+ * A project's card from the API: its counts from `include=stats`, and its
+ * services' counts when it's given them (leave `services` out without the
+ * service catalog, and the card shows none).
+ */
+export function toProjectSummary(details: ProjectDetails, services?: Pick<ProjectService, "status">[]): ProjectSummary {
+  return {
+    id: details.id,
+    name: details.name,
+    description: details.description,
+    environment: details.env,
+    lastActivity: timeAgo(details.lastActivity ?? null),
+    memberCount: details.collaboratorsCount ?? 0,
+    workflowCount: details.workflowsCount ?? 0,
+    ...(services && { serviceCount: services.length, liveServiceCount: services.filter((s) => s.status === "Live").length }),
+  };
+}
+
+/**
+ * The cards for the projects you can open, each with its own services'
+ * counts. Leave `services` out without the service catalog, or while they
+ * can't be loaded, and the cards show no counts rather than wrong ones.
+ */
+export function projectSummaries(projects: ProjectDetails[], services?: (Pick<ProjectService, "status"> & { projectId: string })[]): ProjectSummary[] {
+  return projects.filter(isOpenable).map((p) => toProjectSummary(p, services?.filter((s) => s.projectId === p.id)));
+}
+
+/** The projects you're a member of that aren't being deleted: what the projects list, Overview and the sidebar show. */
+export const isOpenable = (p: ProjectDetails) => !!p.role && !p.scheduledDeletion;
 
 /** How long a project keeps its history and its runs' data (Lightning's data retention). */
 export type RetentionPolicy = "retain_all" | "retain_with_errors" | "erase_all";

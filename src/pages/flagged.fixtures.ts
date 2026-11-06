@@ -1,7 +1,7 @@
 import type { FeatureFlags } from "../model/feature-flags";
 import { connectionOf, type ConnectedSystem } from "../model/connected-systems";
 import { connectedSystems } from "../fixtures/connected-systems";
-import type { ProjectComponentType, ProjectSummary } from "../model/page-data";
+import type { ProjectComponentType } from "../model/page-data";
 import type { ProjectComponent } from "../model/projects";
 import { componentTypes, isComponentTypeShown } from "../model/component-types";
 
@@ -20,12 +20,6 @@ export function isXRoadSystem(system: ConnectedSystem): boolean {
 export function systemsFor(flags: FeatureFlags, systems: ConnectedSystem[] = connectedSystems): ConnectedSystem[] {
   if (!flags.connectedSystems) return [];
   return flags.xroad ? systems : systems.filter((s) => !isXRoadSystem(s));
-}
-
-/** A project's summary without its service counts when there's no service catalog. */
-export function summaryFor<P extends ProjectSummary>(project: P, flags: FeatureFlags): P {
-  if (flags.serviceCatalog) return project;
-  return { ...project, serviceCount: undefined, liveServiceCount: undefined };
 }
 
 /**

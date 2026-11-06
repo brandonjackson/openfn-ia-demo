@@ -2,12 +2,11 @@ import { overviewData, statusTile } from "../fixtures/overview";
 import OverviewPage from "./OverviewPage";
 import Loaded from "../app/Loaded";
 import { useFlags } from "../app/feature-flags";
-import { useProjectList } from "../api/projects";
+import { useProjectSummaries } from "../api/projects";
 import { combine } from "../api/status";
 import { useConnectedSystems, useSystemSaves } from "../api/connected-systems";
 import { systemSummary } from "../model/connected-systems";
 import { useNavigate } from "react-router-dom";
-import { asSummary, isOpenable } from "./project-records.query";
 
 /**
  * Feeds Overview, the home page. It sits at "/", outside the IA tree, so it
@@ -18,7 +17,7 @@ import { asSummary, isOpenable } from "./project-records.query";
 export default function OverviewPageQuery() {
   const flags = useFlags();
   const navigate = useNavigate();
-  const { status, projects } = useProjectList();
+  const { status, projects } = useProjectSummaries(flags.serviceCatalog);
   const { status: systemsStatus, systems } = useConnectedSystems();
   const systemSaves = useSystemSaves();
   return (
@@ -29,7 +28,7 @@ export default function OverviewPageQuery() {
             ...overviewData,
             tiles: [statusTile(flags.connectedSystems), ...overviewData.tiles.slice(1)],
             connectedSystems: flags.connectedSystems ? systems.map(systemSummary) : undefined,
-            projects: projects.filter(isOpenable).map((p) => asSummary(p, flags)),
+            projects,
           }}
           onAddSystem={async (input) => {
             const id = await systemSaves.add({ name: input.name, description: input.description, adaptor: input.adaptor, endpointUrl: input.endpointUrl, docsUrl: input.docsUrl });

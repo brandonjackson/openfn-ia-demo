@@ -6,7 +6,7 @@ import type { CatalogEntry } from "../model/page-data";
 import { serviceCatalogData } from "../fixtures/service-catalog";
 import { apiProjectId, projectOptions } from "../fixtures/projects";
 import ServicesPage from "./ServicesPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 import { useFlags } from "../app/feature-flags";
 
 /**

@@ -7,6 +7,7 @@ import type { ChannelDetails } from "./channels";
 import type { EcosystemStation, EcosystemWorkflow } from "./ecosystem";
 import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember, XRoadService } from "./xroad";
 import type { ConnectedSystem, ConnectionMethod } from "./connected-systems";
+import type { ProjectSummary } from "./projects";
 import type {
   DigestFrequency,
   HistoryExportStatus,
@@ -368,28 +369,6 @@ export interface InsightsPageData {
   tiles: StatTileData[];
   daily: DailyRuns[];
   projects: ProjectInsight[];
-}
-
-/* ------------------------------------------------------------------ */
-/*  Projects list                                                      */
-/* ------------------------------------------------------------------ */
-
-export interface ProjectSummary {
-  id: string;
-  name: string;
-  description: string;
-  environment: string;
-  lastActivity: string;
-  memberCount: number;
-  workflowCount: number;
-  /** Its published services, and how many are live. Absent without the service catalog. */
-  serviceCount?: number;
-  liveServiceCount?: number;
-}
-
-export interface ProjectsPageData {
-  pageType: "projects";
-  projects: ProjectSummary[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -1298,7 +1277,6 @@ export type PageData =
   | DashboardPageData
   | StatusPageData
   | InsightsPageData
-  | ProjectsPageData
   | ProjectPageData
   | ProjectWorkflowsPageData
   | ProjectComponentsPageData

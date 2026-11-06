@@ -13,7 +13,7 @@ import ChannelPage from "./ChannelPage";
 import ComponentPage from "./ComponentPage";
 import NotFoundPage from "./NotFoundPage";
 import { componentsFor } from "./flagged.fixtures";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 import { channelDraft } from "./channel-records.query";
 import { useProjectComponents } from "./component-records.query";
 

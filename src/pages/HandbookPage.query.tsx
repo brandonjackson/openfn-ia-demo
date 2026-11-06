@@ -3,7 +3,7 @@ import Loaded from "../app/Loaded";
 import { useHandbook, useHandbookFiles, useHandbookSaves } from "../api/handbook";
 import { combine } from "../api/status";
 import HandbookPage from "./HandbookPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 
 /**
  * Feeds the Handbook from the demo's handbook routes: the article, which

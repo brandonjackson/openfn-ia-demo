@@ -12,7 +12,7 @@ import { connectedSystems } from "../fixtures/connected-systems";
 import { directoryMember, orgXRoad, routeService } from "../fixtures/xroad";
 import SystemPage from "./SystemPage";
 import NotFoundPage from "./NotFoundPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 import { useFlags } from "../app/feature-flags";
 import { systemsFor } from "./flagged.fixtures";
 

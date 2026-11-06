@@ -25,7 +25,8 @@ function files(dir, test) {
   return out;
 }
 const src = (p) => join(root, "src", p);
-const isComponent = (p) => p.endsWith(".tsx") && !p.endsWith(".stories.tsx") && !p.endsWith(".fixtures.tsx") && !p.endsWith(".query.tsx");
+const isComponent = (p) =>
+  p.endsWith(".tsx") && ![".stories.tsx", ".fixtures.tsx", ".query.tsx", ".test.tsx"].some((end) => p.endsWith(end));
 const count = (paths, re) => paths.reduce((n, p) => n + (readFileSync(p, "utf8").match(re) ?? []).length, 0);
 
 const tiers = { primitives: "Primitives", domain: "Domain", patterns: "Patterns" };

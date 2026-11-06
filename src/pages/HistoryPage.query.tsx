@@ -14,8 +14,8 @@ import { sortableStamp } from "../fixtures/history";
 import { apiProjectId, fixtureProject, fixtureWorkflow } from "../fixtures/projects";
 import { apiWorkflowId } from "../fixtures/ids";
 import HistoryPage from "./HistoryPage";
-import { pageFrame } from "./route.fixtures";
-import { isOpenable } from "./project-records.query";
+import { pageFrame } from "../app/page-frame";
+import { isOpenable } from "../model/projects";
 
 /**
  * History's filters, from the URL: `?status=failed,cancelled`,

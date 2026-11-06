@@ -4,7 +4,7 @@ import Loaded from "../app/Loaded";
 import { useProject } from "../api/projects";
 import { buildCreatePageData } from "../fixtures/build-ideas";
 import ProjectCreatePage from "./ProjectCreatePage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 
 /** Feeds a project's Create page: the project from the API, and the ideas from fixtures. */
 export default function ProjectCreatePageQuery({ route }: { route: PageRoute }) {

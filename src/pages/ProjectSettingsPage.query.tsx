@@ -32,7 +32,7 @@ import {
 } from "../fixtures/project-settings";
 import { saveFile } from "../components/primitives/save-file";
 import ProjectSettingsPage from "./ProjectSettingsPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 import { asProject } from "./project-records.query";
 
 

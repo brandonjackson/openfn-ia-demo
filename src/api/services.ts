@@ -25,10 +25,10 @@ const toService = ({ id, attributes: { project_id, code, workflow_id, ...a } }: 
 
 const keys = { all: ["services"] as const };
 
-/** Every service in the organisation: the catalog's. */
-export function useAllServices(): { status: LoadStatus; services: ServiceRecord[] } {
-  const query = useQuery({ queryKey: keys.all, queryFn: () => listAll<ApiService>("/api/demo/services"), select: (rows) => rows.map(toService) });
-  return { status: statusOf(query), services: query.data ?? [] };
+/** Every service in the organisation: the catalog's. Pass `enabled: false` when the catalog is off, and it loads nothing. */
+export function useAllServices(enabled = true): { status: LoadStatus; services: ServiceRecord[] } {
+  const query = useQuery({ queryKey: keys.all, enabled, queryFn: () => listAll<ApiService>("/api/demo/services"), select: (rows) => rows.map(toService) });
+  return enabled ? { status: statusOf(query), services: query.data ?? [] } : { status: { state: "ready" }, services: [] };
 }
 
 /** A project's services. */

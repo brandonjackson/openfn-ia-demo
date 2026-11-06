@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import OrganizationSettingsPage from "./OrganizationSettingsPage";
-import { withRouter } from "../stories/decorators";
-import type { IANode } from "../model/ia-tree";
-import { organizationSettingsData } from "../fixtures/organization";
+import { withRouter } from "../../stories/decorators";
+import type { IANode } from "../../model/ia-tree";
+import { organizationSettingsData } from "../../fixtures/organization";
 
 const root: IANode = { id: "organization-settings", label: "Organization settings", pageType: "organization-settings" };
 const ancestors = [{ node: root, path: "/organization-settings" }];

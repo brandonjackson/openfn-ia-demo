@@ -4,9 +4,9 @@
  * layers, and the hooks Organization settings calls.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { BillingDetails, ContextLayer, OrganizationInvite, OrganizationMember, VisibilityScope } from "../model/page-data";
-import type { SecurityServerManager } from "../model/xroad";
-import { timeAgo } from "../model/time";
+import type { BillingDetails, ContextLayer, OrganizationInvite, OrganizationMember, VisibilityScope } from "../model/organization";
+import type { OrgXRoadSettings, SecurityServerManager, XRoadCertificate, XRoadMemberClass, XRoadSubsystem } from "../model/xroad";
+import { formatDate, timeAgo } from "../model/time";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
@@ -51,8 +51,24 @@ export interface Organization {
   canManageOwners: boolean;
 }
 
+/** The organisation's X-Road identity as GET /api/demo/organization/xroad sends it. */
+interface ApiXRoadIdentity {
+  data: {
+    attributes: {
+      instance: string;
+      member_class: XRoadMemberClass;
+      member_code: string;
+      member_name: string;
+      subsystems: XRoadSubsystem[];
+      certificates: (Omit<XRoadCertificate, "expires"> & { expires_at: string })[];
+      security_servers: { id: string; code: string; address: string; version: string; enabled: boolean; last_seen_at: string | null }[];
+    };
+  };
+}
+
 const keys = {
   organization: ["organization"] as const,
+  xroad: ["organization", "xroad"] as const,
   members: ["organization", "members"] as const,
   layers: ["organization", "context_layers"] as const,
 };
@@ -73,6 +89,40 @@ export function useOrganization(): { status: LoadStatus; organization: Organizat
     }),
   });
   return { status: statusOf(query), organization: query.data };
+}
+
+/**
+ * The organisation's identity on X-Road, which the X-Road operator sets, with
+ * who manages its Security Server (saved on the organisation). Loads nothing
+ * while `enabled` is false.
+ */
+export function useOrganizationXRoad(
+  managedBy: SecurityServerManager | undefined,
+  enabled: boolean,
+): { status: LoadStatus; xroad: OrgXRoadSettings | undefined } {
+  const query = useQuery({
+    queryKey: keys.xroad,
+    queryFn: () => request<ApiXRoadIdentity>("GET", "/api/demo/organization/xroad"),
+    enabled,
+  });
+  if (!enabled) return { status: { state: "ready" }, xroad: undefined };
+  const a = query.data?.data.attributes;
+  return {
+    status: statusOf(query),
+    xroad:
+      a && managedBy
+        ? {
+            instance: a.instance,
+            memberClass: a.member_class,
+            memberCode: a.member_code,
+            memberName: a.member_name,
+            subsystems: a.subsystems,
+            certificates: a.certificates.map(({ expires_at, ...c }) => ({ ...c, expires: formatDate(expires_at) })),
+            securityServers: a.security_servers.map((v) => ({ id: v.id, code: v.code, address: v.address, version: v.version, enabled: v.enabled, lastSeen: timeAgo(v.last_seen_at) })),
+            managedBy,
+          }
+        : undefined,
+  };
 }
 
 /** Everyone in the organisation, owners first; someone invited who hasn't joined shows as invited. */

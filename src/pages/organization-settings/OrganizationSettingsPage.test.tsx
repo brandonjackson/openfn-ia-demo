@@ -1,0 +1,78 @@
+import { fireEvent, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { FormError } from "../../model/form-error";
+import { renderPage } from "../../test/renderPage";
+import OrganizationSettingsPage, { type OrganizationSettingsPageData, type OrganizationSettingsPageProps } from "./OrganizationSettingsPage";
+
+const data: OrganizationSettingsPageData = {
+  name: "Ministry of Health",
+  members: [
+    { id: "m1", name: "Amina Diallo", email: "amina@example.org", role: "Owner", lastActive: "Today" },
+    { id: "m2", name: "Tomas Reyes", email: "tomas@example.org", role: "Member", lastActive: "Yesterday" },
+  ],
+  visibility: { projects: "project" },
+  contextLayers: [],
+  xroadUsage: { systems: 0, services: 0 },
+  billing: { plan: "Core", price: "$1,200 / month", renewsOn: "1 Nov 2026", runsUsed: 100, runsIncluded: 1000, invoices: [] },
+};
+
+const actions = [
+  "onInviteMember",
+  "onChangeMemberRole",
+  "onRemoveMember",
+  "onSaveVisibility",
+  "onSaveSecurityServerManager",
+  "onRequestContextAccess",
+  "onRemoveContextLayer",
+] satisfies (keyof OrganizationSettingsPageProps)[];
+
+const frame = (section: string, label: string, pageData: OrganizationSettingsPageData) => ({
+  node: { id: section, label, pageType: "organization-settings" as const },
+  ancestors: [{ node: { id: "organization-settings", label: "Organization settings" }, path: "/organization-settings" }],
+  currentPath: `/organization-settings/${section}`,
+  data: pageData,
+});
+
+const draw = (section = "members", label = "Members", pageData = data) =>
+  renderPage(OrganizationSettingsPage, { ...frame(section, label, pageData), assignableRoles: ["Admin", "Member"] }, actions);
+
+function invite(email: string) {
+  fireEvent.click(screen.getByRole("button", { name: "Invite member" }));
+  fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: email } });
+  fireEvent.click(screen.getByRole("button", { name: "Send invitation" }));
+}
+
+describe("OrganizationSettingsPage", () => {
+  it("lists the organisation's members", () => {
+    draw();
+    expect(screen.getByText("Amina Diallo")).toBeTruthy();
+    expect(screen.getByText("Tomas Reyes")).toBeTruthy();
+  });
+
+  it("sends an invitation, waits while it's sent, then closes the form", async () => {
+    const host = draw();
+    invite("new.person@example.org");
+    expect(host.calls("onInviteMember")).toEqual([[{ email: "new.person@example.org", role: "Member" }]]);
+    expect((screen.getByRole("button", { name: "Send invitation" }) as HTMLButtonElement).disabled).toBe(true);
+    await host.resolve("onInviteMember");
+    expect(screen.queryByRole("button", { name: "Send invitation" })).toBeNull();
+  });
+
+  it("keeps the form open, saying why under the email, when the server refuses it", async () => {
+    const host = draw();
+    invite("tomas@example.org");
+    await host.reject("onInviteMember", new FormError("The invitation could not be sent.", { email: ["is already in the organisation"] }));
+    expect(screen.getByText(/is already in the organisation/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Send invitation" })).toBeTruthy();
+  });
+
+  it("reads only, with no invite button, when it's given no actions", () => {
+    renderPage(OrganizationSettingsPage, frame("members", "Members", data), []);
+    expect(screen.queryByRole("button", { name: "Invite member" })).toBeNull();
+  });
+
+  it("leaves out the X-Road section's identity when the organisation isn't on X-Road", () => {
+    draw("xroad", "X-Road");
+    expect(screen.queryByText("Member code")).toBeNull();
+  });
+});

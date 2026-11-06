@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import { errorMessageOf, fieldErrorOf } from "../../model/form-error";
-import type { OrganizationInvite, OrganizationMember } from "../../model/page-data";
+import type { OrganizationInvite, OrganizationMember } from "../../model/organization";
 import Button from "../primitives/Button";
 import Callout from "../primitives/Callout";
 import FormField from "../primitives/FormField";

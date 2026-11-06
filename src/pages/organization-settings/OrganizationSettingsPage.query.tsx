@@ -1,18 +1,17 @@
-import type { PageRoute } from "../app/ia-utils";
-import Loaded from "../app/Loaded";
-import { useFlags } from "../app/feature-flags";
-import { useContextLayers, useOrganization, useOrganizationMembers, useOrganizationSaves } from "../api/organization";
-import { combine } from "../api/status";
-import { organizationRoles } from "../model/page-data";
-import { orgXRoad } from "../fixtures/xroad";
+import type { PageRoute } from "../../app/ia-utils";
+import Loaded from "../../app/Loaded";
+import { useFlags } from "../../app/feature-flags";
+import { useContextLayers, useOrganization, useOrganizationMembers, useOrganizationSaves, useOrganizationXRoad } from "../../api/organization";
+import { combine } from "../../api/status";
+import { organizationRoles } from "../../model/organization";
 import OrganizationSettingsPage from "./OrganizationSettingsPage";
-import { pageFrame } from "../app/page-frame";
+import { pageFrame } from "../../app/page-frame";
 
 /**
  * Feeds Organization settings from the demo's organisation routes: members,
  * visibility defaults, who manages the Security Server, and context layers
- * save there. The rest of the X-Road identity is the fixtures' (the X-Road
- * operator sets it, not this page). Owners and admins get the actions;
+ * save there. The rest of the X-Road identity is read from its own route (the
+ * X-Road operator sets it, not this page). Owners and admins get the actions;
  * anyone else reads. What the feature flags turn off is left out.
  */
 export default function OrganizationSettingsPageQuery({ route }: { route: PageRoute }) {
@@ -20,10 +19,11 @@ export default function OrganizationSettingsPageQuery({ route }: { route: PageRo
   const { status, organization: org } = useOrganization();
   const { status: membersStatus, members } = useOrganizationMembers();
   const { status: layersStatus, layers } = useContextLayers();
+  const { status: xroadStatus, xroad } = useOrganizationXRoad(org?.managedBy, flags.xroad);
   const saves = useOrganizationSaves();
 
   return (
-    <Loaded status={combine(status, membersStatus, layersStatus)} path={route.currentPath}>
+    <Loaded status={combine(status, membersStatus, layersStatus, xroadStatus)} path={route.currentPath}>
       {() => {
         const o = org!;
         const manage = o.canManage;
@@ -31,7 +31,6 @@ export default function OrganizationSettingsPageQuery({ route }: { route: PageRo
           <OrganizationSettingsPage
             {...pageFrame(route)}
             data={{
-              pageType: "organization-settings",
               name: o.name,
               members,
               // Without a feature, there's nothing of it to set a default for.
@@ -41,7 +40,7 @@ export default function OrganizationSettingsPageQuery({ route }: { route: PageRo
                 services: flags.serviceCatalog ? o.visibility.services : undefined,
               },
               contextLayers: layers,
-              xroad: flags.xroad ? { ...orgXRoad, managedBy: o.managedBy } : undefined,
+              xroad,
               xroadUsage: o.xroadUsage,
               billing: o.billing,
             }}

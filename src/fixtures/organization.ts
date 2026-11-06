@@ -1,11 +1,11 @@
-import type { OrganizationSettingsPageData } from "../model/page-data";
+import type { OrganizationSettings } from "../model/organization";
 import { connectionOf } from "../model/connected-systems";
 import { connectedSystems } from "./connected-systems";
 import { orgXRoad } from "./xroad";
 import { projects } from "./projects";
 
-export const organizationSettingsData: OrganizationSettingsPageData = {
-  pageType: "organization-settings",
+/** The organisation's settings, which the fake server is seeded from. */
+export const organizationSettingsData: OrganizationSettings = {
   name: orgXRoad.memberName,
   members: [
     { id: "m-1", name: "Jane Doe", email: "jane.doe@example.org", role: "Owner", lastActive: "Today" },

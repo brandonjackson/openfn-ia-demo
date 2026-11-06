@@ -11,19 +11,21 @@
  *   and only an owner makes or unmakes another.
  * - Visibility defaults and who manages the Security Server are saved with
  *   `PATCH /api/demo/organization`; the rest of the X-Road identity is set
- *   by the X-Road operator, not here.
+ *   by the X-Road operator, not here, and read from
+ *   `GET /api/demo/organization/xroad`.
  * - A context layer is requested by its URL and waits for its owners'
  *   approval; it's removed (or the request cancelled) with `DELETE`.
  * - Billing is read only.
  * Anyone in the organisation reads all of it; owners and admins change it.
  */
 import { organizationSettingsData } from "../fixtures/organization";
+import { orgXRoad } from "../fixtures/xroad";
 import { seedId } from "../fixtures/ids";
-import type { ContextLayer, OrganizationMember, VisibilityScope } from "../model/page-data";
+import type { ContextLayer, OrganizationMember, VisibilityScope } from "../model/organization";
 import { securityServerManagerLabels, type SecurityServerManager } from "../model/xroad";
 import { badId, conflict, forbidden, invalid, isUuid, json, noContent, notFound, now, ORIGIN, paged, unknownKeys, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
-import { ago, table } from "./db";
+import { ago, seedTime, table } from "./db";
 import { currentUserId } from "./session";
 import { findUser, findUserByEmail, fullName } from "./users";
 import { systems } from "./connected-systems";
@@ -162,6 +164,25 @@ export const organizationRoutes: Record<string, Handler> = {
           role: myRole() ?? null,
           permissions: { manage: canManage(), manage_owners: myRole() === "Owner" },
           updated_at: o.updated_at,
+        },
+      },
+    });
+  },
+  // The organisation's identity on X-Road, which the X-Road operator sets: read only. Who manages its Security Server is on the organisation.
+  "GET /api/demo/organization/xroad": () => {
+    const x = orgXRoad;
+    return json(200, {
+      data: {
+        type: "xroad_identities",
+        id: seedId("xroad_identity", `${x.instance}/${x.memberClass}/${x.memberCode}`),
+        attributes: {
+          instance: x.instance,
+          member_class: x.memberClass,
+          member_code: x.memberCode,
+          member_name: x.memberName,
+          subsystems: x.subsystems,
+          certificates: x.certificates.map((c) => ({ id: c.id, kind: c.kind, subject: c.subject, issuer: c.issuer, expires_at: seedTime(c.expires), status: c.status })),
+          security_servers: x.securityServers.map((v) => ({ id: v.id, code: v.code, address: v.address, version: v.version, enabled: v.enabled, last_seen_at: seedTime(v.lastSeen) })),
         },
       },
     });

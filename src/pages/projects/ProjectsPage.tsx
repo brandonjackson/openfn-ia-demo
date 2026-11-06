@@ -8,7 +8,7 @@ import Button from "../../components/primitives/Button";
 import Stack from "../../components/primitives/Stack";
 import Text from "../../components/primitives/Text";
 import EmptyState from "../../components/primitives/EmptyState";
-import { TextInput } from "../../components/primitives/FormControls";
+import SearchInput from "../../components/primitives/SearchInput";
 import ProjectCard from "../../components/domain/ProjectCard";
 import CreateProjectFlow, { type NewProjectInput } from "../../components/domain/CreateProjectFlow";
 
@@ -48,8 +48,7 @@ export default function ProjectsPage({ node, ancestors, data, onCreateProject }:
         description={node.description}
         actions={
           <>
-            <TextInput
-              type="search"
+            <SearchInput
               placeholder="Search projects…"
               aria-label="Search projects"
               value={query}
@@ -64,8 +63,8 @@ export default function ProjectsPage({ node, ancestors, data, onCreateProject }:
         }
       />
 
-      <div className="space-y-3">
-        <Text size="xs" tone="subtle" block>
+      <Stack gap="md">
+        <Text size="xs" tone="muted" block role="status">
           {filtered.length} project{filtered.length !== 1 ? "s" : ""}
         </Text>
 
@@ -89,7 +88,7 @@ export default function ProjectsPage({ node, ancestors, data, onCreateProject }:
             }
           />
         )}
-      </div>
+      </Stack>
 
       <CreateProjectFlow
         open={createOpen}

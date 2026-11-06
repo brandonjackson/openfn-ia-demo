@@ -25,7 +25,7 @@ const draw = (projects: ProjectSummary[]) => renderPage(ProjectsPage, { ...frame
 
 function fillInAndCreate(name: string) {
   fireEvent.click(screen.getAllByRole("button", { name: "New project" })[0]!);
-  fireEvent.change(screen.getByLabelText("Project name"), { target: { value: name } });
+  fireEvent.change(screen.getByLabelText(/^Project name/), { target: { value: name } });
   fireEvent.click(screen.getByRole("button", { name: "Create project" }));
 }
 
@@ -67,12 +67,41 @@ describe("ProjectsPage", () => {
     expect(screen.queryByLabelText("Project name")).toBeNull();
   });
 
+  it("says a name is needed, under the field and focused, when Create is pressed without one", () => {
+    const host = draw([]);
+    fireEvent.click(screen.getAllByRole("button", { name: "New project" })[0]!);
+    const create = screen.getByRole("button", { name: "Create project" }) as HTMLButtonElement;
+    expect(create.disabled).toBe(false);
+    fireEvent.click(create);
+    expect(host.calls("onCreateProject")).toEqual([]);
+    expect(screen.getByRole("alert").textContent).toBe("Enter a project name");
+    expect(document.activeElement).toBe(screen.getByLabelText(/^Project name/));
+  });
+
+  it("keeps Tab inside the form both ways, closes on Escape, and gives focus back to New project", () => {
+    draw([]);
+    const opener = screen.getAllByRole("button", { name: "New project" })[0]!;
+    opener.focus();
+    fireEvent.click(opener);
+    const dialog = screen.getByRole("dialog", { name: "Create project" });
+    expect(document.activeElement).toBe(screen.getByLabelText(/^Project name/));
+    screen.getByRole("button", { name: "Create project" }).focus();
+    fireEvent.keyDown(document, { key: "Tab" });
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Close" }));
+    fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Create project" }));
+    expect(dialog.contains(document.activeElement)).toBe(true);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(opener);
+  });
+
   it("keeps the form open with the server's reason under the field it names when the create is refused", async () => {
     const host = draw([]);
     fillInAndCreate("payroll");
     await host.reject("onCreateProject", new FormError("The project wasn't valid.", { name: ["has already been taken"] }));
     expect(screen.getByRole("alert").textContent).toBe("has already been taken");
-    expect(screen.getByLabelText("Project name")).toBeTruthy();
+    expect(screen.getByLabelText(/^Project name/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Create project" })).toBeTruthy();
   });
 

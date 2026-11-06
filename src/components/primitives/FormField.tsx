@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { cloneElement, isValidElement, useId, type ReactNode } from "react";
 
 interface Props {
   label: string;
@@ -15,10 +15,23 @@ interface Props {
   children: ReactNode;
 }
 
+type Described = { "aria-describedby"?: string; "aria-invalid"?: boolean; "aria-required"?: boolean };
+
 /**
- * Label + control + hint. Wrap any control from `FormControls` in this.
+ * Label + control + hint. Wrap any control from `FormControls` in this. A
+ * single control is told, for screen readers, what its hint or error says,
+ * whether it's invalid and whether it's required.
  */
 export default function FormField({ label, htmlFor, hint, error, required = false, optional = false, children }: Props) {
+  const noteId = useId();
+  const note = error || hint ? noteId : undefined;
+  const control = isValidElement<Described>(children)
+    ? cloneElement(children, {
+        "aria-describedby": [children.props["aria-describedby"], note].filter(Boolean).join(" ") || undefined,
+        ...(error && { "aria-invalid": true }),
+        ...(required && { "aria-required": true }),
+      })
+    : children;
   return (
     <div>
       <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700 mb-1">
@@ -28,15 +41,19 @@ export default function FormField({ label, htmlFor, hint, error, required = fals
             *
           </span>
         )}
-        {optional && <span className="font-normal text-gray-400"> (optional)</span>}
+        {optional && <span className="font-normal text-gray-500"> (optional)</span>}
       </label>
-      {children}
+      {control}
       {error ? (
-        <p role="alert" className="mt-1 text-xs text-red-600">
+        <p id={noteId} role="alert" className="mt-1 text-xs text-red-600">
           {error}
         </p>
       ) : (
-        hint && <p className="mt-1 text-xs text-gray-400">{hint}</p>
+        hint && (
+          <p id={noteId} className="mt-1 text-xs text-gray-500">
+            {hint}
+          </p>
+        )
       )}
     </div>
   );

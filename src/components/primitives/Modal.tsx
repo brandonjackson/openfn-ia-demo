@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { X } from "lucide-react";
 import IconButton from "./IconButton";
@@ -14,19 +14,57 @@ interface Props {
   widthClass?: string;
 }
 
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 /**
  * Centred dialog over a dimmed backdrop. Clicking the backdrop, the close
- * button or pressing Escape calls `onClose`.
+ * button or pressing Escape calls `onClose`. While it's open, focus stays
+ * inside it: it moves in when the dialog opens (unless a field already took
+ * it with `autoFocus`), Tab and Shift+Tab wrap around, and focus goes back to
+ * whatever had it before once the dialog closes.
  */
 export default function Modal({ open, title, onClose, children, footer, widthClass = "max-w-lg" }: Props) {
+  const dialog = useRef<HTMLDivElement>(null);
+  // Who had focus when it opened, read while rendering: by the time effects run, a field inside may have taken focus with autoFocus.
+  const [openedFrom, setOpenedFrom] = useState<{ open: boolean; opener: HTMLElement | null }>({ open: false, opener: null });
+  if (openedFrom.open !== open) {
+    setOpenedFrom({ open, opener: open && document.activeElement instanceof HTMLElement ? document.activeElement : null });
+  }
+  const opener = openedFrom.opener;
+  // Read through a ref, so a new onClose each render doesn't move focus again.
+  const close = useRef(onClose);
+  useEffect(() => {
+    close.current = onClose;
+  });
+
   useEffect(() => {
     if (!open) return;
+    const box = dialog.current;
+    if (!box) return;
+    const focusables = () => [...box.querySelectorAll<HTMLElement>(FOCUSABLE)];
+    if (!box.contains(document.activeElement)) (focusables()[0] ?? box).focus();
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") close.current();
+      if (e.key !== "Tab") return;
+      const all = focusables();
+      if (all.length === 0) return e.preventDefault();
+      const first = all[0]!;
+      const last = all[all.length - 1]!;
+      if (e.shiftKey && (document.activeElement === first || !box.contains(document.activeElement))) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && (document.activeElement === last || !box.contains(document.activeElement))) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      if (opener?.isConnected) opener.focus();
+    };
+  }, [open, opener]);
 
   if (!open) return null;
 
@@ -34,6 +72,8 @@ export default function Modal({ open, title, onClose, children, footer, widthCla
     <div className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-[10vh]">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       <div
+        ref={dialog}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={title}

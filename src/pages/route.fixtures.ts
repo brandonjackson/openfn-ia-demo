@@ -1,25 +1,12 @@
 import type { PageRoute } from "../app/ia-utils";
 import type { IANode, PageProps } from "../model/ia-tree";
-import type { Project } from "../model/projects";
 import { fixtureProject } from "../fixtures/projects";
 
 /*
  * What the page wrappers share about where a page sits, answered from
- * fixtures: which project a route is inside, and what its crumbs are called.
+ * fixtures: what its crumbs are called.
  * A wrapper on another data source answers the same questions from there.
  */
-
-/**
- * The project named in the URL: `undefined` outside a project, and `null`
- * when the URL names a project that doesn't exist (the wrapper then shows
- * Not Found).
- */
-export function routeProject(route: PageRoute): Project | null | undefined {
-  const id = route.params["project"];
-  if (!id) return undefined;
-  // The URL holds the project's id on the API; pages not yet on the API read its fixture.
-  return fixtureProject(id) ?? null;
-}
 
 /**
  * The crumbs above a page. Inside a project, the project's crumb shows the

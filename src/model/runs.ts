@@ -1,5 +1,6 @@
 /** A random 8-character hex id, like the short ids shown in history. */
-import type { AdaptorKind, Dataclip, RunDetails, RunStep, Workflow, WorkOrder } from "./workflow";
+import type { AdaptorKind, Dataclip, RunDetails, RunStatus, RunStep, Workflow, WorkOrder } from "./workflow";
+import type { StatTileData } from "./page-data";
 export function shortId(): string {
   return Math.floor(Math.random() * 0xffffffff)
     .toString(16)
@@ -48,6 +49,104 @@ export function periodStart(period: ActivityPeriod): string {
 export function runsInPeriod(workOrders: WorkOrder[], period: ActivityPeriod): RunDetails[] {
   const hours = activityPeriods.find((p) => p.id === period)?.hours ?? Infinity;
   return workOrders.flatMap((o) => o.runs).filter((r) => Math.max(0, MOCK_NOW - startedAt(r)) <= hours * 3600_000);
+}
+
+/**
+ * A run's "dd/mm/yyyy, HH:MM:SS" stamp as an ISO timestamp, reading the stamp
+ * as UTC, as the workflow lists print it.
+ */
+export function stampIso(stamp: string): string | undefined {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})$/.exec(stamp);
+  return m ? new Date(Date.UTC(+m[3], +m[2] - 1, +m[1], +m[4], +m[5], +m[6])).toISOString() : undefined;
+}
+
+/** What a set of work orders adds up to over a period: a workflow's row, or a whole project's. */
+export interface WorkOrderActivity {
+  /** Work orders received in the period. */
+  workOrders: number;
+  /** Of those, how many ended in a failed state. */
+  failedWorkOrders: number;
+  /** Runs started in the period, retries included. */
+  runs: number;
+  /** Day by day, oldest first, ending today: work orders received, of those failed, and runs started. */
+  daily: { workOrders: number; failed: number; runs: number }[];
+  /** Status of the most recent run, whenever it was; none if it has never run. */
+  latestRun?: RunStatus;
+  /** When the most recent run started, as an ISO timestamp. */
+  lastRunAt?: string;
+}
+
+const DAY = 24 * 3600_000;
+
+/**
+ * What `workOrders` add up to over `period`, counting back from the mock's
+ * "now". A work order counts on the day it was received (its first run), as
+ * History's "Received" filter has it, so these numbers are the ones History
+ * lists for the same period.
+ */
+export function workOrderActivity(workOrders: WorkOrder[], period: ActivityPeriod): WorkOrderActivity {
+  const hours = activityPeriods.find((p) => p.id === period)?.hours ?? 0;
+  const days = hours / 24;
+  const daily = Array.from({ length: days }, () => ({ workOrders: 0, failed: 0, runs: 0 }));
+  const endOfToday = new Date(MOCK_NOW).setHours(24, 0, 0, 0);
+  const within = (t: number) => Math.max(0, MOCK_NOW - t) <= hours * 3600_000;
+  const dayOf = (t: number) => daily[Math.max(0, days - 1 - Math.floor((endOfToday - 1 - Math.min(t, MOCK_NOW)) / DAY))];
+  let received = 0;
+  let failed = 0;
+  let runs = 0;
+  for (const order of workOrders) {
+    const first = order.runs[order.runs.length - 1];
+    const receivedAt = first ? stampTime(first.started) : MOCK_NOW;
+    if (within(receivedAt)) {
+      received += 1;
+      dayOf(receivedAt).workOrders += 1;
+      if (order.status === "failed") {
+        failed += 1;
+        dayOf(receivedAt).failed += 1;
+      }
+    }
+    for (const run of order.runs) {
+      if (!within(startedAt(run))) continue;
+      runs += 1;
+      dayOf(startedAt(run)).runs += 1;
+    }
+  }
+  const latest = workOrders.flatMap((o) => o.runs).reduce<RunDetails | undefined>((a, r) => (!a || startedAt(r) > startedAt(a) ? r : a), undefined);
+  return { workOrders: received, failedWorkOrders: failed, runs, daily, latestRun: latest?.status, lastRunAt: latest && stampIso(latest.started) };
+}
+
+/**
+ * A project Overview's headline tiles for `activity` over `period`: its work
+ * orders, how many failed and the runs they took. Each opens History (at
+ * `historyPath`) on the same work orders, so the numbers match it.
+ */
+export function activityTiles(activity: WorkOrderActivity, period: ActivityPeriod, historyPath: string): StatTileData[] {
+  const received = `${historyPath}?${new URLSearchParams({ received_after: periodStart(period) })}`;
+  const rate = activity.workOrders ? `${((activity.failedWorkOrders / activity.workOrders) * 100).toFixed(1)}%` : "0.0%";
+  const count = (n: number) => n.toLocaleString("en-US");
+  return [
+    {
+      label: "Work orders",
+      value: count(activity.workOrders),
+      detail: `Received in the ${activityPeriodLabel(period).toLowerCase()}`,
+      trend: activity.daily.map((d) => d.workOrders),
+      linkTo: received,
+    },
+    {
+      label: "Failed",
+      value: count(activity.failedWorkOrders),
+      detail: `${rate} of work orders`,
+      trend: activity.daily.map((d) => d.failed),
+      linkTo: `${received}&status=failed`,
+    },
+    {
+      label: "Runs",
+      value: count(activity.runs),
+      detail: "Retries included",
+      trend: activity.daily.map((d) => d.runs),
+      linkTo: received,
+    },
+  ];
 }
 
 /**

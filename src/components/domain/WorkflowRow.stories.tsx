@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowRow from "./WorkflowRow";
 import { withRouter } from "../../stories/decorators";
-import { projectWorkflowItems, projects } from "../../fixtures/projects";
+import { projects } from "../../fixtures/projects";
+import { projectWorkflowItems } from "../../fixtures/workflow-lookup";
 
 const [planning, decisions] = projectWorkflowItems(projects[0]);
 const chwWorkflows = projectWorkflowItems(projects[2]);

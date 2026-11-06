@@ -15,7 +15,7 @@
  * - `DELETE` marks it deleted: its triggers go off, it leaves every list and
  *   its GET is a 404. Its run history stays.
  */
-import { projects as fixtureProjects, projectWorkflowItems } from "../fixtures/projects";
+import { projects as fixtureProjects, projectWorkflowDetails } from "../fixtures/projects";
 import { authMethods } from "../fixtures/project-settings";
 import { nationalIdWorkflow, nationalIdWorkflowAt, surveillanceVersions, workflowGraphs, workflowVersions } from "../fixtures/workflow";
 import { apiNodeId, apiWorkflowId, cloneNodeId, newId, seedId } from "../fixtures/ids";
@@ -64,7 +64,7 @@ function seededGraph(slug: string, graph: Workflow): Workflow {
 function fixtureWorkflows() {
   const rows: { slug: string; name: string; projectSlug: string; graphAt: (version: string) => Workflow; versions: typeof workflowVersions; enabled: boolean; cron: boolean; updatedAt: string }[] = [];
   for (const p of fixtureProjects) {
-    for (const item of projectWorkflowItems(p)) {
+    for (const item of projectWorkflowDetails(p)) {
       const own = workflowGraphs[item.id];
       rows.push({
         slug: item.id,

@@ -508,112 +508,75 @@ export function serviceForWorkflow(
   return undefined;
 }
 
-/** Recent activity for each workflow, as shown on a project's Workflows list. */
-const workflowActivity: Record<
-  string,
-  Pick<
-    WorkflowListItem,
-    "latestRun" | "lastRunAt" | "members" | "updatedAt" | "enabled" | "triggerType" | "workOrders" | "failedWorkOrders"
-  >
-> = {
+/** A workflow on a project's Workflows list, before its run activity, which comes from its history. */
+export type WorkflowDetails = Omit<WorkflowListItem, "latestRun" | "lastRunAt" | "workOrders" | "failedWorkOrders">;
+
+/** Who edits each workflow, when it changed and how it's triggered. Its run counts come from its history (`projectWorkflowItems` in workflow-lookup). */
+const workflowFacts: Record<string, Pick<WorkflowDetails, "members" | "updatedAt" | "enabled" | "triggerType">> = {
   "planning-application-workflow": {
-    latestRun: "failed",
-    lastRunAt: "2026-10-30T09:12:00Z",
     members: ["Amadou Diallo", "Jane Doe", "Beth Wilson", "John Smith", "Priya Nair", "Kofi Boateng", "Lena Okafor"],
     updatedAt: "2026-07-09T17:24:00Z",
     enabled: true,
     triggerType: "webhook",
-    workOrders: 1284,
-    failedWorkOrders: 37,
   },
   "decision-notification-workflow": {
-    latestRun: "success",
-    lastRunAt: "2026-10-29T06:00:00Z",
     members: ["Jane Doe", "Beth Wilson"],
     updatedAt: "2026-09-18T11:05:00Z",
     enabled: true,
     triggerType: "cron",
-    workOrders: 30,
-    failedWorkOrders: 0,
   },
   "case-sync-workflow": {
-    latestRun: "success",
-    lastRunAt: "2026-10-30T08:41:00Z",
     members: ["John Smith", "Amadou Diallo", "Jane Doe"],
     updatedAt: "2026-10-02T14:30:00Z",
     enabled: true,
     triggerType: "webhook",
-    workOrders: 912,
-    failedWorkOrders: 4,
   },
   "chw-referral-workflow": {
-    latestRun: "running",
-    lastRunAt: "2026-10-30T10:02:00Z",
     members: ["Amadou Diallo", "Priya Nair", "Kofi Boateng", "Jane Doe", "John Smith"],
     updatedAt: "2026-10-27T16:48:00Z",
     enabled: true,
     triggerType: "webhook",
-    workOrders: 2417,
-    failedWorkOrders: 58,
   },
   "client-dedup-workflow": {
-    latestRun: "success",
-    lastRunAt: "2026-10-30T07:15:00Z",
     members: ["Priya Nair"],
     updatedAt: "2026-08-14T09:20:00Z",
     enabled: true,
     triggerType: "cron",
-    workOrders: 30,
-    failedWorkOrders: 1,
   },
   "referral-followup-workflow": {
-    latestRun: "failed",
-    lastRunAt: "2026-10-28T19:33:00Z",
     members: ["Kofi Boateng", "Amadou Diallo"],
     updatedAt: "2026-10-21T12:10:00Z",
     enabled: false,
     triggerType: "cron",
-    workOrders: 14,
-    failedWorkOrders: 9,
   },
   "register-case-workflow": {
-    latestRun: "success",
-    lastRunAt: "2026-10-20T09:51:00Z",
     members: ["Jane Doe", "Amadou Diallo"],
     updatedAt: "2026-10-15T10:40:00Z",
     enabled: true,
     triggerType: "webhook",
-    workOrders: 156,
-    failedWorkOrders: 3,
   },
   "weekly-case-report-workflow": {
-    latestRun: "success",
-    lastRunAt: "2026-10-19T06:00:00Z",
     members: ["Jane Doe"],
     updatedAt: "2026-10-06T08:12:00Z",
     enabled: true,
     triggerType: "cron",
-    workOrders: 4,
-    failedWorkOrders: 0,
   },
   "monthly-aggregate-workflow": {
     members: ["Jane Doe"],
     updatedAt: "2026-10-29T15:55:00Z",
     enabled: false,
     triggerType: "cron",
-    workOrders: 0,
-    failedWorkOrders: 0,
   },
 };
 
-/** A project's workflows with their service status and recent activity. */
-export function projectWorkflowItems(project: Project): WorkflowListItem[] {
+/** A project's workflows with their service status, members and trigger. */
+export function projectWorkflowDetails(project: Project): WorkflowDetails[] {
   return project.components
     .filter((c) => c.type === "Workflow")
     .map((c) => ({
       ...c,
       serviceStatus: project.services.find((s) => s.workflowId === c.id)?.status,
-      ...(workflowActivity[c.id] ?? { members: [], updatedAt: "2026-01-01T00:00:00Z", enabled: false, workOrders: 0, failedWorkOrders: 0 }),
+      ...(workflowFacts[c.id] ?? { members: [], updatedAt: "2026-01-01T00:00:00Z", enabled: false }),
     }));
 }
 
@@ -635,14 +598,13 @@ export const apiProjectId = (slug: string) => seedId("project", slug);
 
 /**
  * The fixture behind a workflow id from the API (or still a slug): its slug,
- * and its row on the workflows list (latest run, members, counts), for the
- * run history that hasn't moved to the API yet. Undefined for a workflow
+ * and its row on the workflows list (description, service status, members). Undefined for a workflow
  * made on the API.
  */
-export function fixtureWorkflow(id: string | undefined): { slug: string; item?: WorkflowListItem } | undefined {
+export function fixtureWorkflow(id: string | undefined): { slug: string; item?: WorkflowDetails } | undefined {
   if (!id) return undefined;
   for (const p of projects) {
-    for (const item of projectWorkflowItems(p)) {
+    for (const item of projectWorkflowDetails(p)) {
       if (item.id === id || seedId("workflow", item.id) === id) return { slug: item.id, item };
     }
   }

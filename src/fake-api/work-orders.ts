@@ -18,7 +18,7 @@
  * when it's done. Run, work order and dataclip ids are the demo's short ones,
  * not UUIDs, because the pages show them whole.
  */
-import { projects as fixtureProjects, projectWorkflowItems } from "../fixtures/projects";
+import { projects as fixtureProjects, projectWorkflowDetails } from "../fixtures/projects";
 import { nationalIdWorkflow } from "../fixtures/workflow";
 import { workflowHistory } from "../fixtures/workflow-lookup";
 import { simulateRun } from "../fixtures/runs";
@@ -57,7 +57,7 @@ export interface DataclipRow extends Dataclip {
 /** The fixture workflows that have a run history: each project's, and the national ID workflow in Project A. */
 function fixtureHistories() {
   const rows: { slug: string; projectSlug: string }[] = [];
-  for (const p of fixtureProjects) for (const item of projectWorkflowItems(p)) rows.push({ slug: item.id, projectSlug: p.id });
+  for (const p of fixtureProjects) for (const item of projectWorkflowDetails(p)) rows.push({ slug: item.id, projectSlug: p.id });
   if (!rows.some((r) => r.slug === nationalIdWorkflow.id)) rows.push({ slug: nationalIdWorkflow.id, projectSlug: "project-a" });
   return rows;
 }

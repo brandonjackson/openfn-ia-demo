@@ -3,6 +3,46 @@
 /** The kinds of record the audit trail follows. */
 export type AuditItemType = "workflow" | "credential" | "project" | "user" | "collection" | "channel" | "oauth_client";
 
+/**
+ * The events Lightning records, for the trail's event filter. The API lists
+ * events but not which names exist, so the names are fixed here.
+ */
+export const auditEventNames = [
+  "access_revoked",
+  "added_to_project",
+  "allow_support_access_updated",
+  "collaborator_added",
+  "collaborator_removed",
+  "collaborator_role_changed",
+  "context_removed",
+  "context_requested",
+  "created",
+  "dataclip_retention_period_updated",
+  "deleted",
+  "disabled",
+  "enabled",
+  "file_added",
+  "file_removed",
+  "history_retention_period_updated",
+  "marked_for_deletion",
+  "member_added",
+  "member_invited",
+  "member_removed",
+  "removed_from_project",
+  "removed_from_trigger",
+  "repo_connection_created",
+  "repo_connection_removed",
+  "requested",
+  "requires_mfa_updated",
+  "role_changed",
+  "snapshot_created",
+  "token_issued",
+  "token_refreshed",
+  "token_revoked",
+  "updated",
+  "updated_by_provisioner",
+] as const;
+
 /** One field an audited change touched. */
 export interface AuditChange {
   field: string;
@@ -30,7 +70,7 @@ export interface AuditEvent {
 
 /** Which audit events to show: the filters and the page. */
 export interface AuditQuery {
-  /** Matches the actor or the item's name or id. */
+  /** Matches the actor or the item's name or short id. */
   search: string;
   /** One event name, or "" for every event. */
   event: string;
@@ -47,7 +87,7 @@ export interface AuditPage {
   /** How many events match the filters, across all pages. */
   total: number;
   pageSize: number;
-  /** Every event name in the trail, for the event filter. */
+  /** The event names the event filter offers. */
   eventNames: string[];
 }
 

@@ -13,24 +13,20 @@ and to mark what would change the look.
 
 ## Now
 
-- **Branch:** `claude/intelligent-newton-2pncy4`. Each PR is shipped
-  (merged once CI is green) and the branch restarted from `main` before the
-  next: `git fetch origin main && git checkout -B
-  claude/intelligent-newton-2pncy4 origin/main`.
-- **PR in progress:** none. PRs 1 to 6 are merged; the next session starts
+- **Branch:** `claude/openfn-3-poc-convergence-upt3ey` (earlier sessions
+  used `claude/intelligent-newton-2pncy4`). Each PR is shipped (merged once
+  CI is green) and the branch restarted from `main` before the next: `git
+  fetch origin main && git checkout -B <branch> origin/main`.
+- **PR in progress:** none. PRs 1 to 7 are merged; the next session starts
   item 1 below on a branch restarted from `main`.
 - **Next three items**, one PR each:
-  1. **Admin settings' audit trail paged by the server.** `useAuditTrail`
-     takes the query; `GET /api/audit_events` filters by `event` and
-     `item_type` and pages (`page`, `page_size`); the wrapper keeps the query
-     in the URL (as History's does), not in `useState`. Free-text search is
-     an api-gap: until api/ has it, leave the search box out or keep it
-     client-side and say so (a question for Brandon if it changes the page).
-  2. **User settings into its folder**, on the credential and account types
+  1. **User settings into its folder**, on the credential and account types
      (in `model/credentials.ts` and `model/account.ts`).
-  3. **Organization settings into its folder** (`OrganizationMember`,
+  2. **Organization settings into its folder** (`OrganizationMember`,
      `ContextLayer` and the rest to `model/organization.ts`).
-  After those, the biggest pages: WorkflowEditorPage, ProjectSettingsPage.
+  3. **ProjectSettingsPage into its folder**, starting with the types it
+     takes from page-data.ts.
+  After those, WorkflowEditorPage.
 - **Moving types:** `python3 scripts/move-types.py <from> <to> Name…` moves
   exported declarations (with their doc comments) and rewrites every import
   under src/. Then `npx tsc -b` and add the target's own imports.
@@ -137,7 +133,20 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    Three api-gaps entries. Counts: wrappers reading fixtures 23 → 22 of 25;
    tests 112 → 119. ([#196](https://github.com/brandonjackson/openfn-ia-demo/pull/196))
 
-**PRs done: 6 of 10.** Pull openfn-3-poc again at PR 10.
+7. **Admin settings' audit trail paged by the server.** `useAuditTrail`
+   takes the query and asks `GET /api/audit_events` for one page, filtered
+   by `event` and `item_type`; `listPage` (`src/api/client.ts`) reads the
+   total from the last page, since the list sends no `meta`. The filters and
+   page live in the URL (`?q=&event=&item_type=&page=`), so Back steps
+   through them; a page past the end shows the last. Text search isn't in
+   api/, so only a search reads the whole filtered trail. The event filter
+   offers a fixed list of Lightning's event names (`auditEventNames`)
+   instead of the names found in the trail. Two api-gaps entries (one
+   rewritten). An unknown `?event=` or `?item_type=` is dropped. Counts:
+   ratchet unchanged; tests 119 → 128.
+   ([#197](https://github.com/brandonjackson/openfn-ia-demo/pull/197))
+
+**PRs done: 7 of 10.** Pull openfn-3-poc again at PR 10.
 
 ## Waiting on Brandon
 
@@ -166,3 +175,13 @@ says what and why.
   data loads, with the spinner or error in the content's place. Here
   `Loaded` replaces the whole page. Moving to the openfn-3 way changes what
   shows while loading.
+- **Audit trail's own loading and error state** (React and architecture
+  reviews, PR 7): the trail's status is combined into the whole page's, so
+  a failed audit request replaces every Admin settings tab with the error,
+  and nothing marks the old rows while the next page loads. Giving
+  `AuditTrail` its own status (a spinner or callout in the table's place,
+  dimmed rows while pending) would fix both; it changes what shows.
+- **Audit trail's event filter**: it now offers every event Lightning
+  records (33 names, from a fixed list) rather than only those already in
+  the trail, so some choices find nothing. If that's too long, group the
+  names by item type, or ask for the list in api/audit-events.md.

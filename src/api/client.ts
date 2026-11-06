@@ -71,6 +71,26 @@ export async function listAll<T>(path: string, key = "data"): Promise<T[]> {
   return rows;
 }
 
+/**
+ * One page of a paged list (api/conventions.md), which page it is (the last,
+ * when asked for one past the end) and how many rows the whole list holds.
+ * Lists that send no `meta` say only which page is last, so the total is
+ * read from that page: the full pages before it plus its own rows.
+ */
+export async function listPage<T>(path: string, page: number, pageSize: number): Promise<{ rows: T[]; page: number; total: number }> {
+  type Page = { data: T[]; links: { self: string; last: string }; meta?: { total_entries: number; total_pages: number } };
+  const pageOf = (link: string) => Number(new URL(link).searchParams.get("page"));
+  const at = (n: number): Promise<Page> => request("GET", `${path}${path.includes("?") ? "&" : "?"}page=${n}&page_size=${pageSize}`);
+  let shown = await at(page);
+  const last = shown.meta ? Math.max(shown.meta.total_pages, 1) : pageOf(shown.links.last);
+  // Lightning answers an empty page past the end; show the last one instead.
+  if (pageOf(shown.links.self) > last) shown = await at(last);
+  const served = Math.min(pageOf(shown.links.self), last);
+  if (shown.meta) return { rows: shown.data, page: served, total: shown.meta.total_entries };
+  const tail = last === served ? shown : await at(last);
+  return { rows: shown.data, page: served, total: (last - 1) * pageSize + tail.data.length };
+}
+
 /** One entry of a problem document's `errors` (api/errors.md): a `code`, a `detail` and one location. */
 export interface ProblemEntry {
   code: string;

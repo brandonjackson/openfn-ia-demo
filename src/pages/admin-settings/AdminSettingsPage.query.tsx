@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import type { PageRoute } from "../../app/ia-utils";
 import Loaded from "../../app/Loaded";
 import { pageFrame } from "../../app/page-frame";
@@ -7,9 +7,33 @@ import { useAdminProjects, useAdminSaves, useAdminUsers, useAuditTrail } from ".
 import { useCollectionSaves, useInstanceCollections } from "../../api/collections";
 import { useMaintenanceSaves, useMaintenanceTasks } from "../../api/maintenance";
 import { combine } from "../../api/status";
-import { filterAuditEvents } from "../../model/admin";
-import { AUDIT_PAGE_SIZE, type AuditQuery } from "../../model/audit-events";
+import { auditItemTypeLabels } from "../../model/admin";
+import { AUDIT_PAGE_SIZE, auditEventNames, type AuditItemType, type AuditQuery } from "../../model/audit-events";
 import AdminSettingsPage from "./AdminSettingsPage";
+
+/** The audit trail's query, as the URL holds it: `?q=…&event=…&item_type=…&page=…`. */
+function auditQueryFrom(params: URLSearchParams): AuditQuery {
+  // A name the trail doesn't know is dropped, so the filters show what's asked of the server.
+  const itemType = params.get("item_type") ?? "";
+  const event = params.get("event") ?? "";
+  return {
+    search: params.get("q") ?? "",
+    event: (auditEventNames as readonly string[]).includes(event) ? event : "",
+    itemType: Object.hasOwn(auditItemTypeLabels, itemType) ? (itemType as AuditItemType) : "",
+    page: Math.max(1, Math.floor(Number(params.get("page"))) || 1),
+  };
+}
+
+/** The URL's parameters for an audit query, leaving out what's unset. */
+function auditParamsFor(query: AuditQuery): URLSearchParams {
+  const entries: [string, string][] = [
+    ["q", query.search],
+    ["event", query.event],
+    ["item_type", query.itemType],
+    ["page", query.page > 1 ? String(query.page) : ""],
+  ];
+  return new URLSearchParams(entries.filter(([, v]) => v));
+}
 
 /**
  * Feeds Admin settings from the API. Users, projects (with their members),
@@ -18,14 +42,17 @@ import AdminSettingsPage from "./AdminSettingsPage";
  * sees, and every change lands in the audit trail as Lightning records it.
  * Deletions are only ever scheduled: the API has no "delete now". Testing a
  * provider before saving it and the maintenance jobs are on the demo's own
- * routes (docs/api-gaps.md).
+ * routes (docs/api-gaps.md). The audit trail's filters and page live in the
+ * URL, so Back steps through them and a link opens the same events.
  */
 export default function AdminSettingsPageQuery({ route }: { route: PageRoute }) {
   const { status: meStatus, me } = useMe();
   const { status: instanceStatus, instance } = useInstance();
   const { status: usersStatus, users } = useAdminUsers(me?.email ?? "");
   const { status: projectsStatus, projects } = useAdminProjects();
-  const { status: auditStatus, events } = useAuditTrail();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const auditQuery = auditQueryFrom(searchParams);
+  const audit = useAuditTrail(auditQuery, AUDIT_PAGE_SIZE);
   const saves = useAdminSaves();
   const { status: collectionsStatus, collections } = useInstanceCollections();
   const collectionSaves = useCollectionSaves();
@@ -33,13 +60,8 @@ export default function AdminSettingsPageQuery({ route }: { route: PageRoute }) 
   const providerSaves = useAuthProviderSaves();
   const { status: maintenanceStatus, tasks: maintenance } = useMaintenanceTasks();
   const maintenanceSaves = useMaintenanceSaves();
-  // Filtered here until the server pages and filters the audit trail (docs/convergence.md, Next).
-  const [auditQuery, setAuditQuery] = useState<AuditQuery>({ search: "", event: "", itemType: "", page: 1 });
-
-  const filtered = filterAuditEvents(events, auditQuery);
-  const start = (auditQuery.page - 1) * AUDIT_PAGE_SIZE;
   const emailOf = (userId: string) => users.find((u) => u.id === userId)?.email;
-  const status = combine(meStatus, instanceStatus, usersStatus, projectsStatus, auditStatus, collectionsStatus, providerStatus, maintenanceStatus);
+  const status = combine(meStatus, instanceStatus, usersStatus, projectsStatus, audit.status, collectionsStatus, providerStatus, maintenanceStatus);
 
   return (
     <Loaded status={status} path={route.currentPath}>
@@ -50,12 +72,12 @@ export default function AdminSettingsPageQuery({ route }: { route: PageRoute }) 
             users,
             projects,
             audit: {
-              entries: filtered.slice(start, start + AUDIT_PAGE_SIZE),
-              total: filtered.length,
+              entries: audit.entries,
+              total: audit.total,
               pageSize: AUDIT_PAGE_SIZE,
-              eventNames: [...new Set(events.map((e) => e.event))].sort(),
+              eventNames: [...auditEventNames],
             },
-            auditQuery,
+            auditQuery: { ...auditQuery, page: audit.page },
             authProvider,
             instanceUrl: instance!.url,
             collections,
@@ -72,7 +94,8 @@ export default function AdminSettingsPageQuery({ route }: { route: PageRoute }) 
           onUpdateProject={(id, draft) => saves.updateProject(id, projects.find((p) => p.id === id)!, draft)}
           onScheduleProjectDeletion={saves.scheduleProjectDeletion}
           onCancelProjectDeletion={saves.cancelProjectDeletion}
-          onChangeAuditQuery={setAuditQuery}
+          // Each change is a step Back can undo, except typing in the search, which would leave one per letter.
+          onChangeAuditQuery={(next) => setSearchParams(auditParamsFor(next), { replace: next.search !== auditQuery.search })}
           onTestAuthProvider={(draft) => providerSaves.test(draft.discoveryUrl)}
           onSaveAuthProvider={(draft) => providerSaves.save(draft)}
           onRemoveAuthProvider={providerSaves.remove}

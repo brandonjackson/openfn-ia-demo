@@ -1,5 +1,5 @@
 import { Globe, Pencil, Trash2 } from "lucide-react";
-import type { OAuthClient, ProjectOption } from "../../model/page-data";
+import type { OAuthClient, ProjectOption } from "../../model/credentials";
 import DataTable from "../primitives/DataTable";
 import type { DataTableColumn } from "../primitives/DataTable";
 import type { DropdownMenuItem } from "../primitives/DropdownMenu";

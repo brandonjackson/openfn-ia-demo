@@ -1,5 +1,5 @@
 import { Trash2 } from "lucide-react";
-import type { ApiToken } from "../../model/page-data";
+import type { ApiToken } from "../../model/account";
 import DataTable from "../primitives/DataTable";
 import type { DataTableColumn } from "../primitives/DataTable";
 import IconButton from "../primitives/IconButton";

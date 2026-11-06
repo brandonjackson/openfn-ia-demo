@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Braces, Plus, Trash2 } from "lucide-react";
-import type { CredentialDraft, CredentialEnvironmentValues, CredentialField, CredentialSchema, ProjectOption, UserCredential } from "../../model/page-data";
+import type { CredentialDraft, CredentialEnvironmentValues, CredentialField, CredentialSchema, ProjectOption, UserCredential } from "../../model/credentials";
 import { ENVIRONMENTS, credentialDraftErrors, environmentLabels, hasCredentialErrors, type Environment } from "../../model/credentials";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";

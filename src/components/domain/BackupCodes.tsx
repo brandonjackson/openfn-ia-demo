@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, Copy, Printer, RefreshCw } from "lucide-react";
-import type { BackupCode } from "../../model/page-data";
+import type { BackupCode } from "../../model/account";
 import Button from "../primitives/Button";
 import Callout from "../primitives/Callout";
 import ConfirmModal from "../primitives/ConfirmModal";

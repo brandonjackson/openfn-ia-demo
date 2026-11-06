@@ -1,11 +1,9 @@
 /*
- * The rules a credential, an OAuth client or an account form checks before
- * it's sent, written as pure functions over the values typed. They mirror
- * Lightning's changesets, so the form says what the server would say; the
- * server still has the last word (an email already taken, a code that's
- * wrong), and its answer comes back as a rejected promise.
+ * Credentials and OAuth clients as api/credentials.md has them, and the rules
+ * their forms check before they're sent: pure functions over the values
+ * typed, mirroring Lightning's changesets. The server still has the last
+ * word, and its answer comes back as a rejected promise.
  */
-import type { CredentialDraft, CredentialField, CredentialSchema } from "./page-data";
 
 /** What each environment is called in a form. */
 export const environmentLabels: Record<Environment, string> = {
@@ -28,25 +26,6 @@ export function isUrl(value: string): boolean {
   } catch {
     return false;
   }
-}
-
-/** Shortest and longest password Lightning accepts. */
-export const PASSWORD_MIN = 12;
-export const PASSWORD_MAX = 72;
-
-/** What's wrong with a new password and its confirmation, field by field. */
-export function passwordErrors(password: string, confirmation: string): { password?: string; confirmation?: string } {
-  const errors: { password?: string; confirmation?: string } = {};
-  if (!password) errors.password = "can't be blank";
-  else if (password.length < PASSWORD_MIN) errors.password = `should be at least ${PASSWORD_MIN} characters`;
-  else if (password.length > PASSWORD_MAX) errors.password = `should be at most ${PASSWORD_MAX} characters`;
-  if (confirmation !== password) errors.confirmation = "does not match password";
-  return errors;
-}
-
-/** A one-time code from an authenticator app: six digits. */
-export function isTotpCode(code: string): boolean {
-  return /^\d{6}$/.test(code.trim());
 }
 
 /** Scopes typed as a list, separated by commas or spaces. */
@@ -124,3 +103,102 @@ export function withoutSecrets(values: Record<string, string>, schema: Credentia
 export type Environment = "production" | "staging" | "mock";
 
 export const ENVIRONMENTS: Environment[] = ["production", "staging", "mock"];
+
+/** What kind of value a credential field takes, which decides its input. */
+export type CredentialFieldKind = "text" | "url" | "secret" | "number" | "boolean" | "json";
+
+/** One value a credential type asks for, from its adaptor's configuration schema. */
+export interface CredentialField {
+  /** Its key in the credential body, e.g. "hostUrl". */
+  key: string;
+  label: string;
+  kind: CredentialFieldKind;
+  /** One line on what to put in it. */
+  description?: string;
+  /** An example value shown in the empty input. */
+  placeholder?: string;
+  /** Whether the credential can't be saved without it. */
+  required?: boolean;
+  /** The value a new credential starts with, e.g. "5432" for a port. */
+  defaultValue?: string;
+}
+
+/** A kind of credential you can make: an adaptor's configuration schema, or raw JSON. */
+export interface CredentialSchema {
+  /** The schema's id, e.g. "dhis2" or "raw". */
+  id: string;
+  /** What it's called in the type picker, e.g. "DHIS2". */
+  name: string;
+  /** Adaptor id for its logo; absent for raw JSON. */
+  adaptor?: string;
+  /** One line on what it connects to. */
+  description: string;
+  /** What it asks for, in order. Raw JSON has one `json` field, `body`. */
+  fields: CredentialField[];
+}
+
+/**
+ * A credential's values for one environment. Secret fields never come back
+ * from the server: they're missing here even when they're set, and a blank
+ * secret on save keeps the one already stored. Booleans are "true" or "false";
+ * raw JSON is the whole body as text under `body`.
+ */
+export interface CredentialEnvironmentValues {
+  environment: Environment;
+  values: Record<string, string>;
+}
+
+export interface UserCredential {
+  id: string;
+  name: string;
+  /** Id of its `CredentialSchema`. */
+  schema: string;
+  /** An optional id it's known by in an outside system. */
+  externalId?: string;
+  /** Ids of the projects that can use it. */
+  projectIds: string[];
+  /** Its values per environment, at least one. A sandbox uses the environment its project names. */
+  environments: CredentialEnvironmentValues[];
+  createdAt: string;
+  /** Email of the person it's being handed to, while they haven't accepted yet. */
+  transferPendingTo?: string;
+}
+
+/** A credential as the form saves it: no `id` for a new one, and secrets in the values. */
+export type CredentialDraft = Omit<UserCredential, "id" | "createdAt" | "transferPendingTo"> & { id?: string };
+
+export interface OAuthClient {
+  id: string;
+  name: string;
+  /** Where people are sent to sign in and grant access. */
+  authorizationEndpoint: string;
+  /** Where OpenFn swaps the grant for tokens. */
+  tokenEndpoint: string;
+  /** Where OpenFn revokes a token it no longer needs. */
+  revocationEndpoint?: string;
+  /** Where OpenFn checks whether a token is still good. */
+  introspectionEndpoint?: string;
+  /** Where OpenFn reads who signed in. */
+  userinfoEndpoint?: string;
+  /** The app's id at the provider. The client secret never comes back from the server. */
+  clientId: string;
+  /** Scopes every credential made with this client asks for. */
+  mandatoryScopes: string[];
+  /** Scopes a credential may add. */
+  optionalScopes: string[];
+  /** Where the provider documents its scopes. */
+  scopesDocUrl?: string;
+  /** Any project on the instance can use it. Only superusers make global clients. */
+  global: boolean;
+  /** Ids of the projects that can use it, when it isn't global. */
+  projectIds: string[];
+}
+
+/** An OAuth client as the form saves it: no `id` for a new one, and a secret when one is typed. */
+export type OAuthClientDraft = Omit<OAuthClient, "id"> & { id?: string; clientSecret?: string };
+
+/** A project you could share a credential or OAuth client with. */
+export interface ProjectOption {
+  id: string;
+  name: string;
+}

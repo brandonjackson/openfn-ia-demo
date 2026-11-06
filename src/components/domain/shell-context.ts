@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 import type { Project } from "../../model/projects";
-import type { UserProfile } from "../../model/page-data";
+import type { UserProfile } from "../../model/account";
 import { allFlagsOn, type FeatureFlags } from "../../model/feature-flags";
 
 /**

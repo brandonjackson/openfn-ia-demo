@@ -280,6 +280,16 @@ export type Environment = "production" | "staging" | "mock";
 export const ENVIRONMENTS: Environment[] = ["production", "staging", "mock"];
 
 /** How one connected system is reached in one environment. */
+/** What editing a connected system changes. */
+export interface SystemChanges {
+  name: string;
+  description: string;
+  /** Where its API is documented; blank for none. */
+  docsUrl: string;
+  /** Where it lives in each environment. Left out for a system reached over X-Road, whose route says where. */
+  urls?: Record<Environment, string>;
+}
+
 export interface SystemEnvironment {
   url?: string;
   /** Name of the credential used in this environment, if one has been added. */

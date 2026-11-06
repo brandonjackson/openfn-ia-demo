@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { forgetCsrfToken, request, type ApiError } from "../api/client";
+import { handbookSections } from "../fixtures/handbook";
+import { fromMarkdown, toMarkdown } from "../model/handbook-markdown";
 import { resetFakeApi, setWait, signInAs } from ".";
 
 const refusal = (p: Promise<unknown>) => p.then(() => undefined, (e: unknown) => e as ApiError);
@@ -28,6 +30,28 @@ describe("handbook files", () => {
     expect(bad?.fieldErrors["name"]?.[0]).toMatch(/isn't a type/);
     expect((await refusal(request("POST", "/api/demo/handbook/files", { name: first!.attributes.name, bytes: 10 })))?.fieldErrors["name"]).toEqual(["is already in the handbook"]);
     expect((await refusal(request("POST", "/api/demo/handbook/files", { name: "huge.pdf", bytes: 60 * MB })))?.fieldErrors["bytes"]?.[0]).toMatch(/over its 50 MB/);
+  });
+
+  it("saves the article and who edited it, refusing a section without a heading or one named twice", async () => {
+    type Handbook = { data: { attributes: { sections: { title: string }[]; updated_by: string } } };
+    const get = () => request<Handbook>("GET", "/api/demo/handbook").then((r) => r.data.attributes);
+    const section = (title: string) => ({ id: title || "x", title, blocks: [{ type: "paragraph", content: ["Hi ", { text: "projects", to: "/projects" }] }] });
+    signInAs("user-beth");
+    await request("PUT", "/api/demo/handbook/article", { sections: [section("About"), section("Contacts")] });
+    expect(await get()).toMatchObject({ sections: [{ title: "About" }, { title: "Contacts" }], updated_by: expect.not.stringMatching(/^Someone$/) });
+    expect((await refusal(request("PUT", "/api/demo/handbook/article", { sections: [section("")] })))?.fieldErrors["sections.0.title"]).toBeTruthy();
+    expect((await refusal(request("PUT", "/api/demo/handbook/article", { sections: [section("A"), section("a")] })))?.fieldErrors["sections.1.title"]).toBeTruthy();
+    expect((await refusal(request("PUT", "/api/demo/handbook/article", { sections: [] })))?.fieldErrors["sections"]).toBeTruthy();
+    signInAs("user-priya");
+    expect((await refusal(request("PUT", "/api/demo/handbook/article", { sections: [section("X")] })))?.code).toBe("forbidden");
+  });
+
+  it("saves the seeded article as edited in Markdown, unchanged", async () => {
+    // Plain text the fixture splits in two comes back as one string, so compare as Markdown.
+    const markdown = toMarkdown(handbookSections);
+    await request("PUT", "/api/demo/handbook/article", { sections: fromMarkdown(markdown) });
+    const { data } = await request<{ data: { attributes: { sections: typeof handbookSections } } }>("GET", "/api/demo/handbook");
+    expect(toMarkdown(data.attributes.sections)).toBe(markdown);
   });
 
   it("lets anyone in the organisation change it, and no one else", async () => {

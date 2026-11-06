@@ -66,7 +66,7 @@ const detailData: DetailPageData = {
 const meta: Meta<typeof SystemPage> = {
   title: "Pages/SystemPage",
   component: SystemPage,
-  args: { onStartWorkflow: () => {} },
+  args: { onStartWorkflow: () => {}, onSaveSystem: async () => {}, onRevokeGrant: async () => {}, onDeleteSystem: async () => {} },
   decorators: [withRouter],
   parameters: { layout: "padded" },
 };
@@ -146,4 +146,9 @@ export const ViaXRoadAgreementPending: Story = {
     currentPath: "/connected-systems/social-registry",
     data: { pageType: "detail", projects: projectOptions, ...systemData("social-registry"), headerBadge: { label: "Shared", variant: "shared" }, sections: [] },
   },
+};
+
+/** Someone who can't change the system: no Edit, Delete or Revoke. */
+export const ReadOnly: Story = {
+  args: { ...SharedSystem.args, onSaveSystem: undefined, onRevokeGrant: undefined, onDeleteSystem: undefined },
 };

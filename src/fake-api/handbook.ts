@@ -6,11 +6,16 @@
  * Lifecycle: anyone in the organisation adds a file or removes one. A file's
  * name is unique in the handbook, its type is one the handbook takes, and
  * together the files fit the handbook's capacity. The demo keeps each file's
- * name and size, not its contents. The article itself isn't editable yet.
+ * name and size, not its contents.
+ *
+ * The article is edited by anyone in the organisation too: `PUT
+ * /api/demo/handbook/article` replaces its sections, and the handbook says
+ * who last edited it and when. Every section has a title, unique in the
+ * article, and there's at least one.
  */
 import { handbookData } from "../fixtures/handbook";
 import { seedId } from "../fixtures/ids";
-import type { HandbookFileKind } from "../model/page-data";
+import type { HandbookFileKind, WikiBlock, WikiSection } from "../model/page-data";
 import { badId, forbidden, invalid, isUuid, json, noContent, notFound, now, ORIGIN, paged, unknownKeys, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
 import { seedTime, table } from "./db";
@@ -54,6 +59,32 @@ export const handbookFiles = table<HandbookFileRow>("handbook_files", () =>
   })),
 );
 
+export interface ArticleRow {
+  id: string;
+  sections: WikiSection[];
+  updated_by: string;
+  updated_at: string;
+}
+
+export const handbookArticle = table<ArticleRow>("handbook_article", () => [
+  { id: "article", sections: handbookData.sections, updated_by: handbookData.updatedBy, updated_at: seedTime(handbookData.updatedAt) },
+]);
+
+const article = () => handbookArticle.rows()[0]!;
+
+const isInline = (v: unknown): boolean =>
+  Array.isArray(v) && v.every((p) => typeof p === "string" || (typeof p === "object" && p !== null && typeof p.text === "string" && typeof p.to === "string"));
+
+const isBlock = (b: unknown): b is WikiBlock => {
+  if (typeof b !== "object" || b === null) return false;
+  const block = b as Record<string, unknown>;
+  if (block["type"] === "paragraph") return isInline(block["content"]);
+  if (block["type"] === "list") return Array.isArray(block["items"]) && block["items"].every(isInline);
+  if (block["type"] === "facts")
+    return Array.isArray(block["rows"]) && block["rows"].every((r: Record<string, unknown>) => typeof r?.["label"] === "string" && isInline(r["value"]));
+  return false;
+};
+
 const entry = (f: HandbookFileRow) => ({
   type: "handbook_files",
   id: f.id,
@@ -66,7 +97,43 @@ const MB = 1024 * 1024;
 
 export const handbookRoutes: Record<string, Handler> = {
   "GET /api/demo/handbook": () =>
-    json(200, { data: { type: "handbooks", attributes: { capacity_bytes: CAPACITY_BYTES, used_bytes: usedBytes(), can_edit: inOrganization() } } }),
+    json(200, {
+      data: {
+        type: "handbooks",
+        attributes: {
+          capacity_bytes: CAPACITY_BYTES,
+          used_bytes: usedBytes(),
+          can_edit: inOrganization(),
+          sections: article().sections,
+          updated_by: article().updated_by,
+          updated_at: article().updated_at,
+        },
+      },
+    }),
+  // Replaces the article's sections.
+  "PUT /api/demo/handbook/article": (_params, body) => {
+    if (!inOrganization()) return forbidden();
+    const errors: Entry[] = unknownKeys(body, ["sections"]);
+    const sections = body["sections"];
+    if (!Array.isArray(sections) || !sections.length) errors.push({ code: "required", detail: "needs at least one section", pointer: "#/sections" });
+    else {
+      const titles = new Set<string>();
+      sections.forEach((sec: Record<string, unknown>, i: number) => {
+        const title = typeof sec?.["title"] === "string" ? sec["title"].trim() : "";
+        if (!title) errors.push({ code: "required", detail: "Every section needs a heading", pointer: `#/sections/${i}/title` });
+        else if (titles.has(title.toLowerCase())) errors.push({ code: "taken", detail: `There's already a section called "${title}"`, pointer: `#/sections/${i}/title` });
+        titles.add(title.toLowerCase());
+        if (typeof sec?.["id"] !== "string" || !Array.isArray(sec["blocks"]) || !sec["blocks"].every(isBlock))
+          errors.push({ code: "invalid", detail: "isn't a section the handbook can show", pointer: `#/sections/${i}` });
+      });
+    }
+    if (errors.length) return invalid(errors);
+    const me = findUser(currentUserId());
+    const row: ArticleRow = { id: "article", sections: sections as WikiSection[], updated_by: me ? fullName(me) : "Someone", updated_at: now() };
+    handbookArticle.update((r) => r.id === "article", () => row);
+    record("updated", { type: "handbook", id: "article", name: "Handbook" }, {}, true);
+    return json(200, { data: { type: "handbook_articles", attributes: { sections: row.sections, updated_by: row.updated_by, updated_at: row.updated_at } } });
+  },
   "GET /api/demo/handbook/files": (_params, _body, query) => {
     const rows = handbookFiles.rows().sort((a, b) => b.inserted_at.localeCompare(a.inserted_at));
     return json(200, paged("/api/demo/handbook/files", rows.map(entry), query));

@@ -69,7 +69,7 @@ function xroadContext(system: ConnectedSystem): DetailPageData["xroad"] {
 
 /**
  * Feeds a connected system's page from the demo's own connected-systems
- * routes: revoking access and deleting the system go through them. An old
+ * routes: editing it, revoking access and deleting it go through them. An old
  * link by a fixture's slug still lands. A system reached over X-Road isn't
  * there without X-Road.
  */
@@ -93,6 +93,7 @@ export default function SystemPageQuery({ route }: { route: PageRoute }) {
             data={buildSystemDetailData(system, grants, projects.filter((p) => isOpenable(p) && !p.parentId).map((p) => ({ id: p.id, name: p.name })))}
             onStartWorkflow={(projectId, channelId) => navigate(`/workflow-editor/new?project=${projectId}&channel=${channelId}`)}
             onRevokeGrant={(grantId) => saves.revokeGrant(system.id, grantId)}
+            onSaveSystem={(changes) => saves.edit(system, changes)}
             onDeleteSystem={async () => {
               await saves.remove(system.id);
               navigate("/connected-systems");

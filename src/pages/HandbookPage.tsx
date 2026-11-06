@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { Pencil } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
-import type { HandbookPageData } from "../model/page-data";
+import type { HandbookPageData, WikiSection } from "../model/page-data";
 import { firstProblemOf } from "../model/form-error";
+import { fromMarkdown, toMarkdown } from "../model/handbook-markdown";
+import FormField from "../components/primitives/FormField";
+import { TextArea } from "../components/primitives/FormControls";
+import Inline from "../components/primitives/Inline";
+import Stack from "../components/primitives/Stack";
+import Text from "../components/primitives/Text";
 import Callout from "../components/primitives/Callout";
 import PageHeader from "../components/patterns/PageHeader";
 import Breadcrumbs from "../components/domain/Breadcrumbs";
@@ -11,6 +17,8 @@ import FilesPanel from "../components/patterns/FilesPanel";
 import WikiArticle from "../components/patterns/WikiArticle";
 
 export interface HandbookPageProps extends PageProps<HandbookPageData> {
+  /** Saves the article's sections. Rejects with what the server refused. Left out when you can't change the handbook, and there's no Edit. */
+  onSaveArticle?: (sections: WikiSection[]) => Promise<void>;
   /** Uploads files to go with the handbook. Rejects with what the server refused. Left out when you can't change the handbook. */
   onUploadFiles?: (files: File[]) => Promise<void>;
   /** Removes one of the handbook's files. Left out when you can't change the handbook. */
@@ -22,7 +30,29 @@ export interface HandbookPageProps extends PageProps<HandbookPageData> {
  * that go with it (agreements, contact sheets, diagrams) in a column on the
  * right, like a Claude project's knowledge.
  */
-export default function HandbookPage({ node, ancestors, data, onUploadFiles, onRemoveFile }: HandbookPageProps) {
+export default function HandbookPage({ node, ancestors, data, onSaveArticle, onUploadFiles, onRemoveFile }: HandbookPageProps) {
+  // The article as Markdown while it's being edited; null when it's being read.
+  const [draft, setDraft] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [articleError, setArticleError] = useState<unknown>(null);
+  const startEditing = () => {
+    setArticleError(null);
+    setDraft(toMarkdown(data.sections));
+  };
+  const saveArticle = async () => {
+    if (draft === null || !onSaveArticle) return;
+    setSaving(true);
+    setArticleError(null);
+    try {
+      await onSaveArticle(fromMarkdown(draft));
+      setDraft(null);
+    } catch (e) {
+      setArticleError(e);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // A change the server refused: a file that won't fit, or one it doesn't take.
   const [error, setError] = useState<unknown>(null);
   const attempt = (work: () => Promise<void>) => {
@@ -37,15 +67,49 @@ export default function HandbookPage({ node, ancestors, data, onUploadFiles, onR
         title={node.label}
         description={`Last edited ${data.updatedAt} by ${data.updatedBy}`}
         actions={
-          <Button variant="secondary" size="sm" icon={Pencil}>
-            Edit
-          </Button>
+          onSaveArticle &&
+          (draft === null ? (
+            <Button variant="secondary" size="sm" icon={Pencil} onClick={startEditing}>
+              Edit
+            </Button>
+          ) : (
+            <Inline gap="sm">
+              <Button variant="secondary" size="sm" onClick={() => setDraft(null)}>
+                Cancel
+              </Button>
+              <Button size="sm" disabled={saving} onClick={saveArticle}>
+                {saving ? "Saving…" : "Save"}
+              </Button>
+            </Inline>
+          ))
         }
       />
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="max-w-3xl">
-          <WikiArticle sections={data.sections} />
+          {draft === null ? (
+            <WikiArticle sections={data.sections} />
+          ) : (
+            <Stack gap="md">
+              {articleError !== null && (
+                <Callout variant="danger" title="That didn't save">
+                  {firstProblemOf(articleError)}
+                </Callout>
+              )}
+              <FormField
+                label="Article"
+                htmlFor="handbook-article"
+                hint={
+                  <Text tone="muted">
+                    Markdown: <Text mono>## Heading</Text> starts a section, <Text mono>- item</Text> makes a list,{" "}
+                    <Text mono>| Label | Detail |</Text> rows make facts, and <Text mono>[text](/path)</Text> links to a page.
+                  </Text>
+                }
+              >
+                <TextArea id="handbook-article" mono autoFocus rows={28} value={draft} onChange={(e) => setDraft(e.target.value)} />
+              </FormField>
+            </Stack>
+          )}
         </div>
         <aside className="lg:sticky lg:top-0 lg:self-start">
           <FilesPanel

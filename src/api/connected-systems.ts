@@ -5,7 +5,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ConnectedSystem } from "../model/connected-systems";
-import type { AccessGrant } from "../model/page-data";
+import type { AccessGrant, SystemChanges } from "../model/page-data";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
@@ -45,7 +45,7 @@ export interface SystemDraft {
   docsUrl?: string;
 }
 
-/** Adding, removing and revoking access to systems. Each resolves once the systems have reloaded. */
+/** Adding, editing, removing and revoking access to systems. Each resolves once the systems have reloaded. */
 export function useSystemSaves() {
   const queryClient = useQueryClient();
   const refresh = () => Promise.all([queryClient.invalidateQueries({ queryKey: systemKeys.all }), queryClient.invalidateQueries({ queryKey: ["audit_events"] })]);
@@ -73,6 +73,20 @@ export function useSystemSaves() {
         await request("PUT", `/api/demo/connected_systems/${id}`, system);
         return id;
       }),
+    /** Saves changes to a system's details and, for a direct one, where it lives; each environment keeps its credential. */
+    edit: (system: ConnectedSystem, changes: SystemChanges) =>
+      go(() =>
+        request("PUT", `/api/demo/connected_systems/${system.id}`, {
+          name: changes.name,
+          description: changes.description,
+          apiDocsUrl: changes.docsUrl,
+          ...(changes.urls && {
+            environments: Object.fromEntries(
+              Object.entries(system.environments).map(([env, value]) => [env, { ...value, url: changes.urls![env as keyof typeof changes.urls].trim() }]),
+            ),
+          }),
+        }),
+      ).then(() => undefined),
     remove: (id: string) => go(() => request("DELETE", `/api/demo/connected_systems/${id}`)).then(() => undefined),
     revokeGrant: (systemId: string, grantId: string) =>
       go(async () => {

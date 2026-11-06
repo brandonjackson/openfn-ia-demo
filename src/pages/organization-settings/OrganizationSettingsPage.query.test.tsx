@@ -33,7 +33,10 @@ describe("OrganizationSettingsPageQuery", () => {
     forgetCsrfToken();
     setFlags(allFlagsOn);
   });
-  afterEach(() => setFlags(allFlagsOn));
+  afterEach(() => {
+    localStorage.removeItem("openfn-ia-demo:feature-flags");
+    setFlags(allFlagsOn);
+  });
 
   it("lists the members the server has", async () => {
     const { data } = await request<{ data: Member[] }>("GET", "/api/demo/organization/members");
@@ -63,7 +66,7 @@ describe("OrganizationSettingsPageQuery", () => {
     renderRoute("/organization-settings/xroad");
     await screen.findAllByText(/Ministry of Health/, {}, wait);
     expect(screen.queryByText("X-Road was asked for.")).toBeNull();
-    expect(screen.queryByText("Member code")).toBeNull();
+    expect(screen.queryByRole("link", { name: "X-Road" })).toBeNull();
   });
 
   it("shows the server's message when the X-Road identity fails to load", async () => {

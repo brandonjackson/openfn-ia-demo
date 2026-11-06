@@ -144,6 +144,34 @@ function roleProblem(m: OrgMemberRow, role: OrgRole | null): Response | undefine
   return undefined;
 }
 
+/** The organisation's X-Road identity, as the X-Road operator set it. Read only, so seeded once. */
+interface XRoadIdentityRow {
+  id: string;
+  instance: string;
+  member_class: string;
+  member_code: string;
+  member_name: string;
+  subsystems: { code: string; description: string; openfn: boolean }[];
+  certificates: { id: string; kind: string; subject: string; issuer: string; expires_at: string; status: string }[];
+  security_servers: { id: string; code: string; address: string; version: string; enabled: boolean; last_seen_at: string }[];
+}
+
+const xroadIdentity = table<XRoadIdentityRow>("xroad_identity", () => {
+  const x = orgXRoad;
+  return [
+    {
+      id: seedId("xroad_identity", `${x.instance}/${x.memberClass}/${x.memberCode}`),
+      instance: x.instance,
+      member_class: x.memberClass,
+      member_code: x.memberCode,
+      member_name: x.memberName,
+      subsystems: x.subsystems.map((v) => ({ code: v.code, description: v.description, openfn: v.openfn })),
+      certificates: x.certificates.map((c) => ({ id: seedId("xroad_certificate", c.id), kind: c.kind, subject: c.subject, issuer: c.issuer, expires_at: seedTime(c.expires), status: c.status })),
+      security_servers: x.securityServers.map((v) => ({ id: seedId("security_server", v.id), code: v.code, address: v.address, version: v.version, enabled: v.enabled, last_seen_at: seedTime(v.lastSeen) })),
+    },
+  ];
+});
+
 export const organizationRoutes: Record<string, Handler> = {
   "GET /api/demo/organization": () => {
     const o = org.rows()[0]!;
@@ -170,22 +198,8 @@ export const organizationRoutes: Record<string, Handler> = {
   },
   // The organisation's identity on X-Road, which the X-Road operator sets: read only. Who manages its Security Server is on the organisation.
   "GET /api/demo/organization/xroad": () => {
-    const x = orgXRoad;
-    return json(200, {
-      data: {
-        type: "xroad_identities",
-        id: seedId("xroad_identity", `${x.instance}/${x.memberClass}/${x.memberCode}`),
-        attributes: {
-          instance: x.instance,
-          member_class: x.memberClass,
-          member_code: x.memberCode,
-          member_name: x.memberName,
-          subsystems: x.subsystems,
-          certificates: x.certificates.map((c) => ({ id: c.id, kind: c.kind, subject: c.subject, issuer: c.issuer, expires_at: seedTime(c.expires), status: c.status })),
-          security_servers: x.securityServers.map((v) => ({ id: v.id, code: v.code, address: v.address, version: v.version, enabled: v.enabled, last_seen_at: seedTime(v.lastSeen) })),
-        },
-      },
-    });
+    const { id, ...attributes } = xroadIdentity.rows()[0]!;
+    return json(200, { data: { type: "xroad_identities", id, attributes } });
   },
   "PATCH /api/demo/organization": (_params, body) => {
     if (!canManage()) return forbidden();

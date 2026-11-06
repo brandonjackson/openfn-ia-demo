@@ -16,6 +16,20 @@ const data: OrganizationSettingsPageData = {
   billing: { plan: "Core", price: "$1,200 / month", renewsOn: "1 Nov 2026", runsUsed: 100, runsIncluded: 1000, invoices: [] },
 };
 
+const onXRoad: OrganizationSettingsPageData = {
+  ...data,
+  xroad: {
+    instance: "FJ",
+    memberClass: "GOV",
+    memberCode: "MOH",
+    memberName: "Ministry of Health",
+    subsystems: [{ code: "OPENFN", description: "Workflow services published from OpenFn.", openfn: true }],
+    certificates: [],
+    securityServers: [],
+    managedBy: "this-org",
+  },
+};
+
 const actions = [
   "onInviteMember",
   "onChangeMemberRole",
@@ -74,5 +88,18 @@ describe("OrganizationSettingsPage", () => {
   it("leaves out the X-Road section's identity when the organisation isn't on X-Road", () => {
     draw("xroad", "X-Road");
     expect(screen.queryByText("Member code")).toBeNull();
+    draw("xroad", "X-Road", onXRoad);
+    expect(screen.getByText("Member code")).toBeTruthy();
+  });
+
+  it("saves who manages the Security Server, waits while it's saved, and says why when it's refused", async () => {
+    const host = draw("xroad", "X-Road", onXRoad);
+    fireEvent.click(screen.getByLabelText(/^National operator/));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(host.calls("onSaveSecurityServerManager")).toEqual([["national-operator"]]);
+    expect((screen.getByRole("button", { name: "Save" }) as HTMLButtonElement).disabled).toBe(true);
+    await host.reject("onSaveSecurityServerManager", new Error("You are not allowed to do that."));
+    expect(screen.getByText("The X-Road settings weren't saved")).toBeTruthy();
+    expect(screen.getByText("You are not allowed to do that.")).toBeTruthy();
   });
 });

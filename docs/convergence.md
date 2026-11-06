@@ -175,8 +175,8 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    page share; the page's `OrganizationSettingsPageData` names it). The
    organisation's X-Road identity is read from a new read-only
    `GET /api/demo/organization/xroad` (`useOrganizationXRoad`, loaded only
-   with X-Road on), with certificate expiry and a Security Server's last
-   contact sent as timestamps. The wrapper reads no fixtures. Counts:
+   with X-Road on), seeded once, with UUIDs, and certificate expiry and a
+   Security Server's last contact sent as timestamps. The wrapper reads no fixtures. Counts:
    wrappers reading fixtures 21 → 20 of 25; page-data.ts 809 → 746 lines;
    files importing it 89 → 83; pages in their own folder 3 → 4 of 24; page
    and query tests 6 → 8; tests 145 → 156.
@@ -229,3 +229,10 @@ says what and why.
   to load only the list for the picker and fetch a schema when it's picked,
   but that means the picker loses its description line (api-gaps) and the
   form needs a loading state of its own.
+- **Organization settings' X-Road section** (reviews, PR 9): the X-Road
+  identity's status is combined into the whole page's, so if it fails to
+  load, Members, Visibility, Context and Billing show the error too. Scoping
+  it to the X-Road section would change what shows. And a Security Server's
+  "Last seen" is now a seeded timestamp, so it ages with the demo's data
+  ("2 minutes ago" becomes "3 hours ago" later on) instead of always reading
+  the fixture's words, as every other seeded time already does.

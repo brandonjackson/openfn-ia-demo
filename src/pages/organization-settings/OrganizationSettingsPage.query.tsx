@@ -19,7 +19,7 @@ export default function OrganizationSettingsPageQuery({ route }: { route: PageRo
   const { status, organization: org } = useOrganization();
   const { status: membersStatus, members } = useOrganizationMembers();
   const { status: layersStatus, layers } = useContextLayers();
-  const { status: xroadStatus, xroad } = useOrganizationXRoad(org?.managedBy, flags.xroad);
+  const { status: xroadStatus, xroad } = useOrganizationXRoad(flags.xroad);
   const saves = useOrganizationSaves();
 
   return (
@@ -40,7 +40,7 @@ export default function OrganizationSettingsPageQuery({ route }: { route: PageRo
                 services: flags.serviceCatalog ? o.visibility.services : undefined,
               },
               contextLayers: layers,
-              xroad,
+              xroad: xroad && { ...xroad, managedBy: o.managedBy },
               xroadUsage: o.xroadUsage,
               billing: o.billing,
             }}

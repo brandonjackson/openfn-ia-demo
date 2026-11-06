@@ -5,7 +5,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { BillingDetails, ContextLayer, OrganizationInvite, OrganizationMember, VisibilityScope } from "../model/organization";
-import type { OrgXRoadSettings, SecurityServerManager, XRoadCertificate, XRoadMemberClass, XRoadSubsystem } from "../model/xroad";
+import type { OrgXRoadSettings, SecurityServerManager, XRoadCertificate, XRoadMemberClass } from "../model/xroad";
 import { formatDate, timeAgo } from "../model/time";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
@@ -56,11 +56,11 @@ interface ApiXRoadIdentity {
   data: {
     attributes: {
       instance: string;
-      member_class: XRoadMemberClass;
+      member_class: string;
       member_code: string;
       member_name: string;
-      subsystems: XRoadSubsystem[];
-      certificates: (Omit<XRoadCertificate, "expires"> & { expires_at: string })[];
+      subsystems: { code: string; description: string; openfn: boolean }[];
+      certificates: { id: string; kind: string; subject: string; issuer: string; expires_at: string; status: string }[];
       security_servers: { id: string; code: string; address: string; version: string; enabled: boolean; last_seen_at: string | null }[];
     };
   };
@@ -91,38 +91,33 @@ export function useOrganization(): { status: LoadStatus; organization: Organizat
   return { status: statusOf(query), organization: query.data };
 }
 
-/**
- * The organisation's identity on X-Road, which the X-Road operator sets, with
- * who manages its Security Server (saved on the organisation). Loads nothing
- * while `enabled` is false.
- */
-export function useOrganizationXRoad(
-  managedBy: SecurityServerManager | undefined,
-  enabled: boolean,
-): { status: LoadStatus; xroad: OrgXRoadSettings | undefined } {
+/** The organisation's identity on X-Road, as the X-Road operator set it. Who manages its Security Server is on the organisation. */
+export type XRoadIdentity = Omit<OrgXRoadSettings, "managedBy">;
+
+/** The organisation's identity on X-Road, which the X-Road operator sets. Loads nothing while `enabled` is false. */
+export function useOrganizationXRoad(enabled: boolean): { status: LoadStatus; xroad: XRoadIdentity | undefined } {
   const query = useQuery({
     queryKey: keys.xroad,
     queryFn: () => request<ApiXRoadIdentity>("GET", "/api/demo/organization/xroad"),
     enabled,
+    select: ({ data: { attributes: a } }): XRoadIdentity => ({
+      instance: a.instance,
+      memberClass: a.member_class as XRoadMemberClass,
+      memberCode: a.member_code,
+      memberName: a.member_name,
+      subsystems: a.subsystems.map((v) => ({ code: v.code, description: v.description, openfn: v.openfn })),
+      certificates: a.certificates.map((c) => ({
+        id: c.id,
+        kind: c.kind as XRoadCertificate["kind"],
+        subject: c.subject,
+        issuer: c.issuer,
+        expires: formatDate(c.expires_at),
+        status: c.status as XRoadCertificate["status"],
+      })),
+      securityServers: a.security_servers.map((v) => ({ id: v.id, code: v.code, address: v.address, version: v.version, enabled: v.enabled, lastSeen: timeAgo(v.last_seen_at) })),
+    }),
   });
-  if (!enabled) return { status: { state: "ready" }, xroad: undefined };
-  const a = query.data?.data.attributes;
-  return {
-    status: statusOf(query),
-    xroad:
-      a && managedBy
-        ? {
-            instance: a.instance,
-            memberClass: a.member_class,
-            memberCode: a.member_code,
-            memberName: a.member_name,
-            subsystems: a.subsystems,
-            certificates: a.certificates.map(({ expires_at, ...c }) => ({ ...c, expires: formatDate(expires_at) })),
-            securityServers: a.security_servers.map((v) => ({ id: v.id, code: v.code, address: v.address, version: v.version, enabled: v.enabled, lastSeen: timeAgo(v.last_seen_at) })),
-            managedBy,
-          }
-        : undefined,
-  };
+  return enabled ? { status: statusOf(query), xroad: query.data } : { status: { state: "ready" }, xroad: undefined };
 }
 
 /** Everyone in the organisation, owners first; someone invited who hasn't joined shows as invited. */

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import WorkflowEditorPage from "./WorkflowEditorPage";
 import { type Workflow, type WorkflowFileContents, type WorkOrder } from "../model/workflow";
@@ -6,16 +6,15 @@ import type { WorkflowDocument } from "../model/workflow-document";
 import { isLive } from "../model/workflow-document";
 import type { ProjectDetails } from "../model/projects";
 import { buildStarterWorkflow, workflowGraphs } from "../fixtures/workflow";
-import { workflowHistory } from "../fixtures/workflow-lookup";
-import { useChangedHistories } from "../app/history-state";
 import { simulateRun } from "../fixtures/runs";
 import { apiProjectId, fixtureProject, fixtureWorkflow, serviceForWorkflow } from "../fixtures/projects";
-import { apiNodeId, apiWorkflowId, cloneNodeId } from "../fixtures/ids";
+import { apiWorkflowId } from "../fixtures/ids";
 import { serviceCatalogData } from "../fixtures/service-catalog";
 import { useSandbox } from "../app/sandbox-state";
 import Loaded from "../app/Loaded";
 import { useProject } from "../api/projects";
 import { useProjectCredentials } from "../api/credentials";
+import { useDataclips, useRunSaves, useWorkOrders } from "../api/work-orders";
 import { useProjectChannels } from "./channel-records.query";
 import { combine } from "../api/status";
 import { asGraph, useProjectWorkflows, useSandboxes, useSandboxSaves, useWorkflow, useWorkflowSaves, useWorkflowSnapshots } from "../api/workflows";
@@ -59,23 +58,11 @@ function later<T>(answer: () => T): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(answer()), REPLY_DELAY_MS));
 }
 
-/** A run history's steps named by the ids of the copy they're drawn on: `map` takes a fixture step id to it. */
-function onCopy(orders: WorkOrder[], map: (jobId: string) => string): WorkOrder[] {
-  return orders.map((wo) => ({ ...wo, runs: wo.runs.map((r) => ({ ...r, steps: r.steps.map((s) => ({ ...s, jobId: map(s.jobId) })) })) }));
-}
-
 /** A name for a new workflow that no other workflow in the project has: "Untitled workflow", "Untitled workflow 2"… */
 function freeName(taken: string[]): string {
   let name = "Untitled workflow";
   for (let n = 2; taken.some((t) => t.toLowerCase() === name.toLowerCase()); n++) name = `Untitled workflow ${n}`;
   return name;
-}
-
-/** The sandboxes from the root down to `project`: each copy's ids are worked out from the one above. */
-function chainTo(project: ProjectDetails, sandboxes: ProjectDetails[]): string[] {
-  const chain: string[] = [];
-  for (let p: ProjectDetails | undefined = project; p?.parentId; p = sandboxes.find((s) => s.id === p!.parentId)) chain.unshift(p.id);
-  return chain;
 }
 
 /**
@@ -178,16 +165,17 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const slug = fixtureWorkflow(main.id)?.slug;
   // "See details" opens the service listing that documents this workflow.
   const service = !slug || !flags.serviceCatalog ? undefined : serviceForWorkflow(slug);
-  // The fixtures' run history, with any runs retried or cancelled from History this session, drawn on this copy.
-  const changed = useChangedHistories();
-  const fixtureHistory = slug ? workflowHistory(slug) : undefined;
-  const changedHistory = slug ? changed[slug] : undefined;
-  const chain = chainTo(selected, sandboxes);
-  const stepOnCopy = (jobId: string) => chain.reduce((nodeId, sandboxId) => cloneNodeId(sandboxId, nodeId), apiNodeId(slug ?? "", jobId));
-  const history = fixtureHistory && {
-    workOrders: onCopy(changedHistory?.workOrders ?? fixtureHistory.workOrders, stepOnCopy),
-    dataclips: [...fixtureHistory.dataclips, ...(changedHistory?.dataclips ?? [])],
-  };
+  // The shown copy's own run history: main's on main; a sandbox's copy starts with none, as in Lightning.
+  const { workOrders: projectOrders } = useWorkOrders([shown.project_id]);
+  const { dataclips: projectClips } = useDataclips(shown.project_id);
+  const runSaves = useRunSaves();
+  const history = useMemo(
+    () => ({
+      workOrders: projectOrders.filter((o) => o.workflowId === shown.id).map((o) => o.workOrder),
+      dataclips: projectClips.filter((d) => d.workflow_id === shown.id),
+    }),
+    [projectOrders, projectClips, shown.id],
+  );
   // The project's channels from the API, and its other kinds of component from its fixture until they move too.
   const { channels } = useProjectChannels(root.id);
   const components = componentsFor(
@@ -223,8 +211,9 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   return (
     <WorkflowEditorPage
       workflow={graph}
-      workOrders={history ? withoutXRoadCalls(history.workOrders, flags.xroad) : []}
-      dataclips={history?.dataclips ?? []}
+      workOrders={useMemo(() => withoutXRoadCalls(history.workOrders, flags.xroad), [history, flags.xroad])}
+      dataclips={history.dataclips}
+      onRunFinished={(made, clips, retryOf) => void runSaves.record(shown.project_id, shown.id, made, clips, retryOf)}
       graphForVersion={versionGraph}
       runId={runId}
       onRunChange={setRunId}

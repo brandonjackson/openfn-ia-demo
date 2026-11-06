@@ -5,6 +5,7 @@
  * to the fixtures changes the seed, and the next load starts from it again.
  * `resetDb()` (the demo's "Reset demo data") goes back to the seed.
  */
+import { msAgo } from "../model/time";
 
 const STORAGE_KEY = "openfn-demo:db";
 
@@ -31,18 +32,13 @@ export function ago(ms: number): string {
   return new Date(seededAt - ms).toISOString().replace(/\.\d+Z$/, "Z");
 }
 
-const UNIT_MS: Record<string, number> = { second: 1e3, minute: 6e4, hour: 36e5, day: 864e5, week: 6048e5, month: 2592e6, year: 31536e6 };
-
 /**
  * A fixture's relative time ("12 minutes ago", "Yesterday", "Just now") as a
  * seed timestamp; a date ("14 Mar 2024") as itself. Anything else is `fallback` ago.
  */
-export function seedTime(text: string | undefined, fallback = UNIT_MS.day!): string {
-  const t = (text ?? "").trim().toLowerCase();
-  if (t === "just now" || t === "now") return ago(30_000);
-  if (t === "yesterday") return ago(UNIT_MS.day!);
-  const rel = /^(an?|\d+)\s+(second|minute|hour|day|week|month|year)s?\s+ago$/.exec(t);
-  if (rel) return ago((rel[1] === "a" || rel[1] === "an" ? 1 : Number(rel[1])) * UNIT_MS[rel[2]!]!);
+export function seedTime(text: string | undefined, fallback = 86_400_000): string {
+  const relative = msAgo(text);
+  if (relative !== null) return ago(relative);
   const parsed = Date.parse(`${text} UTC`);
   if (text && !Number.isNaN(parsed)) return new Date(parsed).toISOString().replace(/\.\d+Z$/, "Z");
   return ago(fallback);

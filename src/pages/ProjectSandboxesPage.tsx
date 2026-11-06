@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Check, FlaskConical, GitMerge, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
 import type { ProjectSandboxesPageData, SandboxDraft, SandboxItem, SandboxMerge } from "../model/page-data";
+import { timeAgo } from "../model/time";
 import Badge from "../components/primitives/Badge";
 import PageHeader from "../components/patterns/PageHeader";
 import Breadcrumbs from "../components/domain/Breadcrumbs";
@@ -86,7 +87,7 @@ function SandboxRow({
       meta={
         <>
           <span>{sandbox.parent ? `Made from ${sandbox.parent} by ${sandbox.createdBy}` : `Created by ${sandbox.createdBy}`}</span>
-          <span>{sandbox.lastActivity === "Never" ? "No activity yet" : `Active ${sandbox.lastActivity}`}</span>
+          <span>{sandbox.lastActivity ? `Active ${timeAgo(sandbox.lastActivity)}` : "No activity yet"}</span>
         </>
       }
     />

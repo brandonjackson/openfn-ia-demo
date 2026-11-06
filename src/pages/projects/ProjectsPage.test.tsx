@@ -10,7 +10,7 @@ const project = (name: string, description = ""): ProjectSummary => ({
   name,
   description,
   environment: "main",
-  lastActivity: "2 days ago",
+  lastActivity: new Date(Date.now() - 2 * 86_400_000).toISOString(),
   memberCount: 3,
   workflowCount: 2,
 });
@@ -37,6 +37,12 @@ describe("ProjectsPage", () => {
     expect(screen.getByText("1 project")).toBeTruthy();
     expect(screen.getByText("planning-intake")).toBeTruthy();
     expect(screen.queryByText("payroll")).toBeNull();
+  });
+
+  it("says how long ago each project was active, or that it hasn't been", () => {
+    draw([project("payroll"), { ...project("planning-intake"), lastActivity: null }]);
+    expect(screen.getByText("Active 2 days ago")).toBeTruthy();
+    expect(screen.getByText("No activity yet")).toBeTruthy();
   });
 
   it("says when a search matches nothing", () => {

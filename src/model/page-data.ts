@@ -473,7 +473,8 @@ export interface SandboxItem {
   isMain: boolean;
   description: string;
   createdBy: string;
-  lastActivity: string;
+  /** When it last changed (or, if nothing has, when it was made), as the API sends it; null if unknown. The page words it. */
+  lastActivity: string | null;
   color: SandboxColor;
   /** The sandbox it was made from, and merges into by default. Main has none. */
   parent?: string;

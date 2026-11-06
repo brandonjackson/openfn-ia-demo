@@ -5,10 +5,10 @@ import Badge from "./Badge";
 import Button from "./Button";
 import { withRouter } from "../../stories/decorators";
 import { connectedSystemListItems } from "../../fixtures/connected-systems";
-import { projects, projectSandboxes } from "../../fixtures/projects";
+import { projects, projectSandboxRecords } from "../../fixtures/projects";
 
 const system = connectedSystemListItems[0];
-const sandbox = projectSandboxes(projects[2])[1];
+const sandbox = projectSandboxRecords(projects[2])[1];
 
 const meta: Meta<typeof ListRow> = {
   title: "Primitives/ListRow",

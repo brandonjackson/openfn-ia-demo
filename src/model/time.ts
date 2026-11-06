@@ -45,3 +45,26 @@ export function formatDateTime(iso: string | null | undefined): string {
 export function daysUntil(iso: string, now = Date.now()): number {
   return Math.max(0, Math.ceil((Date.parse(iso) - now) / DAY));
 }
+
+const UNIT_MS: Record<string, number> = { second: 1e3, minute: MINUTE, hour: HOUR, day: DAY, week: 7 * DAY, month: 30 * DAY, year: 365 * DAY };
+
+/**
+ * How long ago a fixture's relative time is ("12 minutes ago", "an hour ago",
+ * "Yesterday", "Just now"), in milliseconds; `null` for anything else, such
+ * as "Never" or a date. The fixtures write times the way people read them; the
+ * fake server and the stories turn them back into timestamps with this.
+ */
+export function msAgo(text: string | null | undefined): number | null {
+  const t = (text ?? "").trim().toLowerCase();
+  if (t === "just now" || t === "now") return 30_000;
+  if (t === "yesterday") return DAY;
+  const rel = /^(an?|\d+)\s+(second|minute|hour|day|week|month|year)s?\s+ago$/.exec(t);
+  if (!rel) return null;
+  return (rel[1] === "a" || rel[1] === "an" ? 1 : Number(rel[1])) * UNIT_MS[rel[2]!]!;
+}
+
+/** A fixture's relative time as a timestamp counted back from `now`, or `null` ("Never"). */
+export function isoAgo(text: string | null | undefined, now = Date.now()): string | null {
+  const ms = msAgo(text);
+  return ms === null ? null : new Date(now - ms).toISOString();
+}

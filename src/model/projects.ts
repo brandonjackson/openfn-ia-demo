@@ -1,6 +1,5 @@
 import type { ProjectComponentType } from "./page-data";
 import type { ProjectServiceItem } from "./services";
-import { timeAgo } from "./time";
 
 export type ProjectService = ProjectServiceItem;
 
@@ -17,7 +16,7 @@ export interface Project {
   description: string;
   /** Environment shown on the project card (e.g. "production"). */
   environment: string;
-  /** Human-readable time since the project last ran or changed. */
+  /** How long ago it last ran or changed, in the fixtures' words ("3 days ago"). Never shown as is: cards get a time. */
   lastActivity: string;
   memberCount: number;
   /** Sandboxes (branches) of this project. The first is always "main". */
@@ -32,28 +31,13 @@ export interface ProjectSummary {
   name: string;
   description: string;
   environment: string;
-  /** How long ago a workflow in it last changed ("3 days ago"). */
-  lastActivity: string;
+  /** When a workflow in it last changed, as the API sends it; null when nothing has. The card words it. */
+  lastActivity: string | null;
   memberCount: number;
   workflowCount: number;
   /** Its published services, and how many are live. Absent without the service catalog. */
   serviceCount?: number;
   liveServiceCount?: number;
-}
-
-/** A fixture project's card, for stories. */
-export function summarizeProject(project: Project): ProjectSummary {
-  return {
-    id: project.id,
-    name: project.name,
-    description: project.description,
-    environment: project.environment,
-    lastActivity: project.lastActivity,
-    memberCount: project.memberCount,
-    workflowCount: project.components.filter((c) => c.type === "Workflow").length,
-    serviceCount: project.services.length,
-    liveServiceCount: project.services.filter((s) => s.status === "Live").length,
-  };
 }
 
 /**
@@ -67,7 +51,7 @@ export function toProjectSummary(details: ProjectDetails, services?: Pick<Projec
     name: details.name,
     description: details.description,
     environment: details.env,
-    lastActivity: timeAgo(details.lastActivity ?? null),
+    lastActivity: details.lastActivity ?? null,
     memberCount: details.collaboratorsCount ?? 0,
     workflowCount: details.workflowsCount ?? 0,
     ...(services && { serviceCount: services.length, liveServiceCount: services.filter((s) => s.status === "Live").length }),

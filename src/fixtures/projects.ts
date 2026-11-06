@@ -1,7 +1,8 @@
 import type { SandboxItem, WorkflowListItem } from "../model/page-data";
-import { summarizeProject, type ProjectSummary } from "../model/projects";
+
+import { isoAgo } from "../model/time";
 import { seedId } from "./ids";
-import type { Project, ProjectService } from "../model/projects";
+import type { Project, ProjectService, ProjectSummary } from "../model/projects";
 
 export const projects: Project[] = [
   {
@@ -425,6 +426,21 @@ export const projects: Project[] = [
   },
 ];
 
+/** A fixture project's card, for stories. */
+function summarizeProject(project: Project): ProjectSummary {
+  return {
+    id: project.id,
+    name: project.name,
+    description: project.description,
+    environment: project.environment,
+    lastActivity: isoAgo(project.lastActivity),
+    memberCount: project.memberCount,
+    workflowCount: project.components.filter((c) => c.type === "Workflow").length,
+    serviceCount: project.services.length,
+    liveServiceCount: project.services.filter((s) => s.status === "Live").length,
+  };
+}
+
 export const projectSummaries: ProjectSummary[] = projects.map(summarizeProject);
 
 /** The projects the current user opened most recently, newest first. */
@@ -439,7 +455,10 @@ export const recentProjects: Project[] = [
   .filter((p): p is Project => p !== undefined);
 
 /** Details for each sandbox shown on a project's Sandboxes list. */
-const sandboxDetails: Record<string, Pick<SandboxItem, "description" | "createdBy" | "lastActivity">> = {
+/** A sandbox as the fixtures record it: its last activity in words ("2 days ago"), as the fake server seeds it. */
+export type SandboxRecord = Omit<SandboxItem, "lastActivity"> & { lastActivity: string };
+
+const sandboxDetails: Record<string, Pick<SandboxRecord, "description" | "createdBy" | "lastActivity">> = {
   "intake-validation-v2": {
     description: "Stricter validation of incoming planning applications before routing.",
     createdBy: "Amara Okafor",
@@ -475,11 +494,12 @@ const sandboxDetails: Record<string, Pick<SandboxItem, "description" | "createdB
 const sandboxColors: SandboxItem["color"][] = ["green", "pink", "yellow", "indigo", "red"];
 
 /**
- * A project's sandboxes with their details, "main" first. Each sandbox was
- * made from main and has changed one of the project's workflows (the second
- * also another, which main has changed since), with a credential of its own.
+ * A project's sandboxes with their details, "main" first, as the fake server
+ * seeds them. Each sandbox was made from main and has changed one of the
+ * project's workflows (the second also another, which main has changed
+ * since), with a credential of its own.
  */
-export function projectSandboxes(project: Project): SandboxItem[] {
+export function projectSandboxRecords(project: Project): SandboxRecord[] {
   const workflows = project.components.filter((c) => c.type === "Workflow");
   return project.sandboxes.map((name, i) =>
     name === "main"
@@ -507,6 +527,11 @@ export function projectSandboxes(project: Project): SandboxItem[] {
           credentials: [`${name} test credential`],
         }
   );
+}
+
+/** A project's sandboxes as the Sandboxes page takes them, for stories: last activity as a timestamp. */
+export function projectSandboxes(project: Project): SandboxItem[] {
+  return projectSandboxRecords(project).map((s) => ({ ...s, lastActivity: isoAgo(s.lastActivity) }));
 }
 
 /**

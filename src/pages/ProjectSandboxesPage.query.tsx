@@ -7,7 +7,6 @@ import { combine } from "../api/status";
 import type { SandboxItem } from "../model/page-data";
 import type { ProjectDetails } from "../model/projects";
 import { sandboxColorHex, sandboxColorName, sandboxSlug } from "../model/sandboxes";
-import { timeAgo } from "../model/time";
 import { fixtureProject } from "../fixtures/projects";
 import ProjectSandboxesPage from "./ProjectSandboxesPage";
 import { pageFrame } from "../app/page-frame";
@@ -40,7 +39,7 @@ export default function ProjectSandboxesPageQuery({ route }: { route: PageRoute 
     isMain: false,
     description: s.description,
     createdBy: s.owner ? `${s.owner.firstName} ${s.owner.lastName}` : "Unknown",
-    lastActivity: timeAgo(s.lastActivity ?? s.createdAt),
+    lastActivity: s.lastActivity ?? s.createdAt,
     color: sandboxColorName(s.color),
     parent: nameOf(s.parentId),
     changes: (changes[s.id] ?? []).map((c) => ({ workflowId: c.sourceWorkflowId!, workflowName: c.name, diverged: c.diverged })),
@@ -62,7 +61,7 @@ export default function ProjectSandboxesPageQuery({ route }: { route: PageRoute 
                 isMain: true,
                 description: "The live version of this project. Sandboxes merge back into main.",
                 createdBy: listed?.owner ? `${listed.owner.firstName} ${listed.owner.lastName}` : "Project owner",
-                lastActivity: timeAgo(listed?.lastActivity ?? root!.createdAt),
+                lastActivity: listed?.lastActivity ?? root!.createdAt,
                 color: "gray",
                 changes: [],
                 credentials: [],

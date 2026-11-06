@@ -27,9 +27,10 @@ const WORKFLOW_PREVIEW = 5;
 const COMPONENT_PREVIEW = 6;
 
 /**
- * A project at a glance: how it's running (the best of Insights), its
- * workflows, then what it publishes and is built from. Services and
- * components are left out when their data is (their feature is off).
+ * A project at a glance: how it's running (its work orders over the last
+ * 30 days, which its workflows' rows add up to), its workflows, then what it
+ * publishes and is built from. Services and components are left out when
+ * their data is (their feature is off).
  */
 export default function ProjectPage({ node, ancestors, currentPath, data, onNewWorkflow }: ProjectPageProps) {
   const { tiles, workflows, services, components } = data;
@@ -44,8 +45,8 @@ export default function ProjectPage({ node, ancestors, currentPath, data, onNewW
 
       <section>
         <SectionHeading
-          title="This week"
-          description="Runs and errors over the last 7 days, and open work orders."
+          title="Last 30 days"
+          description="Work orders across this project's workflows, how many failed, and the runs they took."
           action={
             <TextLink to={`${currentPath}/insights`} variant="action">
               View insights
@@ -57,7 +58,7 @@ export default function ProjectPage({ node, ancestors, currentPath, data, onNewW
             <StatTile
               key={tile.label}
               {...tile}
-              trendClassName={tile.label === "Errors" ? "text-red-500" : undefined}
+              trendClassName={tile.label === "Failed" ? "text-red-500" : undefined}
             />
           ))}
         </div>

@@ -3,8 +3,9 @@ import ProjectPage from "./ProjectPage";
 import { withRouterAt } from "../stories/decorators";
 import type { IANode } from "../model/ia-tree";
 import type { ProjectPageData } from "../model/page-data";
-import { projects, projectWorkflowItems } from "../fixtures/projects";
-import { buildProjectOverviewTiles } from "../fixtures/insights";
+import { activityTiles, workOrderActivity } from "../model/runs";
+import { projects } from "../fixtures/projects";
+import { projectHistory, projectWorkflowItems } from "../fixtures/workflow-lookup";
 
 const project = projects[0];
 
@@ -22,7 +23,7 @@ const ancestors = [
 const projectData: ProjectPageData = {
   pageType: "project",
   projectId: project.id,
-  tiles: buildProjectOverviewTiles(project.id, 3),
+  tiles: activityTiles(workOrderActivity(projectHistory(project), "30d"), "30d", `/projects/${project.id}/history`),
   workflows: projectWorkflowItems(project),
   services: project.services,
   components: project.components,
@@ -57,9 +58,9 @@ export const EmptyProject: Story = {
     data: {
       pageType: "project",
       projectId: "new-project",
-      tiles: buildProjectOverviewTiles("new-project", 0),
+      tiles: activityTiles(workOrderActivity([], "30d"), "30d", "/projects/new-project/history"),
       workflows: [],
-          services: [],
+      services: [],
       components: [],
     },
   },

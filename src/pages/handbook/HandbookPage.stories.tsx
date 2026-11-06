@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import HandbookPage from "./HandbookPage";
-import { withRouter } from "../stories/decorators";
-import { mainNavTree } from "../model/ia-tree";
-import { handbookData } from "../fixtures/handbook";
+import { withRouter } from "../../stories/decorators";
+import { mainNavTree } from "../../model/ia-tree";
+import { handbookData } from "../../fixtures/handbook";
 
 const node = mainNavTree.find((n) => n.id === "handbook")!;
 const ancestors: { node: typeof node; path: string }[] = [];

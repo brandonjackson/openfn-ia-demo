@@ -1,9 +1,9 @@
-import type { PageRoute } from "../app/ia-utils";
-import Loaded from "../app/Loaded";
-import { useHandbook, useHandbookFiles, useHandbookSaves } from "../api/handbook";
-import { combine } from "../api/status";
+import type { PageRoute } from "../../app/ia-utils";
+import Loaded from "../../app/Loaded";
+import { useHandbook, useHandbookFiles, useHandbookSaves } from "../../api/handbook";
+import { combine } from "../../api/status";
 import HandbookPage from "./HandbookPage";
-import { pageFrame } from "../app/page-frame";
+import { pageFrame } from "../../app/page-frame";
 
 /**
  * Feeds the Handbook from the demo's handbook routes: the article, which
@@ -20,7 +20,6 @@ export default function HandbookPageQuery({ route }: { route: PageRoute }) {
         <HandbookPage
           {...pageFrame(route)}
           data={{
-            pageType: "handbook",
             sections: handbook!.sections,
             updatedAt: handbook!.updatedAt,
             updatedBy: handbook!.updatedBy,

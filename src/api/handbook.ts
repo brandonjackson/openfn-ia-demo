@@ -3,7 +3,7 @@
  * (`/api/demo/handbook`; Lightning's API has no handbook).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { HandbookFile, HandbookFileKind, WikiSection } from "../model/page-data";
+import type { HandbookFile, HandbookFileKind, WikiSection } from "../model/handbook";
 import { timeAgo } from "../model/time";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";

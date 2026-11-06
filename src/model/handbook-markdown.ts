@@ -5,7 +5,7 @@
  * without a header row. Links are `[text](/path)`. Anything else in the text
  * is kept as paragraph text.
  */
-import type { WikiBlock, WikiInline, WikiSection } from "./page-data";
+import type { WikiBlock, WikiInline, WikiSection } from "./handbook";
 
 const inlineToText = (content: WikiInline[]) => content.map((p) => (typeof p === "string" ? p : `[${p.text}](${p.to})`)).join("");
 

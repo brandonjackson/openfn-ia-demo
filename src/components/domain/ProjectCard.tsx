@@ -1,5 +1,6 @@
 import { Folder, Workflow, Users } from "lucide-react";
 import type { ProjectSummary } from "../../model/projects";
+import { timeAgo } from "../../model/time";
 import ListRow from "../primitives/ListRow";
 
 interface Props {
@@ -39,7 +40,7 @@ export default function ProjectCard({ project }: Props) {
             </span>
           )}
           <span>
-            {project.lastActivity === "Never" ? "No activity yet" : `Active ${project.lastActivity}`}
+            {project.lastActivity ? `Active ${timeAgo(project.lastActivity)}` : "No activity yet"}
           </span>
         </>
       }

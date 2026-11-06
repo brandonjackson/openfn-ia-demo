@@ -16,7 +16,7 @@
  */
 import { createdAt as fixtureCreatedAt, instanceUsers, memberships as fixtureMemberships } from "../fixtures/admin";
 import { projectMemberships as settingsMemberships, projectSettingsRecord } from "../fixtures/project-settings";
-import { projects as fixtureProjects, projectSandboxes } from "../fixtures/projects";
+import { projects as fixtureProjects, projectSandboxRecords } from "../fixtures/projects";
 import { hasRole, type DigestFrequency, type ProjectRole } from "../model/project-settings";
 import { sandboxColorHex } from "../model/sandboxes";
 import {
@@ -91,7 +91,7 @@ export const sandboxIdFor = (projectSlug: string, name: string) => seedId("sandb
 /** Every fixture sandbox: each project's sandboxes but main, made from main (or from another sandbox). */
 export function fixtureSandboxes() {
   return fixtureProjects.flatMap((p) =>
-    projectSandboxes(p)
+    projectSandboxRecords(p)
       .filter((s) => !s.isMain)
       .map((s) => ({
         project: p,

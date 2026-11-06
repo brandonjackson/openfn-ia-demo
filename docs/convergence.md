@@ -17,30 +17,27 @@ and to mark what would change the look.
   (merged once CI is green) and the branch restarted from `main` before the
   next: `git fetch origin main && git checkout -B
   claude/intelligent-newton-2pncy4 origin/main`.
-- **PR in progress:** PR 2, shared and UI-only types out of page-data.ts.
+- **PR in progress:** PR 3, raw times in summaries.
 - **Next three items**, one PR each:
-  1. **Raw values in summaries** (see below): `lastActivity` as the API's
-     time, worded by the component.
-  2. **Credentials** (`api/credentials.md`): `UserCredential`,
+  1. **Credentials** (`api/credentials.md`): `UserCredential`,
      `CredentialSchema`, `CredentialField`, `OAuthClient`, `ApiToken` and
      their drafts move from page-data.ts to `model/credentials.ts` /
      `model/account.ts` (named as in api/); then the credentials part of
      User settings.
-  3. **Admin settings into its folder** (`src/pages/admin-settings/`), with
+  2. **Admin settings into its folder** (`src/pages/admin-settings/`), with
      its admin types (`AdminUser`, `AdminProject`, `AuditEvent`…) moved to
      `model/users.ts` / `model/audit-events.ts` named as in `api/users.md`
      and `api/audit-events.md`, page and query tests, and its wrapper off
      fixtures.
+  3. **User settings into its folder**, on the credential and account
+     types from item 1.
   After those, the biggest pages: WorkflowEditorPage, ProjectSettingsPage.
 - **Moving types:** `python3 scripts/move-types.py <from> <to> Name…` moves
   exported declarations (with their doc comments) and rewrites every import
   under src/. Then `npx tsc -b` and add the target's own imports.
-- **Decide before moving page 2** (both from the PR 1 architecture review):
-  - **Formatted text in summaries.** `ProjectSummary.lastActivity` arrives
-    already worded ("3 days ago") and `ProjectCard` branches on `"Never"`.
-    It should be the API's ISO time (`string | null`), worded by the card
-    with `timeAgo`. 38 uses across fixtures, model and components, so its own
-    PR; every later summary type should carry raw values, not words.
+- **Decide before moving page 2** (from the PR 1 architecture review). Raw
+  values, not words, in every summary type (PR 3 did it for projects and
+  sandboxes); and:
   - **A page's load status.** openfn-3's pattern 11 gives the page a
     `status` prop it draws itself; here `Loaded` replaces the whole page, so
     a list page's loading and error states can't be shown in stories, and a
@@ -100,8 +97,16 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    `scripts/move-types.py`. No runtime change, so only the architecture reviewer
    ran. Counts: page-data.ts 1300 → 1199 lines;
    files importing it 138 → 127; ratchet unchanged.
+   ([#192](https://github.com/brandonjackson/openfn-ia-demo/pull/192))
+3. **Times as the API sends them.** A project card's and a sandbox's last
+   activity reach their components as the API's timestamp (or null), and
+   `ProjectCard` and the Sandboxes page word it with `timeAgo`, instead of
+   branching on the word "Never". Fixtures keep their words ("3 days ago"):
+   the fake server seeds from `projectSandboxRecords`, and `msAgo`/`isoAgo`
+   in `model/time.ts` read them for the fake server and the stories alike.
+   Counts: tests 96 → 105; the rest unchanged.
 
-**PRs done: 2 of 10.** Pull openfn-3-poc again at PR 5.
+**PRs done: 3 of 10.** Pull openfn-3-poc again at PR 5.
 
 ## Waiting on Brandon
 

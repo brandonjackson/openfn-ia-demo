@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PASSWORD_MIN, passwordErrors } from "../../model/credentials";
+import { PASSWORD_MIN, passwordErrors } from "../../model/account";
 import Button from "../primitives/Button";
 import Card from "../primitives/Card";
 import FormField from "../primitives/FormField";

@@ -17,20 +17,17 @@ and to mark what would change the look.
   (merged once CI is green) and the branch restarted from `main` before the
   next: `git fetch origin main && git checkout -B
   claude/intelligent-newton-2pncy4 origin/main`.
-- **PR in progress:** PR 3, raw times in summaries.
+- **PR in progress:** PR 4, credential and account types.
 - **Next three items**, one PR each:
-  1. **Credentials** (`api/credentials.md`): `UserCredential`,
-     `CredentialSchema`, `CredentialField`, `OAuthClient`, `ApiToken` and
-     their drafts move from page-data.ts to `model/credentials.ts` /
-     `model/account.ts` (named as in api/); then the credentials part of
-     User settings.
-  2. **Admin settings into its folder** (`src/pages/admin-settings/`), with
+  1. **Admin settings into its folder** (`src/pages/admin-settings/`), with
      its admin types (`AdminUser`, `AdminProject`, `AuditEvent`…) moved to
      `model/users.ts` / `model/audit-events.ts` named as in `api/users.md`
      and `api/audit-events.md`, page and query tests, and its wrapper off
      fixtures.
-  3. **User settings into its folder**, on the credential and account
-     types from item 1.
+  2. **User settings into its folder**, on the credential and account
+     types (now in `model/credentials.ts` and `model/account.ts`).
+  3. **Organization settings into its folder** (`OrganizationMember`,
+     `ContextLayer` and the rest to `model/organization.ts`).
   After those, the biggest pages: WorkflowEditorPage, ProjectSettingsPage.
 - **Moving types:** `python3 scripts/move-types.py <from> <to> Name…` moves
   exported declarations (with their doc comments) and rewrites every import
@@ -105,8 +102,17 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    the fake server seeds from `projectSandboxRecords`, and `msAgo`/`isoAgo`
    in `model/time.ts` read them for the fake server and the stories alike.
    Counts: tests 96 → 105; the rest unchanged.
+   ([#193](https://github.com/brandonjackson/openfn-ia-demo/pull/193))
+4. **Credential and account types out of page-data.ts.** The credential
+   shapes (`UserCredential`, `CredentialSchema`, `CredentialField`,
+   `OAuthClient`, their drafts, `ProjectOption`) join their helpers in
+   `model/credentials.ts`; your account's (`UserProfile`, `MfaSetup`,
+   `BackupCode`, `ApiToken`, contact preferences) and the password and TOTP
+   rules move to a new `model/account.ts`, named as in `api/account.md`. No
+   runtime change. Counts: page-data.ts 1199 → 1054 lines; files importing
+   it 127 → 113.
 
-**PRs done: 3 of 10.** Pull openfn-3-poc again at PR 5.
+**PRs done: 4 of 10.** Next PR (5) starts by pulling openfn-3-poc. Pull openfn-3-poc again at PR 5.
 
 ## Waiting on Brandon
 

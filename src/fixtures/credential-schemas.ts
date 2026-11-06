@@ -1,4 +1,4 @@
-import type { CredentialSchema } from "../model/page-data";
+import type { CredentialSchema } from "../model/credentials";
 
 /**
  * The kinds of credential the type picker offers. Fields, labels and which

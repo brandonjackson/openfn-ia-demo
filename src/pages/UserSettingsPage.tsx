@@ -1,16 +1,9 @@
 import { useState } from "react";
 import { UserCircle, KeyRound, Terminal, Plus, Trash2, GitBranch, ShieldCheck, Fingerprint, AppWindow } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
-import type {
-  ApiToken,
-  CredentialDraft,
-  MfaSetup,
-  OAuthClient,
-  OAuthClientDraft,
-  ProfileDetails,
-  UserCredential,
-  UserSettingsPageData,
-} from "../model/page-data";
+import type { UserSettingsPageData } from "../model/page-data";
+import type { ApiToken, MfaSetup, ProfileDetails } from "../model/account";
+import type { CredentialDraft, OAuthClient, OAuthClientDraft, UserCredential } from "../model/credentials";
 import SettingsLayout from "../components/patterns/SettingsLayout";
 import type { SettingsNavItem } from "../components/primitives/SettingsNav";
 import Breadcrumbs from "../components/domain/Breadcrumbs";

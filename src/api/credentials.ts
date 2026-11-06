@@ -5,8 +5,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ProjectCredential } from "../model/adaptor-reference";
-import type { CredentialDraft, OAuthClient, UserCredential } from "../model/page-data";
-import type { Environment } from "../model/credentials";
+import type { CredentialDraft, OAuthClient, UserCredential, Environment } from "../model/credentials";
 import { formatDate } from "../model/time";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";

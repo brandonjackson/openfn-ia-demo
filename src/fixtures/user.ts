@@ -1,12 +1,6 @@
-import type {
-  ApiToken,
-  BackupCode,
-  MfaSetup,
-  OAuthClient,
-  UserCredential,
-  UserProfile,
-  UserSettingsPageData,
-} from "../model/page-data";
+import type { UserSettingsPageData } from "../model/page-data";
+import type { ApiToken, BackupCode, MfaSetup, UserProfile } from "../model/account";
+import type { OAuthClient, UserCredential } from "../model/credentials";
 import { credentialSchemas } from "./credential-schemas";
 import { projectOptions } from "./projects";
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { OAuthClient, OAuthClientDraft, ProjectOption } from "../../model/page-data";
+import type { OAuthClient, OAuthClientDraft, ProjectOption } from "../../model/credentials";
 import { isUrl, parseScopes } from "../../model/credentials";
 import Modal from "../primitives/Modal";
 import Badge from "../primitives/Badge";

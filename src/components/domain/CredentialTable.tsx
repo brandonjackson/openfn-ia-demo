@@ -1,5 +1,5 @@
 import { ArrowRightLeft, Braces, Clock, Pencil, Trash2, Undo2 } from "lucide-react";
-import type { CredentialSchema, ProjectOption, UserCredential } from "../../model/page-data";
+import type { CredentialSchema, ProjectOption, UserCredential } from "../../model/credentials";
 import DataTable from "../primitives/DataTable";
 import type { DataTableColumn } from "../primitives/DataTable";
 import type { DropdownMenuItem } from "../primitives/DropdownMenu";

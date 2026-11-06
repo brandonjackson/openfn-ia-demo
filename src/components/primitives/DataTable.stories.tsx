@@ -5,7 +5,7 @@ import EnvironmentBadge from "../domain/EnvironmentBadge";
 import { Trash2 } from "lucide-react";
 import Button from "./Button";
 import { userCredentials } from "../../fixtures/user";
-import type { UserCredential } from "../../model/page-data";
+import type { UserCredential } from "../../model/credentials";
 
 const columns: DataTableColumn<UserCredential>[] = [
   { key: "name", header: "Name", render: (c) => <span className="font-medium text-gray-900">{c.name}</span> },

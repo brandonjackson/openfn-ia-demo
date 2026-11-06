@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { UserCredential } from "../../model/page-data";
+import type { UserCredential } from "../../model/credentials";
 import { emailError } from "../../model/credentials";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";

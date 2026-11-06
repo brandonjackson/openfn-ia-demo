@@ -7,6 +7,7 @@ import type { AuditPage, AuditQuery } from "../../model/audit-events";
 import type { AdminProject, AdminProjectDraft } from "../../model/projects";
 import type { AdminUser, AdminUserDraft } from "../../model/users";
 import { fullName, type MaintenanceTask } from "../../model/admin";
+import { errorMessageOf } from "../../model/form-error";
 import SettingsLayout from "../../components/patterns/SettingsLayout";
 import type { SettingsNavItem } from "../../components/primitives/SettingsNav";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
@@ -284,8 +285,6 @@ export interface AdminSettingsPageData {
   auditQuery: AuditQuery;
   /** The single sign-on provider. Absent when none is set up. */
   authProvider?: AuthProviderConfig;
-  /** The last discovery URL test, if one has run. */
-  authTest?: AuthProviderTest;
   /** Where this instance is served from, the redirect host for a new provider. */
   instanceUrl: string;
   /** Every collection, across all projects. */
@@ -300,8 +299,8 @@ export interface AdminSettingsPageData {
 export interface AdminSettingsPageProps extends PageProps<AdminSettingsPageData>, UserActions, ProjectActions {
   /** Shows other audit events: new filters or another page. Like changing the URL, it waits for nothing. */
   onChangeAuditQuery: (query: AuditQuery) => void;
-  /** Checks that a discovery URL answers with an OpenID configuration; the result comes back as `data.authTest`. */
-  onTestAuthProvider: (draft: AuthProviderDraft) => Promise<void>;
+  /** Checks that a discovery URL answers with an OpenID configuration, without saving. Answers with what it found. */
+  onTestAuthProvider: (draft: AuthProviderDraft) => Promise<AuthProviderTest>;
   /** Saves the single sign-on provider, creating it if there's none. */
   onSaveAuthProvider: (draft: AuthProviderDraft) => Promise<void>;
   /** Removes the single sign-on provider, which turns off single sign-on. */
@@ -333,6 +332,8 @@ export default function AdminSettingsPage({
   // The /admin-settings root shows the first section.
   const activeId = navItems.some((item) => item.id === node.id) ? node.id : navItems[0].id;
   const graceDays = data.deletionGraceDays;
+  // The last discovery URL test: the answer to the action, kept until the provider is removed.
+  const [authTest, setAuthTest] = useState<AuthProviderTest>();
 
   return (
     <SettingsLayout
@@ -374,10 +375,20 @@ export default function AdminSettingsPage({
             key={data.authProvider ? "provider" : "none"}
             provider={data.authProvider}
             defaultRedirectHost={data.instanceUrl}
-            test={data.authTest}
-            onTest={onTestAuthProvider}
+            test={authTest}
+            onTest={async (draft) => {
+              try {
+                setAuthTest(await onTestAuthProvider(draft));
+              } catch (refused) {
+                // A test the server wouldn't run says why, where a result would.
+                setAuthTest({ discoveryUrl: draft.discoveryUrl, ok: false, message: errorMessageOf(refused) });
+              }
+            }}
             onSave={onSaveAuthProvider}
-            onRemove={onRemoveAuthProvider}
+            onRemove={async () => {
+              await onRemoveAuthProvider();
+              setAuthTest(undefined);
+            }}
           />
         </Stack>
       )}

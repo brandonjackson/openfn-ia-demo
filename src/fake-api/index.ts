@@ -32,6 +32,7 @@ import { serviceRoutes } from "./services";
 import { organizationRoutes } from "./organization";
 import { handbookRoutes } from "./handbook";
 import { componentRoutes } from "./project-components";
+import { maintenanceRoutes } from "./maintenance";
 
 export type { Problem } from "./answers";
 export { signInAs } from "./session";
@@ -58,6 +59,7 @@ const routes: Record<string, Handler> = {
   ...serviceRoutes,
   ...organizationRoutes,
   ...handbookRoutes,
+  ...maintenanceRoutes,
   ...componentRoutes,
   // The demo's own: back to the fixtures.
   "POST /api/demo/reset": () => {

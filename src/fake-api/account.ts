@@ -9,9 +9,9 @@
  * or delete your account, and the demo has no screen for that yet.
  */
 import { userApiTokens, demoBackupCodes, currentUser } from "../fixtures/user";
-import { instanceAuthProvider, instanceUrl } from "../fixtures/admin";
+import { deletionGraceDays, instanceAuthProvider, instanceUrl, usageMetricsEnabled } from "../fixtures/admin";
 import { newId, seedId } from "../fixtures/ids";
-import { conflict, forbidden, invalid, json, noContent, notFound, now, unknownKeys, type Body, type Entry, type Handler } from "./answers";
+import { conflict, forbidden, invalid, json, noContent, notFound, now, problem, unknownKeys, type Body, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
 import { seedTime, table } from "./db";
 import { currentUserId } from "./session";
@@ -146,7 +146,10 @@ export function updateSelf(body: Body): Response {
 
 export const accountRoutes: Record<string, Handler> = {
   "GET /api/instance": () =>
-    json(200, { data: { needs_setup: false, allow_signup: false, url: instanceUrl, purge_deleted_after_days: 7, admin_email: "support@example.org", github_sync: true } }),
+    // usage_metrics_enabled is the demo's own field (docs/api-gaps.md).
+    json(200, {
+      data: { needs_setup: false, allow_signup: false, url: instanceUrl, purge_deleted_after_days: deletionGraceDays, admin_email: "support@example.org", github_sync: true, usage_metrics_enabled: usageMetricsEnabled },
+    }),
 
   "GET /api/me": () => json(200, meEntry(me())),
 
@@ -234,6 +237,22 @@ export const accountRoutes: Record<string, Handler> = {
     const { client_secret: _secret, ...shown } = p;
     void _secret;
     return json(200, { data: { ...shown, redirect_uri: `${instanceUrl}/authenticate/${p.name}/callback` } });
+  },
+  // The demo's own route: api/ checks a discovery URL only as it saves (docs/api-gaps.md).
+  "POST /api/demo/auth_provider/test": (_params, body) => {
+    if (!isSuperuser()) return forbidden();
+    const url = body["discovery_url"];
+    if (typeof url !== "string" || !url) return invalid([{ code: "required", detail: "can't be blank", pointer: "#/discovery_url" }]);
+    // Refused as PUT /api/auth_provider refuses it, so the form reads both the same way.
+    if (!/^https:\/\/.+\/\.well-known\/openid-configuration$/.test(url)) {
+      return problem({
+        status: 422,
+        code: "invalid",
+        detail: "No OpenID configuration at that URL. Check it's HTTPS and ends in .well-known/openid-configuration.",
+        errors: [{ code: "discovery_failed", detail: "has no OpenID configuration", pointer: "#/discovery_url" }],
+      });
+    }
+    return json(200, { data: { discovery_url: url, message: "Found the provider's authorization, token and user info endpoints." } });
   },
   "PUT /api/auth_provider": (_params, body) => {
     if (!isSuperuser()) return forbidden();

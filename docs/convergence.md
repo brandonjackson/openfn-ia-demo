@@ -17,18 +17,15 @@ and to mark what would change the look.
   (merged once CI is green) and the branch restarted from `main` before the
   next: `git fetch origin main && git checkout -B
   claude/intelligent-newton-2pncy4 origin/main`.
-- **PR in progress:** PR 5, Admin settings into its folder.
+- **PR in progress:** none. PRs 1 to 6 are merged; the next session starts
+  item 1 below on a branch restarted from `main`.
 - **Next three items**, one PR each:
-  1. **Admin settings off fixtures.** Its wrapper still reads six fixture
-     values and fakes two actions with local state. Move each to the API:
-     the signed-in user from `useMe` (`src/api/account.ts`); maintenance
-     jobs and "Test" for a sign-on provider to `/api/demo/` routes (api/
-     has neither; add them to api-gaps); `instanceUrl`, `deletionGraceDays`
-     and `usageMetricsEnabled` to an `/api/demo/instance` route. The audit
-     trail should be paged and filtered by the server (`GET
-     /api/audit_events` takes `item_type`, `item_id`, `actor_id`, `event` and
-     dates; its free-text search is an api-gap), with `auditQuery` kept in
-     the URL by the wrapper, not in its state.
+  1. **Admin settings' audit trail paged by the server.** `useAuditTrail`
+     takes the query; `GET /api/audit_events` filters by `event` and
+     `item_type` and pages (`page`, `page_size`); the wrapper keeps the query
+     in the URL (as History's does), not in `useState`. Free-text search is
+     an api-gap: until api/ has it, leave the search box out or keep it
+     client-side and say so (a question for Brandon if it changes the page).
   2. **User settings into its folder**, on the credential and account types
      (in `model/credentials.ts` and `model/account.ts`).
   3. **Organization settings into its folder** (`OrganizationMember`,
@@ -127,9 +124,20 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    openfn-3-poc first: no change since PR 1 (still `a3e3d02`). Counts:
    page-data.ts 1054 → 837 lines; files importing it 113 → 91; pages in
    their own folder 1 → 2 of 24; page and query tests 2 → 4; tests 105 →
-   112.
+   112. ([#195](https://github.com/brandonjackson/openfn-ia-demo/pull/195))
+6. **Admin settings off fixtures.** Its wrapper only calls hooks now: you
+   from `useMe`, the instance from `GET /api/instance` (`useInstance`: URL,
+   deletion grace period, and the demo's `usage_metrics_enabled`), the
+   maintenance jobs from `/api/demo/maintenance` (`src/api/maintenance.ts`),
+   and testing a sign-on provider from `/api/demo/auth_provider/test`, whose
+   answer comes back as the action's reply (the page keeps it as UI state;
+   a URL with no configuration is refused as saving refuses it, and any other
+   refusal shows in the same "Test failed" callout).
+   Maintenance runs record an ISO time, which `MaintenanceTaskCard` words.
+   Three api-gaps entries. Counts: wrappers reading fixtures 23 → 22 of 25;
+   tests 112 → 119. ([#196](https://github.com/brandonjackson/openfn-ia-demo/pull/196))
 
-**PRs done: 5 of 10.** Pull openfn-3-poc again at PR 10.
+**PRs done: 6 of 10.** Pull openfn-3-poc again at PR 10.
 
 ## Waiting on Brandon
 

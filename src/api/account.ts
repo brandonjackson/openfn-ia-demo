@@ -6,10 +6,10 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
-import type { AuthProviderConfig } from "../model/authentication";
-import type { ApiToken, BackupCode, ContactPreference, MfaSetup, ProfileDetails, UserProfile } from "../model/account";
+import type { AuthProviderConfig, AuthProviderTest } from "../model/authentication";
+import type { ApiToken, BackupCode, ContactPreference, InstanceInfo, MfaSetup, ProfileDetails, UserProfile } from "../model/account";
 import { formatDate, timeAgo } from "../model/time";
-import { request } from "./client";
+import { isApiError, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 /** You, as `GET /api/me` answers with a session. */
@@ -49,7 +49,25 @@ export const accountKeys = {
   tokens: ["me", "tokens"] as const,
   mfa: ["me", "mfa"] as const,
   authProvider: ["auth_provider"] as const,
+  instance: ["instance"] as const,
 };
+
+/** GET /api/instance, with the demo's own `usage_metrics_enabled`. */
+interface ApiInstance {
+  url: string;
+  purge_deleted_after_days: number;
+  usage_metrics_enabled?: boolean;
+}
+
+/** The instance: its URL, how long deletions wait, and whether it sends usage metrics. */
+export function useInstance(): { status: LoadStatus; instance: InstanceInfo | undefined } {
+  const query = useQuery({
+    queryKey: accountKeys.instance,
+    queryFn: () => request<{ data: ApiInstance }>("GET", "/api/instance").then((a) => a.data),
+    select: (i): InstanceInfo => ({ url: i.url, deletionGraceDays: i.purge_deleted_after_days, usageMetricsEnabled: i.usage_metrics_enabled ?? false }),
+  });
+  return { status: statusOf(query), instance: query.data };
+}
 
 /** You: your profile, and whether you're a superuser. */
 export function useMe(): { status: LoadStatus; me: (UserProfile & { id: string; isSuperuser: boolean }) | undefined } {
@@ -207,5 +225,16 @@ export function useAuthProviderSaves() {
   return {
     save: async (draft: { name: string; discoveryUrl: string; clientId: string; clientSecret?: string }) => void (await save.mutateAsync(draft)),
     remove: async () => void (await remove.mutateAsync()),
+    /** Checks a discovery URL answers with an OpenID configuration, without saving. The demo's own route. */
+    test: async (discoveryUrl: string): Promise<AuthProviderTest> => {
+      try {
+        const { data } = await request<{ data: { discovery_url: string; message: string } }>("POST", "/api/demo/auth_provider/test", { discovery_url: discoveryUrl });
+        return { discoveryUrl: data.discovery_url, ok: true, message: data.message };
+      } catch (error) {
+        // No configuration there is an answer, not a failure: the same refusal saving gives.
+        if (isApiError(error, "invalid") && error.fieldErrors["discovery_url"]) return { discoveryUrl, ok: false, message: error.message };
+        throw error;
+      }
+    },
   };
 }

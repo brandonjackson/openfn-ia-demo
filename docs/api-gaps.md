@@ -34,10 +34,27 @@ path in its hook file.
 - **Project components besides workflows, channels and collections** (forms,
   artifacts, AI skills, documents, static websites). Demo:
   `/api/demo/projects/:id/components` (`src/api/project-components.ts`).
+- **Maintenance jobs** (Admin settings, Maintenance). Lightning's
+  `/settings/maintenance` has no API. Would need a list of jobs with when
+  each last ran, and a way to run one. Demo: `/api/demo/maintenance`
+  (`src/api/maintenance.ts`).
 - **The demo's view of you** (`/api/demo/me`) and **Reset demo data**
   (`/api/demo/reset`): the demo's own controls, not product gaps.
 
 ## Missing from a resource api/ covers
+
+- **Sign-on provider: testing a discovery URL without saving** (Admin
+  settings, Authentication; api/authentication.md). `PUT /api/auth_provider`
+  checks the URL only as it saves. The form has a Test button. Would need a
+  check that saves nothing (say `POST /api/auth_provider/test`). Demo:
+  `/api/demo/auth_provider/test`, which answers with what it found.
+- **Instance: whether it sends usage metrics** (Admin settings, Maintenance;
+  api/account.md). `GET /api/instance` doesn't say. Demo: the fake server adds
+  `usage_metrics_enabled` to it.
+- **Audit trail: free-text search** (Admin settings, Audit trail;
+  api/audit-events.md). The route filters by item type, item, actor, event
+  and dates, but the page also searches by any text. Until the server pages
+  the trail (convergence.md, Next), the wrapper filters the whole list.
 
 - **Projects: a superuser's own projects** (api/projects.md). The list
   answers only your projects, but the demo's fake server answers a

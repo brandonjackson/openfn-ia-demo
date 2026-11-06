@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { formatDateTime } from "../../model/time";
 import { Check, Play, RefreshCw } from "lucide-react";
 import type { MaintenanceTask } from "../../model/admin";
 import Button from "../primitives/Button";
@@ -48,7 +49,7 @@ export default function MaintenanceTaskCard({ task, onRun, doneFor = 3000 }: Pro
             {task.description}
           </Text>
           <Text tone={state === "done" ? "success" : "subtle"} size="xs">
-            {task.lastRun ? `Last run ${task.lastRun.at}: ${task.lastRun.result}` : "Hasn't run yet"}
+            {task.lastRun ? `Last run ${formatDateTime(task.lastRun.at)}: ${task.lastRun.result}` : "Hasn't run yet"}
           </Text>
         </Stack>
         <Button

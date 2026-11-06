@@ -50,3 +50,6 @@ export interface AuditPage {
   /** Every event name in the trail, for the event filter. */
   eventNames: string[];
 }
+
+/** How many audit events show on one page. */
+export const AUDIT_PAGE_SIZE = 10;

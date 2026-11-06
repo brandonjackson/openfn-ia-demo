@@ -128,6 +128,6 @@ export interface MaintenanceTask {
   id: string;
   title: string;
   description: string;
-  /** When it last finished and what it did. Absent if it's never run. */
+  /** When it last finished (as the server sends it) and what it did. Absent if it's never run. */
   lastRun?: { at: string; result: string };
 }

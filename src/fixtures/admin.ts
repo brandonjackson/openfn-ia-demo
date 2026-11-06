@@ -230,14 +230,14 @@ export const maintenanceTasks: MaintenanceTask[] = [
     id: "refresh-adaptors",
     title: "Refresh adaptor registry",
     description: "Re-fetch the list of available adaptors and their versions.",
-    lastRun: { at: "5 Nov 2026, 03:00", result: "214 adaptors, no new versions" },
+    lastRun: { at: "2026-11-05T03:00:00Z", result: "214 adaptors, no new versions" },
   },
   {
     id: "refresh-icons",
     title: "Refresh adaptor icons",
     description:
       "Re-fetch icons for every adaptor and replace any that have changed. Doesn't touch adaptor metadata or version history.",
-    lastRun: { at: "12 Oct 2026, 14:22", result: "6 updated, 208 unchanged" },
+    lastRun: { at: "2026-10-12T14:22:00Z", result: "6 updated, 208 unchanged" },
   },
 ];
 

@@ -138,6 +138,18 @@ export interface CredentialSchema {
 }
 
 /**
+ * Raw JSON: a credential whose body can be anything, for adaptors without a
+ * schema. The API names it `raw` and sends no schema for it, so its one
+ * field is fixed here.
+ */
+export const rawCredentialSchema: CredentialSchema = {
+  id: "raw",
+  name: "Raw JSON",
+  description: "Any body at all, for adaptors without a schema",
+  fields: [{ key: "body", label: "Credential body", kind: "json", required: true, defaultValue: "{}" }],
+};
+
+/**
  * A credential's values for one environment. Secret fields never come back
  * from the server: they're missing here even when they're set, and a blank
  * secret on save keeps the one already stored. Booleans are "true" or "false";

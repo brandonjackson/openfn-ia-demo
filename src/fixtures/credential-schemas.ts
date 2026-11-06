@@ -1,4 +1,4 @@
-import type { CredentialSchema } from "../model/credentials";
+import { rawCredentialSchema, type CredentialSchema } from "../model/credentials";
 
 /**
  * The kinds of credential the type picker offers. Fields, labels and which
@@ -78,10 +78,5 @@ export const credentialSchemas: CredentialSchema[] = [
     description: "Cloud spreadsheets, with an access token",
     fields: [{ key: "access_token", label: "Access token", kind: "secret", description: "Your Google Sheets access token", required: true }],
   },
-  {
-    id: "raw",
-    name: "Raw JSON",
-    description: "Any body at all, for adaptors without a schema",
-    fields: [{ key: "body", label: "Credential body", kind: "json", required: true, defaultValue: "{}" }],
-  },
+  rawCredentialSchema,
 ];

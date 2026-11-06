@@ -1,40 +1,57 @@
 import { useState } from "react";
 import { UserCircle, KeyRound, Terminal, Plus, Trash2, GitBranch, ShieldCheck, Fingerprint, AppWindow } from "lucide-react";
-import type { PageProps } from "../model/ia-tree";
-import type { UserSettingsPageData } from "../model/page-data";
-import type { ApiToken, MfaSetup, ProfileDetails } from "../model/account";
-import type { CredentialDraft, OAuthClient, OAuthClientDraft, UserCredential } from "../model/credentials";
-import SettingsLayout from "../components/patterns/SettingsLayout";
-import type { SettingsNavItem } from "../components/primitives/SettingsNav";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import ApiTokenTable from "../components/domain/ApiTokenTable";
-import BackupCodes from "../components/domain/BackupCodes";
-import ChangeEmailForm from "../components/domain/ChangeEmailForm";
-import ChangePasswordForm from "../components/domain/ChangePasswordForm";
-import CredentialFormModal from "../components/domain/CredentialFormModal";
-import CredentialTable from "../components/domain/CredentialTable";
-import DeleteAccountModal from "../components/domain/DeleteAccountModal";
-import MfaSetupFlow from "../components/domain/MfaSetupFlow";
-import OAuthClientModal from "../components/domain/OAuthClientModal";
-import OAuthClientTable from "../components/domain/OAuthClientTable";
-import ProfileDetailsForm from "../components/domain/ProfileDetailsForm";
-import TransferCredentialModal from "../components/domain/TransferCredentialModal";
-import Badge from "../components/primitives/Badge";
-import Button from "../components/primitives/Button";
-import Callout from "../components/primitives/Callout";
-import Card from "../components/primitives/Card";
-import ConfirmModal from "../components/primitives/ConfirmModal";
-import CopyValue from "../components/primitives/CopyValue";
-import EmptyState from "../components/primitives/EmptyState";
-import Inline from "../components/primitives/Inline";
-import SectionHeading from "../components/primitives/SectionHeading";
-import Stack from "../components/primitives/Stack";
-import Text from "../components/primitives/Text";
-import TextLink from "../components/primitives/TextLink";
+import type { PageProps } from "../../model/ia-tree";
+import type { ApiToken, BackupCode, MfaSetup, ProfileDetails, UserProfile } from "../../model/account";
+import type { CredentialDraft, CredentialSchema, OAuthClient, OAuthClientDraft, ProjectOption, UserCredential } from "../../model/credentials";
+import SettingsLayout from "../../components/patterns/SettingsLayout";
+import type { SettingsNavItem } from "../../components/primitives/SettingsNav";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import ApiTokenTable from "../../components/domain/ApiTokenTable";
+import BackupCodes from "../../components/domain/BackupCodes";
+import ChangeEmailForm from "../../components/domain/ChangeEmailForm";
+import ChangePasswordForm from "../../components/domain/ChangePasswordForm";
+import CredentialFormModal from "../../components/domain/CredentialFormModal";
+import CredentialTable from "../../components/domain/CredentialTable";
+import DeleteAccountModal from "../../components/domain/DeleteAccountModal";
+import MfaSetupFlow from "../../components/domain/MfaSetupFlow";
+import OAuthClientModal from "../../components/domain/OAuthClientModal";
+import OAuthClientTable from "../../components/domain/OAuthClientTable";
+import ProfileDetailsForm from "../../components/domain/ProfileDetailsForm";
+import TransferCredentialModal from "../../components/domain/TransferCredentialModal";
+import Badge from "../../components/primitives/Badge";
+import Button from "../../components/primitives/Button";
+import Callout from "../../components/primitives/Callout";
+import Card from "../../components/primitives/Card";
+import ConfirmModal from "../../components/primitives/ConfirmModal";
+import CopyValue from "../../components/primitives/CopyValue";
+import EmptyState from "../../components/primitives/EmptyState";
+import Inline from "../../components/primitives/Inline";
+import SectionHeading from "../../components/primitives/SectionHeading";
+import Stack from "../../components/primitives/Stack";
+import Text from "../../components/primitives/Text";
+import TextLink from "../../components/primitives/TextLink";
 
 /* ------------------------------------------------------------------ */
 /*  Contract                                                           */
 /* ------------------------------------------------------------------ */
+
+/** Everything User settings shows: you, your credentials and OAuth clients, the projects you can share them with, and your API tokens. */
+export interface UserSettingsPageData {
+  profile: UserProfile;
+  credentials: UserCredential[];
+  /** Every kind of credential you can make, in the type picker's order. */
+  credentialSchemas: CredentialSchema[];
+  oauthClients: OAuthClient[];
+  /** Projects you're a member of, which you can share credentials and OAuth clients with. */
+  projects: ProjectOption[];
+  apiTokens: ApiToken[];
+  /** Your backup codes, while multi-factor authentication is on. */
+  backupCodes?: BackupCode[];
+  /** Whether you may make an OAuth client every project can use (superusers only). */
+  canCreateGlobalOAuthClients?: boolean;
+  /** Whether organization credentials live on connected systems, which the Credentials section points to. Defaults to true. */
+  orgCredentialsOnSystems?: boolean;
+}
 
 export interface UserSettingsPageProps extends PageProps<UserSettingsPageData> {
   /** Saves your name and contact preference. */

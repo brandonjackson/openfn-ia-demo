@@ -17,16 +17,18 @@ and to mark what would change the look.
   used `claude/intelligent-newton-2pncy4`). Each PR is shipped (merged once
   CI is green) and the branch restarted from `main` before the next: `git
   fetch origin main && git checkout -B <branch> origin/main`.
-- **PR in progress:** none. PRs 1 to 7 are merged; the next session starts
+- **PR in progress:** none. PRs 1 to 8 are merged; the next session starts
   item 1 below on a branch restarted from `main`.
 - **Next three items**, one PR each:
-  1. **User settings into its folder**, on the credential and account types
-     (in `model/credentials.ts` and `model/account.ts`).
-  2. **Organization settings into its folder** (`OrganizationMember`,
-     `ContextLayer` and the rest to `model/organization.ts`).
-  3. **ProjectSettingsPage into its folder**, starting with the types it
-     takes from page-data.ts.
-  After those, WorkflowEditorPage.
+  1. **Organization settings into its folder** (`OrganizationMember`,
+     `ContextLayer` and the rest to `model/organization.ts`;
+     `OrganizationSettingsPageData` into the page file).
+  2. **ProjectSettingsPage into its folder**, starting with the types it
+     takes from page-data.ts (`Collaborator`, `WebhookAuthMethod`,
+     `GitHub*`, `HistoryExport`, `DataStorageSettings`).
+  3. **Handbook into its folder** (already on the API; small).
+  After those, WorkflowEditorPage. PR 10 is the stop point the brief sets,
+  and the time to pull openfn-3-poc again.
 - **Moving types:** `python3 scripts/move-types.py <from> <to> Name…` moves
   exported declarations (with their doc comments) and rewrites every import
   under src/. Then `npx tsc -b` and add the target's own imports.
@@ -146,7 +148,23 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    ratchet unchanged; tests 119 → 128.
    ([#197](https://github.com/brandonjackson/openfn-ia-demo/pull/197))
 
-**PRs done: 7 of 10.** Pull openfn-3-poc again at PR 10.
+8. **User settings into its folder, credential types from the API.**
+   `src/pages/user-settings/` with its first page and query tests;
+   `UserSettingsPageData` left page-data.ts for the page file (the story
+   builds its data from the fixtures' pieces, and `userSettingsData` is
+   gone). The type picker reads `GET /api/credential_schemas` and each
+   `GET /api/credential_schemas/:name` (`useCredentialSchemas`), which the
+   fake server answers as JSON Schema (`src/fake-api/credential-schemas.ts`:
+   secrets `writeOnly`, URLs `format: uri`, `required`, `examples`,
+   `default`); raw JSON is `rawCredentialSchema` in the model. Credentials
+   now store their schema in full (`@openfn/language-dhis2`), as api/ says,
+   and `schemaIdOf` reads it back as the form's short name. One api-gaps
+   entry. Counts: wrappers reading fixtures 22 → 21 of 25; page-data.ts 833
+   → 809 lines; files importing it 91 → 89; pages in their own folder 2 → 3
+   of 24; page and query tests 4 → 6; tests 128 → 145.
+   ([#198](https://github.com/brandonjackson/openfn-ia-demo/pull/198))
+
+**PRs done: 8 of 10.** Pull openfn-3-poc again at PR 10.
 
 ## Waiting on Brandon
 
@@ -185,3 +203,11 @@ says what and why.
   records (33 names, from a fixed list) rather than only those already in
   the trail, so some choices find nothing. If that's too long, group the
   names by item type, or ask for the list in api/audit-events.md.
+- **Credential types loaded with the whole page** (React and architecture
+  reviews, PR 8): User settings waits for the schema list and every schema
+  before drawing any section, so a slow or refused schema (Lightning answers
+  503 `not_ready` while it loads adaptors) blanks Profile and API tokens
+  too; against a real instance that's one request per adaptor. The fix is
+  to load only the list for the picker and fetch a schema when it's picked,
+  but that means the picker loses its description line (api-gaps) and the
+  form needs a loading state of its own.

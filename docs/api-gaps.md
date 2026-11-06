@@ -82,6 +82,13 @@ path in its hook file.
   `model/credentials.ts`). Would need api/ to settle on a fixed set, or the
   design to take any name. Until then the demo sends its three names as the
   API's environment names.
+- **Credentials: a line on what each kind connects to** (User settings, the
+  credential type picker; api/credentials.md, Credential schemas). The list
+  sends a name and a title only. The picker's one-line description ("District
+  Health Information System") comes from the top-level `description` of the
+  schema's JSON Schema, which the fake server fills; an adaptor whose schema
+  has none shows no line. Would need a `description` on each list entry, or a
+  promise that schemas carry one.
 - **Credentials: an environment's values that aren't secret**
   (api/credentials.md never sends a body). The edit form shows each
   environment's non-secret fields. Would need `GET

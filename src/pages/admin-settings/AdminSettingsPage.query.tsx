@@ -13,11 +13,13 @@ import AdminSettingsPage from "./AdminSettingsPage";
 
 /** The audit trail's query, as the URL holds it: `?q=…&event=…&item_type=…&page=…`. */
 function auditQueryFrom(params: URLSearchParams): AuditQuery {
+  // A name the trail doesn't know is dropped, so the filters show what's asked of the server.
   const itemType = params.get("item_type") ?? "";
+  const event = params.get("event") ?? "";
   return {
     search: params.get("q") ?? "",
-    event: params.get("event") ?? "",
-    itemType: itemType in auditItemTypeLabels ? (itemType as AuditItemType) : "",
+    event: (auditEventNames as readonly string[]).includes(event) ? event : "",
+    itemType: Object.hasOwn(auditItemTypeLabels, itemType) ? (itemType as AuditItemType) : "",
     page: Math.max(1, Math.floor(Number(params.get("page"))) || 1),
   };
 }

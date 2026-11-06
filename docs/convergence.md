@@ -142,7 +142,8 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
    api/, so only a search reads the whole filtered trail. The event filter
    offers a fixed list of Lightning's event names (`auditEventNames`)
    instead of the names found in the trail. Two api-gaps entries (one
-   rewritten). Counts: ratchet unchanged; tests 119 → 127.
+   rewritten). An unknown `?event=` or `?item_type=` is dropped. Counts:
+   ratchet unchanged; tests 119 → 128.
    ([#197](https://github.com/brandonjackson/openfn-ia-demo/pull/197))
 
 **PRs done: 7 of 10.** Pull openfn-3-poc again at PR 10.
@@ -174,7 +175,13 @@ says what and why.
   data loads, with the spinner or error in the content's place. Here
   `Loaded` replaces the whole page. Moving to the openfn-3 way changes what
   shows while loading.
+- **Audit trail's own loading and error state** (React and architecture
+  reviews, PR 7): the trail's status is combined into the whole page's, so
+  a failed audit request replaces every Admin settings tab with the error,
+  and nothing marks the old rows while the next page loads. Giving
+  `AuditTrail` its own status (a spinner or callout in the table's place,
+  dimmed rows while pending) would fix both; it changes what shows.
 - **Audit trail's event filter**: it now offers every event Lightning
-  records (31 names, from a fixed list) rather than only those already in
+  records (33 names, from a fixed list) rather than only those already in
   the trail, so some choices find nothing. If that's too long, group the
   names by item type, or ask for the list in api/audit-events.md.

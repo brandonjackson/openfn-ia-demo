@@ -101,7 +101,7 @@ describe("AdminSettingsPageQuery", () => {
       expect(await screen.findByText(`Showing 11–20 of ${all.length} events`, {}, wait)).toBeTruthy();
     });
 
-    it("filters by event on the server, and goes back to the first page", async () => {
+    it("filters by event on the server", async () => {
       const created = (await listAll<Event>("/api/audit_events?event=created")).length;
       renderRoute("/admin-settings/audit-trail?page=2");
       await screen.findByText(/Showing 11–20/, {}, wait);
@@ -119,6 +119,12 @@ describe("AdminSettingsPageQuery", () => {
       fireEvent.change(screen.getByPlaceholderText("Filter by actor or item"), { target: { value: oldest } });
       await waitFor(() => expect(rows().every((r) => r.textContent?.includes(oldest))).toBe(true), wait);
       expect(rows()).toHaveLength(Math.min(matching, 10));
+    });
+
+    it("ignores an event name the trail doesn't know", async () => {
+      const all = await listAll<Event>("/api/audit_events");
+      renderRoute("/admin-settings/audit-trail?event=bogus");
+      expect(await screen.findByText(`Showing 1–10 of ${all.length} events`, {}, wait)).toBeTruthy();
     });
 
     it("shows the server's message when the trail fails to load", async () => {

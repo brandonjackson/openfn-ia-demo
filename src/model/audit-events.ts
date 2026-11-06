@@ -25,6 +25,8 @@ export const auditEventNames = [
   "file_removed",
   "history_retention_period_updated",
   "marked_for_deletion",
+  "member_added",
+  "member_invited",
   "member_removed",
   "removed_from_project",
   "removed_from_trigger",

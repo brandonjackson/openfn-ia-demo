@@ -120,9 +120,10 @@ export function useAdminProjects(): { status: LoadStatus; projects: AdminProject
  * One page of the audit trail, newest first, filtered by event and item type
  * on the server, which pages it (`GET /api/audit_events`). The API can't
  * search by text, so a search reads every event that passes the other
- * filters and searches and pages them here (docs/api-gaps.md). `page` is the
- * page shown, the last one when the query asks for one past the end.
- * Changing the query keeps the last page on screen until the next arrives.
+ * filters once, then searches and pages them here (docs/api-gaps.md). `page`
+ * is the page shown, the last one when the query asks for one past the end.
+ * Changing the query keeps the last page on screen until the next arrives,
+ * unless the next one fails.
  */
 export function useAuditTrail(
   query: AuditQuery,
@@ -134,22 +135,33 @@ export function useAuditTrail(
   ]);
   const path = `/api/audit_events${filters.size ? `?${filters}` : ""}`;
   const search = query.search.trim();
-  const result = useQuery({
-    queryKey: [...adminKeys.audit, path, search, query.page, pageSize],
+  const paged = useQuery({
+    queryKey: [...adminKeys.audit, "page", path, query.page, pageSize],
     queryFn: async () => {
-      if (!search) {
-        const { rows, page, total } = await listPage<ApiAuditEvent>(path, query.page, pageSize);
-        return { entries: rows.map(toAuditEvent), page, total };
-      }
-      const found = filterAuditEvents((await listAll<ApiAuditEvent>(path)).map(toAuditEvent), query);
-      const page = Math.min(query.page, Math.max(1, Math.ceil(found.length / pageSize)));
-      const start = (page - 1) * pageSize;
-      return { entries: found.slice(start, start + pageSize), page, total: found.length };
+      const { rows, page, total } = await listPage<ApiAuditEvent>(path, query.page, pageSize);
+      return { entries: rows.map(toAuditEvent), page, total };
     },
     placeholderData: keepPreviousData,
+    enabled: !search,
   });
-  const { entries = [], page = query.page, total = 0 } = result.data ?? {};
-  return { status: statusOf(result), entries, page, total };
+  const whole = useQuery({
+    queryKey: [...adminKeys.audit, "all", path],
+    queryFn: async () => (await listAll<ApiAuditEvent>(path)).map(toAuditEvent),
+    placeholderData: keepPreviousData,
+    enabled: !!search,
+  });
+  const result = search ? whole : paged;
+  // Old rows under new filters would mislabel them, so a failed change shows the failure.
+  const { data, error, isPlaceholderData } = result as { data: unknown; error: Error | null; isPlaceholderData: boolean };
+  const status = statusOf({ data: isPlaceholderData && error ? undefined : data, error });
+  if (search) {
+    const found = filterAuditEvents(whole.data ?? [], query);
+    const page = Math.min(query.page, Math.max(1, Math.ceil(found.length / pageSize)));
+    const start = (page - 1) * pageSize;
+    return { status, entries: found.slice(start, start + pageSize), page, total: found.length };
+  }
+  const { entries = [], page = query.page, total = 0 } = paged.data ?? {};
+  return { status, entries, page: paged.isPlaceholderData ? query.page : page, total };
 }
 
 /** Admin settings' changes to accounts and projects. Each resolves once the lists and the audit trail have reloaded. */

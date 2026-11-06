@@ -31,3 +31,8 @@ export const Default: Story = {};
 export const NoFiles: Story = {
   args: { data: { ...handbookData, files: [] } },
 };
+
+/** Someone outside the organisation reads the handbook but can't add or remove files. */
+export const ReadOnly: Story = {
+  args: { onUploadFiles: undefined, onRemoveFile: undefined },
+};

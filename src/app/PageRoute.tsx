@@ -26,7 +26,7 @@ import InsightsPageFixtures from "../pages/InsightsPage.fixtures";
 import UserSettingsPageQuery from "../pages/UserSettingsPage.query";
 import OrganizationSettingsPageQuery from "../pages/OrganizationSettingsPage.query";
 import AdminSettingsPageQuery from "../pages/AdminSettingsPage.query";
-import HandbookPageFixtures from "../pages/HandbookPage.fixtures";
+import HandbookPageQuery from "../pages/HandbookPage.query";
 import PlaceholderPageFixtures from "../pages/PlaceholderPage.fixtures";
 
 type PageType = NonNullable<IANode["pageType"]>;
@@ -56,7 +56,7 @@ const wrappers: Record<PageType, ComponentType<{ route: Route }>> = {
   "user-settings": UserSettingsPageQuery,
   "organization-settings": OrganizationSettingsPageQuery,
   "admin-settings": AdminSettingsPageQuery,
-  handbook: HandbookPageFixtures,
+  handbook: HandbookPageQuery,
   generic: PlaceholderPageFixtures,
 };
 

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import FilesPanel from "./FilesPanel";
+import Callout from "../primitives/Callout";
 import { handbookData } from "../../fixtures/handbook";
 
 const meta: Meta<typeof FilesPanel> = {
@@ -27,3 +28,8 @@ export const NearlyFull: Story = { args: { capacityBytes: 5 * 1024 * 1024 } };
 
 /** Without onAdd/onRemove the panel is read-only. */
 export const ReadOnly: Story = { args: { onAdd: undefined, onRemove: undefined } };
+
+/** Something to say under the meter, such as why an upload was refused. */
+export const WithNotice: Story = {
+  args: { notice: <Callout variant="danger" title="That didn't save">would take the handbook over its 50 MB</Callout> },
+};

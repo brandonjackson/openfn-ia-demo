@@ -1,5 +1,5 @@
 import { ArrowRightLeft, Braces, Clock, Pencil, Trash2, Undo2 } from "lucide-react";
-import type { CredentialSchema, ProjectOption, UserCredential } from "../../model/credentials";
+import type { CredentialSchemaSummary, ProjectOption, UserCredential } from "../../model/credentials";
 import DataTable from "../primitives/DataTable";
 import type { DataTableColumn } from "../primitives/DataTable";
 import type { DropdownMenuItem } from "../primitives/DropdownMenu";
@@ -14,7 +14,7 @@ import SystemLabel from "./SystemLabel";
 interface Props {
   credentials: UserCredential[];
   /** The kinds of credential, to name and draw each one's type. */
-  schemas: CredentialSchema[];
+  schemas: CredentialSchemaSummary[];
   /** Projects by id, to name the ones each credential is shared with. */
   projects: ProjectOption[];
   /** Opens the credential's form. Left out, there's no Edit. */

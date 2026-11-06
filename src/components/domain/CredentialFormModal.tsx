@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Braces, Plus, Trash2 } from "lucide-react";
-import type { CredentialDraft, CredentialEnvironmentValues, CredentialField, CredentialSchema, ProjectOption, UserCredential } from "../../model/credentials";
+import type { CredentialDraft, CredentialEnvironmentValues, CredentialField, CredentialSchema, CredentialSchemaSummary, ProjectOption, UserCredential } from "../../model/credentials";
+import { errorMessageOf } from "../../model/form-error";
 import { ENVIRONMENTS, credentialDraftErrors, environmentLabels, hasCredentialErrors, type Environment } from "../../model/credentials";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";
@@ -11,6 +12,7 @@ import EmptyState from "../primitives/EmptyState";
 import FormField from "../primitives/FormField";
 import { TextArea, TextInput } from "../primitives/FormControls";
 import Grid from "../primitives/Grid";
+import LoadingState from "../primitives/LoadingState";
 import Inline from "../primitives/Inline";
 import ListRow from "../primitives/ListRow";
 import SearchInput from "../primitives/SearchInput";
@@ -24,8 +26,10 @@ interface Props {
   open: boolean;
   /** The credential being edited. Absent for a new one, which starts by picking its type. */
   credential?: UserCredential;
-  /** Every kind of credential, for the type picker and the fields each asks for. */
-  schemas: CredentialSchema[];
+  /** Every kind of credential, by name, for the type picker. */
+  schemas: CredentialSchemaSummary[];
+  /** Fetches one kind in full, with the fields it asks for; rejects with a message if the server says no. */
+  onLoadSchema: (id: string) => Promise<CredentialSchema>;
   /** Projects it could be shared with. */
   projects: ProjectOption[];
   /** Saves the credential; rejects with a message to show if the server says no. */
@@ -34,6 +38,13 @@ interface Props {
   /** Skips the type picker with this type already chosen, e.g. "dhis2". */
   initialSchema?: string;
 }
+
+/** Where the picked type's fields are: on their way, here, or refused. */
+type SchemaLoad =
+  | { state: "idle" }
+  | { state: "loading" }
+  | { state: "ready"; schema: CredentialSchema }
+  | { state: "error"; message: string };
 
 /** A new environment's values: each field's default, if it has one. */
 function defaults(schema: CredentialSchema | undefined): Record<string, string> {
@@ -82,17 +93,23 @@ function FieldInput({
 
 /**
  * Lightning's credential form in a dialog. A new credential starts by
- * picking its type (an adaptor's schema, or raw JSON); then it asks for a
+ * picking its type (an adaptor's schema, or raw JSON), whose fields are
+ * fetched when you go on to configure it, or as the form opens when the type
+ * is already known (editing, or `initialSchema`); then it asks for a
  * name and an optional external ID, its values per environment (production,
  * staging, mock, each on its own tab), and which projects can use it.
  * Secrets are never shown back: a blank one keeps what's saved.
  */
-export default function CredentialFormModal({ open, credential, schemas, projects, onSave, onClose, initialSchema }: Props) {
+export default function CredentialFormModal({ open, credential, schemas, projects, onSave, onLoadSchema, onClose, initialSchema }: Props) {
   const startSchema = credential?.schema ?? initialSchema ?? "";
   const [step, setStep] = useState<"type" | "form">(startSchema ? "form" : "type");
+  // The type picked in the picker, and the one the form is configuring.
+  const [pickedId, setPickedId] = useState(startSchema);
   const [schemaId, setSchemaId] = useState(startSchema);
   const [query, setQuery] = useState("");
-  const schema = schemas.find((s) => s.id === schemaId);
+  const [load, setLoad] = useState<SchemaLoad>(startSchema ? { state: "loading" } : { state: "idle" });
+  const schema = load.state === "ready" ? load.schema : undefined;
+  const summary = schemas.find((s) => s.id === schemaId);
 
   const [name, setName] = useState(credential?.name ?? "");
   const [externalId, setExternalId] = useState(credential?.externalId ?? "");
@@ -118,10 +135,37 @@ export default function CredentialFormModal({ open, credential, schemas, project
   const errors = schema ? credentialDraftErrors(draft, schema, savedSecrets) : { fields: {} };
   const shown = attempted ? errors : { fields: {} as typeof errors.fields };
 
-  const pickSchema = () => {
-    setEnvironments([{ environment: "production", values: defaults(schema) }]);
-    setCurrentEnv("production");
-    setStep("form");
+  // A type known as the form opens: fetch its fields now. A new credential starts with their defaults.
+  useEffect(() => {
+    if (!startSchema) return;
+    let current = true;
+    onLoadSchema(startSchema).then(
+      (loaded) => {
+        if (!current) return;
+        setLoad({ state: "ready", schema: loaded });
+        if (!credential) setEnvironments([{ environment: "production", values: defaults(loaded) }]);
+      },
+      (refused) => current && setLoad({ state: "error", message: errorMessageOf(refused) }),
+    );
+    return () => {
+      current = false;
+    };
+  }, [startSchema, onLoadSchema, credential]);
+
+  const pickSchema = async () => {
+    if (load.state === "loading" || !pickedId) return;
+    setLoad({ state: "loading" });
+    try {
+      const loaded = await onLoadSchema(pickedId);
+      setLoad({ state: "ready", schema: loaded });
+      setSchemaId(pickedId);
+      setEnvironments([{ environment: "production", values: defaults(loaded) }]);
+      setCurrentEnv("production");
+      setAttempted(false);
+      setStep("form");
+    } catch (refused) {
+      setLoad({ state: "error", message: errorMessageOf(refused) });
+    }
   };
 
   const setValue = (key: string, value: string) =>
@@ -162,7 +206,8 @@ export default function CredentialFormModal({ open, credential, schemas, project
 
   if (step === "type") {
     const q = query.trim().toLowerCase();
-    const matches = schemas.filter((s) => !q || `${s.name} ${s.description}`.toLowerCase().includes(q));
+    const matches = schemas.filter((s) => !q || s.name.toLowerCase().includes(q));
+    const loading = load.state === "loading";
     return (
       <Modal
         open={open}
@@ -174,13 +219,15 @@ export default function CredentialFormModal({ open, credential, schemas, project
             <Button variant="secondary" onClick={onClose}>
               Cancel
             </Button>
-            <Button disabled={!schema} onClick={pickSchema}>
-              Configure credential
+            {/* Busy rather than disabled while the type's fields load, so it keeps focus and "Loading…" is read out. */}
+            <Button disabled={!pickedId} aria-disabled={loading} onClick={pickSchema}>
+              {loading ? "Loading…" : "Configure credential"}
             </Button>
           </>
         }
       >
         <Stack gap="md">
+          {load.state === "error" && <Callout variant="danger" title={load.message} />}
           <SearchInput compact placeholder="Search credential types" value={query} onChange={(e) => setQuery(e.target.value)} />
           {matches.length > 0 ? (
             <Grid columns={2} gap="sm">
@@ -190,9 +237,8 @@ export default function CredentialFormModal({ open, credential, schemas, project
                   icon={Braces}
                   logo={s.adaptor ? <AdaptorLogo adaptor={s.adaptor} name={s.name} size="sm" /> : undefined}
                   title={s.name}
-                  description={s.description}
-                  selected={s.id === schemaId}
-                  onClick={() => setSchemaId(s.id)}
+                  selected={s.id === pickedId}
+                  onClick={() => setPickedId(s.id)}
                 />
               ))}
             </Grid>
@@ -209,7 +255,7 @@ export default function CredentialFormModal({ open, credential, schemas, project
   return (
     <Modal
       open={open}
-      title={credential ? `Edit ${credential.name}` : `Create ${schema?.name ?? ""} credential`}
+      title={credential ? `Edit ${credential.name}` : `Create ${summary?.name ?? schema?.name ?? ""} credential`}
       onClose={onClose}
       widthClass="max-w-2xl"
       footer={
@@ -273,6 +319,8 @@ export default function CredentialFormModal({ open, credential, schemas, project
                 />
               )}
             </Inline>
+            {load.state === "loading" && <LoadingState size="inline" />}
+            {load.state === "error" && <Callout variant="danger" title={load.message} />}
             {schema?.fields.map((field) => (
               <FieldInput
                 key={`${currentEnv}-${field.key}`}

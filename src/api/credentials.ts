@@ -3,9 +3,10 @@
  * API's shapes, the mappers onto the forms' types, the keys and the hooks.
  * A credential's secrets are sent, never read back.
  */
+import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ProjectCredential } from "../model/adaptor-reference";
-import { rawCredentialSchema, type CredentialDraft, type CredentialField, type CredentialFieldKind, type CredentialSchema, type OAuthClient, type UserCredential, type Environment } from "../model/credentials";
+import { rawCredentialSchema, type CredentialDraft, type CredentialField, type CredentialFieldKind, type CredentialSchema, type CredentialSchemaSummary, type OAuthClient, type UserCredential, type Environment } from "../model/credentials";
 import { formatDate } from "../model/time";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
@@ -121,7 +122,9 @@ export function toCredentialSchema({ name, title, schema }: ApiCredentialSchema)
   return { id, name: title, adaptor: id, description: schema.description ?? "", fields };
 }
 
-const toCredentialSchemas = (rows: ApiCredentialSchema[]) => rows.map(toCredentialSchema);
+/** A schema as the list names it: `raw` keeps its id, an adaptor's goes by its short name. */
+const toCredentialSchemaSummary = ({ name, title }: { name: string; title: string }): CredentialSchemaSummary =>
+  name === "raw" ? { id: "raw", name: title } : { id: schemaIdOf(name), name: title, adaptor: schemaIdOf(name) };
 
 export const credentialKeys = {
   all: ["credentials"] as const,
@@ -129,26 +132,43 @@ export const credentialKeys = {
   inProject: (projectId: string) => ["credentials", "project", projectId] as const,
   oauthClients: ["oauth_clients"] as const,
   schemas: ["credential_schemas"] as const,
+  schema: (id: string) => ["credential_schemas", id] as const,
 };
 
 /**
- * Every kind of credential you can make, in the API's order, each with the
- * fields its schema asks for: the list, then each schema by name.
+ * Every kind of credential you can make, in the API's order, by name only:
+ * a schema's fields are fetched once it's picked (`useCredentialSchemaLoader`).
  */
-export function useCredentialSchemas(): { status: LoadStatus; schemas: CredentialSchema[] } {
+export function useCredentialSchemas(): { status: LoadStatus; schemas: CredentialSchemaSummary[] } {
   const query = useQuery({
     queryKey: credentialKeys.schemas,
-    queryFn: async () => {
-      const { data } = await request<{ data: { name: string }[] }>("GET", "/api/credential_schemas");
-      return Promise.all(
-        data.map(async ({ name }) => (await request<{ data: ApiCredentialSchema }>("GET", `/api/credential_schemas/${encodeURIComponent(name)}`)).data),
-      );
-    },
-    select: toCredentialSchemas,
+    queryFn: async () => (await request<{ data: { name: string; title: string }[] }>("GET", "/api/credential_schemas")).data,
+    select: (rows) => rows.map(toCredentialSchemaSummary),
     // Schemas change only when adaptors do.
     staleTime: Infinity,
   });
   return { status: statusOf(query), schemas: query.data ?? [] };
+}
+
+/**
+ * Fetches one kind of credential in full, with the fields it asks for, by
+ * the short name the forms know it by (`dhis2`). Each is asked for once and
+ * kept; a refusal rejects with the server's message.
+ */
+export function useCredentialSchemaLoader(): (id: string) => Promise<CredentialSchema> {
+  const queryClient = useQueryClient();
+  // Stable, so a form that fetches as it opens doesn't fetch again on every render.
+  return useCallback(
+    (id: string) =>
+      queryClient
+        .fetchQuery({
+          queryKey: credentialKeys.schema(id),
+          queryFn: async () => (await request<{ data: ApiCredentialSchema }>("GET", `/api/credential_schemas/${encodeURIComponent(id)}`)).data,
+          staleTime: Infinity,
+        })
+        .then(toCredentialSchema),
+    [queryClient],
+  );
 }
 
 /**

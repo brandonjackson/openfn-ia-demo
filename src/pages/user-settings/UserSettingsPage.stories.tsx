@@ -9,7 +9,7 @@ import { currentUser, demoBackupCodes, demoMfaSetup, userApiTokens, userCredenti
 const userSettingsData: UserSettingsPageData = {
   profile: currentUser,
   credentials: userCredentials,
-  credentialSchemas,
+  credentialSchemas: credentialSchemas.map(({ id, name, adaptor }) => ({ id, name, adaptor })),
   oauthClients: userOAuthClients,
   projects: projectOptions,
   apiTokens: userApiTokens,
@@ -34,6 +34,7 @@ const meta: Meta<typeof UserSettingsPage> = {
     onConnectGitHub: async () => {},
     onDisconnectGitHub: async () => {},
     onDeleteAccount: async () => {},
+    onLoadCredentialSchema: async (id) => credentialSchemas.find((s) => s.id === id)!,
     onSaveCredential: async () => {},
     onDeleteCredential: async () => {},
     onTransferCredential: async () => {},

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { UserCircle, KeyRound, Terminal, Plus, Trash2, GitBranch, ShieldCheck, Fingerprint, AppWindow } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
 import type { ApiToken, BackupCode, MfaSetup, ProfileDetails, UserProfile } from "../../model/account";
-import type { CredentialDraft, CredentialSchema, OAuthClient, OAuthClientDraft, ProjectOption, UserCredential } from "../../model/credentials";
+import type { CredentialDraft, CredentialSchema, CredentialSchemaSummary, OAuthClient, OAuthClientDraft, ProjectOption, UserCredential } from "../../model/credentials";
 import SettingsLayout from "../../components/patterns/SettingsLayout";
 import type { SettingsNavItem } from "../../components/primitives/SettingsNav";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
@@ -39,8 +39,8 @@ import TextLink from "../../components/primitives/TextLink";
 export interface UserSettingsPageData {
   profile: UserProfile;
   credentials: UserCredential[];
-  /** Every kind of credential you can make, in the type picker's order. */
-  credentialSchemas: CredentialSchema[];
+  /** Every kind of credential you can make, by name, in the type picker's order. */
+  credentialSchemas: CredentialSchemaSummary[];
   oauthClients: OAuthClient[];
   /** Projects you're a member of, which you can share credentials and OAuth clients with. */
   projects: ProjectOption[];
@@ -74,6 +74,8 @@ export interface UserSettingsPageProps extends PageProps<UserSettingsPageData> {
   onDisconnectGitHub: () => Promise<void>;
   /** Schedules your account for deletion, once you've typed its email; rejects if the email doesn't match. */
   onDeleteAccount: (email: string) => Promise<void>;
+  /** Fetches a kind of credential in full, with the fields it asks for, once it's picked or a credential of it is edited; rejects with the server's message. */
+  onLoadCredentialSchema: (id: string) => Promise<CredentialSchema>;
   /** Creates a credential (no `id`) or saves changes to one. Secrets left blank keep what's saved. */
   onSaveCredential: (draft: CredentialDraft) => Promise<void>;
   /** Deletes a credential, taking it off every project and step that used it. */
@@ -372,6 +374,7 @@ function CredentialsSection(props: UserSettingsPageProps) {
           open
           credential={dialog.kind === "edit-credential" ? dialog.credential : undefined}
           schemas={data.credentialSchemas}
+          onLoadSchema={props.onLoadCredentialSchema}
           projects={data.projects}
           onClose={close}
           onSave={async (draft) => {

@@ -55,7 +55,7 @@ export interface PageProps<Data> {
   ancestors: { node: IANode; path: string }[];
   /** The URL being shown. */
   currentPath: string;
-  /** Everything the page shows. Its shape is the page's contract, in model/page-data.ts. */
+  /** Everything the page shows. Its shape is part of the page's contract, written beside the page as `XPageData` (older pages still keep theirs in model/page-data.ts). */
   data: Data;
 }
 

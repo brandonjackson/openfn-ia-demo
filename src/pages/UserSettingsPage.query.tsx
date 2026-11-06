@@ -5,9 +5,9 @@ import { useAccountSaves, useApiTokens, useBackupCodes, useMe } from "../api/acc
 import { useProjectList } from "../api/projects";
 import { combine } from "../api/status";
 import { userSettingsData } from "../fixtures/user";
-import { isOpenable } from "./project-records.query";
+import { isOpenable } from "../model/projects";
 import UserSettingsPage from "./UserSettingsPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 import { useFlags } from "../app/feature-flags";
 
 /**

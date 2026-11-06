@@ -1,0 +1,118 @@
+# Convergence with openfn-3-poc: handoff and log
+
+The brief is [convergence-prompt.md](./convergence-prompt.md). This file is
+everything a new session needs to carry on: read both, then `git log -5`,
+`npm run metrics` and `npm run convergence`, and pick up from **Now**.
+
+openfn-3-poc is cloned read-only beside this repo (`../openfn-3-poc`). Grep
+it for the pattern the current item needs; don't reread its docs whole. Its
+four reviewers (`react-reviewer`, `architecture-reviewer`,
+`design-system-reviewer`, `accessibility-reviewer`) run as subagents: tell
+each to review `git diff --cached` in this repo, by this repo's CLAUDE.md,
+and to mark what would change the look.
+
+## Now
+
+- **Branch:** `claude/intelligent-newton-2pncy4`. Each session works on its
+  designated branch and opens one PR; if that PR has merged, restart the
+  branch from `main` before the next.
+- **PR in progress:** PR 1, the worked example (Projects list). Open, waiting
+  for review and merge.
+- **Next three items**, one PR each:
+  1. **UI-only and shared types out of page-data.ts.** `BadgeTone` (10
+     importers) moves to the `Badge` primitive; `Environment`/`ENVIRONMENTS`
+     (12) to `model/connected-systems.ts`; `ProjectRole` (12, a re-export) to
+     its home in `model/project-settings.ts`, imported from there.
+     `ProjectServiceItem` (6) to a new `model/services.ts`.
+  2. **Credentials** (`api/credentials.md`): `UserCredential`,
+     `CredentialSchema`, `OAuthClient` and their drafts move from page-data.ts
+     to `model/credentials.ts`; then the credentials part of User settings.
+  3. **Admin settings into its folder** (`src/pages/admin-settings/`), with
+     its admin types (`AdminUser`, `AdminProject`, `AuditEvent`…) moved to
+     `model/admin.ts` / `model/users.ts` named as in `api/users.md` and
+     `api/audit-events.md`, page and query tests, and its wrapper off fixtures.
+  After those, the biggest pages: WorkflowEditorPage, ProjectSettingsPage.
+- **Decide before moving page 2** (both from the PR 1 architecture review):
+  - **Formatted text in summaries.** `ProjectSummary.lastActivity` arrives
+    already worded ("3 days ago") and `ProjectCard` branches on `"Never"`.
+    It should be the API's ISO time (`string | null`), worded by the card
+    with `timeAgo`. 38 uses across fixtures, model and components, so its own
+    PR; every later summary type should carry raw values, not words.
+  - **A page's load status.** openfn-3's pattern 11 gives the page a
+    `status` prop it draws itself; here `Loaded` replaces the whole page, so
+    a list page's loading and error states can't be shown in stories, and a
+    403 on a list reads as Not Found. It changes what shows while loading, so
+    it's on Waiting on Brandon. If he agrees, do it on Projects first, then
+    copy it.
+- **Half-done:** nothing. Pages other than Projects are still flat in
+  `src/pages/` and still take their data shapes from page-data.ts.
+- **Small follow-ups that don't change the look** (fold into a nearby PR):
+  `FormField` should give its hint and error an id and pass
+  `aria-describedby`/`aria-invalid` to its control (accessibility review,
+  PR 1); `Text` could take a `role` so the Projects count can be
+  `role="status"`.
+
+### How to move a page (from PR 1)
+
+1. `git mv` the page, its wrapper and its story into `src/pages/<name>/`
+   (kebab-case, the page's name without "Page"); fix imports and the line in
+   `src/app/PageRoute.tsx`.
+2. Move the page's `XPageData` out of page-data.ts into the page file; move
+   any shape a component shares to its resource's `model/` file. Drop the
+   `pageType` field.
+3. Take fixtures out of the wrapper: read from the API's hooks; what the API
+   lacks is left out and gets a line in `docs/api-gaps.md`. Use
+   `pageFrame` from `src/app/page-frame.ts`.
+4. Write `XPage.test.tsx` (`renderPage`) and `XPage.query.test.tsx` (fake
+   server) as in `src/pages/projects/`.
+5. Swap layout `className`s for `Stack`/`Text` only where the spacing is
+   identical; anything else goes to Waiting on Brandon.
+6. Lint, build, test, `metrics:check`, the four reviewers, `metrics:update`,
+   this file.
+
+## Done
+
+Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
+
+1. **Projects list, the worked example.** The page moved into
+   `src/pages/projects/` with its first page and query tests
+   (`src/test/renderPage.tsx`, a jsdom Vitest project, `ApiProvider
+   retry={false}`). Its wrapper reads no fixtures: service counts come from
+   the services API and are left out when the catalog is off or they can't
+   load (`useProjectSummaries`, which Overview uses too). `ProjectSummary`
+   moved to `model/projects.ts`; `route.fixtures.ts` became
+   `src/app/page-frame.ts` with no fixture fallback. Lint holds page tests to
+   page rules. Create project's fields are now labelled. Counts:
+   classNamesInPages 110 → 107; wrappers reading fixtures 25 → 23 of 25;
+   page-data.ts 1322 → 1300 lines; files importing it 140 → 138; pages in
+   their own folder 0 → 1 of 24; page and query tests 0 → 2; tests 84 → 96.
+
+**PRs done: 1 of 10.** Pull openfn-3-poc again at PR 5.
+
+## Waiting on Brandon
+
+Changes that would alter how a screen looks or what it says. Not made; each
+says what and why.
+
+- **Create project dialog** (`CreateProjectFlow`): rebuild it on the `Modal`
+  primitive with an `IconButton` close. Today it isn't announced as a
+  dialog, Escape doesn't close it, and focus can leave it (accessibility
+  review). Its frame, header and close button would change to Modal's. Its
+  title reads "Create Project"; sentence case would be "Create project".
+- **Modal focus**: `Modal` itself doesn't trap focus or return it to the
+  opener on close. Fixing it there fixes every dialog; no visual change, but
+  it touches every modal, so worth a look first.
+- **Projects page search**: use `SearchInput` (adds the magnifier) in place
+  of a plain search box with a fixed width.
+- **Projects page spacing**: the list's 12px gap (`space-y-3`) has no step
+  in `Stack` (8px or 16px). Either add a step or move to 16px.
+- **Quiet text contrast**: the project count and "No description" use
+  gray-400, about 2.5:1 on white, below WCAG AA. `muted` (gray-500) would
+  pass for the count.
+- **Create project's disabled button**: "Create project" is disabled until a
+  name is typed, with nothing saying why. Keeping it enabled and saying
+  "Enter a project name" on submit would be clearer.
+- **Loading state** (decide before page 2): openfn-3's pattern 5 draws a page's header while its
+  data loads, with the spinner or error in the content's place. Here
+  `Loaded` replaces the whole page. Moving to the openfn-3 way changes what
+  shows while loading.

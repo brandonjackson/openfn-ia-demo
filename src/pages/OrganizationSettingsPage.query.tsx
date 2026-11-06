@@ -6,7 +6,7 @@ import { combine } from "../api/status";
 import { organizationRoles } from "../model/page-data";
 import { orgXRoad } from "../fixtures/xroad";
 import OrganizationSettingsPage from "./OrganizationSettingsPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 
 /**
  * Feeds Organization settings from the demo's organisation routes: members,

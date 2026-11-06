@@ -5,7 +5,7 @@ import { useConnectedSystems } from "../api/connected-systems";
 import { apiSystemId } from "../fixtures/ids";
 import NotFoundPage from "./NotFoundPage";
 import PlaceholderPage from "./PlaceholderPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 
 /**
  * Feeds the placeholder shown wherever the IA has a page that hasn't been

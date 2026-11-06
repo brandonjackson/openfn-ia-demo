@@ -21,7 +21,7 @@ Each layer only imports from the layers below it, and patterns and domain never 
 | **Primitive** | `src/components/primitives/` | The smallest pieces, where accessibility and the look live, knowing nothing about OpenFn. | `Button`, `Card`, `NavItem`, `IconTile`, `Modal`, `use-popover` | primitives; types from `model/` |
 | **Pattern** | `src/components/patterns/` | The shape of a screen or a region of one, with no OpenFn nouns, so it can be reused anywhere in the app. | `Layout`, `PageHeader`, `PageContainer`, `SettingsLayout`, `EditorShell`, `CodeLayout` | primitives, patterns |
 | **Domain** | `src/components/domain/` | Anything in OpenFn's words, from a status badge up to the workflow canvas. | `StatusPill`, `EntityPill`, `Sidebar`, `WorkflowCanvas`, `StepInspector`, `EcosystemMap`, `XRoadDirectory` | primitives, domain, `model/` |
-| **Page** | `src/pages/XPage.tsx` | One screen, built from the layers below. It draws, and nothing else. | `ProjectWorkflowsPage` | any component, `model/` |
+| **Page** | `src/pages/<page>/XPage.tsx` | One screen, built from the layers below. It draws, and nothing else. | `ProjectWorkflowsPage` | any component, `model/` |
 
 Two more folders sit beside the layers rather than in them:
 
@@ -76,16 +76,21 @@ So when a domain component would sit inside a pattern's frame, it doesn't draw t
 
 ## The seam
 
-Every page comes in two files:
+Every page has a folder of its own, named for the page (`src/pages/projects/` for `ProjectsPage`), as in openfn-3-poc (its STANDARDS.md pattern 11):
 
 ```
-src/pages/ProjectWorkflowsPage.tsx            draws, and nothing else
-src/pages/ProjectWorkflowsPage.fixtures.tsx   feeds it from fixtures and the router
+src/pages/projects/ProjectsPage.tsx              draws, and nothing else
+src/pages/projects/ProjectsPage.query.tsx        feeds it from the API and the router
+src/pages/projects/ProjectsPage.stories.tsx      the page in Storybook, from fixtures
+src/pages/projects/ProjectsPage.test.tsx         what the page draws and asks for, fed by props
+src/pages/projects/ProjectsPage.query.test.tsx   the wrapper on the fake server: loads, saves, refusals
 ```
 
-The page takes everything as props: where it sits (`node`, `ancestors`, `currentPath`), its `data`, and an `onX` callback for each thing the user can do. Its props type, `XPageProps`, is its contract, written by hand with a comment on every prop. The data shapes live in `src/model/page-data.ts`.
+Pages still moving keep the older flat layout (`src/pages/XPage.tsx` beside its wrapper); [convergence.md](./convergence.md) tracks them. The Projects page is the worked example to copy.
 
-The wrapper is the only place that knows where data comes from. It reads the route, looks things up in fixtures, implements the callbacks, and renders the page.
+The page takes everything as props: where it sits (`node`, `ancestors`, `currentPath`), its `data`, and an `onX` callback for each thing the user can do. Its props type, `XPageProps`, is its contract, written by hand with a comment on every prop. The page's `XPageData` is written beside it; a shape a component shares (a project's card, `ProjectSummary`) lives in its resource's `model/` file, named as in `api/` (`model/projects.ts`). Older pages still take theirs from `src/model/page-data.ts`, which is being split up that way.
+
+The wrapper is the only place that knows where data comes from. It calls the resource's hooks, reads the route, implements the callbacks, and renders the page. It never reads fixtures: what the API can't give yet is left out, and written down in [api-gaps.md](./api-gaps.md).
 
 ```
 fixtures           ─┐
@@ -99,7 +104,9 @@ The fixture wrappers apply a change straight away and return an already-resolved
 
 **What stays in the page.** UI state stays local: which tab is open, a dropdown, a form you haven't saved yet, the editor's layout. Only things a server would hold go through the seam.
 
-**Switching a data source.** `src/app/PageRoute.tsx` holds the route table that says which wrapper feeds each kind of page. To move a page onto the API, write `XPage.query.tsx` beside the fixtures wrapper and point its line in the table at it. The page doesn't change.
+**Switching a data source.** `src/app/PageRoute.tsx` holds the route table that says which wrapper feeds each kind of page. To move a page onto the API, write `XPage.query.tsx` beside the page and point its line in the table at it. The page doesn't change. `pageFrame(route, node, projectName)` (`src/app/page-frame.ts`) is where every wrapper gets the page's node and crumbs, with the project's name as the API has it.
+
+**Tests.** A page's `XPage.test.tsx` draws it with `renderPage` (`src/test/renderPage.tsx`): it feeds props, and each `onX` returns a promise the test answers with `resolve` or `reject`, so pending, success and a refusal are each a step to check. Lint holds it to the page's rules, so it can't reach for fixtures or the API either. The wrapper's `XPage.query.test.tsx` renders it on the fake server (`ApiProvider retry={false}`, `resetFakeApi`, `setWait(0)`, and `failNext` for a refusal) and checks what the server decides. `.test.tsx` runs in jsdom, `.test.ts` in Node.
 
 **The chrome.** The sidebar and the project bar in the breadcrumbs sit around every page, so they're fed once, by the shell's wrapper (`src/app/Shell.query.tsx` in the app, `Shell.fixtures.tsx` in stories), through a small `ShellContext` (`src/components/domain/shell-context.ts`). Only chrome reads it (`Sidebar`, `Breadcrumbs`, and the app when it fills `Layout`'s slots); pages take props.
 
@@ -136,8 +143,8 @@ When a helper needs a record (the org's X-Road instance, the directory), it take
 Follow `/projects/project-a/workflows` from the URL to the pixels. Each stop says what that layer is for.
 
 1. **The route.** `src/app/App.tsx` wraps everything in `ShellQuery` and sends the URL to `PageRoute`. *The app decides what's on screen; it doesn't draw any of it.*
-2. **The route table.** `PageRoute` finds the node in the IA tree (`model/ia-tree.ts`): its `pageType` is `project-workflows`, so `ProjectWorkflowsPageFixtures` gets the route. *One line per kind of page is all it takes to swap where that page's data comes from.*
-3. **The wrapper.** `ProjectWorkflowsPage.fixtures.tsx` finds the project in fixtures, or shows Not Found. It builds the page's data, and turns "New workflow" into `navigate("/workflow-editor/new?project=…")`. *This is the only file that knows about fixtures and the router. A LiveView island or a query wrapper would do the same job differently.*
+2. **The route table.** `PageRoute` finds the node in the IA tree (`model/ia-tree.ts`): its `pageType` is `project-workflows`, so `ProjectWorkflowsPageQuery` gets the route. *One line per kind of page is all it takes to swap where that page's data comes from.*
+3. **The wrapper.** `ProjectWorkflowsPage.query.tsx` loads the project and its workflows from the API, and shows Not Found if the project isn't yours to see. It builds the page's data, and turns "New workflow" into opening the editor (`navigate`). *This is the only file that knows about the API and the router. A LiveView island would do the same job differently.*
 4. **The page.** `ProjectWorkflowsPage.tsx` takes `ProjectWorkflowsPageProps` and draws them. It keeps one bit of UI state, the sort order. *It draws, and nothing else, so the same file can be copied into Lightning unchanged.*
 5. **A pattern.** `PageHeader` puts the breadcrumbs, title, description and main action where every page has them. The page hands it `<Breadcrumbs>` for the trail, because `PageHeader` doesn't know what a project is. *Patterns are shared answers to shared questions, so pages don't each invent their own.*
 6. **A domain component.** `WorkflowRow` draws one workflow: its name, whether it's a published service, its latest run as a `StatusPill`, and the people working on it. *It knows OpenFn's words, but not where the workflow came from.*
@@ -206,7 +213,7 @@ CI runs `npm run metrics:check`, which fails if any count goes above `metrics.js
 Short notes on the big calls, so nobody "fixes" one back by accident.
 
 - **Pages take props; data lives at the edge.** Route loaders or server components would tie every page to one way of loading data. These pages need to work inside today's LiveView and in a standalone app, and props are the only thing that works in both.
-- **Contracts are written by hand.** `XPageProps` and the shapes in `model/page-data.ts` are written out with a comment per field, and not generated from the API or the fixtures. A mapper in the wrapper absorbs a messy API, so the page stays stable.
+- **Contracts are written by hand.** `XPageProps`, `XPageData` and the shapes in `model/` are written out with a comment per field, and not generated from the API or the fixtures. A mapper in the wrapper absorbs a messy API, so the page stays stable.
 - **Patterns and domain sit side by side.** Patterns used to sit above domain, and filled up with features: the editor, the ecosystem map, the X-Road directory. Then they sat below it, which kept OpenFn out of patterns but let domain components reach for page layout. Now neither imports the other: a pattern learns about OpenFn only through a slot, a domain component is built from primitives, and the page puts the two together. A component that's mostly shape but knows one OpenFn noun becomes a pattern by turning that import into a slot; if that isn't small, it lives in domain until someone does.
 - **Real folders for layers, not tags.** Lint can only check what it can see in a path. Folders also make the layer the first thing you see in a file's name.
 - **The chrome gets a context; pages don't.** The breadcrumbs' project bar is inside every page's header. Threading the project list through 20 pages' props would bury the seam in noise, so the shell's wrapper provides it once.

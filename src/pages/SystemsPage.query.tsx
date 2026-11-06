@@ -12,7 +12,7 @@ import { connectedSystems } from "../fixtures/connected-systems";
 import { apiSystemId } from "../fixtures/ids";
 import { directoryMember, routeService } from "../fixtures/xroad";
 import SystemsPage from "./SystemsPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 
 /**
  * Feeds the Systems page from the demo's own connected-systems routes:

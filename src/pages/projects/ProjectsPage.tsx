@@ -1,14 +1,22 @@
 import { useState } from "react";
 import { FolderKanban, Plus } from "lucide-react";
-import type { PageProps } from "../model/ia-tree";
-import type { ProjectsPageData } from "../model/page-data";
-import PageHeader from "../components/patterns/PageHeader";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import Button from "../components/primitives/Button";
-import EmptyState from "../components/primitives/EmptyState";
-import { TextInput } from "../components/primitives/FormControls";
-import ProjectCard from "../components/domain/ProjectCard";
-import CreateProjectFlow, { type NewProjectInput } from "../components/domain/CreateProjectFlow";
+import type { PageProps } from "../../model/ia-tree";
+import type { ProjectSummary } from "../../model/projects";
+import PageHeader from "../../components/patterns/PageHeader";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import Button from "../../components/primitives/Button";
+import Stack from "../../components/primitives/Stack";
+import Text from "../../components/primitives/Text";
+import EmptyState from "../../components/primitives/EmptyState";
+import { TextInput } from "../../components/primitives/FormControls";
+import ProjectCard from "../../components/domain/ProjectCard";
+import CreateProjectFlow, { type NewProjectInput } from "../../components/domain/CreateProjectFlow";
+
+/** What the Projects page shows. */
+export interface ProjectsPageData {
+  /** The projects you're a member of that aren't being deleted, each as its card. */
+  projects: ProjectSummary[];
+}
 
 export interface ProjectsPageProps extends PageProps<ProjectsPageData> {
   /** Creates a project from the form, and opens it. Rejects with the server's refusal, which the form shows. */
@@ -33,7 +41,7 @@ export default function ProjectsPage({ node, ancestors, data, onCreateProject }:
   };
 
   return (
-    <div className="space-y-8">
+    <Stack gap="xl">
       <PageHeader
         breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
@@ -57,16 +65,16 @@ export default function ProjectsPage({ node, ancestors, data, onCreateProject }:
       />
 
       <div className="space-y-3">
-        <p className="text-xs text-gray-400">
+        <Text size="xs" tone="subtle" block>
           {filtered.length} project{filtered.length !== 1 ? "s" : ""}
-        </p>
+        </Text>
 
         {filtered.length > 0 ? (
-          <div className="space-y-2">
+          <Stack gap="sm">
             {filtered.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
-          </div>
+          </Stack>
         ) : (
           <EmptyState
             icon={FolderKanban}
@@ -88,6 +96,6 @@ export default function ProjectsPage({ node, ancestors, data, onCreateProject }:
         onClose={() => setCreateOpen(false)}
         onCreate={handleCreateProject}
       />
-    </div>
+    </Stack>
   );
 }

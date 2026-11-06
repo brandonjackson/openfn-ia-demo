@@ -12,7 +12,7 @@ import SystemsPageQuery from "../pages/SystemsPage.query";
 import SystemPageQuery from "../pages/SystemPage.query";
 import HistoryPageQuery from "../pages/HistoryPage.query";
 import ServicesPageQuery from "../pages/ServicesPage.query";
-import ProjectsPageQuery from "../pages/ProjectsPage.query";
+import ProjectsPageQuery from "../pages/projects/ProjectsPage.query";
 import ProjectPageQuery from "../pages/ProjectPage.query";
 import ProjectWorkflowsPageQuery from "../pages/ProjectWorkflowsPage.query";
 import ProjectComponentsPageQuery from "../pages/ProjectComponentsPage.query";

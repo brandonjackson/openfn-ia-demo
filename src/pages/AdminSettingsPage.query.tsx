@@ -17,7 +17,7 @@ import {
 } from "../fixtures/admin";
 import { currentUser } from "../fixtures/user";
 import AdminSettingsPage from "./AdminSettingsPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 

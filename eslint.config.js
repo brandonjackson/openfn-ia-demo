@@ -165,8 +165,9 @@ export default defineConfig([
     },
   },
   {
+    // A page's own test (XPage.test.tsx) is held to the page's rules: it feeds props, as any host would.
     files: ['src/pages/**/*.{ts,tsx}'],
-    ignores: ['**/*.stories.tsx', '**/*.fixtures.{ts,tsx}', '**/*.query.{ts,tsx}'],
+    ignores: ['**/*.stories.tsx', '**/*.fixtures.{ts,tsx}', '**/*.query.{ts,tsx}', '**/*.query.test.tsx'],
     rules: {
       'no-restricted-imports': ['error', { paths: [router, tanstack], patterns: [fixtures, wrappers, app, api, fakeApi] }],
     },

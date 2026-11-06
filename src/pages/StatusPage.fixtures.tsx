@@ -1,7 +1,7 @@
 import type { PageRoute } from "../app/ia-utils";
 import { statusData } from "../fixtures/status";
 import StatusPage from "./StatusPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 import { useFlags } from "../app/feature-flags";
 import { systemsFor } from "./flagged.fixtures";
 

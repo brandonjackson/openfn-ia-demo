@@ -14,7 +14,7 @@ import { orgXRoad } from "../fixtures/xroad";
 import { useFlags } from "../app/feature-flags";
 import ServicePage from "./ServicePage";
 import NotFoundPage from "./NotFoundPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 
 /**
  * Build a published service's catalog entry. Services without a written-up

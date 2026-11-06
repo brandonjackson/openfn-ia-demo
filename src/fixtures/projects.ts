@@ -1,5 +1,5 @@
-import type { ProjectSummary, SandboxItem, WorkflowListItem } from "../model/page-data";
-import { summarizeProject } from "../model/projects";
+import type { SandboxItem, WorkflowListItem } from "../model/page-data";
+import { summarizeProject, type ProjectSummary } from "../model/projects";
 import { seedId } from "./ids";
 import type { Project, ProjectService } from "../model/projects";
 

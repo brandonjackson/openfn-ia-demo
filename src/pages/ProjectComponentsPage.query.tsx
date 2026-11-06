@@ -8,7 +8,7 @@ import { combine } from "../api/status";
 import { fixtureWorkflow } from "../fixtures/projects";
 import { starterContent } from "../model/project-components";
 import ProjectComponentsPage from "./ProjectComponentsPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 import { componentTypesFor, componentsFor } from "./flagged.fixtures";
 import { eventAddress } from "./channel-records.query";
 import { useProjectComponents } from "./component-records.query";

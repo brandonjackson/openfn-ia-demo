@@ -3,17 +3,13 @@
  * from the records in the other fixture files. Pages that show one record (a
  * project, a system) are built by their wrappers instead.
  */
-import type { ListPageData, ProjectsPageData } from "../model/page-data";
+import type { ListPageData } from "../model/page-data";
 import { connectionOf } from "../model/connected-systems";
 import { connectedSystemListItems, connectedSystems, connectedSystemsIntro } from "./connected-systems";
 import { routeKey } from "../model/xroad";
 import { orgXRoad, xroadDirectory } from "./xroad";
 import { ecosystemRoutes, ecosystemStations, ecosystemWorkflows } from "./ecosystem";
-import { projectSummaries } from "./projects";
 import { adaptors } from "./adaptors";
-
-/** The Projects page: every project, summarised. */
-export const projectsPageData: ProjectsPageData = { pageType: "projects", projects: projectSummaries };
 
 /** The Systems page: the organisation's connected systems, their ecosystem and the X-Road directory. */
 export const systemsPageData: ListPageData = {

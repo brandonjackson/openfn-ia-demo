@@ -1,5 +1,5 @@
 import { Folder, Workflow, Users } from "lucide-react";
-import type { ProjectSummary } from "../../model/page-data";
+import type { ProjectSummary } from "../../model/projects";
 import ListRow from "../primitives/ListRow";
 
 interface Props {

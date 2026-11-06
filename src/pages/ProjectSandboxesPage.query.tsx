@@ -10,7 +10,7 @@ import { sandboxColorHex, sandboxColorName, sandboxSlug } from "../model/sandbox
 import { timeAgo } from "../model/time";
 import { fixtureProject } from "../fixtures/projects";
 import ProjectSandboxesPage from "./ProjectSandboxesPage";
-import { pageFrame } from "./route.fixtures";
+import { pageFrame } from "../app/page-frame";
 
 /**
  * Feeds a project's Sandboxes page from the API. Each sandbox is a project

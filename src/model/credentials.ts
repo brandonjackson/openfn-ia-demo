@@ -5,7 +5,7 @@
  * server still has the last word (an email already taken, a code that's
  * wrong), and its answer comes back as a rejected promise.
  */
-import type { CredentialDraft, CredentialField, CredentialSchema, Environment } from "./page-data";
+import type { CredentialDraft, CredentialField, CredentialSchema } from "./page-data";
 
 /** What each environment is called in a form. */
 export const environmentLabels: Record<Environment, string> = {
@@ -113,3 +113,14 @@ export function withoutSecrets(values: Record<string, string>, schema: Credentia
   const secret = new Set(schema?.fields.filter((f) => f.kind === "secret").map((f) => f.key));
   return Object.fromEntries(Object.entries(values).filter(([key, value]) => !secret.has(key) && value !== ""));
 }
+
+/**
+ * Every connected system has these three environments, and every credential
+ * belongs to exactly one of them.
+ * - production: the live system, real data.
+ * - staging: a real instance of the system used for testing, test data.
+ * - mock: a simulated stand-in (no real system behind it) for building offline.
+ */
+export type Environment = "production" | "staging" | "mock";
+
+export const ENVIRONMENTS: Environment[] = ["production", "staging", "mock"];

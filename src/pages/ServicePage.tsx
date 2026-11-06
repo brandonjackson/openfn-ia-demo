@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Bot, ClipboardList, Clock, FileCode2, Folder, KeyRound, ListChecks, Network, Webhook, Workflow } from "lucide-react";
 import type { PageProps } from "../model/ia-tree";
-import type { ServiceApiField, ServicePageData } from "../model/page-data";
+import type { ServicePageData } from "../model/page-data";
+import type { ServiceApiField } from "../model/services";
 import Badge from "../components/primitives/Badge";
 import PageHeader from "../components/patterns/PageHeader";
 import Breadcrumbs from "../components/domain/Breadcrumbs";

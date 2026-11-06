@@ -1,13 +1,5 @@
-import type {
-  AdminUser,
-  AuditEvent,
-  AuditItemType,
-  AuditQuery,
-  AuthProviderDraft,
-  InstanceRole,
-  ProjectMembership,
-  ProjectRole,
-} from "./page-data";
+import type { AdminUser, AuditEvent, AuditItemType, AuditQuery, AuthProviderDraft, InstanceRole, ProjectMembership } from "./page-data";
+import type { ProjectRole } from "./project-settings";
 
 /*
  * The vocabulary of instance administration, and the pure functions over it

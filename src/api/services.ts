@@ -1,6 +1,6 @@
 /** A project's published services, on the demo's own routes (Lightning's API has no services yet). */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ProjectServiceItem } from "../model/page-data";
+import type { ProjectServiceItem } from "../model/services";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 

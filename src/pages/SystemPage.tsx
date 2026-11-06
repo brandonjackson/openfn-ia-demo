@@ -3,7 +3,8 @@ import { BookOpen, FolderOpen, Globe, KeyRound, Lock, Network, Pencil, ShieldX, 
 import ConfirmModal from "../components/primitives/ConfirmModal";
 import Text from "../components/primitives/Text";
 import type { PageProps } from "../model/ia-tree";
-import type { AccessGrant, DetailPageData, SystemChanges } from "../model/page-data";
+import type { AccessGrant, DetailPageData } from "../model/page-data";
+import type { SystemChanges } from "../model/connected-systems";
 import AdaptorLogo from "../components/domain/AdaptorLogo";
 import Badge from "../components/primitives/Badge";
 import Button from "../components/primitives/Button";

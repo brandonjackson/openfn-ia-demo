@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { ConnectedSystem } from "../../model/connected-systems";
-import { ENVIRONMENTS, type Environment, type SystemChanges } from "../../model/page-data";
+import { type SystemChanges } from "../../model/connected-systems";
+import { ENVIRONMENTS, type Environment } from "../../model/credentials";
 import { fieldErrorOf, firstProblemOf, FormError } from "../../model/form-error";
 import Button from "../primitives/Button";
 import Callout from "../primitives/Callout";

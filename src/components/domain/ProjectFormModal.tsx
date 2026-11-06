@@ -1,6 +1,7 @@
 import { useId, useState } from "react";
 import { errorMessageOf, fieldErrorOf, FormError } from "../../model/form-error";
-import type { AdminProject, AdminProjectDraft, AdminUser, ProjectRole } from "../../model/page-data";
+import type { AdminProject, AdminProjectDraft, AdminUser } from "../../model/page-data";
+import type { ProjectRole } from "../../model/project-settings";
 import { fullName, projectOwnerError, projectRoleLabels, projectRoles, projectSlug } from "../../model/admin";
 import Button from "../primitives/Button";
 import Callout from "../primitives/Callout";

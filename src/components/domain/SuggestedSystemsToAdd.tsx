@@ -1,5 +1,5 @@
 import { Plus } from "lucide-react";
-import type { SuggestedSystem } from "../../model/page-data";
+import type { SuggestedSystem } from "../../model/connected-systems";
 import AdaptorLogo from "./AdaptorLogo";
 import ListRow from "../primitives/ListRow";
 import SectionHeading from "../primitives/SectionHeading";

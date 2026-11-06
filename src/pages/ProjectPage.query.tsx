@@ -8,9 +8,10 @@ import { useProjectServices } from "../api/services";
 import { combine } from "../api/status";
 import { useWorkOrders } from "../api/work-orders";
 import type { WorkflowDocument } from "../model/workflow-document";
-import type { ProjectDetails } from "../model/projects";
+import type { ProjectDetails, ProjectComponent } from "../model/projects";
 import type { FeatureFlags } from "../model/feature-flags";
-import type { ProjectPageData, ProjectServiceItem } from "../model/page-data";
+import type { ProjectPageData } from "../model/page-data";
+import type { ProjectServiceItem } from "../model/services";
 import type { WorkOrder } from "../model/workflow";
 import { activityTiles, workOrderActivity } from "../model/runs";
 import { fixtureProject } from "../fixtures/projects";
@@ -19,7 +20,6 @@ import { pageFrame } from "../app/page-frame";
 import { componentsFor } from "./flagged.fixtures";
 import { asListItem, asProject, byWorkflow, LIST_PERIOD } from "./project-records.query";
 import { useProjectChannels } from "./channel-records.query";
-import type { ProjectComponent } from "../model/projects";
 
 /**
  * A project's Overview: the project, its workflows, channels and services

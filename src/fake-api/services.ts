@@ -11,7 +11,7 @@
  */
 import { projects as fixtureProjects } from "../fixtures/projects";
 import { apiServiceId, apiWorkflowId } from "../fixtures/ids";
-import type { ProjectServiceItem } from "../model/page-data";
+import type { ProjectServiceItem } from "../model/services";
 import { badId, invalid, isUuid, json, notFound, now, ORIGIN, paged, unknownKeys, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
 import { seedTime, table } from "./db";

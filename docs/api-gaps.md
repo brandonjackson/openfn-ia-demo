@@ -47,6 +47,13 @@ path in its hook file.
   `useProjectSummaries`). Would need a way to ask for "mine" (say
   `?member=me`) once superusers see everything. Until then the filter stays
   in the hook, not in any page.
+- **Credentials: environments are open names in api/, three fixed ones
+  here** (api/credentials.md). Lightning names a credential's environments
+  freely (`main`, `staging`); the demo's design gives every connected system
+  and credential exactly `production`, `staging` and `mock` (`Environment` in
+  `model/credentials.ts`). Would need api/ to settle on a fixed set, or the
+  design to take any name. Until then the demo sends its three names as the
+  API's environment names.
 - **Credentials: an environment's values that aren't secret**
   (api/credentials.md never sends a body). The edit form shows each
   environment's non-secret fields. Would need `GET

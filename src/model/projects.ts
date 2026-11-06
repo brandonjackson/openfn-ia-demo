@@ -1,4 +1,5 @@
-import type { ProjectComponentType, ProjectServiceItem } from "./page-data";
+import type { ProjectComponentType } from "./page-data";
+import type { ProjectServiceItem } from "./services";
 import { timeAgo } from "./time";
 
 export type ProjectService = ProjectServiceItem;

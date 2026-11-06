@@ -6,7 +6,8 @@ import { useProjectServices, useServiceSaves, type ServiceRecord } from "../api/
 import { useProjectWorkflows } from "../api/workflows";
 import { combine } from "../api/status";
 import type { ProjectDetails } from "../model/projects";
-import type { ServiceApiSpec, ServicePageData } from "../model/page-data";
+import type { ServicePageData } from "../model/page-data";
+import type { ServiceApiSpec } from "../model/services";
 import type { WorkflowDocument } from "../model/workflow-document";
 import { fixtureProject } from "../fixtures/projects";
 import { apiServiceId } from "../fixtures/ids";

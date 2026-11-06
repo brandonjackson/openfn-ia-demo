@@ -1,6 +1,7 @@
 import { AlertCircle, Globe, KeyRound, Plus } from "lucide-react";
-import type { Environment, SystemEnvironment } from "../../model/page-data";
-import { ENVIRONMENTS } from "../../model/page-data";
+import type { SystemEnvironment } from "../../model/connected-systems";
+import type { Environment } from "../../model/credentials";
+import { ENVIRONMENTS } from "../../model/credentials";
 import Button from "../primitives/Button";
 import EnvironmentBadge from "./EnvironmentBadge";
 import Card from "../primitives/Card";

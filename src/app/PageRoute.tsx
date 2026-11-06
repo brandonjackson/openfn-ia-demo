@@ -8,8 +8,8 @@ import { useShell } from "../components/domain/shell-context";
 import { apiProjectId, projects as fixtureProjects } from "../fixtures/projects";
 import NotFoundPage from "../pages/NotFoundPage";
 import OverviewPageQuery from "../pages/OverviewPage.query";
-import SystemsPageFixtures from "../pages/SystemsPage.fixtures";
-import SystemPageFixtures from "../pages/SystemPage.fixtures";
+import SystemsPageQuery from "../pages/SystemsPage.query";
+import SystemPageQuery from "../pages/SystemPage.query";
 import HistoryPageQuery from "../pages/HistoryPage.query";
 import ServicesPageFixtures from "../pages/ServicesPage.fixtures";
 import ProjectsPageQuery from "../pages/ProjectsPage.query";
@@ -38,8 +38,8 @@ type PageType = NonNullable<IANode["pageType"]>;
  */
 const wrappers: Record<PageType, ComponentType<{ route: Route }>> = {
   dashboard: OverviewPageQuery,
-  list: SystemsPageFixtures,
-  detail: SystemPageFixtures,
+  list: SystemsPageQuery,
+  detail: SystemPageQuery,
   table: HistoryPageQuery,
   catalog: ServicesPageFixtures,
   projects: ProjectsPageQuery,

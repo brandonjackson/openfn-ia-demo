@@ -14,6 +14,7 @@ import { useSandbox } from "../app/sandbox-state";
 import Loaded from "../app/Loaded";
 import { useProject } from "../api/projects";
 import { useProjectCredentials } from "../api/credentials";
+import { useConnectedSystems } from "../api/connected-systems";
 import { useDataclips, useRunSaves, useWorkOrders } from "../api/work-orders";
 import { useProjectChannels } from "./channel-records.query";
 import { combine } from "../api/status";
@@ -160,6 +161,7 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const sandboxSaves = useSandboxSaves();
   // Sandboxes share their project's credentials: a step anywhere in the tree picks from the project's links.
   const { credentials } = useProjectCredentials(root.id);
+  const { systems } = useConnectedSystems();
   const adaptors: AdaptorReference = { ...adaptorReference, credentials };
 
   const slug = fixtureWorkflow(main.id)?.slug;
@@ -257,7 +259,7 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       assistantConversations={slug && !workflowGraphs[slug] ? assistantConversations : []}
       adaptors={adaptors}
       catalog={catalog}
-      systems={systemsFor(flags)}
+      systems={systemsFor(flags, systems)}
       showWorkflowFiles={flags.workflowDocs}
       showComponents={flags.components}
       publishesServices={flags.serviceCatalog}

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import AddConnectedSystemFlow from "./AddConnectedSystemFlow";
+import { FormError } from "../../model/form-error";
 import { withRouter } from "../../stories/decorators";
 import { adaptors } from "../../fixtures/adaptors";
 
@@ -19,4 +20,15 @@ export const PickAnAdaptor: Story = {};
 /** Opened from "Suggested to add", with the system already picked. */
 export const Preselected: Story = {
   args: { preselectedSystem: adaptors[0].name },
+};
+
+/** Adding is refused (the name's taken): the form stays open and says why. Pick a system, then add it. */
+export const Refused: Story = {
+  args: {
+    open: true,
+    onAdd: async () => {
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      throw new FormError("The request body is not valid.", { name: ["has already been taken"] });
+    },
+  },
 };

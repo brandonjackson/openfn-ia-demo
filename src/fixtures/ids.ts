@@ -44,3 +44,6 @@ export const cloneNodeId = (sandboxId: string, nodeId: string) => seedId("clone"
 
 /** A fixture channel's id on the API, from its project's slug and its own. */
 export const apiChannelId = (projectSlug: string, slug: string) => seedId("channel", `${projectSlug}/${slug}`);
+
+/** A fixture connected system's id on the API, from its slug ("dhis2"). */
+export const apiSystemId = (slug: string) => seedId("connected_system", slug);

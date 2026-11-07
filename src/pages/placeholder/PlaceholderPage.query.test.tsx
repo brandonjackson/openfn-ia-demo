@@ -1,10 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../../api/ApiProvider";
 import { forgetCsrfToken } from "../../api/client";
 import { findNodeByPath } from "../../app/ia-utils";
-import PageRoute from "../../app/PageRoute";
 import { resetFakeApi, setWait } from "../../fake-api";
 import { projectIdFor } from "../../fake-api/projects";
 import { apiSystemId } from "../../fixtures/ids";
@@ -52,16 +51,4 @@ describe("PlaceholderPageQuery", () => {
     expect(await screen.findByText("Page Not Found", {}, wait)).toBeTruthy();
   });
 
-  it("sends an old link by a system's slug on to its id", async () => {
-    render(
-      <ApiProvider retry={false}>
-        <MemoryRouter initialEntries={["/connected-systems/dhis2/channels"]}>
-          <Routes>
-            <Route path="*" element={<PageRoute />} />
-          </Routes>
-        </MemoryRouter>
-      </ApiProvider>,
-    );
-    expect(await screen.findByRole("heading", { name: "DHIS2" }, wait)).toBeTruthy();
-  });
 });

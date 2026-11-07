@@ -7,6 +7,7 @@ import { findNodeByPath, type PageRoute as Route } from "./ia-utils";
 import { useShell } from "../components/domain/shell-context";
 import { apiProjectId, projects as fixtureProjects } from "../fixtures/projects";
 import { apiSystemId } from "../fixtures/ids";
+import { connectedSystems as fixtureSystems } from "../fixtures/connected-systems";
 import Callout from "../components/primitives/Callout";
 import LoadingState from "../components/primitives/LoadingState";
 import NotFoundPage from "../pages/NotFoundPage";
@@ -33,8 +34,6 @@ import HandbookPageQuery from "../pages/handbook/HandbookPage.query";
 import PlaceholderPageQuery from "../pages/placeholder/PlaceholderPage.query";
 
 type PageType = NonNullable<IANode["pageType"]>;
-
-const isUuid = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
 /**
  * Which wrapper feeds each kind of page. This is the switch for data
@@ -95,9 +94,9 @@ export default function PageRoute() {
     return <Navigate to={`${pathname.replace(`/projects/${slug}`, `/projects/${apiProjectId(slug)}`)}${search}${hash}`} replace />;
   }
 
-  // So are connected systems; an old link names one by its slug ("dhis2"), which is never a UUID.
+  // So are connected systems; an old link names one by the fixture's slug ("dhis2").
   const system = findNodeByPath(iaTree, pathname)?.params["connected-system"];
-  if (system && !isUuid(system)) {
+  if (system && fixtureSystems.some((s) => s.id === system)) {
     return <Navigate to={`${pathname.replace(`/connected-systems/${system}`, `/connected-systems/${apiSystemId(system)}`)}${search}${hash}`} replace />;
   }
 

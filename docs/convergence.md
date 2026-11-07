@@ -441,27 +441,26 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   unchanged.
   ([#216](https://github.com/brandonjackson/openfn-ia-demo/pull/216))
 - **Lane 5: A system's page reads only the API.** The page moved to
-    `src/pages/system/` with its page and query tests, and its data to
-    `SystemPageData` in the page file (the system, its grants, and its X-Road
-    route), which works out Shared or Private from the system's credential
-    type instead of being handed the words. Over X-Road, the organisation's
-    identity comes from `GET /api/demo/organization/xroad` and the member and
-    service the route goes to from a new read-only
-    `GET /api/demo/organization/xroad/directory` (`useXRoadDirectory`), so
-    `XRoadConnectionDetails` takes `XRoadIdentity` (model/xroad.ts). An old
-    link by a system's slug is sent on by `PageRoute.tsx`. `systemsFor` moved
-    to `model/connected-systems.ts` and `pages/flagged.fixtures.ts` is gone;
-    `AccessGrant` and `XRoadRouteContext` left page-data.ts. Revoke and
-    Delete say "Revoking…"/"Deleting…" while they run (`ConfirmModal` takes
-    `busy`, which marks its button `aria-disabled`; Cancel waits), and a
-    refusal says why in an alert callout, as Workflows does. If the identity
-    or the directory can't load, the system still shows, without its route.
-    The grants route now sends JSON:API resources, mapped in
-    `useAccessGrants`. Not walked on Lightning. Counts:
-    wrappers reading fixtures 15 → 14 of 25; page-data.ts 658 → 619 lines;
-    files importing it 72 → 67; pages in their own folder 7 → 8 of 24; page
-    and query tests 15 → 17; tests 220 → 235;
-    classNamesInPages 106 → 103.
+  `src/pages/system/` with its page and query tests, and its data to
+  `SystemPageData` in the page file (the system, its grants, and its X-Road
+  route), which works out Shared or Private from the system's credential
+  type instead of being handed the words. Over X-Road, the organisation's
+  identity comes from `GET /api/demo/organization/xroad` and the member and
+  service the route goes to from a new read-only
+  `GET /api/demo/organization/xroad/directory` (`useXRoadDirectory`), so
+  `XRoadConnectionDetails` takes `XRoadIdentity` (model/xroad.ts). An old
+  link by a system's slug is sent on by `PageRoute.tsx`. `systemsFor` moved
+  to `model/connected-systems.ts` and `pages/flagged.fixtures.ts` is gone;
+  `AccessGrant` and `XRoadRouteContext` left page-data.ts. Revoke and
+  Delete say "Revoking…"/"Deleting…" while they run (`ConfirmModal` takes
+  `busy`, which marks its button `aria-disabled`; Cancel waits), and a
+  refusal says why in an alert callout, as Workflows does. If the identity
+  or the directory can't load, the system still shows, without its route.
+  The grants route now sends JSON:API resources, mapped in
+  `useAccessGrants`. Not walked on Lightning. Counts:
+  wrappers reading fixtures 14 → 13 of 25; page-data.ts 632 → 593 lines;
+  files importing it 64 → 59; pages in their own folder 8 → 9 of 24; page
+  and query tests 17 → 19; tests 234 → 249; classNamesInPages 106 → 103.
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 

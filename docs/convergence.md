@@ -29,6 +29,51 @@ and to mark what would change the look.
   dependencies was refused by the session's permission check), so each
   page is checked on the fake server only and its row in lightning-backend.md
   says so. A session allowed to run `mix deps.get` should walk them.
+- **Parallel lanes (from 7 Nov 2026, overnight).** The remaining wrappers,
+  split into five lanes that touch different pages, each run by its own
+  session on its own branch (`claude/lane-<n>-<name>`), one page per PR,
+  merged once CI is green, each next page started from the fresh `main`.
+  Same rules as above: read only from the API, leave out what it lacks and
+  add it to api-gaps.md, don't fake it, don't change the default build,
+  api/ wins over fixtures and the lightning branch, and never push to
+  lightning-full-api.
+
+  | Lane | Pages (wrappers) | Owns |
+  | ---- | ---------------- | ---- |
+  | 1. Project settings | `ProjectSettingsPage` (into `project-settings/`) | `project-records.query.ts` and `asProject`: remove them once Settings is off them; `Shell.query.tsx` imports `asProject` too, so swap that one call when you remove it |
+  | 2. Runs | `HistoryPage`, `InsightsPage` (project and all), `OverviewPage` (all) | `fixtures/history.ts`, `fixtures/insights.ts`, `fixtures/overview.ts`, `model/history.ts`, `model/runs.ts` |
+  | 3. Components | `ProjectComponentsPage`, `ComponentPage` (and `ChannelPage`'s folder) | `component-records.query.ts`, `channel-records.query.ts`, `model/component-types.ts` |
+  | 4. Shell and small pages | `Shell.query.tsx` (instance, you, superuser from the API), `PlaceholderPage`, `ProjectCreatePage`, and the Sandboxes page's folder and tests (it already reads no fixtures) | `src/app/` except `PageRoute.tsx` lines other lanes add |
+  | 5. Demo areas | `ServicesPage`, `ServicePage`, `SystemsPage`, `SystemPage` (X-Road identity from `GET /api/demo/organization/xroad`) | `flagged.fixtures.ts`, `fixtures/xroad.ts`, `fixtures/connected-systems.ts`, `fixtures/service-catalog.ts`, `model/xroad.ts` |
+
+  The editor is done as far as data goes (PR 17); what it still takes from
+  fixtures is the demo's behaviour, listed in api-gaps.md. Don't take it on
+  in a lane.
+
+  **Shared files.** Every lane edits `docs/convergence.md`,
+  `docs/api-gaps.md`, `docs/lightning-backend.md`, `metrics.json` and
+  sometimes `CLAUDE.md`, `src/model/page-data.ts` and
+  `src/app/PageRoute.tsx`. To keep merges clean:
+  - Just before merging, `git fetch origin main && git rebase origin/main`,
+    keep both sides of any conflict in the docs, re-run `npm run
+    metrics:update` and `npm run convergence`, and write the counts from
+    *that* run. Push (fast-forward, or `--force-with-lease` on your own lane
+    branch only after a rebase) and wait for CI again.
+  - In Done, add your entry at the end titled with the lane ("Lane 2:
+    History reads only the API") and its PR link; don't renumber others'.
+    Don't rewrite another lane's row in this table or in lightning-backend.md.
+  - Moving a type out of page-data.ts: move only your page's types.
+  - A lane that finds it needs a file another lane owns: leave it, note it
+    under "Waiting on Brandon" with what and why, and move on.
+
+  **Lightning.** The session that wrote this couldn't run Lightning (the
+  permission check refused `mix deps.get`). Try once as the brief says; if
+  it's refused, check on the fake server only and say so in the PR and in
+  the page's row of lightning-backend.md.
+
+  **When a lane is done** (no wrapper of its own reads fixtures), it writes
+  a short summary at the end of its session: what merged, what's left, and
+  anything for Brandon.
 - **PR in progress:** none. The brief's 10 PRs are done; the work now is
   Brandon's decisions (6 Nov 2026, "Decided by Brandon" below). Decisions
   2, 3, 5 and 6 are done, and 4 on Create project. Next, one PR each:

@@ -1,8 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import InsightsPage from "./InsightsPage";
-import { withRouter } from "../stories/decorators";
-import { mainNavTree } from "../model/ia-tree";
-import { buildProjectInsightsData, insightsData } from "../fixtures/insights";
+import { withRouter } from "../../stories/decorators";
+import { mainNavTree } from "../../model/ia-tree";
+import { buildProjectInsightsData, insightsData } from "../../fixtures/insights";
+import { insightsFor } from "../../model/insights";
 
 const node = mainNavTree.find((n) => n.id === "insights")!;
 const ancestors: { node: typeof node; path: string }[] = [];
@@ -31,4 +32,9 @@ export const Project: Story = {
     currentPath: "/projects/project-a/insights",
     data: buildProjectInsightsData("project-a"),
   },
+};
+
+/** A week with no runs: zeros, empty charts, and no average yet. */
+export const NoRuns: Story = {
+  args: { data: insightsFor([{ id: "new-project", name: "New project", workOrders: [] }], "Across all projects", true) },
 };

@@ -135,11 +135,11 @@ as the demo user, and as the superuser for Admin settings.
 | Components | Works | On the API only: Lightning's channels and (with `permissions`) collections; the other kinds from the demo's own routes, starting empty. Workflows aren't listed (they have their own page). Checked on the fake server only: this container has no Elixir (Lane 3). |
 | Sandboxes | Works | Lightning's sandboxes; the selected one is kept per project id, shared with the project bar and the editor. |
 | History (project, all) | Works | On the API only: Lightning's work orders, workflows and channel requests; times sorted and filtered whether ISO (`inserted_at`) or the fixtures' stamps. Export sends the shown work orders as the `id` filter; none across projects. Checked on the fake server; not walked on Lightning (this session's container has no Elixir; see convergence.md, Now). |
-| Insights (project) | Works | From Lightning's work orders. |
+| Insights (project, all) | Works | On the API only: the last 7 days of finished runs from Lightning's work orders, one project's or every project's you can open (with a row each). The week counts back from run history's fixed "now" (20 Oct 2026), so on Lightning newer runs all land on its last day (convergence.md, Waiting on Brandon 11). Checked on the fake server; not walked on Lightning (no Elixir in this session's container). |
 | Settings | Works with gaps | On the API only: Lightning's settings, the credentials linked to the project, Export project from `GET /api/provision/yaml` and an export's file from its `download_url`. Read only until `permissions`. Checked on the fake server; not yet walked on Lightning (Lane 1 couldn't run it: no Elixir in the session). |
 | Services (project) | Works | From the demo's own routes, empty. |
 | User settings | Works | Your Lightning account. |
-| Overview, Insights (all) | Demo data | Still the fixtures' numbers. |
+| Overview | Demo data | Still the fixtures' numbers. |
 | Handbook, Systems, Services catalog, Organization settings | Demo data | The demo's own areas, on `/api/demo/`. |
 | Admin settings | Breaks | Lightning lets only the service account list users (api-gaps.md). Hidden from the demo user, who isn't a superuser. |
 

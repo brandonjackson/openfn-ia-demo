@@ -1,15 +1,18 @@
-import type { PageProps } from "../model/ia-tree";
-import type { InsightsPageData, ProjectInsight } from "../model/page-data";
-import PageHeader from "../components/patterns/PageHeader";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import Badge from "../components/primitives/Badge";
-import Card from "../components/primitives/Card";
-import StatTile from "../components/primitives/StatTile";
-import BarChart from "../components/primitives/BarChart";
-import SectionHeading from "../components/primitives/SectionHeading";
-import DataTable from "../components/primitives/DataTable";
-import type { DataTableColumn } from "../components/primitives/DataTable";
-import TextLink from "../components/primitives/TextLink";
+import type { PageProps } from "../../model/ia-tree";
+import type { Insights, ProjectInsight } from "../../model/insights";
+import PageHeader from "../../components/patterns/PageHeader";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import Badge from "../../components/primitives/Badge";
+import Card from "../../components/primitives/Card";
+import StatTile from "../../components/primitives/StatTile";
+import BarChart from "../../components/primitives/BarChart";
+import SectionHeading from "../../components/primitives/SectionHeading";
+import DataTable from "../../components/primitives/DataTable";
+import type { DataTableColumn } from "../../components/primitives/DataTable";
+import TextLink from "../../components/primitives/TextLink";
+
+/** What Insights shows: the week's numbers, worked out from the API's work orders. */
+export type InsightsPageData = Insights;
 
 export type InsightsPageProps = PageProps<InsightsPageData>;
 
@@ -29,7 +32,8 @@ const projectColumns: DataTableColumn<ProjectInsight>[] = [
     key: "rate",
     header: "Error rate",
     align: "right",
-    render: (p) => `${((p.failed / p.runs) * 100).toFixed(1)}%`,
+    // A project that didn't run has no rate.
+    render: (p) => (p.runs ? `${((p.failed / p.runs) * 100).toFixed(1)}%` : "—"),
   },
   { key: "avg", header: "Avg run time", align: "right", render: (p) => p.avgDuration },
 ];

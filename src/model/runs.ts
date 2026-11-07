@@ -27,6 +27,9 @@ export function activityPeriodLabel(period: ActivityPeriod): string {
 /** "Now" for the mock history, the morning its newest runs happened. */
 const MOCK_NOW = new Date(2026, 9, 20, 10, 0, 0).getTime();
 
+/** The time run history counts back from: the mock's "now". Runs started after it count as just now. */
+export const activityNow = () => MOCK_NOW;
+
 /**
  * The time a stamp names: the fixtures' "dd/mm/yyyy, HH:MM:SS", or an ISO
  * timestamp as Lightning sends it. The mock's "now" if it's neither.

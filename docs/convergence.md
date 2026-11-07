@@ -435,10 +435,11 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   (the shell never showed a project's services or components), which
   lane 4's note above was waiting on. Not walked
   on Lightning: the session has no Elixir. Counts (after lanes 3 and 4):
-  wrappers reading fixtures 13 of 25 → 11 of 24 (Settings and the helper);
-  page-data.ts 632 → 461 lines; files importing it 64 → 50; pages in their
-  own folder 8 → 9 of 24; page and query tests 17 → 19; the ratchet
+  wrappers reading fixtures 12 of 25 → 10 of 24 (Settings and the helper);
+  page-data.ts 632 → 460 lines; files importing it 64 → 50; pages in their
+  own folder 9 → 10 of 24; page and query tests 19 → 21; the ratchet
   unchanged.
+  ([#216](https://github.com/brandonjackson/openfn-ia-demo/pull/216))
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 

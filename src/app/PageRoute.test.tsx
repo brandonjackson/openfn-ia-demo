@@ -5,14 +5,16 @@ import ApiProvider from "../api/ApiProvider";
 import { forgetCsrfToken } from "../api/client";
 import { resetFakeApi, setWait } from "../fake-api";
 import { projectIdFor } from "../fake-api/projects";
-import { apiSystemId } from "../fixtures/ids";
+import { apiSystemId, apiWorkflowId } from "../fixtures/ids";
+import { projectWorkflowDetails, projects } from "../fixtures/projects";
 import PageRoute from "./PageRoute";
 
 const wait = { timeout: 3000 };
 
 /** Where the router ended up. */
 function Where() {
-  return <p data-testid="where">{useLocation().pathname}</p>;
+  const { pathname, search } = useLocation();
+  return <p data-testid="where">{pathname + search}</p>;
 }
 
 function draw(path: string) {
@@ -40,6 +42,12 @@ describe("PageRoute's old links", () => {
   it("sends a project named by its fixture slug on to its id", () => {
     draw("/projects/project-a/deployments");
     expect(where()).toBe(`/projects/${projectIdFor("project-a")}/deployments`);
+  });
+
+  it("sends History filtered by a project's or workflow's slug on to their ids", () => {
+    const workflow = projectWorkflowDetails(projects[0]!)[0]!.id;
+    draw(`/history?project=project-a&workflow=${workflow}&status=failed`);
+    expect(where()).toBe(`/history?project=${projectIdFor("project-a")}&workflow=${apiWorkflowId(workflow)}&status=failed`);
   });
 
   it("sends a connected system named by its fixture slug on to its id", () => {

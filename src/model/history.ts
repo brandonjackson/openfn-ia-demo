@@ -142,6 +142,9 @@ export const historyDatePresets = () => activityPeriods.map((p) => ({ label: p.l
 const inRange = (time: number, after: string | null, before: string | null) =>
   (!after || time >= new Date(after).getTime()) && (!before || time <= new Date(before).getTime());
 
+/** Orders the newest-received work order first, as History lists them. */
+export const newestFirst = (a: { receivedAt: string }, b: { receivedAt: string }) => stampTime(b.receivedAt) - stampTime(a.receivedAt);
+
 /** When the order's latest run started, or when it was received if it has none. */
 export const lastActivityTime = (order: HistoryWorkOrder) => stampTime(order.workOrder.runs[0]?.started ?? order.receivedAt);
 
@@ -223,4 +226,16 @@ export function bulkActions(selected: HistoryWorkOrder[]): { retry: boolean; ret
     // Only orders still waiting to start can be cancelled.
     cancel: selected.length > 0 && selected.every((o) => o.workOrder.status === "pending"),
   };
+}
+
+/** A workflow History can filter by, with its steps for retrying from one. */
+export interface HistoryWorkflowOption {
+  id: string;
+  name: string;
+  /** The project it belongs to, for History across every project. */
+  projectId: string;
+  /** Its steps in the order they run, to pick one to retry from. */
+  steps: { id: string; label: string }[];
+  /** Its latest version, so runs on an older one can be told apart. */
+  latestVersion: string;
 }

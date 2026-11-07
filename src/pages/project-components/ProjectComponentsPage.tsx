@@ -1,24 +1,30 @@
 import { useState } from "react";
 import { Boxes, Plus } from "lucide-react";
-import type { ChannelDraft } from "../model/channels";
-import { isContentComponentType, type ComponentDraft, type ContentComponentType } from "../model/project-components";
-import type { ProjectComponentType } from "../model/page-data";
-import ChannelFormModal from "../components/domain/ChannelFormModal";
-import ComponentFormModal from "../components/domain/ComponentFormModal";
-import CollectionNameModal from "../components/domain/CollectionNameModal";
-import Button from "../components/primitives/Button";
-import Callout from "../components/primitives/Callout";
-import Stack from "../components/primitives/Stack";
-import type { PageProps } from "../model/ia-tree";
-import type { ProjectComponentsPageData } from "../model/page-data";
-import AddComponentPanel from "../components/domain/AddComponentPanel";
-import PageHeader from "../components/patterns/PageHeader";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import Card from "../components/primitives/Card";
-import ComponentRow from "../components/domain/ComponentRow";
-import { componentTypes } from "../model/component-types";
-import EmptyState from "../components/primitives/EmptyState";
-import SectionHeading from "../components/primitives/SectionHeading";
+import type { ChannelDraft } from "../../model/channels";
+import { isContentComponentType, type ComponentDraft, type ContentComponentType } from "../../model/project-components";
+import ChannelFormModal from "../../components/domain/ChannelFormModal";
+import ComponentFormModal from "../../components/domain/ComponentFormModal";
+import CollectionNameModal from "../../components/domain/CollectionNameModal";
+import Button from "../../components/primitives/Button";
+import Callout from "../../components/primitives/Callout";
+import Stack from "../../components/primitives/Stack";
+import type { PageProps } from "../../model/ia-tree";
+import AddComponentPanel from "../../components/domain/AddComponentPanel";
+import PageHeader from "../../components/patterns/PageHeader";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import Card from "../../components/primitives/Card";
+import ComponentRow from "../../components/domain/ComponentRow";
+import { componentTypes, type ProjectComponentItem, type ProjectComponentType } from "../../model/component-types";
+import EmptyState from "../../components/primitives/EmptyState";
+import SectionHeading from "../../components/primitives/SectionHeading";
+
+/** What the Components page lists: the project's components besides its workflows, and the kinds it shows. */
+export interface ProjectComponentsPageData {
+  projectId: string;
+  components: ProjectComponentItem[];
+  /** The kinds of component the page lists and offers to add, never Workflow (it has its own page). */
+  types: ProjectComponentType[];
+}
 
 export interface ProjectComponentsPageProps extends PageProps<ProjectComponentsPageData> {
   /** Makes a channel, as Lightning's Channels page does. Left out where you can't. */
@@ -160,3 +166,4 @@ export default function ProjectComponentsPage({
     </Stack>
   );
 }
+

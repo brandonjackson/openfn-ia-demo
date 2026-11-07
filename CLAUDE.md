@@ -8,11 +8,12 @@ React + TypeScript app built with Vite 8 and Tailwind CSS 4. **Read [docs/archit
 - `src/pages/`: one folder per screen (`src/pages/projects/`), holding `XPage.tsx` (draws, nothing else), its `XPage.query.tsx` wrapper (feeds it from the API), its story, `XPage.test.tsx` and `XPage.query.test.tsx`. Pages not yet moved are still flat in `src/pages/`; [docs/convergence.md](docs/convergence.md) tracks the move.
 - `src/model/`: types, fixed vocabulary and pure functions. `src/fixtures/`: the fake records a server would send.
 - `src/app/`: routing (`PageRoute.tsx` holds the table of which wrapper feeds each page), the shell's wrapper and app state.
-- `src/api/`: the API client and a file of hooks per resource. `src/fake-api/`: the pretend Lightning server that answers it, seeded from fixtures and kept in localStorage. How they fit is in [docs/architecture.md](docs/architecture.md#the-api).
+- `src/api/`: the API client and a file of hooks per resource. `src/fake-api/`: the pretend Lightning server that answers it, seeded from fixtures and kept in localStorage. `src/api/source.ts` is the one switch between them and a real Lightning (the `--mode lightning` build lightning-full-api serves at `/v3`; [docs/lightning-backend.md](docs/lightning-backend.md)); pages, components and wrappers never know which is answering (only `src/app/` reads `apiSource`, for signing in and the reset). How they fit is in [docs/architecture.md](docs/architecture.md#the-api).
 
 ## Commands
 
 - `npm run dev` — start dev server
+- `npm run dev:lightning` — the dev server on a Lightning running at `localhost:4000`, at `localhost:5173/v3/` (docs/lightning-backend.md)
 - `npm run build` — typecheck and build
 - `npm run lint` — run ESLint, including the layer rules
 - `npm test` — run the tests (Vitest): `.test.ts` in Node (the fake server's lifecycles, helpers), `.test.tsx` in jsdom (pages and their wrappers)

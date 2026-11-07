@@ -7,14 +7,17 @@ import { ThemeProvider } from "./theme/ThemeProvider";
 import StylePicker from "./components/patterns/StylePicker";
 import FeatureFlags from "./app/FeatureFlags";
 import ApiProvider from "./api/ApiProvider";
+import SignedIn from "./app/SignedIn";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider>
       <ApiProvider>
-        <HashRouter>
-          <App />
-        </HashRouter>
+        <SignedIn>
+          <HashRouter>
+            <App />
+          </HashRouter>
+        </SignedIn>
         {/* Global controls: re-skin the whole app, turn its new features on and off, and reset its data. */}
         <StylePicker />
         <FeatureFlags />

@@ -50,6 +50,7 @@ export const accountKeys = {
   mfa: ["me", "mfa"] as const,
   authProvider: ["auth_provider"] as const,
   instance: ["instance"] as const,
+  session: ["session"] as const,
 };
 
 /** GET /api/instance, with the demo's own `usage_metrics_enabled`. */
@@ -67,6 +68,29 @@ export function useInstance(): { status: LoadStatus; instance: InstanceInfo | un
     select: (i): InstanceInfo => ({ url: i.url, deletionGraceDays: i.purge_deleted_after_days, usageMetricsEnabled: i.usage_metrics_enabled ?? false }),
   });
   return { status: statusOf(query), instance: query.data };
+}
+
+/**
+ * Whether someone is fully signed in (`GET /api/session`, api/account.md):
+ * `true` or `false` once Lightning has answered, `undefined` while it
+ * hasn't, or when it couldn't say (`status` then holds why). A 401 is the
+ * answer "no one", not a failure; so is a sign-in still waiting on an MFA
+ * code, a confirmed email or a new account, which Lightning's own pages finish.
+ */
+export function useSignedIn(): { status: LoadStatus; signedIn: boolean | undefined } {
+  const query = useQuery({
+    queryKey: accountKeys.session,
+    queryFn: () =>
+      request<{ data: { state: "signed_in" | "mfa_required" | "confirmation_required" | "signup_pending" } }>("GET", "/api/session").then(
+        (answer) => answer.data.state === "signed_in",
+        (error: unknown) => {
+          if (isApiError(error) && error.status === 401) return false;
+          throw error;
+        },
+      ),
+    staleTime: Infinity,
+  });
+  return { status: statusOf(query), signedIn: query.data };
 }
 
 /** You: your profile, and whether you're a superuser. */

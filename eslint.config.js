@@ -20,7 +20,7 @@ import { defineConfig, globalIgnores } from 'eslint/config'
  *
  * Data comes from the API: src/api/ holds the client and a hook per resource,
  * and src/fake-api/ is the pretend server that answers it, seeded from
- * fixtures. Only wrappers and src/app call the hooks, and only the client
+ * fixtures. Only wrappers and src/app call the hooks, and only src/api/source.ts
  * reaches the fake server, so going real is deleting src/fake-api/.
  *
  * Patterns and domain both sit on primitives, side by side, and neither
@@ -44,7 +44,7 @@ const api = {
 }
 const fakeApi = {
   group: ['**/fake-api', '**/fake-api/**'],
-  message: `src/fake-api is the pretend server. Only src/api/client.ts sends it requests, so going real is deleting the folder. Call the resource's hook in src/api instead. ${docs}#the-api`,
+  message: `src/fake-api is the pretend server. Only src/api/source.ts sends it requests, so going real is deleting the folder. Call the resource's hook in src/api instead. ${docs}#the-api`,
 }
 const tanstack = {
   name: '@tanstack/react-query',
@@ -182,7 +182,7 @@ export default defineConfig([
   {
     // The data code: the client, and a file per resource with its types, mapper, keys and hooks.
     files: ['src/api/**/*.{ts,tsx}'],
-    ignores: ['src/api/client.ts', '**/*.test.ts'],
+    ignores: ['src/api/source.ts', '**/*.test.ts'],
     rules: {
       'no-restricted-imports': [
         'error',

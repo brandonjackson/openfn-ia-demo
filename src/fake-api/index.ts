@@ -3,7 +3,7 @@
  * takes the same arguments as `fetch` and answers as openfn-3-poc's api/
  * says Lightning would: status codes, JSON bodies, and problem documents for
  * refusals (api/errors.md), after a short wait. Its database (db.ts) is
- * seeded from src/fixtures/ and kept in localStorage. Only src/api/client.ts
+ * seeded from src/fixtures/ and kept in localStorage. Only src/api/source.ts
  * imports this folder; going real deletes it.
  *
  * Each resource has its own file of routes, spread into `routes` below. A route the API marks Planned is
@@ -13,6 +13,7 @@
  */
 import { noContent, problem, type Body, type Handler, type Problem } from "./answers";
 import { resetDb } from "./db";
+import { adoptProject } from "./projects";
 import { refuse, sessionRoutes, signInAs } from "./session";
 import { projectRoutes } from "./projects";
 import { userRoutes } from "./user-routes";
@@ -100,15 +101,28 @@ function match(method: string, path: string): [string, Record<string, string>] |
 const failures = new Map<string, Problem>();
 
 /** Answers a request as Lightning would. Same arguments as `fetch`, for paths under /api. */
-export async function fakeFetch(input: string, init: RequestInit = {}): Promise<Response> {
+export const fakeFetch = (input: string, init: RequestInit = {}) => answer(input, init, true);
+
+/**
+ * Answers the demo's own routes (/api/demo/) for an app running on a real
+ * Lightning (src/api/source.ts). The session is Lightning's, so the CSRF
+ * token on a write is Lightning's too, already checked by Lightning when it
+ * handed it out; this server can't check it against its own.
+ */
+export const fakeFetchBesideLightning = (input: string, init: RequestInit = {}) => answer(input, init, false);
+
+async function answer(input: string, init: RequestInit, checkCsrf: boolean): Promise<Response> {
   if (waitMs > 0) await new Promise((resolve) => setTimeout(resolve, waitMs));
   const method = (init.method ?? "GET").toUpperCase();
   const [path, search = ""] = input.split("?") as [string, string?];
+  // Beside Lightning, a project the demo's routes are asked about is one of Lightning's.
+  const lightningProject = !checkCsrf && /^\/api\/demo\/projects\/([^/]+)/.exec(path)?.[1];
+  if (lightningProject) adoptProject(decodeURIComponent(lightningProject));
   const found = match(method, path);
   // Unknown routes are a 404 problem document (api/errors.md).
   if (!found) return problem({ status: 404, code: "not_found", detail: `The fake server has no route for ${method} ${path}.` });
   const [key, params] = found;
-  const refused = refuse(method, new Headers(init.headers));
+  const refused = checkCsrf && refuse(method, new Headers(init.headers));
   if (refused) return refused;
   const failure = failures.get(key);
   if (failure) {

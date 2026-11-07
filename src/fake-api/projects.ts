@@ -187,6 +187,36 @@ export const members = table<MemberRow>("project_members", () => {
 /* ------------------------------------------------------------------ */
 
 export const findProject = (id: string) => projects.rows().find((p) => p.id === id);
+
+/**
+ * Beside a real Lightning (`fakeFetchBesideLightning`), the demo's own routes
+ * are asked about Lightning's projects, which this server has never seen.
+ * Lightning only gives the app projects the person may open, so this takes
+ * its word: a project it doesn't know is added, empty, with the signed-in
+ * person as its owner, and its demo extras (components, services) start empty.
+ */
+export function adoptProject(id: string) {
+  if (!isUuid(id) || findProject(id)) return;
+  const now = new Date().toISOString();
+  projects.insert({
+    id,
+    name: id,
+    description: null,
+    env: "main",
+    color: null,
+    parent_id: null,
+    concurrency: null,
+    retention_policy: "retain_all",
+    history_retention_period: null,
+    dataclip_retention_period: null,
+    requires_mfa: false,
+    allow_support_access: false,
+    scheduled_deletion: null,
+    inserted_at: now,
+    updated_at: now,
+  });
+  members.insert({ project_id: id, user_id: currentUserId(), role: "owner", failure_alert: true, digest: "never", inserted_at: now });
+}
 export const membersOf = (projectId: string) => members.rows().filter((m) => m.project_id === projectId);
 export const roleIn = (projectId: string, userId = currentUserId()) =>
   members.rows().find((m) => m.project_id === projectId && m.user_id === userId)?.role;

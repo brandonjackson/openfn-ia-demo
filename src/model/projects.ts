@@ -69,7 +69,7 @@ export function projectSummaries(projects: ProjectDetails[], services?: (Pick<Pr
 }
 
 /** The projects you're a member of that aren't being deleted: what the projects list, Overview and the sidebar show. */
-export const isOpenable = (p: ProjectDetails) => !!p.role && !p.scheduledDeletion;
+export const isOpenable = (p: ProjectDetails) => p.role !== null && !p.scheduledDeletion;
 
 /** How long a project keeps its history and its runs' data (Lightning's data retention). */
 export type RetentionPolicy = "retain_all" | "retain_with_errors" | "erase_all";
@@ -105,8 +105,13 @@ export interface ProjectDetails {
   /** When the project will be removed, once its deletion is scheduled. */
   scheduledDeletion: string | null;
   createdAt: string;
-  /** Your role in it; absent when you're not a member (a superuser listing every project). */
-  role?: ProjectRole;
+  /**
+   * Your role in it: `null` when you're not a member (a superuser listing
+   * every project), absent when the API didn't say. Lightning's list leaves
+   * it out until it has `include=stats` (api/projects.md, Planned), and lists
+   * only your own projects meanwhile, so absent still means one you're in.
+   */
+  role?: ProjectRole | null;
   workflowsCount?: number;
   collaboratorsCount?: number;
   /** When a workflow in it last changed, or null. */

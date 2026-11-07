@@ -1,4 +1,5 @@
 import { useResetDemoData } from "../api/demo";
+import { apiSource } from "../api/source";
 import FeatureFlagPicker from "../components/domain/FeatureFlagPicker";
 import { featureFlags, flagPresets, flagsParam } from "../model/feature-flags";
 import { setFlag, setFlags, shareUrl, useChosenFlags, useFlags } from "./feature-flags";
@@ -17,7 +18,8 @@ export default function FeatureFlags() {
       onToggle={setFlag}
       onApplyPreset={setFlags}
       shareUrl={shareUrl(flagsParam(chosen))}
-      onResetData={async () => void (await reset())}
+      // Reset puts the fake server back to its fixtures; on Lightning the data is Lightning's, so there's none.
+      onResetData={apiSource === "fake" ? async () => void (await reset()) : undefined}
     />
   );
 }

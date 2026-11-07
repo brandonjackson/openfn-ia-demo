@@ -35,5 +35,6 @@ export function refuse(method: string, headers: Headers): Response | undefined {
 }
 
 export const sessionRoutes: Record<string, Handler> = {
-  "GET /api/session": () => json(200, { data: { csrf_token: CSRF_TOKEN, user_id: currentUserId() } }),
+  "GET /api/session": () =>
+    json(200, { data: { state: "signed_in", user_id: currentUserId(), stepped_up_until: null, csrf_token: CSRF_TOKEN, pending_signup: null } }),
 };

@@ -48,6 +48,15 @@ path in its hook file.
 
 ## Missing from a resource api/ covers
 
+- **Workflows: a description and who edits them** (a project's Workflows
+  list and Overview; api/workflows.md). The workflow object has neither a
+  `description` nor its editors, and Lightning keeps neither. The rows used
+  to take them from the fixtures; now they leave both out, on every build
+  (`WorkflowListItem`'s `description` and `members` are optional, and
+  `WorkflowRow` drops its Members column without them). Would need a
+  `description` on the workflow (Lightning has one on templates only) and
+  its recent editors, say from its snapshots' authors.
+
 - **Admin settings: users, for a superuser** (Admin settings, Users;
   api/users.md). `GET /api/users` and the user routes take the service
   account's token only, so a superuser signed in to Lightning is refused

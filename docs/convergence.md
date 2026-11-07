@@ -13,11 +13,22 @@ and to mark what would change the look.
 
 ## Now
 
-- **Branch:** `claude/openfn-convergence-decisions-9bf5gi` (earlier sessions
-  used `claude/openfn-3-poc-convergence-upt3ey` and
+- **Branch:** `claude/lightning-convergence` (earlier sessions used
+  `claude/openfn-convergence-decisions-9bf5gi`,
+  `claude/openfn-3-poc-convergence-upt3ey` and
   `claude/intelligent-newton-2pncy4`). Each PR is shipped (merged once
   CI is green) and the branch restarted from `main` before the next: `git
   fetch origin main && git checkout -B <branch> origin/main`.
+- **Lightning run (7 Nov 2026, Brandon's brief).** Every wrapper onto the
+  API, one page per PR, so each works the same on the fake server and on
+  Lightning at `/v3` (lightning-backend.md). Most-seen pages first:
+  Workflows (done, PR 15), then the project overview (`ProjectPage`), the
+  editor, then the rest `npm run convergence` lists. What the API can't give
+  is left out and goes in api-gaps.md. **Not walked on Lightning:** this
+  session couldn't run Lightning locally (fetching and running its Elixir
+  dependencies was refused by the session's permission check), so each
+  page is checked on the fake server only and its row in lightning-backend.md
+  says so. A session allowed to run `mix deps.get` should walk them.
 - **PR in progress:** none. The brief's 10 PRs are done; the work now is
   Brandon's decisions (6 Nov 2026, "Decided by Brandon" below). Decisions
   2, 3, 5 and 6 are done, and 4 on Create project. Next, one PR each:
@@ -268,7 +279,22 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     AuthProviderForm's errors use `FormField`'s `error`; the context layer
     form is `noValidate`. Counts: tests 176 → 183; the rest unchanged.
 
-**PRs done: 14** (10 for the brief, then Brandon's decisions). Pull openfn-3-poc again at PR 10.
+15. **Workflows reads only the API** (Lightning run). The page moved to
+    `src/pages/project-workflows/` with its page and query tests. Its rows
+    come from `asListItem` in a new `model/workflow-list.ts` (with
+    `WorkflowListItem`, `byWorkflow` and `LIST_PERIOD`, which Overview uses
+    too): the workflow and its work orders from the API, and the service
+    badge from the services routes (`useProjectServices` takes `enabled`;
+    left out if they fail to load). Descriptions and members aren't in
+    api/, so the rows leave them out on every build and `WorkflowRow` drops
+    its Members column (api-gaps.md; this changes the look of the Pages
+    build). New workflow passes the project's id. A refused toggle or delete
+    now says why in an alert callout, and Delete says "Deleting…" while it
+    runs. Counts: wrappers reading fixtures 20 → 19 of 25; page-data.ts
+    702 → 673 lines; files importing it 78 → 74; pages in their own folder
+    5 → 6 of 24; page and query tests 10 → 12; the ratchet unchanged.
+
+**PRs done: 15** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
 ## Decided by Brandon (6 Nov 2026)
 

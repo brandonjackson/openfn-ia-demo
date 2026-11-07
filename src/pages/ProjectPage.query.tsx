@@ -18,7 +18,8 @@ import { fixtureProject } from "../fixtures/projects";
 import ProjectPage from "./ProjectPage";
 import { pageFrame } from "../app/page-frame";
 import { componentsFor } from "./flagged.fixtures";
-import { asListItem, asProject, byWorkflow, LIST_PERIOD } from "./project-records.query";
+import { asProject } from "./project-records.query";
+import { asListItem, byWorkflow, LIST_PERIOD } from "../model/workflow-list";
 import { useProjectChannels } from "./channel-records.query";
 
 /**
@@ -35,7 +36,7 @@ function projectPageData(details: ProjectDetails, workflows: WorkflowDocument[],
     pageType: "project",
     projectId: details.id,
     tiles: activityTiles(workOrderActivity(workOrders, LIST_PERIOD), LIST_PERIOD, `/projects/${details.id}/history`),
-    workflows: workflows.map((w) => asListItem(w, flags.serviceCatalog, workOrdersOf(w.id))).sort((a, b) => (b.lastRunAt ?? "").localeCompare(a.lastRunAt ?? "")),
+    workflows: workflows.map((w) => asListItem(w, workOrdersOf(w.id), flags.serviceCatalog ? services : [])).sort((a, b) => (b.lastRunAt ?? "").localeCompare(a.lastRunAt ?? "")),
     services: flags.serviceCatalog ? services : undefined,
     // Its workflows and channels from the API; other kinds of component from its fixture until they move too.
     components: flags.components

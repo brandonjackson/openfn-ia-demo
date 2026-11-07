@@ -31,9 +31,9 @@ export function useAllServices(enabled = true): { status: LoadStatus; services: 
   return enabled ? { status: statusOf(query), services: query.data ?? [] } : { status: { state: "ready" }, services: [] };
 }
 
-/** A project's services. */
-export function useProjectServices(projectId: string | undefined): { status: LoadStatus; services: ServiceRecord[] } {
-  const { status, services } = useAllServices();
+/** A project's services. Pass `enabled: false` when the catalog is off, and it loads nothing. */
+export function useProjectServices(projectId: string | undefined, enabled = true): { status: LoadStatus; services: ServiceRecord[] } {
+  const { status, services } = useAllServices(enabled);
   return { status, services: services.filter((s) => s.projectId === projectId) };
 }
 

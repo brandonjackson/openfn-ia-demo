@@ -50,3 +50,8 @@ export const NeverRun: Story = {
 export const ReadOnly: Story = {
   args: { workflow: planning, onToggleEnabled: undefined, onDelete: undefined },
 };
+
+/** As the API sends it: api/ workflows have no description or members yet, so the row leaves both out. */
+export const FromTheApi: Story = {
+  args: { workflow: { ...planning, description: undefined, members: undefined } },
+};

@@ -10,6 +10,7 @@ import { apiSystemId, apiWorkflowId } from "../fixtures/ids";
 import { connectedSystems as fixtureSystems } from "../fixtures/connected-systems";
 import Callout from "../components/primitives/Callout";
 import LoadingState from "../components/primitives/LoadingState";
+import { componentLinkTarget } from "./component-links";
 import NotFoundPage from "../pages/NotFoundPage";
 import OverviewPageQuery from "../pages/overview/OverviewPage.query";
 import SystemsPageQuery from "../pages/SystemsPage.query";
@@ -24,7 +25,7 @@ import ProjectCreatePageQuery from "../pages/ProjectCreatePage.query";
 import ProjectSandboxesPageQuery from "../pages/ProjectSandboxesPage.query";
 import ProjectSettingsPageQuery from "../pages/project-settings/ProjectSettingsPage.query";
 import ServicePageQuery from "../pages/ServicePage.query";
-import ComponentPageQuery from "../pages/ComponentPage.query";
+import ComponentPageQuery from "../pages/component/ComponentPage.query";
 import StatusPageFixtures from "../pages/StatusPage.fixtures";
 import InsightsPageQuery from "../pages/insights/InsightsPage.query";
 import UserSettingsPageQuery from "../pages/user-settings/UserSettingsPage.query";
@@ -87,6 +88,10 @@ export default function PageRoute() {
   const { pathname, search, hash } = useLocation();
   const flags = useFlags();
   const { isSuperuser, userError } = useShell();
+
+  // An old link to a component by its fixture slug lands too.
+  const component = componentLinkTarget(pathname);
+  if (component) return <Navigate to={`${component}${search}${hash}`} replace />;
 
   // Projects are named by their id on the API now; an old link by the fixture's slug still lands.
   const slug = pathname.match(/^\/projects\/([^/]+)/)?.[1];

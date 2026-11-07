@@ -485,6 +485,24 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   the ratchet unchanged.
   ([#218](https://github.com/brandonjackson/openfn-ia-demo/pull/218))
 
+- **Lane 3: A component's page reads only the API.** `ComponentPage`,
+  its wrapper and `ChannelPage` moved to `src/pages/component/` with page
+  tests for both, a query test, and `ComponentPageData` and
+  `ChannelPageData` into their page files (without `pageType`). Old slug
+  links (a fixture project's and any of its components, a workflow
+  included) are sent on by routing, in `src/app/component-links.ts` with
+  its own test, so the wrapper reads no fixtures. A channel's Edit, Turn off and Delete are
+  offered only with `update_channel` and `delete_channel` (the server
+  refused a viewer's), and a refused toggle or delete, on a channel or any
+  other component, now says why in an alert callout, as Workflows does;
+  a second Turn off while one saves is ignored, and each component's page
+  starts fresh (keyed by its id).
+  Checked on the fake server only. Counts (after lanes 1, 2 and 4): wrappers reading
+  fixtures 8 → 7 of 24; page-data.ts 399 → 372 lines; files importing it
+  45 → 42; pages in their own folder 12 → 14 of 24; page and query tests
+  25 → 28; the ratchet unchanged.
+  ([#213](https://github.com/brandonjackson/openfn-ia-demo/pull/213))
+
 - **Lane 2: Overview reads the API.** The page moved to
   `src/pages/overview/` with its page and query tests, and its data type
   into the page file as `OverviewPageData` (`fixtures/overview.ts` is gone:
@@ -502,10 +520,10 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   and the Systems page needs the same, so the wrapper still counts as
   reading fixtures until lane 5 moves it. A suggested system you've added
   isn't suggested again. Lightning wasn't walked (no Elixir here). Counts:
-  wrappers reading fixtures 8 of 24, unchanged (the catalog, above);
-  page-data.ts 399 → 380 lines; files importing it 45 → 44; pages in their
-  own folder 12 → 13 of 24; page and query tests 25 → 27; tests 304 → 310;
-  the ratchet unchanged.
+  (after lane 3's second PR) wrappers reading fixtures 7 of 24, unchanged
+  (the catalog, above); page-data.ts 372 → 353 lines; files importing it
+  42 → 41; pages in their own folder 14 → 15 of 24; page and query tests 28
+  → 30; tests 326 → 335; the ratchet unchanged.
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 

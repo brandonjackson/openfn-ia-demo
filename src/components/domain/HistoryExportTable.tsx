@@ -1,7 +1,6 @@
 import { Download, FolderDown } from "lucide-react";
-import type { HistoryExport } from "../../model/page-data";
+import type { HistoryExport, HistoryExportStatus } from "../../model/work-orders";
 import type { BadgeTone } from "../primitives/Badge";
-import type { HistoryExportStatus } from "../../model/project-settings";
 import DataTable, { type DataTableColumn } from "../primitives/DataTable";
 import Badge from "../primitives/Badge";
 import Button from "../primitives/Button";
@@ -19,10 +18,12 @@ interface Props {
   exports: HistoryExport[];
   /** Downloads a completed export. */
   onDownload: (id: string) => void;
+  /** The export being downloaded, whose button says so. */
+  downloadingId?: string;
 }
 
 /** A project's work order history exports, newest first, each downloadable once it's ready. */
-export default function HistoryExportTable({ exports, onDownload }: Props) {
+export default function HistoryExportTable({ exports, onDownload, downloadingId }: Props) {
   if (exports.length === 0)
     return (
       <EmptyState
@@ -59,9 +60,10 @@ export default function HistoryExportTable({ exports, onDownload }: Props) {
           icon={Download}
           disabled={e.status !== "completed"}
           title={e.status === "completed" ? undefined : "Export is not yet ready for download"}
+          aria-disabled={e.id === downloadingId || undefined}
           onClick={() => onDownload(e.id)}
         >
-          Download
+          {e.id === downloadingId ? "Downloading…" : "Download"}
         </Button>
       ),
     },

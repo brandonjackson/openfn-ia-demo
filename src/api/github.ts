@@ -1,6 +1,6 @@
 /** A project's GitHub connection, and the repos your GitHub account reaches, on Lightning's API (api/github-sync.md, api/account.md). */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { GitHubConnection, GitHubConnectionSettings, GitHubInstallation } from "../model/page-data";
+import type { GitHubConnection, GitHubConnectionSettings, GitHubInstallation } from "../model/github-sync";
 import { timeAgo } from "../model/time";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";

@@ -1,5 +1,5 @@
 import { GitBranch, Settings2, Unplug } from "lucide-react";
-import type { GitHubConnection, GitHubInstallation } from "../../model/page-data";
+import type { GitHubConnection, GitHubInstallation } from "../../model/github-sync";
 import Button from "../primitives/Button";
 import Callout from "../primitives/Callout";
 import Inline from "../primitives/Inline";

@@ -4,8 +4,7 @@ import { ShellContext } from "../components/domain/shell-context";
 import { useProject, useProjectList } from "../api/projects";
 import { useSandboxes } from "../api/workflows";
 import { useInstance, useMe } from "../api/account";
-import { asProject } from "../pages/project-records.query";
-import { isOpenable } from "../model/projects";
+import { asProject, isOpenable } from "../model/projects";
 import { instanceInitials, instanceName } from "../model/account";
 import { useSandbox } from "./sandbox-state";
 import { noteOpened, useRecentProjectIds } from "./recent-projects";
@@ -43,13 +42,13 @@ export default function ShellQuery({ children }: { children: ReactNode }) {
   const live = sandboxes.filter((s) => !s.scheduledDeletion).map((s) => s.name);
   // A sandbox that's gone (deleted, or never made) leaves you on main.
   const sandbox = live.includes(selected) ? selected : "main";
-  const project = details && { ...asProject(details), sandboxes: ["main", ...live] };
+  const project = details && asProject(details, ["main", ...live]);
 
   const openable = projects.filter(isOpenable);
   const recentProjects = [
     ...recentIds.flatMap((id) => openable.filter((p) => p.id === id)),
     ...openable.filter((p) => !recentIds.includes(p.id)),
-  ].map(asProject);
+  ].map((p) => asProject(p));
 
   return (
     <ShellContext.Provider

@@ -410,6 +410,33 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   and React reviewers ran. Checked on the fake server only. Counts: wrappers
   reading fixtures 13 → 12 of 25; pages in their own folder 8 → 9 of 24;
   page and query tests 17 → 19; tests 244 → 255; the rest unchanged.
+- **Lane 1: Project settings reads only the API.** The page moved to
+  `src/pages/project-settings/` with its page and query tests. Its
+  Credentials are the ones linked to the project
+  (`GET /api/projects/:id/credentials`, each type named by the credential
+  schemas), with every environment it has values for; the Access column
+  and "Request access" are left out, since the API has no organisation's
+  credentials (api-gaps.md; this changes the look). Export project is
+  `GET /api/provision/yaml` and downloading an export fetches its
+  `download_url`, both through a new `getFile` in `src/api/client.ts`,
+  with fake-server routes for each (`src/fake-api/provisioning.ts`, the
+  export's download in `history-exports.ts`); each says "Exporting…" or
+  "Downloading…" while it runs and why it failed in an alert, and so does
+  a refused "Create export". `EnvironmentBadge` shows a name it doesn't
+  know in a plain badge. You are `/api/me` (matched by id), not the
+  fixture user. A credential list without `environments` (planned scope)
+  and credential schemas that won't load no longer stop the page. The
+  page's types left page-data.ts for `model/projects.ts`,
+  `model/webhooks.ts`, `model/github-sync.ts` and `model/work-orders.ts`
+  (each with its enum),
+  and its story builds its data from the fixtures' pieces
+  (`projectCollaborators`). `src/pages/project-records.query.ts` is gone:
+  the shell's `asProject` is in `model/projects.ts` and reads no fixtures
+  (the shell never showed a project's services or components). Not walked
+  on Lightning: the session has no Elixir. Counts: wrappers reading
+  fixtures 15 → 13 of 24 (Settings and the helper); page-data.ts 658 →
+  486 lines; files importing it 72 → 58; pages in their own folder 7 → 8
+  of 24; page and query tests 15 → 17; the ratchet unchanged.
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
@@ -478,3 +505,17 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
    no Log out or Settings, and nothing says why. Would draw a plain "Log
    out" (and the reason) in its place. Admin settings' wait could also say
    "Loading Admin settings…" rather than "Loading…".
+7. **Project settings' Credentials** (Lane 1's reviewers). The section's
+   sentence still says "Each credential belongs to one environment", but a
+   credential from the API can have values for several, and the table shows
+   them all; would read "Each credential has values for one or more
+   environments". With none it shows a plain "No credentials in this project
+   yet." line where Collections and Webhook security use `EmptyState`. Its
+   table repeats much of `CredentialTable` (User settings); one table with
+   optional columns would make the two pages match, but moves "System" to
+   "Type".
+8. **Buttons disabled with only a `title` to say why** (Lane 1's
+   reviewers): "Create export" while one is being made, an unfinished
+   export's Download, and "Add private credential". A disabled button can't
+   be focused and touch never shows a title. Would keep each enabled and say
+   why when pressed or in a line beside it.

@@ -22,7 +22,7 @@ import ProjectWorkflowsPageQuery from "../pages/project-workflows/ProjectWorkflo
 import ProjectComponentsPageQuery from "../pages/project-components/ProjectComponentsPage.query";
 import ProjectCreatePageQuery from "../pages/ProjectCreatePage.query";
 import ProjectSandboxesPageQuery from "../pages/ProjectSandboxesPage.query";
-import ProjectSettingsPageQuery from "../pages/ProjectSettingsPage.query";
+import ProjectSettingsPageQuery from "../pages/project-settings/ProjectSettingsPage.query";
 import ServicePageQuery from "../pages/ServicePage.query";
 import ComponentPageQuery from "../pages/ComponentPage.query";
 import StatusPageFixtures from "../pages/StatusPage.fixtures";

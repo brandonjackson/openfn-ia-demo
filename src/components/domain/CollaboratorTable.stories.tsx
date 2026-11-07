@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import CollaboratorTable from "./CollaboratorTable";
 import { projects } from "../../fixtures/projects";
-import { projectSettingsPageData, projectSettingsRecord } from "../../fixtures/project-settings";
+import { projectCollaborators, projectSettingsRecord } from "../../fixtures/project-settings";
 
 const [projectA] = projects;
 const record = projectSettingsRecord(projectA);
@@ -11,7 +11,7 @@ const meta: Meta<typeof CollaboratorTable> = {
   component: CollaboratorTable,
   parameters: { layout: "padded" },
   args: {
-    collaborators: projectSettingsPageData(projectA, record).collaborators,
+    collaborators: projectCollaborators(record),
     onChangeRole: () => {},
     onSetFailureAlert: () => {},
     onSetDigest: () => {},
@@ -28,7 +28,7 @@ export const AsOwner: Story = {};
 /** As an editor: only your own alerts and digest. */
 export const AsEditor: Story = {
   args: {
-    collaborators: projectSettingsPageData(projectA, record, "jsmith@example.org").collaborators,
+    collaborators: projectCollaborators(record, "jsmith@example.org"),
     onChangeRole: undefined,
     onRemove: undefined,
   },

@@ -221,7 +221,7 @@ export const membersOf = (projectId: string) => members.rows().filter((m) => m.p
 export const roleIn = (projectId: string, userId = currentUserId()) =>
   members.rows().find((m) => m.project_id === projectId && m.user_id === userId)?.role;
 const me = () => findUser(currentUserId());
-const isSuperuser = () => me()?.role === "superuser";
+export const isSuperuser = () => me()?.role === "superuser";
 /** A member can open the project, unless it requires MFA they haven't set up. Superusers too need a membership. */
 const canEnter = (p: ProjectRow) => !!roleIn(p.id) && (!p.requires_mfa || !!me()?.mfa_enabled);
 const isAtLeast = (p: ProjectRow, least: ProjectRole) => {

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import type { CollaboratorDraft, CollaboratorInvite } from "../../model/page-data";
 import { addableRoles, isValidEmail, projectRoleLabels, type ProjectRole } from "../../model/project-settings";
+import { type CollaboratorDraft, type CollaboratorInvite } from "../../model/projects";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";
 import Stack from "../primitives/Stack";

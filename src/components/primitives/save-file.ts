@@ -1,9 +1,9 @@
 /**
- * Hands the browser a file to save, made from text in memory: an exported
- * project's YAML, or a fixture standing in for a file a server would send.
+ * Hands the browser a file to save, made from text in memory (an exported
+ * project's YAML) or a file a server sent.
  */
-export function saveFile(fileName: string, content: string, type = "text/plain") {
-  const url = URL.createObjectURL(new Blob([content], { type }));
+export function saveFile(fileName: string, content: string | Blob, type = "text/plain") {
+  const url = URL.createObjectURL(typeof content === "string" ? new Blob([content], { type }) : content);
   const a = document.createElement("a");
   a.href = url;
   a.download = fileName;

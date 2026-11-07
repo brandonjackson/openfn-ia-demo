@@ -1,21 +1,16 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import type { PageRoute } from "../app/ia-utils";
-import Loaded from "../app/Loaded";
-import { useProject, useProjectList } from "../api/projects";
-import { useWorkflowsInProjects } from "../api/workflows";
-import { useRunSaves, useWorkOrders } from "../api/work-orders";
-import { useChannelRequests } from "../api/channels";
-import { useHistoryExportSaves } from "../api/history-exports";
-import { combine } from "../api/status";
-import type { HistoryPageData } from "../model/page-data";
-import type { HistoryWorkOrder } from "../model/history";
-import { defaultHistoryFilters, historySearchFields, historyStatuses, type HistoryFilters } from "../model/history";
-import { sortableStamp } from "../fixtures/history";
-import { apiProjectId, fixtureProject, fixtureWorkflow } from "../fixtures/projects";
-import { apiWorkflowId } from "../fixtures/ids";
-import HistoryPage from "./HistoryPage";
-import { pageFrame } from "../app/page-frame";
-import { isOpenable } from "../model/projects";
+import type { PageRoute } from "../../app/ia-utils";
+import Loaded from "../../app/Loaded";
+import { useProject, useProjectList } from "../../api/projects";
+import { useWorkflowsInProjects } from "../../api/workflows";
+import { useRunSaves, useWorkOrders } from "../../api/work-orders";
+import { useChannelRequests } from "../../api/channels";
+import { useHistoryExportSaves } from "../../api/history-exports";
+import { combine } from "../../api/status";
+import { defaultHistoryFilters, historySearchFields, historyStatuses, newestFirst, type HistoryFilters, type HistoryWorkOrder } from "../../model/history";
+import HistoryPage, { type HistoryPageData } from "./HistoryPage";
+import { pageFrame } from "../../app/page-frame";
+import { isOpenable } from "../../model/projects";
 
 /**
  * History's filters, from the URL: `?status=failed,cancelled`,
@@ -33,9 +28,8 @@ function filtersFrom(params: URLSearchParams): HistoryFilters {
     tab: params.get("type")?.toLowerCase().startsWith("channel") ? "channels" : "work-orders",
     search: params.get("q") ?? "",
     searchFields: fields.length ? fields : defaultHistoryFilters.searchFields,
-    // An old link names a project or workflow by its fixture slug.
-    projectId: legacyProject(params.get("project")),
-    workflowId: legacyWorkflow(params.get("workflow")),
+    projectId: params.get("project"),
+    workflowId: params.get("workflow"),
     statuses: historyStatuses.filter((s) => list("status").some((v) => v === s.id || v === s.label.toLowerCase())).map((s) => s.id),
     receivedAfter: params.get("received_after"),
     receivedBefore: params.get("received_before"),
@@ -46,9 +40,6 @@ function filtersFrom(params: URLSearchParams): HistoryFilters {
     requestStatus: requestStatus === "ok" || requestStatus === "failed" ? requestStatus : null,
   };
 }
-
-const legacyProject = (id: string | null) => (id && fixtureProject(id)?.id === id ? apiProjectId(id) : id);
-const legacyWorkflow = (id: string | null) => (id && fixtureWorkflow(id)?.slug === id ? apiWorkflowId(id) : id);
 
 /** The URL's search for `filters`, leaving out whatever is as History opens. */
 function paramsFor(filters: HistoryFilters): URLSearchParams {
@@ -100,9 +91,8 @@ export default function HistoryPageQuery({ route }: { route: PageRoute }) {
       const workflow = workflows.find((w) => w.id === o.workflowId);
       return workflow ? [{ workOrder: o.workOrder, workflowId: o.workflowId, workflowName: workflow.name, projectId: o.projectId, projectName: nameOf(o.projectId), input: o.input, receivedAt: o.receivedAt }] : [];
     })
-    .sort((a, b) => sortableStamp(b.receivedAt).localeCompare(sortableStamp(a.receivedAt)));
+    .sort(newestFirst);
   const data: HistoryPageData = {
-    pageType: "table",
     workOrders: rows,
     channelRequests: requests,
     workflows: workflows.map((w) => ({
@@ -133,10 +123,8 @@ export default function HistoryPageQuery({ route }: { route: PageRoute }) {
           onCancel={(ids) => runs.cancel(located(ids))}
           onInspectRun={(order, run) => navigate(`/workflow-editor/${order.workflowId}?run=${run.runId}`)}
           onOpenChannelRun={(request) => request.workflowId && navigate(`/workflow-editor/${request.workflowId}?run=${request.runId}`)}
-          // An export is made by the project, and shows up in its settings; History across projects has no one project to ask.
-          onExport={async () => {
-            if (projectId) await exports.create();
-          }}
+          // An export is made by the project, and shows up in its settings; History across projects has no one project to ask, so offers none.
+          onExport={projectId ? (ids) => exports.create(ids) : undefined}
         />
       )}
     </Loaded>

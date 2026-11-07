@@ -4,8 +4,7 @@
  * from the same run histories the editor shows, so a run opened from History
  * is the run the editor loads.
  */
-import type { ChannelRequest, HistoryWorkOrder } from "../model/history";
-import type { HistoryWorkflowOption } from "../model/page-data";
+import { newestFirst, type ChannelRequest, type HistoryWorkOrder, type HistoryWorkflowOption } from "../model/history";
 import type { Project } from "../model/projects";
 import type { WorkOrder } from "../model/workflow";
 import { projects } from "./projects";
@@ -42,12 +41,6 @@ export function historyWorkflows(project: Project): HistoryWorkflowOption[] {
     });
 }
 
-/** A run's "dd/mm/yyyy, HH:MM:SS" stamp as something that sorts. */
-export function sortableStamp(stamp: string): string {
-  const m = /^(\d{2})\/(\d{2})\/(\d{4}), (\d{2}:\d{2}:\d{2})$/.exec(stamp);
-  return m ? `${m[3]}-${m[2]}-${m[1]} ${m[4]}` : stamp;
-}
-
 /** Every work order `project`'s workflows received, newest first. */
 export function projectWorkOrders(project: Project, changed: ChangedWorkOrders = {}): HistoryWorkOrder[] {
   return project.components
@@ -73,7 +66,7 @@ export function projectWorkOrders(project: Project, changed: ChangedWorkOrders =
         };
       });
     })
-    .sort((a, b) => sortableStamp(b.receivedAt).localeCompare(sortableStamp(a.receivedAt)));
+    .sort(newestFirst);
 }
 
 const months: Record<string, string> = { Oct: "10", Nov: "11", Sep: "09" };
@@ -115,7 +108,7 @@ export function projectChannelRequests(project: Project): ChannelRequest[] {
 export function allWorkOrders(changed: ChangedWorkOrders = {}): HistoryWorkOrder[] {
   return projects
     .flatMap((p) => projectWorkOrders(p, changed))
-    .sort((a, b) => sortableStamp(b.receivedAt).localeCompare(sortableStamp(a.receivedAt)));
+    .sort(newestFirst);
 }
 
 /** Every channel request across every project, newest first. */

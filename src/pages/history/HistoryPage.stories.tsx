@@ -1,12 +1,12 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import HistoryPage, { type HistoryPageProps } from "./HistoryPage";
-import { withRouter } from "../stories/decorators";
-import { allChannelRequests, allWorkOrders, historyWorkflows, projectChannelRequests, projectWorkOrders } from "../fixtures/history";
-import { projects } from "../fixtures/projects";
-import type { IANode } from "../model/ia-tree";
-import type { HistoryPageData } from "../model/page-data";
-import { defaultHistoryFilters, type HistoryFilters } from "../model/history";
+import { withRouter } from "../../stories/decorators";
+import { allChannelRequests, allWorkOrders, historyWorkflows, projectChannelRequests, projectWorkOrders } from "../../fixtures/history";
+import { projects } from "../../fixtures/projects";
+import type { IANode } from "../../model/ia-tree";
+import type { HistoryPageData } from "./HistoryPage";
+import { defaultHistoryFilters, type HistoryFilters } from "../../model/history";
 
 const project = projects[0];
 
@@ -17,7 +17,6 @@ const node: IANode = {
 };
 
 const projectData: HistoryPageData = {
-  pageType: "table",
   workOrders: projectWorkOrders(project),
   channelRequests: projectChannelRequests(project),
   workflows: historyWorkflows(project),
@@ -87,12 +86,22 @@ export const AcrossProjects: Story = {
     ancestors: [],
     currentPath: "/history",
     data: {
-      pageType: "table",
       workOrders: allWorkOrders(),
       channelRequests: allChannelRequests(),
       workflows: projects.flatMap(historyWorkflows),
       projects: projects.map((p) => ({ id: p.id, name: p.name })),
     },
+    // An export belongs to one project, so there's none across projects.
+    onExport: undefined,
+  },
+};
+
+/** A retry the server refused says why above the filters, and keeps the picks. */
+export const RetryRefused: Story = {
+  args: { onRetry: () => Promise.reject(new Error("You can't run workflows in this project.")) },
+  play: async ({ canvasElement }) => {
+    const finished = projectData.workOrders.find((o) => !["pending", "running"].includes(o.workOrder.status));
+    canvasElement.querySelector<HTMLButtonElement>(`button[aria-label="Retry work order ${finished?.workOrder.id}"]`)?.click();
   },
 };
 

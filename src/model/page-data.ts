@@ -6,7 +6,6 @@ import type { Environment } from "./credentials";
 import type { ProjectServiceItem, ServiceApiSpec } from "./services";
 import type { CollectionContents, ComponentContent } from "./project-components";
 import type { LucideIcon } from "lucide-react";
-import type { ChannelRequest, HistoryWorkOrder } from "./history";
 import type { Adaptor } from "./adaptors";
 import type { ChannelDetails } from "./channels";
 import type { EcosystemStation, EcosystemWorkflow } from "./ecosystem";
@@ -165,38 +164,6 @@ export interface CatalogPageData {
   connectedSystems?: boolean;
   /** Whether the organisation is on X-Road, so services can be offered over it. Defaults to true. */
   xroad?: boolean;
-}
-
-/* ------------------------------------------------------------------ */
-/*  Table page (History)                                               */
-/* ------------------------------------------------------------------ */
-
-/** A workflow History can filter by, with its steps for retrying from one. */
-export interface HistoryWorkflowOption {
-  id: string;
-  name: string;
-  /** The project it belongs to, for History across every project. */
-  projectId: string;
-  /** Its steps in the order they run, to pick one to retry from. */
-  steps: { id: string; label: string }[];
-  /** Its latest version, so runs on an older one can be told apart. */
-  latestVersion: string;
-}
-
-/**
- * History: a project's (or every project's) work orders with their runs, and
- * its channels' requests.
- */
-export interface HistoryPageData {
-  pageType: "table";
-  /** Newest first. */
-  workOrders: HistoryWorkOrder[];
-  /** Newest first. Absent when channels aren't shown. */
-  channelRequests: ChannelRequest[];
-  /** The workflows the work orders belong to. */
-  workflows: HistoryWorkflowOption[];
-  /** Set for History across every project, to filter by project and say which one each order belongs to. */
-  projects?: { id: string; name: string }[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -411,7 +378,6 @@ export interface OrgCredential {
 export type PageData =
   | ListPageData
   | CatalogPageData
-  | HistoryPageData
   | DashboardPageData
   | StatusPageData
   | InsightsPageData

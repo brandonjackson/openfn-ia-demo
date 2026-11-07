@@ -37,14 +37,18 @@ export function useHistoryExports(projectId: string): { status: LoadStatus; expo
   return { status: statusOf(query), exports: query.data ?? [] };
 }
 
-/** Asks for an export of the project's history. Resolves once the list shows it. */
+/**
+ * Asks for an export of the project's history: all of it, or just these work
+ * orders (the list's `id` filter). Resolves once the list shows it.
+ */
 export function useHistoryExportSaves(projectId: string) {
   const queryClient = useQueryClient();
   const create = useMutation({
-    mutationFn: () => request("POST", `/api/projects/${projectId}/history_exports`, {}),
+    mutationFn: (workOrderIds?: string[]) =>
+      request("POST", `/api/projects/${projectId}/history_exports`, workOrderIds ? { filter: { id: workOrderIds.join(",") } } : {}),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.inProject(projectId) }),
   });
-  return { create: async () => void (await create.mutateAsync()) };
+  return { create: async (workOrderIds?: string[]) => void (await create.mutateAsync(workOrderIds)) };
 }
 
 /**

@@ -7,8 +7,11 @@ leaves the thing out, or reads it from the demo's own routes under
 `/api/demo/`, shaped by `api/conventions.md` so it's easy to swap for a real
 route later. The template is openfn-3-poc's `docs/api-gaps.md`.
 
-Two lists: whole areas the demo designs that `api/` has nothing for yet, and
-single fields or answers missing from a resource `api/` does cover.
+Three lists: whole areas the demo designs that `api/` has nothing for yet,
+single fields or answers missing from a resource `api/` does cover, and what
+`api/` plans that the fake server answers but Lightning's `full-api-test`
+doesn't send yet, which shows only when the app runs on Lightning
+([lightning-backend.md](./lightning-backend.md)).
 
 ## Areas api/ doesn't cover yet
 
@@ -44,6 +47,12 @@ path in its hook file.
   (`/api/demo/reset`): the demo's own controls, not product gaps.
 
 ## Missing from a resource api/ covers
+
+- **Admin settings: users, for a superuser** (Admin settings, Users;
+  api/users.md). `GET /api/users` and the user routes take the service
+  account's token only, so a superuser signed in to Lightning is refused
+  (403), and on Lightning the page shows Not Found. Would need the user routes
+  to take a superuser's session. Demo: the fake server answers a superuser.
 
 - **Sign-on provider: testing a discovery URL without saving** (Admin
   settings, Authentication; api/authentication.md). `PUT /api/auth_provider`
@@ -99,3 +108,21 @@ path in its hook file.
   /api/credentials/:id/environments` returning those values. Demo: the fake
   server answers that route as a demo extension; a blank secret keeps the
   stored one.
+
+## Planned in api/, not yet in Lightning
+
+The fake server answers these as `api/` plans them; Lightning's
+`full-api-test` doesn't send them yet. Found by walking every page on a
+local Lightning (lightning-backend.md, Phase 1). Each page copes, as listed;
+each needs nothing here once Lightning sends it.
+
+- **Projects: your role and counts** (`include=stats`, api/projects.md). The
+  project list doesn't say your role, workflow and member counts or last
+  activity. Projects lists every project Lightning sends (it only sends your
+  own) with zero counts and "No activity yet".
+- **Projects: `permissions`** (api/projects.md). Without them every `can*`
+  is false, so on Lightning a project's settings read only and the
+  create, edit and delete actions that hang off them are left out.
+- **A project's dataclips** (`GET /api/projects/:id/dataclips`,
+  api/dataclips.md). Lightning answers 404; the editor opens without the
+  saved inputs to run from.

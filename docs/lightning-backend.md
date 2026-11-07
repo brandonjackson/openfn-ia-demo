@@ -82,51 +82,65 @@ one function, and it moves by itself as Lightning grows.
 
 ## Phase 1: switch it on
 
-The ask. Each step touches the connection point, the app shell or the fork,
-never a page or a component.
+Built, and walked page by page on a local Lightning. What's left is shipping
+it: merging this repo's change, then the fork's (its sync builds this repo's
+`main`, so the order doesn't matter: the new build flag does nothing until
+`.env.lightning` is on `main`).
 
-1. **The switch.** `src/api/source.ts` as above; `client.ts` takes `send`
-   from it; type `VITE_API_SOURCE` in `src/vite-env.d.ts`. A test of `send`'s
-   routing for each source. Update the lines in `CLAUDE.md` and
-   `docs/architecture.md` that say only `client.ts` imports `src/fake-api/`.
-2. **The demo routes beside a real session.** In Lightning mode the fake
-   still answers `/api/demo/…`, but the CSRF token on those writes is
-   Lightning's, which the fake refuses today (`refuse` in
-   `fake-api/session.ts`). `source.ts` tells the fake to accept the session it
-   is given in this mode.
-3. **Signing in.** In Lightning mode, when `GET /api/session` answers 401,
-   the shell's wrapper (`src/app/Shell.query.tsx`) sends the browser to
-   Lightning's `/users/log_in`. A sign-in page of our own, on
-   `POST /api/session`, can come later: the API already supports it.
-4. **Reset.** "Reset demo data" in the feature-flag panel resets the fake, so
-   it's left out in Lightning mode (`src/app/FeatureFlags.tsx` reads
-   `apiSource`). Lightning's own reset stays `Lightning.Demo.reset_demo()` on
-   the server.
-5. **The fork builds with the switch on.** In `lightning-full-api`, one
-   `[fork]` commit: `demo/sync.sh` builds with
-   `VITE_API_SOURCE=lightning npm run build -- --base=/v3/`; `smoke-test.sh`
-   signs in with `POST /api/session` and checks `GET /api/projects` answers
-   200; `FORK.md`'s "Known issues" loses its line about the fake API.
-6. **Running it locally against Lightning.** `npm run dev:lightning`: Vite
-   with `VITE_API_SOURCE=lightning` and a proxy from `/api` to
-   `localhost:4000`. Cookies on `localhost` are shared across ports, so
-   signing in at `localhost:4000` signs you in here too.
-7. **Walk every page.** Against the deployed demo, open each page and write
-   down in the table below whether it works, works with gaps (empty where
-   fixtures used to fill it) or breaks. Fix only what breaks, and only in its
-   wrapper: a fixture lookup that misses should leave that part out, not
-   throw.
-
-Done when `/v3` loads, signed in, on Lightning's projects, workflows,
-history, credentials, settings and admin, and no page crashes.
+1. **The switch.** Done. `src/api/source.ts` (`apiSource`, `send`,
+   `sendFor`); `client.ts` sends through it; `VITE_API_SOURCE` is typed in
+   `src/vite-env.d.ts` and set by `.env.lightning`, so `--mode lightning` is
+   the whole of it. Lint now lets only `source.ts` import `src/fake-api/`.
+2. **The demo routes beside a real session.** Done.
+   `fakeFetchBesideLightning` answers `/api/demo/` without its own CSRF
+   check, since the session and its token are Lightning's. It also takes
+   Lightning's word for projects: a project a demo route is asked about that
+   the fake has never seen is one Lightning listed, so it's added, empty,
+   with you as its owner. That's what keeps a project's Components and
+   Services pages working on Lightning's projects, starting empty.
+3. **Signing in.** Done. `src/app/SignedIn.tsx` asks `GET /api/session`
+   once; unless it says `signed_in`, the browser goes to the fork's
+   `/v3/sign_in?to=<screen>`, which remembers the screen in Lightning's
+   session (`:user_return_to`) and sends it on to `/users/log_in`. Signing
+   in (MFA and single sign-on included) comes back to that screen. The fork's
+   `/v3` plug moved to just after `Plug.Session` so it can write the session.
+4. **Reset.** Done. "Reset demo data" is left out on Lightning.
+5. **The fork builds with the switch on.** Done, on the fork's branch:
+   `demo/sync.sh` builds with `--mode lightning`; `smoke-test.sh` checks
+   `/v3/sign_in` redirects, signs in through `POST /api/session` and reads
+   `GET /api/projects`; `FORK.md` updated.
+6. **Running it locally against Lightning.** Done. `npm run dev:lightning`
+   serves the app at `localhost:5173/v3/` and sends everything else to the
+   Lightning on port 4000, so `localhost:5173` behaves like the deployment,
+   signing in included.
+7. **Walk every page.** Done; below. One thing broke and was fixed at the
+   seam: Projects listed nothing, because it kept only projects with a
+   `role`, which Lightning doesn't send yet. A project with no role is now
+   one you're in (`isOpenable`), as Lightning only lists those; `null` still
+   means you're not a member. The rest is in api-gaps.md's "Planned in api/,
+   not yet in Lightning".
 
 ### Page by page
 
-Filled in by step 7.
+On a local Lightning seeded as the deployment seeds it (`DemoSeed`), signed in
+as the demo user, and as the superuser for Admin settings.
 
 | Page | On Lightning | Notes |
 | ---- | ------------ | ----- |
-|      |              |       |
+| Projects | Works | Lightning's projects. Counts are zero and activity empty until `include=stats`. |
+| Project overview | Works | Lightning's workflows and work orders; services from the demo's own routes, empty. |
+| Workflows | Works | Lightning's workflows; descriptions and members only for fixture workflows. |
+| Workflow editor | Works | Draws Lightning's workflow, read only on main as designed. No saved inputs until project dataclips. |
+| Components | Works | Workflows from Lightning, other kinds from the demo's own routes, starting empty. |
+| Sandboxes | Works | Lightning's sandboxes. |
+| History (project, all) | Works | Lightning's work orders and channel requests. |
+| Insights (project) | Works | From Lightning's work orders. |
+| Settings | Works with gaps | Reads Lightning's settings; read only until `permissions`. |
+| Services (project) | Works | From the demo's own routes, empty. |
+| User settings | Works | Your Lightning account. |
+| Overview, Insights (all) | Demo data | Still the fixtures' numbers. |
+| Handbook, Systems, Services catalog, Organization settings | Demo data | The demo's own areas, on `/api/demo/`. |
+| Admin settings | Breaks | Lightning lets only the service account list users (api-gaps.md). Hidden from the demo user, who isn't a superuser. |
 
 ## Phase 2: make the two sets of data agree
 
@@ -177,8 +191,12 @@ build; `/v3` is the whole of Lightning on its API.
 ## Open questions
 
 1. **Seeding (Phase 2):** A or B?
-2. **Signing in:** send people to Lightning's sign-in page for now (Phase 1,
-   step 3), or build our own on `POST /api/session` soon?
+2. **Signing in:** Phase 1 sends people to Lightning's sign-in page and back,
+   the choice that was cheapest to undo. Build our own on `POST /api/session`
+   soon, or keep Lightning's?
 3. **What the fork builds:** it builds this repo's `main`, so every merged PR
    is at `/v3` within about six hours. Keep that, or build from a release
    branch once people other than us are looking at it?
+4. **Admin settings on Lightning:** the API lets only the service account
+   read and change users. Ask for the user routes to take a superuser's
+   session, or leave Admin settings to Lightning's own pages until then?

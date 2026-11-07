@@ -1,14 +1,12 @@
 /**
  * The one way the app reaches Lightning's API (the contract is in
- * openfn-3-poc's api/ folder). Today every request goes to the pretend server
- * in src/fake-api/, which answers the way that contract says Lightning would;
- * swapping `send` for `fetch` is the only change going real needs. A refused
- * request throws an `ApiError`: show its `message`, branch on its `code`.
+ * openfn-3-poc's api/ folder). Requests go out through `send`, which
+ * source.ts points at the pretend server in src/fake-api/ or, in the build
+ * lightning-full-api serves at /v3, at that Lightning. A refused request
+ * throws an `ApiError`: show its `message`, branch on its `code`.
  */
-import { fakeFetch } from "../fake-api";
 import { FormError } from "../model/form-error";
-
-const send: (path: string, init?: RequestInit) => Promise<Response> = fakeFetch;
+import { send } from "./source";
 
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 

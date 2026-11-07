@@ -64,7 +64,7 @@ export function toProject({ id, attributes: a }: ApiProject): ProjectDetails {
     allowSupportAccess: a.allow_support_access ?? false,
     scheduledDeletion: a.scheduled_deletion ?? null,
     createdAt: a.inserted_at ?? "",
-    role: a.role ?? undefined,
+    role: a.role,
     workflowsCount: a.workflows_count,
     collaboratorsCount: a.collaborators_count,
     lastActivity: a.last_activity,

@@ -1,19 +1,20 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import SystemPage from "./SystemPage";
-import { withRouter } from "../stories/decorators";
-import type { IANode } from "../model/ia-tree";
-import type { DetailPageData } from "../model/page-data";
-import { connectionOf } from "../model/connected-systems";
-import { connectedSystems } from "../fixtures/connected-systems";
-import { directoryMember, orgXRoad, routeService } from "../fixtures/xroad";
+import { withRouter } from "../../stories/decorators";
+import type { IANode } from "../../model/ia-tree";
+import type { SystemPageData } from "./SystemPage";
+import { connectionOf } from "../../model/connected-systems";
+import { connectedSystems, systemAccessGrants } from "../../fixtures/connected-systems";
+import { directoryMember, orgXRoad, routeService } from "../../fixtures/xroad";
 
-/** A system's record, and where its X-Road route goes when it has one, as the page's wrapper passes them. */
-function systemData(id: string): Pick<DetailPageData, "system" | "xroad"> {
+/** A system's record, who has access, and where its X-Road route goes when it has one, as the page's wrapper passes them. */
+function systemData(id: string): SystemPageData {
   const system = connectedSystems.find((s) => s.id === id)!;
   const c = connectionOf(system);
   return {
     system,
     xroad: c.method === "xroad" ? { org: orgXRoad, member: directoryMember(c.route.memberId), service: routeService(c.route) } : undefined,
+    accessGrants: systemAccessGrants[id] ?? [],
   };
 }
 
@@ -28,11 +29,6 @@ const ancestors = [
   { node: { id: "connected-systems", label: "Systems" }, path: "/connected-systems" },
 ];
 
-const detailData: DetailPageData = {
-  pageType: "detail",
-  ...systemData("dhis2"),
-  headerBadge: { label: "Shared", variant: "shared" },
-};
 
 const meta: Meta<typeof SystemPage> = {
   title: "Pages/SystemPage",
@@ -50,7 +46,7 @@ export const SharedSystem: Story = {
     node,
     ancestors,
     currentPath: "/connected-systems/dhis2",
-    data: detailData,
+    data: systemData("dhis2"),
   },
 };
 
@@ -59,11 +55,7 @@ export const PrivateSystem: Story = {
     node: { ...node, id: "kobo-toolbox", label: "KoBoToolbox" },
     ancestors,
     currentPath: "/connected-systems/kobo-toolbox",
-    data: {
-      ...detailData,
-      ...systemData("kobo-toolbox"),
-      headerBadge: { label: "Private", variant: "private" },
-    },
+    data: systemData("kobo-toolbox"),
   },
 };
 
@@ -74,7 +66,7 @@ export const ViaXRoad: Story = {
     node: { id: "national-id", label: "National ID verification" },
     ancestors,
     currentPath: "/connected-systems/national-id",
-    data: { pageType: "detail", ...systemData("national-id"), headerBadge: { label: "Shared", variant: "shared" } },
+    data: systemData("national-id"),
   },
 };
 
@@ -85,7 +77,7 @@ export const ViaXRoadAgreementPending: Story = {
     node: { id: "social-registry", label: "Social registry" },
     ancestors,
     currentPath: "/connected-systems/social-registry",
-    data: { pageType: "detail", ...systemData("social-registry"), headerBadge: { label: "Shared", variant: "shared" } },
+    data: systemData("social-registry"),
   },
 };
 

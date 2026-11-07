@@ -20,6 +20,8 @@ interface Props {
   confirmPhrase?: string;
   /** The label over the box the phrase is typed into. */
   confirmPhraseLabel?: string;
+  /** The action is running: the confirm button is marked `aria-disabled` (keeping focus, so its busy label is read out). Pass the busy label as `confirmLabel`. */
+  busy?: boolean;
   onConfirm: () => void;
   onClose: () => void;
 }
@@ -38,6 +40,7 @@ function ConfirmDialog({
   tone = "danger",
   confirmPhrase,
   confirmPhraseLabel,
+  busy,
   onConfirm,
   onClose,
 }: Omit<Props, "open">) {
@@ -54,7 +57,7 @@ function ConfirmDialog({
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button variant={tone} disabled={!matches} onClick={onConfirm}>
+          <Button variant={tone} disabled={!matches} aria-disabled={busy || undefined} onClick={onConfirm}>
             {confirmLabel}
           </Button>
         </>

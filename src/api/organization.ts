@@ -5,7 +5,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { BillingDetails, ContextLayer, OrganizationInvite, OrganizationMember, VisibilityScope } from "../model/organization";
-import type { OrgXRoadSettings, SecurityServerManager, XRoadCertificate, XRoadMemberClass } from "../model/xroad";
+import type { SecurityServerManager, ServiceClassification, XRoadCertificate, XRoadIdentity, XRoadMember, XRoadMemberClass } from "../model/xroad";
 import { formatDate, timeAgo } from "../model/time";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
@@ -66,9 +66,46 @@ interface ApiXRoadIdentity {
   };
 }
 
+interface ApiXRoadDirectory {
+  data: {
+    attributes: {
+      instance: string;
+      synced_at: string;
+      members: {
+        id: string;
+        name: string;
+        member_class: string;
+        member_code: string;
+        subsystems: {
+          code: string;
+          description: string;
+          services: {
+            code: string;
+            name: string;
+            description: string;
+            methods: string[];
+            built_with_openfn: boolean;
+            record?: {
+              owner: string;
+              purpose: string;
+              data_exchanged: string;
+              legal_basis: string;
+              classification: string;
+              sla: string;
+              version: string;
+              access_conditions: string;
+            };
+          }[];
+        }[];
+      }[];
+    };
+  };
+}
+
 const keys = {
   organization: ["organization"] as const,
   xroad: ["organization", "xroad"] as const,
+  directory: ["organization", "xroad", "directory"] as const,
   members: ["organization", "members"] as const,
   layers: ["organization", "context_layers"] as const,
 };
@@ -90,9 +127,6 @@ export function useOrganization(): { status: LoadStatus; organization: Organizat
   });
   return { status: statusOf(query), organization: query.data };
 }
-
-/** The organisation's identity on X-Road, as the X-Road operator set it. Who manages its Security Server is on the organisation. */
-export type XRoadIdentity = Omit<OrgXRoadSettings, "managedBy">;
 
 /** The organisation's identity on X-Road, which the X-Road operator sets. Loads nothing while `enabled` is false. */
 export function useOrganizationXRoad(enabled: boolean): { status: LoadStatus; xroad: XRoadIdentity | undefined } {
@@ -118,6 +152,56 @@ export function useOrganizationXRoad(enabled: boolean): { status: LoadStatus; xr
     }),
   });
   return enabled ? { status: statusOf(query), xroad: query.data } : { status: { state: "ready" }, xroad: undefined };
+}
+
+/** The X-Road directory: every member on the organisation's X-Road instance, as its Security Server last listed them. */
+export interface XRoadDirectory {
+  /** The X-Road instance the directory is for, e.g. `FJ`. */
+  instance: string;
+  /** When the Security Server last listed the directory. */
+  syncedAt: string;
+  members: XRoadMember[];
+}
+
+/** The X-Road directory. Loads nothing while `enabled` is false. */
+export function useXRoadDirectory(enabled: boolean): { status: LoadStatus; directory: XRoadDirectory | undefined } {
+  const query = useQuery({
+    queryKey: keys.directory,
+    queryFn: () => request<ApiXRoadDirectory>("GET", "/api/demo/organization/xroad/directory"),
+    enabled,
+    select: ({ data: { attributes: a } }): XRoadDirectory => ({
+      instance: a.instance,
+      syncedAt: a.synced_at,
+      members: a.members.map((m) => ({
+        id: m.id,
+        name: m.name,
+        memberClass: m.member_class as XRoadMemberClass,
+        memberCode: m.member_code,
+        subsystems: m.subsystems.map((sub) => ({
+          code: sub.code,
+          description: sub.description,
+          services: sub.services.map((v) => ({
+            code: v.code,
+            name: v.name,
+            description: v.description,
+            methods: v.methods,
+            builtWithOpenFn: v.built_with_openfn || undefined,
+            record: v.record && {
+              owner: v.record.owner,
+              purpose: v.record.purpose,
+              dataExchanged: v.record.data_exchanged,
+              legalBasis: v.record.legal_basis,
+              classification: v.record.classification as ServiceClassification,
+              sla: v.record.sla,
+              version: v.record.version,
+              accessConditions: v.record.access_conditions,
+            },
+          })),
+        })),
+      })),
+    }),
+  });
+  return enabled ? { status: statusOf(query), directory: query.data } : { status: { state: "ready" }, directory: undefined };
 }
 
 /** Everyone in the organisation, owners first; someone invited who hasn't joined shows as invited. */

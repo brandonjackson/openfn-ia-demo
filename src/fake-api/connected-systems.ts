@@ -16,8 +16,7 @@
  */
 import { connectedSystems, systemAccessGrants } from "../fixtures/connected-systems";
 import { apiSystemId, seedId } from "../fixtures/ids";
-import type { ConnectedSystem } from "../model/connected-systems";
-import type { AccessGrant } from "../model/page-data";
+import type { ConnectedSystem, AccessGrant } from "../model/connected-systems";
 import { badId, invalid, isUuid, json, noContent, notFound, now, ORIGIN, paged, unknownKeys, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
 import { seedTime, table } from "./db";

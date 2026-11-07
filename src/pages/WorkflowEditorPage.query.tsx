@@ -31,7 +31,7 @@ import { useProjectServices } from "../api/services";
 import type { AdaptorReference } from "../model/adaptor-reference";
 import type { AdaptorCatalog } from "../model/adaptor-catalog";
 import { useFlags } from "../app/feature-flags";
-import { systemsFor } from "./flagged.fixtures";
+import { systemsFor } from "../model/connected-systems";
 import { componentTypesFor, componentsFor } from "../model/component-types";
 
 /** The adaptors steps can use; the project's credentials for them come from the API. */

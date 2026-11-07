@@ -12,14 +12,17 @@
  * - Visibility defaults and who manages the Security Server are saved with
  *   `PATCH /api/demo/organization`; the rest of the X-Road identity is set
  *   by the X-Road operator, not here, and read from
- *   `GET /api/demo/organization/xroad`.
+ *   `GET /api/demo/organization/xroad`. So is the X-Road directory, every
+ *   member on the organisation's X-Road instance with their subsystems and
+ *   services (`GET /api/demo/organization/xroad/directory`), as the
+ *   organisation's Security Server last listed it.
  * - A context layer is requested by its URL and waits for its owners'
  *   approval; it's removed (or the request cancelled) with `DELETE`.
  * - Billing is read only.
  * Anyone in the organisation reads all of it; owners and admins change it.
  */
 import { organizationSettingsData } from "../fixtures/organization";
-import { orgXRoad } from "../fixtures/xroad";
+import { orgXRoad, xroadDirectory } from "../fixtures/xroad";
 import { seedId } from "../fixtures/ids";
 import type { ContextLayer, OrganizationMember, VisibilityScope } from "../model/organization";
 import { securityServerManagerLabels, type SecurityServerManager } from "../model/xroad";
@@ -200,6 +203,38 @@ export const organizationRoutes: Record<string, Handler> = {
   "GET /api/demo/organization/xroad": () => {
     const { id, ...attributes } = xroadIdentity.rows()[0]!;
     return json(200, { data: { type: "xroad_identities", id, attributes } });
+  },
+  "GET /api/demo/organization/xroad/directory": () => {
+    const { id, instance } = xroadIdentity.rows()[0]!;
+    const members = xroadDirectory.map((m) => ({
+      // A member's id is its name in the directory, not a record of ours.
+      id: m.id,
+      name: m.name,
+      member_class: m.memberClass,
+      member_code: m.memberCode,
+      subsystems: m.subsystems.map((sub) => ({
+        code: sub.code,
+        description: sub.description,
+        services: sub.services.map((v) => ({
+          code: v.code,
+          name: v.name,
+          description: v.description,
+          methods: v.methods,
+          built_with_openfn: v.builtWithOpenFn ?? false,
+          record: v.record && {
+            owner: v.record.owner,
+            purpose: v.record.purpose,
+            data_exchanged: v.record.dataExchanged,
+            legal_basis: v.record.legalBasis,
+            classification: v.record.classification,
+            sla: v.record.sla,
+            version: v.record.version,
+            access_conditions: v.record.accessConditions,
+          },
+        })),
+      })),
+    }));
+    return json(200, { data: { type: "xroad_directories", id, attributes: { instance, synced_at: ago(12 * 60_000), members } } });
   },
   "PATCH /api/demo/organization": (_params, body) => {
     if (!canManage()) return forbidden();

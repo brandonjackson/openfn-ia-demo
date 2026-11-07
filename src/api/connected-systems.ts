@@ -4,8 +4,7 @@
  * connected systems yet).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ConnectedSystem, SystemChanges } from "../model/connected-systems";
-import type { AccessGrant } from "../model/page-data";
+import type { ConnectedSystem, SystemChanges, AccessGrant } from "../model/connected-systems";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 

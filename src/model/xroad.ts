@@ -70,6 +70,9 @@ export interface OrgXRoadSettings {
   managedBy: SecurityServerManager;
 }
 
+/** The organisation's identity on X-Road, as the X-Road operator set it. Who manages its Security Server is the organisation's own setting. */
+export type XRoadIdentity = Omit<OrgXRoadSettings, "managedBy">;
+
 /* ------------------------------------------------------------------ */
 /*  Service records                                                    */
 /* ------------------------------------------------------------------ */
@@ -161,12 +164,12 @@ export function routeKey(route: XRoadRoute): string {
 }
 
 /** The organisation's subsystem that OpenFn runs as. */
-export function openfnSubsystemOf(org: OrgXRoadSettings): XRoadSubsystem {
+export function openfnSubsystemOf(org: XRoadIdentity): XRoadSubsystem {
   return org.subsystems.find((s) => s.openfn)!;
 }
 
 /** `FJ/GOV/MOH/OPENFN`: who OpenFn is on X-Road, sent as X-Road-Client on every call it makes. */
-export function clientIdOf(org: OrgXRoadSettings): string {
+export function clientIdOf(org: XRoadIdentity): string {
   return [org.instance, org.memberClass, org.memberCode, openfnSubsystemOf(org).code].join("/");
 }
 
@@ -229,4 +232,13 @@ export interface NetworkLink {
   memberId: string;
   /** We call their services, they call ours, or both. */
   direction: "outbound" | "inbound" | "both";
+}
+
+/** What a page needs to show an X-Road route: the organisation's own settings, and where the route goes. */
+export interface XRoadRouteContext {
+  org: XRoadIdentity;
+  /** The member the route goes to, from the directory. */
+  member?: XRoadMember;
+  /** The service the route goes to, from the directory. */
+  service?: XRoadService;
 }

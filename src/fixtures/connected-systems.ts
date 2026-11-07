@@ -1,11 +1,10 @@
 /** An X-Road system's environments: production goes through the Security Server, and there's no credential to add. */
 import { KeyRound, Sparkles, Zap } from "lucide-react";
-import type { ListItem, AccessGrant, OrgCredential, FeatureIntroData } from "../model/page-data";
-import type { ConnectedSystemSummary, SystemEnvironment, SuggestedSystem, ConnectedSystem } from "../model/connected-systems";
+import type { ListItem, OrgCredential, FeatureIntroData } from "../model/page-data";
+import { type AccessGrant, type ConnectedSystemSummary, type SystemEnvironment, type SuggestedSystem, type ConnectedSystem, systemListItem, systemSummary } from "../model/connected-systems";
 import type { Environment } from "../model/credentials";
 import type { XRoadRoute } from "../model/xroad";
 import { routeUrl } from "./xroad";
-import { systemListItem, systemSummary } from "../model/connected-systems";
 function xroadEnvironments(route: XRoadRoute): Record<Environment, SystemEnvironment> {
   return {
     production: { url: routeUrl(route) },

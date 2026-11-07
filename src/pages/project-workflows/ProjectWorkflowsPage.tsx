@@ -1,20 +1,30 @@
 import { useState } from "react";
 import { Plus, Search, Workflow } from "lucide-react";
-import type { PageProps } from "../model/ia-tree";
-import type { ProjectWorkflowsPageData, WorkflowListItem } from "../model/page-data";
-import PageHeader from "../components/patterns/PageHeader";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import WorkflowRow from "../components/domain/WorkflowRow";
-import Button from "../components/primitives/Button";
-import Callout from "../components/primitives/Callout";
-import ConfirmModal from "../components/primitives/ConfirmModal";
-import EmptyState from "../components/primitives/EmptyState";
-import { Select } from "../components/primitives/FormControls";
-import Inline from "../components/primitives/Inline";
-import SearchInput from "../components/primitives/SearchInput";
-import SectionHeading from "../components/primitives/SectionHeading";
-import Stack from "../components/primitives/Stack";
+import type { PageProps } from "../../model/ia-tree";
+import PageHeader from "../../components/patterns/PageHeader";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import WorkflowRow from "../../components/domain/WorkflowRow";
+import Button from "../../components/primitives/Button";
+import Callout from "../../components/primitives/Callout";
+import ConfirmModal from "../../components/primitives/ConfirmModal";
+import EmptyState from "../../components/primitives/EmptyState";
+import { Select } from "../../components/primitives/FormControls";
+import Inline from "../../components/primitives/Inline";
+import SearchInput from "../../components/primitives/SearchInput";
+import SectionHeading from "../../components/primitives/SectionHeading";
+import Stack from "../../components/primitives/Stack";
+import type { WorkflowListItem } from "../../model/workflow-list";
+import { errorMessageOf } from "../../model/form-error";
 
+/** What the Workflows list draws. */
+export interface ProjectWorkflowsPageData {
+  /** The project the workflows belong to. */
+  projectId: string;
+  /** Every workflow in it, as rows. */
+  workflows: WorkflowListItem[];
+}
+
+/** The Workflows list's contract: the project's workflows, and what the viewer may do with them. */
 export interface ProjectWorkflowsPageProps extends PageProps<ProjectWorkflowsPageData> {
   /** Opens a blank workflow in this project. */
   onNewWorkflow: () => void;
@@ -45,7 +55,17 @@ export default function ProjectWorkflowsPage({
   const [sort, setSort] = useState(sortOptions[0]);
   const [query, setQuery] = useState("");
   const [deleting, setDeleting] = useState<WorkflowListItem | null>(null);
-  const [notice, setNotice] = useState<string>();
+  const [notice, setNotice] = useState<{ tone: "success" | "danger"; title: string; detail?: string }>();
+  const [busy, setBusy] = useState(false);
+
+  /** Switches a workflow on or off, saying so if the server refuses. */
+  const toggle = async (w: WorkflowListItem, enabled: boolean) => {
+    try {
+      await onToggleWorkflow?.(w.id, enabled);
+    } catch (error) {
+      setNotice({ tone: "danger", title: `"${w.name}" wasn't turned ${enabled ? "on" : "off"}`, detail: errorMessageOf(error) });
+    }
+  };
 
   const q = query.trim().toLowerCase();
   const workflows = data.workflows.filter((w) => !q || w.name.toLowerCase().includes(q)).sort(sorts[sort]);
@@ -64,7 +84,11 @@ export default function ProjectWorkflowsPage({
         }
       />
 
-      {notice && <Callout variant="success" title={notice} />}
+      {notice && (
+        <Callout variant={notice.tone} title={notice.title} role={notice.tone === "danger" ? "alert" : undefined}>
+          {notice.detail}
+        </Callout>
+      )}
 
       {count > 0 ? (
         <section>
@@ -90,7 +114,7 @@ export default function ProjectWorkflowsPage({
                 <WorkflowRow
                   key={w.id}
                   workflow={w}
-                  onToggleEnabled={onToggleWorkflow && ((enabled) => void onToggleWorkflow(w.id, enabled))}
+                  onToggleEnabled={onToggleWorkflow && ((enabled) => void toggle(w, enabled))}
                   onDelete={onDeleteWorkflow && (() => setDeleting(w))}
                 />
               ))}
@@ -115,13 +139,20 @@ export default function ProjectWorkflowsPage({
       <ConfirmModal
         open={deleting !== null}
         title="Delete workflow"
-        confirmLabel="Delete workflow"
+        confirmLabel={busy ? "Deleting…" : "Delete workflow"}
         onClose={() => setDeleting(null)}
         onConfirm={async () => {
-          if (!deleting || !onDeleteWorkflow) return;
-          await onDeleteWorkflow(deleting.id);
-          setNotice(`"${deleting.name}" deleted`);
-          setDeleting(null);
+          if (busy || !deleting || !onDeleteWorkflow) return;
+          setBusy(true);
+          try {
+            await onDeleteWorkflow(deleting.id);
+            setNotice({ tone: "success", title: `"${deleting.name}" deleted` });
+          } catch (error) {
+            setNotice({ tone: "danger", title: `"${deleting.name}" wasn't deleted`, detail: errorMessageOf(error) });
+          } finally {
+            setBusy(false);
+            setDeleting(null);
+          }
         }}
       >
         <p>Are you sure you'd like to delete "{deleting?.name}"?</p>

@@ -8,7 +8,7 @@ import { nationalIdWorkflow, nationalIdWorkflowAt, workflowGraphs } from "./work
 import { dataclips, runHistories, workOrders } from "./runs";
 import { projectWorkflowDetails, projects } from "./projects";
 import type { Project } from "../model/projects";
-import type { WorkflowListItem } from "../model/page-data";
+import type { WorkflowListItem } from "../model/workflow-list";
 import { workOrderActivity, type ActivityPeriod } from "../model/runs";
 
 /**

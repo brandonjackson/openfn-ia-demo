@@ -3,13 +3,9 @@
  * the parts that haven't moved to the API yet (its services, components and
  * sandboxes) filled in from its fixture.
  */
-import type { WorkflowListItem } from "../model/page-data";
-import { isLive, type WorkflowDocument } from "../model/workflow-document";
 import type { Project, ProjectDetails } from "../model/projects";
-import type { WorkOrder } from "../model/workflow";
-import { workOrderActivity, type ActivityPeriod } from "../model/runs";
 import { timeAgo } from "../model/time";
-import { fixtureProject, fixtureWorkflow } from "../fixtures/projects";
+import { fixtureProject } from "../fixtures/projects";
 
 /**
  * The model's `Project` for a project from the API: the API's name,
@@ -31,40 +27,3 @@ export function asProject(details: ProjectDetails): Project {
     components: fixture?.components ?? [],
   };
 }
-
-/** How far back a project's Overview and Workflows list count work orders, as Lightning's workflow list does. */
-export const LIST_PERIOD: ActivityPeriod = "30d";
-
-/**
- * A workflow's row: what the API says (its name, whether it's on, its
- * trigger, when it changed), what its work orders on the API add up to over
- * the last 30 days (the same ones History lists), and, until they move to
- * the API, its description, service status and members from the fixtures.
- */
-export function asListItem(doc: WorkflowDocument, serviceCatalog: boolean, workOrders: WorkOrder[]): WorkflowListItem {
-  const fixture = fixtureWorkflow(doc.id)?.item;
-  const { workOrders: count, failedWorkOrders, latestRun, lastRunAt } = workOrderActivity(workOrders, LIST_PERIOD);
-  return {
-    id: doc.id,
-    name: doc.name,
-    description: fixture?.description ?? "",
-    type: "Workflow",
-    serviceStatus: serviceCatalog ? fixture?.serviceStatus : undefined,
-    latestRun,
-    lastRunAt,
-    members: fixture?.members ?? [],
-    updatedAt: doc.updated_at,
-    enabled: isLive(doc),
-    triggerType: doc.triggers[0]?.type,
-    workOrders: count,
-    failedWorkOrders,
-  };
-}
-
-/** Each workflow's work orders, by its id. */
-export function byWorkflow(records: { workflowId: string; workOrder: WorkOrder }[]): (workflowId: string) => WorkOrder[] {
-  const groups = new Map<string, WorkOrder[]>();
-  for (const r of records) groups.set(r.workflowId, [...(groups.get(r.workflowId) ?? []), r.workOrder]);
-  return (workflowId) => groups.get(workflowId) ?? [];
-}
-

@@ -1,3 +1,4 @@
+import type { WorkflowListItem } from "./workflow-list";
 import type { ProjectCollection } from "./collections";
 import type { ProjectSummary } from "./projects";
 import type { Environment } from "./credentials";
@@ -7,7 +8,6 @@ import type { CollectionContents, ComponentContent } from "./project-components"
 import type { LucideIcon } from "lucide-react";
 import type { ChannelRequest, HistoryWorkOrder } from "./history";
 import type { Adaptor } from "./adaptors";
-import type { RunStatus, TriggerType } from "./workflow";
 import type { ChannelDetails } from "./channels";
 import type { EcosystemStation, EcosystemWorkflow } from "./ecosystem";
 import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember, XRoadService } from "./xroad";
@@ -393,34 +393,6 @@ export interface ProjectPageData {
   components?: ProjectComponentItem[];
 }
 
-/** A workflow on the project's Workflows list, with its recent activity. */
-export interface WorkflowListItem extends ProjectComponentItem {
-  /** Status of the service the workflow backs, if it backs one. */
-  serviceStatus?: "Live" | "Draft";
-  /** Status of its most recent run; none if it has never run. */
-  latestRun?: RunStatus;
-  /** When it last ran, as an ISO timestamp (sorts by Activity). */
-  lastRunAt?: string;
-  /** Names of the people who have edited it, most recent first. */
-  members: string[];
-  /** When it was last changed, as an ISO timestamp. */
-  updatedAt: string;
-  /** Whether its triggers are on. Off, it only runs when someone starts it by hand. */
-  enabled: boolean;
-  /** The kind of its trigger, e.g. "webhook" or "cron", for saying what turning it off stops. Absent without a trigger. */
-  triggerType?: TriggerType;
-  /** Work orders in the last 30 days. */
-  workOrders: number;
-  /** Of those, how many ended in a failed state. */
-  failedWorkOrders: number;
-}
-
-export interface ProjectWorkflowsPageData {
-  pageType: "project-workflows";
-  projectId: string;
-  workflows: WorkflowListItem[];
-}
-
 export interface ProjectComponentsPageData {
   pageType: "project-components";
   projectId: string;
@@ -693,7 +665,6 @@ export type PageData =
   | StatusPageData
   | InsightsPageData
   | ProjectPageData
-  | ProjectWorkflowsPageData
   | ProjectComponentsPageData
   | ProjectCreatePageData
   | ProjectSandboxesPageData

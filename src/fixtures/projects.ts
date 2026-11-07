@@ -1,4 +1,5 @@
-import type { SandboxItem, WorkflowListItem } from "../model/page-data";
+import type { SandboxItem } from "../model/page-data";
+import type { WorkflowListItem } from "../model/workflow-list";
 import { isoAgo } from "../model/time";
 import { seedId } from "./ids";
 import type { Project, ProjectService, ProjectSummary } from "../model/projects";
@@ -617,6 +618,7 @@ export function projectWorkflowDetails(project: Project): WorkflowDetails[] {
     .filter((c) => c.type === "Workflow")
     .map((c) => ({
       ...c,
+      type: "Workflow" as const,
       serviceStatus: project.services.find((s) => s.workflowId === c.id)?.status,
       ...(workflowFacts[c.id] ?? { members: [], updatedAt: "2026-01-01T00:00:00Z", enabled: false }),
     }));

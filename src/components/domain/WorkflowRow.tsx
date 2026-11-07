@@ -1,5 +1,5 @@
 import { Trash2, Workflow } from "lucide-react";
-import type { WorkflowListItem } from "../../model/page-data";
+import type { WorkflowListItem } from "../../model/workflow-list";
 import { triggerTypes } from "../../model/workflow";
 import ActionMenu from "../primitives/ActionMenu";
 import AvatarStack from "../primitives/AvatarStack";
@@ -74,7 +74,7 @@ export default function WorkflowRow({ workflow, onToggleEnabled, onDelete }: Pro
           value: <Text tone={workflow.failedWorkOrders > 0 ? "danger" : "subtle"}>{countFormat.format(workflow.failedWorkOrders)}</Text>,
           width: "sm",
         },
-        { label: "Members", value: <AvatarStack names={workflow.members} />, width: "lg" },
+        ...(workflow.members ? [{ label: "Members", value: <AvatarStack names={workflow.members} />, width: "lg" as const }] : []),
       ]}
       actions={
         hasActions && (

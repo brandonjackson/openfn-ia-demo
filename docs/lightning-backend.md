@@ -128,7 +128,7 @@ as the demo user, and as the superuser for Admin settings.
 | Page | On Lightning | Notes |
 | ---- | ------------ | ----- |
 | Projects | Works | Lightning's projects. Counts are zero and activity empty until `include=stats`. |
-| Project overview | Works | Lightning's workflows and work orders; services from the demo's own routes, empty. |
+| Project overview | Works | On the API only: Lightning's workflows, work orders, channels and (with `permissions`) collections; services and the other kinds of component from the demo's own routes, empty. Checked on the fake server; not yet walked on Lightning since (see convergence.md, Now). |
 | Workflows | Works | On the API only: Lightning's workflows and work orders, service badges from the demo's own routes (empty). No descriptions or members on any build (api-gaps.md). Checked on the fake server; not yet walked on Lightning since (see convergence.md, Now). |
 | Workflow editor | Works | Draws Lightning's workflow, read only on main as designed. No saved inputs until project dataclips. |
 | Components | Works | Workflows from Lightning, other kinds from the demo's own routes, starting empty. |

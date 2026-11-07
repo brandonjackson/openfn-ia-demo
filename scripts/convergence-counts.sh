@@ -7,8 +7,11 @@ cd "$(dirname "$0")/.." || exit 1
 ref=${1:-}
 list() { if [ -n "$ref" ]; then git ls-tree -r --name-only "$ref" src; else git ls-files -co --exclude-standard src | while read -r f; do [ -e "$f" ] && echo "$f"; done; fi; }
 show() { if [ -n "$ref" ]; then git show "$ref:$1"; else cat "$1"; fi; }
-# A wrapper reads fixtures when it imports them, a *.fixtures helper, or a shared helper that does.
-reads='from "[./]+(fixtures/|[a-z-]+\.fixtures"|project-records\.query"|channel-records\.query"|component-records\.query")'
+# A wrapper reads fixtures when it imports them, a *.fixtures helper, or a shared helper (a *.query.ts) that does.
+fixtures='from "[./]+(fixtures/|[a-z-]+\.fixtures")'
+helpers=$(for f in $(list | grep -E '\.query\.ts$'); do show "$f" | grep -qE "$fixtures" && basename "$f" .ts; done | sed 's/\./\\./g' | paste -sd'|')
+reads="$fixtures"
+[ -n "$helpers" ] && reads='from "[./]+(fixtures/|[a-z-]+\.fixtures"|('"$helpers"')")'
 q=0; qf=0
 for f in $(list | grep -E '\.query\.tsx?$'); do
   q=$((q + 1))

@@ -22,7 +22,7 @@ and to mark what would change the look.
 - **Lightning run (7 Nov 2026, Brandon's brief).** Every wrapper onto the
   API, one page per PR, so each works the same on the fake server and on
   Lightning at `/v3` (lightning-backend.md). Most-seen pages first:
-  Workflows (done, PR 15), then the project overview (`ProjectPage`), the
+  Workflows (done, PR 15), the project overview (done, PR 16), then the
   editor, then the rest `npm run convergence` lists. What the API can't give
   is left out and goes in api-gaps.md. **Not walked on Lightning:** this
   session couldn't run Lightning locally (fetching and running its Elixir
@@ -294,7 +294,22 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     702 → 673 lines; files importing it 78 → 74; pages in their own folder
     5 → 6 of 24; page and query tests 10 → 12; the ratchet unchanged.
 
-**PRs done: 15** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
+16. **Project overview reads only the API** (Lightning run). The page moved
+    to `src/pages/project/` with its page and query tests, and
+    `ProjectPageData` into the page file. Its components are its workflows
+    with `useProjectComponents`' list (channels and collections from
+    Lightning's API, the other kinds from the demo's), not its fixture's;
+    New workflow passes the project's id. `componentsFor` and
+    `componentTypesFor` moved to `model/component-types.ts`, and
+    `channelEventAddress` to `model/channels.ts`, so the channel and
+    component helpers read no fixtures; `convergence-counts.sh` now finds
+    the helpers that do by what they import, not by name. Counts: wrappers
+    reading fixtures 19 → 16 of 25 (the overview and the two helpers);
+    page-data.ts 673 → 658 lines; files importing it 74 → 72; pages in
+    their own folder 6 → 7 of 24; page and query tests 12 → 14; the ratchet
+    unchanged.
+
+**PRs done: 16** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
 ## Decided by Brandon (6 Nov 2026)
 

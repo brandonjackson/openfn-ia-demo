@@ -30,3 +30,21 @@ export function isComponentTypeShown(type: ProjectComponentType, flags: FeatureF
   const flag = componentTypes.find((t) => t.type === type)?.flag;
   return !flag || flags[flag];
 }
+
+/**
+ * A project's components of the kinds the flags leave: the new kinds (forms,
+ * static websites…) only with their flags, and without the Components flag
+ * just the ones Lightning has, workflows and channels.
+ */
+export function componentsFor<C extends { type: ProjectComponentType }>(components: C[], flags: FeatureFlags): C[] {
+  return components.filter((c) =>
+    flags.components ? isComponentTypeShown(c.type, flags) : c.type === "Workflow" || c.type === "Channel"
+  );
+}
+
+/** The kinds of component that can be listed and added besides workflows, as the flags leave them. */
+export function componentTypesFor(flags: FeatureFlags): ProjectComponentType[] {
+  return componentTypes
+    .map((t) => t.type)
+    .filter((type) => type !== "Workflow" && componentsFor([{ type }], flags).length > 0);
+}

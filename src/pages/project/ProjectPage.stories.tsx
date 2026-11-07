@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ProjectPage from "./ProjectPage";
-import { withRouterAt } from "../stories/decorators";
-import type { IANode } from "../model/ia-tree";
-import type { ProjectPageData } from "../model/page-data";
-import { activityTiles, workOrderActivity } from "../model/runs";
-import { projects } from "../fixtures/projects";
-import { projectHistory, projectWorkflowItems } from "../fixtures/workflow-lookup";
+import { withRouterAt } from "../../stories/decorators";
+import type { IANode } from "../../model/ia-tree";
+import type { ProjectPageData } from "./ProjectPage";
+import { activityTiles, workOrderActivity } from "../../model/runs";
+import { projects } from "../../fixtures/projects";
+import { projectHistory, projectWorkflowItems } from "../../fixtures/workflow-lookup";
 
 const project = projects[0];
 
@@ -21,7 +21,6 @@ const ancestors = [
 ];
 
 const projectData: ProjectPageData = {
-  pageType: "project",
   projectId: project.id,
   tiles: activityTiles(workOrderActivity(projectHistory(project), "30d"), "30d", `/projects/${project.id}/history`),
   workflows: projectWorkflowItems(project),
@@ -56,8 +55,7 @@ export const EmptyProject: Story = {
     ancestors,
     currentPath: "/projects/new-project",
     data: {
-      pageType: "project",
-      projectId: "new-project",
+          projectId: "new-project",
       tiles: activityTiles(workOrderActivity([], "30d"), "30d", "/projects/new-project/history"),
       workflows: [],
       services: [],

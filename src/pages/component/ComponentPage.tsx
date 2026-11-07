@@ -1,20 +1,37 @@
 import { useState } from "react";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
-import type { PageProps } from "../model/ia-tree";
-import type { ComponentPageData } from "../model/page-data";
-import { isContentComponentType, type ComponentDraft } from "../model/project-components";
-import { componentTypeIcons } from "../model/component-types";
-import PageHeader from "../components/patterns/PageHeader";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import ComponentView from "../components/domain/ComponentView";
-import ComponentFormModal from "../components/domain/ComponentFormModal";
-import CollectionView from "../components/domain/CollectionView";
-import CollectionNameModal from "../components/domain/CollectionNameModal";
-import Badge from "../components/primitives/Badge";
-import ConfirmModal from "../components/primitives/ConfirmModal";
-import DropdownMenu from "../components/primitives/DropdownMenu";
-import IconButton from "../components/primitives/IconButton";
-import Stack from "../components/primitives/Stack";
+import type { PageProps } from "../../model/ia-tree";
+import { errorMessageOf } from "../../model/form-error";
+import Callout from "../../components/primitives/Callout";
+import { isContentComponentType, type ComponentDraft } from "../../model/project-components";
+import { componentTypeIcons } from "../../model/component-types";
+import PageHeader from "../../components/patterns/PageHeader";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import ComponentView from "../../components/domain/ComponentView";
+import ComponentFormModal from "../../components/domain/ComponentFormModal";
+import CollectionView from "../../components/domain/CollectionView";
+import CollectionNameModal from "../../components/domain/CollectionNameModal";
+import Badge from "../../components/primitives/Badge";
+import ConfirmModal from "../../components/primitives/ConfirmModal";
+import DropdownMenu from "../../components/primitives/DropdownMenu";
+import IconButton from "../../components/primitives/IconButton";
+import Stack from "../../components/primitives/Stack";
+import type { ProjectComponentItem } from "../../model/component-types";
+import type { CollectionContents, ComponentContent } from "../../model/project-components";
+
+/**
+ * The page of one of a project's components that isn't a workflow or a
+ * channel: a collection's keys, or the file a form, artifact, AI skill,
+ * document or static website is.
+ */
+export interface ComponentPageData {
+  projectId: string;
+  component: ProjectComponentItem;
+  /** For a form, artifact, AI skill, document or static website: what it holds. */
+  content?: ComponentContent;
+  /** For a collection: its keys, how many it holds in all and their size. */
+  collection?: CollectionContents;
+}
 
 export interface ComponentPageProps extends PageProps<ComponentPageData> {
   /** Saves a form's, artifact's, AI skill's, document's or static website's new content. Left out where you can't change it. */
@@ -54,6 +71,7 @@ export default function ComponentPage({
   const { component, content, collection } = data;
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [refusal, setRefusal] = useState<string>();
   const type = component.type;
   const canRename = isContentComponentType(type) ? !!onEditDetails : !!onRenameCollection;
   const menu = [
@@ -83,6 +101,11 @@ export default function ComponentPage({
         }
       />
 
+      {refusal && (
+        <Callout variant="danger" title={`${component.name} wasn't deleted`} role="alert">
+          {refusal}
+        </Callout>
+      )}
       {content && isContentComponentType(type) && (
         <ComponentView
           key={component.id}
@@ -128,7 +151,8 @@ export default function ComponentPage({
           onClose={() => setDeleting(false)}
           onConfirm={() => {
             setDeleting(false);
-            void onDelete();
+            setRefusal(undefined);
+            onDelete().catch((error: unknown) => setRefusal(errorMessageOf(error)));
           }}
         >
           {type === "Collection"

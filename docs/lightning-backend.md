@@ -142,28 +142,31 @@ as the demo user, and as the superuser for Admin settings.
 | Handbook, Systems, Services catalog, Organization settings | Demo data | The demo's own areas, on `/api/demo/`. |
 | Admin settings | Breaks | Lightning lets only the service account list users (api-gaps.md). Hidden from the demo user, who isn't a superuser. |
 
-## Phase 2: make the two sets of data agree
+## Which data each deployment shows
 
-After Phase 1 the pages on the API show Lightning's data, but the parts still
-read from fixtures, and the `/api/demo/` areas keyed by project (components,
-services), will be empty for Lightning's projects. Two ways to close that:
+Decided by Brandon (7 Nov 2026): **each deployment keeps its own data, and
+blank is fine.**
 
-- **A. Seed Lightning from our fixtures** (recommended). The fake server
-  already gives every fixture record a stable UUID (`seedId` in
-  `src/fixtures/ids.ts`). If the fork's seed (`lib/lightning/demo_seed.ex`)
-  makes the same users, projects and workflows at those same ids, then
-  fixture lookups, the demo routes and Lightning all agree, and the deployed
-  demo looks like the one people already know. One way: a script here writes
-  the fake's seed out as provisioning documents (`POST /api/provision`,
-  `api/provisioning.md`), which the fork commits and its seed applies on an
-  empty database.
-- **B. Let it be empty.** Leave Lightning's own demo data, and let the
-  fixture-fed parts show their empty states until each page moves to the API.
-  Less work, but the redesign's richest screens (services, components, the
-  ecosystem) would look bare at `/v3`.
+- **`/v3` on lightning-full-api** shows Lightning's own demo data, as the
+  fork seeds it (`Lightning.SetupUtils`). We don't seed Lightning from our
+  fixtures. What Lightning doesn't have shows empty: a project's components
+  and services start blank, workflows have no descriptions or members, and
+  the counts wait on `include=stats`. That's expected, not a bug to fix.
+  The demo's own areas that aren't about a project (organisation, handbook,
+  systems, the services catalog, Overview's and Insights' instance-wide
+  numbers) have nothing in Lightning to show, so they still show the
+  fixtures, from the fake server in each browser.
+- **Every other build** (the GitHub Pages deployment, `npm run dev`,
+  Storybook, tests) keeps the fixtures we've been using, on the fake server.
+  That's the default: only `--mode lightning` changes it, and only the fork's
+  build and `npm run dev:lightning` pass it. A test (`src/api/source.test.ts`)
+  checks that a plain build answers from the fake.
 
-A keeps the demo convincing while Phase 3 catches up; B is simpler but
-leaves those screens empty. Brandon's call.
+So the fixtures stay the demo's showcase, and `/v3` shows how far the app has
+got on the real API. Seeding Lightning from the fixtures (each fixture record
+already has a stable UUID, `seedId` in `src/fixtures/ids.ts`, and
+`POST /api/provision` could load them) stays possible if a richer `/v3` is
+wanted later.
 
 ## Phase 3 onwards: converge
 
@@ -190,13 +193,12 @@ build; `/v3` is the whole of Lightning on its API.
 
 ## Open questions
 
-1. **Seeding (Phase 2):** A or B?
-2. **Signing in:** Phase 1 sends people to Lightning's sign-in page and back,
+1. **Signing in:** Phase 1 sends people to Lightning's sign-in page and back,
    the choice that was cheapest to undo. Build our own on `POST /api/session`
    soon, or keep Lightning's?
-3. **What the fork builds:** it builds this repo's `main`, so every merged PR
+2. **What the fork builds:** it builds this repo's `main`, so every merged PR
    is at `/v3` within about six hours. Keep that, or build from a release
    branch once people other than us are looking at it?
-4. **Admin settings on Lightning:** the API lets only the service account
+3. **Admin settings on Lightning:** the API lets only the service account
    read and change users. Ask for the user routes to take a superuser's
    session, or leave Admin settings to Lightning's own pages until then?

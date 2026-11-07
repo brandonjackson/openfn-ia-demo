@@ -368,30 +368,46 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     demo behaviours"). Counts: wrappers reading fixtures 16 → 15 of 25;
     page and query tests 14 → 15; the rest unchanged.
 
-18. **Lane 2: History reads only the API.** The page moved to
-    `src/pages/history/` with its page and query tests, and
-    `HistoryPageData` into the page file (`HistoryWorkflowOption` into
-    `model/history.ts`). The wrapper imports no fixtures: work orders sort
-    with `newestFirst` (`model/history.ts`), and `stampTime`
-    (`model/runs.ts`) reads an ISO timestamp as well as the fixtures'
-    stamps; a work order's received time is the demo's `received_at` or,
-    as Lightning sends it, `inserted_at`. An old History link filtering by
-    a project's or workflow's slug (`?project=`, `?workflow=`) is redirected
-    in `PageRoute.tsx`, beside the old project path redirect. A refused
-    retry, retry from a step, cancel or export says why in an alert callout
-    and keeps the picks; every notice is read out (a fresh `key` each time,
-    success as `status`); a bulk action says "Retrying…" (or "Cancelling…",
-    "Exporting…") and is `aria-disabled` while it runs, ignoring a second
-    press. Export sends the shown work orders as the list's `id` filter
-    (`useHistoryExportSaves` takes the ids), and across projects there's no
-    Export, since an export belongs to one project (it used to say "Export
-    started." and do nothing). Lightning wasn't walked: this container has
-    no Elixir. Counts: wrappers reading fixtures 15 → 14 of 25; page-data.ts
-    658 → 624 lines; files importing it 72 → 68; pages in their own folder
-    7 → 8 of 24; page and query tests 15 → 17; tests 220 → 238; the ratchet
-    unchanged.
+- **Lane 3: Components reads only the API.** The page moved to
+  `src/pages/project-components/` with its page and query tests, and
+  `ProjectComponentsPageData` into the page file (without `pageType`).
+  `ProjectComponentType` and `ProjectComponentItem` left page-data.ts for
+  `model/component-types.ts`. The wrapper no longer fetches workflows: the
+  page never lists them (they have their own page), and the only fixture it
+  read was their descriptions. A viewer is no longer offered New channel
+  (the server refused it): channels need `create_channel`, the other kinds
+  `create_workflow`. Checked on the fake server only (this
+  container has no Elixir). Counts: wrappers reading fixtures 15 → 14 of
+  25; page-data.ts 658 → 632 lines; files importing it 72 → 64; pages in
+  their own folder 7 → 8 of 24; page and query tests 15 → 17; the ratchet
+  unchanged.
+  ([#210](https://github.com/brandonjackson/openfn-ia-demo/pull/210))
 
-**PRs done: 18** (10 for the brief, then Brandon's decisions, then the Lightning run, then the lanes). Pull openfn-3-poc again at PR 10.
+- **Lane 2: History reads only the API.** The page moved to
+  `src/pages/history/` with its page and query tests, and
+  `HistoryPageData` into the page file (`HistoryWorkflowOption` into
+  `model/history.ts`). The wrapper imports no fixtures: work orders sort
+  with `newestFirst` (`model/history.ts`), and `stampTime`
+  (`model/runs.ts`) reads an ISO timestamp as well as the fixtures'
+  stamps; a work order's received time is the demo's `received_at` or,
+  as Lightning sends it, `inserted_at`. An old History link filtering by
+  a project's or workflow's slug (`?project=`, `?workflow=`) is redirected
+  in `PageRoute.tsx`, beside the old project path redirect. A refused
+  retry, retry from a step, cancel or export says why in an alert callout
+  and keeps the picks; every notice is read out (a fresh `key` each time,
+  success as `status`); a bulk action says "Retrying…" (or "Cancelling…",
+  "Exporting…") and is `aria-disabled` while it runs, ignoring a second
+  press. Export sends the shown work orders as the list's `id` filter
+  (`useHistoryExportSaves` takes the ids), and across projects there's no
+  Export, since an export belongs to one project (it used to say "Export
+  started." and do nothing). Lightning wasn't walked: this container has
+  no Elixir. Counts (after lane 3): wrappers reading fixtures 14 → 13 of
+  25; page-data.ts 632 → 598 lines; files importing it 64 → 60; pages in
+  their own folder 8 → 9 of 24; page and query tests 17 → 19; tests 234 →
+  252; the ratchet unchanged.
+  ([#211](https://github.com/brandonjackson/openfn-ia-demo/pull/211))
+
+**PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
 ## Decided by Brandon (6 Nov 2026)
 

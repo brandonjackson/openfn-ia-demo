@@ -1,6 +1,7 @@
 import { ClipboardList, Plus, Workflow } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
-import type { ProjectComponentItem, StatTileData } from "../../model/page-data";
+import type { StatTileData } from "../../model/page-data";
+import type { ProjectComponentItem } from "../../model/component-types";
 import type { ProjectServiceItem } from "../../model/services";
 import type { WorkflowListItem } from "../../model/workflow-list";
 import Badge from "../../components/primitives/Badge";

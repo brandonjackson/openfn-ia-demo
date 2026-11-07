@@ -26,7 +26,7 @@ import ProjectSettingsPageQuery from "../pages/project-settings/ProjectSettingsP
 import ServicePageQuery from "../pages/ServicePage.query";
 import ComponentPageQuery from "../pages/ComponentPage.query";
 import StatusPageFixtures from "../pages/StatusPage.fixtures";
-import InsightsPageQuery from "../pages/InsightsPage.query";
+import InsightsPageQuery from "../pages/insights/InsightsPage.query";
 import UserSettingsPageQuery from "../pages/user-settings/UserSettingsPage.query";
 import OrganizationSettingsPageQuery from "../pages/organization-settings/OrganizationSettingsPage.query";
 import AdminSettingsPageQuery from "../pages/admin-settings/AdminSettingsPage.query";

@@ -1,4 +1,8 @@
-import type { DailyRuns, InsightsPageData, ProjectInsight } from "../model/page-data";
+/**
+ * A busy organisation's week, for stories. The app works its numbers out
+ * from the API's work orders (`insightsFor` in model/insights.ts).
+ */
+import type { DailyRuns, Insights, ProjectInsight } from "../model/insights";
 
 const daily: DailyRuns[] = [
   { day: "Mon", succeeded: 312, failed: 1 },
@@ -29,8 +33,7 @@ export const totalRuns = runTrend.reduce((a, b) => a + b, 0);
 export const totalErrors = errorTrend.reduce((a, b) => a + b, 0);
 export const errorRate = `${((totalErrors / totalRuns) * 100).toFixed(1)}%`;
 
-export const insightsData: InsightsPageData = {
-  pageType: "insights",
+export const insightsData: Insights = {
   range: "Last 7 days",
   tiles: [
     { label: "Runs", value: totalRuns.toLocaleString("en-US"), detail: "Last 7 days", trend: runTrend },
@@ -46,7 +49,7 @@ export const insightsData: InsightsPageData = {
  * Insights for a single project: its share of the org's daily runs, without
  * the per-project breakdown.
  */
-export function buildProjectInsightsData(projectId: string): InsightsPageData {
+export function buildProjectInsightsData(projectId: string): Insights {
   const project = projectInsights.find((p) => p.id === projectId);
   const runShare = project ? project.runs / totalRuns : 0;
   const errorShare = project ? project.failed / totalErrors : 0;
@@ -61,7 +64,6 @@ export function buildProjectInsightsData(projectId: string): InsightsPageData {
   const errorTotal = errors.reduce((a, b) => a + b, 0);
   const rate = runTotal ? `${((errorTotal / runTotal) * 100).toFixed(1)}%` : "0.0%";
   return {
-    pageType: "insights",
     range: "Last 7 days",
     tiles: [
       { label: "Runs", value: runTotal.toLocaleString("en-US"), detail: "Last 7 days", trend: runs },

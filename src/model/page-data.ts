@@ -254,32 +254,6 @@ export interface StatusPageData {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Insights page (Monitoring: over time)                              */
-/* ------------------------------------------------------------------ */
-
-export interface DailyRuns {
-  day: string;
-  succeeded: number;
-  failed: number;
-}
-
-export interface ProjectInsight {
-  id: string;
-  name: string;
-  runs: number;
-  failed: number;
-  avgDuration: string;
-}
-
-export interface InsightsPageData {
-  pageType: "insights";
-  range: string;
-  tiles: StatTileData[];
-  daily: DailyRuns[];
-  projects: ProjectInsight[];
-}
-
-/* ------------------------------------------------------------------ */
 /*  Service page (a published service's catalog entry / API docs)      */
 /* ------------------------------------------------------------------ */
 
@@ -419,7 +393,6 @@ export type PageData =
   | CatalogPageData
   | DashboardPageData
   | StatusPageData
-  | InsightsPageData
   | ProjectCreatePageData
   | ProjectSandboxesPageData
   | ServicePageData

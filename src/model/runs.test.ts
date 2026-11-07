@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { workOrderActivity } from "./runs";
+import { stampTime, workOrderActivity } from "./runs";
 import type { RunDetails, RunStatus, WorkOrder } from "./workflow";
 
 const run = (id: string, status: RunStatus, started: string): RunDetails => ({
@@ -50,5 +50,16 @@ describe("workOrderActivity", () => {
   it("names the latest run, whenever it was", () => {
     expect(workOrderActivity(orders, "24h")).toMatchObject({ latestRun: "success", lastRunAt: "2026-10-20T09:51:07.000Z" });
     expect(workOrderActivity([], "30d")).toMatchObject({ workOrders: 0, runs: 0, latestRun: undefined, lastRunAt: undefined });
+  });
+});
+
+describe("stampTime", () => {
+  it("reads the fixtures' stamps and Lightning's ISO timestamps alike", () => {
+    expect(stampTime("20/10/2026, 09:30:00")).toBe(new Date(2026, 9, 20, 9, 30, 0).getTime());
+    expect(stampTime("2026-10-20T09:30:00Z")).toBe(Date.UTC(2026, 9, 20, 9, 30, 0));
+  });
+
+  it("doesn't guess at anything else", () => {
+    expect(stampTime("20 Oct 10:32")).toBe(stampTime("not a time"));
   });
 });

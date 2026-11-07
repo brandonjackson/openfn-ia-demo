@@ -5,8 +5,8 @@ import { flagById } from "../model/feature-flags";
 import { useFlags } from "./feature-flags";
 import { findNodeByPath, type PageRoute as Route } from "./ia-utils";
 import { useShell } from "../components/domain/shell-context";
-import { apiProjectId, projects as fixtureProjects } from "../fixtures/projects";
-import { apiSystemId } from "../fixtures/ids";
+import { apiProjectId, fixtureWorkflow, projects as fixtureProjects } from "../fixtures/projects";
+import { apiSystemId, apiWorkflowId } from "../fixtures/ids";
 import { connectedSystems as fixtureSystems } from "../fixtures/connected-systems";
 import Callout from "../components/primitives/Callout";
 import LoadingState from "../components/primitives/LoadingState";
@@ -14,7 +14,7 @@ import NotFoundPage from "../pages/NotFoundPage";
 import OverviewPageQuery from "../pages/OverviewPage.query";
 import SystemsPageQuery from "../pages/SystemsPage.query";
 import SystemPageQuery from "../pages/SystemPage.query";
-import HistoryPageQuery from "../pages/HistoryPage.query";
+import HistoryPageQuery from "../pages/history/HistoryPage.query";
 import ServicesPageQuery from "../pages/ServicesPage.query";
 import ProjectsPageQuery from "../pages/projects/ProjectsPage.query";
 import ProjectPageQuery from "../pages/project/ProjectPage.query";
@@ -93,11 +93,23 @@ export default function PageRoute() {
   if (slug && fixtureProjects.some((p) => p.id === slug)) {
     return <Navigate to={`${pathname.replace(`/projects/${slug}`, `/projects/${apiProjectId(slug)}`)}${search}${hash}`} replace />;
   }
-
   // So are connected systems; an old link names one by the fixture's slug ("dhis2").
   const system = findNodeByPath(iaTree, pathname)?.params["connected-system"];
   if (system && fixtureSystems.some((s) => s.id === system)) {
     return <Navigate to={`${pathname.replace(`/connected-systems/${system}`, `/connected-systems/${apiSystemId(system)}`)}${search}${hash}`} replace />;
+  }
+
+  // And an old History link that filters by a project or workflow's slug lands too.
+  const params = new URLSearchParams(search);
+  const project = params.get("project");
+  const workflow = params.get("workflow");
+  const onHistory = pathname.replace(/\/$/, "").endsWith("/history");
+  const oldProject = onHistory && !!project && fixtureProjects.some((p) => p.id === project);
+  const oldWorkflow = onHistory && !!workflow && fixtureWorkflow(workflow)?.slug === workflow;
+  if (oldProject || oldWorkflow) {
+    if (oldProject) params.set("project", apiProjectId(project));
+    if (oldWorkflow) params.set("workflow", apiWorkflowId(workflow));
+    return <Navigate to={`${pathname}?${params}${hash}`} replace />;
   }
 
   if (pathname === "/" || pathname === "/overview") {

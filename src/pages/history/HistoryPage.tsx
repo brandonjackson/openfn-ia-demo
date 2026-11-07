@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Ban, Download, History, RotateCcw } from "lucide-react";
-import type { PageProps } from "../model/ia-tree";
-import type { HistoryPageData } from "../model/page-data";
-import type { RunDetails } from "../model/workflow";
+import type { PageProps } from "../../model/ia-tree";
+import type { RunDetails } from "../../model/workflow";
+import { errorMessageOf } from "../../model/form-error";
 import {
   bulkActions,
   matchesFilters,
@@ -10,23 +10,24 @@ import {
   type ChannelRequest,
   type HistoryFilters,
   type HistoryWorkOrder,
-} from "../model/history";
-import PageHeader from "../components/patterns/PageHeader";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import HistoryFilterBar from "../components/domain/HistoryFilterBar";
-import WorkOrderEntry from "../components/domain/WorkOrderEntry";
-import ChannelRequestTable from "../components/domain/ChannelRequestTable";
-import Stack from "../components/primitives/Stack";
-import Card from "../components/primitives/Card";
-import Button from "../components/primitives/Button";
-import Checkbox from "../components/primitives/Checkbox";
-import ListHeader from "../components/primitives/ListHeader";
-import Callout from "../components/primitives/Callout";
-import EmptyState from "../components/primitives/EmptyState";
-import SegmentedControl from "../components/primitives/SegmentedControl";
-import SelectionBar from "../components/primitives/SelectionBar";
-import ConfirmModal from "../components/primitives/ConfirmModal";
-import MenuButton from "../components/primitives/MenuButton";
+  type HistoryWorkflowOption,
+} from "../../model/history";
+import PageHeader from "../../components/patterns/PageHeader";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import HistoryFilterBar from "../../components/domain/HistoryFilterBar";
+import WorkOrderEntry from "../../components/domain/WorkOrderEntry";
+import ChannelRequestTable from "../../components/domain/ChannelRequestTable";
+import Stack from "../../components/primitives/Stack";
+import Card from "../../components/primitives/Card";
+import Button from "../../components/primitives/Button";
+import Checkbox from "../../components/primitives/Checkbox";
+import ListHeader from "../../components/primitives/ListHeader";
+import Callout from "../../components/primitives/Callout";
+import EmptyState from "../../components/primitives/EmptyState";
+import SegmentedControl from "../../components/primitives/SegmentedControl";
+import SelectionBar from "../../components/primitives/SelectionBar";
+import ConfirmModal from "../../components/primitives/ConfirmModal";
+import MenuButton from "../../components/primitives/MenuButton";
 
 export interface HistoryPageProps extends PageProps<HistoryPageData> {
   /**
@@ -74,7 +75,11 @@ export default function HistoryPage({
   // A link to one work order opens it.
   const [expandedIds, setExpandedIds] = useState<string[]>(filters.workOrderId ? [filters.workOrderId] : []);
   const [exporting, setExporting] = useState(false);
-  const [notice, setNotice] = useState<{ title: string; detail?: string }>();
+  // The bulk action running, if any: its button says so, and every other press waits until it's done.
+  const [busy, setBusy] = useState<"retry" | "retry-from" | "cancel" | "export">();
+  // Each notice gets its own key, so a screen reader reads it out even when the last one said the same thing.
+  const [notice, setNotice] = useState<{ key: number; tone: "success" | "danger"; title: string; detail?: string }>();
+  const say = (next: Omit<NonNullable<typeof notice>, "key">) => setNotice((last) => ({ ...next, key: (last?.key ?? 0) + 1 }));
 
   const { tab } = filters;
   const multiProject = !!data.projects;
@@ -90,18 +95,39 @@ export default function HistoryPage({
   const toggle = (list: string[], id: string, on: boolean) => (on ? [...list, id] : list.filter((x) => x !== id));
   const plural = (n: number, noun: string) => `${n} ${noun}${n === 1 ? "" : "s"}`;
 
-  async function act(ids: string[], run: (ids: string[]) => Promise<void>, title: string, detail?: string) {
-    await run(ids);
+  /** Runs a bulk action and says how it went: what happened, or why the server refused it (the picks stay, to try again). */
+  async function act(kind: NonNullable<typeof busy>, ids: string[], run: (ids: string[]) => Promise<void>, failed: string, title: string, detail?: string) {
+    if (busy) return;
+    setBusy(kind);
+    try {
+      await run(ids);
+    } catch (error) {
+      say({ tone: "danger", title: failed, detail: errorMessageOf(error) });
+      return;
+    } finally {
+      setBusy(undefined);
+    }
     setSelectedIds([]);
-    setNotice({ title, detail });
+    say({ tone: "success", title, detail });
   }
 
-  const retry = onRetry && ((ids: string[]) => act(ids, onRetry, `${plural(ids.length, "new run")} enqueued.`, "Open a work order to follow its runs."));
+  const retry =
+    onRetry &&
+    ((ids: string[]) =>
+      act("retry", ids, onRetry, `${plural(ids.length, "work order")} not retried`, `${plural(ids.length, "new run")} enqueued.`, "Open a work order to follow its runs."));
   const retryFrom =
     onRetryFromStep &&
     ((ids: string[], jobId: string, label: string) =>
-      act(ids, (x) => onRetryFromStep(x, jobId), `${plural(ids.length, "new run")} enqueued from ${label}.`, "Open a work order to follow its runs."));
-  const cancel = onCancel && ((ids: string[]) => act(ids, onCancel, `${plural(ids.length, "work order")} cancelled.`));
+      act(
+        "retry-from",
+        ids,
+        (x) => onRetryFromStep(x, jobId),
+        `${plural(ids.length, "work order")} not retried from ${label}`,
+        `${plural(ids.length, "new run")} enqueued from ${label}.`,
+        "Open a work order to follow its runs.",
+      ));
+  const cancel =
+    onCancel && ((ids: string[]) => act("cancel", ids, onCancel, `${plural(ids.length, "work order")} not cancelled`, `${plural(ids.length, "work order")} cancelled.`));
 
   return (
     <Stack gap="lg">
@@ -112,8 +138,8 @@ export default function HistoryPage({
         actions={
           tab === "work-orders" &&
           onExport && (
-            <Button size="sm" variant="secondary" icon={Download} onClick={() => setExporting(true)} disabled={shown.length === 0}>
-              Export
+            <Button size="sm" variant="secondary" icon={Download} onClick={() => !busy && setExporting(true)} disabled={shown.length === 0} aria-disabled={!!busy}>
+              {busy === "export" ? "Exporting…" : "Export"}
             </Button>
           )
         }
@@ -130,7 +156,7 @@ export default function HistoryPage({
       />
 
       {notice && (
-        <Callout variant="success" title={notice.title}>
+        <Callout key={notice.key} variant={notice.tone} title={notice.title} role={notice.tone === "danger" ? "alert" : "status"}>
           {notice.detail}
         </Callout>
       )}
@@ -148,14 +174,22 @@ export default function HistoryPage({
         <Stack gap="sm">
           <SelectionBar count={pickedIds.length} noun="work order" onClear={() => setSelectedIds([])}>
             {cancel && (
-              <Button size="sm" variant="secondary" icon={Ban} disabled={!allowed.cancel} title="Only work orders still waiting to run can be cancelled" onClick={() => cancel(pickedIds)}>
-                Cancel
+              <Button
+                size="sm"
+                variant="secondary"
+                icon={Ban}
+                disabled={!allowed.cancel}
+                aria-disabled={!!busy}
+                title="Only work orders still waiting to run can be cancelled"
+                onClick={() => cancel(pickedIds)}
+              >
+                {busy === "cancel" ? "Cancelling…" : "Cancel"}
               </Button>
             )}
             {retryFrom &&
               (selectedWorkflow ? (
                 <MenuButton
-                  label="Retry from"
+                  label={busy === "retry-from" ? "Retrying…" : "Retry from"}
                   variant="secondary"
                   menuTitle={`Steps of ${selectedWorkflow.name}`}
                   align="right"
@@ -168,8 +202,8 @@ export default function HistoryPage({
                 </Button>
               ))}
             {retry && (
-              <Button size="sm" icon={RotateCcw} disabled={!allowed.retry} title="Only finished work orders can be retried" onClick={() => retry(pickedIds)}>
-                Retry
+              <Button size="sm" icon={RotateCcw} disabled={!allowed.retry} aria-disabled={!!busy} title="Only finished work orders can be retried" onClick={() => retry(pickedIds)}>
+                {busy === "retry" ? "Retrying…" : "Retry"}
               </Button>
             )}
           </SelectionBar>
@@ -242,7 +276,14 @@ export default function HistoryPage({
           onClose={() => setExporting(false)}
           onConfirm={async () => {
             setExporting(false);
-            await act(shown.map((o) => o.workOrder.id), onExport, "Export started.", "Download it from the project's settings, under History exports, once it's ready.");
+            await act(
+              "export",
+              shown.map((o) => o.workOrder.id),
+              onExport,
+              "Export not started",
+              "Export started.",
+              "Download it from the project's settings, under History exports, once it's ready.",
+            );
           }}
         >
           Every work order matching your filters, with its runs, steps and logs, goes into one file. Inputs and outputs are
@@ -251,4 +292,19 @@ export default function HistoryPage({
       )}
     </Stack>
   );
+}
+
+/**
+ * History: a project's (or every project's) work orders with their runs, and
+ * its channels' requests.
+ */
+export interface HistoryPageData {
+  /** Newest first. */
+  workOrders: HistoryWorkOrder[];
+  /** Newest first. Absent when channels aren't shown. */
+  channelRequests: ChannelRequest[];
+  /** The workflows the work orders belong to. */
+  workflows: HistoryWorkflowOption[];
+  /** Set for History across every project, to filter by project and say which one each order belongs to. */
+  projects?: { id: string; name: string }[];
 }

@@ -27,10 +27,13 @@ export function activityPeriodLabel(period: ActivityPeriod): string {
 /** "Now" for the mock history, the morning its newest runs happened. */
 const MOCK_NOW = new Date(2026, 9, 20, 10, 0, 0).getTime();
 
-/** The time a "dd/mm/yyyy, HH:MM:SS" stamp names, or the mock's "now" if it isn't one. */
+/**
+ * The time a stamp names: the fixtures' "dd/mm/yyyy, HH:MM:SS", or an ISO
+ * timestamp as Lightning sends it. The mock's "now" if it's neither.
+ */
 export function stampTime(stamp: string): number {
   const m = /^(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})$/.exec(stamp);
-  if (!m) return MOCK_NOW;
+  if (!m) return /^\d{4}-\d{2}-\d{2}T/.test(stamp) ? Date.parse(stamp) : MOCK_NOW;
   return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5], +m[6]).getTime();
 }
 

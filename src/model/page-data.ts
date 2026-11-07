@@ -253,23 +253,6 @@ export interface ServicePageData {
 /*  Project Create page                                                */
 /* ------------------------------------------------------------------ */
 
-/** A starter idea for a new public service, built from available systems. */
-export interface BuildIdea {
-  id: string;
-  title: string;
-  description: string;
-  /** Names of the systems the idea connects. */
-  systems: string[];
-  /** The prompt this idea drops into the builder. */
-  prompt: string;
-}
-
-export interface ProjectCreatePageData {
-  pageType: "project-create";
-  projectId: string;
-  ideas: BuildIdea[];
-}
-
 /* ------------------------------------------------------------------ */
 /*  Project Sandboxes page                                             */
 /* ------------------------------------------------------------------ */
@@ -348,6 +331,5 @@ export type PageData =
   | DetailPageData
   | CatalogPageData
   | StatusPageData
-  | ProjectCreatePageData
   | ProjectSandboxesPageData
   | ServicePageData;

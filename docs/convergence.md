@@ -410,6 +410,7 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   and React reviewers ran. Checked on the fake server only. Counts: wrappers
   reading fixtures 13 → 12 of 25; pages in their own folder 8 → 9 of 24;
   page and query tests 17 → 19; tests 244 → 255; the rest unchanged.
+  ([#214](https://github.com/brandonjackson/openfn-ia-demo/pull/214))
 - **Lane 1: Project settings reads only the API.** The page moved to
   `src/pages/project-settings/` with its page and query tests. Its
   Credentials are the ones linked to the project
@@ -440,7 +441,6 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   own folder 9 → 10 of 24; page and query tests 19 → 21; the ratchet
   unchanged.
   ([#216](https://github.com/brandonjackson/openfn-ia-demo/pull/216))
-
 - **Lane 2: History reads only the API.** The page moved to
   `src/pages/history/` with its page and query tests, and
   `HistoryPageData` into the page file (`HistoryWorkflowOption` into
@@ -465,7 +465,6 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   pages in their own folder 10 → 11 of 24; page and query tests 21 → 23;
   tests 273 → 292; the ratchet unchanged.
   ([#211](https://github.com/brandonjackson/openfn-ia-demo/pull/211))
-
 - **Lane 2: Insights reads only the API.** The page moved to
   `src/pages/insights/` with its page and query tests. Its numbers are
   worked out by `insightsFor` (a new `model/insights.ts`, with `Insights`,
@@ -502,7 +501,6 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   45 → 42; pages in their own folder 12 → 14 of 24; page and query tests
   25 → 28; the ratchet unchanged.
   ([#213](https://github.com/brandonjackson/openfn-ia-demo/pull/213))
-
 - **Lane 2: Overview reads the API.** The page moved to
   `src/pages/overview/` with its page and query tests, and its data type
   into the page file as `OverviewPageData` (`fixtures/overview.ts` is gone:
@@ -525,6 +523,20 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   42 → 41; pages in their own folder 14 → 15 of 24; page and query tests 28
   → 30; tests 326 → 335; the ratchet unchanged.
   ([#219](https://github.com/brandonjackson/openfn-ia-demo/pull/219))
+- **Lane 4: Create reads only the API.** `ProjectCreatePage` moved to
+  `src/pages/project-create/` with its page and query tests, and
+  `ProjectCreatePageData` into the page file (just `ideas`: no `pageType`,
+  and the project's id, which the page never used, is gone). The starter
+  ideas come from a new demo route, `GET /api/demo/build_ideas`
+  (`useBuildIdeas`; seeded from `fixtures/build-ideas.ts`, with a lifecycle
+  test), since api/ has no AI building; `BuildIdea` moved to
+  `model/build-ideas.ts`. If the ideas can't load, the page says so, as
+  every page does until decision 1. Still to do under decision 4:
+  `BuildPrompt` disables Build while the box is empty. Checked on the fake
+  server only. Counts (after lanes 1, 2 and 3): wrappers reading fixtures 7 → 6 of
+  24; page-data.ts 353 → 335 lines; files importing it 41 → 38; pages in
+  their own folder 15 → 16 of 24; page and query tests 30 → 32; tests 335
+  → 345; the ratchet unchanged.
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
@@ -639,3 +651,8 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
    tiles. Would bring it back reading a health resource, or from recent
    runs (a workflow whose latest run failed counts as an issue) if that
    reading is good enough.
+14. **Create on primitives, with an empty state** (lane 4, from its
+   reviewers). The Create page still lays itself out with `className` and
+   its own `<h1>`, not `PageHeader`, `Stack` and `Grid`, and with no ideas it
+   shows "Ideas to get you started" over nothing. Would move it onto the
+   primitives and add an `EmptyState`; both change its look.

@@ -87,6 +87,11 @@ path in its hook file.
   checks the URL only as it saves. The form has a Test button. Would need a
   check that saves nothing (say `POST /api/auth_provider/test`). Demo:
   `/api/demo/auth_provider/test`, which answers with what it found.
+- **Create: starter ideas** (a project's Create page, behind AI building).
+  api/ has no AI building, so nothing lists ideas for a new service. Demo:
+  `GET /api/demo/build_ideas` (`src/api/build-ideas.ts`), seeded from the
+  fixture; the fake server answers it on every build, Lightning's included.
+  Sending a prompt still only says it would draft one.
 - **Instance: its name** (the sidebar's logo, the account menu; api/account.md).
   `GET /api/instance` has its URL but no name. Would need a `name` (and, if
   the tile's letters aren't to be worked out from it, `initials`). Demo: the

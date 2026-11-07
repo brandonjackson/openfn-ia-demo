@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ProjectCreatePage from "./ProjectCreatePage";
-import { withRouterAt } from "../stories/decorators";
-import { projects } from "../fixtures/projects";
-import { buildCreatePageData } from "../fixtures/build-ideas";
-import type { IANode } from "../model/ia-tree";
+import { withRouterAt } from "../../stories/decorators";
+import { projects } from "../../fixtures/projects";
+import { buildIdeas } from "../../fixtures/build-ideas";
+import type { IANode } from "../../model/ia-tree";
 
 const node: IANode = {
   id: "create",
@@ -33,6 +33,6 @@ export const Default: Story = {
     node,
     ancestors,
     currentPath: `/projects/${project.id}/create`,
-    data: buildCreatePageData(project.id),
+    data: { ideas: buildIdeas },
   },
 };

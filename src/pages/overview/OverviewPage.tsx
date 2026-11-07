@@ -1,22 +1,25 @@
 import { useState } from "react";
-import type { DashboardPageData } from "../model/page-data";
-import ConnectedSystemsSetupSection from "../components/domain/ConnectedSystemsSetupSection";
-import AddConnectedSystemFlow, { type NewSystemInput } from "../components/domain/AddConnectedSystemFlow";
-import PageHeader from "../components/patterns/PageHeader";
-import ProjectCard from "../components/domain/ProjectCard";
-import StatTile from "../components/primitives/StatTile";
-import SectionHeading from "../components/primitives/SectionHeading";
-import TextLink from "../components/primitives/TextLink";
+import ConnectedSystemsSetupSection from "../../components/domain/ConnectedSystemsSetupSection";
+import AddConnectedSystemFlow, { type NewSystemInput } from "../../components/domain/AddConnectedSystemFlow";
+import PageHeader from "../../components/patterns/PageHeader";
+import ProjectCard from "../../components/domain/ProjectCard";
+import StatTile from "../../components/primitives/StatTile";
+import SectionHeading from "../../components/primitives/SectionHeading";
+import TextLink from "../../components/primitives/TextLink";
+import type { StatTileData } from "../../model/page-data";
+import type { ConnectedSystemSummary, SuggestedSystem } from "../../model/connected-systems";
+import type { ProjectSummary } from "../../model/projects";
+import type { Adaptor } from "../../model/adaptors";
 
 export interface OverviewPageProps {
   /** Everything the page shows. */
-  data: DashboardPageData;
+  data: OverviewPageData;
   /** Adds a system from the "Add connected system" form. Without it the form only pretends. */
   onAddSystem?: (system: NewSystemInput) => Promise<void>;
 }
 
 /**
- * Overview: summary tiles that link through to Status and Insights, setup
+ * Overview: summary tiles that link through to the detail, setup
  * progress for connected systems (when the organisation has them), and your
  * projects.
  */
@@ -36,7 +39,7 @@ export default function OverviewPage({ data, onAddSystem }: OverviewPageProps) {
         description="How things are running, and the projects you're working on."
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {data.tiles.map((tile) => (
           <StatTile
             key={tile.label}
@@ -76,4 +79,20 @@ export default function OverviewPage({ data, onAddSystem }: OverviewPageProps) {
       />
     </div>
   );
+}
+
+/** What Overview shows. */
+export interface OverviewPageData {
+  /** Summary tiles, each opening the page with the detail (the week's runs and errors open Insights). */
+  tiles: StatTileData[];
+  /** The organisation's systems, for setup progress. Absent without connected systems, which leaves the section out. */
+  connectedSystems?: ConnectedSystemSummary[];
+  /** Systems suggested for the organisation that it hasn't connected yet. */
+  recommendedSystems: SuggestedSystem[];
+  /** Your projects. */
+  projects: ProjectSummary[];
+  /** How many systems setup counts towards: those connected and those suggested. */
+  recommended: number;
+  /** Every adaptor a new system can be connected with. */
+  adaptors: Adaptor[];
 }

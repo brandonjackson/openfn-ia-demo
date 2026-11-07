@@ -12,7 +12,7 @@ import Callout from "../components/primitives/Callout";
 import LoadingState from "../components/primitives/LoadingState";
 import { componentLinkTarget } from "./component-links";
 import NotFoundPage from "../pages/NotFoundPage";
-import OverviewPageQuery from "../pages/OverviewPage.query";
+import OverviewPageQuery from "../pages/overview/OverviewPage.query";
 import SystemsPageQuery from "../pages/SystemsPage.query";
 import SystemPageQuery from "../pages/SystemPage.query";
 import HistoryPageQuery from "../pages/history/HistoryPage.query";

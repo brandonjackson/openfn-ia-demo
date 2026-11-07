@@ -1,8 +1,7 @@
 import type { ProjectComponentItem } from "./component-types";
-import type { ProjectSummary } from "./projects";
 import type { Environment } from "./credentials";
 import type { ProjectServiceItem, ServiceApiSpec } from "./services";
-import type { ConnectedSystemSummary, SuggestedSystem, ConnectedSystem, ConnectionMethod } from "./connected-systems";
+import type { ConnectedSystem, ConnectionMethod } from "./connected-systems";
 import type { LucideIcon } from "lucide-react";
 import type { Adaptor } from "./adaptors";
 import type { EcosystemStation, EcosystemWorkflow } from "./ecosystem";
@@ -203,23 +202,6 @@ export interface CatalogPageData {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Dashboard page (Overview / Home)                                   */
-/* ------------------------------------------------------------------ */
-
-export interface DashboardPageData {
-  pageType: "dashboard";
-  /** Summary tiles that link through to Status and Insights. */
-  tiles: StatTileData[];
-  /** The organisation's systems, for setup progress. Absent without connected systems, which leaves the section out. */
-  connectedSystems?: ConnectedSystemSummary[];
-  recommendedSystems: SuggestedSystem[];
-  projects: ProjectSummary[];
-  recommended: number;
-  /** Every adaptor a new system can be connected with. */
-  adaptors: Adaptor[];
-}
-
-/* ------------------------------------------------------------------ */
 /*  Status page (Monitoring: right now)                                */
 /* ------------------------------------------------------------------ */
 
@@ -348,7 +330,6 @@ export type PageData =
   | ListPageData
   | DetailPageData
   | CatalogPageData
-  | DashboardPageData
   | StatusPageData
   | ProjectSandboxesPageData
   | ServicePageData;

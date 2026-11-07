@@ -1,4 +1,4 @@
-import { errorMessageOf, fieldErrorOf } from "../model/form-error";
+import { errorMessageOf, fieldErrorOf } from "../../model/form-error";
 import { useState } from "react";
 import {
   Settings,
@@ -14,51 +14,55 @@ import {
   Layers,
   FileCode2,
 } from "lucide-react";
-import type { PageProps } from "../model/ia-tree";
-import type { CollaboratorDraft, CollaboratorInvite, Collaborator, DataStorageSettings, GitHubConnectionSettings, OrgCredential, ProjectSettingsPageData, WebhookAuthMethod, WebhookAuthMethodDraft } from "../model/page-data";
-import type { CollectionItem, ProjectCollection } from "../model/collections";
+import type { PageProps } from "../../model/ia-tree";
+import type { ProjectSettingsPermissions } from "../../model/project-settings";
+import type { Collaborator, CollaboratorDraft, CollaboratorInvite, DataStorageSettings } from "../../model/projects";
+import type { WebhookAuthMethod, WebhookAuthMethodDraft, WebhookTriggerOption } from "../../model/webhooks";
+import type { GitHubConnectionSettings, GitHubSyncState } from "../../model/github-sync";
+import type { HistoryExport } from "../../model/work-orders";
+import type { CollectionItem, ProjectCollection } from "../../model/collections";
 import {
   countLabel,
   retentionPeriods,
   urlSafeName,
   type DigestFrequency,
   type ProjectRole,
-} from "../model/project-settings";
-import SettingsLayout from "../components/patterns/SettingsLayout";
-import type { SettingsNavItem } from "../components/primitives/SettingsNav";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import EnvironmentBadge from "../components/domain/EnvironmentBadge";
-import SystemLabel from "../components/domain/SystemLabel";
-import CollaboratorTable from "../components/domain/CollaboratorTable";
-import AddCollaboratorsModal from "../components/domain/AddCollaboratorsModal";
-import InviteCollaboratorsModal from "../components/domain/InviteCollaboratorsModal";
-import CollectionList from "../components/domain/CollectionList";
-import CollectionNameModal from "../components/domain/CollectionNameModal";
-import CollectionPreviewModal from "../components/domain/CollectionPreviewModal";
-import WebhookAuthMethodTable from "../components/domain/WebhookAuthMethodTable";
-import WebhookAuthMethodModal from "../components/domain/WebhookAuthMethodModal";
-import GitHubSyncForm from "../components/domain/GitHubSyncForm";
-import GitHubConnectionSummary from "../components/domain/GitHubConnectionSummary";
-import HistoryExportTable from "../components/domain/HistoryExportTable";
-import SectionHeading from "../components/primitives/SectionHeading";
-import Card from "../components/primitives/Card";
-import Button from "../components/primitives/Button";
-import Badge from "../components/primitives/Badge";
-import Callout from "../components/primitives/Callout";
-import CodeBlock from "../components/primitives/CodeBlock";
-import ConfirmModal from "../components/primitives/ConfirmModal";
-import CopyValue from "../components/primitives/CopyValue";
-import DownloadButton from "../components/primitives/DownloadButton";
-import FormField from "../components/primitives/FormField";
-import Inline from "../components/primitives/Inline";
-import Modal from "../components/primitives/Modal";
-import Stack from "../components/primitives/Stack";
-import Text from "../components/primitives/Text";
-import TextLink from "../components/primitives/TextLink";
-import ToggleSwitch from "../components/primitives/ToggleSwitch";
-import DataTable from "../components/primitives/DataTable";
-import type { DataTableColumn } from "../components/primitives/DataTable";
-import { TextInput, TextArea, Select, RadioOption } from "../components/primitives/FormControls";
+} from "../../model/project-settings";
+import SettingsLayout from "../../components/patterns/SettingsLayout";
+import type { SettingsNavItem } from "../../components/primitives/SettingsNav";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import EnvironmentBadge from "../../components/domain/EnvironmentBadge";
+import SystemLabel from "../../components/domain/SystemLabel";
+import CollaboratorTable from "../../components/domain/CollaboratorTable";
+import AddCollaboratorsModal from "../../components/domain/AddCollaboratorsModal";
+import InviteCollaboratorsModal from "../../components/domain/InviteCollaboratorsModal";
+import CollectionList from "../../components/domain/CollectionList";
+import CollectionNameModal from "../../components/domain/CollectionNameModal";
+import CollectionPreviewModal from "../../components/domain/CollectionPreviewModal";
+import WebhookAuthMethodTable from "../../components/domain/WebhookAuthMethodTable";
+import WebhookAuthMethodModal from "../../components/domain/WebhookAuthMethodModal";
+import GitHubSyncForm from "../../components/domain/GitHubSyncForm";
+import GitHubConnectionSummary from "../../components/domain/GitHubConnectionSummary";
+import HistoryExportTable from "../../components/domain/HistoryExportTable";
+import SectionHeading from "../../components/primitives/SectionHeading";
+import Card from "../../components/primitives/Card";
+import Button from "../../components/primitives/Button";
+import Badge from "../../components/primitives/Badge";
+import Callout from "../../components/primitives/Callout";
+import CodeBlock from "../../components/primitives/CodeBlock";
+import ConfirmModal from "../../components/primitives/ConfirmModal";
+import CopyValue from "../../components/primitives/CopyValue";
+import DownloadButton from "../../components/primitives/DownloadButton";
+import FormField from "../../components/primitives/FormField";
+import Inline from "../../components/primitives/Inline";
+import Modal from "../../components/primitives/Modal";
+import Stack from "../../components/primitives/Stack";
+import Text from "../../components/primitives/Text";
+import TextLink from "../../components/primitives/TextLink";
+import ToggleSwitch from "../../components/primitives/ToggleSwitch";
+import DataTable from "../../components/primitives/DataTable";
+import type { DataTableColumn } from "../../components/primitives/DataTable";
+import { TextInput, TextArea, Select, RadioOption } from "../../components/primitives/FormControls";
 
 export interface ProjectSettingsPageProps extends PageProps<ProjectSettingsPageData> {
   /** The section to open on, e.g. "collaboration" from a link to `#collaboration`. Setup when absent. */
@@ -112,7 +116,7 @@ export interface ProjectSettingsPageProps extends PageProps<ProjectSettingsPageD
   /** Starts an export of the project's work order history. */
   onCreateHistoryExport: () => Promise<void>;
   /** Downloads a completed history export. */
-  onDownloadHistoryExport: (id: string) => void;
+  onDownloadHistoryExport: (id: string) => Promise<void>;
 }
 
 type SectionProps = Pick<ProjectSettingsPageProps, "data">;
@@ -293,15 +297,38 @@ function ConcurrencyCard({ data, onSave }: SectionProps & { onSave: ProjectSetti
 
 function ExportProjectCard({ data, onExport }: SectionProps & { onExport: ProjectSettingsPageProps["onExportProject"] }) {
   const [yaml, setYaml] = useState<string>();
+  const [exporting, setExporting] = useState(false);
+  const [error, setError] = useState<unknown>(null);
   const fileName = `${data.projectName}.yaml`;
+  const exportProject = async () => {
+    if (exporting) return;
+    setExporting(true);
+    setError(null);
+    try {
+      setYaml(await onExport());
+    } catch (e) {
+      setError(e);
+    } finally {
+      setExporting(false);
+    }
+  };
   return (
     <Card
       title="Export your project"
       description="Save your project as a YAML file to be edited locally, backed up, or deployed elsewhere."
     >
-      <Button variant="secondary" icon={FileCode2} onClick={async () => setYaml(await onExport())}>
-        Export project
-      </Button>
+      <Stack gap="md">
+        {error !== null && (
+          <Callout variant="danger" title="The project didn't export" role="alert">
+            {errorMessageOf(error)}
+          </Callout>
+        )}
+        <Inline>
+          <Button variant="secondary" icon={FileCode2} aria-disabled={exporting || undefined} onClick={() => void exportProject()}>
+            {exporting ? "Exporting…" : "Export project"}
+          </Button>
+        </Inline>
+      </Stack>
       <Modal
         open={yaml !== undefined}
         title={fileName}
@@ -381,27 +408,21 @@ function SetupSection({
 /*  Credentials                                                        */
 /* ------------------------------------------------------------------ */
 
-const credentialColumns: DataTableColumn<OrgCredential>[] = [
+const credentialColumns: DataTableColumn<ProjectSettingsCredential>[] = [
   { key: "name", header: "Name", render: (c) => <Text tone="strong">{c.name}</Text> },
-  { key: "system", header: "System", render: (c) => <SystemLabel name={c.system} /> },
-  { key: "environment", header: "Environment", render: (c) => <EnvironmentBadge environment={c.environment} /> },
+  { key: "system", header: "System", render: (c) => <SystemLabel name={c.type} adaptor={c.adaptor} /> },
+  {
+    key: "environment",
+    header: "Environment",
+    render: (c) => (
+      <Inline gap="xs" wrap>
+        {c.environments.map((e) => (
+          <EnvironmentBadge key={e} environment={e} />
+        ))}
+      </Inline>
+    ),
+  },
   { key: "owner", header: "Owner", render: (c) => c.owner },
-  {
-    key: "access",
-    header: "Access",
-    render: (c) => (c.hasAccess ? <Badge label="Granted" tone="green" /> : <Badge label="No access" />),
-  },
-  {
-    key: "actions",
-    header: "",
-    align: "right",
-    render: (c) =>
-      !c.hasAccess && (
-        <Button variant="outline-primary" size="xs">
-          Request access
-        </Button>
-      ),
-  },
 ];
 
 function CredentialsSection({ data }: SectionProps) {
@@ -421,7 +442,7 @@ function CredentialsSection({ data }: SectionProps) {
           </Button>
         }
       />
-      <DataTable columns={credentialColumns} rows={data.orgCredentials} getRowKey={(c) => c.id} />
+      <DataTable columns={credentialColumns} rows={data.credentials} getRowKey={(c) => c.id} emptyMessage="No credentials in this project yet." />
     </Stack>
   );
 }
@@ -985,6 +1006,25 @@ function HistoryExportsSection({
   onDownloadHistoryExport,
 }: Pick<ProjectSettingsPageProps, "data" | "onCreateHistoryExport" | "onDownloadHistoryExport">) {
   const busy = data.historyExports.some((e) => e.status === "enqueued" || e.status === "processing");
+  const [failure, setFailure] = useState<{ title: string; error: unknown } | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string>();
+  const download = async (id: string) => {
+    if (downloadingId) return;
+    const file = data.historyExports.find((e) => e.id === id)?.fileName;
+    setDownloadingId(id);
+    setFailure(null);
+    try {
+      await onDownloadHistoryExport(id);
+    } catch (error) {
+      setFailure({ title: file ? `${file} didn't download` : "That didn't download", error });
+    } finally {
+      setDownloadingId(undefined);
+    }
+  };
+  const createExport = () => {
+    setFailure(null);
+    onCreateHistoryExport().catch((error: unknown) => setFailure({ title: "The export wasn't made", error }));
+  };
   return (
     <Stack gap="lg">
       <SectionHeading
@@ -996,13 +1036,18 @@ function HistoryExportsSection({
             icon={Download}
             disabled={busy}
             title={busy ? "An export is already being made" : undefined}
-            onClick={() => void onCreateHistoryExport()}
+            onClick={createExport}
           >
             Create export
           </Button>
         }
       />
-      <HistoryExportTable exports={data.historyExports} onDownload={onDownloadHistoryExport} />
+      {failure && (
+        <Callout variant="danger" title={failure.title} role="alert">
+          {errorMessageOf(failure.error)}
+        </Callout>
+      )}
+      <HistoryExportTable exports={data.historyExports} onDownload={(id) => void download(id)} downloadingId={downloadingId} />
     </Stack>
   );
 }
@@ -1050,4 +1095,46 @@ export default function ProjectSettingsPage(props: ProjectSettingsPageProps) {
       {activeTab === "history-exports" && <HistoryExportsSection {...props} />}
     </SettingsLayout>
   );
+}
+
+/** A credential the project's steps can use, through its link to the project. */
+export interface ProjectSettingsCredential {
+  /** The link's id: a credential linked to the project once. */
+  id: string;
+  name: string;
+  /** Its type, as the credential schemas name it ("DHIS2"). */
+  type: string;
+  /** The adaptor its type is for, for the logo. */
+  adaptor?: string;
+  /** The environments it has values for. */
+  environments: string[];
+  /** Who owns it, by name. */
+  owner: string;
+}
+
+export interface ProjectSettingsPageData {
+  /** The project's id, as used in file names and the CLI. */
+  projectId: string;
+  /** The project's URL-safe name. */
+  projectName: string;
+  /** The environment credentials load their values from, e.g. "main". */
+  projectEnvironment: string;
+  projectDescription: string;
+  /** What you're allowed to change here, from your role in the project. */
+  permissions: ProjectSettingsPermissions;
+  /** Only one run at a time across the whole project. */
+  concurrencyDisabled: boolean;
+  /** The credentials linked to the project. */
+  credentials: ProjectSettingsCredential[];
+  collections: ProjectCollection[];
+  webhookAuthMethods: WebhookAuthMethod[];
+  /** The project's webhook triggers, which auth methods can be assigned to. */
+  webhookTriggers: WebhookTriggerOption[];
+  collaborators: Collaborator[];
+  /** Everyone must have MFA on their account to open the project. */
+  mfaRequired: boolean;
+  github: GitHubSyncState;
+  dataStorage: DataStorageSettings;
+  /** Newest first. */
+  historyExports: HistoryExport[];
 }

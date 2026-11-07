@@ -1,9 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import ProjectSettingsPage, { type ProjectSettingsPageProps } from "./ProjectSettingsPage";
-import { withRouterAt } from "../stories/decorators";
-import type { IANode } from "../model/ia-tree";
-import { projects } from "../fixtures/projects";
-import { collectionItems, projectSettingsPageData, projectSettingsRecord } from "../fixtures/project-settings";
+import ProjectSettingsPage, { type ProjectSettingsPageData, type ProjectSettingsPageProps } from "./ProjectSettingsPage";
+import { withRouterAt } from "../../stories/decorators";
+import type { IANode } from "../../model/ia-tree";
+import type { Project } from "../../model/projects";
+import { permissionsFor } from "../../model/project-settings";
+import { projects } from "../../fixtures/projects";
+import { orgCredentials } from "../../fixtures/connected-systems";
+import {
+  collectionItems,
+  projectCollaborators,
+  projectRoleOf,
+  projectSettingsRecord,
+  webhookTriggers,
+  type ProjectSettingsRecord,
+} from "../../fixtures/project-settings";
 
 const node: IANode = {
   id: "settings",
@@ -18,10 +28,34 @@ const ancestors = [
   { node: { id: "project-a", label: "Project A" }, path: "/projects/project-a" },
 ];
 
+/** The settings page's data for whoever is signed in (`you`, by email), from the fixtures' pieces. */
+function settingsData(project: Project, record: ProjectSettingsRecord, you?: string): ProjectSettingsPageData {
+  return {
+    projectId: project.id,
+    projectName: record.name,
+    projectEnvironment: record.environment,
+    projectDescription: record.description,
+    permissions: permissionsFor(projectRoleOf(record, you)),
+    concurrencyDisabled: record.concurrencyDisabled,
+    // The organisation's credentials that projects may use, as if linked to this one.
+    credentials: orgCredentials
+      .filter((c) => c.hasAccess)
+      .map((c) => ({ id: c.id, name: c.name, type: c.system, environments: [c.environment], owner: c.owner })),
+    collections: record.collections,
+    webhookAuthMethods: record.webhookAuthMethods,
+    webhookTriggers: webhookTriggers(project),
+    collaborators: projectCollaborators(record, you),
+    mfaRequired: record.mfaRequired,
+    github: record.github,
+    dataStorage: record.dataStorage,
+    historyExports: record.historyExports,
+  };
+}
+
 const [projectA, projectB] = projects;
 const recordA = projectSettingsRecord(projectA);
 /** Project A's settings as Jane Doe, its owner. */
-const ownerData = projectSettingsPageData(projectA, recordA);
+const ownerData = settingsData(projectA, recordA);
 
 const done = async () => {};
 
@@ -50,7 +84,7 @@ const actions: Omit<ProjectSettingsPageProps, "node" | "ancestors" | "currentPat
   onDisconnectGitHub: done,
   onSaveDataStorage: done,
   onCreateHistoryExport: done,
-  onDownloadHistoryExport: () => {},
+  onDownloadHistoryExport: async () => {},
 };
 
 const meta: Meta<typeof ProjectSettingsPage> = {
@@ -72,6 +106,21 @@ export const NoCollections: Story = {
   args: { initialSection: "collections", data: { ...ownerData, collections: [] } },
 };
 
+export const Credentials: Story = { args: { initialSection: "credentials" } };
+
+/** Lightning names environments freely: a credential with values for several, one of them a name the badges don't know. */
+export const CredentialsInManyEnvironments: Story = {
+  args: {
+    initialSection: "credentials",
+    data: {
+      ...ownerData,
+      credentials: [{ ...ownerData.credentials[0]!, environments: ["production", "staging", "main"] }, ...ownerData.credentials.slice(1)],
+    },
+  },
+};
+
+export const NoCredentials: Story = { args: { initialSection: "credentials", data: { ...ownerData, credentials: [] } } };
+
 export const WebhookSecurity: Story = { args: { initialSection: "webhook-security" } };
 
 export const Collaboration: Story = { args: { initialSection: "collaboration" } };
@@ -80,7 +129,7 @@ export const Collaboration: Story = { args: { initialSection: "collaboration" } 
 export const CollaborationAsEditor: Story = {
   args: {
     initialSection: "collaboration",
-    data: projectSettingsPageData(projectA, recordA, "jsmith@example.org"),
+    data: settingsData(projectA, recordA, "jsmith@example.org"),
   },
 };
 
@@ -94,7 +143,7 @@ export const GitHubConnected: Story = { args: { initialSection: "sync-to-github"
 export const GitHubSetup: Story = {
   args: {
     initialSection: "sync-to-github",
-    data: projectSettingsPageData(projectB, projectSettingsRecord(projectB)),
+    data: settingsData(projectB, projectSettingsRecord(projectB)),
   },
 };
 
@@ -116,5 +165,5 @@ export const HistoryExports: Story = { args: { initialSection: "history-exports"
 
 /** Beth Wilson, a viewer, sees every section but can't change the project. */
 export const AsViewer: Story = {
-  args: { data: projectSettingsPageData(projectA, recordA, "bwilson@example.org") },
+  args: { data: settingsData(projectA, recordA, "bwilson@example.org") },
 };

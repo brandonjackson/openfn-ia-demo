@@ -123,6 +123,14 @@ path in its hook file.
   `model/credentials.ts`). Would need api/ to settle on a fixed set, or the
   design to take any name. Until then the demo sends its three names as the
   API's environment names.
+- **Credentials: the organisation's that a project can't use yet** (Project
+  settings, Credentials; api/credentials.md). The design listed the
+  organisation's credentials with an Access column (Granted or No access) and
+  "Request access". The API lists only the credentials linked to the project
+  and has no organisation and no requests. Would need an organisation's
+  credentials, which projects each reaches, and a way to ask for one. Until
+  then the table lists the project's linked credentials (name, type,
+  environments, owner) and leaves Access and Request access out.
 - **Credentials: a line on what each kind connects to** (User settings, the
   credential type picker; api/credentials.md, Credential schemas). The list
   sends a name and a title only. The picker's one-line description ("District

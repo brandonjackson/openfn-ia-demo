@@ -1,16 +1,16 @@
-import type { Collaborator, DataStorageSettings, GitHubInstallation, GitHubSyncState, HistoryExport, ProjectSettingsPageData, WebhookAuthMethod, WebhookTriggerOption } from "../model/page-data";
+import type { HistoryExport } from "../model/work-orders";
+import type { GitHubInstallation, GitHubSyncState } from "../model/github-sync";
+import type { WebhookAuthMethod, WebhookTriggerOption } from "../model/webhooks";
+import type { Collaborator, DataStorageSettings, Project } from "../model/projects";
 import type { CollectionItem, ProjectCollection } from "../model/collections";
 import {
   assignableRoles,
-  permissionsFor,
   removeBlockedReason,
   urlSafeName,
   type DigestFrequency,
   type ProjectRole,
 } from "../model/project-settings";
-import type { Project } from "../model/projects";
 import { currentUser } from "./user";
-import { orgCredentials } from "./connected-systems";
 
 /*
  * What a server holds about a project's settings: its people, collections,
@@ -282,17 +282,13 @@ export function projectSettingsRecord(project: Project): ProjectSettingsRecord {
 }
 
 /**
- * The settings page's data for whoever is signed in (`you`, by email): what
- * their role lets them change, and for each collaborator, whether they can
- * change that person's role or remove them.
+ * A project's collaborators as its settings list them for whoever is signed
+ * in (`you`, by email): for each, whether you can change their role or
+ * remove them.
  */
-export function projectSettingsPageData(
-  project: Project,
-  record: ProjectSettingsRecord,
-  you: string = currentUser.email
-): ProjectSettingsPageData {
-  const yourRole: ProjectRole = record.memberships.find((m) => m.email === you)?.role ?? "viewer";
-  const collaborators: Collaborator[] = record.memberships.map((m) => {
+export function projectCollaborators(record: ProjectSettingsRecord, you: string = currentUser.email): Collaborator[] {
+  const yourRole = projectRoleOf(record, you);
+  return record.memberships.map((m) => {
     const user = record.users.find((u) => u.email === m.email);
     const them = { role: m.role, isSelf: m.email === you };
     return {
@@ -308,22 +304,8 @@ export function projectSettingsPageData(
       removeBlockedReason: removeBlockedReason(yourRole, them),
     };
   });
-  return {
-    pageType: "project-settings",
-    projectId: project.id,
-    projectName: record.name,
-    projectEnvironment: record.environment,
-    projectDescription: record.description,
-    permissions: permissionsFor(yourRole),
-    concurrencyDisabled: record.concurrencyDisabled,
-    orgCredentials,
-    collections: record.collections,
-    webhookAuthMethods: record.webhookAuthMethods,
-    webhookTriggers: webhookTriggers(project),
-    collaborators,
-    mfaRequired: record.mfaRequired,
-    github: record.github,
-    dataStorage: record.dataStorage,
-    historyExports: record.historyExports,
-  };
 }
+
+/** Your role in the project, by email; a viewer if you're not in it. */
+export const projectRoleOf = (record: ProjectSettingsRecord, you: string = currentUser.email): ProjectRole =>
+  record.memberships.find((m) => m.email === you)?.role ?? "viewer";

@@ -21,7 +21,8 @@ interface ApiCredential {
   project_credentials: { id: string; project_id: string }[];
   projects: { id: string; name: string }[];
   owner: { id: string; email: string; first_name: string; last_name: string } | null;
-  environments: { name: string }[];
+  /** Planned scope (api/credentials.md): Lightning may leave it out. */
+  environments?: { name: string }[];
   transfer_status: "pending" | "completed" | null;
   transfer_recipient?: string | null;
   inserted_at: string;
@@ -218,7 +219,13 @@ export function useProjectCredentials(projectId: string | undefined): { status: 
       rows.flatMap((c) =>
         c.project_credentials
           .filter((l) => l.project_id === projectId)
-          .map((l) => ({ id: l.id, name: c.name, adaptor: schemaIdOf(c.schema), owner: c.owner ? `${c.owner.first_name} ${c.owner.last_name}` : "Unknown" })),
+          .map((l) => ({
+            id: l.id,
+            name: c.name,
+            adaptor: schemaIdOf(c.schema),
+            owner: c.owner ? `${c.owner.first_name} ${c.owner.last_name}` : "Unknown",
+            environments: (c.environments ?? []).map((e) => e.name),
+          })),
       ),
   });
   return { status: projectId ? statusOf(query) : { state: "ready" }, credentials: query.data ?? [] };

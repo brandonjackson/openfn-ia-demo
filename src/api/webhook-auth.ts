@@ -3,7 +3,7 @@
  * triggers each one guards, which is set on the workflows' triggers.
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { WebhookAuthMethod, WebhookAuthMethodDraft, WebhookTriggerOption } from "../model/page-data";
+import type { WebhookAuthMethod, WebhookAuthMethodDraft, WebhookTriggerOption } from "../model/webhooks";
 import type { WorkflowDocument } from "../model/workflow-document";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";

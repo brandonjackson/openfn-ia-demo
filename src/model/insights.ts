@@ -112,3 +112,12 @@ export function insightsFor(projects: { id: string; name: string; workOrders: Wo
       : [],
   };
 }
+
+/** Overview's tiles for the week: its runs and its errors, each opening Insights for the detail. */
+export function weekTiles(week: Insights): StatTileData[] {
+  const [runs, errors] = week.tiles;
+  return [
+    { label: "Runs this week", value: runs!.value, trend: runs!.trend, linkTo: "/insights" },
+    { label: "Errors this week", value: errors!.value, detail: errors!.detail, trend: errors!.trend, linkTo: "/insights" },
+  ];
+}

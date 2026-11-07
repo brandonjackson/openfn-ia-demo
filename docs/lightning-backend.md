@@ -139,7 +139,7 @@ as the demo user, and as the superuser for Admin settings.
 | Settings | Works with gaps | On the API only: Lightning's settings, the credentials linked to the project, Export project from `GET /api/provision/yaml` and an export's file from its `download_url`. Read only until `permissions`. Checked on the fake server; not yet walked on Lightning (Lane 1 couldn't run it: no Elixir in the session). |
 | Services (project) | Works | From the demo's own routes, empty. |
 | User settings | Works | Your Lightning account. |
-| Overview | Demo data | Still the fixtures' numbers. |
+| Overview | Works | On the API: the week's runs and errors from Lightning's work orders (every project you can open, as Insights has them), your projects and the demo's connected systems. No Status tile (api-gaps.md). The add-a-system catalog (adaptors, suggested systems) is still the demo's fixtures, waiting on lane 5. Checked on the fake server; not walked on Lightning (no Elixir in this session's container). |
 | Handbook, Systems, Services catalog, Organization settings | Demo data | The demo's own areas, on `/api/demo/`. |
 | Admin settings | Breaks | Lightning lets only the service account list users (api-gaps.md). Hidden from the demo user, who isn't a superuser. |
 

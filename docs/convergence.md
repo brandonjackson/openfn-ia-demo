@@ -485,6 +485,25 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   the ratchet unchanged.
   ([#218](https://github.com/brandonjackson/openfn-ia-demo/pull/218))
 
+- **Lane 2: Overview reads the API.** The page moved to
+  `src/pages/overview/` with its page and query tests, and its data type
+  into the page file as `OverviewPageData` (`fixtures/overview.ts` is gone:
+  fixtures can't name a page's shape, so the story builds its data from the
+  fixtures' pieces). The week's runs and errors are `weekTiles` over
+  `insightsFor` (`model/insights.ts`) for every project you can open, so
+  they match Insights; projects and systems were already the API's. Nothing
+  in api/ says what isn't running, so the Status tile is left out on every
+  build (api-gaps.md; **this changes the look**: two tiles, not three).
+  The add-a-system catalog (adaptors and suggested systems) still comes
+  from fixtures, marked `debt:`: it's lane 5's (`fixtures/connected-systems.ts`),
+  and the Systems page needs the same, so the wrapper still counts as
+  reading fixtures until lane 5 moves it. A suggested system you've added
+  isn't suggested again. Lightning wasn't walked (no Elixir here). Counts:
+  wrappers reading fixtures 8 of 24, unchanged (the catalog, above);
+  page-data.ts 399 → 380 lines; files importing it 45 → 44; pages in their
+  own folder 12 → 13 of 24; page and query tests 25 → 27; tests 304 → 310;
+  the ratchet unchanged.
+
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
 ## Decided by Brandon (6 Nov 2026)
@@ -587,3 +606,14 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
    back from the real time on the Lightning build; that needs the build's
    choice of clock passed down from `src/app/`, the one place that reads
    it.
+12. **Overview's add-a-system catalog** (lane 2, waiting on lane 5). The
+   adaptors and suggested systems the "Add connected system" form offers
+   still come from fixtures (`fixtures/adaptors.ts`,
+   `recommendedSystems` in `fixtures/connected-systems.ts`, which lane 5
+   owns). Once lane 5 puts them on a demo route for the Systems page,
+   Overview's wrapper reads the same and lane 2 reads no fixtures.
+13. **Overview without a Status tile** (lane 2). Left out because api/
+   can't say what's down (api-gaps.md); the home page now opens on two
+   tiles. Would bring it back reading a health resource, or from recent
+   runs (a workflow whose latest run failed counts as an issue) if that
+   reading is good enough.

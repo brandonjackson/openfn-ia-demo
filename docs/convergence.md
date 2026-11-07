@@ -432,11 +432,13 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   and its story builds its data from the fixtures' pieces
   (`projectCollaborators`). `src/pages/project-records.query.ts` is gone:
   the shell's `asProject` is in `model/projects.ts` and reads no fixtures
-  (the shell never showed a project's services or components). Not walked
-  on Lightning: the session has no Elixir. Counts: wrappers reading
-  fixtures 15 → 13 of 24 (Settings and the helper); page-data.ts 658 →
-  486 lines; files importing it 72 → 58; pages in their own folder 7 → 8
-  of 24; page and query tests 15 → 17; the ratchet unchanged.
+  (the shell never showed a project's services or components), which
+  lane 4's note above was waiting on. Not walked
+  on Lightning: the session has no Elixir. Counts (after lanes 3 and 4):
+  wrappers reading fixtures 13 of 25 → 11 of 24 (Settings and the helper);
+  page-data.ts 632 → 461 lines; files importing it 64 → 50; pages in their
+  own folder 8 → 9 of 24; page and query tests 17 → 19; the ratchet
+  unchanged.
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 

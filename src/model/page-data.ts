@@ -1,5 +1,4 @@
 import type { ProjectComponentItem } from "./component-types";
-import type { ProjectCollection } from "./collections";
 import type { ProjectSummary } from "./projects";
 import type { Environment } from "./credentials";
 import type { ProjectServiceItem, ServiceApiSpec } from "./services";

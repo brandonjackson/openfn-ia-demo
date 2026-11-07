@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ProjectSandboxesPage from "./ProjectSandboxesPage";
-import { withRouterAt } from "../stories/decorators";
-import { projects, projectSandboxes } from "../fixtures/projects";
-import type { IANode } from "../model/ia-tree";
+import { withRouterAt } from "../../stories/decorators";
+import { projects, projectSandboxes } from "../../fixtures/projects";
+import type { IANode } from "../../model/ia-tree";
 
 const node: IANode = {
   id: "sandboxes",
@@ -43,8 +43,6 @@ export const Default: Story = {
     ancestors: ancestorsFor(project),
     currentPath: `/projects/${project.id}/sandboxes`,
     data: {
-      pageType: "project-sandboxes",
-      projectId: project.id,
       sandboxes: projectSandboxes(project),
     },
   },
@@ -56,8 +54,6 @@ export const OnlyMain: Story = {
     ancestors: ancestorsFor(emptyProject),
     currentPath: `/projects/${emptyProject.id}/sandboxes`,
     data: {
-      pageType: "project-sandboxes",
-      projectId: emptyProject.id,
       sandboxes: projectSandboxes(emptyProject),
     },
   },

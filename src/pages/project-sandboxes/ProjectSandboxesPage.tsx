@@ -1,24 +1,31 @@
 import { useState } from "react";
 import { Check, FlaskConical, GitMerge, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
-import type { PageProps } from "../model/ia-tree";
-import type { ProjectSandboxesPageData, SandboxDraft, SandboxItem, SandboxMerge } from "../model/page-data";
-import { timeAgo } from "../model/time";
-import Badge from "../components/primitives/Badge";
-import PageHeader from "../components/patterns/PageHeader";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import SandboxFormModal from "../components/domain/SandboxFormModal";
-import MergeSandboxModal from "../components/domain/MergeSandboxModal";
-import Button from "../components/primitives/Button";
-import Callout from "../components/primitives/Callout";
-import ConfirmModal from "../components/primitives/ConfirmModal";
-import DropdownMenu from "../components/primitives/DropdownMenu";
-import EmptyState from "../components/primitives/EmptyState";
-import IconButton from "../components/primitives/IconButton";
-import ListRow from "../components/primitives/ListRow";
-import SectionHeading from "../components/primitives/SectionHeading";
-import Stack from "../components/primitives/Stack";
-import Swatch from "../components/primitives/Swatch";
-import Text from "../components/primitives/Text";
+import type { PageProps } from "../../model/ia-tree";
+import type { SandboxDraft, SandboxItem, SandboxMerge } from "../../model/sandboxes";
+import { timeAgo } from "../../model/time";
+import { errorMessageOf } from "../../model/form-error";
+import Badge from "../../components/primitives/Badge";
+import PageHeader from "../../components/patterns/PageHeader";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import SandboxFormModal from "../../components/domain/SandboxFormModal";
+import MergeSandboxModal from "../../components/domain/MergeSandboxModal";
+import Button from "../../components/primitives/Button";
+import Callout from "../../components/primitives/Callout";
+import ConfirmModal from "../../components/primitives/ConfirmModal";
+import DropdownMenu from "../../components/primitives/DropdownMenu";
+import EmptyState from "../../components/primitives/EmptyState";
+import IconButton from "../../components/primitives/IconButton";
+import ListRow from "../../components/primitives/ListRow";
+import SectionHeading from "../../components/primitives/SectionHeading";
+import Stack from "../../components/primitives/Stack";
+import Swatch from "../../components/primitives/Swatch";
+import Text from "../../components/primitives/Text";
+
+/** What the Sandboxes page shows. */
+export interface ProjectSandboxesPageData {
+  /** Main first, then each sandbox, with what it has changed. */
+  sandboxes: SandboxItem[];
+}
 
 export interface ProjectSandboxesPageProps extends PageProps<ProjectSandboxesPageData> {
   /** The sandbox you're working in, shared with the rest of the project. */
@@ -122,7 +129,7 @@ export default function ProjectSandboxesPage({
   const [editing, setEditing] = useState<SandboxItem>();
   const [merging, setMerging] = useState<SandboxItem>();
   const [pendingDelete, setPendingDelete] = useState<SandboxItem | null>(null);
-  const [notice, setNotice] = useState<string>();
+  const [notice, setNotice] = useState<{ tone: "success" | "danger"; title: string; detail?: string }>();
   const sandboxes = data.sandboxes;
   const main = sandboxes.find((s) => s.isMain);
   const selected = sandboxes.find((s) => s.name === selectedName) ?? main ?? sandboxes[0];
@@ -143,8 +150,12 @@ export default function ProjectSandboxesPage({
     const name = pendingDelete?.name;
     setPendingDelete(null);
     if (name) {
-      await onDeleteSandbox(name);
-      setNotice(`Deleted ${name}.`);
+      try {
+        await onDeleteSandbox(name);
+        setNotice({ tone: "success", title: `Deleted ${name}.` });
+      } catch (error) {
+        setNotice({ tone: "danger", title: `${name} wasn't deleted`, detail: errorMessageOf(error) });
+      }
     }
   };
 
@@ -172,7 +183,11 @@ export default function ProjectSandboxesPage({
         }
       />
 
-      {notice && <Callout variant="success" title={notice} />}
+      {notice && (
+        <Callout variant={notice.tone} title={notice.title} role={notice.tone === "danger" ? "alert" : undefined}>
+          {notice.detail}
+        </Callout>
+      )}
 
       {selected && (
         <section>
@@ -219,7 +234,7 @@ export default function ProjectSandboxesPage({
           onClose={() => setCreating(false)}
           onSubmit={async (draft) => {
             await onCreateSandbox(draft);
-            setNotice(`Created a sandbox from ${draft.parent}.`);
+            setNotice({ tone: "success", title: `Created a sandbox from ${draft.parent}.` });
           }}
         />
       )}
@@ -239,7 +254,7 @@ export default function ProjectSandboxesPage({
           onClose={() => setMerging(undefined)}
           onMerge={async (merge) => {
             await onMergeSandbox(merging!.name, merge);
-            setNotice(`Merged ${merging!.name} into ${merge.target}. You can delete the sandbox once you're done with it.`);
+            setNotice({ tone: "success", title: `Merged ${merging!.name} into ${merge.target}. You can delete the sandbox once you're done with it.` });
           }}
         />
       )}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { GitMerge } from "lucide-react";
-import type { SandboxItem, SandboxMerge } from "../../model/page-data";
+import type { SandboxItem, SandboxMerge } from "../../model/sandboxes";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";
 import Stack from "../primitives/Stack";

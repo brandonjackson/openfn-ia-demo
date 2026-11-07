@@ -454,11 +454,14 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     `AccessGrant` and `XRoadRouteContext` left page-data.ts. Revoke and
     Delete say "Revoking…"/"Deleting…" while they run (`ConfirmModal` takes
     `busy`, which marks its button `aria-disabled`; Cancel waits), and a
-    refusal says why in an alert callout, as Workflows does. Not walked on
-    Lightning. Counts:
+    refusal says why in an alert callout, as Workflows does. If the identity
+    or the directory can't load, the system still shows, without its route.
+    The grants route now sends JSON:API resources, mapped in
+    `useAccessGrants`. Not walked on Lightning. Counts:
     wrappers reading fixtures 15 → 14 of 25; page-data.ts 658 → 619 lines;
     files importing it 72 → 67; pages in their own folder 7 → 8 of 24; page
-    and query tests 15 → 17; tests 220 → 234; the ratchet unchanged.
+    and query tests 15 → 17; tests 220 → 235;
+    classNamesInPages 106 → 103.
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 

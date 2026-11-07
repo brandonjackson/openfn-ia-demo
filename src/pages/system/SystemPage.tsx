@@ -21,6 +21,7 @@ import SystemEnvironments from "../../components/domain/SystemEnvironments";
 import TextLink from "../../components/primitives/TextLink";
 import SystemFormModal from "../../components/domain/SystemFormModal";
 import Inline from "../../components/primitives/Inline";
+import Stack from "../../components/primitives/Stack";
 import ConnectionMethodBadge from "../../components/domain/ConnectionMethodBadge";
 import XRoadAccessBadge from "../../components/domain/XRoadAccessBadge";
 import XRoadConnectionDetails from "../../components/domain/XRoadConnectionDetails";
@@ -55,11 +56,11 @@ const grantColumns = (onRevoke?: (grant: AccessGrant) => void): DataTableColumn<
       const isProject = g.grantedToType === "project";
       const Icon = isProject ? FolderOpen : User;
       return (
-        <span className="flex items-center gap-2">
+        <Inline gap="sm">
           <Icon size={14} className="flex-shrink-0 text-gray-400" />
           <span className="font-medium text-gray-900">{g.grantedTo}</span>
           <Badge label={isProject ? "Project" : "User"} tone={isProject ? "pink" : "indigo"} />
-        </span>
+        </Inline>
       );
     },
   },
@@ -130,8 +131,8 @@ export default function SystemPage({ node, ancestors, data, onRevokeGrant, onSav
   }
 
   return (
-    <div className="space-y-8">
-      <div>
+    <Stack gap="xl">
+      <Stack gap="lg">
         <PageHeader
           breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
           icon={Globe}
@@ -162,10 +163,8 @@ export default function SystemPage({ node, ancestors, data, onRevokeGrant, onSav
             )
           }
         />
-        <div className="mt-6">
-          <PropertyList properties={properties} />
-        </div>
-      </div>
+        <PropertyList properties={properties} />
+      </Stack>
 
       {refusal && (
         <Callout variant="danger" title={refusal.title} role="alert">
@@ -226,6 +225,6 @@ export default function SystemPage({ node, ancestors, data, onRevokeGrant, onSav
           steps, but lose the system they talk to.
         </Text>
       </ConfirmModal>
-    </div>
+    </Stack>
   );
 }

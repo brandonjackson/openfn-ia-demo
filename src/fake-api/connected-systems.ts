@@ -120,7 +120,16 @@ export const systemRoutes: Record<string, Handler> = {
   "GET /api/demo/connected_systems/:id/access_grants": ({ id }, _body, query) => {
     if (!isUuid(id)) return badId("id");
     if (!systems.rows().some((r) => r.id === id)) return notFound();
-    return json(200, paged(`/api/demo/connected_systems/${id}/access_grants`, grants.rows().filter((g) => g.system_id === id), query));
+    const rows = grants
+      .rows()
+      .filter((g) => g.system_id === id)
+      .map((g) => ({
+        type: "access_grants",
+        id: g.id,
+        attributes: { granted_to: g.grantedTo, granted_to_type: g.grantedToType, scope: g.scope, last_accessed: g.lastAccessed },
+        relationships: { connected_system: { data: { type: "connected_systems", id } } },
+      }));
+    return json(200, paged(`/api/demo/connected_systems/${id}/access_grants`, rows, query));
   },
   "DELETE /api/demo/connected_systems/:id/access_grants/:grant_id": ({ id, grant_id }) => {
     const g = grants.rows().find((r) => r.id === grant_id && r.system_id === id);

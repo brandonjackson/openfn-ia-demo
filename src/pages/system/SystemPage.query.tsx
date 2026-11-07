@@ -15,7 +15,8 @@ import SystemPage from "./SystemPage";
  * Feeds a connected system's page from the demo's own connected-systems
  * routes: editing it, revoking access and deleting it go through them. For a
  * system reached over X-Road, the organisation's X-Road identity and the
- * directory's member and service come from the organisation's routes. A
+ * directory's member and service come from the organisation's routes, and
+ * are left out (not the whole page) while they load or if they can't. A
  * system reached over X-Road isn't there without X-Road. An old link by a
  * fixture's slug is sent on by the route table.
  */
@@ -32,11 +33,12 @@ export default function SystemPageQuery({ route }: { route: PageRoute }) {
   const { status: directoryStatus, directory } = useXRoadDirectory(overXRoad);
   const saves = useSystemSaves();
   return (
-    <Loaded status={combine(status, grantsStatus, identityStatus, directoryStatus)} path={route.currentPath}>
+    <Loaded status={combine(status, grantsStatus)} path={route.currentPath}>
       {() => {
         if (!system) return <NotFoundPage path={route.currentPath} reason="data" />;
+        // The route's details are left out until the identity and the directory load, and if either can't.
         const xroad =
-          connection?.method === "xroad" && identity && directory
+          connection?.method === "xroad" && identityStatus.state === "ready" && directoryStatus.state === "ready" && identity && directory
             ? {
                 org: identity,
                 member: findMember(directory.members, connection.route.memberId),

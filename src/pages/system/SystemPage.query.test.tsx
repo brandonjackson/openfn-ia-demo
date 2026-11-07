@@ -13,8 +13,7 @@ import SystemPageQuery from "./SystemPage.query";
 const wait = { timeout: 3000 };
 
 type Systems = { data: { id: string; attributes: { name: string; connection?: { method: string } } }[] };
-// Grants are listed as rows, as the demo's grants route sends them.
-type Grants = { data: { id: string; grantedTo: string }[] };
+type Grants = { data: { id: string; attributes: { granted_to: string } }[] };
 
 /** The seeded system with this name, as the server lists it. */
 async function systemNamed(name: string) {
@@ -51,7 +50,7 @@ describe("SystemPageQuery", () => {
     const grants = await request<Grants>("GET", `/api/demo/connected_systems/${dhis2.id}/access_grants`);
     renderRoute(dhis2.id);
     expect(await screen.findByRole("heading", { name: "DHIS2" }, wait)).toBeTruthy();
-    expect(screen.getByText(grants.data[0]!.grantedTo)).toBeTruthy();
+    expect(screen.getByText(grants.data[0]!.attributes.granted_to)).toBeTruthy();
   });
 
   it("shows an X-Road system's route from the organisation's identity and the directory", async () => {
@@ -91,10 +90,17 @@ describe("SystemPageQuery", () => {
     expect(await screen.findByText("Page Not Found", {}, wait)).toBeTruthy();
   });
 
-  it("shows the server's message when the X-Road directory fails to load", async () => {
+  it("still shows an X-Road system, without its route, when the directory fails to load", async () => {
     const system = await systemNamed("National ID verification");
     failNext("GET /api/demo/organization/xroad/directory", { status: 500, code: "internal", detail: "The directory is unavailable." });
     renderRoute(system.id);
-    expect(await screen.findByText("The directory is unavailable.", {}, wait)).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "National ID verification" }, wait)).toBeTruthy();
+    expect(screen.queryByText(/FJ\/GOV\/MOI/)).toBeNull();
+  });
+
+  it("shows the server's message when the system fails to load", async () => {
+    failNext("GET /api/demo/connected_systems", { status: 500, code: "internal", detail: "Systems are unavailable." });
+    renderRoute("0d6f4a52-1c1e-4b35-9a43-5b0b7c1e2a10");
+    expect(await screen.findByText("Systems are unavailable.", {}, wait)).toBeTruthy();
   });
 });

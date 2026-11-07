@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ComponentPage, { type ComponentPageProps } from "./ComponentPage";
-import { withRouter } from "../stories/decorators";
-import { projects } from "../fixtures/projects";
-import { fixtureComponentContents } from "../fixtures/project-components";
-import type { IANode } from "../model/ia-tree";
+import { withRouter } from "../../stories/decorators";
+import { projects } from "../../fixtures/projects";
+import { fixtureComponentContents } from "../../fixtures/project-components";
+import type { IANode } from "../../model/ia-tree";
 
 const node: IANode = { id: "component", label: "Component", pageType: "component" };
 const project = projects[0];
@@ -19,7 +19,7 @@ function storyArgs(componentId: string): ComponentPageProps {
       { node: { id: "components", label: "Components" }, path: `/projects/${project.id}/components` },
     ],
     currentPath: `/projects/${project.id}/components/${component.id}`,
-    data: { pageType: "component", projectId: project.id, component, content: componentContents[componentId], collection: collections[componentId] },
+    data: { projectId: project.id, component, content: componentContents[componentId], collection: collections[componentId] },
     takenNames: [],
     onSaveContent: async () => {},
     onEditDetails: async () => {},

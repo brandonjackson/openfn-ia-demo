@@ -1,21 +1,31 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowLeftRight, MoreVertical, Pencil, Power, Trash2, Workflow } from "lucide-react";
-import type { ChannelDraft } from "../model/channels";
-import ChannelFormModal from "../components/domain/ChannelFormModal";
-import Callout from "../components/primitives/Callout";
-import ConfirmModal from "../components/primitives/ConfirmModal";
-import DropdownMenu from "../components/primitives/DropdownMenu";
-import IconButton from "../components/primitives/IconButton";
-import Inline from "../components/primitives/Inline";
-import Stack from "../components/primitives/Stack";
-import type { PageProps } from "../model/ia-tree";
-import type { ChannelPageData } from "../model/page-data";
-import { channelTypeConfig } from "../components/domain/channel-types";
-import PageHeader from "../components/patterns/PageHeader";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import Badge from "../components/primitives/Badge";
-import Button from "../components/primitives/Button";
-import ChannelView from "../components/domain/ChannelView";
+import type { ChannelDraft } from "../../model/channels";
+import ChannelFormModal from "../../components/domain/ChannelFormModal";
+import Callout from "../../components/primitives/Callout";
+import ConfirmModal from "../../components/primitives/ConfirmModal";
+import DropdownMenu from "../../components/primitives/DropdownMenu";
+import IconButton from "../../components/primitives/IconButton";
+import Inline from "../../components/primitives/Inline";
+import Stack from "../../components/primitives/Stack";
+import type { PageProps } from "../../model/ia-tree";
+import { errorMessageOf } from "../../model/form-error";
+import { channelTypeConfig } from "../../components/domain/channel-types";
+import PageHeader from "../../components/patterns/PageHeader";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import Badge from "../../components/primitives/Badge";
+import Button from "../../components/primitives/Button";
+import ChannelView from "../../components/domain/ChannelView";
+import type { ProjectComponentItem } from "../../model/component-types";
+import type { ChannelDetails } from "../../model/channels";
+
+/** A channel's page in its project, opened from the project's Components. */
+export interface ChannelPageData {
+  projectId: string;
+  projectName: string;
+  component: ProjectComponentItem;
+  channel: ChannelDetails;
+}
 
 export interface ChannelPageProps extends PageProps<ChannelPageData> {
   /** Opens the workflow whose runs the channel's messages started or came from, when there is one. */
@@ -59,6 +69,21 @@ export default function ChannelPage({
   const enabled = channel.enabled ?? true;
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [refusal, setRefusal] = useState<{ title: string; detail: string }>();
+  const pending = useRef(false);
+  /** Runs a menu action, saying why if the server refuses it; a second press while one runs is ignored. */
+  const attempt = async (title: string, action: () => Promise<void>) => {
+    if (pending.current) return;
+    pending.current = true;
+    setRefusal(undefined);
+    try {
+      await action();
+    } catch (error) {
+      setRefusal({ title, detail: errorMessageOf(error) });
+    } finally {
+      pending.current = false;
+    }
+  };
   const menu = [
     ...(onEditChannel ? [{ id: "edit", label: "Edit", icon: Pencil }] : []),
     ...(onSetEnabled ? [{ id: "toggle", label: enabled ? "Turn off" : "Turn on", icon: Power }] : []),
@@ -91,13 +116,24 @@ export default function ChannelPage({
                 align="right"
                 widthClass="w-44"
                 items={menu}
-                onSelect={(id) => (id === "edit" ? setEditing(true) : id === "delete" ? setDeleting(true) : onSetEnabled?.(!enabled))}
+                onSelect={(id) =>
+                  id === "edit"
+                    ? setEditing(true)
+                    : id === "delete"
+                      ? setDeleting(true)
+                      : onSetEnabled && void attempt(`The channel wasn't turned ${enabled ? "off" : "on"}`, () => onSetEnabled(!enabled))
+                }
                 trigger={({ toggle }) => <IconButton icon={MoreVertical} label={`Actions for ${component.name}`} onClick={toggle} />}
               />
             )}
           </Inline>
         }
       />
+      {refusal && (
+        <Callout variant="danger" title={refusal.title} role="alert">
+          {refusal.detail}
+        </Callout>
+      )}
       {!enabled && (
         <Callout variant="warning" title="This channel is off">
           It refuses every request until it's turned back on.
@@ -130,7 +166,7 @@ export default function ChannelPage({
           onClose={() => setDeleting(false)}
           onConfirm={() => {
             setDeleting(false);
-            void onDeleteChannel();
+            void attempt("The channel wasn't deleted", onDeleteChannel);
           }}
         >
           Requests to it stop being forwarded straight away, and its address stops working. Workflows that call it will fail at that step.

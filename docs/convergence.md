@@ -485,6 +485,24 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   the ratchet unchanged.
   ([#218](https://github.com/brandonjackson/openfn-ia-demo/pull/218))
 
+- **Lane 3: A component's page reads only the API.** `ComponentPage`,
+  its wrapper and `ChannelPage` moved to `src/pages/component/` with page
+  tests for both, a query test, and `ComponentPageData` and
+  `ChannelPageData` into their page files (without `pageType`). Old slug
+  links (a fixture project's and any of its components, a workflow
+  included) are sent on by routing, in `src/app/component-links.ts` with
+  its own test, so the wrapper reads no fixtures. A channel's Edit, Turn off and Delete are
+  offered only with `update_channel` and `delete_channel` (the server
+  refused a viewer's), and a refused toggle or delete, on a channel or any
+  other component, now says why in an alert callout, as Workflows does;
+  a second Turn off while one saves is ignored, and each component's page
+  starts fresh (keyed by its id).
+  Checked on the fake server only. Counts (after lanes 1, 2 and 4): wrappers reading
+  fixtures 8 → 7 of 24; page-data.ts 399 → 372 lines; files importing it
+  45 → 42; pages in their own folder 12 → 14 of 24; page and query tests
+  25 → 28; the ratchet unchanged.
+  ([#213](https://github.com/brandonjackson/openfn-ia-demo/pull/213))
+
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
 ## Decided by Brandon (6 Nov 2026)

@@ -130,9 +130,9 @@ as the demo user, and as the superuser for Admin settings.
 | Projects | Works | Lightning's projects. Counts are zero and activity empty until `include=stats`. |
 | Project overview | Works | On the API only: Lightning's workflows, work orders, channels and (with `permissions`) collections; services and the other kinds of component from the demo's own routes, empty. Checked on the fake server; not yet walked on Lightning since (see convergence.md, Now). |
 | Workflows | Works | On the API only: Lightning's workflows and work orders, service badges from the demo's own routes (empty). No descriptions or members on any build (api-gaps.md). Checked on the fake server; not yet walked on Lightning since (see convergence.md, Now). |
-| Workflow editor | Works | Draws Lightning's workflow, read only on main as designed. No saved inputs until project dataclips. |
+| Workflow editor | Works | Draws Lightning's workflow, read only on main as designed; its service ("See service listing") from the demo's routes, none. No saved inputs until project dataclips. Adaptors, the assistant and runs started here are the demo's (api-gaps.md). Checked on the fake server; not yet walked on Lightning since. |
 | Components | Works | Workflows from Lightning, other kinds from the demo's own routes, starting empty. |
-| Sandboxes | Works | Lightning's sandboxes. |
+| Sandboxes | Works | Lightning's sandboxes; the selected one is kept per project id, shared with the project bar and the editor. |
 | History (project, all) | Works | Lightning's work orders and channel requests. |
 | Insights (project) | Works | From Lightning's work orders. |
 | Settings | Works with gaps | Reads Lightning's settings; read only until `permissions`. |

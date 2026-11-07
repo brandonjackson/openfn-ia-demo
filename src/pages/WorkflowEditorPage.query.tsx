@@ -2,12 +2,11 @@ import { useEffect, useMemo, useRef } from "react";
 import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import WorkflowEditorPage from "./WorkflowEditorPage";
 import { type Workflow, type WorkflowFileContents, type WorkOrder } from "../model/workflow";
-import type { WorkflowDocument } from "../model/workflow-document";
-import { isLive } from "../model/workflow-document";
+import { type WorkflowDocument, isLive } from "../model/workflow-document";
 import type { ProjectDetails } from "../model/projects";
 import { buildStarterWorkflow, workflowGraphs } from "../fixtures/workflow";
 import { simulateRun } from "../fixtures/runs";
-import { apiProjectId, fixtureProject, fixtureWorkflow, serviceForWorkflow } from "../fixtures/projects";
+import { apiProjectId, fixtureProject, fixtureWorkflow } from "../fixtures/projects";
 import { apiWorkflowId } from "../fixtures/ids";
 import { serviceCatalogData } from "../fixtures/service-catalog";
 import { useSandbox } from "../app/sandbox-state";
@@ -26,7 +25,9 @@ import { assistantConversations, assistantPlanResult, assistantReply, assistantS
 import { adaptorChoices, adaptorInfo, adaptorSnippets } from "../fixtures/adaptor-reference";
 import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
 import { codeSummary } from "../fixtures/code-summaries";
-import { serviceListing, workflowDocs } from "../fixtures/workflow-files";
+import { workflowDocs } from "../fixtures/workflow-files";
+import { serviceListing, serviceUrl } from "../model/services";
+import { useProjectServices } from "../api/services";
 import type { AdaptorReference } from "../model/adaptor-reference";
 import type { AdaptorCatalog } from "../model/adaptor-catalog";
 import { useFlags } from "../app/feature-flags";
@@ -105,7 +106,7 @@ function NewWorkflow({ params }: { params: URLSearchParams }) {
   const navigate = useNavigate();
   const projectParam = params.get("project") ?? "";
   const rootId = fixtureProject(projectParam) ? apiProjectId(fixtureProject(projectParam)!.id) : projectParam;
-  const [sandboxName] = useSandbox(fixtureProject(rootId)?.id ?? rootId);
+  const [sandboxName] = useSandbox(rootId);
   const { project: root, status: rootStatus } = useProject(rootId);
   const { sandboxes, status: sandboxStatus } = useSandboxes(rootId);
   const target = sandboxName === "main" ? root : (sandboxes.find((s) => s.name === sandboxName) ?? root);
@@ -150,9 +151,8 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const navigate = useNavigate();
   const flags = useFlags();
   const [searchParams, setSearchParams] = useSearchParams();
-  const fixtureRoot = fixtureProject(root.id);
   // The editor shares the project's selected sandbox with the rest of the app.
-  const [sandbox, setSandbox] = useSandbox(fixtureRoot?.id ?? root.id);
+  const [sandbox, setSandbox] = useSandbox(root.id);
   const selected = sandbox === "main" ? root : (sandboxes.find((s) => s.name === sandbox) ?? root);
   const { workflows: here } = useProjectWorkflows(selected.id);
   const { workflows: onMain } = useProjectWorkflows(root.id);
@@ -169,8 +169,10 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const adaptors: AdaptorReference = { ...adaptorReference, credentials };
 
   const slug = fixtureWorkflow(main.id)?.slug;
-  // "See details" opens the service listing that documents this workflow.
-  const service = !slug || !flags.serviceCatalog ? undefined : serviceForWorkflow(slug);
+  // "See details" opens the page of the service main's workflow backs, from the services API.
+  const { services } = useProjectServices(root.id, flags.serviceCatalog);
+  const backed = services.find((s) => s.workflowId === main.id);
+  const service = backed && { service: backed, path: `/projects/${root.id}/services/${backed.id}`, url: serviceUrl(backed) };
   // The shown copy's own run history: main's on main; a sandbox's copy starts with none, as in Lightning.
   const { workOrders: projectOrders } = useWorkOrders([shown.project_id]);
   const { dataclips: projectClips } = useDataclips(shown.project_id);

@@ -46,6 +46,17 @@ path in its hook file.
 - **The demo's view of you** (`/api/demo/me`) and **Reset demo data**
   (`/api/demo/reset`): the demo's own controls, not product gaps.
 
+- **The editor's demo behaviours** (the workflow editor). What isn't a
+  record a server sends still comes from fixtures, on every build: the
+  adaptor catalog and snippets (`adaptor-catalog.ts`,
+  `adaptor-reference.ts`; would need a list of adaptors with their
+  credential schemas and docs), the assistant's summaries, replies and past
+  conversations (`code-summaries.ts`, `assistant.ts`; api/ai-assistant.md
+  plans AI sessions), a run started in the editor (`simulateRun`; would need
+  Lightning's worker behind `POST` a work order), the workflow's context and
+  spec docs (`workflow-files.ts`, behind the workflow docs flag), and the
+  starter workflow and channel for "New workflow" from the Services catalog.
+
 ## Missing from a resource api/ covers
 
 - **Workflows: a description and who edits them** (a project's Workflows

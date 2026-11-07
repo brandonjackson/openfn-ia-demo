@@ -9,7 +9,8 @@ import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } 
 import { connectedSystems } from "../fixtures/connected-systems";
 import { codeSummary } from "../fixtures/code-summaries";
 import { channelDetails } from "../fixtures/channels";
-import { serviceListing, workflowDocs } from "../fixtures/workflow-files";
+import { workflowDocs } from "../fixtures/workflow-files";
+import { serviceListing } from "../model/services";
 import { fixtureComponentContents } from "../fixtures/project-components";
 import type { ProjectComponent, ProjectService } from "../model/projects";
 import type { WorkflowFileContents } from "../model/workflow";

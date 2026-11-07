@@ -45,3 +45,22 @@ export interface ServiceApiSpec {
   outputDescription: string;
   outputExample: string;
 }
+
+/** A published service's listing, as service.md in the code explorer. */
+export function serviceListing(service: ProjectServiceItem): string {
+  const api = service.api;
+  const lines = [`# ${service.name}`, "", service.description, "", `Status: ${service.status}`];
+  if (!api) return [...lines, "", "No API published yet. Publishing the service generates one from the workflow.", ""].join("\n");
+  lines.push("", "## How to call it", api.trigger === "webhook" ? `\`${api.invocation}\`` : api.invocation);
+  if (api.auth) lines.push("", `Auth: ${api.auth}`);
+  if (api.inputFields?.length) {
+    lines.push("", "## Input", "| Field | Type | Required | Description |", "| --- | --- | --- | --- |");
+    for (const f of api.inputFields) lines.push(`| ${f.name} | ${f.type} | ${f.required ? "yes" : "no"} | ${f.description} |`);
+  }
+  if (api.requestExample) lines.push("", "## Example request", "```bash", api.requestExample, "```");
+  lines.push("", "## Output", api.outputDescription, "", "```json", api.outputExample, "```", "");
+  return lines.join("\n");
+}
+
+/** Where a webhook service is called, read from how it's invoked (`POST https://…`), if it says. */
+export const serviceUrl = (service: ProjectServiceItem): string | undefined => service.api?.invocation.match(/https?:\/\/\S+/)?.[0];

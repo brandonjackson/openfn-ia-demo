@@ -1,5 +1,4 @@
-import { useState } from "react";
-import type { ComponentProps, ReactNode } from "react";
+import { useState, type ComponentProps, type ReactNode } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import CodeWorkspace from "./CodeWorkspace";
 import type { ExplorerFile } from "./EditorExplorer";
@@ -20,7 +19,8 @@ import { channelDetails } from "../../fixtures/channels";
 import { projects } from "../../fixtures/projects";
 import { adaptorChoices, adaptorInfo, adaptorSnippets, projectCredentials } from "../../fixtures/adaptor-reference";
 import { connectedSystems } from "../../fixtures/connected-systems";
-import { serviceListing, workflowDocs } from "../../fixtures/workflow-files";
+import { workflowDocs } from "../../fixtures/workflow-files";
+import { serviceListing } from "../../model/services";
 import { fixtureComponentContents } from "../../fixtures/project-components";
 import CollectionView from "./CollectionView";
 import ComponentView from "./ComponentView";

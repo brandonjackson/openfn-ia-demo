@@ -3,7 +3,7 @@ import Loaded from "../../app/Loaded";
 import { useProject, useProjectList } from "../../api/projects";
 import { useWorkOrders } from "../../api/work-orders";
 import { combine } from "../../api/status";
-import { insightsFor } from "../../model/insights";
+import { insightsFor, withWorkOrders } from "../../model/insights";
 import { isOpenable } from "../../model/projects";
 import InsightsPage from "./InsightsPage";
 import { pageFrame } from "../../app/page-frame";
@@ -26,11 +26,7 @@ export default function InsightsPageQuery({ route }: { route: PageRoute }) {
       {() => (
         <InsightsPage
           {...pageFrame(route, {}, project?.name)}
-          data={insightsFor(
-            scope.map((p) => ({ id: p.id, name: p.name, workOrders: workOrders.filter((o) => o.projectId === p.id).map((o) => o.workOrder) })),
-            projectId ? "This project" : "Across all projects",
-            !projectId,
-          )}
+          data={insightsFor(withWorkOrders(scope, workOrders), projectId ? "This project" : "Across all projects", !projectId)}
         />
       )}
     </Loaded>

@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import OverviewPage, { type OverviewPageData } from "./OverviewPage";
 import { withRouter } from "../../stories/decorators";
-import { weekTiles } from "../../model/insights";
+import { insightsFor, weekTiles } from "../../model/insights";
 import { insightsData } from "../../fixtures/insights";
 import { connectedSystemSummaries, recommendedSystems } from "../../fixtures/connected-systems";
 import { projectSummaries } from "../../fixtures/projects";
@@ -42,4 +42,14 @@ export const FewProjects: Story = {
 /** Without the Connected systems flag: no setup section. */
 export const WithoutConnectedSystems: Story = {
   args: { data: { ...data, connectedSystems: undefined } },
+};
+
+/** A week with no runs yet. */
+export const QuietWeek: Story = {
+  args: { data: { ...data, tiles: weekTiles(insightsFor([], "Across all projects", false)) } },
+};
+
+/** You're in no projects yet. */
+export const NoProjects: Story = {
+  args: { data: { ...data, projects: [] } },
 };

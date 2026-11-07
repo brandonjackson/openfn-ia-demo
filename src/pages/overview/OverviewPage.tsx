@@ -39,7 +39,7 @@ export default function OverviewPage({ data, onAddSystem }: OverviewPageProps) {
         description="How things are running, and the projects you're working on."
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {data.tiles.map((tile) => (
           <StatTile
             key={tile.label}

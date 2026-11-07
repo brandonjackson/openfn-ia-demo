@@ -41,7 +41,7 @@ and to mark what would change the look.
   | Lane | Pages (wrappers) | Owns |
   | ---- | ---------------- | ---- |
   | 1. Project settings | `ProjectSettingsPage` (into `project-settings/`) | `project-records.query.ts` and `asProject`: remove them once Settings is off them; `Shell.query.tsx` imports `asProject` too, so swap that one call when you remove it |
-  | 2. Runs | `HistoryPage`, `InsightsPage` (project and all), `OverviewPage` (all) | `fixtures/history.ts`, `fixtures/insights.ts`, `fixtures/overview.ts`, `model/history.ts`, `model/runs.ts` |
+  | 2. Runs | `HistoryPage`, `InsightsPage` (project and all), `OverviewPage` (all) | `fixtures/history.ts`, `fixtures/insights.ts`, `fixtures/overview.ts` (gone), `model/history.ts`, `model/runs.ts`, `model/insights.ts` |
   | 3. Components | `ProjectComponentsPage`, `ComponentPage` (and `ChannelPage`'s folder) | `component-records.query.ts`, `channel-records.query.ts`, `model/component-types.ts` |
   | 4. Shell and small pages | `Shell.query.tsx` (instance, you, superuser from the API), `PlaceholderPage`, `ProjectCreatePage`, and the Sandboxes page's folder and tests (it already reads no fixtures) | `src/app/` except `PageRoute.tsx` lines other lanes add |
   | 5. Demo areas | `ServicesPage`, `ServicePage`, `SystemsPage`, `SystemPage` (X-Road identity from `GET /api/demo/organization/xroad`) | `flagged.fixtures.ts`, `fixtures/xroad.ts`, `fixtures/connected-systems.ts`, `fixtures/service-catalog.ts`, `model/xroad.ts` |
@@ -493,7 +493,10 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   `insightsFor` (`model/insights.ts`) for every project you can open, so
   they match Insights; projects and systems were already the API's. Nothing
   in api/ says what isn't running, so the Status tile is left out on every
-  build (api-gaps.md; **this changes the look**: two tiles, not three).
+  build (api-gaps.md; **this changes the look**: two tiles, in two
+  columns, not three). The page doesn't wait for the work orders: the tiles
+  appear once they're in and are left out if they fail (decision 1's
+  section pattern would give them their own loading and error).
   The add-a-system catalog (adaptors and suggested systems) still comes
   from fixtures, marked `debt:`: it's lane 5's (`fixtures/connected-systems.ts`),
   and the Systems page needs the same, so the wrapper still counts as

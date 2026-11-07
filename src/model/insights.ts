@@ -115,9 +115,15 @@ export function insightsFor(projects: { id: string; name: string; workOrders: Wo
 
 /** Overview's tiles for the week: its runs and its errors, each opening Insights for the detail. */
 export function weekTiles(week: Insights): StatTileData[] {
+  // Insights' tiles lead with runs, then errors (insightsFor; its tests hold the order).
   const [runs, errors] = week.tiles;
   return [
     { label: "Runs this week", value: runs!.value, trend: runs!.trend, linkTo: "/insights" },
     { label: "Errors this week", value: errors!.value, detail: errors!.detail, trend: errors!.trend, linkTo: "/insights" },
   ];
+}
+
+/** Each of `projects` with its own work orders, from a list spanning them all, for `insightsFor`. */
+export function withWorkOrders(projects: { id: string; name: string }[], workOrders: { projectId: string; workOrder: WorkOrder }[]) {
+  return projects.map((p) => ({ id: p.id, name: p.name, workOrders: workOrders.filter((o) => o.projectId === p.id).map((o) => o.workOrder) }));
 }

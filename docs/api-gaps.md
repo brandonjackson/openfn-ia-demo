@@ -79,6 +79,11 @@ path in its hook file.
   checks the URL only as it saves. The form has a Test button. Would need a
   check that saves nothing (say `POST /api/auth_provider/test`). Demo:
   `/api/demo/auth_provider/test`, which answers with what it found.
+- **Instance: its name** (the sidebar's logo, the account menu; api/account.md).
+  `GET /api/instance` has its URL but no name. Would need a `name` (and, if
+  the tile's letters aren't to be worked out from it, `initials`). Demo: the
+  fake server adds `name`; without one (on Lightning) the instance goes by its
+  URL's host (`instanceName` in `model/account.ts`).
 - **Instance: whether it sends usage metrics** (Admin settings, Maintenance;
   api/account.md). `GET /api/instance` doesn't say. Demo: the fake server adds
   `usage_metrics_enabled` to it.

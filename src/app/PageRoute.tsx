@@ -6,6 +6,8 @@ import { useFlags } from "./feature-flags";
 import { findNodeByPath, type PageRoute as Route } from "./ia-utils";
 import { useShell } from "../components/domain/shell-context";
 import { apiProjectId, projects as fixtureProjects } from "../fixtures/projects";
+import Callout from "../components/primitives/Callout";
+import LoadingState from "../components/primitives/LoadingState";
 import NotFoundPage from "../pages/NotFoundPage";
 import OverviewPageQuery from "../pages/OverviewPage.query";
 import SystemsPageQuery from "../pages/SystemsPage.query";
@@ -76,12 +78,13 @@ const movedPaths: Record<string, string> = {
  * hands the route to the wrapper for that kind of page. Overview, the home
  * page, sits at "/" outside the tree; with the Organizations flag off, home
  * is the projects list. A page whose feature flag is off says so. Admin
- * settings only exist for a superuser.
+ * settings only exist for a superuser, so they wait until the API says
+ * whether you are one.
  */
 export default function PageRoute() {
   const { pathname, search, hash } = useLocation();
   const flags = useFlags();
-  const { isSuperuser } = useShell();
+  const { isSuperuser, userError } = useShell();
 
   // Projects are named by their id on the API now; an old link by the fixture's slug still lands.
   const slug = pathname.match(/^\/projects\/([^/]+)/)?.[1];
@@ -96,9 +99,19 @@ export default function PageRoute() {
   const moved = movedPaths[pathname.replace(/\/$/, "")];
   if (moved) return <Navigate to={moved} replace />;
 
-  const result = findNodeByPath(treeForViewer(visibleTree(iaTree, flags), isSuperuser), pathname);
+  const result = findNodeByPath(treeForViewer(visibleTree(iaTree, flags), isSuperuser ?? false), pathname);
   if (!result) {
-    const hidden = findNodeByPath(treeForViewer(iaTree, isSuperuser), pathname);
+    // Admin settings wait until the API has said whether you're a superuser, and say why if it couldn't.
+    if (isSuperuser === undefined && findNodeByPath(visibleTree(iaTree, flags), pathname)) {
+      return userError ? (
+        <Callout variant="danger" title="This page couldn't load">
+          {userError}
+        </Callout>
+      ) : (
+        <LoadingState />
+      );
+    }
+    const hidden = findNodeByPath(treeForViewer(iaTree, isSuperuser ?? false), pathname);
     const flag = hidden && [...hidden.ancestors.map((a) => a.node), hidden.node].find((n) => n.flag && !flags[n.flag])?.flag;
     return flag ? (
       <NotFoundPage path={pathname} reason="flag" feature={flagById(flag).label} />

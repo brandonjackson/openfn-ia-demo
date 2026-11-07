@@ -382,6 +382,22 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   their own folder 7 → 8 of 24; page and query tests 15 → 17; the ratchet
   unchanged.
   ([#210](https://github.com/brandonjackson/openfn-ia-demo/pull/210))
+- **Lane 4: The shell reads only the API.** The chrome takes the instance
+  from `GET /api/instance` (`useInstance`) and you and whether you're a
+  superuser from `GET /api/me` (`useMe`), not `fixtures/user.ts`. Lightning
+  sends no instance name, so the fake server adds `name` ("Sim DTU") and the
+  shell names an instance without one by its URL's host, or the page's own
+  host if it couldn't be loaded (`instanceName`, `instanceInitials` in
+  `model/account.ts`; api-gaps.md). The logo's tile is blank until then; the
+  account menu shows once you're loaded (Sidebar's Loading story). Admin
+  settings wait (`LoadingState`) until it's known whether you're a
+  superuser, instead of saying Not Found first, and show the server's
+  reason if you couldn't be loaded. App tests may run on the fake server
+  (eslint), as page query tests do. The shell still fills its project with
+  `asProject`, which lane 1 removes; the count misses that import. Checked
+  on the fake server only: this session has no Elixir to run Lightning.
+  Counts: wrappers reading fixtures 14 → 13 of 25; tests 234 → 244;
+  the rest unchanged.
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
@@ -445,3 +461,8 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
 5. **"Choose a credential type" as a callout** above the picker. The
    picker has no field to put it under; a labelled group of types carrying
    the message would read better but changes the picker's look.
+6. **No account menu when you can't be loaded** (lane 4, from its
+   reviewers). If `GET /api/me` fails, the sidebar has no account menu, so
+   no Log out or Settings, and nothing says why. Would draw a plain "Log
+   out" (and the reason) in its place. Admin settings' wait could also say
+   "Loading Admin settings…" rather than "Loading…".

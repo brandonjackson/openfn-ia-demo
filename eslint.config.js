@@ -174,7 +174,9 @@ export default defineConfig([
   },
   {
     // Wrappers and the app call the API's hooks; neither reaches the fake server or TanStack Query itself.
+    // Their tests run them on the fake server, as a page's XPage.query.test.tsx does.
     files: ['src/pages/**/*.{fixtures,query}.{ts,tsx}', 'src/app/**/*.{ts,tsx}'],
+    ignores: ['**/*.test.{ts,tsx}'],
     rules: {
       'no-restricted-imports': ['error', { paths: [tanstack], patterns: [fakeApi] }],
     },

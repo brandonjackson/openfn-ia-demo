@@ -22,8 +22,8 @@ and to mark what would change the look.
 - **Lightning run (7 Nov 2026, Brandon's brief).** Every wrapper onto the
   API, one page per PR, so each works the same on the fake server and on
   Lightning at `/v3` (lightning-backend.md). Most-seen pages first:
-  Workflows (done, PR 15), the project overview (done, PR 16), then the
-  editor, then the rest `npm run convergence` lists. What the API can't give
+  Workflows (done, PR 15), the project overview (done, PR 16), the
+  editor's data (done, PR 17; its demo behaviours stay, api-gaps.md), then the rest `npm run convergence` lists. What the API can't give
   is left out and goes in api-gaps.md. **Not walked on Lightning:** this
   session couldn't run Lightning locally (fetching and running its Elixir
   dependencies was refused by the session's permission check), so each
@@ -309,7 +309,21 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     their own folder 6 → 7 of 24; page and query tests 12 → 14; the ratchet
     unchanged.
 
-**PRs done: 16** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
+17. **The editor's service and the sandbox selection from the API**
+    (Lightning run). "See service listing", the webhook URL and service.md
+    come from the services API (the service main's workflow backs), not the
+    fixtures' `serviceForWorkflow`; `serviceListing` and a new `serviceUrl`
+    moved to `model/services.ts`. The selected sandbox is kept by project id
+    in the shell, the editor and the Sandboxes page alike, not by fixture
+    slug, which takes the Sandboxes page off the fixtures. First editor
+    test, `WorkflowEditorPage.query.test.tsx` (it stubs `ResizeObserver` and
+    `scrollTo` for jsdom). The editor still reads fixtures for what isn't
+    data: adaptors, the assistant, simulated runs, docs, old slug links and
+    "New workflow" from the Services catalog (api-gaps.md, "The editor's
+    demo behaviours"). Counts: wrappers reading fixtures 16 → 15 of 25;
+    page and query tests 14 → 15; the rest unchanged.
+
+**PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
 ## Decided by Brandon (6 Nov 2026)
 

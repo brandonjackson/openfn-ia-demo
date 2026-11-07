@@ -4,7 +4,6 @@ import { ShellContext } from "../components/domain/shell-context";
 import { useProject, useProjectList } from "../api/projects";
 import { useSandboxes } from "../api/workflows";
 import { useMe } from "../api/account";
-import { fixtureProject } from "../fixtures/projects";
 import { currentInstance, currentUser, currentUserIsSuperuser } from "../fixtures/user";
 import { asProject } from "../pages/project-records.query";
 import { isOpenable } from "../model/projects";
@@ -32,9 +31,8 @@ export default function ShellQuery({ children }: { children: ReactNode }) {
     if (details && !details.scheduledDeletion) noteOpened(details.id);
   }, [details]);
 
-  // The selected sandbox is kept by the app, per project (by its fixture slug, for projects seeded from one).
-  const sandboxKey = fixtureProject(details?.id)?.id ?? details?.id ?? "";
-  const [selected, setSandbox] = useSandbox(sandboxKey);
+  // The selected sandbox is kept by the app, per project, by its id.
+  const [selected, setSandbox] = useSandbox(details?.id ?? "");
   const { sandboxes } = useSandboxes(details?.id);
   const live = sandboxes.filter((s) => !s.scheduledDeletion).map((s) => s.name);
   // A sandbox that's gone (deleted, or never made) leaves you on main.

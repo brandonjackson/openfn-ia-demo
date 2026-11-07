@@ -7,7 +7,6 @@ import { combine } from "../api/status";
 import type { SandboxItem } from "../model/page-data";
 import type { ProjectDetails } from "../model/projects";
 import { sandboxColorHex, sandboxColorName, sandboxSlug } from "../model/sandboxes";
-import { fixtureProject } from "../fixtures/projects";
 import ProjectSandboxesPage from "./ProjectSandboxesPage";
 import { pageFrame } from "../app/page-frame";
 
@@ -30,7 +29,7 @@ export default function ProjectSandboxesPageQuery({ route }: { route: PageRoute 
   const live = sandboxes.filter((s) => !s.scheduledDeletion);
   const { status: changesStatus, changes } = useSandboxChanges(rootId, live);
   const saves = useSandboxSaves();
-  const [selected, setSelected] = useSandbox(fixtureProject(rootId)?.id ?? rootId ?? "");
+  const [selected, setSelected] = useSandbox(rootId ?? "");
 
   const byName = (name: string) => (name === "main" ? root : live.find((s) => s.name === name));
   const nameOf = (id: string | null) => (id === root?.id ? "main" : live.find((s) => s.id === id)?.name);

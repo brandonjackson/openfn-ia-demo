@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import PlaceholderPage from "./PlaceholderPage";
-import { withRouterAt } from "../stories/decorators";
-import { findNodeByPath } from "../app/ia-utils";
-import { iaTree } from "../model/ia-tree";
+import { withRouterAt } from "../../stories/decorators";
+import { findNodeByPath } from "../../app/ia-utils";
+import { iaTree } from "../../model/ia-tree";
 
 const deployments = findNodeByPath(iaTree, "/projects/project-a/deployments")!;
 

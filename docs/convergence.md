@@ -398,6 +398,18 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   on the fake server only: this session has no Elixir to run Lightning.
   Counts: wrappers reading fixtures 14 → 13 of 25; tests 234 → 244;
   the rest unchanged.
+  ([#212](https://github.com/brandonjackson/openfn-ia-demo/pull/212))
+- **Lane 4: Pages not built yet read only the API.** `PlaceholderPage`
+  moved to `src/pages/placeholder/` with its page and query tests. Its
+  wrapper no longer reads `fixtures/ids`: an old link naming a connected
+  system by the fixture's slug (`/connected-systems/dhis2/…`) is sent on to
+  its id by the route (`PageRoute`, beside the projects' redirect, with its
+  first tests in `PageRoute.test.tsx`), so every page under a system gets
+  it; an id it doesn't know is left as typed, to say Not Found. For lane 5: `SystemPage.query.tsx`'s own slug redirect
+  can't be reached now and can go. No look change, so only the architecture
+  and React reviewers ran. Checked on the fake server only. Counts: wrappers
+  reading fixtures 13 → 12 of 25; pages in their own folder 8 → 9 of 24;
+  page and query tests 17 → 19; tests 244 → 255; the rest unchanged.
 
 - **Lane 2: History reads only the API.** The page moved to
   `src/pages/history/` with its page and query tests, and
@@ -408,7 +420,8 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   stamps; a work order's received time is the demo's `received_at` or,
   as Lightning sends it, `inserted_at`. An old History link filtering by
   a project's or workflow's slug (`?project=`, `?workflow=`) is redirected
-  in `PageRoute.tsx`, beside the old project path redirect. A refused
+  in `PageRoute.tsx`, beside the other old-link redirects, and tested
+  there. A refused
   retry, retry from a step, cancel or export says why in an alert callout
   and keeps the picks; every notice is read out (a fresh `key` each time,
   success as `status`); a bulk action says "Retrying…" (or "Cancelling…",
@@ -417,10 +430,10 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   (`useHistoryExportSaves` takes the ids), and across projects there's no
   Export, since an export belongs to one project (it used to say "Export
   started." and do nothing). Lightning wasn't walked: this container has
-  no Elixir. Counts (after lanes 3 and 4): wrappers reading fixtures 13 →
-  12 of 25; page-data.ts 632 → 598 lines; files importing it 64 → 60;
-  pages in their own folder 8 → 9 of 24; page and query tests 17 → 19;
-  tests 244 → 262; the ratchet unchanged.
+  no Elixir. Counts (after lanes 3 and 4): wrappers reading fixtures 12 →
+  11 of 25; page-data.ts 632 → 598 lines; files importing it 64 → 60;
+  pages in their own folder 9 → 10 of 24; page and query tests 19 → 21;
+  tests 255 → 274; the ratchet unchanged.
   ([#211](https://github.com/brandonjackson/openfn-ia-demo/pull/211))
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.

@@ -12,7 +12,7 @@ function Framed() {
     <Layout
       currentPath={currentPath}
       sidebar={(drawer) => <Sidebar {...drawer} />}
-      logo={<InstanceLogo instance={instance} />}
+      logo={instance && <InstanceLogo instance={instance} />}
     >
       <p className="text-sm text-gray-500">The page goes here.</p>
     </Layout>

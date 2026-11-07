@@ -368,6 +368,22 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     demo behaviours"). Counts: wrappers reading fixtures 16 → 15 of 25;
     page and query tests 14 → 15; the rest unchanged.
 
+18. **Lane 4: The shell reads only the API.** The chrome takes the instance
+    from `GET /api/instance` (`useInstance`) and you and whether you're a
+    superuser from `GET /api/me` (`useMe`), not `fixtures/user.ts`. Lightning
+    sends no instance name, so the fake server adds `name` ("Sim DTU") and an
+    instance without one goes by its URL's host (`instanceName`,
+    `instanceInitials` in `model/account.ts`; api-gaps.md). Each is left out
+    of `ShellContext` until it's loaded: the logo and account menu appear
+    when they have it, and Admin settings wait (`LoadingState`) until it's
+    known whether you're a superuser, instead of saying Not Found first; if
+    you can't be loaded you're not one. App tests may run on the fake server
+    (eslint), as page query tests do. The shell still fills its project with
+    `asProject`, which lane 1 removes; the count misses that import. Checked
+    on the fake server only: this session has no Elixir to run Lightning.
+    Counts: wrappers reading fixtures 15 → 14 of 25; tests 229 → 238 (with
+    `Shell.query.test.tsx`); the rest unchanged.
+
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
 ## Decided by Brandon (6 Nov 2026)

@@ -3,19 +3,20 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ShellContext } from "../components/domain/shell-context";
 import { useProject, useProjectList } from "../api/projects";
 import { useSandboxes } from "../api/workflows";
-import { useMe } from "../api/account";
-import { currentInstance, currentUser, currentUserIsSuperuser } from "../fixtures/user";
+import { useInstance, useMe } from "../api/account";
 import { asProject } from "../pages/project-records.query";
 import { isOpenable } from "../model/projects";
+import { instanceInitials } from "../model/account";
 import { useSandbox } from "./sandbox-state";
 import { noteOpened, useRecentProjectIds } from "./recent-projects";
 import { useFlags } from "./feature-flags";
 
 /**
- * Feeds the app's chrome from the API: the project the URL is inside, under
- * its current name, and your recently opened projects, keeping only those
- * you can still open, and who you are. The instance and the selected
- * sandbox still come from fixtures and app state.
+ * Feeds the app's chrome from the API: the instance, who you are and whether
+ * you're a superuser, the project the URL is inside, under its current name,
+ * and your recently opened projects, keeping only those you can still open.
+ * Each is left out until it's loaded, and the chrome draws what it has. The
+ * selected sandbox is app state.
  */
 export default function ShellQuery({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
@@ -24,8 +25,9 @@ export default function ShellQuery({ children }: { children: ReactNode }) {
   const { project: details } = useProject(projectId);
   const { projects } = useProjectList();
   const recentIds = useRecentProjectIds();
-  // You, from the API, so a change to your profile shows in the account menu; the fixture until it's loaded.
-  const { me } = useMe();
+  // You and the instance, from the API, so a change to your profile shows in the account menu.
+  const { status: meStatus, me } = useMe();
+  const { instance } = useInstance();
 
   useEffect(() => {
     if (details && !details.scheduledDeletion) noteOpened(details.id);
@@ -49,15 +51,16 @@ export default function ShellQuery({ children }: { children: ReactNode }) {
     <ShellContext.Provider
       value={{
         currentPath: pathname,
-        instance: currentInstance,
-        user: me ?? currentUser,
+        instance: instance && { name: instance.name, initials: instanceInitials(instance.name) },
+        user: me,
         recentProjects,
         project,
         sandbox,
         onSelectSandbox: setSandbox,
         onNavigate: (path) => navigate(path),
         flags: useFlags(),
-        isSuperuser: me?.isSuperuser ?? currentUserIsSuperuser,
+        // Not a superuser if you couldn't be loaded: Admin settings say Not Found rather than wait.
+        isSuperuser: me ? me.isSuperuser : meStatus.state === "loading" ? undefined : false,
       }}
     >
       {children}

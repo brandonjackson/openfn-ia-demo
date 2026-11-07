@@ -7,7 +7,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef } from "react";
 import type { AuthProviderConfig, AuthProviderTest } from "../model/authentication";
-import type { ApiToken, BackupCode, ContactPreference, InstanceInfo, MfaSetup, ProfileDetails, UserProfile } from "../model/account";
+import { instanceName, type ApiToken, type BackupCode, type ContactPreference, type InstanceInfo, type MfaSetup, type ProfileDetails, type UserProfile } from "../model/account";
 import { formatDate, timeAgo } from "../model/time";
 import { isApiError, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
@@ -53,19 +53,20 @@ export const accountKeys = {
   session: ["session"] as const,
 };
 
-/** GET /api/instance, with the demo's own `usage_metrics_enabled`. */
+/** GET /api/instance, with the demo's own `name` and `usage_metrics_enabled`. */
 interface ApiInstance {
+  name?: string;
   url: string;
   purge_deleted_after_days: number;
   usage_metrics_enabled?: boolean;
 }
 
-/** The instance: its URL, how long deletions wait, and whether it sends usage metrics. */
+/** The instance: its name, its URL, how long deletions wait, and whether it sends usage metrics. */
 export function useInstance(): { status: LoadStatus; instance: InstanceInfo | undefined } {
   const query = useQuery({
     queryKey: accountKeys.instance,
     queryFn: () => request<{ data: ApiInstance }>("GET", "/api/instance").then((a) => a.data),
-    select: (i): InstanceInfo => ({ url: i.url, deletionGraceDays: i.purge_deleted_after_days, usageMetricsEnabled: i.usage_metrics_enabled ?? false }),
+    select: (i): InstanceInfo => ({ name: instanceName(i.name, i.url), url: i.url, deletionGraceDays: i.purge_deleted_after_days, usageMetricsEnabled: i.usage_metrics_enabled ?? false }),
   });
   return { status: statusOf(query), instance: query.data };
 }

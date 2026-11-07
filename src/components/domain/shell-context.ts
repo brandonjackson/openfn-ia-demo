@@ -12,10 +12,10 @@ import { allFlagsOn, type FeatureFlags } from "../../model/feature-flags";
 export interface Shell {
   /** The URL being shown. */
   currentPath: string;
-  /** The instance you're signed in to, for the logo and the account menu. */
-  instance: { name: string; initials: string };
-  /** You, for the account menu. */
-  user: UserProfile;
+  /** The instance you're signed in to, for the logo and the account menu; left out until it's loaded. */
+  instance?: { name: string; initials: string };
+  /** You, for the account menu; left out until you're loaded. */
+  user?: UserProfile;
   /** Projects you've opened lately, most recent first: the sidebar's list and the project switcher's shortlist. */
   recentProjects: Project[];
   /** The project the URL is inside, if any. */
@@ -28,20 +28,17 @@ export interface Shell {
   onNavigate: (path: string) => void;
   /** The feature flags in effect, for which menu items to show. */
   flags: FeatureFlags;
-  /** Whether you're a superuser, who can reach Admin settings. */
-  isSuperuser: boolean;
+  /** Whether you're a superuser, who can reach Admin settings; left out until it's known. */
+  isSuperuser?: boolean;
 }
 
 const empty: Shell = {
   currentPath: "/",
-  instance: { name: "", initials: "" },
-  user: { firstName: "", lastName: "", email: "", createdAt: "", contactPreference: "Critical only", mfaEnabled: false, githubConnected: false },
   recentProjects: [],
   sandbox: "main",
   onSelectSandbox: () => {},
   onNavigate: () => {},
   flags: allFlagsOn,
-  isSuperuser: false,
 };
 
 export const ShellContext = createContext<Shell>(empty);

@@ -14,7 +14,7 @@ function Framed() {
     <Layout
       currentPath={currentPath}
       sidebar={(drawer) => <Sidebar {...drawer} />}
-      logo={<InstanceLogo instance={instance} />}
+      logo={instance && <InstanceLogo instance={instance} />}
     >
       <Outlet />
     </Layout>

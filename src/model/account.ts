@@ -74,10 +74,36 @@ export function isTotpCode(code: string): boolean {
 
 /** The instance, as GET /api/instance describes it. */
 export interface InstanceInfo {
+  /** What the instance is called, for the logo and the account menu: the demo's own field, or the URL's host where there's none (docs/api-gaps.md). */
+  name: string;
   /** The instance's own base URL: a sign-on provider's redirect host. */
   url: string;
   /** Days a scheduled deletion waits before it happens (`purge_deleted_after_days`). */
   deletionGraceDays: number;
   /** Whether it sends OpenFn anonymous usage metrics. The demo's own field (docs/api-gaps.md). */
   usageMetricsEnabled: boolean;
+}
+
+/**
+ * What to call the instance. Lightning sends no name (docs/api-gaps.md), so
+ * one without it goes by its URL's host ("demo.openfn.org").
+ */
+export function instanceName(name: string | undefined, url: string): string {
+  if (name) return name;
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * The letters on the instance's tile: the first letter of each of its first
+ * two words ("Sim DTU" → "SD"), or the first two of a one-word name or a
+ * host's first part ("demo.openfn.org" → "DE").
+ */
+export function instanceInitials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length > 1) return (words[0]![0]! + words[1]![0]!).toUpperCase();
+  return (words[0] ?? "").split(".")[0]!.slice(0, 2).toUpperCase();
 }

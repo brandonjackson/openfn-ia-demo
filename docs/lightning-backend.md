@@ -127,6 +127,7 @@ as the demo user, and as the superuser for Admin settings.
 
 | Page | On Lightning | Notes |
 | ---- | ------------ | ----- |
+| The chrome (logo, account menu) | Works | You and whether you're a superuser from `GET /api/me`; the instance named by its URL's host, since Lightning sends no name (api-gaps.md). Each shows once it's loaded. Checked on the fake server; not yet walked on Lightning. |
 | Projects | Works | Lightning's projects. Counts are zero and activity empty until `include=stats`. |
 | Project overview | Works | On the API only: Lightning's workflows, work orders, channels and (with `permissions`) collections; services and the other kinds of component from the demo's own routes, empty. Checked on the fake server; not yet walked on Lightning since (see convergence.md, Now). |
 | Workflows | Works | On the API only: Lightning's workflows and work orders, service badges from the demo's own routes (empty). No descriptions or members on any build (api-gaps.md). Checked on the fake server; not yet walked on Lightning since (see convergence.md, Now). |

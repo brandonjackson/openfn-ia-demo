@@ -8,7 +8,7 @@
  * or a code again before you make a token, turn MFA off, change your email
  * or delete your account, and the demo has no screen for that yet.
  */
-import { userApiTokens, demoBackupCodes, currentUser } from "../fixtures/user";
+import { userApiTokens, demoBackupCodes, currentUser, currentInstance } from "../fixtures/user";
 import { deletionGraceDays, instanceAuthProvider, instanceUrl, usageMetricsEnabled } from "../fixtures/admin";
 import { newId, seedId } from "../fixtures/ids";
 import { conflict, forbidden, invalid, json, noContent, notFound, now, problem, unknownKeys, type Body, type Entry, type Handler } from "./answers";
@@ -146,9 +146,9 @@ export function updateSelf(body: Body): Response {
 
 export const accountRoutes: Record<string, Handler> = {
   "GET /api/instance": () =>
-    // usage_metrics_enabled is the demo's own field (docs/api-gaps.md).
+    // name and usage_metrics_enabled are the demo's own fields (docs/api-gaps.md).
     json(200, {
-      data: { needs_setup: false, allow_signup: false, url: instanceUrl, purge_deleted_after_days: deletionGraceDays, admin_email: "support@example.org", github_sync: true, usage_metrics_enabled: usageMetricsEnabled },
+      data: { needs_setup: false, allow_signup: false, name: currentInstance.name, url: instanceUrl, purge_deleted_after_days: deletionGraceDays, admin_email: "support@example.org", github_sync: true, usage_metrics_enabled: usageMetricsEnabled },
     }),
 
   "GET /api/me": () => json(200, meEntry(me())),

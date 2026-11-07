@@ -215,10 +215,12 @@ export default function Sidebar({ open = false, onClose }: { open?: boolean; onC
       >
         {/* Logo: always a clear way back to the root. */}
         <div data-ui="sidebar-logo" className="px-4 py-4 flex items-center justify-between gap-2">
-          <InstanceLogo
-            instance={instance}
-            title={flags.organizations ? "Back to Overview" : "Back to projects"}
-          />
+          {instance && (
+            <InstanceLogo
+              instance={instance}
+              title={flags.organizations ? "Back to Overview" : "Back to projects"}
+            />
+          )}
           <div className="md:hidden">
             <IconButton icon={X} label="Close menu" size="md" onClick={onClose} />
           </div>
@@ -237,12 +239,14 @@ export default function Sidebar({ open = false, onClose }: { open?: boolean; onC
             />
           </NavSection>
           <div className="border-t border-gray-200 pt-3">
-            <AccountMenu
-              user={user}
-              instance={instance}
-              showOrganizationSettings={flags.organizations}
-              showAdminSettings={isSuperuser}
-            />
+            {user && instance && (
+              <AccountMenu
+                user={user}
+                instance={instance}
+                showOrganizationSettings={flags.organizations}
+                showAdminSettings={isSuperuser}
+              />
+            )}
           </div>
         </div>
       </aside>

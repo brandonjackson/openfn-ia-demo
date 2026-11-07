@@ -1,6 +1,7 @@
 import type { ProjectComponentType } from "./component-types";
 import type { ProjectServiceItem } from "./services";
-import type { DigestFrequency, ProjectRole } from "./project-settings";
+import type { DigestFrequency, IoDataPolicy, ProjectRole } from "./project-settings";
+import { timeAgo } from "./time";
 
 export type ProjectService = ProjectServiceItem;
 
@@ -193,4 +194,66 @@ export interface AdminProjectDraft {
   name: string;
   description: string;
   members: ProjectMembership[];
+}
+
+/**
+ * The model's `Project` for a project from the API, as the app's chrome
+ * shows it: its name, environment and sandboxes. Its services and components
+ * aren't the chrome's to show, so they're left empty.
+ */
+export function asProject(details: ProjectDetails, sandboxes: string[] = ["main"]): Project {
+  return {
+    id: details.id,
+    name: details.name,
+    description: details.description,
+    environment: details.env,
+    lastActivity: timeAgo(details.lastActivity ?? null),
+    memberCount: details.collaboratorsCount ?? 0,
+    sandboxes,
+    services: [],
+    components: [],
+  };
+}
+
+/** Someone with access to a project, as the collaboration table shows them. */
+export interface Collaborator {
+  /** The membership's id (one person can be in many projects). */
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: ProjectRole;
+  /** This is you. */
+  isSelf: boolean;
+  /** Whether they're emailed when a run fails. */
+  failureAlert: boolean;
+  /** How often they get a digest of the project's runs. */
+  digest: DigestFrequency;
+  /** The roles you can give them, decided by the wrapper; empty when you can't change theirs. */
+  assignableRoles: ProjectRole[];
+  /** Why you can't remove them, decided by the wrapper; absent when you can. */
+  removeBlockedReason?: string;
+}
+
+/** One row of the Add collaborators form: an email and the role to give them. */
+export interface CollaboratorDraft {
+  email: string;
+  role: ProjectRole;
+}
+
+/** Someone without an OpenFn account, to invite to OpenFn and to the project. */
+export interface CollaboratorInvite {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: ProjectRole;
+}
+
+/** How long the project keeps its run history and input/output data. */
+export interface DataStorageSettings {
+  /** One of `retentionPeriods`. */
+  retentionPeriod: string;
+  ioDataPolicy: IoDataPolicy;
+  /** One of `retentionPeriods`; ignored under zero-persistence. */
+  ioRetentionPeriod: string;
 }

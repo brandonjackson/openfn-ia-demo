@@ -15,6 +15,8 @@ import { findProject, guardProject, projectIdFor } from "./projects";
 import { currentUserId } from "./session";
 import { findUser, fullName, userIdFor } from "./users";
 import { instanceUsers } from "../fixtures/admin";
+import { workOrders } from "./work-orders";
+import { workflows } from "./workflows";
 
 export interface HistoryExportRow {
   id: string;
@@ -124,5 +126,24 @@ export const historyExportRoutes: Record<string, Handler> = {
     if (!isUuid(id)) return badId("id");
     const e = current(p.id).find((r) => r.id === id);
     return e ? json(200, { data: entry(e) }) : notFound();
+  },
+
+  // Lightning's file is a zip of work orders with their inputs, outputs and logs; the demo's is their summary as JSON.
+  "GET /api/projects/:project_id/history_exports/:id/download": ({ project_id, id }) => {
+    const p = guardProject(project_id!);
+    if (p instanceof Response) return p;
+    if (!isUuid(id)) return badId("id");
+    const e = current(p.id).find((r) => r.id === id);
+    if (!e || e.state !== "completed") return notFound();
+    const name = (workflowId: string) => workflows.rows().find((w) => w.id === workflowId)?.name ?? null;
+    const file = {
+      project: p.name,
+      exported_at: e.updated_at,
+      work_orders: workOrders
+        .rows()
+        .filter((o) => o.project_id === p.id)
+        .map((o) => ({ id: o.id, workflow: name(o.workflow_id), state: o.state, received_at: o.received_at, runs: o.runs })),
+    };
+    return new Response(JSON.stringify(file, null, 2), { status: 200, headers: { "content-type": "application/json" } });
   },
 };

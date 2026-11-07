@@ -1,8 +1,8 @@
 /** History exports on Lightning's API (api/work-orders.md, History exports). */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { HistoryExport } from "../model/page-data";
+import type { HistoryExport } from "../model/work-orders";
 import { formatDateTime } from "../model/time";
-import { listAll, request } from "./client";
+import { ApiError, getFile, listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 interface ApiHistoryExport {
@@ -11,6 +11,7 @@ interface ApiHistoryExport {
     state: "enqueued" | "in_progress" | "completed" | "failed";
     filename: string | null;
     created_by_name: string;
+    download_url: string | null;
     inserted_at: string;
   };
 }
@@ -48,4 +49,15 @@ export function useHistoryExportSaves(projectId: string) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: keys.inProject(projectId) }),
   });
   return { create: async (workOrderIds?: string[]) => void (await create.mutateAsync(workOrderIds)) };
+}
+
+/**
+ * A finished export's file, from its `download_url` (the API sends it with
+ * the export; the file is fetched with the same session).
+ */
+export async function fetchHistoryExportFile(projectId: string, id: string): Promise<{ fileName: string; file: Blob }> {
+  const { data } = await request<{ data: ApiHistoryExport }>("GET", `/api/projects/${projectId}/history_exports/${id}`);
+  const url = data.attributes.download_url;
+  if (!url) throw new ApiError(409, "not_ready", "This export isn't ready to download yet.");
+  return { fileName: data.attributes.filename ?? "history-export", file: await getFile(url) };
 }

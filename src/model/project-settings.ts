@@ -1,3 +1,5 @@
+import type { SyncDirection } from "./github-sync";
+import type { WebhookAuthType } from "./webhooks";
 /*
  * The vocabulary and rules of a project's settings, as Lightning has them:
  * roles and who may do what, collection and project names, webhook auth
@@ -148,9 +150,6 @@ export function isValidEmail(email: string): boolean {
 /*  Webhook auth methods                                               */
 /* ------------------------------------------------------------------ */
 
-/** Basic HTTP auth (a username and password) or an API key in the `x-api-key` header. */
-export type WebhookAuthType = "basic" | "api";
-
 export const webhookAuthTypes: Record<WebhookAuthType, { label: string; description: string }> = {
   basic: { label: "Basic", description: "Basic HTTP authentication (username and password)" },
   api: { label: "API key", description: "API key authentication (‘x-api-key’ header)" },
@@ -223,18 +222,9 @@ export function retentionLabel(days: number | null): string {
 /** Keep input/output data for every run, or never store it. */
 export type IoDataPolicy = "retain" | "zero-persistence";
 
-/** Where a history export is in its life. */
-export type HistoryExportStatus = "enqueued" | "processing" | "completed" | "failed";
-
 /* ------------------------------------------------------------------ */
 /*  GitHub sync                                                        */
 /* ------------------------------------------------------------------ */
-
-/**
- * The direction of the first sync, in Lightning's terms: `pull` exports this
- * project to GitHub; `deploy` imports what's on GitHub over this project.
- */
-export type SyncDirection = "pull" | "deploy";
 
 export const syncDirections: Record<SyncDirection, { label: string; description: string }> = {
   pull: {

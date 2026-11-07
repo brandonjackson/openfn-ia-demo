@@ -136,7 +136,7 @@ as the demo user, and as the superuser for Admin settings.
 | Sandboxes | Works | Lightning's sandboxes; the selected one is kept per project id, shared with the project bar and the editor. |
 | History (project, all) | Works | On the API only: Lightning's work orders, workflows and channel requests; times sorted and filtered whether ISO (`inserted_at`) or the fixtures' stamps. Export sends the shown work orders as the `id` filter; none across projects. Checked on the fake server; not walked on Lightning (this session's container has no Elixir; see convergence.md, Now). |
 | Insights (project) | Works | From Lightning's work orders. |
-| Settings | Works with gaps | Reads Lightning's settings; read only until `permissions`. |
+| Settings | Works with gaps | On the API only: Lightning's settings, the credentials linked to the project, Export project from `GET /api/provision/yaml` and an export's file from its `download_url`. Read only until `permissions`. Checked on the fake server; not yet walked on Lightning (Lane 1 couldn't run it: no Elixir in the session). |
 | Services (project) | Works | From the demo's own routes, empty. |
 | User settings | Works | Your Lightning account. |
 | Overview, Insights (all) | Demo data | Still the fixtures' numbers. |

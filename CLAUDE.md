@@ -85,7 +85,7 @@ Admin settings (`AdminSettingsPage`, at `/admin-settings`) is Lightning's superu
 
 ### Connected systems
 
-The organisation's connected systems and their access grants are on the demo's own routes (`/api/demo/connected_systems`, `src/api/connected-systems.ts`; Lightning's API has none yet), following `api/conventions.md`. Adding one (by hand, from Systems or Overview, or from the X-Road directory) saves it and opens its page; editing it (`SystemFormModal`: name, description, API docs and, for a direct system, each environment's URL, keeping its credentials), revoking a grant and deleting a system go through the API, and it's the same list for the editor's "Connect a system". Old slug links redirect. The ecosystem map is still placed by hand in `src/fixtures/ecosystem.ts`; a seeded system that's deleted leaves it.
+The organisation's connected systems and their access grants are on the demo's own routes (`/api/demo/connected_systems`, `src/api/connected-systems.ts`; Lightning's API has none yet), following `api/conventions.md`. Adding one (by hand, from Systems or Overview, or from the X-Road directory) saves it and opens its page; editing it (`SystemFormModal`: name, description, API docs and, for a direct system, each environment's URL, keeping its credentials), revoking a grant and deleting a system go through the API, and it's the same list for the editor's "Connect a system". Old slug links (`/connected-systems/dhis2/…`) redirect, in the route (`PageRoute`). The ecosystem map is still placed by hand in `src/fixtures/ecosystem.ts`; a seeded system that's deleted leaves it.
 
 ### Services
 

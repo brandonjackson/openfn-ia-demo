@@ -1,15 +1,15 @@
 import { useState } from "react";
-import type { PageProps } from "../model/ia-tree";
-import Badge from "../components/primitives/Badge";
-import Button from "../components/primitives/Button";
-import Callout from "../components/primitives/Callout";
-import ChildCard from "../components/domain/ChildCard";
-import EmptyState from "../components/primitives/EmptyState";
-import PageHeader from "../components/patterns/PageHeader";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import SectionHeading from "../components/primitives/SectionHeading";
-import SegmentedControl from "../components/primitives/SegmentedControl";
-import TextLink from "../components/primitives/TextLink";
+import type { PageProps } from "../../model/ia-tree";
+import Badge from "../../components/primitives/Badge";
+import Button from "../../components/primitives/Button";
+import Callout from "../../components/primitives/Callout";
+import ChildCard from "../../components/domain/ChildCard";
+import EmptyState from "../../components/primitives/EmptyState";
+import PageHeader from "../../components/patterns/PageHeader";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import SectionHeading from "../../components/primitives/SectionHeading";
+import SegmentedControl from "../../components/primitives/SegmentedControl";
+import TextLink from "../../components/primitives/TextLink";
 
 export type PlaceholderPageProps = Omit<PageProps<never>, "data">;
 

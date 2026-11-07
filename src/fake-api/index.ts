@@ -33,6 +33,7 @@ import { systemRoutes } from "./connected-systems";
 import { serviceRoutes } from "./services";
 import { organizationRoutes } from "./organization";
 import { handbookRoutes } from "./handbook";
+import { buildIdeaRoutes } from "./build-ideas";
 import { componentRoutes } from "./project-components";
 import { maintenanceRoutes } from "./maintenance";
 
@@ -62,6 +63,7 @@ const routes: Record<string, Handler> = {
   ...serviceRoutes,
   ...organizationRoutes,
   ...handbookRoutes,
+  ...buildIdeaRoutes,
   ...maintenanceRoutes,
   ...componentRoutes,
   // The demo's own: back to the fixtures.

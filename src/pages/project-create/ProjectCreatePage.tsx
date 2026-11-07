@@ -1,11 +1,17 @@
 import { useState } from "react";
-import type { PageProps } from "../model/ia-tree";
-import type { ProjectCreatePageData } from "../model/page-data";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import BuildPrompt from "../components/domain/BuildPrompt";
-import Callout from "../components/primitives/Callout";
-import IdeaCard from "../components/domain/IdeaCard";
-import SectionHeading from "../components/primitives/SectionHeading";
+import type { PageProps } from "../../model/ia-tree";
+import type { BuildIdea } from "../../model/build-ideas";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import BuildPrompt from "../../components/domain/BuildPrompt";
+import Callout from "../../components/primitives/Callout";
+import IdeaCard from "../../components/domain/IdeaCard";
+import SectionHeading from "../../components/primitives/SectionHeading";
+
+/** What the Create page shows. */
+export interface ProjectCreatePageData {
+  /** Starter ideas for a new public service; picking one fills the prompt box. */
+  ideas: BuildIdea[];
+}
 
 export interface ProjectCreatePageProps extends PageProps<ProjectCreatePageData> {
   /** A prompt started on the project Overview: it arrives already submitted. */

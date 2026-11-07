@@ -1,5 +1,5 @@
 import { Lightbulb } from "lucide-react";
-import type { BuildIdea } from "../../model/page-data";
+import type { BuildIdea } from "../../model/build-ideas";
 import Card from "../primitives/Card";
 import EntityPill from "./EntityPill";
 

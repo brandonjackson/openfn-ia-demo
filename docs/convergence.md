@@ -410,6 +410,21 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   and React reviewers ran. Checked on the fake server only. Counts: wrappers
   reading fixtures 13 → 12 of 25; pages in their own folder 8 → 9 of 24;
   page and query tests 17 → 19; tests 244 → 255; the rest unchanged.
+  ([#214](https://github.com/brandonjackson/openfn-ia-demo/pull/214))
+- **Lane 4: Create reads only the API.** `ProjectCreatePage` moved to
+  `src/pages/project-create/` with its page and query tests, and
+  `ProjectCreatePageData` into the page file (just `ideas`: no `pageType`,
+  and the project's id, which the page never used, is gone). The starter
+  ideas come from a new demo route, `GET /api/demo/build_ideas`
+  (`useBuildIdeas`; seeded from `fixtures/build-ideas.ts`, with a lifecycle
+  test), since api/ has no AI building; `BuildIdea` moved to
+  `model/build-ideas.ts`. If the ideas can't load, the page says so, as
+  every page does until decision 1. Still to do under decision 4:
+  `BuildPrompt` disables Build while the box is empty. Checked on the fake
+  server only. Counts: wrappers reading fixtures 12 → 11 of 25;
+  page-data.ts 632 → 614 lines; files importing it 64 → 61; pages in their
+  own folder 9 → 10 of 24; page and query tests 19 → 21; tests 255 → 264;
+  the ratchet unchanged.
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 

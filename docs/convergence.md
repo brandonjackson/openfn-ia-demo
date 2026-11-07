@@ -448,8 +448,8 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   identity comes from `GET /api/demo/organization/xroad` and the member and
   service the route goes to from a new read-only
   `GET /api/demo/organization/xroad/directory` (`useXRoadDirectory`), so
-  `XRoadConnectionDetails` takes `XRoadIdentity` (model/xroad.ts). An old
-  link by a system's slug is sent on by `PageRoute.tsx`. `systemsFor` moved
+  `XRoadConnectionDetails` takes `XRoadIdentity` (model/xroad.ts). Its own
+  slug redirect is gone: lane 4's route sends old links on. `systemsFor` moved
   to `model/connected-systems.ts` and `pages/flagged.fixtures.ts` is gone;
   `AccessGrant` and `XRoadRouteContext` left page-data.ts. Revoke and
   Delete say "Revoking…"/"Deleting…" while they run (`ConfirmModal` takes
@@ -458,9 +458,9 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   or the directory can't load, the system still shows, without its route.
   The grants route now sends JSON:API resources, mapped in
   `useAccessGrants`. Not walked on Lightning. Counts:
-  wrappers reading fixtures 14 → 13 of 25; page-data.ts 632 → 593 lines;
-  files importing it 64 → 59; pages in their own folder 8 → 9 of 24; page
-  and query tests 17 → 19; tests 234 → 249; classNamesInPages 106 → 103.
+  wrappers reading fixtures 12 → 11 of 25; page-data.ts 632 → 593 lines;
+  files importing it 64 → 59; pages in their own folder 9 → 10 of 24; page
+  and query tests 19 → 21; tests 255 → 270; classNamesInPages 106 → 103.
   ([#215](https://github.com/brandonjackson/openfn-ia-demo/pull/215))
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.

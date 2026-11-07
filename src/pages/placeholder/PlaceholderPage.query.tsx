@@ -1,11 +1,10 @@
-import type { PageRoute } from "../app/ia-utils";
-import Loaded from "../app/Loaded";
-import { useProject } from "../api/projects";
-import { useConnectedSystems } from "../api/connected-systems";
-import { apiSystemId } from "../fixtures/ids";
-import NotFoundPage from "./NotFoundPage";
+import type { PageRoute } from "../../app/ia-utils";
+import Loaded from "../../app/Loaded";
+import { useProject } from "../../api/projects";
+import { useConnectedSystems } from "../../api/connected-systems";
+import NotFoundPage from "../NotFoundPage";
 import PlaceholderPage from "./PlaceholderPage";
-import { pageFrame } from "../app/page-frame";
+import { pageFrame } from "../../app/page-frame";
 
 /**
  * Feeds the placeholder shown wherever the IA has a page that hasn't been
@@ -21,8 +20,8 @@ export default function PlaceholderPageQuery({ route }: { route: PageRoute }) {
     return (
       <Loaded status={systemsStatus} path={route.currentPath}>
         {() => {
-          // By its id, or an old link by its slug.
-          const system = systems.find((s) => s.id === systemId || s.id === apiSystemId(systemId));
+          // An old link by its slug was sent on to its id by the route (PageRoute).
+          const system = systems.find((s) => s.id === systemId);
           if (!system) return <NotFoundPage path={route.currentPath} reason="data" />;
           return <PlaceholderPage {...pageFrame(route, { label: system.name, description: system.description })} />;
         }}

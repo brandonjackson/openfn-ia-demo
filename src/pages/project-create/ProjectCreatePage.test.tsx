@@ -41,6 +41,7 @@ describe("ProjectCreatePage", () => {
   it("arrives already sent with a prompt from the Overview", () => {
     renderPage(ProjectCreatePage, frame({ initialPrompt: "Track referrals" }), []);
     expect(screen.getByText("Drafting your service")).toBeTruthy();
+    expect(box().value).toBe("Track referrals");
   });
 
   it("only fills the box with a draft", () => {

@@ -42,6 +42,13 @@ describe("ProjectCreatePageQuery", () => {
     expect(await screen.findByText("Drafting your service", {}, wait)).toBeTruthy();
   });
 
+  it("fills the box with a draft from adding a component, without sending it", async () => {
+    draw(projectA, { draft: "A new form for" });
+    const box = (await screen.findByLabelText("What would you like to build?", {}, wait)) as HTMLTextAreaElement;
+    expect(box.value).toBe("A new form for");
+    expect(screen.queryByText("Drafting your service")).toBeNull();
+  });
+
   it("says the page couldn't load when the ideas can't be", async () => {
     failNext("GET /api/demo/build_ideas", { status: 500, code: "internal", detail: "Something went wrong." });
     draw(projectA);

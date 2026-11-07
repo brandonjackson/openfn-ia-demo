@@ -423,7 +423,7 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   `BuildPrompt` disables Build while the box is empty. Checked on the fake
   server only. Counts: wrappers reading fixtures 12 → 11 of 25;
   page-data.ts 632 → 614 lines; files importing it 64 → 61; pages in their
-  own folder 9 → 10 of 24; page and query tests 19 → 21; tests 255 → 264;
+  own folder 9 → 10 of 24; page and query tests 19 → 21; tests 255 → 265;
   the ratchet unchanged.
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
@@ -493,3 +493,8 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
    no Log out or Settings, and nothing says why. Would draw a plain "Log
    out" (and the reason) in its place. Admin settings' wait could also say
    "Loading Admin settings…" rather than "Loading…".
+7. **Create on primitives, with an empty state** (lane 4, from its
+   reviewers). The Create page still lays itself out with `className` and
+   its own `<h1>`, not `PageHeader`, `Stack` and `Grid`, and with no ideas it
+   shows "Ideas to get you started" over nothing. Would move it onto the
+   primitives and add an `EmptyState`; both change its look.

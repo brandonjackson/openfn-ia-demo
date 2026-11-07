@@ -1,3 +1,4 @@
+import type { ProjectComponentItem } from "./component-types";
 import type { ProjectCollection } from "./collections";
 import type { ProjectSummary } from "./projects";
 import type { Environment } from "./credentials";
@@ -361,32 +362,6 @@ export interface ComponentPageData {
   collection?: CollectionContents;
 }
 
-/** Kinds of building block a project is made from. */
-export type ProjectComponentType =
-  | "Workflow"
-  | "Channel"
-  | "Form"
-  | "Artifact"
-  | "Collection"
-  | "AI Skill"
-  | "Document"
-  | "Static Website";
-
-export interface ProjectComponentItem {
-  id: string;
-  name: string;
-  description: string;
-  type: ProjectComponentType;
-}
-
-export interface ProjectComponentsPageData {
-  pageType: "project-components";
-  projectId: string;
-  components: ProjectComponentItem[];
-  /** The kinds of component the page lists and offers to add, never Workflow (it has its own page). */
-  types: ProjectComponentType[];
-}
-
 /* ------------------------------------------------------------------ */
 /*  Project Create page                                                */
 /* ------------------------------------------------------------------ */
@@ -650,7 +625,6 @@ export type PageData =
   | DashboardPageData
   | StatusPageData
   | InsightsPageData
-  | ProjectComponentsPageData
   | ProjectCreatePageData
   | ProjectSandboxesPageData
   | ProjectSettingsPageData

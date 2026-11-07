@@ -7,7 +7,7 @@
 import { useCollectionItemSaves, useCollections, useCollectionSaves } from "../api/collections";
 import { useComponents, useComponentSaves } from "../api/project-components";
 import { combine } from "../api/status";
-import type { ProjectComponentItem } from "../model/page-data";
+import type { ProjectComponentItem } from "../model/component-types";
 import type { ProjectDetails } from "../model/projects";
 import { formatBytes } from "../model/project-settings";
 import { useProjectChannels } from "./channel-records.query";

@@ -66,7 +66,7 @@ import type { SandboxStart } from "../components/domain/EditInSandboxModal";
 import PromoteSandboxModal from "../components/domain/PromoteSandboxModal";
 import ConfirmModal from "../components/primitives/ConfirmModal";
 import Modal from "../components/primitives/Modal";
-import type { ProjectComponentType } from "../model/page-data";
+import type { ProjectComponentType } from "../model/component-types";
 import AddComponentPanel from "../components/domain/AddComponentPanel";
 import WorkflowHealth from "../components/domain/WorkflowHealth";
 import ChannelView from "../components/domain/ChannelView";

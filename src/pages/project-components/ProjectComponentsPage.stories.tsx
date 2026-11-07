@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ProjectComponentsPage from "./ProjectComponentsPage";
-import { withRouterAt } from "../stories/decorators";
-import { projects } from "../fixtures/projects";
-import type { IANode } from "../model/ia-tree";
-import { componentTypes } from "../model/component-types";
+import { withRouterAt } from "../../stories/decorators";
+import { projects } from "../../fixtures/projects";
+import type { IANode } from "../../model/ia-tree";
+import { componentTypes } from "../../model/component-types";
 
 const node: IANode = {
   id: "components",
@@ -43,7 +43,7 @@ export const Default: Story = {
     node,
     ancestors,
     currentPath: `/projects/${project.id}/components`,
-    data: { pageType: "project-components", projectId: project.id, components: project.components, types },
+    data: { projectId: project.id, components: project.components, types },
   },
 };
 
@@ -53,7 +53,7 @@ export const AllTypes: Story = {
     node,
     ancestors,
     currentPath: `/projects/${projects[0].id}/components`,
-    data: { pageType: "project-components", projectId: projects[0].id, components: projects[0].components, types },
+    data: { projectId: projects[0].id, components: projects[0].components, types },
   },
 };
 
@@ -62,7 +62,7 @@ export const Empty: Story = {
     node,
     ancestors,
     currentPath: "/projects/data-quality-checks/components",
-    data: { pageType: "project-components", projectId: "data-quality-checks", components: [], types },
+    data: { projectId: "data-quality-checks", components: [], types },
   },
 };
 
@@ -73,7 +73,6 @@ export const ChannelsOnly: Story = {
     ancestors,
     currentPath: `/projects/${projects[0].id}/components`,
     data: {
-      pageType: "project-components",
       projectId: projects[0].id,
       components: projects[0].components.filter((c) => c.type === "Channel"),
       types: ["Channel"],
@@ -91,7 +90,7 @@ export const ReadOnly: Story = {
     node,
     ancestors,
     currentPath: `/projects/${projects[0].id}/components`,
-    data: { pageType: "project-components", projectId: projects[0].id, components: projects[0].components, types },
+    data: { projectId: projects[0].id, components: projects[0].components, types },
     onCreateChannel: undefined,
     onCreateCollection: undefined,
     onCreateComponent: undefined,

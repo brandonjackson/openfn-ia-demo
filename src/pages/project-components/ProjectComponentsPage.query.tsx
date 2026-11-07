@@ -1,25 +1,24 @@
 import { useNavigate } from "react-router-dom";
-import type { PageRoute } from "../app/ia-utils";
-import Loaded from "../app/Loaded";
-import { useFlags } from "../app/feature-flags";
-import { useProject } from "../api/projects";
-import { useProjectWorkflows } from "../api/workflows";
-import { combine } from "../api/status";
-import { fixtureWorkflow } from "../fixtures/projects";
-import { starterContent } from "../model/project-components";
+import type { PageRoute } from "../../app/ia-utils";
+import Loaded from "../../app/Loaded";
+import { useFlags } from "../../app/feature-flags";
+import { useProject } from "../../api/projects";
+import { combine } from "../../api/status";
+import { starterContent } from "../../model/project-components";
+import { componentTypesFor, componentsFor } from "../../model/component-types";
+import { pageFrame } from "../../app/page-frame";
+import { eventAddress } from "../channel-records.query";
+import { useProjectComponents } from "../component-records.query";
 import ProjectComponentsPage from "./ProjectComponentsPage";
-import { pageFrame } from "../app/page-frame";
-import { componentTypesFor, componentsFor } from "../model/component-types";
-import { eventAddress } from "./channel-records.query";
-import { useProjectComponents } from "./component-records.query";
 
 /**
- * Feeds a project's Components list from the API: its workflows, channels,
- * collections, and forms, artifacts, AI skills, documents and static
- * websites, each kind only with its feature flag (without Components, just
- * channels). Each kind is made on the API, and the new component opens on
- * its own page. With Build with AI, a kind can be handed to Create to draft
- * from a description instead.
+ * Feeds a project's Components list from the API: its channels and
+ * collections from Lightning's, and its forms, artifacts, AI skills,
+ * documents and static websites from the demo's, each kind only with its
+ * feature flag (without Components, just channels). Workflows have their own
+ * page, so they aren't fetched here. Each kind is made on the API, and the
+ * new component opens on its own page. With Build with AI, a kind can be
+ * handed to Create to draft from a description instead.
  */
 export default function ProjectComponentsPageQuery({ route }: { route: PageRoute }) {
   const navigate = useNavigate();
@@ -27,9 +26,8 @@ export default function ProjectComponentsPageQuery({ route }: { route: PageRoute
   const projectId = route.params["project"];
   const { status: projectStatus, project } = useProject(projectId);
   const records = useProjectComponents(project);
-  const { status: workflowsStatus, workflows } = useProjectWorkflows(projectId);
   return (
-    <Loaded status={combine(projectStatus, records.status, workflowsStatus)} path={route.currentPath}>
+    <Loaded status={combine(projectStatus, records.status)} path={route.currentPath}>
       {() => {
         const open = (id: string) => navigate(`/projects/${project!.id}/components/${id}`);
         // Editors and up add components, as they do workflows.
@@ -38,15 +36,8 @@ export default function ProjectComponentsPageQuery({ route }: { route: PageRoute
           <ProjectComponentsPage
             {...pageFrame(route, {}, project!.name)}
             data={{
-              pageType: "project-components",
               projectId: project!.id,
-              components: componentsFor(
-                [
-                  ...workflows.map((w) => ({ id: w.id, name: w.name, description: fixtureWorkflow(w.id)?.item?.description ?? "", type: "Workflow" as const })),
-                  ...records.items,
-                ],
-                flags,
-              ),
+              components: componentsFor(records.items, flags),
               types: componentTypesFor(flags),
             }}
             onCreateChannel={async (draft) => open(await records.channels.saves.create(draft, eventAddress(project!.name, draft.name)))}

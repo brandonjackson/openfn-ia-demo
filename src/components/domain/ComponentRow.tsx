@@ -1,5 +1,4 @@
-import type { ProjectComponentItem } from "../../model/page-data";
-import { componentTypeIcons } from "../../model/component-types";
+import { type ProjectComponentItem, componentTypeIcons } from "../../model/component-types";
 import Badge from "../primitives/Badge";
 import NavItem from "../primitives/NavItem";
 

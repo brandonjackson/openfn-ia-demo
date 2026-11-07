@@ -1,7 +1,5 @@
 /** Display order, icon and blurb for each kind of project component. */
-import { ArrowLeftRight, Database, FileSpreadsheet, FileText, PanelsTopLeft, ScrollText, Sparkles, Workflow } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import type { ProjectComponentType } from "./page-data";
+import { ArrowLeftRight, Database, FileSpreadsheet, FileText, PanelsTopLeft, ScrollText, Sparkles, Workflow, type LucideIcon } from "lucide-react";
 import type { FeatureFlags, FlagId } from "./feature-flags";
 export const componentTypes: {
   type: ProjectComponentType;
@@ -47,4 +45,22 @@ export function componentTypesFor(flags: FeatureFlags): ProjectComponentType[] {
   return componentTypes
     .map((t) => t.type)
     .filter((type) => type !== "Workflow" && componentsFor([{ type }], flags).length > 0);
+}
+
+/** Kinds of building block a project is made from. */
+export type ProjectComponentType =
+  | "Workflow"
+  | "Channel"
+  | "Form"
+  | "Artifact"
+  | "Collection"
+  | "AI Skill"
+  | "Document"
+  | "Static Website";
+
+export interface ProjectComponentItem {
+  id: string;
+  name: string;
+  description: string;
+  type: ProjectComponentType;
 }

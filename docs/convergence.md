@@ -368,6 +368,18 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     demo behaviours"). Counts: wrappers reading fixtures 16 → 15 of 25;
     page and query tests 14 → 15; the rest unchanged.
 
+- **Lane 3: Components reads only the API.** The page moved to
+  `src/pages/project-components/` with its page and query tests, and
+  `ProjectComponentsPageData` into the page file (without `pageType`).
+  `ProjectComponentType` and `ProjectComponentItem` left page-data.ts for
+  `model/component-types.ts`. The wrapper no longer fetches workflows: the
+  page never lists them (they have their own page), and the only fixture it
+  read was their descriptions. Checked on the fake server only (this
+  container has no Elixir). Counts: wrappers reading fixtures 15 → 14 of
+  25; page-data.ts 658 → 632 lines; files importing it 72 → 64; pages in
+  their own folder 7 → 8 of 24; page and query tests 15 → 17; the ratchet
+  unchanged.
+
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
 ## Decided by Brandon (6 Nov 2026)

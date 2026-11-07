@@ -1,4 +1,4 @@
-import type { ProjectComponentType } from "./page-data";
+import type { ProjectComponentType } from "./component-types";
 import type { ProjectServiceItem } from "./services";
 import type { DigestFrequency, ProjectRole } from "./project-settings";
 

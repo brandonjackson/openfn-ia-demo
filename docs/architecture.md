@@ -128,6 +128,8 @@ XPage.query.tsx ──→ src/api/<resource>.ts ──→ src/api/client.ts ─�
 
 Tests for the fake server's lifecycles live beside it (`*.test.ts`, `npm test`).
 
+Running on a real Lightning (the lightning-full-api deployment, at `/v3`) is planned in [lightning-backend.md](./lightning-backend.md).
+
 ### Links and navigation
 
 Only primitives and wrappers talk to the router. Components link with the `Link` primitive (or `TextLink`, which looks like a link), so a page mounted where there's no React Router changes one file. Anything else a component used to do with the router becomes a prop: a URL, or an `onX` callback the wrapper implements with `navigate`.

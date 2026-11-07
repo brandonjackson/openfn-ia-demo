@@ -22,7 +22,7 @@ import ProjectPageQuery from "../pages/project/ProjectPage.query";
 import ProjectWorkflowsPageQuery from "../pages/project-workflows/ProjectWorkflowsPage.query";
 import ProjectComponentsPageQuery from "../pages/project-components/ProjectComponentsPage.query";
 import ProjectCreatePageQuery from "../pages/project-create/ProjectCreatePage.query";
-import ProjectSandboxesPageQuery from "../pages/ProjectSandboxesPage.query";
+import ProjectSandboxesPageQuery from "../pages/project-sandboxes/ProjectSandboxesPage.query";
 import ProjectSettingsPageQuery from "../pages/project-settings/ProjectSettingsPage.query";
 import ServicePageQuery from "../pages/ServicePage.query";
 import ComponentPageQuery from "../pages/component/ComponentPage.query";

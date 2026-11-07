@@ -537,6 +537,24 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   24; page-data.ts 353 → 335 lines; files importing it 41 → 38; pages in
   their own folder 15 → 16 of 24; page and query tests 30 → 32; tests 335
   → 345; the ratchet unchanged.
+  ([#217](https://github.com/brandonjackson/openfn-ia-demo/pull/217))
+- **Lane 4: Sandboxes into its folder, with tests.** `ProjectSandboxesPage`
+  moved to `src/pages/project-sandboxes/` with its first page and query
+  tests (it already read no fixtures). `ProjectSandboxesPageData` went into
+  the page file (just `sandboxes`), and the sandbox shapes the modals share
+  (`SandboxItem`, `SandboxDraft`, `SandboxMerge`, `SandboxChange`,
+  `SandboxColor`, `SANDBOX_COLORS`) into `model/sandboxes.ts`. The tests
+  found a bug: making or deleting a sandbox changed `useSandboxChanges`'
+  key, so the page was swapped for a spinner and lost its "Created a
+  sandbox" notice; it now keeps the project's last answer while the new one
+  loads (never another project's). A refused delete now says why in an
+  alert, as Workflows does, instead of failing silently. Still to do under
+  decision 4 (already on its list): `SandboxFormModal` disables Create while
+  the name is wrong, and shows no refusal or "Creating…". Checked on the
+  fake server only. Counts (after lanes 1, 2 and 3): page-data.ts 335 →
+  274 lines; files importing it 38 → 32; pages in their own folder 16 → 17
+  of 24; page and query tests 32 → 34; tests 345 → 357; the rest
+  unchanged. **Lane 4 is done:** no wrapper of its own reads fixtures.
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 

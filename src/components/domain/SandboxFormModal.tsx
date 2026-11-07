@@ -1,7 +1,5 @@
 import { useState } from "react";
-import type { SandboxColor, SandboxDraft, SandboxItem } from "../../model/page-data";
-import { SANDBOX_COLORS } from "../../model/page-data";
-import { sandboxNameError, sandboxSlug } from "../../model/sandboxes";
+import { type SandboxColor, type SandboxDraft, type SandboxItem, SANDBOX_COLORS, sandboxNameError, sandboxSlug } from "../../model/sandboxes";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";
 import Stack from "../primitives/Stack";

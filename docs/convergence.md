@@ -382,6 +382,22 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   their own folder 7 → 8 of 24; page and query tests 15 → 17; the ratchet
   unchanged.
   ([#210](https://github.com/brandonjackson/openfn-ia-demo/pull/210))
+- **Lane 4: The shell reads only the API.** The chrome takes the instance
+  from `GET /api/instance` (`useInstance`) and you and whether you're a
+  superuser from `GET /api/me` (`useMe`), not `fixtures/user.ts`. Lightning
+  sends no instance name, so the fake server adds `name` ("Sim DTU") and the
+  shell names an instance without one by its URL's host, or the page's own
+  host if it couldn't be loaded (`instanceName`, `instanceInitials` in
+  `model/account.ts`; api-gaps.md). The logo's tile is blank until then; the
+  account menu shows once you're loaded (Sidebar's Loading story). Admin
+  settings wait (`LoadingState`) until it's known whether you're a
+  superuser, instead of saying Not Found first, and show the server's
+  reason if you couldn't be loaded. App tests may run on the fake server
+  (eslint), as page query tests do. The shell still fills its project with
+  `asProject`, which lane 1 removes; the count misses that import. Checked
+  on the fake server only: this session has no Elixir to run Lightning.
+  Counts: wrappers reading fixtures 14 → 13 of 25; tests 234 → 244;
+  the rest unchanged.
 
 - **Lane 2: History reads only the API.** The page moved to
   `src/pages/history/` with its page and query tests, and
@@ -401,10 +417,10 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   (`useHistoryExportSaves` takes the ids), and across projects there's no
   Export, since an export belongs to one project (it used to say "Export
   started." and do nothing). Lightning wasn't walked: this container has
-  no Elixir. Counts (after lane 3): wrappers reading fixtures 14 → 13 of
-  25; page-data.ts 632 → 598 lines; files importing it 64 → 60; pages in
-  their own folder 8 → 9 of 24; page and query tests 17 → 19; tests 234 →
-  252; the ratchet unchanged.
+  no Elixir. Counts (after lanes 3 and 4): wrappers reading fixtures 13 →
+  12 of 25; page-data.ts 632 → 598 lines; files importing it 64 → 60;
+  pages in their own folder 8 → 9 of 24; page and query tests 17 → 19;
+  tests 244 → 262; the ratchet unchanged.
   ([#211](https://github.com/brandonjackson/openfn-ia-demo/pull/211))
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
@@ -469,12 +485,17 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
 5. **"Choose a credential type" as a callout** above the picker. The
    picker has no field to put it under; a labelled group of types carrying
    the message would read better but changes the picker's look.
-6. **Where focus goes after a History bulk action** (lane 2, History's
+6. **No account menu when you can't be loaded** (lane 4, from its
+   reviewers). If `GET /api/me` fails, the sidebar has no account menu, so
+   no Log out or Settings, and nothing says why. Would draw a plain "Log
+   out" (and the reason) in its place. Admin settings' wait could also say
+   "Loading Admin settings…" rather than "Loading…".
+7. **Where focus goes after a History bulk action** (lane 2, History's
    reviewers). A successful retry, cancel or export clears the picks, which
    hides the selection bar and the button that had focus, so focus drops to
    the top of the page. Would move focus to the notice (`tabIndex={-1}`),
    which shows a focus ring on the callout.
-7. **History's counts from the server** (lane 2). "3 new runs enqueued"
+8. **History's counts from the server** (lane 2). "3 new runs enqueued"
    counts the picks; the server answers how many it `enqueued` and
    `discarded` (a deleted workflow's, a wiped input's) and how many it
    `cancelled`. Would word the notice from the server's numbers ("2 new runs

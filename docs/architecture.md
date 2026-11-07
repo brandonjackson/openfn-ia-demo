@@ -108,7 +108,7 @@ The fixture wrappers apply a change straight away and return an already-resolved
 
 **Tests.** A page's `XPage.test.tsx` draws it with `renderPage` (`src/test/renderPage.tsx`): it feeds props, and each `onX` returns a promise the test answers with `resolve` or `reject`, so pending, success and a refusal are each a step to check. Lint holds it to the page's rules, so it can't reach for fixtures or the API either. The wrapper's `XPage.query.test.tsx` renders it on the fake server (`ApiProvider retry={false}`, `resetFakeApi`, `setWait(0)`, and `failNext` for a refusal) and checks what the server decides. `.test.tsx` runs in jsdom, `.test.ts` in Node.
 
-**The chrome.** The sidebar and the project bar in the breadcrumbs sit around every page, so they're fed once, by the shell's wrapper (`src/app/Shell.query.tsx` in the app, `Shell.fixtures.tsx` in stories), through a small `ShellContext` (`src/components/domain/shell-context.ts`). Only chrome reads it (`Sidebar`, `Breadcrumbs`, and the app when it fills `Layout`'s slots); pages take props.
+**The chrome.** The sidebar and the project bar in the breadcrumbs sit around every page, so they're fed once, by the shell's wrapper (`src/app/Shell.query.tsx` in the app, `Shell.fixtures.tsx` in stories), through a small `ShellContext` (`src/components/domain/shell-context.ts`). Only chrome reads it (`Sidebar`, `Breadcrumbs`, and the app when it fills `Layout`'s slots); pages take props. What the API hasn't answered yet (the instance, you, whether you're a superuser) is left out of it, and the chrome draws what it has.
 
 ### The API
 

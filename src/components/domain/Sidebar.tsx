@@ -236,14 +236,17 @@ export default function Sidebar({ open = false, onClose }: { open?: boolean; onC
               active={isAt(pathname, "/" + getHelp.id)}
             />
           </NavSection>
-          <div className="border-t border-gray-200 pt-3">
-            <AccountMenu
-              user={user}
-              instance={instance}
-              showOrganizationSettings={flags.organizations}
-              showAdminSettings={isSuperuser}
-            />
-          </div>
+          {/* You, once you're loaded. */}
+          {user && (
+            <div className="border-t border-gray-200 pt-3">
+              <AccountMenu
+                user={user}
+                instance={instance}
+                showOrganizationSettings={flags.organizations}
+                showAdminSettings={isSuperuser}
+              />
+            </div>
+          )}
         </div>
       </aside>
     </>

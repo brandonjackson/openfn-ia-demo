@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import Sidebar from "./Sidebar";
+import { ShellContext, useShell } from "./shell-context";
 import { withRouterAt } from "../../stories/decorators";
 import { allFlagsOff } from "../../model/feature-flags";
 
@@ -69,4 +70,21 @@ export const InsideProjectRedesign: Story = {
 export const MobileOpen: Story = {
   decorators: [withRouterAt("/overview")],
   args: { open: true, onClose: () => {} },
+};
+
+/** Before you and the instance have loaded: a blank tile for the logo, and no account menu yet. */
+function Unloaded() {
+  const shell = useShell();
+  return (
+    <ShellContext.Provider value={{ ...shell, instance: { name: "", initials: "" }, user: undefined, isSuperuser: undefined }}>
+      <div className="flex h-screen">
+        <Sidebar />
+      </div>
+    </ShellContext.Provider>
+  );
+}
+
+export const Loading: Story = {
+  decorators: [withRouterAt("/projects")],
+  render: () => <Unloaded />,
 };

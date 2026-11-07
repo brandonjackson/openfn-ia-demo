@@ -1,4 +1,3 @@
-import type { WorkflowListItem } from "./workflow-list";
 import type { ProjectCollection } from "./collections";
 import type { ProjectSummary } from "./projects";
 import type { Environment } from "./credentials";
@@ -380,19 +379,6 @@ export interface ProjectComponentItem {
   type: ProjectComponentType;
 }
 
-export interface ProjectPageData {
-  pageType: "project";
-  projectId: string;
-  /** Headline numbers from Insights and History, linking through. */
-  tiles: StatTileData[];
-  /** Its workflows, most recently run first. Empty for a new project, which shows an empty state. */
-  workflows: WorkflowListItem[];
-  /** What the project publishes. Absent without the service catalog. */
-  services?: ProjectServiceItem[];
-  /** What it's built from. Absent without components. */
-  components?: ProjectComponentItem[];
-}
-
 export interface ProjectComponentsPageData {
   pageType: "project-components";
   projectId: string;
@@ -664,7 +650,6 @@ export type PageData =
   | DashboardPageData
   | StatusPageData
   | InsightsPageData
-  | ProjectPageData
   | ProjectComponentsPageData
   | ProjectCreatePageData
   | ProjectSandboxesPageData

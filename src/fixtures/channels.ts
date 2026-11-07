@@ -1,6 +1,6 @@
+import { channelEventAddress, type ChannelDetails } from "../model/channels";
 import type { ChannelType } from "../model/page-data";
 import type { ProjectComponent } from "../model/projects";
-import type { ChannelDetails } from "../model/channels";
 
 const week = ["Wed", "Thu", "Fri", "Sat", "Sun", "Mon", "Tue"];
 const dates = ["14 Oct", "15 Oct", "16 Oct", "17 Oct", "18 Oct", "19 Oct", "20 Oct"];
@@ -136,9 +136,4 @@ export function newChannelDetails(
     enabled: draft.enabled,
     credential: draft.credential,
   };
-}
-
-/** Where an event channel listens, from its project and id. */
-export function channelEventAddress(projectId: string, id: string): string {
-  return `https://app.openfn.org/c/${projectId}/${id}`;
 }

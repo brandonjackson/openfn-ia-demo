@@ -1,20 +1,37 @@
 import { ClipboardList, Plus, Workflow } from "lucide-react";
-import type { PageProps } from "../model/ia-tree";
-import type { ProjectPageData } from "../model/page-data";
-import Badge from "../components/primitives/Badge";
-import PageHeader from "../components/patterns/PageHeader";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import Button from "../components/primitives/Button";
-import Card from "../components/primitives/Card";
-import ComponentRow from "../components/domain/ComponentRow";
-import EmptyState from "../components/primitives/EmptyState";
-import ListRow from "../components/primitives/ListRow";
-import SectionHeading from "../components/primitives/SectionHeading";
-import Stack from "../components/primitives/Stack";
-import StatTile from "../components/primitives/StatTile";
-import TextLink from "../components/primitives/TextLink";
-import WorkflowRow from "../components/domain/WorkflowRow";
+import type { PageProps } from "../../model/ia-tree";
+import type { ProjectComponentItem, StatTileData } from "../../model/page-data";
+import type { ProjectServiceItem } from "../../model/services";
+import type { WorkflowListItem } from "../../model/workflow-list";
+import Badge from "../../components/primitives/Badge";
+import PageHeader from "../../components/patterns/PageHeader";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import Button from "../../components/primitives/Button";
+import Card from "../../components/primitives/Card";
+import ComponentRow from "../../components/domain/ComponentRow";
+import EmptyState from "../../components/primitives/EmptyState";
+import ListRow from "../../components/primitives/ListRow";
+import SectionHeading from "../../components/primitives/SectionHeading";
+import Stack from "../../components/primitives/Stack";
+import StatTile from "../../components/primitives/StatTile";
+import TextLink from "../../components/primitives/TextLink";
+import WorkflowRow from "../../components/domain/WorkflowRow";
 
+/** What the Overview draws. */
+export interface ProjectPageData {
+  /** The project shown. */
+  projectId: string;
+  /** Headline numbers from Insights and History, linking through. */
+  tiles: StatTileData[];
+  /** Its workflows, most recently run first. Empty for a new project, which shows an empty state. */
+  workflows: WorkflowListItem[];
+  /** What the project publishes. Absent without the service catalog. */
+  services?: ProjectServiceItem[];
+  /** What it's built from. Absent without components. */
+  components?: ProjectComponentItem[];
+}
+
+/** The Overview's contract: the project's numbers, workflows, services and components, and starting a workflow. */
 export interface ProjectPageProps extends PageProps<ProjectPageData> {
   /** Opens a blank workflow in this project, from the empty state. */
   onNewWorkflow: () => void;

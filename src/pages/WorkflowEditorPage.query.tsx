@@ -30,7 +30,8 @@ import { serviceListing, workflowDocs } from "../fixtures/workflow-files";
 import type { AdaptorReference } from "../model/adaptor-reference";
 import type { AdaptorCatalog } from "../model/adaptor-catalog";
 import { useFlags } from "../app/feature-flags";
-import { componentTypesFor, componentsFor, systemsFor } from "./flagged.fixtures";
+import { systemsFor } from "./flagged.fixtures";
+import { componentTypesFor, componentsFor } from "../model/component-types";
 
 /** The adaptors steps can use; the project's credentials for them come from the API. */
 const adaptorReference: Omit<AdaptorReference, "credentials"> = {

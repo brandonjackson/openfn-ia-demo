@@ -5,8 +5,7 @@
  */
 import { useChannels, useChannelSaves, type ChannelResource } from "../api/channels";
 import { useProjectCredentials } from "../api/credentials";
-import type { ChannelDraft } from "../model/channels";
-import { channelEventAddress } from "../fixtures/channels";
+import { type ChannelDraft, channelEventAddress } from "../model/channels";
 
 /** A project's channels and how to change them, with credentials by name both ways. */
 export function useProjectChannels(projectId: string | undefined) {

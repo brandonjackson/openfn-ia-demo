@@ -65,3 +65,8 @@ export function channelDraftErrors(draft: ChannelDraft, taken: string[]): Partia
     errors.destinationUrl = "Enter the full address, starting with https://.";
   return errors;
 }
+
+/** Where an event channel listens, from its project and id. */
+export function channelEventAddress(projectId: string, id: string): string {
+  return `https://app.openfn.org/c/${projectId}/${id}`;
+}

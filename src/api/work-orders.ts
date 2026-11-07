@@ -19,7 +19,9 @@ export interface ApiWorkOrder {
     dataclip_id: string;
     runs: RunDetails[];
     input: Dataclip | null;
-    received_at: string;
+    inserted_at: string;
+    /** The demo's: when its first run started, in the fixtures' words. Lightning sends only `inserted_at`. */
+    received_at?: string;
   };
 }
 
@@ -37,7 +39,7 @@ const toRecord = ({ id, attributes: a }: ApiWorkOrder, projectId: string): WorkO
   workflowId: a.workflow_id,
   projectId,
   input: a.input ?? { id: a.dataclip_id, type: "http_request", body: "{}", created: a.last_activity },
-  receivedAt: a.received_at,
+  receivedAt: a.received_at ?? a.inserted_at,
 });
 
 export const runKeys = {

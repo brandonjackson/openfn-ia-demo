@@ -5,12 +5,13 @@ import { flagById } from "../model/feature-flags";
 import { useFlags } from "./feature-flags";
 import { findNodeByPath, type PageRoute as Route } from "./ia-utils";
 import { useShell } from "../components/domain/shell-context";
-import { apiProjectId, projects as fixtureProjects } from "../fixtures/projects";
+import { apiProjectId, fixtureWorkflow, projects as fixtureProjects } from "../fixtures/projects";
+import { apiWorkflowId } from "../fixtures/ids";
 import NotFoundPage from "../pages/NotFoundPage";
 import OverviewPageQuery from "../pages/OverviewPage.query";
 import SystemsPageQuery from "../pages/SystemsPage.query";
 import SystemPageQuery from "../pages/SystemPage.query";
-import HistoryPageQuery from "../pages/HistoryPage.query";
+import HistoryPageQuery from "../pages/history/HistoryPage.query";
 import ServicesPageQuery from "../pages/ServicesPage.query";
 import ProjectsPageQuery from "../pages/projects/ProjectsPage.query";
 import ProjectPageQuery from "../pages/project/ProjectPage.query";
@@ -87,6 +88,18 @@ export default function PageRoute() {
   const slug = pathname.match(/^\/projects\/([^/]+)/)?.[1];
   if (slug && fixtureProjects.some((p) => p.id === slug)) {
     return <Navigate to={`${pathname.replace(`/projects/${slug}`, `/projects/${apiProjectId(slug)}`)}${search}${hash}`} replace />;
+  }
+  // So does an old History link that filters by a project or workflow's slug.
+  const params = new URLSearchParams(search);
+  const project = params.get("project");
+  const workflow = params.get("workflow");
+  const onHistory = pathname.replace(/\/$/, "").endsWith("/history");
+  const oldProject = onHistory && !!project && fixtureProjects.some((p) => p.id === project);
+  const oldWorkflow = onHistory && !!workflow && fixtureWorkflow(workflow)?.slug === workflow;
+  if (oldProject || oldWorkflow) {
+    if (oldProject) params.set("project", apiProjectId(project));
+    if (oldWorkflow) params.set("workflow", apiWorkflowId(workflow));
+    return <Navigate to={`${pathname}?${params}${hash}`} replace />;
   }
 
   if (pathname === "/" || pathname === "/overview") {

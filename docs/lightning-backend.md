@@ -133,7 +133,7 @@ as the demo user, and as the superuser for Admin settings.
 | Workflow editor | Works | Draws Lightning's workflow, read only on main as designed; its service ("See service listing") from the demo's routes, none. No saved inputs until project dataclips. Adaptors, the assistant and runs started here are the demo's (api-gaps.md). Checked on the fake server; not yet walked on Lightning since. |
 | Components | Works | Workflows from Lightning, other kinds from the demo's own routes, starting empty. |
 | Sandboxes | Works | Lightning's sandboxes; the selected one is kept per project id, shared with the project bar and the editor. |
-| History (project, all) | Works | Lightning's work orders and channel requests. |
+| History (project, all) | Works | On the API only: Lightning's work orders, workflows and channel requests; times sorted and filtered whether ISO (`inserted_at`) or the fixtures' stamps. Export sends the shown work orders as the `id` filter; none across projects. Checked on the fake server; not walked on Lightning (this session's container has no Elixir; see convergence.md, Now). |
 | Insights (project) | Works | From Lightning's work orders. |
 | Settings | Works with gaps | Reads Lightning's settings; read only until `permissions`. |
 | Services (project) | Works | From the demo's own routes, empty. |

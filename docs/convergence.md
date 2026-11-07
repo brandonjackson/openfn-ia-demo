@@ -368,7 +368,30 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     demo behaviours"). Counts: wrappers reading fixtures 16 → 15 of 25;
     page and query tests 14 → 15; the rest unchanged.
 
-**PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
+18. **Lane 2: History reads only the API.** The page moved to
+    `src/pages/history/` with its page and query tests, and
+    `HistoryPageData` into the page file (`HistoryWorkflowOption` into
+    `model/history.ts`). The wrapper imports no fixtures: work orders sort
+    with `newestFirst` (`model/history.ts`), and `stampTime`
+    (`model/runs.ts`) reads an ISO timestamp as well as the fixtures'
+    stamps; a work order's received time is the demo's `received_at` or,
+    as Lightning sends it, `inserted_at`. An old History link filtering by
+    a project's or workflow's slug (`?project=`, `?workflow=`) is redirected
+    in `PageRoute.tsx`, beside the old project path redirect. A refused
+    retry, retry from a step, cancel or export says why in an alert callout
+    and keeps the picks; every notice is read out (a fresh `key` each time,
+    success as `status`); a bulk action says "Retrying…" (or "Cancelling…",
+    "Exporting…") and is `aria-disabled` while it runs, ignoring a second
+    press. Export sends the shown work orders as the list's `id` filter
+    (`useHistoryExportSaves` takes the ids), and across projects there's no
+    Export, since an export belongs to one project (it used to say "Export
+    started." and do nothing). Lightning wasn't walked: this container has
+    no Elixir. Counts: wrappers reading fixtures 15 → 14 of 25; page-data.ts
+    658 → 624 lines; files importing it 72 → 68; pages in their own folder
+    7 → 8 of 24; page and query tests 15 → 17; tests 220 → 238; the ratchet
+    unchanged.
+
+**PRs done: 18** (10 for the brief, then Brandon's decisions, then the Lightning run, then the lanes). Pull openfn-3-poc again at PR 10.
 
 ## Decided by Brandon (6 Nov 2026)
 
@@ -430,3 +453,16 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
 5. **"Choose a credential type" as a callout** above the picker. The
    picker has no field to put it under; a labelled group of types carrying
    the message would read better but changes the picker's look.
+6. **Where focus goes after a History bulk action** (lane 2, History's
+   reviewers). A successful retry, cancel or export clears the picks, which
+   hides the selection bar and the button that had focus, so focus drops to
+   the top of the page. Would move focus to the notice (`tabIndex={-1}`),
+   which shows a focus ring on the callout.
+7. **History's counts from the server** (lane 2). "3 new runs enqueued"
+   counts the picks; the server answers how many it `enqueued` and
+   `discarded` (a deleted workflow's, a wiped input's) and how many it
+   `cancelled`. Would word the notice from the server's numbers ("2 new runs
+   enqueued; 1 skipped, its workflow was deleted"). Also: across projects a
+   retry goes project by project, so when a later project refuses, the
+   earlier ones have already run and trying again retries them twice; the
+   hooks would need to say which projects went through.

@@ -1,18 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ChannelPage from "./ChannelPage";
-import { withRouter } from "../stories/decorators";
-import { projects } from "../fixtures/projects";
-import type { Project } from "../model/projects";
-import { channelDetails } from "../fixtures/channels";
-import type { IANode } from "../model/ia-tree";
-import type { ChannelPageData } from "../model/page-data";
+import { withRouter } from "../../stories/decorators";
+import { projects } from "../../fixtures/projects";
+import type { Project } from "../../model/projects";
+import { channelDetails } from "../../fixtures/channels";
+import type { IANode } from "../../model/ia-tree";
+import type { ChannelPageData } from "./ChannelPage";
 
 const node: IANode = { id: "component", label: "Component", pageType: "component" };
 
 function storyArgs(project: Project, componentId: string) {
   const component = project.components.find((c) => c.id === componentId)!;
   const data: ChannelPageData = {
-    pageType: "channel",
     projectId: project.id,
     projectName: project.name,
     component,

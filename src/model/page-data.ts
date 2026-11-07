@@ -3,10 +3,8 @@ import type { ProjectSummary } from "./projects";
 import type { Environment } from "./credentials";
 import type { ProjectServiceItem, ServiceApiSpec } from "./services";
 import type { ConnectedSystemSummary, SuggestedSystem, ConnectedSystem, ConnectionMethod } from "./connected-systems";
-import type { CollectionContents, ComponentContent } from "./project-components";
 import type { LucideIcon } from "lucide-react";
 import type { Adaptor } from "./adaptors";
-import type { ChannelDetails } from "./channels";
 import type { EcosystemStation, EcosystemWorkflow } from "./ecosystem";
 import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember, XRoadService } from "./xroad";
 
@@ -254,32 +252,6 @@ export interface StatusPageData {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Insights page (Monitoring: over time)                              */
-/* ------------------------------------------------------------------ */
-
-export interface DailyRuns {
-  day: string;
-  succeeded: number;
-  failed: number;
-}
-
-export interface ProjectInsight {
-  id: string;
-  name: string;
-  runs: number;
-  failed: number;
-  avgDuration: string;
-}
-
-export interface InsightsPageData {
-  pageType: "insights";
-  range: string;
-  tiles: StatTileData[];
-  daily: DailyRuns[];
-  projects: ProjectInsight[];
-}
-
-/* ------------------------------------------------------------------ */
 /*  Service page (a published service's catalog entry / API docs)      */
 /* ------------------------------------------------------------------ */
 
@@ -293,30 +265,6 @@ export interface ServicePageData {
   api: ServiceApiSpec;
   /** The organisation's X-Road settings: who it is on X-Road, and its Security Server. Absent when it isn't on X-Road. */
   xroadOrg?: OrgXRoadSettings;
-}
-
-/** A channel's page in its project, opened from the project's Components. */
-export interface ChannelPageData {
-  pageType: "channel";
-  projectId: string;
-  projectName: string;
-  component: ProjectComponentItem;
-  channel: ChannelDetails;
-}
-
-/**
- * The page of one of a project's components that isn't a workflow or a
- * channel: a collection's keys, or the file a form, artifact, AI skill,
- * document or static website is.
- */
-export interface ComponentPageData {
-  pageType: "component";
-  projectId: string;
-  component: ProjectComponentItem;
-  /** For a form, artifact, AI skill, document or static website: what it holds. */
-  content?: ComponentContent;
-  /** For a collection: its keys, how many it holds in all and their size. */
-  collection?: CollectionContents;
 }
 
 /* ------------------------------------------------------------------ */
@@ -402,7 +350,5 @@ export type PageData =
   | CatalogPageData
   | DashboardPageData
   | StatusPageData
-  | InsightsPageData
   | ProjectSandboxesPageData
-  | ServicePageData
-  | ChannelPageData;
+  | ServicePageData;

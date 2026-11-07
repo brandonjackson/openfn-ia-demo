@@ -1,21 +1,19 @@
 import { Navigate, useNavigate } from "react-router-dom";
-import type { PageRoute } from "../app/ia-utils";
-import Loaded from "../app/Loaded";
-import { useFlags } from "../app/feature-flags";
-import { useProject } from "../api/projects";
-import { useProjectWorkflows } from "../api/workflows";
-import { useCollectionItems } from "../api/collections";
-import { combine } from "../api/status";
-import { fixtureProject, fixtureWorkflow } from "../fixtures/projects";
-import { apiChannelId, apiCollectionId, apiComponentId, apiWorkflowId } from "../fixtures/ids";
-import { isContentComponentType } from "../model/project-components";
+import type { PageRoute } from "../../app/ia-utils";
+import Loaded from "../../app/Loaded";
+import { useFlags } from "../../app/feature-flags";
+import { useProject } from "../../api/projects";
+import { useProjectWorkflows } from "../../api/workflows";
+import { useCollectionItems } from "../../api/collections";
+import { combine } from "../../api/status";
+import { isContentComponentType } from "../../model/project-components";
 import ChannelPage from "./ChannelPage";
 import ComponentPage from "./ComponentPage";
-import NotFoundPage from "./NotFoundPage";
-import { componentsFor } from "../model/component-types";
-import { pageFrame } from "../app/page-frame";
-import { channelDraft } from "./channel-records.query";
-import { useProjectComponents } from "./component-records.query";
+import NotFoundPage from "../NotFoundPage";
+import { componentsFor } from "../../model/component-types";
+import { pageFrame } from "../../app/page-frame";
+import { channelDraft } from "../channel-records.query";
+import { useProjectComponents } from "../component-records.query";
 
 /**
  * Feeds a project component's page, from the API. A channel opens
@@ -25,8 +23,9 @@ import { useProjectComponents } from "./component-records.query";
  * which owners and admins rename or delete. A form, artifact, AI skill,
  * document or static website opens `ComponentPage` with its file, which
  * editors save, rename or delete. A workflow (even by an old URL) opens the
- * full-screen editor, and a kind the feature flags turn off isn't there. An
- * old link by a fixture component's slug still lands.
+ * full-screen editor, and a kind the feature flags turn off isn't there.
+ * An old link by a fixture component's slug is sent on by routing
+ * (`src/app/component-links.ts`), so this reads no fixtures.
  */
 export default function ComponentPageQuery({ route }: { route: PageRoute }) {
   const navigate = useNavigate();
@@ -38,22 +37,10 @@ export default function ComponentPageQuery({ route }: { route: PageRoute }) {
   const { status: workflowsStatus, workflows } = useProjectWorkflows(projectId);
   const collection = records.collections.find((c) => c.id === componentId);
   const { status: itemsStatus, items } = useCollectionItems(project?.id, collection?.name);
-  const fixture = fixtureProject(projectId);
 
-  // Workflows open in the editor, whether named by id or by an old slug.
-  const workflow = workflows.find((w) => w.id === componentId) ?? (fixtureWorkflow(componentId) && workflows.find((w) => w.id === apiWorkflowId(componentId)));
+  // Workflows open in the editor.
+  const workflow = workflows.find((w) => w.id === componentId);
   if (workflow) return <Navigate to={`/workflow-editor/${workflow.id}`} replace />;
-  // An old link by a fixture component's slug.
-  const legacy = fixture?.components.find((c) => c.id === componentId && c.type !== "Workflow");
-  if (fixture && legacy) {
-    const id =
-      legacy.type === "Channel"
-        ? apiChannelId(fixture.id, legacy.id)
-        : legacy.type === "Collection"
-          ? apiCollectionId(fixture.id, legacy.name)
-          : apiComponentId(fixture.id, legacy.id);
-    return <Navigate to={route.currentPath.replace(componentId, id)} replace />;
-  }
 
   return (
     <Loaded status={combine(projectStatus, records.status, workflowsStatus, itemsStatus)} path={route.currentPath}>
@@ -68,17 +55,22 @@ export default function ComponentPageQuery({ route }: { route: PageRoute }) {
           const workflowPath = channel.details.workflowId ? `/workflow-editor/${channel.details.workflowId}` : undefined;
           return (
             <ChannelPage
+              key={componentId}
               {...pageFrame(route, { label: channel.component.name, description: channel.component.description }, project!.name)}
-              data={{ pageType: "channel", projectId: project!.id, projectName: project!.name, component: channel.component, channel: channel.details }}
+              data={{ projectId: project!.id, projectName: project!.name, component: channel.component, channel: channel.details }}
               draft={channelDraft(channel)}
               takenNames={records.channels.channels.filter((c) => c !== channel).map((c) => c.component.name)}
               credentials={credentialNames}
-              onEditChannel={(draft) => saves.update(channel, draft)}
-              onSetEnabled={(enabled) => saves.setEnabled(channel, enabled)}
-              onDeleteChannel={async () => {
-                await saves.remove(channel.component.id);
-                navigate(listPath);
-              }}
+              onEditChannel={permissions.update_channel ? (draft) => saves.update(channel, draft) : undefined}
+              onSetEnabled={permissions.update_channel ? (enabled) => saves.setEnabled(channel, enabled) : undefined}
+              onDeleteChannel={
+                permissions.delete_channel
+                  ? async () => {
+                      await saves.remove(channel.component.id);
+                      navigate(listPath);
+                    }
+                  : undefined
+              }
               onOpenWorkflow={workflowPath ? () => navigate(workflowPath) : undefined}
               onOpenRun={workflowPath ? (runId) => navigate(`${workflowPath}?run=${runId}`) : undefined}
             />
@@ -98,8 +90,9 @@ export default function ComponentPageQuery({ route }: { route: PageRoute }) {
           const { collections: collectionSaves, items: itemSaves } = records.saves;
           return (
             <ComponentPage
+              key={componentId}
               {...frame}
-              data={{ pageType: "component", projectId: project!.id, component, collection: { items, itemCount: collection.itemCount, byteSize: collection.byteSize } }}
+              data={{ projectId: project!.id, component, collection: { items, itemCount: collection.itemCount, byteSize: collection.byteSize } }}
               takenNames={takenNames}
               onSaveItem={canEdit ? (key, value) => itemSaves.save(collection.name, key, value) : undefined}
               onDeleteItem={canEdit ? (key) => itemSaves.remove(collection.name, key) : undefined}
@@ -121,8 +114,9 @@ export default function ComponentPageQuery({ route }: { route: PageRoute }) {
         const saves = records.saves.components;
         return (
           <ComponentPage
+            key={componentId}
             {...frame}
-            data={{ pageType: "component", projectId: project!.id, component, content: resource.details }}
+            data={{ projectId: project!.id, component, content: resource.details }}
             takenNames={takenNames}
             onSaveContent={canEdit ? (content) => saves.saveContent(resource, content) : undefined}
             onEditDetails={canEdit ? (draft) => saves.rename(resource, draft) : undefined}

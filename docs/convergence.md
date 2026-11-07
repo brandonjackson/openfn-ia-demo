@@ -465,6 +465,42 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   pages in their own folder 10 → 11 of 24; page and query tests 21 → 23;
   tests 273 → 292; the ratchet unchanged.
   ([#211](https://github.com/brandonjackson/openfn-ia-demo/pull/211))
+- **Lane 2: Insights reads only the API.** The page moved to
+  `src/pages/insights/` with its page and query tests. Its numbers are
+  worked out by `insightsFor` (a new `model/insights.ts`, with `Insights`,
+  `DailyRuns` and `ProjectInsight`, which left page-data.ts) from the
+  projects' work orders: the last 7 days of finished runs (today and the 6
+  days before, whole days), errors, the error rate against the week
+  before, and the average run time, for one project or every project you
+  can open, with a row each. Both used to be fixed fixture numbers, so the
+  default build's week is now the fixtures' few runs, not a busy
+  organisation's (the stories keep that one); this also puts Insights
+  (all) on Lightning, which lightning-backend.md's 7 Nov decision had left
+  on the fixtures because it thought Lightning had nothing to show. A
+  project with no runs has no rate ("—", not "NaN%"). Lightning wasn't
+  walked (no Elixir here). Counts: wrappers reading fixtures 9 → 8 of 24;
+  page-data.ts 426 → 399 lines; files importing it 46 → 45; pages in their
+  own folder 11 → 12 of 24; page and query tests 23 → 25; tests 292 → 304;
+  the ratchet unchanged.
+  ([#218](https://github.com/brandonjackson/openfn-ia-demo/pull/218))
+
+- **Lane 3: A component's page reads only the API.** `ComponentPage`,
+  its wrapper and `ChannelPage` moved to `src/pages/component/` with page
+  tests for both, a query test, and `ComponentPageData` and
+  `ChannelPageData` into their page files (without `pageType`). Old slug
+  links (a fixture project's and any of its components, a workflow
+  included) are sent on by routing, in `src/app/component-links.ts` with
+  its own test, so the wrapper reads no fixtures. A channel's Edit, Turn off and Delete are
+  offered only with `update_channel` and `delete_channel` (the server
+  refused a viewer's), and a refused toggle or delete, on a channel or any
+  other component, now says why in an alert callout, as Workflows does;
+  a second Turn off while one saves is ignored, and each component's page
+  starts fresh (keyed by its id).
+  Checked on the fake server only. Counts (after lanes 1, 2 and 4): wrappers reading
+  fixtures 8 → 7 of 24; page-data.ts 399 → 372 lines; files importing it
+  45 → 42; pages in their own folder 12 → 14 of 24; page and query tests
+  25 → 28; the ratchet unchanged.
+  ([#213](https://github.com/brandonjackson/openfn-ia-demo/pull/213))
 - **Lane 4: Create reads only the API.** `ProjectCreatePage` moved to
   `src/pages/project-create/` with its page and query tests, and
   `ProjectCreatePageData` into the page file (just `ideas`: no `pageType`,
@@ -475,10 +511,10 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   `model/build-ideas.ts`. If the ideas can't load, the page says so, as
   every page does until decision 1. Still to do under decision 4:
   `BuildPrompt` disables Build while the box is empty. Checked on the fake
-  server only. Counts (after lanes 1 and 2): wrappers reading fixtures 9 → 8 of 24;
-  page-data.ts 426 → 408 lines; files importing it 46 → 43; pages in their
-  own folder 11 → 12 of 24; page and query tests 23 → 25; tests 292 → 302;
-  the ratchet unchanged.
+  server only. Counts (after lanes 1, 2 and 3): wrappers reading fixtures 7 → 6 of
+  24; page-data.ts 372 → 354 lines; files importing it 42 → 39; pages in
+  their own folder 14 → 15 of 24; page and query tests 28 → 30; tests 326
+  → 336; the ratchet unchanged.
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
@@ -574,7 +610,15 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
    retry goes project by project, so when a later project refuses, the
    earlier ones have already run and trying again retries them twice; the
    hooks would need to say which projects went through.
-11. **Create on primitives, with an empty state** (lane 4, from its
+11. **Run history's "now" on Lightning** (lane 2, Insights' reviewers).
+   Every count of recent runs (Insights, a project's Overview, the editor's
+   runs bar) counts back from the fixtures' fixed "now", 20 Oct 2026
+   (`activityNow` in `model/runs.ts`), so on `/v3` every run since then
+   lands on the last day and the week labels are October's. Would count
+   back from the real time on the Lightning build; that needs the build's
+   choice of clock passed down from `src/app/`, the one place that reads
+   it.
+12. **Create on primitives, with an empty state** (lane 4, from its
    reviewers). The Create page still lays itself out with `className` and
    its own `<h1>`, not `PageHeader`, `Stack` and `Grid`, and with no ideas it
    shows "Ideas to get you started" over nothing. Would move it onto the

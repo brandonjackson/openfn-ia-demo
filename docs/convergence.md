@@ -374,7 +374,9 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   `ProjectComponentType` and `ProjectComponentItem` left page-data.ts for
   `model/component-types.ts`. The wrapper no longer fetches workflows: the
   page never lists them (they have their own page), and the only fixture it
-  read was their descriptions. Checked on the fake server only (this
+  read was their descriptions. A viewer is no longer offered New channel
+  (the server refused it): channels need `create_channel`, the other kinds
+  `create_workflow`. Checked on the fake server only (this
   container has no Elixir). Counts: wrappers reading fixtures 15 → 14 of
   25; page-data.ts 658 → 632 lines; files importing it 72 → 64; pages in
   their own folder 7 → 8 of 24; page and query tests 15 → 17; the ratchet

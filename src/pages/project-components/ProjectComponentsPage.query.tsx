@@ -30,8 +30,9 @@ export default function ProjectComponentsPageQuery({ route }: { route: PageRoute
     <Loaded status={combine(projectStatus, records.status)} path={route.currentPath}>
       {() => {
         const open = (id: string) => navigate(`/projects/${project!.id}/components/${id}`);
-        // Editors and up add components, as they do workflows.
-        const canEdit = !!project!.permissions?.edit_workflow;
+        const permissions = project!.permissions ?? {};
+        // Editors and up add channels, as Lightning has it, and the other kinds, as they do workflows.
+        const canCreate = !!permissions.create_workflow;
         return (
           <ProjectComponentsPage
             {...pageFrame(route, {}, project!.name)}
@@ -40,16 +41,20 @@ export default function ProjectComponentsPageQuery({ route }: { route: PageRoute
               components: componentsFor(records.items, flags),
               types: componentTypesFor(flags),
             }}
-            onCreateChannel={async (draft) => open(await records.channels.saves.create(draft, eventAddress(project!.name, draft.name)))}
+            onCreateChannel={
+              permissions.create_channel
+                ? async (draft) => open(await records.channels.saves.create(draft, eventAddress(project!.name, draft.name)))
+                : undefined
+            }
             onCreateCollection={
               records.canManageCollections
                 ? async (name) => open(await records.saves.collections.create(project!.id, name))
                 : undefined
             }
-            onCreateComponent={canEdit ? async (type, draft) => open(await records.saves.components.create(type, draft, starterContent(type, draft.name.trim()))) : undefined}
+            onCreateComponent={canCreate ? async (type, draft) => open(await records.saves.components.create(type, draft, starterContent(type, draft.name.trim()))) : undefined}
             // Like the editor's: drafted from a plain-words description on Create.
             onDraftWithAI={
-              flags.aiBuild
+              flags.aiBuild && canCreate
                 ? (type) =>
                     navigate(`/projects/${project!.id}/create`, {
                       state: { draft: `Add ${/^[aeiou]/i.test(type) ? "an" : "a"} ${type.toLowerCase()} to this project that ` },

@@ -5,7 +5,7 @@ import ApiProvider from "../../api/ApiProvider";
 import { forgetCsrfToken, request } from "../../api/client";
 import { setFlag } from "../../app/feature-flags";
 import { findNodeByPath } from "../../app/ia-utils";
-import { failNext, resetFakeApi, setWait } from "../../fake-api";
+import { failNext, resetFakeApi, setWait, signInAs } from "../../fake-api";
 import { projectIdFor } from "../../fake-api/projects";
 import { iaTree } from "../../model/ia-tree";
 import ProjectComponentsPageQuery from "./ProjectComponentsPage.query";
@@ -52,7 +52,10 @@ describe("ProjectComponentsPageQuery", () => {
     forgetCsrfToken();
     flagsOn();
   });
-  afterEach(flagsOn);
+  afterEach(() => {
+    flagsOn();
+    signInAs(null);
+  });
 
   it("lists the project's channels, collections and other components from the server, by kind", async () => {
     const [channels, collections, components] = await Promise.all([serverChannels(), serverCollections(), serverComponents()]);
@@ -93,6 +96,18 @@ describe("ProjectComponentsPageQuery", () => {
     await waitFor(async () => expect((await serverCollections()).some((c) => c.name === "ward-codes")).toBe(true), wait);
     const made = (await serverCollections()).find((c) => c.name === "ward-codes")!;
     expect(await screen.findByText(`Opened ${path}/${made.id}`, {}, wait)).toBeTruthy();
+  });
+
+  it("offers a viewer nothing to add, with or without Components", async () => {
+    const [channel] = await serverChannels();
+    signInAs("user-beth");
+    renderRoute();
+    expect(await screen.findByText(channel!.name, {}, wait)).toBeTruthy();
+    expect(screen.queryByText("Add project component")).toBeNull();
+
+    act(() => setFlag("components", false));
+    await waitFor(() => expect(screen.queryByText(/^Collections/)).toBeNull(), wait);
+    expect(screen.queryByRole("button", { name: "New channel" })).toBeNull();
   });
 
   it("shows the server's message in the page's place when the components fail to load", async () => {

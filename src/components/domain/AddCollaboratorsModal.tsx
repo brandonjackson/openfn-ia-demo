@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MinusCircle, PlusCircle } from "lucide-react";
-import type { CollaboratorDraft } from "../../model/page-data";
 import { addableRoles, isValidEmail, projectRoleLabels, type ProjectRole } from "../../model/project-settings";
+import { type CollaboratorDraft } from "../../model/projects";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";
 import IconButton from "../primitives/IconButton";

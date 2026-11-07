@@ -23,6 +23,7 @@ import { sandboxRoutes } from "./sandboxes";
 import { collectionRoutes } from "./collections";
 import { webhookAuthRoutes } from "./webhook-auth";
 import { historyExportRoutes } from "./history-exports";
+import { provisioningRoutes } from "./provisioning";
 import { credentialRoutes } from "./credentials";
 import { credentialSchemaRoutes } from "./credential-schemas";
 import { accountRoutes } from "./account";
@@ -52,6 +53,7 @@ const routes: Record<string, Handler> = {
   ...collectionRoutes,
   ...webhookAuthRoutes,
   ...historyExportRoutes,
+  ...provisioningRoutes,
   ...credentialRoutes,
   ...credentialSchemaRoutes,
   ...accountRoutes,

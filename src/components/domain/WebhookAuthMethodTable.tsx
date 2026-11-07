@@ -1,5 +1,5 @@
 import { Pencil, PlusCircle, Trash2 } from "lucide-react";
-import type { WebhookAuthMethod, WebhookTriggerOption } from "../../model/page-data";
+import type { WebhookAuthMethod, WebhookTriggerOption } from "../../model/webhooks";
 import { countLabel, webhookAuthTypes } from "../../model/project-settings";
 import DataTable, { type DataTableColumn } from "../primitives/DataTable";
 import Badge from "../primitives/Badge";

@@ -33,6 +33,8 @@ export interface ProjectCredential {
   name: string;
   adaptor: AdaptorKind;
   owner: string;
+  /** The environments it has values for ("production", "staging"), when the API has said. */
+  environments?: string[];
 }
 
 /**

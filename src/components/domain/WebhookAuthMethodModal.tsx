@@ -1,12 +1,6 @@
 import { useState } from "react";
-import type { WebhookAuthMethod, WebhookAuthMethodDraft, WebhookTriggerOption } from "../../model/page-data";
-import {
-  webhookAuthNameError,
-  webhookAuthTypes,
-  webhookPasswordError,
-  webhookUsername,
-  type WebhookAuthType,
-} from "../../model/project-settings";
+import type { WebhookAuthMethod, WebhookAuthMethodDraft, WebhookTriggerOption, WebhookAuthType } from "../../model/webhooks";
+import { webhookAuthNameError, webhookAuthTypes, webhookPasswordError, webhookUsername } from "../../model/project-settings";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";
 import Callout from "../primitives/Callout";

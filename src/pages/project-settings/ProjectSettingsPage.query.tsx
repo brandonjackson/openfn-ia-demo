@@ -1,61 +1,23 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import type { PageRoute } from "../app/ia-utils";
-import Loaded from "../app/Loaded";
-import { useMemberSaves, useProject, useProjectMembers, useProjectSaves } from "../api/projects";
-import { combine } from "../api/status";
-import { fetchCollectionItems, useCollections, useCollectionSaves } from "../api/collections";
-import { useWebhookAuthMethods, useWebhookAuthSaves, webhookTriggerOptions } from "../api/webhook-auth";
-import { useHistoryExports, useHistoryExportSaves } from "../api/history-exports";
-import { useProjectWorkflows } from "../api/workflows";
-import { useGitHubInstallations, useRepoConnection, useRepoConnectionSaves } from "../api/github";
-import { useAccountSaves, useMe } from "../api/account";
-import type { Collaborator, ProjectSettingsPageData } from "../model/page-data";
-import {
-  assignableRoles,
-  removeBlockedReason,
-  retentionDays,
-  retentionLabel,
-  type ProjectRole,
-  type ProjectSettingsPermissions,
-} from "../model/project-settings";
-import type { ProjectDetails, ProjectMember } from "../model/projects";
-import { workflowToYaml } from "../model/workflow";
-import type { Project } from "../model/projects";
-import { currentUser } from "../fixtures/user";
-import { projectWorkOrders } from "../fixtures/history";
-import { fixtureProject } from "../fixtures/projects";
-import { nationalIdWorkflow, workflowGraphs } from "../fixtures/workflow";
-import {
-  projectSettingsPageData,
-  projectSettingsRecord,
-  type ProjectSettingsRecord,
-} from "../fixtures/project-settings";
-import { saveFile } from "../components/primitives/save-file";
-import ProjectSettingsPage from "./ProjectSettingsPage";
-import { pageFrame } from "../app/page-frame";
-import { asProject } from "./project-records.query";
-
-
-/** The project as the YAML the CLI and GitHub sync use. */
-function projectYaml(project: Project, record: ProjectSettingsRecord): string {
-  const indent = (text: string, by: string) =>
-    text
-      .split("\n")
-      .map((l) => by + l)
-      .join("\n");
-  const workflows = project.components
-    .filter((c) => c.type === "Workflow")
-    .map((c) => `  ${c.id}:\n${indent(workflowToYaml({ ...(workflowGraphs[c.id] ?? nationalIdWorkflow), name: c.name }), "    ")}`);
-  return [
-    `name: ${record.name}`,
-    `description: ${JSON.stringify(record.description)}`,
-    `env: ${record.environment}`,
-    `collections:`,
-    ...record.collections.map((c) => `  - ${c.name}`),
-    `workflows:`,
-    ...workflows,
-  ].join("\n");
-}
+import type { PageRoute } from "../../app/ia-utils";
+import Loaded from "../../app/Loaded";
+import { useMemberSaves, useProject, useProjectMembers, useProjectSaves } from "../../api/projects";
+import { combine } from "../../api/status";
+import { fetchCollectionItems, useCollections, useCollectionSaves } from "../../api/collections";
+import { useWebhookAuthMethods, useWebhookAuthSaves, webhookTriggerOptions } from "../../api/webhook-auth";
+import { fetchHistoryExportFile, useHistoryExports, useHistoryExportSaves } from "../../api/history-exports";
+import { useProjectWorkflows } from "../../api/workflows";
+import { useGitHubInstallations, useRepoConnection, useRepoConnectionSaves } from "../../api/github";
+import { useAccountSaves, useMe } from "../../api/account";
+import { useCredentialSchemas, useProjectCredentials } from "../../api/credentials";
+import type { ProjectCredential } from "../../model/adaptor-reference";
+import type { CredentialSchemaSummary } from "../../model/credentials";
+import { fetchProjectYaml } from "../../api/provisioning";
+import { assignableRoles, removeBlockedReason, retentionDays, retentionLabel, type ProjectRole, type ProjectSettingsPermissions } from "../../model/project-settings";
+import type { Collaborator, ProjectDetails, ProjectMember } from "../../model/projects";
+import { saveFile } from "../../components/primitives/save-file";
+import ProjectSettingsPage, { type ProjectSettingsCredential, type ProjectSettingsPageData } from "./ProjectSettingsPage";
+import { pageFrame } from "../../app/page-frame";
 
 /** What the API says you may do here, as the settings page's permissions. */
 function settingsPermissions(details: ProjectDetails): ProjectSettingsPermissions {
@@ -73,8 +35,8 @@ function settingsPermissions(details: ProjectDetails): ProjectSettingsPermission
 }
 
 /** A member as the collaborators table shows them, with what you may do to them. */
-function asCollaborator(m: ProjectMember, yourRole: ProjectRole): Collaborator {
-  const them = { role: m.role, isSelf: m.email === currentUser.email };
+function asCollaborator(m: ProjectMember, yourRole: ProjectRole, yourId: string): Collaborator {
+  const them = { role: m.role, isSelf: m.userId === yourId };
   return {
     id: m.userId,
     firstName: m.firstName,
@@ -89,12 +51,19 @@ function asCollaborator(m: ProjectMember, yourRole: ProjectRole): Collaborator {
   };
 }
 
+/** A project credential as the settings list shows it, its type named by the credential schemas. */
+function asSettingsCredential(c: ProjectCredential, schemas: CredentialSchemaSummary[]): ProjectSettingsCredential {
+  const schema = schemas.find((t) => t.id === c.adaptor);
+  return { id: c.id, name: c.name, type: schema?.name ?? c.adaptor, adaptor: schema?.adaptor, environments: c.environments ?? [], owner: c.owner };
+}
+
 /**
  * Feeds a project's Settings from the API: the project, its members, its
- * MFA requirement and data retention, its collections, its webhook auth
- * methods (and the triggers each guards), and its history exports, which the
- * server makes in the background, and its GitHub connection (which needs
- * your account linked to GitHub to make).
+ * MFA requirement and data retention, its credentials, its collections, its
+ * webhook auth methods (and the triggers each guards), and its history
+ * exports, which the server makes in the background, and its GitHub
+ * connection (which needs your account linked to GitHub to make). Exporting
+ * the project and downloading an export fetch their files from the API.
  */
 export default function ProjectSettingsPageQuery({ route }: { route: PageRoute }) {
   const id = route.params["project"] ?? "";
@@ -106,9 +75,11 @@ export default function ProjectSettingsPageQuery({ route }: { route: PageRoute }
   const { status: exportsStatus } = useHistoryExports(id);
   const { status: workflowsStatus } = useProjectWorkflows(id);
   const { status: connectionStatus } = useRepoConnection(id);
+  const { status: credentialsStatus } = useProjectCredentials(id);
   const { status: meStatus } = useMe();
+  const status = combine(projectStatus, membersStatus, collectionsStatus, methodsStatus, exportsStatus, workflowsStatus, connectionStatus, credentialsStatus, meStatus);
   return (
-    <Loaded status={combine(projectStatus, membersStatus, collectionsStatus, methodsStatus, exportsStatus, workflowsStatus, connectionStatus, meStatus)} path={route.currentPath}>
+    <Loaded status={status} path={route.currentPath}>
       {() => <ProjectSettings route={route} details={details!} members={members} />}
     </Loaded>
   );
@@ -119,10 +90,6 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
   const { hash } = useLocation();
   const saves = useProjectSaves();
   const memberSaves = useMemberSaves(details.id);
-  const project: Project = fixtureProject(details.id) ?? asProject(details);
-
-  // What the page needs that no resource holds yet: its organisation credentials and webhook trigger shapes.
-  const record = projectSettingsRecord(project);
   const { collections } = useCollections(details.id, !!details.permissions?.manage_collection);
   const collectionSaves = useCollectionSaves();
   const { workflows } = useProjectWorkflows(details.id);
@@ -130,23 +97,26 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
   const methodSaves = useWebhookAuthSaves(details.id, workflows);
   const { exports } = useHistoryExports(details.id);
   const exportSaves = useHistoryExportSaves(details.id);
+  const { credentials } = useProjectCredentials(details.id);
+  // The schemas only name each credential's type; until they load, or if they can't, its short name shows.
+  const { schemas } = useCredentialSchemas();
   const { me } = useMe();
   const account = useAccountSaves(me?.id ?? "");
   const { connection } = useRepoConnection(details.id);
   const { installations } = useGitHubInstallations(!!me?.githubConnected);
   const github = useRepoConnectionSaves(details.id);
 
-  const yourRole = members.find((m) => m.email === currentUser.email)?.role ?? "viewer";
-  const fromRecord = projectSettingsPageData(project, record);
+  const yourId = me?.id ?? "";
+  const yourRole = members.find((m) => m.userId === yourId)?.role ?? "viewer";
   const data: ProjectSettingsPageData = {
-    ...fromRecord,
     projectId: details.id,
     projectName: details.name,
     projectEnvironment: details.env,
     projectDescription: details.description,
     permissions: settingsPermissions(details),
     concurrencyDisabled: details.concurrency === 1,
-    collaborators: members.map((m) => asCollaborator(m, yourRole)),
+    credentials: credentials.map((c) => asSettingsCredential(c, schemas)),
+    collaborators: members.map((m) => asCollaborator(m, yourRole, yourId)),
     mfaRequired: details.requiresMfa,
     collections,
     webhookAuthMethods: methods,
@@ -159,7 +129,6 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
       ioRetentionPeriod: retentionLabel(details.dataclipRetentionDays ?? details.historyRetentionDays),
     },
   };
-  const exportRecord = { ...record, name: details.name, environment: details.env, description: details.description, collections };
 
   return (
     <ProjectSettingsPage
@@ -168,7 +137,7 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
       initialSection={hash.slice(1) || undefined}
       onSaveProjectIdentity={({ name, description }) => saves.update(details.id, { name, description })}
       onSaveConcurrency={(disabled) => saves.update(details.id, { name: details.name, description: details.description, concurrency: disabled ? 1 : null })}
-      onExportProject={async () => projectYaml(project, exportRecord)}
+      onExportProject={() => fetchProjectYaml(details.id)}
       onDeleteProject={async () => {
         await saves.scheduleDeletion(details.id);
         navigate("/projects");
@@ -209,15 +178,9 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
       onInitiateGitHubSync={github.sync}
       onDisconnectGitHub={github.disconnect}
       onCreateHistoryExport={exportSaves.create}
-      onDownloadHistoryExport={(id) => {
-        // Work orders aren't on the API yet: the file is made here from the fixtures' history.
-        const file = exports.find((e) => e.id === id);
-        const workOrders = projectWorkOrders(project).map((o) => ({ id: o.workOrder.id, workflow: o.workflowName, status: o.workOrder.status, receivedAt: o.receivedAt, runs: o.workOrder.runs }));
-        saveFile(
-          file?.fileName ?? `${details.name}-history.json`,
-          JSON.stringify({ project: details.name, exportedAt: file?.createdAt, workOrders }, null, 2),
-          "application/json"
-        );
+      onDownloadHistoryExport={async (exportId) => {
+        const { fileName, file } = await fetchHistoryExportFile(details.id, exportId);
+        saveFile(fileName, file);
       }}
     />
   );

@@ -1,6 +1,6 @@
 import { UserMinus } from "lucide-react";
-import type { Collaborator } from "../../model/page-data";
 import { digestLabels, projectRoleLabels, type DigestFrequency, type ProjectRole } from "../../model/project-settings";
+import { type Collaborator } from "../../model/projects";
 import DataTable, { type DataTableColumn } from "../primitives/DataTable";
 import Button from "../primitives/Button";
 import Stack from "../primitives/Stack";

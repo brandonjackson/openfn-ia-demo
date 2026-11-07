@@ -55,6 +55,24 @@ async function call<T>(method: Method, path: string, body: unknown, token: strin
   return json as T;
 }
 
+/**
+ * A file the API answers with instead of JSON (a project's YAML, a history
+ * export's download). Refusals still come back as problem documents.
+ * `path` may be one of Lightning's absolute links: only its path is kept, so
+ * it stays on this origin.
+ */
+export async function getFile(path: string): Promise<Blob> {
+  const url = /^https?:/.test(path) ? new URL(path) : null;
+  let response: Response;
+  try {
+    response = await send(url ? url.pathname + url.search : path, { method: "GET", credentials: "same-origin", headers: { Accept: "*/*" } });
+  } catch {
+    throw new ApiError(0, "unreachable", "Couldn't reach Lightning.");
+  }
+  if (!response.ok) throw toApiError(response.status, await response.json().catch(() => undefined));
+  return response.blob();
+}
+
 /** Every page of a paged list (api/conventions.md), following `links.next`. */
 export async function listAll<T>(path: string, key = "data"): Promise<T[]> {
   const rows: T[] = [];

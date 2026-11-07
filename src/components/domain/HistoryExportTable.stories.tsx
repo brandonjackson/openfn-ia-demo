@@ -23,3 +23,6 @@ export const Processing: Story = {
 };
 
 export const Empty: Story = { args: { exports: [] } };
+
+/** A finished export being fetched: its button says so until the file arrives. */
+export const Downloading: Story = { args: { downloadingId: exports.find((e) => e.status === "completed")?.id } };

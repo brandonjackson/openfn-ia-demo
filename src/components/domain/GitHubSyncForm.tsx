@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { GitBranch } from "lucide-react";
-import type { GitHubConnectionSettings, GitHubInstallation } from "../../model/page-data";
-import { syncCommitFiles, syncDirections, type SyncDirection } from "../../model/project-settings";
+import type { GitHubConnectionSettings, GitHubInstallation, SyncDirection } from "../../model/github-sync";
+import { syncCommitFiles, syncDirections } from "../../model/project-settings";
 import Button from "../primitives/Button";
 import Callout from "../primitives/Callout";
 import Checkbox from "../primitives/Checkbox";

@@ -41,7 +41,7 @@ and to mark what would change the look.
   | Lane | Pages (wrappers) | Owns |
   | ---- | ---------------- | ---- |
   | 1. Project settings | `ProjectSettingsPage` (into `project-settings/`) | `project-records.query.ts` and `asProject`: remove them once Settings is off them; `Shell.query.tsx` imports `asProject` too, so swap that one call when you remove it |
-  | 2. Runs | `HistoryPage`, `InsightsPage` (project and all), `OverviewPage` (all) | `fixtures/history.ts`, `fixtures/insights.ts`, `fixtures/overview.ts`, `model/history.ts`, `model/runs.ts` |
+  | 2. Runs | `HistoryPage`, `InsightsPage` (project and all), `OverviewPage` (all) | `fixtures/history.ts`, `fixtures/insights.ts`, `fixtures/overview.ts` (gone), `model/history.ts`, `model/runs.ts`, `model/insights.ts` |
   | 3. Components | `ProjectComponentsPage`, `ComponentPage` (and `ChannelPage`'s folder) | `component-records.query.ts`, `channel-records.query.ts`, `model/component-types.ts` |
   | 4. Shell and small pages | `Shell.query.tsx` (instance, you, superuser from the API), `PlaceholderPage`, `ProjectCreatePage`, and the Sandboxes page's folder and tests (it already reads no fixtures) | `src/app/` except `PageRoute.tsx` lines other lanes add |
   | 5. Demo areas | `ServicesPage`, `ServicePage`, `SystemsPage`, `SystemPage` (X-Road identity from `GET /api/demo/organization/xroad`) | `flagged.fixtures.ts`, `fixtures/xroad.ts`, `fixtures/connected-systems.ts`, `fixtures/service-catalog.ts`, `model/xroad.ts` |
@@ -503,6 +503,29 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   25 → 28; the ratchet unchanged.
   ([#213](https://github.com/brandonjackson/openfn-ia-demo/pull/213))
 
+- **Lane 2: Overview reads the API.** The page moved to
+  `src/pages/overview/` with its page and query tests, and its data type
+  into the page file as `OverviewPageData` (`fixtures/overview.ts` is gone:
+  fixtures can't name a page's shape, so the story builds its data from the
+  fixtures' pieces). The week's runs and errors are `weekTiles` over
+  `insightsFor` (`model/insights.ts`) for every project you can open, so
+  they match Insights; projects and systems were already the API's. Nothing
+  in api/ says what isn't running, so the Status tile is left out on every
+  build (api-gaps.md; **this changes the look**: two tiles, in two
+  columns, not three). The page doesn't wait for the work orders: the tiles
+  appear once they're in and are left out if they fail (decision 1's
+  section pattern would give them their own loading and error).
+  The add-a-system catalog (adaptors and suggested systems) still comes
+  from fixtures, marked `debt:`: it's lane 5's (`fixtures/connected-systems.ts`),
+  and the Systems page needs the same, so the wrapper still counts as
+  reading fixtures until lane 5 moves it. A suggested system you've added
+  isn't suggested again. Lightning wasn't walked (no Elixir here). Counts:
+  (after lane 3's second PR) wrappers reading fixtures 7 of 24, unchanged
+  (the catalog, above); page-data.ts 372 → 353 lines; files importing it
+  42 → 41; pages in their own folder 14 → 15 of 24; page and query tests 28
+  → 30; tests 326 → 335; the ratchet unchanged.
+  ([#219](https://github.com/brandonjackson/openfn-ia-demo/pull/219))
+
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
 ## Decided by Brandon (6 Nov 2026)
@@ -605,3 +628,14 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
    back from the real time on the Lightning build; that needs the build's
    choice of clock passed down from `src/app/`, the one place that reads
    it.
+12. **Overview's add-a-system catalog** (lane 2, waiting on lane 5). The
+   adaptors and suggested systems the "Add connected system" form offers
+   still come from fixtures (`fixtures/adaptors.ts`,
+   `recommendedSystems` in `fixtures/connected-systems.ts`, which lane 5
+   owns). Once lane 5 puts them on a demo route for the Systems page,
+   Overview's wrapper reads the same and lane 2 reads no fixtures.
+13. **Overview without a Status tile** (lane 2). Left out because api/
+   can't say what's down (api-gaps.md); the home page now opens on two
+   tiles. Would bring it back reading a health resource, or from recent
+   runs (a workflow whose latest run failed counts as an issue) if that
+   reading is good enough.

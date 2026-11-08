@@ -53,6 +53,13 @@ Most of the plumbing for 1 to 3 is done.
 **One switch, set when the app is built.** `VITE_API_SOURCE=lightning` turns
 it on; anything else, or nothing, is the fake. Only the fork's build sets it.
 
+*Since 8 Nov 2026:* the build says whether Lightning can be reached
+(`lightningAvailable`), and on that build the demo settings' Data tab chooses
+between Lightning (the default) and the fixtures, at runtime, remembered in
+the browser (`chooseApiSource`, then a reload). Every other build only has the
+fixtures. `apiSource` is still fixed for a page load, so nothing below
+changes: it's read once, before the first request.
+
 Why at build time and not by sniffing at runtime: the Lightning build is made
 in exactly one place (`demo/sync.sh`), so it can say what it is rather than
 the app guessing from its URL or probing for a server. Tests, Storybook, dev
@@ -165,6 +172,18 @@ Admin settings. Every row below was opened in a browser on that Lightning.
 | Admin settings | Breaks | As the superuser, every tab is Not Found: `GET /api/users` answers 403 (only the service account lists users) and `GET /api/auth_provider` 404 with none set (api-gaps.md). Hidden from the demo user, who isn't a superuser. |
 
 ## Which data each deployment shows
+
+*Revised 8 Nov 2026: the two sources never mix.* On Lightning, the fake
+server answering the demo's own routes starts empty (`seedEmpty` in
+`src/fake-api/db.ts`, under its own localStorage key) instead of from the
+fixtures, apart from vocabulary that isn't anyone's records (the starter
+ideas, the adaptor catalog and suggestions). So on `/v3` the organisation's
+systems, services, handbook and ecosystem map are empty; there's no
+organisation (Organization settings is Not Found), Status has no checks, and
+the recent projects start empty. A workflow the fixtures don't know has blank
+docs. To show the fixtures on the Lightning deployment, pick them in the
+demo settings' Data tab. The bullets below are the 7 Nov decision; the second
+point of the first one no longer holds.
 
 Decided by Brandon (7 Nov 2026): **each deployment keeps its own data, and
 blank is fine.**

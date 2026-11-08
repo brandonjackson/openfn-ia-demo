@@ -20,9 +20,10 @@ interface IdeaRow {
   prompt: string;
 }
 
-const ideas = table<IdeaRow>("build_ideas", () =>
-  buildIdeas.map((i) => ({ id: seedId("build_idea", i.id), title: i.title, description: i.description, systems: i.systems, prompt: i.prompt })),
-);
+const seedIdeas = () =>
+  buildIdeas.map((i) => ({ id: seedId("build_idea", i.id), title: i.title, description: i.description, systems: i.systems, prompt: i.prompt }));
+// Starter ideas are the demo's suggestions, not anyone's records, so Lightning gets them too.
+const ideas = table<IdeaRow>("build_ideas", seedIdeas, { empty: seedIdeas });
 
 export const buildIdeaRoutes: Record<string, Handler> = {
   "GET /api/demo/build_ideas": (_params, _body, query) => json(200, paged("/api/demo/build_ideas", ideas.rows(), query)),

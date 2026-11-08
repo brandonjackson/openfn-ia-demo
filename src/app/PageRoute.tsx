@@ -27,6 +27,9 @@ import ProjectSettingsPageQuery from "../pages/project-settings/ProjectSettingsP
 import ServicePageQuery from "../pages/service/ServicePage.query";
 import ComponentPageQuery from "../pages/component/ComponentPage.query";
 import StatusPageFixtures from "../pages/StatusPage.fixtures";
+import StatusPage from "../pages/StatusPage";
+import { apiSource } from "../api/source";
+import { pageFrame } from "./page-frame";
 import InsightsPageQuery from "../pages/insights/InsightsPage.query";
 import UserSettingsPageQuery from "../pages/user-settings/UserSettingsPage.query";
 import OrganizationSettingsPageQuery from "../pages/organization-settings/OrganizationSettingsPage.query";
@@ -35,6 +38,12 @@ import HandbookPageQuery from "../pages/handbook/HandbookPage.query";
 import PlaceholderPageQuery from "../pages/placeholder/PlaceholderPage.query";
 
 type PageType = NonNullable<IANode["pageType"]>;
+
+/** Status on Lightning, which has no status checks yet: empty, rather than the fixtures'. */
+function StatusPageEmpty({ route }: { route: Route }) {
+  const flags = useFlags();
+  return <StatusPage {...pageFrame(route)} data={{ pageType: "status", checkedAt: "Just now", systems: flags.connectedSystems ? [] : undefined, workflows: [] }} />;
+}
 
 /**
  * Which wrapper feeds each kind of page. This is the switch for data
@@ -56,7 +65,7 @@ const wrappers: Record<PageType, ComponentType<{ route: Route }>> = {
   "project-settings": ProjectSettingsPageQuery,
   service: ServicePageQuery,
   component: ComponentPageQuery,
-  status: StatusPageFixtures,
+  status: apiSource === "lightning" ? StatusPageEmpty : StatusPageFixtures,
   insights: InsightsPageQuery,
   "user-settings": UserSettingsPageQuery,
   "organization-settings": OrganizationSettingsPageQuery,

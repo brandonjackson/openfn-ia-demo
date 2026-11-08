@@ -20,8 +20,9 @@ const formatSize = (bytes: number) => (bytes < 1024 * 1024 ? `${Math.max(1, Math
 /** The handbook's article, who last edited it, how much it holds, and whether you can change it (anyone in the organisation can). */
 export interface HandbookArticle {
   sections: WikiSection[];
-  updatedBy: string;
-  updatedAt: string;
+  /** Left out while the article has never been written. */
+  updatedBy?: string;
+  updatedAt?: string;
   capacityBytes: number;
   canEdit: boolean;
 }
@@ -30,8 +31,8 @@ interface ApiHandbook {
   capacity_bytes: number;
   can_edit: boolean;
   sections: WikiSection[];
-  updated_by: string;
-  updated_at: string;
+  updated_by: string | null;
+  updated_at: string | null;
 }
 
 export function useHandbook(): { status: LoadStatus; handbook: HandbookArticle | undefined } {
@@ -40,8 +41,8 @@ export function useHandbook(): { status: LoadStatus; handbook: HandbookArticle |
     queryFn: () => request<{ data: { attributes: ApiHandbook } }>("GET", "/api/demo/handbook"),
     select: ({ data: { attributes: a } }): HandbookArticle => ({
       sections: a.sections,
-      updatedBy: a.updated_by,
-      updatedAt: timeAgo(a.updated_at),
+      updatedBy: a.updated_by ?? undefined,
+      updatedAt: a.updated_at ? timeAgo(a.updated_at) : undefined,
       capacityBytes: a.capacity_bytes,
       canEdit: a.can_edit,
     }),

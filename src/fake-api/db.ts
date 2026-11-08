@@ -4,15 +4,30 @@
  * make, change or delete in the demo is still there after a reload. A change
  * to the fixtures changes the seed, and the next load starts from it again.
  * `resetDb()` (the demo's "Reset demo data") goes back to the seed.
+ *
+ * Beside a real Lightning the fake server only answers the demo's own routes,
+ * and mixing the fixtures in with Lightning's data would make it impossible to
+ * tell which is which. So there `seedEmpty()` starts every table empty, apart
+ * from the few that are vocabulary rather than records (a table's `empty`
+ * seed), and keeps it under its own key, so the fixtures' data in the same
+ * browser is left alone.
  */
 import { msAgo } from "../model/time";
 
-const STORAGE_KEY = "openfn-demo:db";
+let STORAGE_KEY = "openfn-demo:db";
+
+/** Whether tables start from the fixtures or, beside Lightning, empty. */
+let seeding: "fixtures" | "empty" = "fixtures";
 
 interface Table<T> {
   seed: () => T[];
+  /** The seed beside Lightning, when it isn't empty. */
+  empty?: () => T[];
   rows: T[] | undefined;
 }
+
+/** The seed a table starts from now. */
+const seedOf = <T>(t: Table<T>): T[] => (seeding === "fixtures" ? t.seed() : (t.empty?.() ?? []));
 
 const tables = new Map<string, Table<unknown>>();
 
@@ -64,14 +79,14 @@ function seedFingerprint(): string {
   fingerprinting = true;
   let text: string;
   try {
-    text = JSON.stringify([...tables.entries()].map(([name, t]) => [name, t.seed()]));
+    text = JSON.stringify([...tables.entries()].map(([name, t]) => [name, seedOf(t)]));
   } finally {
     fingerprinting = false;
     seededAt = clock;
   }
   let h = 0;
   for (let i = 0; i < text.length; i++) h = (Math.imul(31, h) + text.charCodeAt(i)) | 0;
-  fingerprint = `${tables.size}:${text.length}:${h}`;
+  fingerprint = `${seeding}:${tables.size}:${text.length}:${h}`;
   return fingerprint;
 }
 
@@ -116,18 +131,20 @@ function save() {
 
 /**
  * A table of records. `rows()` reads, `write()` replaces them all (and saves).
- * Records are plain JSON, stored the way the API sends them.
+ * Records are plain JSON, stored the way the API sends them. Beside Lightning
+ * it starts empty, or from `empty` for a table of vocabulary rather than
+ * records (the starter ideas).
  */
-export function table<T>(name: string, seed: () => T[]) {
+export function table<T>(name: string, seed: () => T[], { empty }: { empty?: () => T[] } = {}) {
   if (tables.has(name)) throw new Error(`Table ${name} is defined twice`);
-  const t: Table<T> = { seed, rows: undefined };
+  const t: Table<T> = { seed, empty, rows: undefined };
   tables.set(name, t as Table<unknown>);
   fingerprint = undefined;
 
   const rows = (): T[] => {
     // A seed that reads another table mustn't leave it cached with the fingerprint's clock.
-    if (fingerprinting) return seed();
-    if (!t.rows) t.rows = ((load()?.tables[name] as T[] | undefined) ?? seed()).map((r) => structuredClone(r));
+    if (fingerprinting) return seedOf(t);
+    if (!t.rows) t.rows = ((load()?.tables[name] as T[] | undefined) ?? seedOf(t)).map((r) => structuredClone(r));
     return t.rows;
   };
   const write = (next: T[]) => {
@@ -152,4 +169,21 @@ export function resetDb() {
   seededAt = Date.now();
   stored = null;
   storage()?.removeItem(STORAGE_KEY);
+}
+
+/** Whether the tables started empty, beside Lightning. */
+export const seededEmpty = () => seeding === "empty";
+
+/**
+ * Starts every table empty, for the demo's own routes beside a real Lightning
+ * (src/api/source.ts), kept apart from the fixtures' data in this browser.
+ * `fixtures` goes back, for tests.
+ */
+export function seedEmpty(on = true) {
+  seeding = on ? "empty" : "fixtures";
+  STORAGE_KEY = on ? "openfn-demo:db:lightning" : "openfn-demo:db";
+  for (const t of tables.values()) t.rows = undefined;
+  fingerprint = undefined;
+  stored = undefined;
+  seededAt = Date.now();
 }

@@ -13,6 +13,7 @@
  */
 import { noContent, problem, type Body, type Handler, type Problem } from "./answers";
 import { resetDb } from "./db";
+export { seedEmpty } from "./db";
 import { adoptProject } from "./projects";
 import { refuse, sessionRoutes, signInAs } from "./session";
 import { projectRoutes } from "./projects";

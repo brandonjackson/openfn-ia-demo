@@ -67,10 +67,12 @@ export interface ArticleRow {
 }
 
 export const handbookArticle = table<ArticleRow>("handbook_article", () => [
-  { id: "article", sections: handbookData.sections, updated_by: handbookData.updatedBy, updated_at: seedTime(handbookData.updatedAt) },
+  { id: "article", sections: handbookData.sections, updated_by: handbookData.updatedBy ?? "", updated_at: seedTime(handbookData.updatedAt) },
 ]);
 
-const article = () => handbookArticle.rows()[0]!;
+/** The article; beside Lightning, where the handbook starts empty, one that's never been written. */
+const article = (): Omit<ArticleRow, "updated_by" | "updated_at"> & { updated_by: string | null; updated_at: string | null } =>
+  handbookArticle.rows()[0] ?? { id: "article", sections: [], updated_by: null, updated_at: null };
 
 const isInline = (v: unknown): boolean =>
   Array.isArray(v) && v.every((p) => typeof p === "string" || (typeof p === "object" && p !== null && typeof p.text === "string" && typeof p.to === "string"));

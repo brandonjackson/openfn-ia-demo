@@ -34,10 +34,10 @@ export interface HandbookFile {
 
 /** The whole handbook: its article, who last edited it and when, and its files. */
 export interface Handbook {
-  /** When the article was last edited, as the page shows it. */
-  updatedAt: string;
-  /** Who last edited it. */
-  updatedBy: string;
+  /** When the article was last edited, as the page shows it. Left out while it's never been written. */
+  updatedAt?: string;
+  /** Who last edited it. Left out while it's never been written. */
+  updatedBy?: string;
   sections: WikiSection[];
   files: HandbookFile[];
   /** Total bytes the handbook can hold across all files. */

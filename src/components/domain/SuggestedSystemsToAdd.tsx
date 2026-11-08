@@ -5,14 +5,9 @@ import ListRow from "../primitives/ListRow";
 import SectionHeading from "../primitives/SectionHeading";
 import EntityPill from "./EntityPill";
 
-const defaultSuggestions: SuggestedSystem[] = [
-  { name: "RapidPro", description: "SMS and chat flows", adaptor: "rapidpro" },
-  { name: "PostgreSQL", description: "Relational database", adaptor: "postgresql" },
-  { name: "WhatsApp Business", description: "Messaging and notifications", adaptor: "whatsapp" },
-];
-
 interface Props {
-  suggestions?: SuggestedSystem[];
+  /** The systems to suggest, already without the ones that are connected. Draws nothing when empty. */
+  suggestions: SuggestedSystem[];
   onSelect?: (systemName: string) => void;
   /**
    * `list` stacks each suggestion with its description; `inline` renders
@@ -22,7 +17,7 @@ interface Props {
 }
 
 export default function SuggestedSystemsToAdd({
-  suggestions = defaultSuggestions,
+  suggestions,
   onSelect,
   variant = "list",
 }: Props) {

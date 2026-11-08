@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Check, Network, Plus, RefreshCw } from "lucide-react";
+import { timeAgo } from "../../model/time";
 import type { XRoadMember, XRoadMemberClass, XRoadRoute } from "../../model/xroad";
 import { memberClassLabels, routeKey } from "../../model/xroad";
 import { subsystemIdOf } from "../../model/xroad";
@@ -18,8 +19,16 @@ interface Props {
   added?: string[];
   /** Adds a service to your systems with its X-Road route filled in. */
   onAdd?: (route: XRoadRoute) => void;
-  /** When the directory was last read from X-Road. */
+  /** When the directory was last read from X-Road (ISO time). */
   syncedAt?: string;
+  /** The service being added right now, as `memberId/subsystem/service`: its Add says "Adding…" and ignores a press. */
+  adding?: string;
+}
+
+/** "just now", "12 minutes ago", "yesterday" or "on 14 Mar 2024", to end a sentence. */
+function syncedPhrase(iso: string): string {
+  const when = timeAgo(iso);
+  return /^\d{1,2} [A-Z]/.test(when) ? `on ${when}` : when.charAt(0).toLowerCase() + when.slice(1);
 }
 
 const ALL = "All";
@@ -31,7 +40,7 @@ const ALL = "All";
  * member class. Each service has an Add button that puts it in your systems
  * with the X-Road route already filled in.
  */
-export default function XRoadDirectory({ members, instance, added = [], onAdd, syncedAt }: Props) {
+export default function XRoadDirectory({ members, instance, added = [], onAdd, syncedAt, adding }: Props) {
   const [query, setQuery] = useState("");
   const classes = [...new Set(members.map((m) => m.memberClass))];
   const [memberClass, setMemberClass] = useState(ALL);
@@ -78,7 +87,7 @@ export default function XRoadDirectory({ members, instance, added = [], onAdd, s
         {syncedAt && (
           <span className="ml-auto inline-flex items-center gap-1.5 text-xs text-gray-400">
             <RefreshCw size={11} />
-            Synced from the X-Road directory {syncedAt}
+            Synced from the X-Road directory {syncedPhrase(syncedAt)}
           </span>
         )}
       </div>
@@ -102,6 +111,7 @@ export default function XRoadDirectory({ members, instance, added = [], onAdd, s
                   {sub.services.map((svc) => {
                     const route = { memberId: member.id, subsystem: sub.code, service: svc.code };
                     const isAdded = added.includes(routeKey(route));
+                    const isAdding = adding === routeKey(route);
                     return (
                       <ListRow
                         key={svc.code}
@@ -124,8 +134,14 @@ export default function XRoadDirectory({ members, instance, added = [], onAdd, s
                           isAdded ? (
                             <Badge label="Added" tone="green" icon={Check} />
                           ) : (
-                            <Button variant="secondary" size="xs" icon={Plus} onClick={() => onAdd?.(route)}>
-                              Add
+                            <Button
+                              variant="secondary"
+                              size="xs"
+                              icon={Plus}
+                              aria-disabled={isAdding || undefined}
+                              onClick={() => !isAdding && onAdd?.(route)}
+                            >
+                              {isAdding ? "Adding…" : "Add"}
                             </Button>
                           )
                         }

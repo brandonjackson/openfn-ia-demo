@@ -13,6 +13,9 @@ import type { TriggerType } from "./workflow";
 import type { XRoadConnectionStatus } from "./xroad";
 
 /** The colour of a workflow's line, from the design system's palette. */
+/** Every line colour, in order: the first is the fallback for one the server names that isn't here. */
+export const lineColors = ["indigo", "sky", "teal", "violet", "pink", "orange", "emerald", "cyan", "fuchsia", "amber", "lime"] as const;
+
 export type LineColor =
   | "indigo"
   | "sky"
@@ -73,4 +76,12 @@ export function ecosystemWithoutXRoad<E extends { stations: EcosystemStation[]; 
   const stations = eco.stations.filter((s) => !s.xroad);
   const kept = new Set(stations.map((s) => s.id));
   return { ...eco, stations, workflows: eco.workflows.filter((w) => w.stations.every((id) => kept.has(id))) };
+}
+
+/** The organisation's ecosystem map: its systems placed on a grid, the workflows between them, and corners for links that can't be straight. */
+export interface Ecosystem {
+  stations: EcosystemStation[];
+  workflows: EcosystemWorkflow[];
+  /** Corners, keyed by the link's id (`linkId` in model/ecosystem-map.ts). */
+  routes: Record<string, { col: number; row: number }[]>;
 }

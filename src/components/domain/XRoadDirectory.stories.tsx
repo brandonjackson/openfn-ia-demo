@@ -1,3 +1,4 @@
+import { isoAgo } from "../../model/time";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useState } from "react";
 import XRoadDirectory from "./XRoadDirectory";
@@ -8,7 +9,7 @@ import type { XRoadRoute } from "../../model/xroad";
 const meta: Meta<typeof XRoadDirectory> = {
   title: "Domain/XRoadDirectory",
   component: XRoadDirectory,
-  args: { members: xroadDirectory, instance: orgXRoad.instance, syncedAt: "12 minutes ago" },
+  args: { members: xroadDirectory, instance: orgXRoad.instance, syncedAt: isoAgo("12 minutes ago") ?? undefined },
   decorators: [(Story) => <div className="max-w-4xl"><Story /></div>],
 };
 

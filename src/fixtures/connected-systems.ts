@@ -1,7 +1,6 @@
 /** An X-Road system's environments: production goes through the Security Server, and there's no credential to add. */
-import { KeyRound, Sparkles, Zap } from "lucide-react";
-import type { ListItem, OrgCredential, FeatureIntroData } from "../model/page-data";
-import { type AccessGrant, type ConnectedSystemSummary, type SystemEnvironment, type SuggestedSystem, type ConnectedSystem, systemListItem, systemSummary } from "../model/connected-systems";
+import type { OrgCredential } from "../model/page-data";
+import { type SystemListItem, type AccessGrant, type ConnectedSystemSummary, type SystemEnvironment, type SuggestedSystem, type ConnectedSystem, systemListItem, systemSummary } from "../model/connected-systems";
 import type { Environment } from "../model/credentials";
 import type { XRoadRoute } from "../model/xroad";
 import { routeUrl } from "./xroad";
@@ -275,8 +274,8 @@ export const orgCredentials: OrgCredential[] = [
   { id: "cred-salesforce-prod", name: "salesforce-prod", system: "Salesforce", environment: "production", owner: "Org", hasAccess: false },
 ];
 
-/** ListItem shape for the list template */
-export const connectedSystemListItems: ListItem[] = connectedSystems.map(systemListItem);
+/** SystemListItem shape for the list template */
+export const connectedSystemListItems: SystemListItem[] = connectedSystems.map(systemListItem);
 
 /** Dashboard summary shape */
 export const connectedSystemSummaries: ConnectedSystemSummary[] = connectedSystems.map(systemSummary);
@@ -292,28 +291,3 @@ export const recommendedSystems: SuggestedSystem[] = [
   { name: "OpenHIM", description: "Health information mediator", adaptor: "openhim" },
 ];
 
-/** Intro banner at the top of the Systems page. */
-export const connectedSystemsIntro: FeatureIntroData = {
-  title: "Why connect your systems?",
-  storageKey: "openfn:intro:connected-systems",
-  features: [
-    {
-      icon: KeyRound,
-      title: "Connect once",
-      description:
-        "Org-shared credentials mean everyone on your team gets access, without sharing passwords.",
-    },
-    {
-      icon: Zap,
-      title: "Instant value",
-      description:
-        "As soon as a system is connected you get observability, channels, mock data, and credential management out of the box.",
-    },
-    {
-      icon: Sparkles,
-      title: "Smart suggestions",
-      description:
-        "The more systems you connect, the smarter your service recommendations become.",
-    },
-  ],
-};

@@ -13,8 +13,7 @@ export default meta;
 type Story = StoryObj<typeof SuggestedSystemsToAdd>;
 
 export const Default: Story = {
-  args: {},
-  name: "Default suggestions",
+  args: { suggestions: recommendedSystems.slice(0, 3) },
 };
 
 export const CustomSuggestions: Story = {

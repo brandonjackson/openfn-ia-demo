@@ -13,7 +13,7 @@ import LoadingState from "../components/primitives/LoadingState";
 import { componentLinkTarget } from "./component-links";
 import NotFoundPage from "../pages/NotFoundPage";
 import OverviewPageQuery from "../pages/overview/OverviewPage.query";
-import SystemsPageQuery from "../pages/SystemsPage.query";
+import SystemsPageQuery from "../pages/systems/SystemsPage.query";
 import SystemPageQuery from "../pages/system/SystemPage.query";
 import HistoryPageQuery from "../pages/history/HistoryPage.query";
 import ServicesPageQuery from "../pages/ServicesPage.query";

@@ -4,7 +4,11 @@
  * connected systems yet).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ConnectedSystem, SystemChanges, AccessGrant } from "../model/connected-systems";
+import type { ConnectedSystem, SystemChanges, AccessGrant, SuggestedSystem } from "../model/connected-systems";
+import type { Adaptor } from "../model/adaptors";
+import { lineColors, type Ecosystem, type EcosystemStation, type EcosystemWorkflow, type LineColor } from "../model/ecosystem";
+import { linkId } from "../model/ecosystem-map";
+import { triggerTypes, type TriggerType } from "../model/workflow";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
@@ -13,7 +17,47 @@ interface ApiSystem {
   attributes: Omit<ConnectedSystem, "id"> & { access_grant_count: number };
 }
 
-export const systemKeys = { all: ["connected_systems"] as const, grants: (id: string) => ["connected_systems", id, "grants"] as const };
+// Under the systems' key, so a change to a system reloads the suggestions and the map too.
+export const systemKeys = {
+  all: ["connected_systems"] as const,
+  grants: (id: string) => ["connected_systems", id, "grants"] as const,
+  suggestions: ["connected_systems", "suggestions"] as const,
+  ecosystem: ["connected_systems", "ecosystem"] as const,
+};
+
+interface ApiAdaptor {
+  id: string;
+  attributes: { name: string; description: string; category: string };
+}
+
+interface ApiSuggestion {
+  attributes: { name: string; description: string; adaptor: string | null };
+}
+
+interface ApiEcosystem {
+  data: {
+    attributes: {
+      stations: { id: string; name: string; adaptor: string | null; col: number; row: number; kind: EcosystemStation["kind"]; owner: string | null; xroad: EcosystemStation["xroad"] | null }[];
+      workflows: {
+        id: string;
+        name: string;
+        project: string;
+        trigger: string;
+        trigger_detail: string;
+        state: EcosystemWorkflow["state"];
+        station_ids: string[];
+        runs_per_day: number;
+        success_rate: number;
+        fails_at: number | null;
+        failure_reason: string | null;
+        note: string | null;
+        color: string;
+      }[];
+      corners: { station_ids: [string, string]; via: { col: number; row: number }[] }[];
+    };
+  };
+}
+
 
 /** Every connected system, by name. */
 export function useConnectedSystems(): { status: LoadStatus; systems: ConnectedSystem[] } {
@@ -101,4 +145,66 @@ export function useSystemSaves() {
         await queryClient.invalidateQueries({ queryKey: systemKeys.grants(systemId) });
       }),
   };
+}
+
+/** Every adaptor a system can be connected with. Loads nothing while `enabled` is false. */
+export function useAdaptors(enabled = true): { status: LoadStatus; adaptors: Adaptor[] } {
+  const query = useQuery({
+    queryKey: ["adaptors"],
+    enabled,
+    queryFn: () => listAll<ApiAdaptor>("/api/demo/adaptors"),
+    select: (rows): Adaptor[] => rows.map(({ id, attributes: a }) => ({ id, name: a.name, description: a.description, category: a.category })),
+    staleTime: Infinity,
+  });
+  return enabled ? { status: statusOf(query), adaptors: query.data ?? [] } : { status: { state: "ready" }, adaptors: [] };
+}
+
+/** Systems the organisation might connect next, leaving out any it already has. Loads nothing while `enabled` is false. */
+export function useSystemSuggestions(enabled = true): { status: LoadStatus; suggestions: SuggestedSystem[] } {
+  const query = useQuery({
+    queryKey: systemKeys.suggestions,
+    enabled,
+    queryFn: () => listAll<ApiSuggestion>("/api/demo/connected_systems/suggestions"),
+    select: (rows): SuggestedSystem[] => rows.map(({ attributes: a }) => ({ name: a.name, description: a.description, adaptor: a.adaptor ?? undefined })),
+  });
+  return enabled ? { status: statusOf(query), suggestions: query.data ?? [] } : { status: { state: "ready" }, suggestions: [] };
+}
+
+/** The organisation's ecosystem map. Loads nothing while `enabled` is false. */
+export function useEcosystem(enabled = true): { status: LoadStatus; ecosystem: Ecosystem | undefined } {
+  const query = useQuery({
+    queryKey: systemKeys.ecosystem,
+    enabled,
+    queryFn: () => request<ApiEcosystem>("GET", "/api/demo/ecosystem"),
+    select: ({ data: { attributes: a } }): Ecosystem => ({
+      stations: a.stations.map((s) => ({
+        id: s.id,
+        name: s.name,
+        adaptor: s.adaptor ?? undefined,
+        col: s.col,
+        row: s.row,
+        kind: s.kind,
+        owner: s.owner ?? undefined,
+        xroad: s.xroad ?? undefined,
+      })),
+      workflows: a.workflows.map((w) => ({
+        id: w.id,
+        name: w.name,
+        project: w.project,
+        // A kind or colour the app doesn't know is drawn as a webhook, in the first colour.
+        trigger: w.trigger in triggerTypes ? (w.trigger as TriggerType) : "webhook",
+        triggerDetail: w.trigger_detail,
+        state: w.state,
+        stations: w.station_ids,
+        runsPerDay: w.runs_per_day,
+        successRate: w.success_rate,
+        failsAt: w.fails_at ?? undefined,
+        failureReason: w.failure_reason ?? undefined,
+        note: w.note ?? undefined,
+        color: (lineColors as readonly string[]).includes(w.color) ? (w.color as LineColor) : lineColors[0],
+      })),
+      routes: Object.fromEntries(a.corners.map((c) => [linkId(c.station_ids[0], c.station_ids[1]), c.via])),
+    }),
+  });
+  return enabled ? { status: statusOf(query), ecosystem: query.data } : { status: { state: "ready" }, ecosystem: undefined };
 }

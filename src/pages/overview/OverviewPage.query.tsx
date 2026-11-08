@@ -4,20 +4,18 @@ import { useFlags } from "../../app/feature-flags";
 import { useProjectList, useProjectSummaries } from "../../api/projects";
 import { useWorkOrders } from "../../api/work-orders";
 import { combine } from "../../api/status";
-import { useConnectedSystems, useSystemSaves } from "../../api/connected-systems";
+import { useAdaptors, useConnectedSystems, useSystemSaves, useSystemSuggestions } from "../../api/connected-systems";
 import { systemSummary } from "../../model/connected-systems";
 import { insightsFor, weekTiles, withWorkOrders } from "../../model/insights";
 import { isOpenable } from "../../model/projects";
-// debt: the catalog a new system is picked from (adaptors, suggested systems) isn't on the API yet; it's lane 5's (docs/convergence.md).
-import { recommendedSystems } from "../../fixtures/connected-systems";
-import { adaptors } from "../../fixtures/adaptors";
 import OverviewPage from "./OverviewPage";
 
 /**
  * Feeds Overview, the home page, from the API. It sits at "/", outside the
  * IA tree, so it takes no route. The week's runs and errors are worked out
  * from the work orders of every project you can open, as Insights has them;
- * your projects and the organisation's systems come from their routes.
+ * your projects, the organisation's systems and the catalog a new system is
+ * picked from (adaptors, suggestions it hasn't connected) from their routes.
  * The page doesn't wait for them: the tiles appear once they're in, and
  * are left out if they can't load (a section's own loading and error
  * state is Brandon's decision 1, not built yet). Nothing in the API says
@@ -35,7 +33,9 @@ export default function OverviewPageQuery() {
   const { status: ordersStatus, workOrders } = useWorkOrders(mine.map((p) => p.id));
   const { status: systemsStatus, systems } = useConnectedSystems();
   const systemSaves = useSystemSaves();
-  const suggested = recommendedSystems.filter((r) => !systems.some((s) => s.name.toLowerCase() === r.name.toLowerCase()));
+  // The catalog a new system is picked from doesn't hold the page back either: it's empty until it's in.
+  const { adaptors } = useAdaptors(flags.connectedSystems);
+  const { suggestions: suggested } = useSystemSuggestions(flags.connectedSystems);
   return (
     // The week's runs don't hold the page back: their tiles show once the work orders are in, and are left out if they can't load.
     <Loaded status={combine(status, listStatus, systemsStatus)} path="/">

@@ -225,6 +225,9 @@ export function useSandboxChanges(rootId: string | undefined, sandboxes: Project
   const query = useQuery({
     queryKey: [...workflowKeys.sandboxes(rootId ?? ""), "changes", ids],
     enabled: !!rootId,
+    // A sandbox made or deleted changes the key: keep showing this project's last answer, so the page isn't
+    // swapped for a spinner. Another project's would put its changes on the wrong sandboxes.
+    placeholderData: (previous, previousQuery) => (previousQuery?.queryKey[1] === rootId ? previous : undefined),
     queryFn: async () => {
       const previews = await Promise.all(sandboxes.map((s) => fetchMergePreview(s.parentId!, s.id, s.parentId!)));
       return Object.fromEntries(sandboxes.map((s, i) => [s.id, previews[i]!.filter((w) => w.change === "new" || w.change === "changed")]));

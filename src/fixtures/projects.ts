@@ -1,4 +1,4 @@
-import type { SandboxItem } from "../model/page-data";
+import type { SandboxItem } from "../model/sandboxes";
 import type { WorkflowListItem } from "../model/workflow-list";
 import { isoAgo } from "../model/time";
 import { seedId } from "./ids";

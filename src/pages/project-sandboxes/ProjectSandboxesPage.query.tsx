@@ -1,14 +1,13 @@
-import type { PageRoute } from "../app/ia-utils";
-import Loaded from "../app/Loaded";
-import { useSandbox } from "../app/sandbox-state";
-import { useProject, useProjectList } from "../api/projects";
-import { useSandboxChanges, useSandboxes, useSandboxSaves } from "../api/workflows";
-import { combine } from "../api/status";
-import type { SandboxItem } from "../model/page-data";
-import type { ProjectDetails } from "../model/projects";
-import { sandboxColorHex, sandboxColorName, sandboxSlug } from "../model/sandboxes";
+import type { PageRoute } from "../../app/ia-utils";
+import Loaded from "../../app/Loaded";
+import { useSandbox } from "../../app/sandbox-state";
+import { useProject, useProjectList } from "../../api/projects";
+import { useSandboxChanges, useSandboxes, useSandboxSaves } from "../../api/workflows";
+import { combine } from "../../api/status";
+import { type SandboxItem, sandboxColorHex, sandboxColorName, sandboxSlug } from "../../model/sandboxes";
+import type { ProjectDetails } from "../../model/projects";
 import ProjectSandboxesPage from "./ProjectSandboxesPage";
-import { pageFrame } from "../app/page-frame";
+import { pageFrame } from "../../app/page-frame";
 
 /**
  * Feeds a project's Sandboxes page from the API. Each sandbox is a project
@@ -52,8 +51,6 @@ export default function ProjectSandboxesPageQuery({ route }: { route: PageRoute 
         <ProjectSandboxesPage
           {...pageFrame(route, {}, root!.name)}
           data={{
-            pageType: "project-sandboxes",
-            projectId: root!.id,
             sandboxes: [
               {
                 name: "main",

@@ -1,13 +1,10 @@
 import type { ProjectComponentItem } from "./component-types";
 import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember } from "./xroad";
-import type { ConnectedSystemSummary, SuggestedSystem, ConnectionMethod } from "./connected-systems";
-import type { ProjectSummary } from "./projects";
 import type { Environment } from "./credentials";
 import type { ProjectServiceItem, ServiceApiSpec } from "./services";
-import type { CollectionContents, ComponentContent } from "./project-components";
+import type { ConnectionMethod } from "./connected-systems";
 import type { LucideIcon } from "lucide-react";
 import type { Adaptor } from "./adaptors";
-import type { ChannelDetails } from "./channels";
 import type { EcosystemStation, EcosystemWorkflow } from "./ecosystem";
 
 /* ------------------------------------------------------------------ */
@@ -167,23 +164,6 @@ export interface CatalogPageData {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Dashboard page (Overview / Home)                                   */
-/* ------------------------------------------------------------------ */
-
-export interface DashboardPageData {
-  pageType: "dashboard";
-  /** Summary tiles that link through to Status and Insights. */
-  tiles: StatTileData[];
-  /** The organisation's systems, for setup progress. Absent without connected systems, which leaves the section out. */
-  connectedSystems?: ConnectedSystemSummary[];
-  recommendedSystems: SuggestedSystem[];
-  projects: ProjectSummary[];
-  recommended: number;
-  /** Every adaptor a new system can be connected with. */
-  adaptors: Adaptor[];
-}
-
-/* ------------------------------------------------------------------ */
 /*  Status page (Monitoring: right now)                                */
 /* ------------------------------------------------------------------ */
 
@@ -216,32 +196,6 @@ export interface StatusPageData {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Insights page (Monitoring: over time)                              */
-/* ------------------------------------------------------------------ */
-
-export interface DailyRuns {
-  day: string;
-  succeeded: number;
-  failed: number;
-}
-
-export interface ProjectInsight {
-  id: string;
-  name: string;
-  runs: number;
-  failed: number;
-  avgDuration: string;
-}
-
-export interface InsightsPageData {
-  pageType: "insights";
-  range: string;
-  tiles: StatTileData[];
-  daily: DailyRuns[];
-  projects: ProjectInsight[];
-}
-
-/* ------------------------------------------------------------------ */
 /*  Service page (a published service's catalog entry / API docs)      */
 /* ------------------------------------------------------------------ */
 
@@ -257,110 +211,9 @@ export interface ServicePageData {
   xroadOrg?: OrgXRoadSettings;
 }
 
-/** A channel's page in its project, opened from the project's Components. */
-export interface ChannelPageData {
-  pageType: "channel";
-  projectId: string;
-  projectName: string;
-  component: ProjectComponentItem;
-  channel: ChannelDetails;
-}
-
-/**
- * The page of one of a project's components that isn't a workflow or a
- * channel: a collection's keys, or the file a form, artifact, AI skill,
- * document or static website is.
- */
-export interface ComponentPageData {
-  pageType: "component";
-  projectId: string;
-  component: ProjectComponentItem;
-  /** For a form, artifact, AI skill, document or static website: what it holds. */
-  content?: ComponentContent;
-  /** For a collection: its keys, how many it holds in all and their size. */
-  collection?: CollectionContents;
-}
-
 /* ------------------------------------------------------------------ */
 /*  Project Create page                                                */
 /* ------------------------------------------------------------------ */
-
-/** A starter idea for a new public service, built from available systems. */
-export interface BuildIdea {
-  id: string;
-  title: string;
-  description: string;
-  /** Names of the systems the idea connects. */
-  systems: string[];
-  /** The prompt this idea drops into the builder. */
-  prompt: string;
-}
-
-export interface ProjectCreatePageData {
-  pageType: "project-create";
-  projectId: string;
-  ideas: BuildIdea[];
-}
-
-/* ------------------------------------------------------------------ */
-/*  Project Sandboxes page                                             */
-/* ------------------------------------------------------------------ */
-
-/** The colours a sandbox can be marked with, so you can tell at a glance which one you're in. */
-export type SandboxColor = "indigo" | "green" | "yellow" | "red" | "pink" | "gray";
-
-export const SANDBOX_COLORS: SandboxColor[] = ["indigo", "green", "yellow", "red", "pink", "gray"];
-
-/** A workflow changed in a sandbox, which merging would bring into its target. */
-export interface SandboxChange {
-  workflowId: string;
-  workflowName: string;
-  /** The target has changed this workflow too since the sandbox was made, so merging overwrites those changes. */
-  diverged: boolean;
-}
-
-export interface SandboxItem {
-  /** Its slug, e.g. "intake-validation-v2", which is how it's named everywhere. */
-  name: string;
-  /** The project's main line, which every other sandbox merges back into. */
-  isMain: boolean;
-  description: string;
-  createdBy: string;
-  /** When it last changed (or, if nothing has, when it was made), as the API sends it; null if unknown. The page words it. */
-  lastActivity: string | null;
-  color: SandboxColor;
-  /** The sandbox it was made from, and merges into by default. Main has none. */
-  parent?: string;
-  /** Workflows changed in it since it was made. */
-  changes: SandboxChange[];
-  /** Credentials that exist only in this sandbox, which merging can bring along. */
-  credentials: string[];
-}
-
-/** What creating or editing a sandbox asks for. */
-export interface SandboxDraft {
-  /** As typed; the sandbox is named its slug. */
-  name: string;
-  color: SandboxColor;
-  /** The sandbox to make it from. Only when creating. */
-  parent?: string;
-}
-
-/** What merging a sandbox brings, and where. */
-export interface SandboxMerge {
-  /** The sandbox to merge into, usually its parent. */
-  target: string;
-  /** The changed workflows to bring across. */
-  workflowIds: string[];
-  /** The sandbox-only credentials to bring across. */
-  credentials: string[];
-}
-
-export interface ProjectSandboxesPageData {
-  pageType: "project-sandboxes";
-  projectId: string;
-  sandboxes: SandboxItem[];
-}
 
 /* ------------------------------------------------------------------ */
 /*  Project Settings page                                              */
@@ -378,10 +231,5 @@ export interface OrgCredential {
 export type PageData =
   | ListPageData
   | CatalogPageData
-  | DashboardPageData
   | StatusPageData
-  | InsightsPageData
-  | ProjectCreatePageData
-  | ProjectSandboxesPageData
-  | ServicePageData
-  | ChannelPageData;
+  | ServicePageData;

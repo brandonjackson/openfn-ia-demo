@@ -41,7 +41,7 @@ and to mark what would change the look.
   | Lane | Pages (wrappers) | Owns |
   | ---- | ---------------- | ---- |
   | 1. Project settings | `ProjectSettingsPage` (into `project-settings/`) | `project-records.query.ts` and `asProject`: remove them once Settings is off them; `Shell.query.tsx` imports `asProject` too, so swap that one call when you remove it |
-  | 2. Runs | `HistoryPage`, `InsightsPage` (project and all), `OverviewPage` (all) | `fixtures/history.ts`, `fixtures/insights.ts`, `fixtures/overview.ts`, `model/history.ts`, `model/runs.ts` |
+  | 2. Runs | `HistoryPage`, `InsightsPage` (project and all), `OverviewPage` (all) | `fixtures/history.ts`, `fixtures/insights.ts`, `fixtures/overview.ts` (gone), `model/history.ts`, `model/runs.ts`, `model/insights.ts` |
   | 3. Components | `ProjectComponentsPage`, `ComponentPage` (and `ChannelPage`'s folder) | `component-records.query.ts`, `channel-records.query.ts`, `model/component-types.ts` |
   | 4. Shell and small pages | `Shell.query.tsx` (instance, you, superuser from the API), `PlaceholderPage`, `ProjectCreatePage`, and the Sandboxes page's folder and tests (it already reads no fixtures) | `src/app/` except `PageRoute.tsx` lines other lanes add |
   | 5. Demo areas | `ServicesPage`, `ServicePage`, `SystemsPage`, `SystemPage` (X-Road identity from `GET /api/demo/organization/xroad`) | `flagged.fixtures.ts`, `fixtures/xroad.ts`, `fixtures/connected-systems.ts`, `fixtures/service-catalog.ts`, `model/xroad.ts` |
@@ -410,6 +410,7 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   and React reviewers ran. Checked on the fake server only. Counts: wrappers
   reading fixtures 13 → 12 of 25; pages in their own folder 8 → 9 of 24;
   page and query tests 17 → 19; tests 244 → 255; the rest unchanged.
+  ([#214](https://github.com/brandonjackson/openfn-ia-demo/pull/214))
 - **Lane 1: Project settings reads only the API.** The page moved to
   `src/pages/project-settings/` with its page and query tests. Its
   Credentials are the ones linked to the project
@@ -440,7 +441,6 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   own folder 9 → 10 of 24; page and query tests 19 → 21; the ratchet
   unchanged.
   ([#216](https://github.com/brandonjackson/openfn-ia-demo/pull/216))
-
 - **Lane 2: History reads only the API.** The page moved to
   `src/pages/history/` with its page and query tests, and
   `HistoryPageData` into the page file (`HistoryWorkflowOption` into
@@ -465,6 +465,96 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   pages in their own folder 10 → 11 of 24; page and query tests 21 → 23;
   tests 273 → 292; the ratchet unchanged.
   ([#211](https://github.com/brandonjackson/openfn-ia-demo/pull/211))
+- **Lane 2: Insights reads only the API.** The page moved to
+  `src/pages/insights/` with its page and query tests. Its numbers are
+  worked out by `insightsFor` (a new `model/insights.ts`, with `Insights`,
+  `DailyRuns` and `ProjectInsight`, which left page-data.ts) from the
+  projects' work orders: the last 7 days of finished runs (today and the 6
+  days before, whole days), errors, the error rate against the week
+  before, and the average run time, for one project or every project you
+  can open, with a row each. Both used to be fixed fixture numbers, so the
+  default build's week is now the fixtures' few runs, not a busy
+  organisation's (the stories keep that one); this also puts Insights
+  (all) on Lightning, which lightning-backend.md's 7 Nov decision had left
+  on the fixtures because it thought Lightning had nothing to show. A
+  project with no runs has no rate ("—", not "NaN%"). Lightning wasn't
+  walked (no Elixir here). Counts: wrappers reading fixtures 9 → 8 of 24;
+  page-data.ts 426 → 399 lines; files importing it 46 → 45; pages in their
+  own folder 11 → 12 of 24; page and query tests 23 → 25; tests 292 → 304;
+  the ratchet unchanged.
+  ([#218](https://github.com/brandonjackson/openfn-ia-demo/pull/218))
+
+- **Lane 3: A component's page reads only the API.** `ComponentPage`,
+  its wrapper and `ChannelPage` moved to `src/pages/component/` with page
+  tests for both, a query test, and `ComponentPageData` and
+  `ChannelPageData` into their page files (without `pageType`). Old slug
+  links (a fixture project's and any of its components, a workflow
+  included) are sent on by routing, in `src/app/component-links.ts` with
+  its own test, so the wrapper reads no fixtures. A channel's Edit, Turn off and Delete are
+  offered only with `update_channel` and `delete_channel` (the server
+  refused a viewer's), and a refused toggle or delete, on a channel or any
+  other component, now says why in an alert callout, as Workflows does;
+  a second Turn off while one saves is ignored, and each component's page
+  starts fresh (keyed by its id).
+  Checked on the fake server only. Counts (after lanes 1, 2 and 4): wrappers reading
+  fixtures 8 → 7 of 24; page-data.ts 399 → 372 lines; files importing it
+  45 → 42; pages in their own folder 12 → 14 of 24; page and query tests
+  25 → 28; the ratchet unchanged.
+  ([#213](https://github.com/brandonjackson/openfn-ia-demo/pull/213))
+- **Lane 2: Overview reads the API.** The page moved to
+  `src/pages/overview/` with its page and query tests, and its data type
+  into the page file as `OverviewPageData` (`fixtures/overview.ts` is gone:
+  fixtures can't name a page's shape, so the story builds its data from the
+  fixtures' pieces). The week's runs and errors are `weekTiles` over
+  `insightsFor` (`model/insights.ts`) for every project you can open, so
+  they match Insights; projects and systems were already the API's. Nothing
+  in api/ says what isn't running, so the Status tile is left out on every
+  build (api-gaps.md; **this changes the look**: two tiles, in two
+  columns, not three). The page doesn't wait for the work orders: the tiles
+  appear once they're in and are left out if they fail (decision 1's
+  section pattern would give them their own loading and error).
+  The add-a-system catalog (adaptors and suggested systems) still comes
+  from fixtures, marked `debt:`: it's lane 5's (`fixtures/connected-systems.ts`),
+  and the Systems page needs the same, so the wrapper still counts as
+  reading fixtures until lane 5 moves it. A suggested system you've added
+  isn't suggested again. Lightning wasn't walked (no Elixir here). Counts:
+  (after lane 3's second PR) wrappers reading fixtures 7 of 24, unchanged
+  (the catalog, above); page-data.ts 372 → 353 lines; files importing it
+  42 → 41; pages in their own folder 14 → 15 of 24; page and query tests 28
+  → 30; tests 326 → 335; the ratchet unchanged.
+  ([#219](https://github.com/brandonjackson/openfn-ia-demo/pull/219))
+- **Lane 4: Create reads only the API.** `ProjectCreatePage` moved to
+  `src/pages/project-create/` with its page and query tests, and
+  `ProjectCreatePageData` into the page file (just `ideas`: no `pageType`,
+  and the project's id, which the page never used, is gone). The starter
+  ideas come from a new demo route, `GET /api/demo/build_ideas`
+  (`useBuildIdeas`; seeded from `fixtures/build-ideas.ts`, with a lifecycle
+  test), since api/ has no AI building; `BuildIdea` moved to
+  `model/build-ideas.ts`. If the ideas can't load, the page says so, as
+  every page does until decision 1. Still to do under decision 4:
+  `BuildPrompt` disables Build while the box is empty. Checked on the fake
+  server only. Counts (after lanes 1, 2 and 3): wrappers reading fixtures 7 → 6 of
+  24; page-data.ts 353 → 335 lines; files importing it 41 → 38; pages in
+  their own folder 15 → 16 of 24; page and query tests 30 → 32; tests 335
+  → 345; the ratchet unchanged.
+  ([#217](https://github.com/brandonjackson/openfn-ia-demo/pull/217))
+- **Lane 4: Sandboxes into its folder, with tests.** `ProjectSandboxesPage`
+  moved to `src/pages/project-sandboxes/` with its first page and query
+  tests (it already read no fixtures). `ProjectSandboxesPageData` went into
+  the page file (just `sandboxes`), and the sandbox shapes the modals share
+  (`SandboxItem`, `SandboxDraft`, `SandboxMerge`, `SandboxChange`,
+  `SandboxColor`, `SANDBOX_COLORS`) into `model/sandboxes.ts`. The tests
+  found a bug: making or deleting a sandbox changed `useSandboxChanges`'
+  key, so the page was swapped for a spinner and lost its "Created a
+  sandbox" notice; it now keeps the project's last answer while the new one
+  loads (never another project's). A refused delete now says why in an
+  alert, as Workflows does, instead of failing silently. Still to do under
+  decision 4 (already on its list): `SandboxFormModal` disables Create while
+  the name is wrong, and shows no refusal or "Creating…". Checked on the
+  fake server only. Counts (after lanes 1, 2 and 3): page-data.ts 335 →
+  274 lines; files importing it 38 → 32; pages in their own folder 16 → 17
+  of 24; page and query tests 32 → 34; tests 345 → 357; the rest
+  unchanged. **Lane 4 is done:** no wrapper of its own reads fixtures.
 - **Lane 5: A system's page reads only the API.** The page moved to
   `src/pages/system/` with its page and query tests, and its data to
   `SystemPageData` in the page file (the system, its grants, and its X-Road
@@ -483,9 +573,9 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   or the directory can't load, the system still shows, without its route.
   The grants route now sends JSON:API resources, mapped in
   `useAccessGrants`. Not walked on Lightning. Counts:
-  wrappers reading fixtures 9 → 8 of 24; page-data.ts 426 → 387 lines;
-  files importing it 46 → 41; pages in their own folder 11 → 12 of 24; page
-  and query tests 23 → 25; tests 292 → 307; classNamesInPages 106 → 103.
+  wrappers reading fixtures 6 → 5 of 24; page-data.ts 274 → 235 lines;
+  files importing it 32 → 27; pages in their own folder 17 → 18 of 24; page
+  and query tests 34 → 36; tests 357 → 372; classNamesInPages 106 → 103.
   ([#215](https://github.com/brandonjackson/openfn-ia-demo/pull/215))
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
@@ -582,7 +672,31 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
    retry goes project by project, so when a later project refuses, the
    earlier ones have already run and trying again retries them twice; the
    hooks would need to say which projects went through.
-11. **Where a refused confirm says why** (lane 5, a system's page; from its
+11. **Run history's "now" on Lightning** (lane 2, Insights' reviewers).
+   Every count of recent runs (Insights, a project's Overview, the editor's
+   runs bar) counts back from the fixtures' fixed "now", 20 Oct 2026
+   (`activityNow` in `model/runs.ts`), so on `/v3` every run since then
+   lands on the last day and the week labels are October's. Would count
+   back from the real time on the Lightning build; that needs the build's
+   choice of clock passed down from `src/app/`, the one place that reads
+   it.
+12. **Overview's add-a-system catalog** (lane 2, waiting on lane 5). The
+   adaptors and suggested systems the "Add connected system" form offers
+   still come from fixtures (`fixtures/adaptors.ts`,
+   `recommendedSystems` in `fixtures/connected-systems.ts`, which lane 5
+   owns). Once lane 5 puts them on a demo route for the Systems page,
+   Overview's wrapper reads the same and lane 2 reads no fixtures.
+13. **Overview without a Status tile** (lane 2). Left out because api/
+   can't say what's down (api-gaps.md); the home page now opens on two
+   tiles. Would bring it back reading a health resource, or from recent
+   runs (a workflow whose latest run failed counts as an issue) if that
+   reading is good enough.
+14. **Create on primitives, with an empty state** (lane 4, from its
+   reviewers). The Create page still lays itself out with `className` and
+   its own `<h1>`, not `PageHeader`, `Stack` and `Grid`, and with no ideas it
+   shows "Ideas to get you started" over nothing. Would move it onto the
+   primitives and add an `EmptyState`; both change its look.
+15. **Where a refused confirm says why** (lane 5, a system's page; from its
    reviewers). A refused Revoke or Delete closes its confirm and shows an
    alert callout under the page header, as Workflows does, so a Revoke
    pressed at the bottom of the page is answered at the top, and a typed

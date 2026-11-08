@@ -64,6 +64,14 @@ path in its hook file.
   spec docs (`workflow-files.ts`, behind the workflow docs flag), and the
   starter workflow and channel for "New workflow" from the Services catalog.
 
+- **What isn't running right now** (Overview's Status tile, the Status
+  page). Nothing in api/ says which systems or workflows are down or
+  degraded: the Status page still draws the fixtures' (`StatusPage.fixtures`),
+  and Overview, now on the API, leaves its Status tile out on every build.
+  Would need a health resource (each workflow's and connected system's
+  state, and since when), or a rule for reading it from recent runs that
+  Brandon agrees.
+
 ## Missing from a resource api/ covers
 
 - **Workflows: a description and who edits them** (a project's Workflows
@@ -86,6 +94,11 @@ path in its hook file.
   checks the URL only as it saves. The form has a Test button. Would need a
   check that saves nothing (say `POST /api/auth_provider/test`). Demo:
   `/api/demo/auth_provider/test`, which answers with what it found.
+- **Create: starter ideas** (a project's Create page, behind AI building).
+  api/ has no AI building, so nothing lists ideas for a new service. Demo:
+  `GET /api/demo/build_ideas` (`src/api/build-ideas.ts`), seeded from the
+  fixture; the fake server answers it on every build, Lightning's included.
+  Sending a prompt still only says it would draft one.
 - **Instance: its name** (the sidebar's logo, the account menu; api/account.md).
   `GET /api/instance` has its URL but no name. Would need a `name` (and, if
   the tile's letters aren't to be worked out from it, `initials`). Demo: the

@@ -2,7 +2,7 @@
  * Starter ideas for new public services, each built from systems and
  * channels this organization already has.
  */
-import type { BuildIdea, ProjectCreatePageData } from "../model/page-data";
+import type { BuildIdea } from "../model/build-ideas";
 export const buildIdeas: BuildIdea[] = [
   {
     id: "birth-to-benefits",
@@ -41,11 +41,3 @@ export const buildIdeas: BuildIdea[] = [
       "When a referred patient is seen at a facility in DHIS2, send a follow-up to the community health worker's CommCare case.",
   },
 ];
-
-export function buildCreatePageData(projectId: string): ProjectCreatePageData {
-  return {
-    pageType: "project-create",
-    projectId,
-    ideas: buildIdeas,
-  };
-}

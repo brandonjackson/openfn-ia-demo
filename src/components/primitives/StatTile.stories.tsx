@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import StatTile from "./StatTile";
 import { withRouter } from "../../stories/decorators";
-import { overviewData } from "../../fixtures/overview";
 import { insightsData } from "../../fixtures/insights";
 
 const meta: Meta<typeof StatTile> = {
@@ -21,13 +20,15 @@ export default meta;
 type Story = StoryObj<typeof StatTile>;
 
 /** Links through to Status, with a badge instead of a trend. */
-export const WithBadge: Story = { args: overviewData.tiles[0] };
+export const WithBadge: Story = {
+  args: { label: "Status", value: "2 issues", detail: "1 system, 1 workflow", badge: { label: "Needs attention", tone: "red" }, linkTo: "/status" },
+};
 
 /** Links through to Insights, with a sparkline. */
-export const WithTrend: Story = { args: overviewData.tiles[1] };
+export const WithTrend: Story = { args: { ...insightsData.tiles[0], label: "Runs this week", linkTo: "/insights" } };
 
 export const ErrorTrend: Story = {
-  args: { ...overviewData.tiles[2], trendClassName: "text-red-500" },
+  args: { ...insightsData.tiles[1], label: "Errors this week", linkTo: "/insights", trendClassName: "text-red-500" },
 };
 
 /** No link: just a number and a supporting line. */

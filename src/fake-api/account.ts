@@ -112,8 +112,8 @@ const mfaEntry = (u: UserRow) => ({
 /**
  * Your own changes to your account, through `PATCH /api/users/:id` on your own
  * id; the superuser's edit of anyone is in user-routes.ts. All of it is
- * planned in api/users.md; the lightning-full-api fork takes your names and
- * contact preference ahead of Lightning's main (docs/api-gaps.md).
+ * planned in api/users.md; Lightning's full-api-test is taking your names
+ * and contact preference first (docs/api-gaps.md).
  */
 export function updateSelf(body: Body): Response {
   const u = me();

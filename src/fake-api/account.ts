@@ -12,7 +12,7 @@ import { userApiTokens, demoBackupCodes, currentUser, currentInstance } from "..
 import { deletionGraceDays, instanceAuthProvider, instanceUrl, usageMetricsEnabled } from "../fixtures/admin";
 import { newId, seedId } from "../fixtures/ids";
 import { conflict, forbidden, invalid, json, noContent, notFound, now, problem, unknownKeys, type Body, type Entry, type Handler } from "./answers";
-import { record } from "./audit";
+import { diff, record } from "./audit";
 import { seedTime, table } from "./db";
 import { currentUserId } from "./session";
 import { findUser, findUserByEmail, userEntry, userIdFor, users, type UserRow } from "./users";
@@ -109,7 +109,12 @@ const mfaEntry = (u: UserRow) => ({
   },
 });
 
-/** Your own changes to your account, through `PATCH /api/users/:id`; the superuser's edit of anyone is in user-routes.ts. */
+/**
+ * Your own changes to your account, through `PATCH /api/users/:id` on your own
+ * id; the superuser's edit of anyone is in user-routes.ts. All of it is
+ * planned in api/users.md; Lightning's full-api-test is taking your names
+ * and contact preference first (docs/api-gaps.md).
+ */
 export function updateSelf(body: Body): Response {
   const u = me();
   const errors: Entry[] = unknownKeys(body, ["first_name", "last_name", "contact_preference", "email", "password"]);
@@ -117,7 +122,7 @@ export function updateSelf(body: Body): Response {
     if (body[key] !== undefined && (typeof body[key] !== "string" || !(body[key] as string).trim())) errors.push({ code: "required", detail: "can't be blank", pointer: `#/${key}` });
   }
   if (body["contact_preference"] !== undefined && !["critical", "any"].includes(body["contact_preference"] as string)) {
-    errors.push({ code: "invalid", detail: "must be critical or any", pointer: "#/contact_preference" });
+    errors.push({ code: "not_allowed", detail: "is invalid", pointer: "#/contact_preference" });
   }
   const email = typeof body["email"] === "string" ? body["email"].trim() : undefined;
   if (email !== undefined) {
@@ -130,17 +135,22 @@ export function updateSelf(body: Body): Response {
     errors.push({ code: "too_short", detail: "should be 12 to 72 character(s)", pointer: "#/password" });
   }
   if (errors.length) return invalid(errors);
+  const names = {
+    ...(typeof body["first_name"] === "string" && { first_name: body["first_name"].trim() }),
+    ...(typeof body["last_name"] === "string" && { last_name: body["last_name"].trim() }),
+  };
   // A new email waits for its confirmation link; until then it's pending.
   users.update(
     (r) => r.id === u.id,
     (r) => ({
       ...r,
-      ...(typeof body["first_name"] === "string" && { first_name: body["first_name"].trim() }),
-      ...(typeof body["last_name"] === "string" && { last_name: body["last_name"].trim() }),
+      ...names,
       ...(body["contact_preference"] !== undefined && { contact_preference: body["contact_preference"] as UserRow["contact_preference"] }),
       ...(email !== undefined && { pending_email: email }),
     }),
   );
+  // Lightning records a change to your names, with you as the actor.
+  record("updated", { type: "user", id: u.id, name: u.email }, diff(u as unknown as Record<string, unknown>, names));
   return json(200, { data: userEntry(findUser(u.id)!) });
 }
 

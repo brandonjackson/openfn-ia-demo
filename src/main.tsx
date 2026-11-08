@@ -4,8 +4,7 @@ import { HashRouter } from "react-router-dom";
 import "./index.css";
 import App from "./app/App.tsx";
 import { ThemeProvider } from "./theme/ThemeProvider";
-import StylePicker from "./components/patterns/StylePicker";
-import FeatureFlags from "./app/FeatureFlags";
+import DemoSettings from "./app/DemoSettings";
 import ApiProvider from "./api/ApiProvider";
 import SignedIn from "./app/SignedIn";
 
@@ -18,9 +17,8 @@ createRoot(document.getElementById("root")!).render(
             <App />
           </HashRouter>
         </SignedIn>
-        {/* Global controls: re-skin the whole app, turn its new features on and off, and reset its data. */}
-        <StylePicker />
-        <FeatureFlags />
+        {/* The demo's own controls: its theme, its new features, and where its data comes from. */}
+        <DemoSettings />
       </ApiProvider>
     </ThemeProvider>
   </StrictMode>

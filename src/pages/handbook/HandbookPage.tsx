@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pencil } from "lucide-react";
+import { BookOpen, Pencil } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
 import type { Handbook, WikiSection } from "../../model/handbook";
 import { firstProblemOf } from "../../model/form-error";
@@ -10,6 +10,7 @@ import Inline from "../../components/primitives/Inline";
 import Stack from "../../components/primitives/Stack";
 import Text from "../../components/primitives/Text";
 import Callout from "../../components/primitives/Callout";
+import EmptyState from "../../components/primitives/EmptyState";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
 import Button from "../../components/primitives/Button";
@@ -68,7 +69,7 @@ export default function HandbookPage({ node, ancestors, data, onSaveArticle, onU
       <PageHeader
         breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
         title={node.label}
-        description={`Last edited ${data.updatedAt} by ${data.updatedBy}`}
+        description={data.updatedAt && data.updatedBy ? `Last edited ${data.updatedAt} by ${data.updatedBy}` : undefined}
         actions={
           onSaveArticle &&
           (draft === null ? (
@@ -91,7 +92,11 @@ export default function HandbookPage({ node, ancestors, data, onSaveArticle, onU
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="max-w-3xl">
           {draft === null ? (
-            <WikiArticle sections={data.sections} />
+            data.sections.length ? (
+              <WikiArticle sections={data.sections} />
+            ) : (
+              <EmptyState icon={BookOpen} title="Nothing written yet" description="The organisation's handbook is empty." />
+            )
           ) : (
             <Stack gap="md">
               {articleError !== null && (

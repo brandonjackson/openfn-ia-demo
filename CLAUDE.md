@@ -8,7 +8,7 @@ React + TypeScript app built with Vite 8 and Tailwind CSS 4. **Read [docs/archit
 - `src/pages/`: one folder per screen (`src/pages/projects/`), holding `XPage.tsx` (draws, nothing else), its `XPage.query.tsx` wrapper (feeds it from the API), its story, `XPage.test.tsx` and `XPage.query.test.tsx`. Pages not yet moved are still flat in `src/pages/`; [docs/convergence.md](docs/convergence.md) tracks the move.
 - `src/model/`: types, fixed vocabulary and pure functions. `src/fixtures/`: the fake records a server would send.
 - `src/app/`: routing (`PageRoute.tsx` holds the table of which wrapper feeds each page), the shell's wrapper and app state.
-- `src/api/`: the API client and a file of hooks per resource. `src/fake-api/`: the pretend Lightning server that answers it, seeded from fixtures and kept in localStorage. `src/api/source.ts` is the one switch between them and a real Lightning (the `--mode lightning` build lightning-full-api serves at `/v3`; [docs/lightning-backend.md](docs/lightning-backend.md)); pages, components and wrappers never know which is answering (only `src/app/` reads `apiSource`, for signing in and the reset). How they fit is in [docs/architecture.md](docs/architecture.md#the-api).
+- `src/api/`: the API client and a file of hooks per resource. `src/fake-api/`: the pretend Lightning server that answers it, seeded from fixtures and kept in localStorage. `src/api/source.ts` is the one switch between them and a real Lightning (only the `--mode lightning` build lightning-full-api serves at `/v3` can reach one, and there the demo settings' Data tab chooses, at runtime, between Lightning and the fixtures; [docs/lightning-backend.md](docs/lightning-backend.md)); pages, components and wrappers never know which is answering (only `src/app/` reads `apiSource`, for signing in, the reset, the Data tab, recent projects and Status). The two never mix: on Lightning the fake server answers only `/api/demo/` and starts empty, so whatever Lightning doesn't have shows empty. How they fit is in [docs/architecture.md](docs/architecture.md#the-api).
 
 ## Commands
 
@@ -115,7 +115,7 @@ Run counts on the canvas must add up down the graph: `runActivity` counts a run 
 
 ## Colours
 
-Every colour goes through the design system: Tailwind colour utilities (`bg-*`, `text-*`, `border-*`, `fill-*`, `stroke-*`), which resolve to theme tokens the Style Picker re-skins, or a named CSS variable in `src/theme/theme.css`. No hex, `rgb()` or `hsl()` literals in components or templates, including SVG `fill`/`stroke` attributes and inline styles.
+Every colour goes through the design system: Tailwind colour utilities (`bg-*`, `text-*`, `border-*`, `fill-*`, `stroke-*`), which resolve to theme tokens the demo settings' Theme section re-skins, or a named CSS variable in `src/theme/theme.css`. No hex, `rgb()` or `hsl()` literals in components or templates, including SVG `fill`/`stroke` attributes and inline styles.
 
 ## Storybook
 

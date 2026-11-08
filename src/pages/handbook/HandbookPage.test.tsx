@@ -36,6 +36,12 @@ describe("HandbookPage", () => {
     expect(screen.getByText("Data sharing agreement.pdf")).toBeTruthy();
   });
 
+  it("says when nothing's been written yet, and not who last edited it", () => {
+    renderPage(HandbookPage, { ...frame, data: { ...data, sections: [], updatedAt: undefined, updatedBy: undefined } }, actions);
+    expect(screen.getByText("Nothing written yet")).toBeTruthy();
+    expect(screen.queryByText(/Last edited/)).toBeNull();
+  });
+
   it("saves the edited article as sections, waits while it's saved, then goes back to reading", async () => {
     const host = draw();
     edit("## Who we are\n\nA new first line.");

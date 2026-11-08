@@ -11,10 +11,10 @@ import {
 } from "../../model/feature-flags";
 
 /** The picker with its own choices, so the switches and presets work in the story. */
-function Playground({ initial, defaultOpen, resettable }: { initial: FeatureFlags; defaultOpen?: boolean; resettable?: boolean }) {
+function Playground({ initial }: { initial: FeatureFlags }) {
   const [chosen, setChosen] = useState(initial);
   return (
-    <div className="h-screen w-full bg-gray-50 p-8">
+    <div style={{ width: 312, padding: 14, background: "var(--picker-surface)", color: "var(--picker-fg)", borderRadius: 16 }}>
       <FeatureFlagPicker
         flags={featureFlags}
         chosen={chosen}
@@ -23,8 +23,6 @@ function Playground({ initial, defaultOpen, resettable }: { initial: FeatureFlag
         onToggle={(id, on) => setChosen({ ...chosen, [id]: on })}
         onApplyPreset={setChosen}
         shareUrl="https://example.org/?flags=redesign"
-        defaultOpen={defaultOpen}
-        onResetData={resettable ? () => new Promise((resolve) => setTimeout(resolve, 600)) : undefined}
       />
     </div>
   );
@@ -33,30 +31,23 @@ function Playground({ initial, defaultOpen, resettable }: { initial: FeatureFlag
 const meta: Meta<typeof FeatureFlagPicker> = {
   title: "Domain/FeatureFlagPicker",
   component: FeatureFlagPicker,
-  parameters: { layout: "fullscreen" },
 };
 
 export default meta;
 type Story = StoryObj<typeof FeatureFlagPicker>;
 
-/** The collapsed control, as it sits beside the Style Picker. */
-export const Default: Story = { render: () => <Playground initial={allFlagsOn} /> };
+/** Every feature on: the full vision. */
+export const FullVision: Story = { render: () => <Playground initial={allFlagsOn} /> };
 
-/** Open, with every feature on: the full vision. */
-export const FullVision: Story = { render: () => <Playground initial={allFlagsOn} defaultOpen /> };
-
-/** Open, with every feature off: the redesign at today's scope. The trigger counts what's off. */
-export const Redesign: Story = { render: () => <Playground initial={allFlagsOff} defaultOpen /> };
+/** Every feature off: the redesign at today's scope. */
+export const Redesign: Story = { render: () => <Playground initial={allFlagsOff} /> };
 
 /** Connected systems off: X-Road and the Ecosystem map, nested under it, say what they need and have no effect. */
 export const BlockedByRequirement: Story = {
-  render: () => <Playground initial={{ ...allFlagsOn, connectedSystems: false }} defaultOpen />,
+  render: () => <Playground initial={{ ...allFlagsOn, connectedSystems: false }} />,
 };
 
 /** Organizations off: everything nested under it dims, and only the flags right under it say why. */
 export const ParentOff: Story = {
-  render: () => <Playground initial={{ ...allFlagsOn, organizations: false }} defaultOpen />,
+  render: () => <Playground initial={{ ...allFlagsOn, organizations: false }} />,
 };
-
-/** With a reset for the demo's data: the first click asks to confirm, the second puts every record back to the fixtures. */
-export const WithDataReset: Story = { render: () => <Playground initial={allFlagsOn} defaultOpen resettable /> };

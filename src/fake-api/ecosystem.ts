@@ -25,9 +25,12 @@ interface StationAttributes {
   xroad: EcosystemStation["xroad"] | null;
 }
 import { systems } from "./connected-systems";
+import { seededEmpty } from "./db";
 
 export const ecosystemRoutesTable: Record<string, Handler> = {
   "GET /api/demo/ecosystem": () => {
+    // Beside Lightning there's no hand-placed map, and no systems to place on one.
+    if (seededEmpty()) return json(200, { data: { type: "ecosystems", id: seedId("ecosystem", "organization"), attributes: { stations: [], workflows: [], corners: [] } } });
     const rows = systems.rows();
     // A system's station is named by its id on the API; a member calling in keeps its directory name.
     const ids = new Map<string, string>();

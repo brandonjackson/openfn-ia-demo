@@ -1,7 +1,7 @@
 import { useState, type CSSProperties } from "react";
-import { Check, Link2, RotateCcw, ToggleRight, X } from "lucide-react";
+import { Check, Link2 } from "lucide-react";
 import { flagParent, type FeatureFlag, type FeatureFlags, type FlagId, type FlagPreset } from "../../model/feature-flags";
-import { usePopover } from "../primitives/use-popover";
+import { pickerStyles as s } from "../primitives/picker-chrome";
 
 interface Props {
   /** Every flag, in the order to list them. */
@@ -16,25 +16,17 @@ interface Props {
   onApplyPreset: (flags: FeatureFlags) => void;
   /** A link that opens the demo with the current choices, for "Copy link". */
   shareUrl?: string;
-  /** Start with the panel open. Used by stories; the app omits it. */
-  defaultOpen?: boolean;
-  /**
-   * Puts the demo's data back to its starting point, forgetting everything
-   * made, changed or deleted in this browser. Left out, there's no reset.
-   */
-  onResetData?: () => Promise<void>;
 }
 
 /**
- * Floating control, beside the Style Picker, that turns the demo's new
- * features on and off: presets for the full vision and the plain redesign,
- * then a switch for each flag. A flag that builds on another sits nested
- * under it on a guide line; while the one it needs is off it's dimmed, says
- * what it needs, and has no effect.
+ * The Features section of the demo settings: turns the demo's new features
+ * on and off, with presets for the full vision and the plain redesign, then a
+ * switch for each flag. A flag that builds on another sits nested under it on
+ * a guide line; while the one it needs is off it's dimmed, says what it
+ * needs, and has no effect.
  *
- * Like the Style Picker it's the demo's own chrome, not part of the product,
- * so it's styled with the theme-independent --picker-* tokens and reads the
- * same in every theme.
+ * It's the demo's own chrome, not part of the product, so it's styled with
+ * the theme-independent --picker-* tokens and reads the same in every theme.
  */
 export default function FeatureFlagPicker({
   flags,
@@ -44,17 +36,11 @@ export default function FeatureFlagPicker({
   onToggle,
   onApplyPreset,
   shareUrl,
-  defaultOpen = false,
-  onResetData,
 }: Props) {
-  const { open, setOpen, ref } = usePopover(defaultOpen);
   const [copied, setCopied] = useState(false);
-  // "confirm" after the first click, so one stray click doesn't throw away a demo's changes.
-  const [reset, setReset] = useState<"idle" | "confirm" | "resetting" | "done">("idle");
   const groups = [...new Set(flags.map((f) => f.group))];
   const label = (id: FlagId) => flags.find((f) => f.id === id)?.label ?? id;
   const activePreset = presets.find((p) => flags.every((f) => p.flags[f.id] === chosen[f.id]));
-  const offCount = flags.filter((f) => !effective[f.id]).length;
 
   const childrenOf = (id: FlagId) => flags.filter((f) => flagParent(f) === id);
 
@@ -104,176 +90,57 @@ export default function FeatureFlagPicker({
   };
 
   return (
-    <div ref={ref} style={styles.root}>
-      {open && (
-        <div role="dialog" aria-label="Feature flags" style={styles.panel}>
-          <div style={styles.header}>
-            <span style={styles.headerTitle}>Feature flags</span>
-            <button type="button" aria-label="Close feature flags" onClick={() => setOpen(false)} style={styles.iconBtn}>
-              <X size={15} />
+    <div>
+      <p style={s.subtitle}>
+        Turn the new features off to see the redesign at today's scope. Nested features need the one above them. Only
+        the two presets are looked after; other mixes are best effort.
+      </p>
+
+      <div style={styles.presets}>
+        {presets.map((preset) => {
+          const active = preset === activePreset;
+          return (
+            <button
+              key={preset.id}
+              type="button"
+              aria-pressed={active}
+              title={preset.description}
+              onClick={() => onApplyPreset(preset.flags)}
+              style={{
+                ...styles.preset,
+                background: active ? "var(--picker-accent-soft)" : "transparent",
+                borderColor: active ? "var(--picker-accent)" : "var(--picker-border)",
+              }}
+            >
+              {active && <Check size={13} />}
+              {preset.label}
             </button>
-          </div>
-          <p style={styles.subtitle}>
-            Turn the new features off to see the redesign at today's scope. Nested features need the one above them.
-            Only the two presets are looked after; other mixes are best effort.
-          </p>
+          );
+        })}
+      </div>
 
-          <div style={styles.presets}>
-            {presets.map((preset) => {
-              const active = preset === activePreset;
-              return (
-                <button
-                  key={preset.id}
-                  type="button"
-                  aria-pressed={active}
-                  title={preset.description}
-                  onClick={() => onApplyPreset(preset.flags)}
-                  style={{
-                    ...styles.preset,
-                    background: active ? "var(--picker-accent-soft)" : "transparent",
-                    borderColor: active ? "var(--picker-accent)" : "var(--picker-border)",
-                  }}
-                >
-                  {active && <Check size={13} />}
-                  {preset.label}
-                </button>
-              );
-            })}
-          </div>
+      <div style={styles.list}>
+        {groups.map((group) => (
+          <section key={group}>
+            <div style={s.groupLabel}>{group}</div>
+            {renderBranch(flags.filter((f) => f.group === group && !flagParent(f)), 0)}
+          </section>
+        ))}
+      </div>
 
-          <div style={styles.list}>
-            {groups.map((group) => (
-              <section key={group}>
-                <div style={styles.groupLabel}>{group}</div>
-                {renderBranch(flags.filter((f) => f.group === group && !flagParent(f)), 0)}
-              </section>
-            ))}
-          </div>
-
-          {shareUrl && (
-            <button type="button" onClick={copy} style={styles.copy}>
-              {copied ? <Check size={14} /> : <Link2 size={14} />}
-              {copied ? "Copied" : "Copy link with these flags"}
-            </button>
-          )}
-
-          {onResetData && (
-            <div style={styles.data}>
-              <span style={styles.groupLabel}>Demo data</span>
-              <p style={styles.subtitle}>What you make, change or delete is kept in this browser.</p>
-              <button
-                type="button"
-                disabled={reset === "resetting"}
-                onClick={() => {
-                  if (reset !== "confirm") return setReset("confirm");
-                  setReset("resetting");
-                  void onResetData().then(
-                    () => setReset("done"),
-                    () => setReset("idle"),
-                  );
-                }}
-                onBlur={() => setReset((r) => (r === "confirm" ? "idle" : r))}
-                style={styles.copy}
-              >
-                {reset === "done" ? <Check size={14} /> : <RotateCcw size={14} />}
-                {reset === "confirm"
-                  ? "Click again to reset everything"
-                  : reset === "resetting"
-                    ? "Resetting…"
-                    : reset === "done"
-                      ? "Back to the starting data"
-                      : "Reset demo data"}
-              </button>
-            </div>
-          )}
-        </div>
+      {shareUrl && (
+        <button type="button" onClick={copy} style={{ ...s.button, marginTop: 12 }}>
+          {copied ? <Check size={14} /> : <Link2 size={14} />}
+          {copied ? "Copied" : "Copy link with these flags"}
+        </button>
       )}
-
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-label="Open feature flags"
-        title={offCount === 0 ? "Feature flags: all on" : `Feature flags: ${offCount} off`}
-        onClick={() => setOpen((v) => !v)}
-        style={styles.trigger}
-      >
-        <ToggleRight size={20} />
-        {offCount > 0 && <span style={styles.count}>{offCount}</span>}
-      </button>
     </div>
   );
 }
 
-/* Theme-independent styling, as for the Style Picker: the --picker-* tokens
-   in theme.css, which no theme redefines. */
+/* Theme-independent styling, as for the rest of the demo settings: the
+   --picker-* tokens in theme.css, which no theme redefines. */
 const styles: Record<string, CSSProperties> = {
-  data: { display: "flex", flexDirection: "column", gap: 6, marginTop: 12, borderTop: "1px solid var(--picker-border)", paddingTop: 12 },
-  root: {
-    position: "fixed",
-    right: 80,
-    bottom: 20,
-    zIndex: 9999,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-end",
-    gap: 12,
-    fontFamily: '"Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  },
-  trigger: {
-    position: "relative",
-    width: 48,
-    height: 48,
-    borderRadius: 9999,
-    border: "1px solid var(--picker-trigger-border)",
-    background: "var(--picker-trigger-bg)",
-    color: "var(--picker-trigger-fg)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    boxShadow: "0 6px 20px var(--picker-shadow)",
-  },
-  count: {
-    position: "absolute",
-    top: -4,
-    right: -4,
-    minWidth: 18,
-    height: 18,
-    padding: "0 5px",
-    borderRadius: 9999,
-    background: "var(--picker-accent)",
-    color: "var(--picker-trigger-fg)",
-    fontSize: 11,
-    fontWeight: 600,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  panel: {
-    width: 340,
-    maxHeight: "75vh",
-    display: "flex",
-    flexDirection: "column",
-    background: "var(--picker-surface)",
-    color: "var(--picker-fg)",
-    border: "1px solid var(--picker-border)",
-    borderRadius: 16,
-    boxShadow: "0 20px 50px var(--picker-panel-shadow)",
-    padding: 14,
-  },
-  header: { display: "flex", alignItems: "center", justifyContent: "space-between" },
-  headerTitle: { fontSize: 15, fontWeight: 600, letterSpacing: "-0.01em" },
-  iconBtn: {
-    border: "none",
-    background: "transparent",
-    color: "var(--picker-muted)",
-    cursor: "pointer",
-    padding: 4,
-    borderRadius: 8,
-    display: "flex",
-  },
-  subtitle: { margin: "2px 0 12px", fontSize: 12, lineHeight: 1.45, color: "var(--picker-muted)" },
   presets: { display: "flex", gap: 6, marginBottom: 12 },
   preset: {
     flex: 1,
@@ -289,15 +156,7 @@ const styles: Record<string, CSSProperties> = {
     fontWeight: 500,
     cursor: "pointer",
   },
-  list: { overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, minHeight: 0 },
-  groupLabel: {
-    fontSize: 11,
-    fontWeight: 600,
-    textTransform: "uppercase",
-    letterSpacing: "0.06em",
-    color: "var(--picker-muted)",
-    margin: "0 0 4px 2px",
-  },
+  list: { display: "flex", flexDirection: "column", gap: 10 },
   ul: { listStyle: "none", margin: 0, padding: 0 },
   /* The flags that build on the one above: indented on a guide line. */
   branch: {
@@ -318,19 +177,4 @@ const styles: Record<string, CSSProperties> = {
   rowText: { display: "flex", flexDirection: "column", gap: 1, minWidth: 0 },
   rowName: { fontSize: 13, fontWeight: 500 },
   needs: { fontSize: 11, color: "var(--picker-muted)" },
-  copy: {
-    marginTop: 12,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    padding: "8px 10px",
-    borderRadius: 10,
-    border: "1px solid var(--picker-border)",
-    background: "var(--picker-well)",
-    color: "var(--picker-fg)",
-    fontSize: 12,
-    fontWeight: 500,
-    cursor: "pointer",
-  },
 };

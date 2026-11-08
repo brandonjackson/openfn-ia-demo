@@ -194,7 +194,8 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const canEditComponents = !!root.permissions?.edit_workflow;
   // What opening the workflow's docs, its service listing and its components shows.
   const contents: WorkflowFileContents = {
-    docs: workflowDocs,
+    // The docs are written for the fixtures' workflows; any other starts with them blank.
+    docs: slug ? workflowDocs : { context: "", spec: "" },
     serviceListing: service ? serviceListing(service.service) : undefined,
     componentContents: Object.fromEntries(records.contents.map((c) => [c.component.id, c.details])),
     collections: Object.fromEntries(

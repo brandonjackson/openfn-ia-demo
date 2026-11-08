@@ -176,7 +176,7 @@ const xroadIdentity = table<XRoadIdentityRow>("xroad_identity", () => {
   ];
 });
 
-export const organizationRoutes: Record<string, Handler> = {
+const routes: Record<string, Handler> = {
   "GET /api/demo/organization": () => {
     const o = org.rows()[0]!;
     return json(200, {
@@ -208,7 +208,10 @@ export const organizationRoutes: Record<string, Handler> = {
     return json(200, { data: { type: "xroad_identities", id, attributes } });
   },
   "GET /api/demo/organization/xroad/directory": () => {
-    const { id, instance } = xroadIdentity.rows()[0]!;
+    const identity = xroadIdentity.rows()[0];
+    // Without an X-Road identity (beside Lightning) there's no instance to list, so the directory is empty.
+    if (!identity) return json(200, { data: { type: "xroad_directories", id: seedId("xroad_directory", "none"), attributes: { instance: "", synced_at: now(), members: [] } } });
+    const { id, instance } = identity;
     const members = xroadDirectory.map((m) => ({
       // A member's id is its name in the directory, not a record of ours.
       id: m.id,
@@ -351,3 +354,17 @@ export const organizationRoutes: Record<string, Handler> = {
     return noContent();
   },
 };
+
+/** Routes that answer without an organisation: the X-Road directory, empty. */
+const withoutOrganization = new Set(["GET /api/demo/organization/xroad/directory"]);
+
+/**
+ * Beside Lightning, which has no organisations, there's none: every route
+ * about it answers Not Found rather than one made up from the fixtures.
+ */
+export const organizationRoutes: Record<string, Handler> = Object.fromEntries(
+  Object.entries(routes).map(([key, handler]): [string, Handler] => [
+    key,
+    withoutOrganization.has(key) ? handler : (...args) => (org.rows().length ? handler(...args) : notFound()),
+  ]),
+);

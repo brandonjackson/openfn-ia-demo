@@ -1,13 +1,15 @@
 import { useSyncExternalStore } from "react";
 import { recentProjects as seedRecent, apiProjectId } from "../fixtures/projects";
+import { apiSource } from "../api/source";
 
 /**
  * The projects you opened most recently, newest first, by id: the sidebar's
  * list and the project switcher's shortlist. The browser keeps it, as
  * Lightning's app would; the API has no such list. Starts from the
- * fixtures' recent projects.
+ * fixtures' recent projects, or, on Lightning, empty, kept apart so the two
+ * sources' ids never mix.
  */
-const STORAGE_KEY = "openfn-demo:recent-projects";
+const STORAGE_KEY = apiSource === "lightning" ? "openfn-demo:recent-projects:lightning" : "openfn-demo:recent-projects";
 const MAX = 8;
 
 function load(): string[] {
@@ -15,9 +17,9 @@ function load(): string[] {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw) as string[];
   } catch {
-    // Unreadable or blocked: start from the fixtures.
+    // Unreadable or blocked: start afresh.
   }
-  return seedRecent.map((p) => apiProjectId(p.id));
+  return apiSource === "lightning" ? [] : seedRecent.map((p) => apiProjectId(p.id));
 }
 
 let recent = load();

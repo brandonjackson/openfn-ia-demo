@@ -639,6 +639,7 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   → 9; pages in their own folder 20 → 21 of 24; page and query tests 40 →
   42; tests 399 → 408; the ratchet unchanged. **Lane 5 is done:** no
   wrapper of its own reads fixtures.
+  ([#223](https://github.com/brandonjackson/openfn-ia-demo/pull/223))
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 

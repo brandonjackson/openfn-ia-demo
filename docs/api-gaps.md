@@ -22,8 +22,14 @@ path in its hook file.
 - **Published services** (Services catalog, a service's page, a project's
   card on Projects and Overview). Would need `GET /api/services` and
   `/api/projects/:id/services`, each service with its workflow, status
-  (`Live`, `Draft`), code, MCP and X-Road publication. Demo:
-  `/api/demo/services` (`src/api/services.ts`). Without the service catalog
+  (`Live`, `Draft`), code, MCP and X-Road publication, and for the catalog
+  who offers it (`section`), its MCP tool name and the organisation's MCP
+  server. Demo: `/api/demo/services` (`src/api/services.ts`), and
+  `mcp_server_url` on `/api/demo/organization`.
+- **What connected systems offer to workflows** (Services catalog: read
+  from a system, write to it, or start a workflow on its events). Demo, read
+  only: `/api/demo/connected_systems/channels` (`useSystemChannels`); a
+  system's leave with it. Without the service catalog
   flag the pages leave services out and load nothing.
 - **Connected systems and their access grants** (Systems, a system's page,
   Overview, the editor's "Connect a system"). Would need a

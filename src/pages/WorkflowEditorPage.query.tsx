@@ -7,7 +7,7 @@ import type { ProjectDetails } from "../model/projects";
 import { buildStarterWorkflow, workflowGraphs } from "../fixtures/workflow";
 import { simulateRun } from "../fixtures/runs";
 import { apiProjectId, fixtureProject, fixtureWorkflow } from "../fixtures/projects";
-import { apiWorkflowId } from "../fixtures/ids";
+import { apiWorkflowId, seedId } from "../fixtures/ids";
 import { serviceCatalogData } from "../fixtures/service-catalog";
 import { useSandbox } from "../app/sandbox-state";
 import Loaded from "../app/Loaded";
@@ -118,7 +118,8 @@ function NewWorkflow({ params }: { params: URLSearchParams }) {
   useEffect(() => {
     if (started.current || ready.state !== "ready" || !target) return;
     started.current = true;
-    const channel = serviceCatalogData.entries.find((e) => e.kind === "channel" && e.id === params.get("channel"));
+    // The catalog names a system's channel by its id on the API (src/fake-api/connected-systems.ts).
+    const channel = serviceCatalogData.entries.find((e) => e.kind === "channel" && seedId("system_channel", e.id) === params.get("channel"));
     const starter = buildStarterWorkflow({
       projectName: target.name,
       channel: channel?.kind === "channel" ? { name: channel.name, system: channel.system } : undefined,

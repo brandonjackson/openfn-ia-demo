@@ -3,7 +3,7 @@ import ChannelRow from "./ChannelRow";
 import { withRouter } from "../../stories/decorators";
 import { serviceCatalogData } from "../../fixtures/service-catalog";
 import { projectOptions } from "../../fixtures/projects";
-import type { ChannelCatalogEntry } from "../../model/page-data";
+import type { ChannelCatalogEntry } from "../../model/services";
 
 const channels = serviceCatalogData.entries.filter(
   (e): e is ChannelCatalogEntry => e.kind === "channel"

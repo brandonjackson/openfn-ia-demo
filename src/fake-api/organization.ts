@@ -23,6 +23,7 @@
  */
 import { organizationSettingsData } from "../fixtures/organization";
 import { orgXRoad, xroadDirectory } from "../fixtures/xroad";
+import { mcpServerUrl } from "../fixtures/service-catalog";
 import { seedId } from "../fixtures/ids";
 import type { ContextLayer, OrganizationMember, VisibilityScope } from "../model/organization";
 import { securityServerManagerLabels, type SecurityServerManager } from "../model/xroad";
@@ -192,6 +193,8 @@ export const organizationRoutes: Record<string, Handler> = {
             services: services.rows().filter((s) => s.xroad?.published).length,
           },
           billing: organizationSettingsData.billing,
+          // The organisation's MCP server, where every service with MCP on is a tool.
+          mcp_server_url: mcpServerUrl,
           role: myRole() ?? null,
           permissions: { manage: canManage(), manage_owners: myRole() === "Owner" },
           updated_at: o.updated_at,

@@ -4,7 +4,7 @@
  * filtering them lives here too, since it is the same whatever server sends
  * the records.
  */
-import type { ChannelType } from "./page-data";
+import type { ChannelType } from "./channels";
 import type { Dataclip, RunDetails, RunStatus, WorkOrder } from "./workflow";
 import { activityPeriods, periodStart, stampTime } from "./runs";
 

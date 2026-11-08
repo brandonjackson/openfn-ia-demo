@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ServicesPage from "./ServicesPage";
-import { withRouter } from "../stories/decorators";
-import { serviceCatalogData } from "../fixtures/service-catalog";
-import { projectOptions } from "../fixtures/projects";
-import type { IANode } from "../model/ia-tree";
+import { withRouter } from "../../stories/decorators";
+import { serviceCatalogData } from "../../fixtures/service-catalog";
+import { projectOptions } from "../../fixtures/projects";
+import type { IANode } from "../../model/ia-tree";
 
 const node: IANode = {
   id: "service-catalog",
@@ -38,7 +38,7 @@ export const Empty: Story = {
     node,
     ancestors,
     currentPath: "/service-catalog",
-    data: { pageType: "catalog", entries: [] },
+    data: { entries: [] },
   },
 };
 

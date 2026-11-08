@@ -89,7 +89,7 @@ The organisation's connected systems and their access grants are on the demo's o
 
 ### Services
 
-A project's published services are on the demo's own routes (`/api/demo/services`, `/api/demo/projects/:id/services`, `src/api/services.ts`). A service's id is a UUID (`apiServiceId`; old slug links redirect) and its code is the end of its address. Owners and admins set it Live or Draft, turn on MCP and publish it to X-Road (under its code unless it has its own); everyone else reads it, so the service page leaves those actions out. The catalog (`ServicesPage.query.tsx`) takes each workflow entry's status and how it can be called from the API, and drops one whose project is deleted; channels, systems' services and usage are still the fixtures'.
+A project's published services are on the demo's own routes (`/api/demo/services`, `/api/demo/projects/:id/services`, `src/api/services.ts`). A service's id is a UUID (`apiServiceId`; old slug links redirect) and its code is the end of its address. Owners and admins set it Live or Draft, turn on MCP and publish it to X-Road (under its code unless it has its own); everyone else reads it, so the service page leaves those actions out. The catalog (`src/pages/services/`) lists every Live service from the API, filed under its `section` (who offers it; its project's name when it has none) with its `mcpToolName`, beside the channels the organisation's systems offer (`useSystemChannels`: `/api/demo/connected_systems/channels`), the services it uses over X-Road (its systems, named from the X-Road directory), and the organisation's MCP server (`mcpServerUrl` on `useOrganization`).
 
 ### Organization settings
 

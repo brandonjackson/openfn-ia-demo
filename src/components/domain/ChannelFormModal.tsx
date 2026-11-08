@@ -1,6 +1,5 @@
 import { useState } from "react";
-import type { ChannelType } from "../../model/page-data";
-import { channelDraftErrors, type ChannelDraft } from "../../model/channels";
+import { type ChannelType, channelDraftErrors, type ChannelDraft } from "../../model/channels";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";
 import Stack from "../primitives/Stack";

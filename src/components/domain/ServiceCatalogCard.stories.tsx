@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import ServiceCatalogCard from "./ServiceCatalogCard";
 import { withRouter } from "../../stories/decorators";
 import { serviceCatalogData } from "../../fixtures/service-catalog";
-import type { CatalogEntry, WorkflowCatalogEntry } from "../../model/page-data";
+import type { CatalogEntry, WorkflowCatalogEntry } from "../../model/services";
 
 const services = serviceCatalogData.entries.filter(
   (e: CatalogEntry): e is WorkflowCatalogEntry => e.kind === "workflow"

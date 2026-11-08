@@ -21,6 +21,7 @@ interface ApiOrganization {
       security_server_managed_by: SecurityServerManager;
       xroad_usage: { systems: number; services: number };
       billing: BillingDetails;
+      mcp_server_url: string;
       role: OrganizationMember["role"] | null;
       permissions: { manage: boolean; manage_owners: boolean };
     };
@@ -45,6 +46,8 @@ export interface Organization {
   managedBy: SecurityServerManager;
   xroadUsage: { systems: number; services: number };
   billing: BillingDetails;
+  /** Its MCP server, where every service with MCP on is a tool for agents. */
+  mcpServerUrl: string;
   /** Owners and admins change its settings, members and context layers. */
   canManage: boolean;
   /** Only owners make or unmake an owner. */
@@ -121,6 +124,7 @@ export function useOrganization(): { status: LoadStatus; organization: Organizat
       managedBy: a.security_server_managed_by,
       xroadUsage: a.xroad_usage,
       billing: a.billing,
+      mcpServerUrl: a.mcp_server_url,
       canManage: a.permissions.manage,
       canManageOwners: a.permissions.manage_owners,
     }),

@@ -119,33 +119,47 @@ it: merging this repo's change, then the fork's (its sync builds this repo's
    one you're in (`isOpenable`), as Lightning only lists those; `null` still
    means you're not a member. The rest is in api-gaps.md's "Planned in api/,
    not yet in Lightning".
+8. **Walk again, once every lane had merged.** Done (8 Nov 2026, at `main`
+   2784209, on lightning-full-api dfb883c). Three pages break, all for one
+   reason: Lightning's work orders come without their runs or their
+   workflow, both still Planned in `api/` (api-gaps.md). Overview, which is
+   home, and Insights (the project's and everyone's) stop with a blank screen
+   when they add up runs that aren't there, and History lists none of
+   Lightning's work orders, since it can't tell which workflow each belongs
+   to. The fix belongs at the seam or in Lightning, not in a page; nothing
+   was changed in this walk.
 
 ### Page by page
 
-On a local Lightning seeded as the deployment seeds it (`DemoSeed`), signed in
-as the demo user, and as the superuser for Admin settings.
+Walked on 8 Nov 2026 on a local Lightning (lightning-full-api at dfb883c)
+seeded as the deployment seeds it (`DemoSeed`: two projects, one workflow
+each, one failed work order, no channels, collections or sandboxes), with
+`npm run dev:lightning`, signed in as the demo user, and as the superuser for
+Admin settings. Every row below was opened in a browser on that Lightning.
 
 | Page | On Lightning | Notes |
 | ---- | ------------ | ----- |
-| The chrome (logo, account menu) | Works | You and whether you're a superuser from `GET /api/me`; the instance named by its URL's host, since Lightning sends no name (api-gaps.md). Each shows once it's loaded. Checked on the fake server; not yet walked on Lightning. |
-| Projects | Works | Lightning's projects. Counts are zero and activity empty until `include=stats`. |
-| Project overview | Works | On the API only: Lightning's workflows, work orders, channels and (with `permissions`) collections; services and the other kinds of component from the demo's own routes, empty. Checked on the fake server; not yet walked on Lightning since (see convergence.md, Now). |
-| Workflows | Works | On the API only: Lightning's workflows and work orders, service badges from the demo's own routes (empty). No descriptions or members on any build (api-gaps.md). Checked on the fake server; not yet walked on Lightning since (see convergence.md, Now). |
-| Workflow editor | Works | Draws Lightning's workflow, read only on main as designed; its service ("See service listing") from the demo's routes, none. No saved inputs until project dataclips. Adaptors, the assistant and runs started here are the demo's (api-gaps.md). Checked on the fake server; not yet walked on Lightning since. |
-| Create | Works | Behind AI building. The project from Lightning; the starter ideas from the demo's own route. Sending a prompt drafts nothing, on any build. Checked on the fake server only. |
-| Components | Works | On the API only: Lightning's channels and (with `permissions`) collections; the other kinds from the demo's own routes, starting empty. Workflows aren't listed (they have their own page). Checked on the fake server only: this container has no Elixir (Lane 3). |
-| Component (a channel, collection or other kind) | Works | On the API only: a channel's edits, on/off and delete on Lightning's channel routes (offered with `update_channel` and `delete_channel`); a collection's keys on Lightning's `/collections`; the other kinds on the demo's own routes. Old slug links are sent on by routing. Checked on the fake server only: this container has no Elixir (Lane 3). |
-| Sandboxes | Works | Lightning's sandboxes; the selected one is kept per project id, shared with the project bar and the editor. Its tests (lane 4) ran on the fake server only. |
-| History (project, all) | Works | On the API only: Lightning's work orders, workflows and channel requests; times sorted and filtered whether ISO (`inserted_at`) or the fixtures' stamps. Export sends the shown work orders as the `id` filter; none across projects. Checked on the fake server; not walked on Lightning (this session's container has no Elixir; see convergence.md, Now). |
-| Insights (project, all) | Works | On the API only: the last 7 days of finished runs from Lightning's work orders, one project's or every project's you can open (with a row each). The week counts back from run history's fixed "now" (20 Oct 2026), so on Lightning newer runs all land on its last day (convergence.md, Waiting on Brandon 11). Checked on the fake server; not walked on Lightning (no Elixir in this session's container). |
-| Settings | Works with gaps | On the API only: Lightning's settings, the credentials linked to the project, Export project from `GET /api/provision/yaml` and an export's file from its `download_url`. Read only until `permissions`. Checked on the fake server; not yet walked on Lightning (Lane 1 couldn't run it: no Elixir in the session). |
-| Services (project) | Works | From the demo's own routes, empty. |
-| A service's page | Works | On the API only: the project and its workflows from Lightning, the service from the demo's own routes (none, so Not Found), and with X-Road on, the organisation's identity from the demo's. Checked on the fake server only. |
-| User settings | Works | Your Lightning account. |
-| Overview | Works | On the API: the week's runs and errors from Lightning's work orders (every project you can open, as Insights has them), your projects and the demo's connected systems. No Status tile (api-gaps.md). The add-a-system catalog (adaptors, suggested systems) is still the demo's fixtures, waiting on lane 5. Checked on the fake server; not walked on Lightning (no Elixir in this session's container). |
-| A system's page | Demo data | On the API only: the system and its grants from the demo's connected-systems routes, and over X-Road the organisation's identity and the directory from its organisation routes. Checked on the fake server only (Lightning couldn't be run in the lane's session). |
-| Handbook, Systems, Services catalog, Organization settings | Demo data | The demo's own areas, on `/api/demo/`. |
-| Admin settings | Breaks | Lightning lets only the service account list users (api-gaps.md). Hidden from the demo user, who isn't a superuser. |
+| The chrome (logo, account menu) | Works | You ("Amy") from `GET /api/me`; the instance named "localhost", by its URL's host, since Lightning sends no name (api-gaps.md). Signed out, `/v3/` sends you to Lightning's sign-in, which comes back to `/v3/`. |
+| Projects | Works | Lightning's projects (two for the demo user, one for the superuser). Every row says 0 workflows, 0 members and "No activity yet" until `include=stats`. |
+| Overview (home) | Breaks | Blank screen: it adds up the week's runs from Lightning's work orders, which come without `runs` (`include=runs` is Planned), and `insightsFor` reads a run that isn't there. As Overview is home, `/v3/` opens blank too; Projects and every project page still open from their links. |
+| Project overview | Works | Lightning's workflow (Off, never run) and zero work orders, failed and runs: Lightning's work order isn't counted, as it comes without its workflow. No published services, from the demo's own routes. |
+| Workflows | Works | Lightning's workflow, Off, "Never run", for the same reason. |
+| Workflow editor | Works | Draws Lightning's workflow (cron trigger, DHIS2, HTTP), read only on main with "Edit in sandbox", 0 runs on the canvas. `GET …/dataclips` answers 404 as expected (Planned), so no saved inputs. Not tried: editing in a sandbox, running. |
+| Create | Works | The project from Lightning; the starter ideas from the demo's own route. |
+| Components | Works | "No components yet": Lightning's seed has no channels or collections, and the demo's own kinds start empty. |
+| Component (a channel, collection or other kind) | Not walked | Nothing to open: Lightning's seed has none, and this walk made no data. |
+| Sandboxes | Works | Only main; Lightning's seed has no sandboxes. Not tried: making one. |
+| History (project, all) | Works with gaps | Draws, with filters and tabs, but lists "No work orders yet" though Lightning has one: work orders come without `workflow_id` (Planned), so each is dropped as belonging to no workflow. Channel requests: none. |
+| Insights (project, all) | Breaks | Blank screen, as Overview: no `runs` on Lightning's work orders. |
+| Deployments | Placeholder | The page's description only, on any build. |
+| Settings | Works with gaps | Setup draws Lightning's project, read only ("You cannot modify this project's basic settings") until `permissions`. `GET …/repo_connection` answers 404 as there's no GitHub connection, and the page still draws. Not opened: the other sections. |
+| Services (project) | Placeholder | The page's description and a link to "Service"; the project's services show on its overview. |
+| A service's page | Demo data, broken links | The Services catalog links to the fixtures' services, under the fixtures' project ids, which Lightning refuses (403), so each opens Not Found. A Lightning project has no services yet. |
+| User settings | Works | Your Lightning account: profile, your credential ("DHIS2 play", linked to dhis2-project) and API tokens (none). |
+| A system's page | Demo data | The fixtures' systems from the demo's own routes; an old slug link (`/connected-systems/dhis2`) redirects. |
+| Handbook, Systems, Services catalog, Status, Organization settings | Demo data | The demo's own areas, on `/api/demo/` and the fixtures. |
+| Get help now | Placeholder | The page's description only, on any build. |
+| Admin settings | Breaks | As the superuser, every tab is Not Found: `GET /api/users` answers 403 (only the service account lists users) and `GET /api/auth_provider` 404 with none set (api-gaps.md). Hidden from the demo user, who isn't a superuser. |
 
 ## Which data each deployment shows
 

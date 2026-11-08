@@ -176,6 +176,13 @@ each needs nothing here once Lightning sends it.
 - **Projects: `permissions`** (api/projects.md). Without them every `can*`
   is false, so on Lightning a project's settings read only and the
   create, edit and delete actions that hang off them are left out.
+- **Work orders: their workflow and runs** (`workflow_id` and
+  `include=runs`, api/work-orders.md). Lightning sends a work order's state
+  and times only. History drops every one as belonging to no workflow, so it
+  lists none; the project overview and Workflows count none; and Overview
+  and Insights, which add up the runs, stop with a blank screen (walked 8 Nov
+  2026, lightning-backend.md). The pages need the fake's shape, or the wrapper
+  must leave out what isn't sent.
 - **A project's dataclips** (`GET /api/projects/:id/dataclips`,
   api/dataclips.md). Lightning answers 404; the editor opens without the
   saved inputs to run from.

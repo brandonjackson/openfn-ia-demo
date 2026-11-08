@@ -10,22 +10,22 @@ import Modal from "../primitives/Modal";
 import Stack from "../primitives/Stack";
 
 const roleHints: Record<OrganizationMember["role"], string> = {
-  Owner: "Can do everything, including making other owners.",
   Admin: "Manages members, visibility, context and X-Road settings.",
   Member: "Sees the organisation's settings and works in their projects.",
 };
 
 interface Props {
-  /** The roles you may give: an admin can't make an owner. */
+  /** The roles you may give. */
   roles: OrganizationMember["role"][];
-  /** Sends the invitation; the modal closes once it resolves, and shows what the server refused. */
+  /** Adds them; the modal closes once it resolves, and shows what the server refused. */
   onInvite: (invite: OrganizationInvite) => Promise<void>;
   onClose: () => void;
 }
 
 /**
- * Invites someone to the organisation by email, with a role. Someone already
- * on OpenFn joins at once; anyone else is invited. Mount it when it should show.
+ * Adds someone to the organisation by email, with a role. They need an
+ * account on OpenFn already; an email nobody has is refused under the field.
+ * Mount it when it should show.
  */
 export default function InviteOrgMemberModal({ roles, onInvite, onClose }: Props) {
   const id = useId();
@@ -56,7 +56,7 @@ export default function InviteOrgMemberModal({ roles, onInvite, onClose }: Props
   return (
     <Modal
       open
-      title="Invite member"
+      title="Add member"
       onClose={onClose}
       footer={
         <>
@@ -65,18 +65,18 @@ export default function InviteOrgMemberModal({ roles, onInvite, onClose }: Props
           </Button>
           {/* Enabled until it sends: pressed with no usable email, it says why under the field. */}
           <Button onClick={send} aria-disabled={sending}>
-            {sending ? "Sending…" : "Send invitation"}
+            {sending ? "Adding…" : "Add member"}
           </Button>
         </>
       }
     >
       <Stack gap="md">
         {error !== null && !emailError && (
-          <Callout variant="danger" title="The invitation wasn't sent">
+          <Callout variant="danger" title="They weren't added">
             {errorMessageOf(error)}
           </Callout>
         )}
-        <FormField label="Email" htmlFor={`${id}-email`} error={emailError} required>
+        <FormField label="Email" htmlFor={`${id}-email`} hint="They need an OpenFn account already." error={emailError} required>
           <TextInput id={`${id}-email`} type="email" value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} />
         </FormField>
         <FormField label="Role" htmlFor={`${id}-role`} hint={roleHints[invite.role]}>

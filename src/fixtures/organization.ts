@@ -8,10 +8,10 @@ import { projects } from "./projects";
 export const organizationSettingsData: OrganizationSettings = {
   name: orgXRoad.memberName,
   members: [
-    { id: "m-1", name: "Jane Doe", email: "jane.doe@example.org", role: "Owner", lastActive: "Today" },
-    { id: "m-2", name: "Amadou Diallo", email: "adiallo@example.org", role: "Admin", lastActive: "Yesterday" },
-    { id: "m-3", name: "John Smith", email: "jsmith@example.org", role: "Member", lastActive: "3 days ago" },
-    { id: "m-4", name: "Beth Wilson", email: "bwilson@example.org", role: "Member", lastActive: "2 weeks ago" },
+    { id: "m-1", name: "Jane Doe", email: "jane.doe@example.org", role: "Admin", joined: "6 months ago" },
+    { id: "m-2", name: "Amadou Diallo", email: "adiallo@example.org", role: "Admin", joined: "6 months ago" },
+    { id: "m-3", name: "John Smith", email: "jsmith@example.org", role: "Member", joined: "3 months ago" },
+    { id: "m-4", name: "Beth Wilson", email: "bwilson@example.org", role: "Member", joined: "2 weeks ago" },
   ],
   visibility: { projects: "project", systems: "organization", services: "server" },
   contextLayers: [

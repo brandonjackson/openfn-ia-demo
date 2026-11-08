@@ -42,11 +42,18 @@ path in its hook file.
   `/api/demo/adaptors`, `/api/demo/connected_systems/suggestions` and
   `/api/demo/ecosystem` (stations named by system id; a deleted system
   leaves the map). An adaptor's `id` is its package name, not a UUID.
-- **The organisation** (Organization settings: members and invitations,
-  visibility defaults, context layers, Security Server, and its X-Road
-  identity, read only; a system's and a service's page read the identity too). Lightning
-  has no organisations. Demo: `/api/demo/organization` and
-  `/api/demo/organization/xroad` (`src/api/organization.ts`).
+- **The organisation, beyond its name and members** (Organization settings:
+  visibility defaults, context layers, Security Server, billing, and its X-Road
+  identity, read only; a system's and a service's page read the identity too).
+  Its name, your role and its members are the API's
+  (`/api/organizations`, api/organizations.md, Planned there and on
+  `full-api-test`); the rest isn't in api/ yet. Demo: `/api/demo/organization`
+  and `/api/demo/organization/xroad` (`src/api/organization.ts`). Also not in
+  api/'s first cut, so not in the demo: choosing between several
+  organisations (the demo shows the first you're in), inviting someone with
+  no OpenFn account (adding takes an existing user's email), and a superuser
+  managing an organisation they aren't in (the API allows it; the page offers
+  changes to admins only).
 - **The X-Road directory** (a system's page reached over X-Road: the member
   and service its route goes to). Would need the members on the
   organisation's X-Road instance with their subsystems and services, as its

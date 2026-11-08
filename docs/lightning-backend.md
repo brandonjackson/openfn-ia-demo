@@ -167,7 +167,8 @@ Admin settings. Every row below was opened in a browser on that Lightning.
 | A system's page | Demo data | The fixtures' systems from the demo's own routes; an old slug link (`/connected-systems/dhis2`) redirects. |
 | Systems | Demo data | The demo's own routes: the systems, the adaptors and suggestions a new one is picked from, the ecosystem map and, with X-Road, the directory. Rewalked after lane 5's #222 merged. |
 | Services catalog | Demo data, broken links | Live services, what systems offer and the MCP server from the demo's own routes. Its five services link to the fixtures' projects, which Lightning refuses (403), so each opens Not Found (A service's page, above). Rewalked after lane 5's #223 merged. |
-| Handbook, Status, Organization settings | Demo data | The demo's own areas, on `/api/demo/` and the fixtures. |
+| Organization settings | Works with gaps | The organisation's name and members are Lightning's (`/api/organizations`), once the fork syncs `full-api-test`: an upgraded instance has a "Default organization" with its superusers as admins and project members as members. Visibility, context, X-Road and billing are the demo's own, starting at their defaults (api-gaps.md). |
+| Handbook, Status | Demo data | The demo's own areas, on `/api/demo/` and the fixtures. |
 | Get help now | Placeholder | The page's description only, on any build. |
 | Admin settings | Breaks | As the superuser, every tab is Not Found: `GET /api/users` answers 403 (only the service account lists users) and `GET /api/auth_provider` 404 with none set (api-gaps.md). Hidden from the demo user, who isn't a superuser. |
 
@@ -178,8 +179,8 @@ server answering the demo's own routes starts empty (`seedEmpty` in
 `src/fake-api/db.ts`, under its own localStorage key) instead of from the
 fixtures, apart from vocabulary that isn't anyone's records (the starter
 ideas, the adaptor catalog and suggestions). So on `/v3` the organisation's
-systems, services, handbook and ecosystem map are empty; there's no
-organisation (Organization settings is Not Found), Status has no checks, and
+systems, services, handbook and ecosystem map are empty; the organisation
+is Lightning's, with what the demo adds at its defaults, Status has no checks, and
 the recent projects start empty. A workflow the fixtures don't know has blank
 docs. To show the fixtures on the Lightning deployment, pick them in the
 demo settings' Data tab. The bullets below are the 7 Nov decision; the second

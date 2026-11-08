@@ -1,11 +1,11 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../../api/ApiProvider";
 import { forgetCsrfToken, request } from "../../api/client";
 import { setFlags } from "../../app/feature-flags";
 import { findNodeByPath } from "../../app/ia-utils";
-import { failNext, resetFakeApi, setWait } from "../../fake-api";
+import { failNext, resetFakeApi, setWait, signInAs } from "../../fake-api";
 import { allFlagsOn } from "../../model/feature-flags";
 import { iaTree } from "../../model/ia-tree";
 import OrganizationSettingsPageQuery from "./OrganizationSettingsPage.query";
@@ -23,7 +23,8 @@ function renderRoute(path = "/organization-settings/members") {
   );
 }
 
-type Member = { attributes: { email: string; name: string } };
+type Member = { attributes: { email: string; first_name: string; last_name: string } };
+type Organization = { id: string };
 type Identity = { data: { attributes: { member_code: string; member_name: string } } };
 
 describe("OrganizationSettingsPageQuery", () => {
@@ -38,20 +39,39 @@ describe("OrganizationSettingsPageQuery", () => {
     setFlags(allFlagsOn);
   });
 
+  const members = async () => {
+    const { data: orgs } = await request<{ data: Organization[] }>("GET", "/api/organizations");
+    return (await request<{ data: Member[] }>("GET", `/api/organizations/${orgs[0]!.id}/members`)).data;
+  };
+
   it("lists the members the server has", async () => {
-    const { data } = await request<{ data: Member[] }>("GET", "/api/demo/organization/members");
+    const [first] = await members();
     renderRoute();
-    expect(await screen.findByText(data[0]!.attributes.name, {}, wait)).toBeTruthy();
+    expect(await screen.findByText(`${first!.attributes.first_name} ${first!.attributes.last_name}`, {}, wait)).toBeTruthy();
   });
 
-  it("invites someone on the server, and the list reloads with them", async () => {
+  it("adds someone on the server, and the list reloads with them", async () => {
     renderRoute();
-    fireEvent.click(await screen.findByRole("button", { name: "Invite member" }, wait));
-    fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "new.person@example.org" } });
-    fireEvent.click(screen.getByRole("button", { name: "Send invitation" }));
-    expect((await screen.findAllByText("new.person@example.org", {}, wait)).length).toBeGreaterThan(0);
-    const { data } = await request<{ data: Member[] }>("GET", "/api/demo/organization/members");
-    expect(data.some((m) => m.attributes.email === "new.person@example.org")).toBe(true);
+    fireEvent.click(await screen.findByRole("button", { name: "Add member" }, wait));
+    fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "pnair@example.org" } });
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Add member" }));
+    expect((await screen.findAllByText("pnair@example.org", {}, wait)).length).toBeGreaterThan(0);
+    expect((await members()).some((m) => m.attributes.email === "pnair@example.org")).toBe(true);
+  });
+
+  it("says under the email when nobody on the server has it", async () => {
+    renderRoute();
+    fireEvent.click(await screen.findByRole("button", { name: "Add member" }, wait));
+    fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: "nobody@example.org" } });
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Add member" }));
+    expect(await screen.findByText(/names nothing you can see/, {}, wait)).toBeTruthy();
+  });
+
+  it("reads only, with no add button, for a member who isn't an admin", async () => {
+    signInAs("user-beth");
+    renderRoute();
+    await screen.findByText("Beth Wilson", {}, wait);
+    expect(screen.queryByRole("button", { name: "Add member" })).toBeNull();
   });
 
   it("shows the X-Road identity the server sends", async () => {

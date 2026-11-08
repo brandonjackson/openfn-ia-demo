@@ -1,14 +1,12 @@
 /**
- * The organisation on the pretend server: its members, the defaults for what
- * others can see, its X-Road identity, the context layers it draws on, and
- * billing. Lightning's API has no organisations (they're the demo's), so
- * these routes live under `/api/demo/` and follow api/conventions.md.
+ * What the demo adds to an organisation on the pretend server: the defaults
+ * for what others can see, its X-Road identity, the context layers it draws
+ * on, and billing. The organisation itself, its name and members, is the
+ * API's (`organizations.ts`, api/organizations.md); these extras aren't in it,
+ * so they live under `/api/demo/` and follow api/conventions.md. They're one
+ * set, for the organisation you're in.
  *
  * Lifecycle:
- * - Members are invited by email with a role. Someone already on the
- *   instance joins at once; anyone else waits as invited. A role changes,
- *   and a member is removed, but the organisation always keeps an owner,
- *   and only an owner makes or unmakes another.
  * - Visibility defaults and who manages the Security Server are saved with
  *   `PATCH /api/demo/organization`; the rest of the X-Road identity is set
  *   by the X-Road operator, not here, and read from
@@ -19,35 +17,20 @@
  * - A context layer is requested by its URL and waits for its owners'
  *   approval; it's removed (or the request cancelled) with `DELETE`.
  * - Billing is read only.
- * Anyone in the organisation reads all of it; owners and admins change it.
+ * Anyone in the organisation reads all of it; its admins change it.
  */
 import { organizationSettingsData } from "../fixtures/organization";
 import { orgXRoad, xroadDirectory } from "../fixtures/xroad";
 import { mcpServerUrl } from "../fixtures/service-catalog";
 import { seedId } from "../fixtures/ids";
-import type { ContextLayer, OrganizationMember, VisibilityScope } from "../model/organization";
+import type { ContextLayer, VisibilityScope } from "../model/organization";
 import { securityServerManagerLabels, type SecurityServerManager } from "../model/xroad";
-import { badId, conflict, forbidden, invalid, isUuid, json, noContent, notFound, now, ORIGIN, paged, unknownKeys, type Entry, type Handler } from "./answers";
+import { badId, forbidden, invalid, isUuid, json, noContent, notFound, now, ORIGIN, paged, unknownKeys, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
 import { ago, seedTime, table } from "./db";
-import { currentUserId } from "./session";
-import { findUser, findUserByEmail, fullName } from "./users";
+import { managesAnOrganization as canManage } from "./organizations";
 import { systems } from "./connected-systems";
 import { services } from "./services";
-
-type OrgRole = OrganizationMember["role"];
-
-export interface OrgMemberRow {
-  id: string;
-  email: string;
-  /** The name they were invited under, until they're on the instance. */
-  name: string;
-  role: OrgRole;
-  /** Null while they're invited and haven't joined. */
-  joined_at: string | null;
-  last_active_at: string | null;
-  inserted_at: string;
-}
 
 export interface ContextLayerRow {
   id: string;
@@ -67,21 +50,7 @@ interface OrgRow {
   updated_at: string;
 }
 
-// The fixtures' "Today", "3 days ago" as times, so they keep reading right.
-const lastActive: Record<string, number> = { Today: 0, Yesterday: 1, "3 days ago": 3, "2 weeks ago": 14 };
 const DAY = 86_400_000;
-
-export const orgMembers = table<OrgMemberRow>("organization_members", () =>
-  organizationSettingsData.members.map((m) => ({
-    id: seedId("org_member", m.id),
-    email: m.email,
-    name: m.name,
-    role: m.role,
-    joined_at: ago(180 * DAY),
-    last_active_at: ago((lastActive[m.lastActive] ?? 30) * DAY),
-    inserted_at: ago(180 * DAY),
-  })),
-);
 
 export const contextLayers = table<ContextLayerRow>("context_layers", () =>
   organizationSettingsData.contextLayers.map((l) => ({
@@ -95,43 +64,33 @@ export const contextLayers = table<ContextLayerRow>("context_layers", () =>
   })),
 );
 
-const org = table<OrgRow>("organization", () => {
-  const v = organizationSettingsData.visibility;
-  return [
-    {
-      id: seedId("organization", organizationSettingsData.name),
-      name: organizationSettingsData.name,
-      visibility: { projects: v.projects, systems: v.systems ?? "organization", services: v.services ?? "organization" },
-      security_server_managed_by: organizationSettingsData.xroad?.managedBy ?? "this-org",
-      updated_at: ago(30 * DAY),
-    },
-  ];
+const orgDefaults = (): OrgRow => ({
+  id: seedId("organization", organizationSettingsData.name),
+  name: organizationSettingsData.name,
+  visibility: { projects: "project", systems: "organization", services: "organization" },
+  security_server_managed_by: "this-org",
+  updated_at: now(),
 });
 
-/** Your role in the organisation, or undefined when you aren't in it. */
-const myRole = (): OrgRole | undefined => {
-  const email = findUser(currentUserId())?.email.toLowerCase();
-  return orgMembers.rows().find((m) => m.email.toLowerCase() === email && m.joined_at)?.role;
-};
-/** Whether you're in the organisation (and have joined). */
-export const inOrganization = () => myRole() !== undefined;
-const canManage = () => myRole() === "Owner" || myRole() === "Admin";
-const owners = () => orgMembers.rows().filter((m) => m.role === "Owner" && m.joined_at);
+// Beside Lightning the extras start at their defaults, so the page has something to show and change.
+const org = table<OrgRow>(
+  "organization",
+  () => {
+    const v = organizationSettingsData.visibility;
+    return [
+      {
+        ...orgDefaults(),
+        visibility: { projects: v.projects, systems: v.systems ?? "organization", services: v.services ?? "organization" },
+        security_server_managed_by: organizationSettingsData.xroad?.managedBy ?? "this-org",
+        updated_at: ago(30 * DAY),
+      },
+    ];
+  },
+  { empty: () => [orgDefaults()] },
+);
 
-const ROLES: OrgRole[] = ["Owner", "Admin", "Member"];
 const SCOPES: VisibilityScope[] = ["project", "organization", "server"];
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const URL_RE = /^https?:\/\/[^\s/]+\S*$/;
-
-const memberEntry = (m: OrgMemberRow) => {
-  const user = findUserByEmail(m.email);
-  return {
-    type: "organization_members",
-    id: m.id,
-    attributes: { email: m.email, name: user ? fullName(user) : m.name, role: m.role, joined_at: m.joined_at, last_active_at: m.last_active_at, inserted_at: m.inserted_at },
-    links: { self: `${ORIGIN}/api/demo/organization/members/${m.id}` },
-  };
-};
 
 const layerEntry = (l: ContextLayerRow) => ({
   type: "context_layers",
@@ -139,14 +98,6 @@ const layerEntry = (l: ContextLayerRow) => ({
   attributes: { ...l, id: undefined },
   links: { self: `${ORIGIN}/api/demo/organization/context_layers/${l.id}` },
 });
-
-/** Refuses a change of role that would take the last owner away, or that only an owner may make. */
-function roleProblem(m: OrgMemberRow, role: OrgRole | null): Response | undefined {
-  if ((m.role === "Owner" || role === "Owner") && myRole() !== "Owner") return forbidden();
-  if (m.role === "Owner" && role !== "Owner" && m.joined_at && owners().length === 1)
-    return conflict("last_owner", "The organisation needs at least one owner. Make someone else an owner first.");
-  return undefined;
-}
 
 /** The organisation's X-Road identity, as the X-Road operator set it. Read only, so seeded once. */
 interface XRoadIdentityRow {
@@ -181,10 +132,9 @@ const routes: Record<string, Handler> = {
     const o = org.rows()[0]!;
     return json(200, {
       data: {
-        type: "organizations",
+        type: "organization_settings",
         id: o.id,
         attributes: {
-          name: o.name,
           visibility: o.visibility,
           security_server_managed_by: o.security_server_managed_by,
           // How many connected systems and published services use the X-Road identity.
@@ -195,8 +145,6 @@ const routes: Record<string, Handler> = {
           billing: organizationSettingsData.billing,
           // The organisation's MCP server, where every service with MCP on is a tool.
           mcp_server_url: mcpServerUrl,
-          role: myRole() ?? null,
-          permissions: { manage: canManage(), manage_owners: myRole() === "Owner" },
           updated_at: o.updated_at,
         },
       },
@@ -204,7 +152,10 @@ const routes: Record<string, Handler> = {
   },
   // The organisation's identity on X-Road, which the X-Road operator sets: read only. Who manages its Security Server is on the organisation.
   "GET /api/demo/organization/xroad": () => {
-    const { id, ...attributes } = xroadIdentity.rows()[0]!;
+    const identity = xroadIdentity.rows()[0];
+    // Beside Lightning the organisation isn't on X-Road, so it has no identity there.
+    if (!identity) return notFound();
+    const { id, ...attributes } = identity;
     return json(200, { data: { type: "xroad_identities", id, attributes } });
   },
   "GET /api/demo/organization/xroad/directory": () => {
@@ -267,66 +218,6 @@ const routes: Record<string, Handler> = {
     return organizationRoutes["GET /api/demo/organization"]!({}, {}, new URLSearchParams());
   },
 
-  "GET /api/demo/organization/members": (_params, _body, query) => {
-    const order = (m: OrgMemberRow) => ROLES.indexOf(m.role);
-    const rows = orgMembers.rows().sort((a, b) => order(a) - order(b) || memberEntry(a).attributes.name.localeCompare(memberEntry(b).attributes.name));
-    return json(200, paged("/api/demo/organization/members", rows.map(memberEntry), query));
-  },
-  // Invites someone by email. Someone already on the instance joins at once.
-  "POST /api/demo/organization/members": (_params, body) => {
-    if (!canManage()) return forbidden();
-    const errors: Entry[] = unknownKeys(body, ["email", "role", "name"]);
-    const email = typeof body["email"] === "string" ? body["email"].trim() : "";
-    const role = (body["role"] ?? "Member") as OrgRole;
-    if (!email) errors.push({ code: "required", detail: "can't be blank", pointer: "#/email" });
-    else if (!EMAIL_RE.test(email)) errors.push({ code: "format", detail: "is not an email address", pointer: "#/email" });
-    else if (orgMembers.rows().some((m) => m.email.toLowerCase() === email.toLowerCase())) errors.push({ code: "taken", detail: "is already in the organisation", pointer: "#/email" });
-    if (!ROLES.includes(role)) errors.push({ code: "inclusion", detail: "must be Owner, Admin or Member", pointer: "#/role" });
-    if (errors.length) return invalid(errors);
-    if (role === "Owner" && myRole() !== "Owner") return forbidden();
-    const user = findUserByEmail(email);
-    const at = now();
-    const row: OrgMemberRow = {
-      id: crypto.randomUUID(),
-      email,
-      name: user ? fullName(user) : typeof body["name"] === "string" && body["name"].trim() ? body["name"].trim() : email,
-      role,
-      joined_at: user ? at : null,
-      last_active_at: null,
-      inserted_at: at,
-    };
-    orgMembers.insert(row);
-    record(user ? "member_added" : "member_invited", { type: "organization", id: org.rows()[0]!.id, name: org.rows()[0]!.name }, { after: { [email]: role } }, true);
-    return json(201, { data: memberEntry(row) });
-  },
-  "PATCH /api/demo/organization/members/:id": ({ id }, body) => {
-    if (!canManage()) return forbidden();
-    if (!isUuid(id)) return badId("id");
-    const m = orgMembers.rows().find((r) => r.id === id);
-    if (!m) return notFound();
-    const errors: Entry[] = unknownKeys(body, ["role"]);
-    const role = body["role"] as OrgRole;
-    if (!ROLES.includes(role)) errors.push({ code: "inclusion", detail: "must be Owner, Admin or Member", pointer: "#/role" });
-    if (errors.length) return invalid(errors);
-    const refused = roleProblem(m, role);
-    if (refused) return refused;
-    orgMembers.update((r) => r.id === id, (r) => ({ ...r, role }));
-    record("role_changed", { type: "organization", id: org.rows()[0]!.id, name: org.rows()[0]!.name }, { before: { [m.email]: m.role }, after: { [m.email]: role } }, true);
-    return json(200, { data: memberEntry({ ...m, role }) });
-  },
-  // Removes a member, or withdraws an invitation.
-  "DELETE /api/demo/organization/members/:id": ({ id }) => {
-    if (!canManage()) return forbidden();
-    if (!isUuid(id)) return badId("id");
-    const m = orgMembers.rows().find((r) => r.id === id);
-    if (!m) return notFound();
-    const refused = roleProblem(m, null);
-    if (refused) return refused;
-    orgMembers.remove((r) => r.id === id);
-    record("member_removed", { type: "organization", id: org.rows()[0]!.id, name: org.rows()[0]!.name }, { before: { [m.email]: m.role } }, true);
-    return noContent();
-  },
-
   "GET /api/demo/organization/context_layers": (_params, _body, query) =>
     json(200, paged("/api/demo/organization/context_layers", contextLayers.rows().map(layerEntry), query)),
   // Asks for a layer by its URL. It waits for its owners to approve.
@@ -355,16 +246,4 @@ const routes: Record<string, Handler> = {
   },
 };
 
-/** Routes that answer without an organisation: the X-Road directory, empty. */
-const withoutOrganization = new Set(["GET /api/demo/organization/xroad/directory"]);
-
-/**
- * Beside Lightning, which has no organisations, there's none: every route
- * about it answers Not Found rather than one made up from the fixtures.
- */
-export const organizationRoutes: Record<string, Handler> = Object.fromEntries(
-  Object.entries(routes).map(([key, handler]): [string, Handler] => [
-    key,
-    withoutOrganization.has(key) ? handler : (...args) => (org.rows().length ? handler(...args) : notFound()),
-  ]),
-);
+export const organizationRoutes = routes;

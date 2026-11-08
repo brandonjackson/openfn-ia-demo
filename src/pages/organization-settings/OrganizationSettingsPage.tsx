@@ -40,23 +40,23 @@ const navItems: SettingsNavItem[] = [
 /*  Members                                                            */
 /* ------------------------------------------------------------------ */
 
-const roleTones = { Owner: "indigo", Admin: "green", Member: "gray" } as const;
+const roleTones = { Admin: "green", Member: "gray" } as const;
 
 interface MemberActions {
-  /** The roles you may give: an admin can't make or unmake an owner. Left out with the actions when you can't manage members. */
+  /** The roles you may give. Left out with the actions when you can't manage members. */
   assignableRoles?: OrganizationMember["role"][];
-  /** Invites someone by email with a role. */
+  /** Adds someone already on OpenFn, by email, with a role. */
   onInviteMember?: (invite: OrganizationInvite) => Promise<void>;
-  /** Gives a member another role. The organisation always keeps an owner. */
+  /** Gives a member another role, by their user id. The organisation always keeps an admin. */
   onChangeMemberRole?: (memberId: string, role: OrganizationMember["role"]) => Promise<void>;
-  /** Removes a member, or withdraws an invitation. */
+  /** Takes a member out of the organisation, by their user id. Their projects keep them. */
   onRemoveMember?: (memberId: string) => Promise<void>;
 }
 
 function MembersSection({ members, name, assignableRoles = [], onInviteMember, onChangeMemberRole, onRemoveMember }: { members: OrganizationMember[]; name: string } & MemberActions) {
   const [inviting, setInviting] = useState(false);
   const [removing, setRemoving] = useState<OrganizationMember>();
-  // A change the server refused, such as taking away the last owner.
+  // A change the server refused, such as taking away the last admin.
   const [error, setError] = useState<unknown>(null);
   const attempt = async (work: () => Promise<void>) => {
     setError(null);
@@ -67,10 +67,8 @@ function MembersSection({ members, name, assignableRoles = [], onInviteMember, o
     }
   };
   const actionsFor = (m: OrganizationMember) => {
-    // Only someone who can give Owner can change an owner.
-    if (m.role === "Owner" && !assignableRoles.includes("Owner")) return [];
     const roles = onChangeMemberRole ? assignableRoles.filter((r) => r !== m.role).map((r) => ({ id: `role:${r}`, label: `Make ${r.toLowerCase()}` })) : [];
-    const remove = onRemoveMember ? [{ id: "remove", label: m.lastActive === "Invited" ? "Withdraw invitation" : "Remove from organisation", tone: "danger" as const, divider: roles.length > 0 }] : [];
+    const remove = onRemoveMember ? [{ id: "remove", label: "Remove from organisation", tone: "danger" as const, divider: roles.length > 0 }] : [];
     return [...roles, ...remove];
   };
   const columns: DataTableColumn<OrganizationMember>[] = [
@@ -85,7 +83,7 @@ function MembersSection({ members, name, assignableRoles = [], onInviteMember, o
       ),
     },
     { key: "role", header: "Role", render: (m) => <Badge label={m.role} tone={roleTones[m.role]} /> },
-    { key: "last-active", header: "Last active", render: (m) => (m.lastActive === "Invited" ? <Badge label="Invited" tone="yellow" /> : m.lastActive) },
+    { key: "joined", header: "Joined", render: (m) => m.joined },
     ...(onChangeMemberRole || onRemoveMember
       ? [
           {
@@ -117,7 +115,7 @@ function MembersSection({ members, name, assignableRoles = [], onInviteMember, o
         action={
           onInviteMember && (
             <Button size="sm" icon={UserPlus} onClick={() => setInviting(true)}>
-              Invite member
+              Add member
             </Button>
           )
         }
@@ -131,8 +129,8 @@ function MembersSection({ members, name, assignableRoles = [], onInviteMember, o
       {inviting && onInviteMember && <InviteOrgMemberModal roles={assignableRoles} onInvite={onInviteMember} onClose={() => setInviting(false)} />}
       <ConfirmModal
         open={!!removing}
-        title={removing?.lastActive === "Invited" ? "Withdraw invitation" : `Remove ${removing?.name ?? ""}`}
-        confirmLabel={removing?.lastActive === "Invited" ? "Withdraw" : "Remove"}
+        title={`Remove ${removing?.name ?? ""}`}
+        confirmLabel="Remove"
         tone="danger"
         onClose={() => setRemoving(undefined)}
         onConfirm={() => {
@@ -141,9 +139,7 @@ function MembersSection({ members, name, assignableRoles = [], onInviteMember, o
           void attempt(() => onRemoveMember!(m.id));
         }}
       >
-        {removing?.lastActive === "Invited"
-          ? `${removing.email} won't be able to join with this invitation.`
-          : `${removing?.name ?? ""} loses access to the organisation's settings. Their projects keep them as members until they're removed there.`}
+        {`${removing?.name ?? ""} loses access to the organisation's settings. Their projects keep them as members until they're removed there.`}
       </ConfirmModal>
     </div>
   );

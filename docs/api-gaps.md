@@ -197,6 +197,13 @@ each needs nothing here once Lightning sends it.
   screen (walked 8 Nov 2026, lightning-backend.md) until the seam
   (`toRecord` in `src/api/work-orders.ts`) read a work order without `runs`
   as having none.
+- **Your account: changing it yourself** (User settings, Profile;
+  api/users.md, planned additional scope on `PATCH /api/users/:id`).
+  Lightning's `main` lets only the service account change a user. The
+  lightning-full-api fork takes your own names and contact preference ahead
+  of it (a `[fork]` commit, FORK.md), but not yet your email or password,
+  which it refuses as `unknown_key`, so the form says "is not accepted"
+  under the field. Lightning's own profile page still changes both.
 - **A project's dataclips** (`GET /api/projects/:id/dataclips`,
   api/dataclips.md). Lightning answers 404; the editor opens without the
   saved inputs to run from.

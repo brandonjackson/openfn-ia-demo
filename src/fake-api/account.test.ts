@@ -21,6 +21,13 @@ describe("your account", () => {
     expect((await refusal(request("PATCH", `/api/users/${currentUserId()}`, { email: "pnair@example.org" })))?.fieldErrors["email"]).toEqual(["has already been taken"]);
   });
 
+  it("records a change to your name with you as the actor, and refuses a contact preference it doesn't know", async () => {
+    await request("PATCH", `/api/users/${currentUserId()}`, { first_name: "Janet" });
+    const events = await request<{ data: { attributes: Record<string, unknown> }[] }>("GET", "/api/audit_events");
+    expect(events.data[0]!.attributes).toMatchObject({ event: "updated", item_type: "user", item_id: currentUserId(), changes: { after: { first_name: "Janet" } } });
+    expect((await refusal(request("PATCH", `/api/users/${currentUserId()}`, { contact_preference: "often" })))?.fieldErrors["contact_preference"]).toEqual(["is invalid"]);
+  });
+
   it("shows a new token once, and only its end after", async () => {
     const { data } = await request<{ data: { id: string; token: string } }>("POST", "/api/me/tokens");
     const list = await request<{ data: { id: string; token: string }[] }>("GET", "/api/me/tokens");

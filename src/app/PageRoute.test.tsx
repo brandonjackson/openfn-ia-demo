@@ -5,7 +5,7 @@ import ApiProvider from "../api/ApiProvider";
 import { forgetCsrfToken } from "../api/client";
 import { resetFakeApi, setWait } from "../fake-api";
 import { projectIdFor } from "../fake-api/projects";
-import { apiSystemId, apiWorkflowId } from "../fixtures/ids";
+import { apiServiceId, apiSystemId, apiWorkflowId } from "../fixtures/ids";
 import { projectWorkflowDetails, projects } from "../fixtures/projects";
 import PageRoute from "./PageRoute";
 
@@ -48,6 +48,17 @@ describe("PageRoute's old links", () => {
     const workflow = projectWorkflowDetails(projects[0]!)[0]!.id;
     draw(`/history?project=project-a&workflow=${workflow}&status=failed`);
     expect(where()).toBe(`/history?project=${projectIdFor("project-a")}&workflow=${apiWorkflowId(workflow)}&status=failed`);
+  });
+
+  it("sends a project's service named by its fixture slug on to its id, from the project's slug", () => {
+    const service = `/projects/${projectIdFor("project-a")}/services/${apiServiceId("project-a", "planning-application-intake")}`;
+    draw("/projects/project-a/services/planning-application-intake");
+    expect(where()).toBe(service);
+  });
+
+  it("sends a service named by its fixture slug on to its id when its project is already named by id", () => {
+    draw(`/projects/${projectIdFor("project-a")}/services/planning-application-intake`);
+    expect(where()).toBe(`/projects/${projectIdFor("project-a")}/services/${apiServiceId("project-a", "planning-application-intake")}`);
   });
 
   it("sends a connected system named by its fixture slug on to its id", () => {

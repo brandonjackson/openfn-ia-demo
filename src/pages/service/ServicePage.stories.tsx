@@ -1,18 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import ServicePage from "./ServicePage";
-import { withRouter } from "../stories/decorators";
-import { projects } from "../fixtures/projects";
-import { orgXRoad } from "../fixtures/xroad";
-import type { IANode } from "../model/ia-tree";
-import type { Project } from "../model/projects";
-import type { ServicePageData } from "../model/page-data";
+import { withRouter } from "../../stories/decorators";
+import { projects } from "../../fixtures/projects";
+import { orgXRoad } from "../../fixtures/xroad";
+import type { IANode } from "../../model/ia-tree";
+import type { Project } from "../../model/projects";
+import type { ServicePageData } from "./ServicePage";
 
 const node: IANode = { id: "service", label: "Service", pageType: "service" };
 
 function storyArgs(project: Project, serviceIndex: number) {
   const service = project.services[serviceIndex];
   const data: ServicePageData = {
-    pageType: "service",
     projectId: project.id,
     projectName: project.name,
     service,

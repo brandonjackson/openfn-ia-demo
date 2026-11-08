@@ -577,6 +577,20 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   files importing it 32 → 27; pages in their own folder 17 → 18 of 24; page
   and query tests 34 → 36; tests 357 → 372; classNamesInPages 106 → 103.
   ([#215](https://github.com/brandonjackson/openfn-ia-demo/pull/215))
+- **Lane 5: A service's page reads only the API.** The page moved to
+  `src/pages/service/` with its first page and query tests, and
+  `ServicePageData` into the page file (without `pageType`; its workflow is
+  just `{ id, name }`, and its X-Road organisation an `XRoadIdentity`).
+  With X-Road on, the organisation's identity comes from
+  `GET /api/demo/organization/xroad` (`useOrganizationXRoad`), not the
+  fixture, and the page waits for it. An old link by a fixture service's
+  slug is sent on by `PageRoute.tsx` (tested there). Enable MCP and Publish
+  to X-Road say "Enabling…"/"Publishing…" while they run (`aria-disabled`,
+  a second press ignored) and a refusal says why in an alert callout; before,
+  a refusal went unsaid. Checked on the fake server only. Counts: wrappers
+  reading fixtures 5 → 4 of 24; page-data.ts 235 → 216 lines; files
+  importing it 27 → 24; pages in their own folder 18 → 19 of 24; page and
+  query tests 36 → 38; tests 372 → 387; the ratchet unchanged.
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
@@ -704,4 +718,10 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
    `error` prop on `ConfirmModal`), or show a refused Revoke in the Access
    section. Also seen there, not new: after a successful Revoke the row is
    gone, so focus falls to the page and nothing says it worked; would move
-   focus to the Access heading and add a status line.
+   focus to the Access heading and add a status line. The same holds on a
+   service's page (lane 5): a refused Enable MCP or Publish to X-Road is
+   answered under the page header, far below the cards their buttons are
+   in, and a success replaces the button, so focus drops and nothing says it
+   worked. Would show each refusal (and an "MCP is on" status) inside its
+   card, and give the X-Road part its own loading and error (decision 1)
+   instead of the whole page waiting on, or failing with, the identity.

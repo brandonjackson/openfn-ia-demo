@@ -31,7 +31,7 @@ path in its hook file.
   `/api/demo/connected_systems` (`src/api/connected-systems.ts`).
 - **The organisation** (Organization settings: members and invitations,
   visibility defaults, context layers, Security Server, and its X-Road
-  identity, read only; a system's page reads the identity too). Lightning
+  identity, read only; a system's and a service's page read the identity too). Lightning
   has no organisations. Demo: `/api/demo/organization` and
   `/api/demo/organization/xroad` (`src/api/organization.ts`).
 - **The X-Road directory** (a system's page reached over X-Road: the member

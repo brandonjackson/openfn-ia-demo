@@ -1,7 +1,5 @@
-import type { ProjectComponentItem } from "./component-types";
-import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember } from "./xroad";
+import type { ServiceRecord, XRoadConnectionStatus, XRoadMember } from "./xroad";
 import type { Environment } from "./credentials";
-import type { ProjectServiceItem, ServiceApiSpec } from "./services";
 import type { ConnectionMethod } from "./connected-systems";
 import type { LucideIcon } from "lucide-react";
 import type { Adaptor } from "./adaptors";
@@ -196,22 +194,6 @@ export interface StatusPageData {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Service page (a published service's catalog entry / API docs)      */
-/* ------------------------------------------------------------------ */
-
-export interface ServicePageData {
-  pageType: "service";
-  projectId: string;
-  projectName: string;
-  service: ProjectServiceItem;
-  /** The workflow behind the service, if it's been linked. */
-  workflow?: ProjectComponentItem;
-  api: ServiceApiSpec;
-  /** The organisation's X-Road settings: who it is on X-Road, and its Security Server. Absent when it isn't on X-Road. */
-  xroadOrg?: OrgXRoadSettings;
-}
-
-/* ------------------------------------------------------------------ */
 /*  Project Create page                                                */
 /* ------------------------------------------------------------------ */
 
@@ -231,5 +213,4 @@ export interface OrgCredential {
 export type PageData =
   | ListPageData
   | CatalogPageData
-  | StatusPageData
-  | ServicePageData;
+  | StatusPageData;

@@ -1,27 +1,42 @@
 import { useState } from "react";
 import { Bot, ClipboardList, Clock, FileCode2, Folder, KeyRound, ListChecks, Network, Webhook, Workflow } from "lucide-react";
-import type { PageProps } from "../model/ia-tree";
-import type { ServicePageData } from "../model/page-data";
-import type { ServiceApiField } from "../model/services";
-import Badge from "../components/primitives/Badge";
-import PageHeader from "../components/patterns/PageHeader";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import Button from "../components/primitives/Button";
-import Callout from "../components/primitives/Callout";
-import CodeBlock from "../components/primitives/CodeBlock";
-import DataTable from "../components/primitives/DataTable";
-import type { DataTableColumn } from "../components/primitives/DataTable";
-import PropertyList from "../components/primitives/PropertyList";
-import type { Property } from "../components/primitives/PropertyList";
-import SectionHeading from "../components/primitives/SectionHeading";
-import TextLink from "../components/primitives/TextLink";
-import UsageModeCard from "../components/domain/UsageModeCard";
-import CopyValue from "../components/primitives/CopyValue";
-import PublishToXRoadModal from "../components/domain/PublishToXRoadModal";
-import ServiceRecordList from "../components/domain/ServiceRecordList";
-import StatTile from "../components/primitives/StatTile";
-import { mcpToolSnippet, openApiUrl, webhookUrl, workflowCallSnippet, xroadCallerSnippet } from "../model/service-usage";
-import { clientIdOf, openfnSubsystemOf } from "../model/xroad";
+import type { PageProps } from "../../model/ia-tree";
+import type { ProjectServiceItem, ServiceApiField, ServiceApiSpec } from "../../model/services";
+import type { XRoadIdentity } from "../../model/xroad";
+import { errorMessageOf } from "../../model/form-error";
+import Badge from "../../components/primitives/Badge";
+import PageHeader from "../../components/patterns/PageHeader";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import Button from "../../components/primitives/Button";
+import Callout from "../../components/primitives/Callout";
+import CodeBlock from "../../components/primitives/CodeBlock";
+import DataTable from "../../components/primitives/DataTable";
+import type { DataTableColumn } from "../../components/primitives/DataTable";
+import PropertyList from "../../components/primitives/PropertyList";
+import type { Property } from "../../components/primitives/PropertyList";
+import SectionHeading from "../../components/primitives/SectionHeading";
+import TextLink from "../../components/primitives/TextLink";
+import UsageModeCard from "../../components/domain/UsageModeCard";
+import CopyValue from "../../components/primitives/CopyValue";
+import PublishToXRoadModal from "../../components/domain/PublishToXRoadModal";
+import ServiceRecordList from "../../components/domain/ServiceRecordList";
+import StatTile from "../../components/primitives/StatTile";
+import { mcpToolSnippet, openApiUrl, webhookUrl, workflowCallSnippet, xroadCallerSnippet } from "../../model/service-usage";
+import { clientIdOf, openfnSubsystemOf } from "../../model/xroad";
+
+/** What a published service's page shows. */
+export interface ServicePageData {
+  /** The project the service belongs to. */
+  projectId: string;
+  projectName: string;
+  service: ProjectServiceItem;
+  /** The workflow behind the service, if it's been linked. */
+  workflow?: { id: string; name: string };
+  /** How it's called and what it returns. */
+  api: ServiceApiSpec;
+  /** The organisation's identity on X-Road: who it is there, and its Security Server. Absent when it isn't on X-Road. */
+  xroadOrg?: XRoadIdentity;
+}
 
 export interface ServicePageProps extends PageProps<ServicePageData> {
   /** Opens the project the service belongs to. */
@@ -70,6 +85,23 @@ export default function ServicePage({
   const onXRoad = !!xroadOrg && !!service.xroad?.published;
   const openfnClientId = xroadOrg ? clientIdOf(xroadOrg) : "";
   const [publishOpen, setPublishOpen] = useState(false);
+  const [enabling, setEnabling] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [refusal, setRefusal] = useState<{ title: string; detail: string }>();
+
+  /** Runs one of the service's actions once at a time, and says why if the server refuses. */
+  const run = async (busy: boolean, setBusy: (busy: boolean) => void, action: (() => Promise<void>) | undefined, failed: string) => {
+    if (busy || !action) return;
+    setRefusal(undefined);
+    setBusy(true);
+    try {
+      await action();
+    } catch (error) {
+      setRefusal({ title: failed, detail: errorMessageOf(error) });
+    } finally {
+      setBusy(false);
+    }
+  };
   const serviceCode = service.xroad?.serviceCode ?? service.id;
   const xroadServiceId = `${openfnClientId}/${serviceCode}`;
 
@@ -174,6 +206,12 @@ export default function ServicePage({
         )}
       </div>
 
+      {refusal && (
+        <Callout variant="danger" title={refusal.title} role="alert">
+          {refusal.detail}
+        </Callout>
+      )}
+
       {isWebhook && (
         <section>
           <SectionHeading
@@ -205,8 +243,14 @@ export default function ServicePage({
                 <CodeBlock label="Tool definition" code={mcpToolSnippet(service, api)} />
               ) : (
                 onEnableMcp && (
-                  <Button variant="outline-primary" size="sm" icon={Bot} onClick={() => void onEnableMcp()}>
-                    Enable MCP
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    icon={Bot}
+                    aria-disabled={enabling || undefined}
+                    onClick={() => void run(enabling, setEnabling, onEnableMcp, "MCP wasn't turned on")}
+                  >
+                    {enabling ? "Enabling…" : "Enable MCP"}
                   </Button>
                 )
               )}
@@ -236,8 +280,8 @@ export default function ServicePage({
                   </div>
                 ) : (
                   onPublishToXRoad && (
-                    <Button size="sm" icon={Network} onClick={() => setPublishOpen(true)}>
-                      Publish to X-Road
+                    <Button size="sm" icon={Network} aria-disabled={publishing || undefined} onClick={() => !publishing && setPublishOpen(true)}>
+                      {publishing ? "Publishing…" : "Publish to X-Road"}
                     </Button>
                   )
                 )}
@@ -283,7 +327,7 @@ export default function ServicePage({
           onClose={() => setPublishOpen(false)}
           onPublished={() => {
             setPublishOpen(false);
-            void onPublishToXRoad?.();
+            void run(publishing, setPublishing, onPublishToXRoad, "It wasn't published to X-Road");
           }}
           serviceName={service.name}
           serviceCode={serviceCode}

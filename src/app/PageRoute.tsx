@@ -6,7 +6,7 @@ import { useFlags } from "./feature-flags";
 import { findNodeByPath, type PageRoute as Route } from "./ia-utils";
 import { useShell } from "../components/domain/shell-context";
 import { apiProjectId, fixtureWorkflow, projects as fixtureProjects } from "../fixtures/projects";
-import { apiSystemId, apiWorkflowId } from "../fixtures/ids";
+import { apiServiceId, apiSystemId, apiWorkflowId } from "../fixtures/ids";
 import { connectedSystems as fixtureSystems } from "../fixtures/connected-systems";
 import Callout from "../components/primitives/Callout";
 import LoadingState from "../components/primitives/LoadingState";
@@ -24,7 +24,7 @@ import ProjectComponentsPageQuery from "../pages/project-components/ProjectCompo
 import ProjectCreatePageQuery from "../pages/project-create/ProjectCreatePage.query";
 import ProjectSandboxesPageQuery from "../pages/project-sandboxes/ProjectSandboxesPage.query";
 import ProjectSettingsPageQuery from "../pages/project-settings/ProjectSettingsPage.query";
-import ServicePageQuery from "../pages/ServicePage.query";
+import ServicePageQuery from "../pages/service/ServicePage.query";
 import ComponentPageQuery from "../pages/component/ComponentPage.query";
 import StatusPageFixtures from "../pages/StatusPage.fixtures";
 import InsightsPageQuery from "../pages/insights/InsightsPage.query";
@@ -98,8 +98,17 @@ export default function PageRoute() {
   if (slug && fixtureProjects.some((p) => p.id === slug)) {
     return <Navigate to={`${pathname.replace(`/projects/${slug}`, `/projects/${apiProjectId(slug)}`)}${search}${hash}`} replace />;
   }
+
+  // So are a project's services; an old link names one by the fixture's slug.
+  const routeParams = findNodeByPath(iaTree, pathname)?.params ?? {};
+  const service = routeParams["service"];
+  const serviceProject = service && fixtureProjects.find((p) => apiProjectId(p.id) === routeParams["project"] && p.services.some((s) => s.id === service));
+  if (service && serviceProject) {
+    return <Navigate to={`${pathname.replace(`/services/${service}`, `/services/${apiServiceId(serviceProject.id, service)}`)}${search}${hash}`} replace />;
+  }
+
   // So are connected systems; an old link names one by the fixture's slug ("dhis2").
-  const system = findNodeByPath(iaTree, pathname)?.params["connected-system"];
+  const system = routeParams["connected-system"];
   if (system && fixtureSystems.some((s) => s.id === system)) {
     return <Navigate to={`${pathname.replace(`/connected-systems/${system}`, `/connected-systems/${apiSystemId(system)}`)}${search}${hash}`} replace />;
   }

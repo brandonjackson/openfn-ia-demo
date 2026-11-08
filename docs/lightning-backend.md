@@ -127,7 +127,8 @@ it: merging this repo's change, then the fork's (its sync builds this repo's
    when they add up runs that aren't there, and History lists none of
    Lightning's work orders, since it can't tell which workflow each belongs
    to. The fix belongs at the seam or in Lightning, not in a page; nothing
-   was changed in this walk.
+   was changed in this walk. Since then the seam reads a work order without
+   `runs` as having none, so Overview and Insights draw, with zero runs.
 
 ### Page by page
 
@@ -141,7 +142,7 @@ Admin settings. Every row below was opened in a browser on that Lightning.
 | ---- | ------------ | ----- |
 | The chrome (logo, account menu) | Works | You ("Amy") from `GET /api/me`; the instance named "localhost", by its URL's host, since Lightning sends no name (api-gaps.md). Signed out, `/v3/` sends you to Lightning's sign-in, which comes back to `/v3/`. |
 | Projects | Works | Lightning's projects (two for the demo user, one for the superuser). Every row says 0 workflows, 0 members and "No activity yet" until `include=stats`. |
-| Overview (home) | Breaks | Blank screen: it adds up the week's runs from Lightning's work orders, which come without `runs` (`include=runs` is Planned), and `insightsFor` reads a run that isn't there. As Overview is home, `/v3/` opens blank too; Projects and every project page still open from their links. |
+| Overview (home) | Works with gaps | The week's tiles say 0 runs and 0 errors: Lightning's work orders come without `runs` (`include=runs` is Planned), and the seam (`toRecord` in `src/api/work-orders.ts`) reads each as having none. Until that fix it was a blank screen, and `/v3/` with it. |
 | Project overview | Works | Lightning's workflow (Off, never run) and zero work orders, failed and runs: Lightning's work order isn't counted, as it comes without its workflow. No published services, from the demo's own routes. |
 | Workflows | Works | Lightning's workflow, Off, "Never run", for the same reason. |
 | Workflow editor | Works | Draws Lightning's workflow (cron trigger, DHIS2, HTTP), read only on main with "Edit in sandbox", 0 runs on the canvas. `GET …/dataclips` answers 404 as expected (Planned), so no saved inputs. Not tried: editing in a sandbox, running. |
@@ -150,7 +151,7 @@ Admin settings. Every row below was opened in a browser on that Lightning.
 | Component (a channel, collection or other kind) | Not walked | Nothing to open: Lightning's seed has none, and this walk made no data. |
 | Sandboxes | Works | Only main; Lightning's seed has no sandboxes. Not tried: making one. |
 | History (project, all) | Works with gaps | Draws, with filters and tabs, but lists "No work orders yet" though Lightning has one: work orders come without `workflow_id` (Planned), so each is dropped as belonging to no workflow. Channel requests: none. |
-| Insights (project, all) | Breaks | Blank screen, as Overview: no `runs` on Lightning's work orders. |
+| Insights (project, all) | Works with gaps | Zero runs every day, as Overview: no `runs` on Lightning's work orders. Was a blank screen until the seam's fix. |
 | Deployments | Placeholder | The page's description only, on any build. |
 | Settings | Works with gaps | Setup draws Lightning's project, read only ("You cannot modify this project's basic settings") until `permissions`. `GET …/repo_connection` answers 404 as there's no GitHub connection, and the page still draws. Not opened: the other sections. |
 | Services (project) | Placeholder | The page's description and a link to "Service"; the project's services show on its overview. |

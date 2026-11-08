@@ -17,7 +17,8 @@ export interface ApiWorkOrder {
     last_activity: string;
     workflow_id: string;
     dataclip_id: string;
-    runs: RunDetails[];
+    /** Only with `include=runs`, which Lightning doesn't send yet (docs/api-gaps.md). */
+    runs?: RunDetails[];
     input: Dataclip | null;
     inserted_at: string;
     /** The demo's: when its first run started, in the fixtures' words. Lightning sends only `inserted_at`. */
@@ -34,8 +35,13 @@ export interface WorkOrderRecord {
   receivedAt: string;
 }
 
-const toRecord = ({ id, attributes: a }: ApiWorkOrder, projectId: string): WorkOrderRecord => ({
-  workOrder: { id, status: a.state, lastActivity: a.last_activity, runs: a.runs },
+/**
+ * Reads a work order in. Lightning sends one without its runs (`include=runs`
+ * is Planned), so it reads as having none, rather than leaving `runs` unset
+ * for Overview and Insights to add up.
+ */
+export const toRecord = ({ id, attributes: a }: ApiWorkOrder, projectId: string): WorkOrderRecord => ({
+  workOrder: { id, status: a.state, lastActivity: a.last_activity, runs: a.runs ?? [] },
   workflowId: a.workflow_id,
   projectId,
   input: a.input ?? { id: a.dataclip_id, type: "http_request", body: "{}", created: a.last_activity },

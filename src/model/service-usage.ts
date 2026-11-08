@@ -1,7 +1,7 @@
-/** The tool name agents see for a service, e.g. `client_registry_lookup`. */
+/** The tool name agents see for a service, e.g. `client_registry_lookup`: its own, or its id's words. */
 import type { ProjectServiceItem, ServiceApiSpec } from "./services";
 export function mcpToolName(service: ProjectServiceItem): string {
-  return service.id.replace(/-/g, "_");
+  return service.mcpToolName ?? service.id.replace(/-/g, "_");
 }
 
 function sampleValue(name: string, type: string): string {

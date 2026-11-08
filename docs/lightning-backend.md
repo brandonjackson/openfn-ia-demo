@@ -157,7 +157,9 @@ Admin settings. Every row below was opened in a browser on that Lightning.
 | A service's page | Demo data, broken links | The Services catalog links to the fixtures' services, under the fixtures' project ids, which Lightning refuses (403), so each opens Not Found. A Lightning project has no services yet. |
 | User settings | Works | Your Lightning account: profile, your credential ("DHIS2 play", linked to dhis2-project) and API tokens (none). |
 | A system's page | Demo data | The fixtures' systems from the demo's own routes; an old slug link (`/connected-systems/dhis2`) redirects. |
-| Handbook, Systems, Services catalog, Status, Organization settings | Demo data | The demo's own areas, on `/api/demo/` and the fixtures. |
+| Systems | Demo data | The demo's own routes: the systems, the adaptors and suggestions a new one is picked from, the ecosystem map and, with X-Road, the directory. Rewalked after lane 5's #222 merged. |
+| Services catalog | Demo data, broken links | Live services, what systems offer and the MCP server from the demo's own routes. Its five services link to the fixtures' projects, which Lightning refuses (403), so each opens Not Found (A service's page, above). Rewalked after lane 5's #223 merged. |
+| Handbook, Status, Organization settings | Demo data | The demo's own areas, on `/api/demo/` and the fixtures. |
 | Get help now | Placeholder | The page's description only, on any build. |
 | Admin settings | Breaks | As the superuser, every tab is Not Found: `GET /api/users` answers 403 (only the service account lists users) and `GET /api/auth_provider` 404 with none set (api-gaps.md). Hidden from the demo user, who isn't a superuser. |
 

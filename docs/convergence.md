@@ -592,6 +592,54 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   importing it 27 → 24; pages in their own folder 18 → 19 of 24; page and
   query tests 36 → 38; tests 372 → 387; the ratchet unchanged.
   ([#221](https://github.com/brandonjackson/openfn-ia-demo/pull/221))
+- **Lane 5: Systems reads only the API.** The page moved to
+  `src/pages/systems/` with its first page and query tests, and
+  `SystemsPageData` into the page file: its systems as rows
+  (`SystemListItem`, in `model/connected-systems.ts`), the adaptors, the map
+  (`Ecosystem`, in `model/ecosystem.ts`) and the X-Road directory. Its access
+  filter and intro banner are the page's own now, not data, so
+  `ListPageData` and `fixtures/index.ts` are gone. New read-only demo routes:
+  `GET /api/demo/adaptors` (`useAdaptors`), `GET
+  /api/demo/connected_systems/suggestions` (`useSystemSuggestions`, leaving
+  out what's connected) and `GET /api/demo/ecosystem` (`useEcosystem`, its
+  stations named by system id, so a station links to its system's page
+  again; a deleted system leaves it with the workflows through it). The
+  directory comes from `useXRoadDirectory`, and `XRoadDirectory` words its
+  sync time from a timestamp. The suggestions under the list come from the
+  API too (three, as before), not the component's own three, and
+  `SuggestedSystemsToAdd` has no default list. Neither page waits for the
+  catalog, map or directory (item 16). Overview's wrapper reads the same catalog, so
+  Waiting on Brandon item 12 is done and Overview reads no fixtures. A
+  refused add from the directory says "Adding…" while it runs and names the
+  service if it's refused. Checked on the fake server
+  only. Counts: wrappers reading fixtures 4 → 2 of 24 (Systems and
+  Overview); page-data.ts 216 → 151 lines; files importing it 24 → 20;
+  pages in their own folder 19 → 20 of 24; page and query tests 38 → 40;
+  tests 387 → 399; the ratchet unchanged.
+  ([#222](https://github.com/brandonjackson/openfn-ia-demo/pull/222))
+- **Lane 5: The Services catalog reads only the API.** The page moved to
+  `src/pages/services/` with its first page and query tests, and
+  `ServicesPageData` into the page file; the catalog's entry types moved to
+  `model/services.ts` and `ChannelType` to `model/channels.ts`. It lists
+  every Live service from the API (a Draft isn't published, so it leaves
+  the catalog), filed under the service's new `section`, or its project's
+  name when it has none, with its new `mcpToolName` (both seeded from the
+  catalog fixture). `mcpToolName()` prefers that name: it used to read the
+  service's id, a UUID since the service page moved. What systems offer
+  comes from a new read-only `GET /api/demo/connected_systems/channels`
+  (`useSystemChannels`), the services used over X-Road from the systems and
+  the directory, the projects from `useProjectList` and the MCP server from
+  a new `mcp_server_url` on the organisation. "Create a workflow here" on a
+  system's event still starts the editor's workflow with that channel's
+  step (the editor finds the channel by its new id). Moving `ChannelType`
+  rewrote its imports in lanes 2's and 3's files, nothing more. Services are ordered by name
+  now, and an entry's project is the API's name for it. Checked on the fake
+  server only. Counts: wrappers reading fixtures 2 → 1 of 24 (the editor's,
+  which no lane takes); page-data.ts 151 → 73 lines; files importing it 20
+  → 9; pages in their own folder 20 → 21 of 24; page and query tests 40 →
+  42; tests 399 → 408; the ratchet unchanged. **Lane 5 is done:** no
+  wrapper of its own reads fixtures.
+  ([#223](https://github.com/brandonjackson/openfn-ia-demo/pull/223))
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
@@ -700,7 +748,8 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
    still come from fixtures (`fixtures/adaptors.ts`,
    `recommendedSystems` in `fixtures/connected-systems.ts`, which lane 5
    owns). Once lane 5 puts them on a demo route for the Systems page,
-   Overview's wrapper reads the same and lane 2 reads no fixtures.
+   Overview's wrapper reads the same and lane 2 reads no fixtures. Done in
+   lane 5's Systems PR (`useAdaptors`, `useSystemSuggestions`).
 13. **Overview without a Status tile** (lane 2). Left out because api/
    can't say what's down (api-gaps.md); the home page now opens on two
    tiles. Would bring it back reading a health resource, or from recent
@@ -726,3 +775,15 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
    worked. Would show each refusal (and an "MCP is on" status) inside its
    card, and give the X-Road part its own loading and error (decision 1)
    instead of the whole page waiting on, or failing with, the identity.
+16. **What Systems and Overview show when the catalog or map can't
+   load** (lane 5, Systems' reviewers). The list doesn't wait for the
+   adaptors, suggestions, map or directory, and leaves each out if it
+   can't load; so a failed adaptors load leaves "Add system" offering none,
+   with no reason. Would give each its own error (decision 1). Also, the
+   map still draws the fixture's workflows, some of which (Lab results)
+   aren't workflows in any project, so their links open nothing; would draw
+   only workflows the server has. Both change what the page shows. The
+   Services catalog is the other way round: it waits for the systems, the
+   channels they offer and the directory, so one of them failing fails the
+   whole page, and a failed MCP server load just drops its address from the
+   agents card. Would give "Services we use" and that card their own error.

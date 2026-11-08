@@ -3,7 +3,6 @@
  * the system it belongs to, the address it listens on or calls, the shape of
  * its messages, and the traffic it has carried over the last week.
  */
-import type { ChannelType } from "./page-data";
 
 export interface ChannelMessage {
   id: string;
@@ -70,3 +69,5 @@ export function channelDraftErrors(draft: ChannelDraft, taken: string[]): Partia
 export function channelEventAddress(projectId: string, id: string): string {
   return `https://app.openfn.org/c/${projectId}/${id}`;
 }
+
+export type ChannelType = "read" | "write" | "event";

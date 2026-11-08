@@ -7,9 +7,11 @@
  * status is Live or Draft; turning on MCP makes it an agent tool, and
  * publishing it to X-Road offers it to other members under its service
  * code. Both can be undone. Owners and admins of its project change it;
- * anyone in the organisation reads it, and the catalog lists every one.
+ * anyone in the organisation reads it, and the catalog lists every Live one,
+ * under its `section` (who offers it) and, with MCP on, as its `mcp_tool_name`.
  */
 import { projects as fixtureProjects } from "../fixtures/projects";
+import { serviceCatalogData } from "../fixtures/service-catalog";
 import { apiServiceId, apiWorkflowId } from "../fixtures/ids";
 import type { ProjectServiceItem } from "../model/services";
 import { badId, invalid, isUuid, json, notFound, now, ORIGIN, paged, unknownKeys, type Entry, type Handler } from "./answers";
@@ -23,6 +25,10 @@ export interface ServiceRow extends Omit<ProjectServiceItem, "id" | "workflowId"
   /** Its slug: the end of its address, and its X-Road service code unless it has its own. */
   code: string;
   workflow_id: string | null;
+  /** Where the catalog files it: the part of the organisation that offers it. */
+  section: string | null;
+  /** The tool's name on the organisation's MCP server. */
+  mcp_tool_name: string;
   inserted_at: string;
   updated_at: string;
 }
@@ -30,10 +36,21 @@ export interface ServiceRow extends Omit<ProjectServiceItem, "id" | "workflowId"
 /** A fixture service's id on the API, from its project's slug and its own. */
 export const serviceIdFor = apiServiceId;
 
+/** How the catalog fixture files a project's service: its section and tool name, by `projectSlug/code`. */
+const listed = new Map(
+  serviceCatalogData.entries.flatMap((e) => {
+    if (e.kind !== "workflow" || !e.projectPath) return [];
+    const [, , slug, , code] = e.projectPath.split("/");
+    return [[`${slug}/${code}`, { section: e.section, mcpToolName: e.mcpToolName }] as const];
+  }),
+);
+
 export const services = table<ServiceRow>("services", () =>
   fixtureProjects.flatMap((p) =>
     p.services.map(({ id, workflowId, ...s }) => ({
       ...s,
+      section: listed.get(`${p.id}/${id}`)?.section ?? null,
+      mcp_tool_name: listed.get(`${p.id}/${id}`)?.mcpToolName ?? id.replace(/-/g, "_"),
       id: serviceIdFor(p.id, id),
       project_id: projectIdFor(p.id),
       code: id,
@@ -47,7 +64,8 @@ export const services = table<ServiceRow>("services", () =>
 const entry = (s: ServiceRow) => ({
   type: "services",
   id: s.id,
-  attributes: { ...s, id: undefined },
+  // The project's name rides along, so the catalog can name a project you're not in.
+  attributes: { ...s, id: undefined, project_name: findProject(s.project_id)?.name ?? null },
   relationships: {},
   links: { self: `${ORIGIN}/api/demo/projects/${s.project_id}/services/${s.id}` },
 });

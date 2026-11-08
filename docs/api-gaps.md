@@ -22,13 +22,26 @@ path in its hook file.
 - **Published services** (Services catalog, a service's page, a project's
   card on Projects and Overview). Would need `GET /api/services` and
   `/api/projects/:id/services`, each service with its workflow, status
-  (`Live`, `Draft`), code, MCP and X-Road publication. Demo:
-  `/api/demo/services` (`src/api/services.ts`). Without the service catalog
+  (`Live`, `Draft`), code, MCP and X-Road publication, and for the catalog
+  who offers it (`section`), its MCP tool name and the organisation's MCP
+  server. Demo: `/api/demo/services` (`src/api/services.ts`), and
+  `mcp_server_url` on `/api/demo/organization`.
+- **What connected systems offer to workflows** (Services catalog: read
+  from a system, write to it, or start a workflow on its events). Demo, read
+  only: `/api/demo/connected_systems/channels` (`useSystemChannels`); a
+  system's leave with it. Without the service catalog
   flag the pages leave services out and load nothing.
 - **Connected systems and their access grants** (Systems, a system's page,
   Overview, the editor's "Connect a system"). Would need a
   `connected_systems` resource with its environments and grants. Demo:
   `/api/demo/connected_systems` (`src/api/connected-systems.ts`).
+- **The catalog a new system is picked from, and the ecosystem map**
+  (Systems, Overview). Would need the adaptors Lightning can use (it has a
+  registry, but `api/` doesn't list it), suggestions of systems to connect,
+  and somewhere to keep where each system sits on the map. Demo, read only:
+  `/api/demo/adaptors`, `/api/demo/connected_systems/suggestions` and
+  `/api/demo/ecosystem` (stations named by system id; a deleted system
+  leaves the map). An adaptor's `id` is its package name, not a UUID.
 - **The organisation** (Organization settings: members and invitations,
   visibility defaults, context layers, Security Server, and its X-Road
   identity, read only; a system's and a service's page read the identity too). Lightning

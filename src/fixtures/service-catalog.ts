@@ -1,5 +1,5 @@
 /** Services from the X-Road systems you've added, as the catalogue lists them. */
-import type { CatalogPageData, UsedServiceEntry } from "../model/page-data";
+import type { CatalogEntry, UsedServiceEntry } from "../model/services";
 import { connectionOf } from "../model/connected-systems";
 import { connectedSystems } from "./connected-systems";
 import { directoryMember, routeService, routeServiceId } from "./xroad";
@@ -30,8 +30,8 @@ const xroadUsedServices: UsedServiceEntry[] = connectedSystems.flatMap((system) 
 /** The organization's MCP server: every callable service is also a tool here. */
 export const mcpServerUrl = "https://app.openfn.org/mcp/ministry-of-health";
 
-export const serviceCatalogData: CatalogPageData = {
-  pageType: "catalog",
+/** The catalog as the fixtures have it: the services published, the channels systems offer, and the services used. */
+export const serviceCatalogData: { entries: CatalogEntry[]; usedServices: UsedServiceEntry[]; mcpServerUrl: string } = {
   mcpServerUrl,
   usedServices: xroadUsedServices,
   entries: [

@@ -1,24 +1,40 @@
 import { useState } from "react";
 import { Bot, Network, Workflow } from "lucide-react";
-import type { PageProps } from "../model/ia-tree";
-import type { CatalogPageData, ChannelCatalogEntry, UsedServiceEntry, WorkflowCatalogEntry } from "../model/page-data";
-import AdaptorLogo from "../components/domain/AdaptorLogo";
-import Badge from "../components/primitives/Badge";
-import ChannelRow from "../components/domain/ChannelRow";
-import CodeBlock from "../components/primitives/CodeBlock";
-import ConnectionMethodBadge from "../components/domain/ConnectionMethodBadge";
-import EmptyState from "../components/primitives/EmptyState";
-import ListRow from "../components/primitives/ListRow";
-import PageHeader from "../components/patterns/PageHeader";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import SectionHeading from "../components/primitives/SectionHeading";
-import SegmentedControl from "../components/primitives/SegmentedControl";
-import ServiceCatalogCard from "../components/domain/ServiceCatalogCard";
-import { ClassificationBadge } from "../components/domain/ServiceRecordList";
-import UsageModeCard from "../components/domain/UsageModeCard";
-import XRoadAccessBadge from "../components/domain/XRoadAccessBadge";
+import type { PageProps } from "../../model/ia-tree";
+import type { CatalogEntry, ChannelCatalogEntry, UsedServiceEntry, WorkflowCatalogEntry } from "../../model/services";
+import AdaptorLogo from "../../components/domain/AdaptorLogo";
+import Badge from "../../components/primitives/Badge";
+import ChannelRow from "../../components/domain/ChannelRow";
+import CodeBlock from "../../components/primitives/CodeBlock";
+import ConnectionMethodBadge from "../../components/domain/ConnectionMethodBadge";
+import EmptyState from "../../components/primitives/EmptyState";
+import ListRow from "../../components/primitives/ListRow";
+import PageHeader from "../../components/patterns/PageHeader";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import SectionHeading from "../../components/primitives/SectionHeading";
+import SegmentedControl from "../../components/primitives/SegmentedControl";
+import ServiceCatalogCard from "../../components/domain/ServiceCatalogCard";
+import { ClassificationBadge } from "../../components/domain/ServiceRecordList";
+import UsageModeCard from "../../components/domain/UsageModeCard";
+import XRoadAccessBadge from "../../components/domain/XRoadAccessBadge";
 
-export interface ServicesPageProps extends PageProps<CatalogPageData> {
+/** What the Services catalog shows. */
+export interface ServicesPageData {
+  /** The services the organisation publishes, and the channels its systems offer. */
+  entries: CatalogEntry[];
+  /** Services from systems you've added, beside the channels in `entries`. */
+  usedServices?: UsedServiceEntry[];
+  /** The organization's MCP server, which exposes callable services as agent tools. */
+  mcpServerUrl?: string;
+  /** Projects a new workflow can be started in, from an event channel. */
+  projects?: { id: string; name: string }[];
+  /** Whether the organisation has connected systems, whose methods "Services we use" lists. Defaults to true. */
+  connectedSystems?: boolean;
+  /** Whether the organisation is on X-Road, so services can be offered over it. Defaults to true. */
+  xroad?: boolean;
+}
+
+export interface ServicesPageProps extends PageProps<ServicesPageData> {
   /** Starts a new workflow in a project, triggered by an event channel. */
   onStartWorkflow: (projectId: string, channelId: string) => void;
   /** Which view opens first. */

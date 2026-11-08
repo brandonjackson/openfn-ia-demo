@@ -29,6 +29,16 @@ Most of the plumbing for 1 to 3 is done.
   into `priv/demo_frontend`, boots the image, smoke-tests it, and only then
   pushes `deploy`, which Railway runs. `LightningWeb.Plugs.DemoFrontend`
   serves the build at `/v3`.
+- **A change here reaches `/v3` in a minute or two.** That sync takes the
+  better part of an hour, so on every push to `main` this repo's
+  `.github/workflows/v3-build.yml` also builds with `npm run build:lightning`,
+  force-pushes the build to the `v3-build` branch, and calls the demo's
+  `POST /v3/_refresh`, which fetches that branch and serves it without a
+  redeploy (`Lightning.DemoFrontend`). A new container loads it on boot too.
+  It needs the `LIGHTNING_DEMO_URL` Actions variable (the Railway domain,
+  `https://…`) and the `V3_REFRESH_TOKEN` secret here, matching
+  `V3_REFRESH_TOKEN` on the Railway web service; without them the workflow
+  only pushes the branch, and `/v3` waits for the next sync.
 - **This app has one door to the API.** Every request goes through `send` in
   `src/api/client.ts`, which today is `fakeFetch`. Hooks, wrappers, pages and
   components never see where an answer came from.

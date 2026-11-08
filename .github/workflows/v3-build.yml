@@ -1,0 +1,70 @@
+# Puts each change to main on the Lightning demo's /v3 in a minute or two,
+# without waiting for lightning-full-api's Demo sync to rebuild its image.
+# Builds the app on Lightning's API, pushes the build to the v3-build branch,
+# then asks the demo to load it. docs/lightning-backend.md has the setup.
+name: Publish to the Lightning demo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: v3-build
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build:lightning
+
+      - name: Push the build to v3-build
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          echo "$GITHUB_SHA" > dist/build.txt
+          cd dist
+          git init -q -b v3-build
+          git add -A
+          git -c user.name="github-actions[bot]" \
+            -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Build of $GITHUB_SHA for the Lightning demo's /v3"
+          git push -q -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" v3-build
+
+      # Lightning fetches the v3-build branch itself; this only says when.
+      # GitHub can take a moment to serve the new branch, so it tries again
+      # until the demo reports this commit's build.
+      - name: Ask the demo to load it
+        env:
+          DEMO_URL: ${{ vars.LIGHTNING_DEMO_URL }}
+          TOKEN: ${{ secrets.V3_REFRESH_TOKEN }}
+        run: |
+          if [ -z "$DEMO_URL" ] || [ -z "$TOKEN" ]; then
+            echo "::notice::Set the LIGHTNING_DEMO_URL variable and V3_REFRESH_TOKEN secret to load builds into the demo straight away. Until then it picks them up at the next Demo sync."
+            exit 0
+          fi
+          for attempt in 1 2 3 4 5 6; do
+            build=$(curl -sS --fail-with-body --max-time 120 -X POST \
+              -H "Authorization: Bearer $TOKEN" "${DEMO_URL%/}/v3/_refresh") || {
+              echo "::error::The demo couldn't load the build: $build"
+              exit 1
+            }
+            if [ "$build" = "$GITHUB_SHA" ]; then
+              echo "The demo now serves $GITHUB_SHA at ${DEMO_URL%/}/v3/"
+              exit 0
+            fi
+            echo "The demo loaded $build, not yet $GITHUB_SHA; trying again"
+            sleep 5
+          done
+          echo "::error::The demo still serves $build after six tries"
+          exit 1

@@ -31,9 +31,16 @@ path in its hook file.
   `/api/demo/connected_systems` (`src/api/connected-systems.ts`).
 - **The organisation** (Organization settings: members and invitations,
   visibility defaults, context layers, Security Server, and its X-Road
-  identity, read only). Lightning has no organisations. Demo:
-  `/api/demo/organization` and `/api/demo/organization/xroad`
-  (`src/api/organization.ts`).
+  identity, read only; a system's page reads the identity too). Lightning
+  has no organisations. Demo: `/api/demo/organization` and
+  `/api/demo/organization/xroad` (`src/api/organization.ts`).
+- **The X-Road directory** (a system's page reached over X-Road: the member
+  and service its route goes to). Would need the members on the
+  organisation's X-Road instance with their subsystems and services, as its
+  Security Server lists them (`listClients`). Demo: read only, at
+  `/api/demo/organization/xroad/directory` (`useXRoadDirectory`). A member's
+  `id` is its name in the directory, not a UUID: it isn't a record of ours,
+  and a system's X-Road route names it.
 - **The handbook** (Handbook: its files and its article). Demo:
   `/api/demo/handbook` (`src/api/handbook.ts`).
 - **Project components besides workflows, channels and collections** (forms,

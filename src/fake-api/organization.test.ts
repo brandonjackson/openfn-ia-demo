@@ -82,3 +82,16 @@ describe("the organisation's X-Road identity", () => {
     expect((await refusal(request("PATCH", "/api/demo/organization/xroad", { member_code: "X" })))?.status).toBe(404);
   });
 });
+
+describe("the X-Road directory", () => {
+  it("lists every member on the organisation's instance, read only, with when it was last listed", async () => {
+    type Directory = { data: { attributes: { instance: string; synced_at: string; members: { id: string; member_code: string; subsystems: { services: { code: string; methods: string[] }[] }[] }[] } } };
+    const identity = await request<{ data: { attributes: { instance: string } } }>("GET", "/api/demo/organization/xroad");
+    const { data } = await request<Directory>("GET", "/api/demo/organization/xroad/directory");
+    expect(data.attributes.instance).toBe(identity.data.attributes.instance);
+    expect(Number.isNaN(Date.parse(data.attributes.synced_at))).toBe(false);
+    const moi = data.attributes.members.find((m) => m.member_code === "MOI")!;
+    expect(moi.subsystems.flatMap((s) => s.services.map((v) => v.code))).toContain("verify-national-id");
+    expect((await refusal(request("POST", "/api/demo/organization/xroad/directory", {})))?.status).toBe(404);
+  });
+});

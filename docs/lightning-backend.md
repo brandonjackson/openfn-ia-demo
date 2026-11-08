@@ -142,6 +142,7 @@ as the demo user, and as the superuser for Admin settings.
 | Services (project) | Works | From the demo's own routes, empty. |
 | User settings | Works | Your Lightning account. |
 | Overview | Works | On the API: the week's runs and errors from Lightning's work orders (every project you can open, as Insights has them), your projects and the demo's connected systems. No Status tile (api-gaps.md). The add-a-system catalog (adaptors, suggested systems) is still the demo's fixtures, waiting on lane 5. Checked on the fake server; not walked on Lightning (no Elixir in this session's container). |
+| A system's page | Demo data | On the API only: the system and its grants from the demo's connected-systems routes, and over X-Road the organisation's identity and the directory from its organisation routes. Checked on the fake server only (Lightning couldn't be run in the lane's session). |
 | Handbook, Systems, Services catalog, Organization settings | Demo data | The demo's own areas, on `/api/demo/`. |
 | Admin settings | Breaks | Lightning lets only the service account list users (api-gaps.md). Hidden from the demo user, who isn't a superuser. |
 

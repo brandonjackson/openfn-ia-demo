@@ -4,8 +4,7 @@
  * connected systems yet).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ConnectedSystem, SystemChanges } from "../model/connected-systems";
-import type { AccessGrant } from "../model/page-data";
+import type { ConnectedSystem, SystemChanges, AccessGrant } from "../model/connected-systems";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
@@ -26,12 +25,20 @@ export function useConnectedSystems(): { status: LoadStatus; systems: ConnectedS
   return { status: statusOf(query), systems: query.data ?? [] };
 }
 
+/** An access grant as the demo's grants route sends it. */
+interface ApiAccessGrant {
+  id: string;
+  attributes: { granted_to: string; granted_to_type: AccessGrant["grantedToType"]; scope: string; last_accessed: string | null };
+}
+
 /** Who has access to a system. */
 export function useAccessGrants(systemId: string | undefined): { status: LoadStatus; grants: AccessGrant[] } {
   const query = useQuery({
     queryKey: systemKeys.grants(systemId ?? ""),
     enabled: !!systemId,
-    queryFn: () => listAll<AccessGrant & { system_id: string }>(`/api/demo/connected_systems/${systemId}/access_grants`),
+    queryFn: () => listAll<ApiAccessGrant>(`/api/demo/connected_systems/${systemId}/access_grants`),
+    select: (rows): AccessGrant[] =>
+      rows.map(({ id, attributes: a }) => ({ id, grantedTo: a.granted_to, grantedToType: a.granted_to_type, scope: a.scope, lastAccessed: a.last_accessed })),
   });
   return { status: systemId ? statusOf(query) : { state: "ready" }, grants: query.data ?? [] };
 }

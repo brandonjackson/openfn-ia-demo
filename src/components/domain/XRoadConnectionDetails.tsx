@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Building2, FileText, Network, Paperclip, RefreshCw, Route, Server, ShieldCheck } from "lucide-react";
 import type { SystemConnection } from "../../model/connected-systems";
 import { clientIdOf, hasXRoadAccess, openfnSubsystemOf, serviceIdOf, xroadHeaders } from "../../model/xroad";
-import type { OrgXRoadSettings, XRoadMember, XRoadService } from "../../model/xroad";
+import type { XRoadIdentity, XRoadMember, XRoadService } from "../../model/xroad";
 import Badge from "../primitives/Badge";
 import Button from "../primitives/Button";
 import Card from "../primitives/Card";
@@ -20,7 +20,7 @@ type XRoadConnection = Extract<SystemConnection, { method: "xroad" }>;
 interface Props {
   connection: XRoadConnection;
   /** The organisation's X-Road settings: its identity and Security Server. */
-  org: OrgXRoadSettings;
+  org: XRoadIdentity;
   /** The member the route goes to, from the X-Road directory. */
   member?: XRoadMember;
   /** The service the route goes to, from the X-Road directory. */

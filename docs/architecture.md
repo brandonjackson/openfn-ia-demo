@@ -189,7 +189,7 @@ aiBuild, deployments, workflowDocs: standalone
 
 - The route table trims the IA tree (`visibleTree`): a node with a `flag` that's off is gone, along with everything under it, and its URL shows "This feature is turned off". A node with `whenOff` is renamed instead. Components becomes Channels, for example.
 - The shell passes the flags to the chrome through `ShellContext`, so the sidebar and account menu leave out what's off.
-- A wrapper leaves out the data or the action for anything that's off, and the page doesn't draw what it isn't given. Where a component always drew something, it got an optional prop instead: `showWorkflowFiles` on the explorer, or `showServiceAnnotations` on the webhook trigger. Shared helpers for wrappers: `componentsFor` and `componentTypesFor` in `src/model/component-types.ts`, and `systemsFor`, which still reads the fixtures' systems, in `src/pages/flagged.fixtures.ts`.
+- A wrapper leaves out the data or the action for anything that's off, and the page doesn't draw what it isn't given. Where a component always drew something, it got an optional prop instead: `showWorkflowFiles` on the explorer, or `showServiceAnnotations` on the webhook trigger. Shared helpers for wrappers: `componentsFor` and `componentTypesFor` in `src/model/component-types.ts`, and `systemsFor` (the systems the flags leave) in `src/model/connected-systems.ts`.
 
 **Only the two presets are looked after.** "Full vision" (everything on) and "Lightning redesign" (everything off) are the states that matter. Other mixes work on a best-effort basis.
 

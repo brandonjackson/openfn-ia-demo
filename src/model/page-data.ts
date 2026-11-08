@@ -1,11 +1,11 @@
 import type { ProjectComponentItem } from "./component-types";
+import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember } from "./xroad";
 import type { Environment } from "./credentials";
 import type { ProjectServiceItem, ServiceApiSpec } from "./services";
-import type { ConnectedSystem, ConnectionMethod } from "./connected-systems";
+import type { ConnectionMethod } from "./connected-systems";
 import type { LucideIcon } from "lucide-react";
 import type { Adaptor } from "./adaptors";
 import type { EcosystemStation, EcosystemWorkflow } from "./ecosystem";
-import type { OrgXRoadSettings, ServiceRecord, XRoadConnectionStatus, XRoadMember, XRoadService } from "./xroad";
 
 /* ------------------------------------------------------------------ */
 /*  Shared primitive types                                             */
@@ -16,12 +16,6 @@ export interface FeatureIntroItem {
   icon: LucideIcon;
   title: string;
   description: string;
-}
-
-export interface MetricCard {
-  label: string;
-  value: string | number;
-  linkTo?: string;
 }
 
 /** A headline number for a KPI row, optionally with a trend and a link. */
@@ -88,38 +82,6 @@ export interface FeatureIntroData {
   features: FeatureIntroItem[];
   /** localStorage key that remembers the banner was dismissed. */
   storageKey?: string;
-}
-
-/* ------------------------------------------------------------------ */
-/*  Detail page (OpenCRVS, DHIS2, etc.)                                */
-/* ------------------------------------------------------------------ */
-
-export interface AccessGrant {
-  id: string;
-  grantedTo: string;
-  grantedToType: "user" | "project";
-  scope: string;
-  lastAccessed: string | null;
-}
-
-/** What a page needs to show an X-Road route: the organisation's own settings, and where the route goes. */
-export interface XRoadRouteContext {
-  org: OrgXRoadSettings;
-  /** The member the route goes to, from the directory. */
-  member?: XRoadMember;
-  /** The service the route goes to, from the directory. */
-  service?: XRoadService;
-}
-
-export interface DetailPageData {
-  pageType: "detail";
-  headerBadge?: { label: string; variant: "shared" | "private" };
-  /** The system the page is about: its URL, owner, environments and how it's reached. */
-  system?: ConnectedSystem;
-  /** For a system reached over X-Road: the organisation's X-Road settings, and the member and service the route goes to. */
-  xroad?: XRoadRouteContext;
-  metrics?: MetricCard[];
-  accessGrants?: AccessGrant[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -268,7 +230,6 @@ export interface OrgCredential {
 
 export type PageData =
   | ListPageData
-  | DetailPageData
   | CatalogPageData
   | StatusPageData
   | ServicePageData;

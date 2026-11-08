@@ -555,6 +555,28 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   274 lines; files importing it 38 → 32; pages in their own folder 16 → 17
   of 24; page and query tests 32 → 34; tests 345 → 357; the rest
   unchanged. **Lane 4 is done:** no wrapper of its own reads fixtures.
+- **Lane 5: A system's page reads only the API.** The page moved to
+  `src/pages/system/` with its page and query tests, and its data to
+  `SystemPageData` in the page file (the system, its grants, and its X-Road
+  route), which works out Shared or Private from the system's credential
+  type instead of being handed the words. Over X-Road, the organisation's
+  identity comes from `GET /api/demo/organization/xroad` and the member and
+  service the route goes to from a new read-only
+  `GET /api/demo/organization/xroad/directory` (`useXRoadDirectory`), so
+  `XRoadConnectionDetails` takes `XRoadIdentity` (model/xroad.ts). Its own
+  slug redirect is gone: lane 4's route sends old links on. `systemsFor` moved
+  to `model/connected-systems.ts` and `pages/flagged.fixtures.ts` is gone;
+  `AccessGrant` and `XRoadRouteContext` left page-data.ts. Revoke and
+  Delete say "Revoking…"/"Deleting…" while they run (`ConfirmModal` takes
+  `busy`, which marks its button `aria-disabled`; Cancel waits), and a
+  refusal says why in an alert callout, as Workflows does. If the identity
+  or the directory can't load, the system still shows, without its route.
+  The grants route now sends JSON:API resources, mapped in
+  `useAccessGrants`. Not walked on Lightning. Counts:
+  wrappers reading fixtures 6 → 5 of 24; page-data.ts 274 → 235 lines;
+  files importing it 32 → 27; pages in their own folder 17 → 18 of 24; page
+  and query tests 34 → 36; tests 357 → 372; classNamesInPages 106 → 103.
+  ([#215](https://github.com/brandonjackson/openfn-ia-demo/pull/215))
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
@@ -674,3 +696,12 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
    its own `<h1>`, not `PageHeader`, `Stack` and `Grid`, and with no ideas it
    shows "Ideas to get you started" over nothing. Would move it onto the
    primitives and add an `EmptyState`; both change its look.
+15. **Where a refused confirm says why** (lane 5, a system's page; from its
+   reviewers). A refused Revoke or Delete closes its confirm and shows an
+   alert callout under the page header, as Workflows does, so a Revoke
+   pressed at the bottom of the page is answered at the top, and a typed
+   name is lost. Would keep the confirm open with the reason inside it (an
+   `error` prop on `ConfirmModal`), or show a refused Revoke in the Access
+   section. Also seen there, not new: after a successful Revoke the row is
+   gone, so focus falls to the page and nothing says it worked; would move
+   focus to the Access heading and add a status line.

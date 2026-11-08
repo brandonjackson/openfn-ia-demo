@@ -1,4 +1,5 @@
 import type { Environment } from "./credentials";
+import type { FeatureFlags } from "./feature-flags";
 /**
  * How OpenFn reaches a system. Workflows and adaptors reference the system,
  * never the transport: a step on an X-Road system looks the same as one on
@@ -105,4 +106,23 @@ export interface SuggestedSystem {
   name: string;
   description: string;
   adaptor?: string;
+}
+
+export interface AccessGrant {
+  id: string;
+  grantedTo: string;
+  grantedToType: "user" | "project";
+  scope: string;
+  lastAccessed: string | null;
+}
+
+/** True for a system reached over X-Road, which isn't there without the X-Road flag. */
+export function isXRoadSystem(system: ConnectedSystem): boolean {
+  return connectionOf(system).method === "xroad";
+}
+
+/** The systems the flags leave: none without Connected systems, and none reached over X-Road without X-Road. */
+export function systemsFor(flags: FeatureFlags, systems: ConnectedSystem[]): ConnectedSystem[] {
+  if (!flags.connectedSystems) return [];
+  return flags.xroad ? systems : systems.filter((s) => !isXRoadSystem(s));
 }

@@ -134,3 +134,16 @@ export interface SystemListItem {
   metadata?: Record<string, string>;
   linkTo?: string;
 }
+
+/** Something a connected system offers to workflows: read from it, write to it, or start a workflow on one of its events. */
+export interface SystemChannel {
+  id: string;
+  name: string;
+  description: string;
+  channelType: import("./channels").ChannelType;
+  /** The system that offers it. */
+  systemId: string;
+  /** Who offers it, as the catalog files it. */
+  section: string;
+}
+

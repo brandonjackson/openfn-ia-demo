@@ -1,5 +1,5 @@
 import { ArrowUpRight, Bot, Network, Workflow } from "lucide-react";
-import type { ServiceConsumer, WorkflowCatalogEntry } from "../../model/page-data";
+import type { ServiceConsumer, WorkflowCatalogEntry } from "../../model/services";
 import Badge from "../primitives/Badge";
 import ListRow from "../primitives/ListRow";
 

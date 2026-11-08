@@ -6,20 +6,28 @@ import { statusOf, type LoadStatus } from "./status";
 
 interface ApiService {
   id: string;
-  attributes: Omit<ProjectServiceItem, "id" | "workflowId"> & { project_id: string; code: string; workflow_id: string | null };
+  attributes: Omit<ProjectServiceItem, "id" | "workflowId"> & { project_id: string; code: string; workflow_id: string | null; section: string | null; mcp_tool_name: string; project_name: string | null };
 }
 
 /** A service as the pages show it, with its project and its code (the end of its address). */
 export interface ServiceRecord extends ProjectServiceItem {
   projectId: string;
+  /** Its project's name, even for a project you're not in. */
+  projectName: string;
   code: string;
+  /** Where the catalog files it, when it's been given a place: the part of the organisation that offers it. */
+  section?: string;
+  mcpToolName: string;
 }
 
-const toService = ({ id, attributes: { project_id, code, workflow_id, ...a } }: ApiService): ServiceRecord => ({
+const toService = ({ id, attributes: { project_id, project_name, code, workflow_id, section, mcp_tool_name, ...a } }: ApiService): ServiceRecord => ({
   ...a,
   id,
   projectId: project_id,
+  projectName: project_name ?? "",
+  mcpToolName: mcp_tool_name,
   code,
+  ...(section && { section }),
   ...(workflow_id && { workflowId: workflow_id }),
 });
 

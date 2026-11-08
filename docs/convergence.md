@@ -617,6 +617,28 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   pages in their own folder 19 → 20 of 24; page and query tests 38 → 40;
   tests 387 → 399; the ratchet unchanged.
   ([#222](https://github.com/brandonjackson/openfn-ia-demo/pull/222))
+- **Lane 5: The Services catalog reads only the API.** The page moved to
+  `src/pages/services/` with its first page and query tests, and
+  `ServicesPageData` into the page file; the catalog's entry types moved to
+  `model/services.ts` and `ChannelType` to `model/channels.ts`. It lists
+  every Live service from the API (a Draft isn't published, so it leaves
+  the catalog), filed under the service's new `section`, or its project's
+  name when it has none, with its new `mcpToolName` (both seeded from the
+  catalog fixture). `mcpToolName()` prefers that name: it used to read the
+  service's id, a UUID since the service page moved. What systems offer
+  comes from a new read-only `GET /api/demo/connected_systems/channels`
+  (`useSystemChannels`), the services used over X-Road from the systems and
+  the directory, the projects from `useProjectList` and the MCP server from
+  a new `mcp_server_url` on the organisation. "Create a workflow here" on a
+  system's event still starts the editor's workflow with that channel's
+  step (the editor finds the channel by its new id). Moving `ChannelType`
+  rewrote its imports in lanes 2's and 3's files, nothing more. Services are ordered by name
+  now, and an entry's project is the API's name for it. Checked on the fake
+  server only. Counts: wrappers reading fixtures 2 → 1 of 24 (the editor's,
+  which no lane takes); page-data.ts 151 → 73 lines; files importing it 20
+  → 9; pages in their own folder 20 → 21 of 24; page and query tests 40 →
+  42; tests 399 → 408; the ratchet unchanged. **Lane 5 is done:** no
+  wrapper of its own reads fixtures.
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 
@@ -759,4 +781,8 @@ says what and why. Everything up to 6 Nov 2026 was decided (above); new:
    with no reason. Would give each its own error (decision 1). Also, the
    map still draws the fixture's workflows, some of which (Lab results)
    aren't workflows in any project, so their links open nothing; would draw
-   only workflows the server has. Both change what the page shows.
+   only workflows the server has. Both change what the page shows. The
+   Services catalog is the other way round: it waits for the systems, the
+   channels they offer and the directory, so one of them failing fails the
+   whole page, and a failed MCP server load just drops its address from the
+   agents card. Would give "Services we use" and that card their own error.

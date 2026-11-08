@@ -4,7 +4,7 @@
  * connected systems yet).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ConnectedSystem, SystemChanges, AccessGrant, SuggestedSystem } from "../model/connected-systems";
+import type { ConnectedSystem, SystemChanges, AccessGrant, SuggestedSystem, SystemChannel } from "../model/connected-systems";
 import type { Adaptor } from "../model/adaptors";
 import { lineColors, type Ecosystem, type EcosystemStation, type EcosystemWorkflow, type LineColor } from "../model/ecosystem";
 import { linkId } from "../model/ecosystem-map";
@@ -23,7 +23,14 @@ export const systemKeys = {
   grants: (id: string) => ["connected_systems", id, "grants"] as const,
   suggestions: ["connected_systems", "suggestions"] as const,
   ecosystem: ["connected_systems", "ecosystem"] as const,
+  channels: ["connected_systems", "channels"] as const,
 };
+
+interface ApiSystemChannel {
+  id: string;
+  attributes: { name: string; description: string; channel_type: SystemChannel["channelType"]; section: string };
+  relationships: { connected_system: { data: { id: string } } };
+}
 
 interface ApiAdaptor {
   id: string;
@@ -208,3 +215,23 @@ export function useEcosystem(enabled = true): { status: LoadStatus; ecosystem: E
   });
   return enabled ? { status: statusOf(query), ecosystem: query.data } : { status: { state: "ready" }, ecosystem: undefined };
 }
+
+/** What the organisation's systems offer to workflows. Loads nothing while `enabled` is false. */
+export function useSystemChannels(enabled = true): { status: LoadStatus; channels: SystemChannel[] } {
+  const query = useQuery({
+    queryKey: systemKeys.channels,
+    enabled,
+    queryFn: () => listAll<ApiSystemChannel>("/api/demo/connected_systems/channels"),
+    select: (rows): SystemChannel[] =>
+      rows.map(({ id, attributes: a, relationships: r }) => ({
+        id,
+        name: a.name,
+        description: a.description,
+        channelType: a.channel_type,
+        systemId: r.connected_system.data.id,
+        section: a.section,
+      })),
+  });
+  return enabled ? { status: statusOf(query), channels: query.data ?? [] } : { status: { state: "ready" }, channels: [] };
+}
+

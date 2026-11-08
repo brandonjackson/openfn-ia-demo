@@ -14,11 +14,15 @@
  * - Revoking a grant removes that one person's or project's access.
  * - The adaptors a system can use (`GET /api/demo/adaptors`) and the
  *   systems it might connect next (`GET /api/demo/connected_systems/suggestions`,
- *   leaving out any it already has by that name) are read only.
+ *   leaving out any it already has by that name) are read only, as are the
+ *   channels each system offers to workflows (`GET
+ *   /api/demo/connected_systems/channels`: read from it, write to it, or
+ *   start one on its events), which leave with their system.
  * Anyone in the organisation reads them; the demo's people may change them.
  */
 import { connectedSystems, recommendedSystems, systemAccessGrants } from "../fixtures/connected-systems";
 import { adaptors } from "../fixtures/adaptors";
+import { serviceCatalogData } from "../fixtures/service-catalog";
 import { apiSystemId, seedId } from "../fixtures/ids";
 import type { ConnectedSystem, AccessGrant } from "../model/connected-systems";
 import { badId, invalid, isUuid, json, noContent, notFound, now, ORIGIN, paged, unknownKeys, type Entry, type Handler } from "./answers";
@@ -59,6 +63,23 @@ export const systemRoutes: Record<string, Handler> = {
   "GET /api/demo/adaptors": (_params, _body, query) => {
     const rows = adaptors.map((a) => ({ type: "adaptors", id: a.id, attributes: { name: a.name, description: a.description, category: a.category } }));
     return json(200, paged("/api/demo/adaptors", rows, query));
+  },
+  // What each connected system offers to workflows, filed under who offers it.
+  "GET /api/demo/connected_systems/channels": (_params, _body, query) => {
+    const rows = serviceCatalogData.entries.flatMap((e) => {
+      if (e.kind !== "channel") return [];
+      const systemId = apiSystemId(e.systemPath.split("/").pop()!);
+      if (!systems.rows().some((s) => s.id === systemId)) return [];
+      return [
+        {
+          type: "system_channels",
+          id: seedId("system_channel", e.id),
+          attributes: { name: e.name, description: e.description, channel_type: e.channelType, section: e.section },
+          relationships: { connected_system: { data: { type: "connected_systems", id: systemId } } },
+        },
+      ];
+    });
+    return json(200, paged("/api/demo/connected_systems/channels", rows, query));
   },
   // Systems the organisation might connect next: the suggestions it hasn't connected yet, by name.
   "GET /api/demo/connected_systems/suggestions": (_params, _body, query) => {

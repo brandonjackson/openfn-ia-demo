@@ -1,5 +1,3 @@
-import type { ConnectionMethod } from "./connected-systems";
-import type { ServiceRecord, XRoadConnectionStatus } from "./xroad";
 import type { Environment } from "./credentials";
 
 /* ------------------------------------------------------------------ */
@@ -21,81 +19,6 @@ export interface StatTileData {
 /* ------------------------------------------------------------------ */
 /*  Catalog page (Service Catalog)                                     */
 /* ------------------------------------------------------------------ */
-
-export type ChannelType = "read" | "write" | "event";
-
-export interface ChannelCatalogEntry {
-  kind: "channel";
-  id: string;
-  name: string;
-  description: string;
-  channelType: ChannelType;
-  system: string;
-  systemPath: string;
-  section: string;
-}
-
-/** Ways a published service can be used: as a step in another workflow, as an agent tool over MCP, or by other members over X-Road. */
-export type ServiceConsumer = "workflow" | "mcp" | "xroad";
-
-export interface WorkflowCatalogEntry {
-  kind: "workflow";
-  id: string;
-  name: string;
-  description: string;
-  project: string;
-  projectPath: string;
-  badges?: string[];
-  section: string;
-  /** How the service can be called. Scheduled services run on their own and have none. */
-  callableAs?: ServiceConsumer[];
-  /** Tool name agents see on the organization's MCP server. */
-  mcpToolName?: string;
-  /** How many organisations use it, and how many calls it took in the last 30 days. */
-  usage?: { organisations: number; calls30d: number };
-}
-
-/**
- * A service the organisation uses: one published by a system it has added,
- * such as another member's service on X-Road. Only systems you've added
- * show up.
- */
-export interface UsedServiceEntry {
-  id: string;
-  name: string;
-  description: string;
-  /** The connected system it comes through. */
-  system: string;
-  systemPath: string;
-  adaptor: string;
-  connection: ConnectionMethod;
-  xroadStatus?: XRoadConnectionStatus;
-  /** The organisation that publishes it. */
-  owner: string;
-  /** The endpoints it offers. */
-  methods: string[];
-  /** Its X-Road service ID, e.g. `FJ/GOV/MOI/IDENTITY/verify-national-id`. */
-  serviceId?: string;
-  builtWithOpenFn?: boolean;
-  record?: ServiceRecord;
-}
-
-export type CatalogEntry = ChannelCatalogEntry | WorkflowCatalogEntry;
-
-export interface CatalogPageData {
-  pageType: "catalog";
-  entries: CatalogEntry[];
-  /** Services from systems you've added, beside the channels in `entries`. */
-  usedServices?: UsedServiceEntry[];
-  /** The organization's MCP server, which exposes callable services as agent tools. */
-  mcpServerUrl?: string;
-  /** Projects a new workflow can be started in, from an event channel. */
-  projects?: { id: string; name: string }[];
-  /** Whether the organisation has connected systems, whose methods "Services we use" lists. Defaults to true. */
-  connectedSystems?: boolean;
-  /** Whether the organisation is on X-Road, so services can be offered over it. Defaults to true. */
-  xroad?: boolean;
-}
 
 /* ------------------------------------------------------------------ */
 /*  Status page (Monitoring: right now)                                */
@@ -147,5 +70,4 @@ export interface OrgCredential {
 }
 
 export type PageData =
-  | CatalogPageData
   | StatusPageData;

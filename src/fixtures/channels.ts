@@ -1,5 +1,4 @@
-import { channelEventAddress, type ChannelDetails } from "../model/channels";
-import type { ChannelType } from "../model/page-data";
+import { channelEventAddress, type ChannelDetails, type ChannelType } from "../model/channels";
 import type { ProjectComponent } from "../model/projects";
 
 const week = ["Wed", "Thu", "Fri", "Sat", "Sun", "Mon", "Tue"];

@@ -67,6 +67,27 @@ describe("UserSettingsPageQuery", () => {
     expect(await screen.findByLabelText(/^Host URL/, {}, wait)).toBeTruthy();
   });
 
+  it("steps the session up with your current password, then sets the new one", async () => {
+    renderRoute("/user-settings/profile");
+    fireEvent.change(await screen.findByLabelText(/^New password/, {}, wait), { target: { value: "a new password!" } });
+    fireEvent.change(screen.getByLabelText(/^Confirm new password/), { target: { value: "a new password!" } });
+    fireEvent.change(screen.getByLabelText(/^Current password/), { target: { value: "my current password" } });
+    fireEvent.click(screen.getByRole("button", { name: "Update password" }));
+    expect(await screen.findByText("Password changed successfully.", {}, wait)).toBeTruthy();
+    const session = await request<{ data: { stepped_up_until: string | null } }>("GET", "/api/session");
+    expect(session.data.stepped_up_until).not.toBeNull();
+  });
+
+  it("says so under the current password when it can't step the session up", async () => {
+    failNext("POST /api/session", { status: 401, code: "invalid_credentials", detail: "The sign-in details are not valid." });
+    renderRoute("/user-settings/profile");
+    fireEvent.change(await screen.findByLabelText(/^New password/, {}, wait), { target: { value: "a new password!" } });
+    fireEvent.change(screen.getByLabelText(/^Confirm new password/), { target: { value: "a new password!" } });
+    fireEvent.change(screen.getByLabelText(/^Current password/), { target: { value: "not my password" } });
+    fireEvent.click(screen.getByRole("button", { name: "Update password" }));
+    expect(await screen.findByText("That isn't your current password.", {}, wait)).toBeTruthy();
+  });
+
   it("makes a token on the server and shows it once", async () => {
     const before = (await request<{ data: unknown[] }>("GET", "/api/me/tokens")).data.length;
     renderRoute("/user-settings/api-tokens");

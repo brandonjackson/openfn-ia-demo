@@ -15,6 +15,7 @@ beforeEach(() => {
 describe("your account", () => {
   it("changes your name, and holds a new email until it's confirmed", async () => {
     await request("PATCH", `/api/users/${currentUserId()}`, { first_name: "Janet", contact_preference: "any" });
+    await request("POST", "/api/session", { password: "my current password" });
     await request("PATCH", `/api/users/${currentUserId()}`, { email: "janet@example.org" });
     const me = await request<Me>("GET", "/api/me");
     expect(me.data.attributes).toMatchObject({ first_name: "Janet", contact_preference: "any", email: "jane.doe@example.org", pending_email: "janet@example.org" });
@@ -26,6 +27,23 @@ describe("your account", () => {
     const events = await request<{ data: { attributes: Record<string, unknown> }[] }>("GET", "/api/audit_events");
     expect(events.data[0]!.attributes).toMatchObject({ event: "updated", item_type: "user", item_id: currentUserId(), changes: { after: { first_name: "Janet" } } });
     expect((await refusal(request("PATCH", `/api/users/${currentUserId()}`, { contact_preference: "often" })))?.fieldErrors["contact_preference"]).toEqual(["is invalid"]);
+  });
+
+  it("asks a session that hasn't stepped up to before changing your email or password, and refuses an empty password to step up", async () => {
+    for (const body of [{ email: "janet@example.org" }, { password: "a new password!" }]) {
+      expect((await refusal(request("PATCH", `/api/users/${currentUserId()}`, body)))?.code).toBe("step_up_required");
+    }
+    expect((await refusal(request("POST", "/api/session", { password: "" })))?.code).toBe("invalid_credentials");
+    const session = await request<{ data: { stepped_up_until: string | null } }>("GET", "/api/session");
+    expect(session.data.stepped_up_until).toBeNull();
+  });
+
+  it("revokes your personal access tokens when you set a new password", async () => {
+    await request("POST", "/api/me/tokens");
+    await request("POST", "/api/session", { password: "my current password" });
+    expect((await refusal(request("PATCH", `/api/users/${currentUserId()}`, { password: "short" })))?.fieldErrors["password"]).toEqual(["should be at least 12 character(s)"]);
+    await request("PATCH", `/api/users/${currentUserId()}`, { password: "a new password!" });
+    expect((await request<{ data: unknown[] }>("GET", "/api/me/tokens")).data).toEqual([]);
   });
 
   it("shows a new token once, and only its end after", async () => {

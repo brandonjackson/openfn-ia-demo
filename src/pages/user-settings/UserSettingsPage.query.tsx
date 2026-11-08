@@ -15,8 +15,8 @@ import { useFlags } from "../../app/feature-flags";
  * projects they're shared with) and OAuth clients; your API tokens; MFA and
  * its backup codes; your GitHub link; and the kinds of credential you can
  * make, from the credential schemas' list (a kind's fields are fetched
- * once it's picked). The demo's session counts as
- * stepped up, so the current password the forms ask for isn't checked.
+ * once it's picked). A new email or password sends the current password
+ * the form asks for to step the session up first.
  */
 export default function UserSettingsPageQuery({ route }: { route: PageRoute }) {
   const flags = useFlags();
@@ -49,8 +49,8 @@ export default function UserSettingsPageQuery({ route }: { route: PageRoute }) {
             orgCredentialsOnSystems: flags.connectedSystems,
           }}
           onSaveProfile={account.saveProfile}
-          onChangeEmail={(email) => account.changeEmail(email)}
-          onChangePassword={(password) => account.changePassword(password)}
+          onChangeEmail={(email, currentPassword) => account.changeEmail(email, currentPassword)}
+          onChangePassword={(password, currentPassword) => account.changePassword(password, currentPassword)}
           onStartMfaSetup={account.startMfaSetup}
           onEnableMfa={(code) => account.enableMfa(code)}
           onDisableMfa={account.disableMfa}

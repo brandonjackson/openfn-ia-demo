@@ -199,12 +199,12 @@ each needs nothing here once Lightning sends it.
   as having none.
 - **Your account: changing it yourself** (User settings, Profile;
   api/users.md, planned additional scope on `PATCH /api/users/:id`).
-  Lightning's `main` lets only the service account change a user. A branch
-  on its way to `full-api-test` takes your own names and contact preference,
-  and the fork gets it from there; until it lands, saving your name on
-  Lightning is refused (403). Your email and password aren't taken yet: it
-  refuses them as `unknown_key`, so the form will say "is not accepted" under
-  the field. Lightning's own profile page still changes both.
+  Lightning's `main` lets only the service account change a user.
+  `full-api-test` takes your own names and contact preference on either
+  token, and your email and password on a session stepped up in the last
+  five minutes; the fork gets it from there at its next sync. The forms step
+  the session up first, with the current password they ask for
+  (`POST /api/session`), and a wrong one is said under that field.
 - **A project's dataclips** (`GET /api/projects/:id/dataclips`,
   api/dataclips.md). Lightning answers 404; the editor opens without the
   saved inputs to run from.

@@ -8,22 +8,25 @@ import OrganizationSettingsPage from "./OrganizationSettingsPage";
 import { pageFrame } from "../../app/page-frame";
 
 /**
- * Feeds Organization settings from the demo's organisation routes: members,
- * visibility defaults, who manages the Security Server, and context layers
- * save there. The rest of the X-Road identity is read from its own route (the
- * X-Road operator sets it, not this page). Owners and admins get the actions;
- * anyone else reads. What the feature flags turn off is left out.
+ * Feeds Organization settings: its name and members from the API's
+ * organizations, and what the demo adds (visibility defaults, who manages the
+ * Security Server, context layers, billing) from the demo's own routes. The
+ * rest of the X-Road identity is read from its own route (the X-Road operator
+ * sets it, not this page). Admins get the actions; members read. Someone in
+ * no organisation is told it isn't there. What the feature flags turn off is
+ * left out.
  */
 export default function OrganizationSettingsPageQuery({ route }: { route: PageRoute }) {
   const flags = useFlags();
   const { status, organization: org } = useOrganization();
-  const { status: membersStatus, members } = useOrganizationMembers();
+  const { status: membersStatus, members } = useOrganizationMembers(org?.id);
   const { status: layersStatus, layers } = useContextLayers();
   const { status: xroadStatus, xroad } = useOrganizationXRoad(flags.xroad);
-  const saves = useOrganizationSaves();
+  const saves = useOrganizationSaves(org?.id);
+  const loaded = combine(status, membersStatus, layersStatus, xroadStatus);
 
   return (
-    <Loaded status={combine(status, membersStatus, layersStatus, xroadStatus)} path={route.currentPath}>
+    <Loaded status={loaded.state === "ready" && !org ? { state: "notFound" } : loaded} path={route.currentPath}>
       {() => {
         const o = org!;
         const manage = o.canManage;
@@ -44,7 +47,7 @@ export default function OrganizationSettingsPageQuery({ route }: { route: PageRo
               xroadUsage: o.xroadUsage,
               billing: o.billing,
             }}
-            assignableRoles={o.canManageOwners ? organizationRoles : organizationRoles.filter((r) => r !== "Owner")}
+            assignableRoles={manage ? organizationRoles : undefined}
             onInviteMember={manage ? saves.invite : undefined}
             onChangeMemberRole={manage ? saves.changeRole : undefined}
             onRemoveMember={manage ? saves.remove : undefined}

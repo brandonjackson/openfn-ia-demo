@@ -1,16 +1,20 @@
 /**
- * The organisation, on the demo's own routes (`/api/demo/organization`;
- * Lightning has no organisations): its members, visibility defaults, context
- * layers, X-Road identity and billing.
+ * The organisation. Its name and members are the API's
+ * (api/organizations.md); its visibility defaults, context layers, X-Road
+ * identity and billing are on the demo's own routes (`/api/demo/organization`).
  */
 import type { OrgXRoadSettings } from "./xroad";
 
+/** Someone in the organisation. */
 export interface OrganizationMember {
+  /** Their user id. */
   id: string;
   name: string;
   email: string;
-  role: "Owner" | "Admin" | "Member";
-  lastActive: string;
+  /** Admins manage the organisation and its members; members read them. There's no owner. */
+  role: "Admin" | "Member";
+  /** When they joined, e.g. "3 days ago". */
+  joined: string;
 }
 
 export interface BillingDetails {
@@ -39,9 +43,9 @@ export interface ContextLayer {
 export type VisibilityScope = "project" | "organization" | "server";
 
 /** A role in the organisation, from most to least it can do. */
-export const organizationRoles: OrganizationMember["role"][] = ["Owner", "Admin", "Member"];
+export const organizationRoles: OrganizationMember["role"][] = ["Admin", "Member"];
 
-/** Someone to invite to the organisation. */
+/** Someone on OpenFn to add to the organisation, by email. */
 export interface OrganizationInvite {
   email: string;
   role: OrganizationMember["role"];

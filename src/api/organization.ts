@@ -1,36 +1,45 @@
 /**
- * The organisation, on the demo's own routes (`/api/demo/organization`;
- * Lightning's API has no organisations): its settings, members and context
- * layers, and the hooks Organization settings calls.
+ * The organisation: its name, your role and its members from the API
+ * (`/api/organizations`, api/organizations.md), and what the demo adds, its
+ * visibility defaults, X-Road identity, context layers and billing, from the
+ * demo's own routes (`/api/demo/organization`). The hooks Organization
+ * settings calls.
+ *
+ * The demo shows one organisation: the first you're in, by name, from
+ * `GET /api/organizations` (a superuser is listed every one, so theirs comes
+ * first). Picking between several is still to come (docs/api-gaps.md).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { BillingDetails, ContextLayer, OrganizationInvite, OrganizationMember, VisibilityScope } from "../model/organization";
 import type { SecurityServerManager, ServiceClassification, XRoadCertificate, XRoadIdentity, XRoadMember, XRoadMemberClass } from "../model/xroad";
 import { formatDate, timeAgo } from "../model/time";
 import { listAll, request } from "./client";
-import { statusOf, type LoadStatus } from "./status";
+import { combine, statusOf, type LoadStatus } from "./status";
 
 type Visibility = { projects: VisibilityScope; systems: VisibilityScope; services: VisibilityScope };
 
+/** An organization as `GET /api/organizations` lists it. */
 interface ApiOrganization {
+  id: string;
+  attributes: { name: string; role: "admin" | "member" | null };
+}
+
+/** What the demo adds to the organisation, from `GET /api/demo/organization`. */
+interface ApiOrganizationSettings {
   data: {
-    id: string;
     attributes: {
-      name: string;
       visibility: Visibility;
       security_server_managed_by: SecurityServerManager;
       xroad_usage: { systems: number; services: number };
       billing: BillingDetails;
       mcp_server_url: string;
-      role: OrganizationMember["role"] | null;
-      permissions: { manage: boolean; manage_owners: boolean };
     };
   };
 }
 
 interface ApiMember {
   id: string;
-  attributes: { email: string; name: string; role: OrganizationMember["role"]; joined_at: string | null; last_active_at: string | null };
+  attributes: { email: string; first_name: string; last_name: string; role: "admin" | "member"; inserted_at: string };
 }
 
 interface ApiLayer {
@@ -48,10 +57,8 @@ export interface Organization {
   billing: BillingDetails;
   /** Its MCP server, where every service with MCP on is a tool for agents. */
   mcpServerUrl: string;
-  /** Owners and admins change its settings, members and context layers. */
+  /** Its admins change its settings, members and context layers. */
   canManage: boolean;
-  /** Only owners make or unmake an owner. */
-  canManageOwners: boolean;
 }
 
 /** The organisation's X-Road identity as GET /api/demo/organization/xroad sends it. */
@@ -106,6 +113,7 @@ interface ApiXRoadDirectory {
 }
 
 const keys = {
+  organizations: ["organizations"] as const,
   organization: ["organization"] as const,
   xroad: ["organization", "xroad"] as const,
   directory: ["organization", "xroad", "directory"] as const,
@@ -113,23 +121,44 @@ const keys = {
   layers: ["organization", "context_layers"] as const,
 };
 
-export function useOrganization(): { status: LoadStatus; organization: Organization | undefined } {
-  const query = useQuery({
-    queryKey: keys.organization,
-    queryFn: () => request<ApiOrganization>("GET", "/api/demo/organization"),
-    select: ({ data: { id, attributes: a } }): Organization => ({
-      id,
-      name: a.name,
-      visibility: a.visibility,
-      managedBy: a.security_server_managed_by,
-      xroadUsage: a.xroad_usage,
-      billing: a.billing,
-      mcpServerUrl: a.mcp_server_url,
-      canManage: a.permissions.manage,
-      canManageOwners: a.permissions.manage_owners,
-    }),
+/** The organisation you're in: the first by name that you belong to, or the first you're listed. */
+function useYourOrganization() {
+  return useQuery({
+    queryKey: keys.organizations,
+    queryFn: () => listAll<ApiOrganization>("/api/organizations"),
+    select: (rows) => rows.find((o) => o.attributes.role) ?? rows[0],
   });
-  return { status: statusOf(query), organization: query.data };
+}
+
+/**
+ * The organisation you're in, with what the demo adds to it. `organization`
+ * stays undefined, with the status ready, when you're in none.
+ */
+export function useOrganization(): { status: LoadStatus; organization: Organization | undefined } {
+  const yours = useYourOrganization();
+  const settings = useQuery({
+    queryKey: keys.organization,
+    queryFn: () => request<ApiOrganizationSettings>("GET", "/api/demo/organization"),
+    select: ({ data: { attributes: a } }) => a,
+  });
+  const o = yours.data;
+  const a = settings.data;
+  return {
+    status: combine(statusOf(yours), statusOf(settings)),
+    organization:
+      o && a
+        ? {
+            id: o.id,
+            name: o.attributes.name,
+            visibility: a.visibility,
+            managedBy: a.security_server_managed_by,
+            xroadUsage: a.xroad_usage,
+            billing: a.billing,
+            mcpServerUrl: a.mcp_server_url,
+            canManage: o.attributes.role === "admin",
+          }
+        : undefined,
+  };
 }
 
 /** The organisation's identity on X-Road, which the X-Road operator sets. Loads nothing while `enabled` is false. */
@@ -208,21 +237,25 @@ export function useXRoadDirectory(enabled: boolean): { status: LoadStatus; direc
   return enabled ? { status: statusOf(query), directory: query.data } : { status: { state: "ready" }, directory: undefined };
 }
 
-/** Everyone in the organisation, owners first; someone invited who hasn't joined shows as invited. */
-export function useOrganizationMembers(): { status: LoadStatus; members: OrganizationMember[] } {
+const roleOf = { admin: "Admin", member: "Member" } as const;
+const apiRole = (role: OrganizationMember["role"]) => (role === "Admin" ? "admin" : "member");
+
+/** Everyone in the organisation `organizationId`, by first name. Loads nothing until it's known. */
+export function useOrganizationMembers(organizationId: string | undefined): { status: LoadStatus; members: OrganizationMember[] } {
   const query = useQuery({
-    queryKey: keys.members,
-    queryFn: () => listAll<ApiMember>("/api/demo/organization/members"),
+    queryKey: [...keys.members, organizationId],
+    queryFn: () => listAll<ApiMember>(`/api/organizations/${organizationId}/members`),
+    enabled: !!organizationId,
     select: (rows) =>
       rows.map(({ id, attributes: a }): OrganizationMember => ({
         id,
-        name: a.name,
+        name: `${a.first_name} ${a.last_name}`.trim() || a.email,
         email: a.email,
-        role: a.role,
-        lastActive: !a.joined_at ? "Invited" : a.last_active_at ? timeAgo(a.last_active_at) : "Not yet",
+        role: roleOf[a.role],
+        joined: timeAgo(a.inserted_at),
       })),
   });
-  return { status: statusOf(query), members: query.data ?? [] };
+  return organizationId ? { status: statusOf(query), members: query.data ?? [] } : { status: { state: "ready" }, members: [] };
 }
 
 /** The context layers the organisation draws on, and those it's asked for. */
@@ -247,22 +280,23 @@ export function useContextLayers(): { status: LoadStatus; layers: ContextLayer[]
  * Every change Organization settings makes. Each resolves once what it
  * changed has reloaded, and rejects with what the server said.
  */
-export function useOrganizationSaves() {
+export function useOrganizationSaves(organizationId: string | undefined) {
   const queryClient = useQueryClient();
   const run = useMutation({
-    mutationFn: ({ work }: { work: () => Promise<unknown>; reload: readonly string[] }) => work(),
-    onSuccess: (_d, { reload }) => queryClient.invalidateQueries({ queryKey: reload }),
+    mutationFn: ({ work }: { work: () => Promise<unknown>; reload: (readonly string[])[] }) => work(),
+    onSuccess: (_d, { reload }) => Promise.all(reload.map((queryKey) => queryClient.invalidateQueries({ queryKey }))),
   });
-  const go = (reload: readonly string[], work: () => Promise<unknown>) => run.mutateAsync({ work, reload }).then(() => undefined);
+  const go = (reload: (readonly string[])[], work: () => Promise<unknown>) => run.mutateAsync({ work, reload }).then(() => undefined);
+  const members = `/api/organizations/${organizationId}/members`;
   return {
-    saveVisibility: (visibility: Partial<Visibility>) => go(keys.organization, () => request("PATCH", "/api/demo/organization", { visibility })),
+    saveVisibility: (visibility: Partial<Visibility>) => go([keys.organization], () => request("PATCH", "/api/demo/organization", { visibility })),
     saveSecurityServerManager: (managedBy: SecurityServerManager) =>
-      go(keys.organization, () => request("PATCH", "/api/demo/organization", { security_server_managed_by: managedBy })),
-    invite: (invite: OrganizationInvite) => go(keys.members, () => request("POST", "/api/demo/organization/members", invite)),
-    // Your own role may change, and with it what you can do: reload the organisation too.
-    changeRole: (id: string, role: OrganizationMember["role"]) => go(keys.organization, () => request("PATCH", `/api/demo/organization/members/${id}`, { role })),
-    remove: (id: string) => go(keys.organization, () => request("DELETE", `/api/demo/organization/members/${id}`)),
-    requestContextLayer: (url: string) => go(keys.layers, () => request("POST", "/api/demo/organization/context_layers", { url })),
-    removeContextLayer: (id: string) => go(keys.layers, () => request("DELETE", `/api/demo/organization/context_layers/${id}`)),
+      go([keys.organization], () => request("PATCH", "/api/demo/organization", { security_server_managed_by: managedBy })),
+    invite: (invite: OrganizationInvite) => go([keys.members], () => request("POST", `${members}`, { email: invite.email, role: apiRole(invite.role) })),
+    // Your own role may change, and with it what you can do: reload the organisation and its members.
+    changeRole: (userId: string, role: OrganizationMember["role"]) => go([keys.organizations, ["organization"]], () => request("PATCH", `${members}/${userId}`, { role: apiRole(role) })),
+    remove: (userId: string) => go([keys.organizations, ["organization"]], () => request("DELETE", `${members}/${userId}`)),
+    requestContextLayer: (url: string) => go([keys.layers], () => request("POST", "/api/demo/organization/context_layers", { url })),
+    removeContextLayer: (id: string) => go([keys.layers], () => request("DELETE", `/api/demo/organization/context_layers/${id}`)),
   };
 }

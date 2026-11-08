@@ -32,24 +32,13 @@ export const Members: Story = {
   args: { node: section("members", "Members"), ancestors, currentPath: "/organization-settings/members", data: organizationSettingsData },
 };
 
-/** A member who can't manage the organisation reads who's in it, with no invite or row actions. */
+/** A member who can't manage the organisation reads who's in it, with no add button or row actions. */
 export const MembersReadOnly: Story = {
   args: {
     ...Members.args,
     onInviteMember: undefined,
     onChangeMemberRole: undefined,
     onRemoveMember: undefined,
-  },
-};
-
-/** Someone invited by email who hasn't joined yet. */
-export const MembersWithInvitation: Story = {
-  args: {
-    ...Members.args,
-    data: {
-      ...organizationSettingsData,
-      members: [...organizationSettingsData.members, { id: "m-5", name: "new.person@example.org", email: "new.person@example.org", role: "Member", lastActive: "Invited" }],
-    },
   },
 };
 

@@ -3,9 +3,6 @@ import { forgetCsrfToken, request, type ApiError } from "../api/client";
 import { resetFakeApi, setWait, signInAs } from ".";
 
 const refusal = (p: Promise<unknown>) => p.then(() => undefined, (e: unknown) => e as ApiError);
-type Member = { id: string; attributes: { email: string; name: string; role: string; joined_at: string | null } };
-const members = () => request<{ data: Member[] }>("GET", "/api/demo/organization/members").then((r) => r.data);
-const byEmail = async (email: string) => (await members()).find((m) => m.attributes.email === email)!;
 
 beforeEach(() => {
   setWait(0);
@@ -13,44 +10,14 @@ beforeEach(() => {
   forgetCsrfToken();
 });
 
-describe("organisation members", () => {
-  it("invites someone new (waiting) and someone on the instance (joined), refusing an email that's taken", async () => {
-    await request("POST", "/api/demo/organization/members", { email: "new.person@example.org", role: "Member" });
-    expect((await byEmail("new.person@example.org")).attributes.joined_at).toBeNull();
-    await request("POST", "/api/demo/organization/members", { email: "pnair@example.org", role: "Admin" });
-    expect((await byEmail("pnair@example.org")).attributes).toMatchObject({ role: "Admin", name: expect.not.stringContaining("@") });
-    const taken = await refusal(request("POST", "/api/demo/organization/members", { email: "JSMITH@example.org" }));
-    expect(taken?.fieldErrors["email"]).toEqual(["is already in the organisation"]);
-  });
-
-  it("changes roles and removes members, but always keeps an owner", async () => {
-    const jane = await byEmail("jane.doe@example.org");
-    expect((await refusal(request("PATCH", `/api/demo/organization/members/${jane.id}`, { role: "Admin" })))?.code).toBe("last_owner");
-    expect((await refusal(request("DELETE", `/api/demo/organization/members/${jane.id}`)))?.code).toBe("last_owner");
-    const amadou = await byEmail("adiallo@example.org");
-    await request("PATCH", `/api/demo/organization/members/${amadou.id}`, { role: "Owner" });
-    const john = await byEmail("jsmith@example.org");
-    await request("DELETE", `/api/demo/organization/members/${john.id}`);
-    expect((await members()).some((m) => m.id === john.id)).toBe(false);
-    await request("PATCH", `/api/demo/organization/members/${jane.id}`, { role: "Member" });
-    expect((await byEmail("jane.doe@example.org")).attributes.role).toBe("Member");
-    // Now a member, Jane can no longer change anyone.
-    expect((await refusal(request("DELETE", `/api/demo/organization/members/${amadou.id}`)))?.code).toBe("forbidden");
-  });
-
-  it("lets admins manage members but not owners, and members only read", async () => {
-    signInAs("user-amadou");
-    const jane = await byEmail("jane.doe@example.org");
-    expect((await refusal(request("PATCH", `/api/demo/organization/members/${jane.id}`, { role: "Member" })))?.code).toBe("forbidden");
-    expect((await refusal(request("POST", "/api/demo/organization/members", { email: "x@example.org", role: "Owner" })))?.code).toBe("forbidden");
-    await request("POST", "/api/demo/organization/members", { email: "x@example.org", role: "Admin" });
-    signInAs("user-beth");
-    await expect(members()).resolves.toBeTruthy();
-    expect((await refusal(request("POST", "/api/demo/organization/members", { email: "y@example.org" })))?.code).toBe("forbidden");
-  });
-});
-
 describe("organisation settings", () => {
+  it("lets only an organisation's admins change them", async () => {
+    signInAs("user-beth");
+    expect((await refusal(request("PATCH", "/api/demo/organization", { visibility: { projects: "organization" } })))?.code).toBe("forbidden");
+    signInAs("user-amadou");
+    await request("PATCH", "/api/demo/organization", { visibility: { projects: "organization" } });
+  });
+
   it("saves visibility defaults and who manages the Security Server, refusing values it doesn't know", async () => {
     await request("PATCH", "/api/demo/organization", { visibility: { services: "organization" }, security_server_managed_by: "partner" });
     const { data } = await request<{ data: { attributes: { visibility: Record<string, string>; security_server_managed_by: string } } }>("GET", "/api/demo/organization");

@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { FormError } from "../../model/form-error";
 import { renderPage } from "../../test/renderPage";
@@ -7,8 +7,8 @@ import OrganizationSettingsPage, { type OrganizationSettingsPageData, type Organ
 const data: OrganizationSettingsPageData = {
   name: "Ministry of Health",
   members: [
-    { id: "m1", name: "Amina Diallo", email: "amina@example.org", role: "Owner", lastActive: "Today" },
-    { id: "m2", name: "Tomas Reyes", email: "tomas@example.org", role: "Member", lastActive: "Yesterday" },
+    { id: "m1", name: "Amina Diallo", email: "amina@example.org", role: "Admin", joined: "6 months ago" },
+    { id: "m2", name: "Tomas Reyes", email: "tomas@example.org", role: "Member", joined: "3 days ago" },
   ],
   visibility: { projects: "project" },
   contextLayers: [],
@@ -50,40 +50,50 @@ const frame = (section: string, label: string, pageData: OrganizationSettingsPag
 const draw = (section = "members", label = "Members", pageData = data) =>
   renderPage(OrganizationSettingsPage, { ...frame(section, label, pageData), assignableRoles: ["Admin", "Member"] }, actions);
 
-function invite(email: string) {
-  fireEvent.click(screen.getByRole("button", { name: "Invite member" }));
+function add(email: string) {
+  fireEvent.click(screen.getByRole("button", { name: "Add member" }));
   fireEvent.change(screen.getByLabelText(/^Email/), { target: { value: email } });
-  fireEvent.click(screen.getByRole("button", { name: "Send invitation" }));
+  fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Add member" }));
 }
 
 describe("OrganizationSettingsPage", () => {
-  it("lists the organisation's members", () => {
+  it("lists the organisation's members, with when they joined", () => {
     draw();
     expect(screen.getByText("Amina Diallo")).toBeTruthy();
     expect(screen.getByText("Tomas Reyes")).toBeTruthy();
+    expect(screen.getByText("3 days ago")).toBeTruthy();
   });
 
-  it("sends an invitation, waits while it's sent, then closes the form", async () => {
+  it("adds someone, waits while they're added, then closes the form", async () => {
     const host = draw();
-    invite("new.person@example.org");
+    add("new.person@example.org");
     expect(host.calls("onInviteMember")).toEqual([[{ email: "new.person@example.org", role: "Member" }]]);
-    expect(screen.getByRole("button", { name: "Sending…" }).getAttribute("aria-disabled")).toBe("true");
+    expect(screen.getByRole("button", { name: "Adding…" }).getAttribute("aria-disabled")).toBe("true");
     await host.resolve("onInviteMember");
-    expect(screen.queryByRole("button", { name: "Send invitation" })).toBeNull();
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("keeps the form open, saying why under the email, when the server refuses it", async () => {
     const host = draw();
-    invite("tomas@example.org");
-    await host.reject("onInviteMember", new FormError("The invitation could not be sent.", { email: ["is already in the organisation"] }));
-    expect(screen.getByText(/is already in the organisation/)).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Send invitation" })).toBeTruthy();
+    add("tomas@example.org");
+    await host.reject("onInviteMember", new FormError("The request body is not valid.", { email: ["is already a member of the organization"] }));
+    expect(screen.getByText(/is already a member of the organization/)).toBeTruthy();
+    expect(screen.getByRole("dialog")).toBeTruthy();
   });
 
-  it("says what's missing under the email when an invitation is sent without one, and sends nothing", () => {
+  it("says what the server refused when a role change would leave no admin", async () => {
     const host = draw();
-    fireEvent.click(screen.getByRole("button", { name: "Invite member" }));
-    fireEvent.click(screen.getByRole("button", { name: "Send invitation" }));
+    fireEvent.click(screen.getByRole("button", { name: "Actions for Amina Diallo" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Make member" }));
+    expect(host.calls("onChangeMemberRole")).toEqual([["m1", "Member"]]);
+    await host.reject("onChangeMemberRole", new FormError("The request body is not valid.", { role: ["would leave the organization with no admin"] }));
+    expect(screen.getByText("That didn't change")).toBeTruthy();
+  });
+
+  it("says what's missing under the email when someone is added without one, and sends nothing", () => {
+    const host = draw();
+    fireEvent.click(screen.getByRole("button", { name: "Add member" }));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Add member" }));
     expect(screen.getByText("Enter an email address")).toBeTruthy();
     expect(document.activeElement).toBe(screen.getByLabelText(/^Email/));
     expect(host.calls("onInviteMember")).toEqual([]);
@@ -97,9 +107,9 @@ describe("OrganizationSettingsPage", () => {
     expect(host.calls("onRequestContextAccess")).toEqual([]);
   });
 
-  it("reads only, with no invite button, when it's given no actions", () => {
+  it("reads only, with no add button, when it's given no actions", () => {
     renderPage(OrganizationSettingsPage, frame("members", "Members", data), []);
-    expect(screen.queryByRole("button", { name: "Invite member" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Add member" })).toBeNull();
   });
 
   it("leaves out the X-Road section's identity when the organisation isn't on X-Road", () => {

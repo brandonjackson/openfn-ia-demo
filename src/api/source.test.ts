@@ -74,8 +74,8 @@ describe("beside Lightning, the demo's own routes start empty", () => {
     expect((await read("/api/demo/organization/xroad/directory")).data).toMatchObject({ attributes: { members: [] } });
   });
 
-  it("has no organisation, since Lightning has none", async () => {
-    expect((await sendFor("lightning")("/api/demo/organization")).status).toBe(404);
+  it("starts what the demo adds to Lightning's organisation at its defaults, with no X-Road identity", async () => {
+    expect((await read("/api/demo/organization")).data).toMatchObject({ attributes: { visibility: { projects: "project" }, security_server_managed_by: "this-org" } });
     expect((await sendFor("lightning")("/api/demo/organization/xroad")).status).toBe(404);
   });
 

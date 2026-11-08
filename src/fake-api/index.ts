@@ -35,6 +35,7 @@ import { systemRoutes } from "./connected-systems";
 import { ecosystemRoutesTable } from "./ecosystem";
 import { serviceRoutes } from "./services";
 import { organizationRoutes } from "./organization";
+import { organizationsRoutes } from "./organizations";
 import { handbookRoutes } from "./handbook";
 import { buildIdeaRoutes } from "./build-ideas";
 import { componentRoutes } from "./project-components";
@@ -66,6 +67,7 @@ const routes: Record<string, Handler> = {
   ...systemRoutes,
   ...ecosystemRoutesTable,
   ...serviceRoutes,
+  ...organizationsRoutes,
   ...organizationRoutes,
   ...handbookRoutes,
   ...buildIdeaRoutes,

@@ -5,23 +5,20 @@ import InviteOrgMemberModal from "./InviteOrgMemberModal";
 const meta: Meta<typeof InviteOrgMemberModal> = {
   title: "Domain/InviteOrgMemberModal",
   component: InviteOrgMemberModal,
-  args: { roles: ["Owner", "Admin", "Member"], onInvite: async () => {}, onClose: () => {} },
+  args: { roles: ["Admin", "Member"], onInvite: async () => {}, onClose: () => {} },
 };
 
 export default meta;
 type Story = StoryObj<typeof InviteOrgMemberModal>;
 
-/** An owner invites someone, and can give any role. */
+/** An admin adds someone already on OpenFn, as an admin or a member. */
 export const Default: Story = {};
 
-/** An admin can't make an owner. */
-export const AsAdmin: Story = { args: { roles: ["Admin", "Member"] } };
-
-/** The server refused the email: it shows under the field and the modal stays open. */
+/** Nobody on OpenFn has the email: it shows under the field and the modal stays open. */
 export const Refused: Story = {
   args: {
     onInvite: async () => {
-      throw new FormError("The request body is not valid.", { email: ["is already in the organisation"] });
+      throw new FormError("The request body is not valid.", { email: ["names nothing you can see"] });
     },
   },
 };

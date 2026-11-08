@@ -57,7 +57,7 @@ A project's collections (`src/api/collections.ts`; items by name under `/collect
 
 ### Your account
 
-Your profile, email, password, API tokens, MFA and GitHub link are on the API (`src/api/account.ts`: `/api/me`, your own `PATCH /api/users/:id`, `/api/me/tokens`, `/api/me/mfa`). The account menu reads you from the API too. A new email is held as pending until it's confirmed; a new token is shown once; turning MFA on takes a code from the new secret and makes ten backup codes. The demo's session counts as stepped up, so the current password a form asks for isn't checked. A superuser can't schedule their own deletion. Admin settings' single sign-on is `/api/auth_provider`, which checks the discovery URL before saving.
+Your profile, email, password, API tokens, MFA and GitHub link are on the API (`src/api/account.ts`: `/api/me`, your own `PATCH /api/users/:id`, `/api/me/tokens`, `/api/me/mfa`). The account menu reads you from the API too. A new email is held as pending until it's confirmed; a new token is shown once; turning MFA on takes a code from the new secret and makes ten backup codes. Changing your email or password needs a stepped-up session, as on Lightning: the form sends the current password it asks for to `POST /api/session` first (the fake takes any but an empty one), and a wrong one is said under that field. Making a token, turning MFA off and deleting your account still don't ask. A superuser can't schedule their own deletion. Admin settings' single sign-on is `/api/auth_provider`, which checks the discovery URL before saving.
 
 ### Channels
 

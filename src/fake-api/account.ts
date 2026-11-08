@@ -4,9 +4,10 @@
  * its backup codes, your GitHub link, and the instance's single sign-on
  * provider (api/authentication.md).
  *
- * The demo's session counts as stepped up: Lightning asks for your password
- * or a code again before you make a token, turn MFA off, change your email
- * or delete your account, and the demo has no screen for that yet.
+ * Changing your email or password needs the session stepped up
+ * (`POST /api/session` with your password), as on Lightning. Everything else
+ * that Lightning asks a stepped-up session for (making a token, turning MFA
+ * off, deleting your account) the demo still lets through.
  */
 import { userApiTokens, demoBackupCodes, currentUser, currentInstance } from "../fixtures/user";
 import { deletionGraceDays, instanceAuthProvider, instanceUrl, usageMetricsEnabled } from "../fixtures/admin";
@@ -14,7 +15,7 @@ import { newId, seedId } from "../fixtures/ids";
 import { conflict, forbidden, invalid, json, noContent, notFound, now, problem, unknownKeys, type Body, type Entry, type Handler } from "./answers";
 import { diff, record } from "./audit";
 import { seedTime, table } from "./db";
-import { currentUserId } from "./session";
+import { currentUserId, steppedUp } from "./session";
 import { findUser, findUserByEmail, userEntry, userIdFor, users, type UserRow } from "./users";
 
 interface TokenRow {
@@ -112,11 +113,15 @@ const mfaEntry = (u: UserRow) => ({
 /**
  * Your own changes to your account, through `PATCH /api/users/:id` on your own
  * id; the superuser's edit of anyone is in user-routes.ts. All of it is
- * planned in api/users.md; Lightning's full-api-test is taking your names
- * and contact preference first (docs/api-gaps.md).
+ * planned in api/users.md and on Lightning's full-api-test (docs/api-gaps.md).
+ * Your email and password need a stepped-up session; a new password signs
+ * you out everywhere else and revokes your personal access tokens.
  */
 export function updateSelf(body: Body): Response {
   const u = me();
+  if ((body["email"] !== undefined || body["password"] !== undefined) && !steppedUp()) {
+    return problem({ status: 403, code: "step_up_required", detail: "Enter your password or an MFA code again to do this." });
+  }
   const errors: Entry[] = unknownKeys(body, ["first_name", "last_name", "contact_preference", "email", "password"]);
   for (const key of ["first_name", "last_name"]) {
     if (body[key] !== undefined && (typeof body[key] !== "string" || !(body[key] as string).trim())) errors.push({ code: "required", detail: "can't be blank", pointer: `#/${key}` });
@@ -124,15 +129,18 @@ export function updateSelf(body: Body): Response {
   if (body["contact_preference"] !== undefined && !["critical", "any"].includes(body["contact_preference"] as string)) {
     errors.push({ code: "not_allowed", detail: "is invalid", pointer: "#/contact_preference" });
   }
-  const email = typeof body["email"] === "string" ? body["email"].trim() : undefined;
+  const email = typeof body["email"] === "string" ? body["email"].trim().toLowerCase() : undefined;
   if (email !== undefined) {
-    if (!/^[^\s@]+@[^\s@]+$/.test(email)) errors.push({ code: "format", detail: "must have the @ sign and no spaces", pointer: "#/email" });
+    if (!email) errors.push({ code: "required", detail: "can't be blank", pointer: "#/email" });
+    else if (!/^[^\s@]+@[^\s@]+$/.test(email)) errors.push({ code: "format", detail: "must be a valid email address", pointer: "#/email" });
     else if (email === u.email) errors.push({ code: "unchanged", detail: "did not change", pointer: "#/email" });
     else if (findUserByEmail(email)) errors.push({ code: "taken", detail: "has already been taken", pointer: "#/email" });
   }
   const password = body["password"];
-  if (password !== undefined && (typeof password !== "string" || password.length < 12 || password.length > 72)) {
-    errors.push({ code: "too_short", detail: "should be 12 to 72 character(s)", pointer: "#/password" });
+  if (password !== undefined && (typeof password !== "string" || password.length < 12)) {
+    errors.push({ code: "too_short", detail: "should be at least 12 character(s)", pointer: "#/password" });
+  } else if (typeof password === "string" && password.length > 72) {
+    errors.push({ code: "too_long", detail: "should be at most 72 character(s)", pointer: "#/password" });
   }
   if (errors.length) return invalid(errors);
   const names = {
@@ -149,6 +157,8 @@ export function updateSelf(body: Body): Response {
       ...(email !== undefined && { pending_email: email }),
     }),
   );
+  // A new password ends your other sessions (the demo has only this one) and revokes your personal access tokens.
+  if (typeof password === "string") tokens.remove((t) => t.user_id === u.id);
   // Lightning records a change to your names, with you as the actor.
   record("updated", { type: "user", id: u.id, name: u.email }, diff(u as unknown as Record<string, unknown>, names));
   return json(200, { data: userEntry(findUser(u.id)!) });

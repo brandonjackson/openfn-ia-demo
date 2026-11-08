@@ -9,6 +9,7 @@ import { useRef } from "react";
 import type { AuthProviderConfig, AuthProviderTest } from "../model/authentication";
 import type { ApiToken, BackupCode, ContactPreference, InstanceInfo, MfaSetup, ProfileDetails, UserProfile } from "../model/account";
 import { formatDate, timeAgo } from "../model/time";
+import { FormError } from "../model/form-error";
 import { isApiError, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
@@ -144,6 +145,22 @@ export function useBackupCodes(): { status: LoadStatus; backupCodes: BackupCode[
 }
 
 /**
+ * Steps the session up with your password, for the five minutes Lightning
+ * gives a change to how you sign in (api/account.md, Sign in). A wrong one is
+ * refused as `invalid_credentials`, said here about the password.
+ */
+async function stepUp(password: string): Promise<void> {
+  try {
+    await request("POST", "/api/session", { password });
+  } catch (error) {
+    if (isApiError(error, "invalid_credentials")) {
+      throw new FormError("That isn't your current password.", { current_password: ["That isn't your current password."] });
+    }
+    throw error;
+  }
+}
+
+/**
  * Everything you can change about your own account. Each resolves once what
  * it changed has reloaded (the account menu reads `useMe` too), and rejects
  * with what the server said.
@@ -165,9 +182,22 @@ export function useAccountSaves(userId: string) {
           contact_preference: details.contactPreference === "Anytime" ? "any" : "critical",
         }),
       ).then(() => undefined),
-    /** Asks to change your email; it changes once you follow the link sent to the new address. */
-    changeEmail: (email: string) => go(() => request("PATCH", `/api/users/${userId}`, { email })).then(() => undefined),
-    changePassword: (password: string) => go(() => request("PATCH", `/api/users/${userId}`, { password })).then(() => undefined),
+    /**
+     * Asks to change your email; it changes once you follow the link sent to
+     * the new address. Your current password steps the session up first, as
+     * Lightning asks before it changes how you sign in.
+     */
+    changeEmail: (email: string, currentPassword: string) =>
+      go(async () => {
+        await stepUp(currentPassword);
+        await request("PATCH", `/api/users/${userId}`, { email });
+      }),
+    /** Sets a new password once your current one steps the session up. It signs you out everywhere else. */
+    changePassword: (password: string, currentPassword: string) =>
+      go(async () => {
+        await stepUp(currentPassword);
+        await request("PATCH", `/api/users/${userId}`, { password });
+      }),
     /** Schedules your account's deletion. */
     deleteAccount: () => go(() => request("DELETE", `/api/users/${userId}`)).then(() => undefined),
 

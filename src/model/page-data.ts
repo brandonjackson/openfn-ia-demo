@@ -1,20 +1,10 @@
-import type { ServiceRecord, XRoadConnectionStatus, XRoadMember } from "./xroad";
-import type { Environment } from "./credentials";
 import type { ConnectionMethod } from "./connected-systems";
-import type { LucideIcon } from "lucide-react";
-import type { Adaptor } from "./adaptors";
-import type { EcosystemStation, EcosystemWorkflow } from "./ecosystem";
+import type { ServiceRecord, XRoadConnectionStatus } from "./xroad";
+import type { Environment } from "./credentials";
 
 /* ------------------------------------------------------------------ */
 /*  Shared primitive types                                             */
 /* ------------------------------------------------------------------ */
-
-/** One point in a feature's intro banner. */
-export interface FeatureIntroItem {
-  icon: LucideIcon;
-  title: string;
-  description: string;
-}
 
 /** A headline number for a KPI row, optionally with a trend and a link. */
 export interface StatTileData {
@@ -26,60 +16,6 @@ export interface StatTileData {
   trend?: number[];
   badge?: { label: string; tone: "green" | "yellow" | "red" | "indigo" | "gray" };
   linkTo?: string;
-}
-
-export interface FilterDef {
-  label: string;
-  options: string[];
-}
-
-/* ------------------------------------------------------------------ */
-/*  List page (Connected Systems)                                      */
-/* ------------------------------------------------------------------ */
-
-export interface ListItem {
-  id: string;
-  name: string;
-  description: string;
-  metadata?: Record<string, string>;
-  linkTo?: string;
-}
-
-export interface ListPageData {
-  pageType: "list";
-  filters: FilterDef[];
-  items: ListItem[];
-  /** Filter function: given an item and the selected filter values, return true to show */
-  filterKey?: string; // metadata key used for filtering
-  filterMap?: Record<string, string>; // filter option -> metadata value mapping
-  showSuggestions?: boolean;
-  /** Dismissible "why use this" banner shown at the top of the page. */
-  intro?: FeatureIntroData;
-  /** The organisation's systems and the workflows between them, drawn as a transport map. */
-  ecosystem?: {
-    stations: EcosystemStation[];
-    workflows: EcosystemWorkflow[];
-    routes: Record<string, { col: number; row: number }[]>;
-  };
-  /** The X-Road directory, for an organisation on X-Road. */
-  xroad?: {
-    directory: XRoadMember[];
-    /** The X-Road instance the directory is for, e.g. `FJ`. */
-    instance: string;
-    /** Directory services already in your systems, as `memberId/subsystem/service`. */
-    added: string[];
-    syncedAt: string;
-  };
-  /** Every adaptor a new system can be connected with. */
-  adaptors: Adaptor[];
-}
-
-export interface FeatureIntroData {
-  title: string;
-  description?: string;
-  features: FeatureIntroItem[];
-  /** localStorage key that remembers the banner was dismissed. */
-  storageKey?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -211,6 +147,5 @@ export interface OrgCredential {
 }
 
 export type PageData =
-  | ListPageData
   | CatalogPageData
   | StatusPageData;

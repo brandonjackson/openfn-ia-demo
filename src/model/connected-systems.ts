@@ -50,7 +50,7 @@ export function connectionOf(system: ConnectedSystem): SystemConnection {
 }
 
 /** A system's row on the Systems list: how it's reached, whether you have access, and its production address. */
-export function systemListItem(s: ConnectedSystem): import("./page-data").ListItem {
+export function systemListItem(s: ConnectedSystem): SystemListItem {
   const url = s.environments.production.url;
   const connection = connectionOf(s);
   return {
@@ -125,4 +125,12 @@ export function isXRoadSystem(system: ConnectedSystem): boolean {
 export function systemsFor(flags: FeatureFlags, systems: ConnectedSystem[]): ConnectedSystem[] {
   if (!flags.connectedSystems) return [];
   return flags.xroad ? systems : systems.filter((s) => !isXRoadSystem(s));
+}
+
+export interface SystemListItem {
+  id: string;
+  name: string;
+  description: string;
+  metadata?: Record<string, string>;
+  linkTo?: string;
 }

@@ -31,6 +31,7 @@ import { channelRoutes } from "./channels";
 import { workOrderRoutes } from "./work-orders";
 import { githubRoutes } from "./github-sync";
 import { systemRoutes } from "./connected-systems";
+import { ecosystemRoutesTable } from "./ecosystem";
 import { serviceRoutes } from "./services";
 import { organizationRoutes } from "./organization";
 import { handbookRoutes } from "./handbook";
@@ -62,6 +63,7 @@ const routes: Record<string, Handler> = {
   ...workOrderRoutes,
   ...githubRoutes,
   ...systemRoutes,
+  ...ecosystemRoutesTable,
   ...serviceRoutes,
   ...organizationRoutes,
   ...handbookRoutes,

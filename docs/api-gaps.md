@@ -29,6 +29,13 @@ path in its hook file.
   Overview, the editor's "Connect a system"). Would need a
   `connected_systems` resource with its environments and grants. Demo:
   `/api/demo/connected_systems` (`src/api/connected-systems.ts`).
+- **The catalog a new system is picked from, and the ecosystem map**
+  (Systems, Overview). Would need the adaptors Lightning can use (it has a
+  registry, but `api/` doesn't list it), suggestions of systems to connect,
+  and somewhere to keep where each system sits on the map. Demo, read only:
+  `/api/demo/adaptors`, `/api/demo/connected_systems/suggestions` and
+  `/api/demo/ecosystem` (stations named by system id; a deleted system
+  leaves the map). An adaptor's `id` is its package name, not a UUID.
 - **The organisation** (Organization settings: members and invitations,
   visibility defaults, context layers, Security Server, and its X-Road
   identity, read only; a system's and a service's page read the identity too). Lightning

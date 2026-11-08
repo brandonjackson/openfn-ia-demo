@@ -46,3 +46,38 @@ describe("connected systems", () => {
     expect((await refusal(grants()))?.code).toBe("not_found");
   });
 });
+
+describe("the catalog a new system is picked from", () => {
+  it("lists every adaptor, and suggests only systems not yet connected", async () => {
+    type Rows = { data: { id: string; attributes: { name: string } }[] };
+    const adaptors = await request<Rows>("GET", "/api/demo/adaptors?page_size=100");
+    expect(adaptors.data.some((a) => a.id === "dhis2")).toBe(true);
+    const before = await request<Rows>("GET", "/api/demo/connected_systems/suggestions");
+    const first = before.data[0]!.attributes.name;
+    await request("PUT", `/api/demo/connected_systems/${crypto.randomUUID()}`, { name: first, description: "", adaptor: "http", credentialType: "org", hasAccess: true, color: "gray", owner: "Us", ownerType: "org", environments: { production: { url: "" }, staging: { url: "" }, mock: { url: "" } } });
+    const after = await request<Rows>("GET", "/api/demo/connected_systems/suggestions");
+    expect(after.data.map((s) => s.attributes.name)).not.toContain(first);
+  });
+});
+
+describe("the ecosystem map", () => {
+  type Map = { data: { attributes: { stations: { id: string; name: string; kind: string }[]; workflows: { station_ids: string[] }[]; corners: { station_ids: string[] }[] } } };
+  type Systems = { data: { id: string; attributes: { name: string } }[] };
+
+  it("names each system's station by its id, and drops a deleted system with every workflow through it", async () => {
+    const systems = await request<Systems>("GET", "/api/demo/connected_systems?page_size=100");
+    const dhis2 = systems.data.find((s) => s.attributes.name === "DHIS2")!;
+    const before = await request<Map>("GET", "/api/demo/ecosystem");
+    expect(before.data.attributes.stations.find((s) => s.name === "DHIS2")?.id).toBe(dhis2.id);
+    const through = before.data.attributes.workflows.filter((w) => w.station_ids.includes(dhis2.id)).length;
+    expect(through).toBeGreaterThan(0);
+    expect(before.data.attributes.corners.some((c) => c.station_ids.includes(dhis2.id))).toBe(true);
+
+    await request("DELETE", `/api/demo/connected_systems/${dhis2.id}`);
+    const after = await request<Map>("GET", "/api/demo/ecosystem");
+    expect(after.data.attributes.stations.some((s) => s.id === dhis2.id)).toBe(false);
+    expect(after.data.attributes.workflows).toHaveLength(before.data.attributes.workflows.length - through);
+    expect(after.data.attributes.corners.some((c) => c.station_ids.includes(dhis2.id))).toBe(false);
+  });
+});
+

@@ -34,6 +34,8 @@ interface Props {
   readOnly?: boolean;
   onChange?: (changes: StepChanges) => void;
   onDelete?: () => void;
+  /** Why the step can't be deleted, e.g. other steps run after it: Delete shows, off, saying so. */
+  deleteBlockedReason?: string;
   /** Hide the name row when the panel sits in a tray that already names the step. */
   showHeader?: boolean;
 }
@@ -55,6 +57,7 @@ export default function StepConfigPanel({
   readOnly = false,
   onChange,
   onDelete,
+  deleteBlockedReason,
   showHeader = true,
 }: Props) {
   // A step added from the picker may be on an adaptor outside the usual choices.
@@ -148,7 +151,14 @@ export default function StepConfigPanel({
       </div>
       {!readOnly && onDelete && (
         <div className="flex-none border-t border-gray-100 px-4 py-3">
-          <Button variant="outline-danger" size="xs" icon={Trash2} onClick={onDelete}>
+          <Button
+            variant="outline-danger"
+            size="xs"
+            icon={Trash2}
+            onClick={onDelete}
+            disabled={!!deleteBlockedReason}
+            title={deleteBlockedReason}
+          >
             Delete step
           </Button>
         </div>

@@ -67,6 +67,7 @@ export default function WorkflowCanvas({
   onAddAfter,
   adaptors = {},
   systems = [],
+  deleteBlockedReason,
 }: {
   workflow: Workflow;
   selectedId?: string;
@@ -94,6 +95,8 @@ export default function WorkflowCanvas({
   adaptors?: Record<AdaptorKind, AdaptorInfo>;
   /** The project's connected systems, for the cards of steps that talk to one. */
   systems?: ConnectedSystem[];
+  /** Why a step can't be deleted, by its id, or nothing when it can; its card's Delete says so. */
+  deleteBlockedReason?: (nodeId: string) => string | undefined;
 }) {
   const nodeById = (id: string) => workflow.nodes.find((n) => n.id === id);
 
@@ -295,6 +298,7 @@ export default function WorkflowCanvas({
               onAddAfter={onAddAfter ? (n) => onAddAfter(n.id) : undefined}
               adaptorName={node.type === "job" ? adaptors[node.adaptor]?.name : undefined}
               system={node.type === "job" && node.system ? systems.find((s) => s.id === node.system) : undefined}
+              deleteBlockedReason={node.type === "job" ? deleteBlockedReason?.(node.id) : undefined}
             />
           </div>
         ))}

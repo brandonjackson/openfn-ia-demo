@@ -52,6 +52,7 @@ export default function WorkflowNodeCard({
   onAddAfter,
   adaptorName,
   system,
+  deleteBlockedReason,
 }: {
   node: WorkflowNode;
   selected?: boolean;
@@ -80,6 +81,8 @@ export default function WorkflowNodeCard({
   adaptorName?: string;
   /** The connected system the step talks to, if any: it names the step, with a badge for how it's reached. */
   system?: ConnectedSystem;
+  /** Why this step can't be deleted, e.g. other steps run after it: Delete stays in the menu, off, with this under it. */
+  deleteBlockedReason?: string;
 }) {
   const job = node.type === "job" ? node : undefined;
 
@@ -95,7 +98,7 @@ export default function WorkflowNodeCard({
     { id: "run", label: job ? "Run from here" : "Run workflow", icon: Play },
     { id: "edit", label: "Edit", icon: Maximize2 },
     ...(job ? [{ id: "improve", label: "Improve", icon: Sparkles }] : []),
-    ...(job ? [{ id: "delete", label: "Delete", icon: Trash2, tone: "danger" as const, disabled: readOnly }] : []),
+    ...(job ? [{ id: "delete", label: "Delete", icon: Trash2, tone: "danger" as const, disabled: readOnly || !!deleteBlockedReason, description: readOnly ? undefined : deleteBlockedReason }] : []),
   ];
 
   return (

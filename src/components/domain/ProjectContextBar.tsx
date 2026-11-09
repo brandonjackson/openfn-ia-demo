@@ -1,5 +1,5 @@
 import Link from "../primitives/Link";
-import { ChevronRight, FlaskConical, Folder, FolderKanban } from "lucide-react";
+import { ChevronRight, FlaskConical, Folder, FolderKanban, Lock } from "lucide-react";
 import type { Project } from "../../model/projects";
 import Picker from "../primitives/Picker";
 
@@ -74,7 +74,8 @@ export default function ProjectContextBar({
       <Picker
         icon={FlaskConical}
         ariaLabel="Switch sandbox"
-        options={project.sandboxes.map((s) => ({ id: s, label: s }))}
+        // main is read-only, so it carries a lock; every other sandbox the beaker.
+        options={project.sandboxes.map((s) => ({ id: s, label: s, icon: s === "main" ? Lock : undefined }))}
         value={sandbox}
         onChange={onSelectSandbox}
         footerAction={{

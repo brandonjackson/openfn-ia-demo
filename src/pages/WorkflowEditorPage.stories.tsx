@@ -148,6 +148,36 @@ export const Health: Story = {
   args: { initialView: "code", initialFile: "health" },
 };
 
+/** Saved dataclips, opened from the explorer's Workflow group: each with Run as its main action, and its title and description to edit. */
+export const SavedDataclips: Story = {
+  args: { initialView: "code", initialFile: "dataclips", onCreateDataclip: undefined },
+};
+
+/** In a sandbox, the Workflow group's + opens what can be added: the service manifest, spec, a saved dataclip, context or a doc. */
+export const AddToWorkflow: Story = {
+  args: {
+    sandbox: projects[0].sandboxes[1],
+    initialView: "code",
+    initialFile: "workflow",
+    defaultAddFileOpen: true,
+    initialLayout: { assistant: false, panel: false },
+  },
+};
+
+/** A new workflow with no docs yet: the Workflow group lists only workflow.yaml and Health until its + adds the rest. */
+export const NewWorkflowFiles: Story = {
+  args: {
+    sandbox: projects[0].sandboxes[1],
+    initialView: "code",
+    initialFile: "workflow",
+    service: undefined,
+    dataclips: [],
+    workOrders: [],
+    contents: { ...contentsFor(projectAComponents), docs: { context: "", spec: "" } },
+    initialLayout: { assistant: false, panel: false },
+  },
+};
+
 /** Code mode on main: explorer, read-only code and the step's settings. */
 export const CodeReadOnly: Story = {
   args: { initialView: "code", initialFile: { stepId: "search" } },

@@ -112,8 +112,10 @@ export type DataclipType = "http_request" | "step_result" | "saved_input";
  */
 export interface Dataclip {
   id: string;
-  /** Set when someone has named it so it can be reused. */
+  /** Set when someone has named it so it can be reused: a saved dataclip. */
   name?: string;
+  /** What it's for, e.g. "An applicant already in the registry". Saved dataclips only. */
+  description?: string;
   type: DataclipType;
   /** Pretty-printed JSON. */
   body: string;

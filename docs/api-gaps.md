@@ -66,6 +66,16 @@ path in its hook file.
 - **Project components besides workflows, channels and collections** (forms,
   artifacts, AI skills, documents, static websites). Demo:
   `/api/demo/projects/:id/components` (`src/api/project-components.ts`).
+- **Saving and naming dataclips** (the editor's Saved dataclips, its
+  "Add to workflow" and "Edit in sandbox"). api/dataclips.md lists a
+  project's dataclips (Planned), but has no way to save an input under a
+  name, describe it, or rename it. Would need a create (name, description,
+  JSON body, optionally a workflow) and an update of the name and
+  description, a name unique in the project. Demo:
+  `POST /api/demo/projects/:id/dataclips` and
+  `PATCH /api/demo/projects/:id/dataclips/:id` (`src/api/dataclips.ts`);
+  making a sandbox brings saved ones across with `dataclip_ids`, and a
+  reviewed copy of a run's input is saved in the new sandbox afterwards.
 - **Maintenance jobs** (Admin settings, Maintenance). Lightning's
   `/settings/maintenance` has no API. Would need a list of jobs with when
   each last ran, and a way to run one. Demo: `/api/demo/maintenance`
@@ -214,4 +224,11 @@ each needs nothing here once Lightning sends it.
   (`POST /api/session`), and a wrong one is said under that field.
 - **A project's dataclips** (`GET /api/projects/:id/dataclips`,
   api/dataclips.md). Lightning answers 404; the editor opens without the
-  saved inputs to run from.
+  saved inputs to run from. The hooks read a missing list as one empty list
+  that stays the same, since the editor takes a new list as new history and
+  would drop a run it's in the middle of (it did: Run reverted to the canvas).
+- **Recording a run the editor made** (`run` and `dataclips` on
+  `POST /api/projects/:id/workflows/:id/work_orders`, the demo's stand-in for
+  the worker). Lightning's worker runs workflows, so it refuses the body (422).
+  On Lightning the editor's run plays out and stays loaded, but isn't saved:
+  reopening the workflow or History doesn't show it.

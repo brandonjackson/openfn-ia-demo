@@ -152,6 +152,25 @@ export function serviceYaml(service: ProjectServiceItem, { code, xroad }: { code
   return lines.join("\n");
 }
 
+/**
+ * A service.yaml for a workflow that isn't published as a service yet: the
+ * fields its listing will have, to fill in before it's published.
+ */
+export function draftServiceManifest(workflowName: string): string {
+  return [
+    `# service.yaml: how ${workflowName} will be listed in the service catalog once it's published.`,
+    ...yamlField(0, "name", workflowName),
+    'description: ""',
+    "status: draft",
+    "api:",
+    "  trigger: webhook",
+    "  input: []",
+    "  output:",
+    '    description: ""',
+    "",
+  ].join("\n");
+}
+
 /** Where a webhook service is called, read from how it's invoked (`POST https://…`), if it says. */
 export const serviceUrl = (service: ProjectServiceItem): string | undefined => service.api?.invocation.match(/https?:\/\/\S+/)?.[0];
 

@@ -1,11 +1,6 @@
-import type { Dataclip, DataclipType } from "../../model/workflow";
+import type { Dataclip } from "../../model/workflow";
+import { dataclipTypeLabels as typeLabel } from "../../model/dataclips";
 import Badge from "../primitives/Badge";
-
-const typeLabel: Record<DataclipType, string> = {
-  http_request: "Request",
-  step_result: "Step result",
-  saved_input: "Saved input",
-};
 
 /**
  * A list of dataclips to pick one from, as radio rows: the dataclip's name

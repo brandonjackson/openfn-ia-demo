@@ -2,14 +2,18 @@
  * Run history for the "Apply for a national ID" workflow: work orders, the
  * runs made for each, and the dataclips (inputs and step results) they used.
  *
- * Runs before 14 Oct ran on v1, which had no duplicate check; later runs ran
+ * Runs before 24 Sep ran on v1, which had no duplicate check; later runs ran
  * on v2. Each run is built from a short spec (the steps it took, and where it
  * failed) so its steps, logs and dataclips stay consistent with each other.
+ * A handful are written out by hand, for stories and tests to point at; the
+ * rest of the month's traffic is generated from a fixed seed
+ * (`generatedHistory`), so the canvas's 24h, 7d and 30d each show more.
  */
 import type { Dataclip, LogLine, RunDetails, RunStep, Workflow, WorkOrder } from "../model/workflow";
 import { happyPath, nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "./workflow";
 import type { XRoadCall } from "../model/xroad";
 import { openfnClientId, routeUrl } from "./xroad";
+import { stampTime } from "../model/runs";
 
 type State = Record<string, unknown>;
 
@@ -281,21 +285,21 @@ const inputs = {
     phone: "+15555550104" },
     "Application that hit the Identity 502"
   ),
-  priya: application("req-2f11", "Oct 13th, 12:19 PM", {
+  priya: application("req-2f11", "Sep 23rd, 12:19 PM", {
     given_name: "Priya",
     family_name: "Nair",
     date_of_birth: "1999-05-08",
     district: "North",
     phone: "+15555550105",
   }),
-  jonas: application("req-0b39", "Oct 13th, 12:18 PM", {
+  jonas: application("req-0b39", "Sep 23rd, 12:18 PM", {
     given_name: "Jonas",
     family_name: "Berg",
     date_of_birth: "1968-09-17",
     district: "West",
     phone: "+15555550106",
   }),
-  mei: application("req-b4f8", "Oct 12th, 9:22 AM", {
+  mei: application("req-b4f8", "Sep 22nd, 9:22 AM", {
     given_name: "Mei",
     family_name: "Chen",
     date_of_birth: "1995-12-03",
@@ -309,6 +313,7 @@ const savedInputs: Dataclip[] = [
   {
     id: "saved-new-citizen",
     name: "Sample application: new citizen",
+    description: "Someone not yet in the registry, so the workflow creates a record for them.",
     type: "saved_input",
     created: "Oct 10th, 2:04 PM",
     body: json({ given_name: "Test", family_name: "Applicant", date_of_birth: "2000-01-01", district: "North", phone: "+15555550100" }),
@@ -316,6 +321,7 @@ const savedInputs: Dataclip[] = [
   {
     id: "saved-existing-citizen",
     name: "Sample application: existing citizen",
+    description: "Amara Okafor, already registered, so the workflow finds her and confirms.",
     type: "saved_input",
     created: "Oct 10th, 2:06 PM",
     body: json({ given_name: "Amara", family_name: "Okafor", date_of_birth: "1991-03-14", district: "North", phone: "+15555550101" }),
@@ -392,8 +398,8 @@ const built = [
     runId: "6b2d90aa",
     workOrderId: "2f11d4f1",
     version: "v1",
-    when: "Oct 13th, 12:19 PM",
-    started: "13/10/2026, 12:19:08",
+    when: "Sep 23rd, 12:19 PM",
+    started: "23/09/2026, 12:19:08",
     duration: "2 s",
     input: inputs.priya,
     path: ["create", "confirm"],
@@ -402,8 +408,8 @@ const built = [
     runId: "c47e2d18",
     workOrderId: "0b393bfb",
     version: "v1",
-    when: "Oct 13th, 12:18 PM",
-    started: "13/10/2026, 12:18:44",
+    when: "Sep 23rd, 12:18 PM",
+    started: "23/09/2026, 12:18:44",
     duration: "31 s",
     input: inputs.jonas,
     path: ["create", "queue"],
@@ -413,13 +419,210 @@ const built = [
     runId: "18aa6f3c",
     workOrderId: "b4f8902d",
     version: "v1",
-    when: "Oct 12th, 9:22 AM",
-    started: "12/10/2026, 09:22:17",
+    when: "Sep 22nd, 9:22 AM",
+    started: "22/09/2026, 09:22:17",
     duration: "2 s",
     input: inputs.mei,
     path: ["create", "confirm"],
   }),
 ];
+
+// ---------------------------------------------------------------------------
+// Generated history: a month of ordinary traffic around the hand-written runs,
+// the same on every load because it comes from a fixed seed.
+// ---------------------------------------------------------------------------
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** "today at 9:42 AM", "yesterday at 5:02 PM" or "Oct 13th, 12:19 PM", as the mock history words it on 20 Oct. */
+export function whenLabel(d: Date): string {
+  const h = d.getHours() % 12 || 12;
+  const time = `${h}:${String(d.getMinutes()).padStart(2, "0")} ${d.getHours() < 12 ? "AM" : "PM"}`;
+  if (d.getMonth() === 9 && d.getDate() === 20) return `today at ${time}`;
+  if (d.getMonth() === 9 && d.getDate() === 19) return `yesterday at ${time}`;
+  const day = d.getDate();
+  const suffix = day % 10 === 1 && day !== 11 ? "st" : day % 10 === 2 && day !== 12 ? "nd" : day % 10 === 3 && day !== 13 ? "rd" : "th";
+  return `${MONTHS[d.getMonth()]} ${day}${suffix}, ${time}`;
+}
+
+/** A date as runs write when they started: "dd/mm/yyyy, HH:MM:SS". */
+function startedStamp(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+/** A small random number generator (mulberry32) that gives the same numbers for the same seed. */
+function seededRandom(seed: number): () => number {
+  let a = seed;
+  return () => {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** The last moment generated runs may start, so the hand-written runs stay the newest. */
+const GENERATED_UNTIL = new Date(2026, 9, 20, 9, 30);
+
+/**
+ * Times for a generated history, oldest first: `perDay(date, random)` runs on
+ * each day from `from` up to {@link GENERATED_UNTIL}, during working hours.
+ */
+function generatedTimes(from: Date, random: () => number, perDay: (day: Date) => number): Date[] {
+  const times: Date[] = [];
+  for (const day = new Date(from); day <= GENERATED_UNTIL; day.setDate(day.getDate() + 1)) {
+    const count = perDay(day);
+    const dayTimes: Date[] = [];
+    for (let i = 0; i < count; i++) {
+      const minutes = 7 * 60 + Math.floor(random() * 11 * 60);
+      const t = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 0, minutes, Math.floor(random() * 60));
+      if (t >= from && t <= GENERATED_UNTIL) dayTimes.push(t);
+    }
+    times.push(...dayTimes.sort((a, b) => a.getTime() - b.getTime()));
+  }
+  return times;
+}
+
+const hex = (random: () => number) =>
+  Math.floor(random() * 0xffffffff)
+    .toString(16)
+    .padStart(8, "0");
+
+const isWeekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
+
+const GIVEN = ["Abena", "Kwame", "Fatima", "Joseph", "Nadia", "Samuel", "Esi", "Daniel", "Halima", "Peter", "Zainab", "Musa", "Ruth", "Ibrahim", "Grace", "Elias", "Aisha", "Moses", "Lucia", "Omar"];
+const FAMILY = ["Mensah", "Diallo", "Owusu", "Banda", "Kariuki", "Achieng", "Sesay", "Mwangi", "Tembo", "Juma", "Asante", "Kamau", "Phiri", "Ndlovu", "Okeke", "Bello"];
+const DISTRICTS = ["North", "Central", "Coast", "East", "West"];
+
+const pick = <T,>(random: () => number, items: T[]) => items[Math.floor(random() * items.length)];
+
+/** How a generated national ID application went, by path through v2. */
+interface Outcome {
+  path: string[];
+  failAt?: { jobId: string; error: string; duration?: string };
+  duration: string;
+  /** The search found the applicant already registered. */
+  match?: boolean;
+}
+
+const v2Outcomes: { weight: number; outcome: Outcome }[] = [
+  { weight: 68, outcome: { path: ["verify", "search", "create", "confirm"], duration: "5 s" } },
+  { weight: 18, outcome: { path: ["verify", "search", "notify"], duration: "4 s", match: true } },
+  {
+    weight: 5,
+    outcome: { path: ["verify", "search", "queue"], duration: "31 s", failAt: { jobId: "search", error: "Identity did not respond within 30s" } },
+  },
+  {
+    weight: 4,
+    outcome: { path: ["verify", "search", "create"], duration: "34 s", failAt: { jobId: "create", error: "Identity returned 502 Bad Gateway" } },
+  },
+  {
+    weight: 3,
+    outcome: {
+      path: ["verify"],
+      duration: "1 s",
+      failAt: { jobId: "verify", error: "No birth registration found in OpenCRVS", duration: "702 ms" },
+    },
+  },
+  {
+    weight: 2,
+    outcome: {
+      path: ["verify", "search", "create", "confirm"],
+      duration: "5 s",
+      failAt: { jobId: "confirm", error: "Twilio returned 400: not a valid phone number", duration: "366 ms" },
+    },
+  },
+];
+
+/** On 8 Oct Identity was down from 1 to 4 PM, so most searches timed out. */
+const identityOutage = (t: Date) => t.getMonth() === 9 && t.getDate() === 8 && t.getHours() >= 13 && t.getHours() < 16;
+
+function weighted(random: () => number, options: { weight: number; outcome: Outcome }[]): Outcome {
+  const total = options.reduce((sum, o) => sum + o.weight, 0);
+  let roll = random() * total;
+  for (const o of options) {
+    roll -= o.weight;
+    if (roll < 0) return o.outcome;
+  }
+  return options[options.length - 1].outcome;
+}
+
+/**
+ * A month of national ID applications: a few a day on weekdays, fewer at
+ * weekends, on v1 until v2 went live on 24 Sep. Some failures were retried
+ * by hand a little later and went through.
+ */
+function generatedNationalIdHistory(): { runs: ReturnType<typeof buildRun>[]; inputs: Dataclip[] } {
+  const random = seededRandom(20261020);
+  const v2Live = new Date(2026, 8, 24, 11, 0);
+  const times = generatedTimes(new Date(2026, 8, 20, 10, 30), random, (day) => (isWeekend(day) ? 1 + Math.floor(random() * 2) : 4 + Math.floor(random() * 4)));
+  const runs: ReturnType<typeof buildRun>[] = [];
+  const inputs: Dataclip[] = [];
+  for (const t of times) {
+    const workOrderId = hex(random);
+    const runId = hex(random);
+    const given = pick(random, GIVEN);
+    const family = pick(random, FAMILY);
+    const year = 1950 + Math.floor(random() * 56);
+    const body = {
+      given_name: given,
+      family_name: family,
+      date_of_birth: `${year}-${String(1 + Math.floor(random() * 12)).padStart(2, "0")}-${String(1 + Math.floor(random() * 28)).padStart(2, "0")}`,
+      district: pick(random, DISTRICTS),
+      phone: `+1555555${String(1000 + Math.floor(random() * 9000))}`,
+    };
+    const input = application(`req-${workOrderId.slice(0, 4)}`, whenLabel(t), body);
+    inputs.push(input);
+
+    const onV1 = t < v2Live;
+    const outcome: Outcome = onV1
+      ? random() < 0.85
+        ? { path: ["create", "confirm"], duration: "2 s" }
+        : { path: ["create", "queue"], duration: "31 s", failAt: { jobId: "create", error: "Identity returned 502 Bad Gateway" } }
+      : identityOutage(t) && random() < 0.7
+        ? v2Outcomes[2].outcome
+        : weighted(random, v2Outcomes);
+    const spec = {
+      workOrderId,
+      version: onV1 ? "v1" : "v2",
+      input,
+      ...(outcome.match && {
+        outputs: { search: { ...body, matches: [{ nationalId: `NID-20${10 + Math.floor(random() * 15)}-${runId.slice(0, 6).toUpperCase()}`, given_name: given, family_name: family }], exactMatch: true } },
+      }),
+    };
+    runs.push(buildRun({ ...spec, runId, when: whenLabel(t), started: startedStamp(t), duration: outcome.duration, path: outcome.path, failAt: outcome.failAt }));
+
+    // Some failures at Identity were retried by hand once it was back.
+    const retriable = outcome.failAt && (outcome.failAt.jobId === "search" || outcome.failAt.jobId === "create");
+    if (retriable && random() < 0.45) {
+      const retryAt = new Date(t.getTime() + (20 + Math.floor(random() * 160)) * 60_000);
+      if (retryAt <= GENERATED_UNTIL) {
+        runs.push(
+          buildRun({
+            ...spec,
+            runId: hex(random),
+            when: whenLabel(retryAt),
+            started: startedStamp(retryAt),
+            startedBy: pick(random, ["Brandon Jackson", "Jane Doe"]),
+            duration: onV1 ? "2 s" : "5 s",
+            path: onV1 ? ["create", "confirm"] : ["verify", "search", "create", "confirm"],
+          })
+        );
+      }
+    }
+  }
+  return { runs, inputs };
+}
+
+const generated = generatedNationalIdHistory();
+
+/** Newest first, by when they started; runs that started together keep the order they're listed in. */
+const newestFirst = <T extends { run: RunDetails }>(runs: T[]) =>
+  runs
+    .map((r, i) => ({ r, i, t: stampTime(r.run.started) }))
+    .sort((a, b) => b.t - a.t || a.i - b.i)
+    .map(({ r }) => r);
 
 /** Group runs into work orders, keeping the order they're listed in. */
 function toWorkOrders(runs: RunDetails[]): WorkOrder[] {
@@ -433,13 +636,18 @@ function toWorkOrders(runs: RunDetails[]): WorkOrder[] {
 }
 
 /** Recent work orders for the national ID workflow, newest first. */
-export const workOrders: WorkOrder[] = toWorkOrders(built.map((b) => b.run));
+export const workOrders: WorkOrder[] = toWorkOrders(newestFirst([...built, ...generated.runs]).map((b) => b.run));
+
+/** The national ID work orders made up from the seed rather than written out by hand. */
+export const generatedWorkOrderIds: ReadonlySet<string> = new Set(generated.runs.map((b) => b.run.workOrderId));
 
 /** Every dataclip in the project: trigger inputs, saved inputs and step results. */
 export const dataclips: Dataclip[] = [
   ...Object.values(inputs),
+  ...generated.inputs,
   ...savedInputs,
   ...built.flatMap((b) => b.dataclips),
+  ...generated.runs.flatMap((b) => b.dataclips),
 ];
 
 /** The most recent run, for stories that show a single run. */
@@ -595,10 +803,69 @@ const builtCases = [
   }),
 ];
 
-/** Recent work orders for the register-case workflow, newest first. */
-export const registerCaseWorkOrders: WorkOrder[] = toWorkOrders(builtCases.map((b) => b.run));
+/**
+ * Case reports since access was granted on 15 Oct: a few a day, mostly from
+ * facilities over X-Road, now and then one on the plain webhook.
+ */
+function generatedCaseHistory(): { runs: ReturnType<typeof buildRun>[]; inputs: Dataclip[] } {
+  const random = seededRandom(1101);
+  const callers = [
+    { client: "FJ/GOV/NRH/OPENMRS", clientName: "National Referral Hospital", facilities: ["NRH-OPD", "NRH-PAED"], prefix: "nrh" },
+    { client: "FJ/GOV/NDHO/SURVEILLANCE", clientName: "Northern District Health Office", facilities: ["NDHO-KAR"], prefix: "ndho" },
+  ];
+  const times = generatedTimes(new Date(2026, 9, 15, 11, 30), random, (day) => (isWeekend(day) ? 1 : 2 + Math.floor(random() * 3)));
+  const runs: ReturnType<typeof buildRun>[] = [];
+  const inputs: Dataclip[] = [];
+  for (const t of times) {
+    const workOrderId = hex(random);
+    const runId = hex(random);
+    const caller = random() < 0.85 ? pick(random, callers) : undefined;
+    const year = 1950 + Math.floor(random() * 75);
+    const input = caseReport(`req-${workOrderId.slice(0, 4)}`, whenLabel(t), {
+      disease: pick(random, ["1A00", "1F03"]),
+      onsetDate: `2026-10-${String(Math.max(1, t.getDate() - 1 - Math.floor(random() * 3))).padStart(2, "0")}`,
+      facility: caller ? pick(random, caller.facilities) : "CEN-HC-04",
+      patient: {
+        nationalId: `FJ-${year}-${String(Math.floor(random() * 1_000_000)).padStart(6, "0")}`,
+        givenName: pick(random, GIVEN),
+        familyName: pick(random, FAMILY),
+        sex: random() < 0.5 ? "F" : "M",
+        dateOfBirth: `${year}-${String(1 + Math.floor(random() * 12)).padStart(2, "0")}-${String(1 + Math.floor(random() * 28)).padStart(2, "0")}`,
+      },
+    });
+    inputs.push(input);
+    const failed = random() < 0.05;
+    runs.push(
+      buildRun({
+        runId,
+        workOrderId,
+        version: "v1",
+        when: whenLabel(t),
+        started: startedStamp(t),
+        startedBy: caller ? `${caller.clientName}, over X-Road` : undefined,
+        duration: failed ? "33 s" : "2 s",
+        input,
+        path: caseRunPath,
+        failAt: failed ? { jobId: "openmrs-patient", error: "OpenMRS did not respond within 30s" } : undefined,
+        workflow: registerCaseWorkflow,
+        xroad: caller && { client: caller.client, clientName: caller.clientName, messageId: `${caller.prefix}-${runId}-${hex(random).slice(0, 4)}` },
+      })
+    );
+  }
+  return { runs, inputs };
+}
 
-export const registerCaseDataclips: Dataclip[] = [...Object.values(cases), ...builtCases.flatMap((b) => b.dataclips)];
+const generatedCases = generatedCaseHistory();
+
+/** Recent work orders for the register-case workflow, newest first. */
+export const registerCaseWorkOrders: WorkOrder[] = toWorkOrders(newestFirst([...builtCases, ...generatedCases.runs]).map((b) => b.run));
+
+export const registerCaseDataclips: Dataclip[] = [
+  ...Object.values(cases),
+  ...generatedCases.inputs,
+  ...builtCases.flatMap((b) => b.dataclips),
+  ...generatedCases.runs.flatMap((b) => b.dataclips),
+];
 
 /** The run that was refused by the provider, for stories. */
 export const accessNotGrantedRun: RunDetails = registerCaseWorkOrders.find((o) => o.id === "e902b5c4")!.runs.at(-1)!;
@@ -609,6 +876,8 @@ const builtWeekly = [
   { runId: "7e30c1aa", workOrderId: "w42d1e09", when: "yesterday at 6:00 AM", started: "19/10/2026, 06:00:02" },
   { runId: "52b8e4f0", workOrderId: "w41c7a33", when: "Oct 12th, 6:00 AM", started: "12/10/2026, 06:00:01" },
   { runId: "19dd07b2", workOrderId: "w40b25e1", when: "Oct 5th, 6:00 AM", started: "05/10/2026, 06:00:03" },
+  { runId: "a4c19e07", workOrderId: "w39f0d12", when: "Sep 28th, 6:00 AM", started: "28/09/2026, 06:00:02" },
+  { runId: "0f6b3d95", workOrderId: "w38e6c40", when: "Sep 21st, 6:00 AM", started: "21/09/2026, 06:00:04" },
 ].map((r) =>
   buildRun({
     ...r,

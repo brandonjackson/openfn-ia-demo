@@ -50,8 +50,40 @@ export interface WorkOrderRow {
 }
 
 export interface DataclipRow extends Dataclip {
-  workflow_id: string;
+  /** The workflow whose run used or made it; none for one saved in the project by hand. */
+  workflow_id: string | null;
   project_id: string;
+}
+
+const SAVED_KEYS = ["name", "description", "body", "workflow_id"];
+
+/** Problems with a saved dataclip's name and description, as a create or a change sends them. */
+function savedProblems(projectId: string, body: Body, ownId?: string): Entry[] {
+  const errors: Entry[] = [];
+  const name = body["name"];
+  if (typeof name !== "string" || !name.trim()) errors.push({ code: "required", detail: "can't be blank", pointer: "#/name" });
+  else if (name.trim().length > 80) errors.push({ code: "too_long", detail: "should be at most 80 characters", pointer: "#/name" });
+  else if (dataclips.rows().some((d) => d.project_id === projectId && d.id !== ownId && d.name?.toLowerCase() === name.trim().toLowerCase())) {
+    errors.push({ code: "taken", detail: "has already been taken", pointer: "#/name" });
+  }
+  const description = body["description"];
+  if (description !== undefined && description !== null && typeof description !== "string") {
+    errors.push({ code: "type", detail: "must be text", pointer: "#/description" });
+  }
+  return errors;
+}
+
+/**
+ * Copies a project's saved dataclips into a sandbox made from it, under new
+ * ids, each on the sandbox's copy of its workflow (`copies`, by the
+ * original's id). Unknown or unnamed ids are skipped.
+ */
+export function copyDataclipsInto(fromProjectId: string, sandboxId: string, ids: string[], copies: Map<string, string>) {
+  for (const id of new Set(ids)) {
+    const d = dataclips.rows().find((x) => x.id === id && x.project_id === fromProjectId && x.name);
+    if (!d) continue;
+    dataclips.insert({ ...d, id: shortId(), project_id: sandboxId, workflow_id: d.workflow_id ? (copies.get(d.workflow_id) ?? null) : null, created: "just now" });
+  }
 }
 
 /** The fixture workflows that have a run history: each project's, and the national ID workflow in Project A. */
@@ -220,6 +252,55 @@ export const workOrderRoutes: Record<string, Handler> = {
     const workflowId = query.get("workflow_id");
     const rows = dataclips.rows().filter((d) => d.project_id === p.id && (!workflowId || d.workflow_id === workflowId));
     return json(200, paged(`/api/projects/${p.id}/dataclips`, rows, query));
+  },
+
+  // The demo's own (api/dataclips.md has no way to save one): saves an input under a name, to run with again.
+  "POST /api/demo/projects/:project_id/dataclips": ({ project_id }, body) => {
+    const p = guardProject(project_id!, "editor");
+    if (p instanceof Response) return p;
+    const errors = [...unknownKeys(body, SAVED_KEYS), ...savedProblems(p.id, body)];
+    const text = body["body"];
+    if (typeof text !== "string") errors.push({ code: "required", detail: "can't be blank", pointer: "#/body" });
+    else {
+      try {
+        JSON.parse(text);
+      } catch {
+        errors.push({ code: "invalid", detail: "must be JSON", pointer: "#/body" });
+      }
+    }
+    const workflowId = body["workflow_id"];
+    if (workflowId !== undefined && workflowId !== null && !workflows.rows().some((w) => w.id === workflowId && w.project_id === p.id)) {
+      errors.push({ code: "not_found", detail: "isn't a workflow in this project", pointer: "#/workflow_id" });
+    }
+    if (errors.length) return invalid(errors);
+    const row: DataclipRow = {
+      id: shortId(),
+      name: (body["name"] as string).trim(),
+      description: ((body["description"] as string | undefined) ?? "").trim() || undefined,
+      type: "saved_input",
+      body: text as string,
+      created: "just now",
+      workflow_id: (workflowId as string | undefined) ?? null,
+      project_id: p.id,
+    };
+    dataclips.insert(row);
+    return json(201, { data: row });
+  },
+
+  // The demo's own: renames a dataclip or changes what it says it's for.
+  // Naming one saves it; the same dataclip listed under several workflows changes everywhere.
+  "PATCH /api/demo/projects/:project_id/dataclips/:id": ({ project_id, id }, body) => {
+    const p = guardProject(project_id!, "editor");
+    if (p instanceof Response) return p;
+    const rows = dataclips.rows().filter((d) => d.id === id && d.project_id === p.id);
+    if (!rows.length) return notFound();
+    const errors = [...unknownKeys(body, ["name", "description"]), ...savedProblems(p.id, { name: rows[0]!.name, ...body }, id)];
+    if (errors.length) return invalid(errors);
+    const changes: Partial<DataclipRow> = {};
+    if (typeof body["name"] === "string") changes.name = body["name"].trim();
+    if (body["description"] !== undefined) changes.description = ((body["description"] as string | null) ?? "").trim() || undefined;
+    dataclips.update((d) => d.id === id && d.project_id === p.id, (d) => ({ ...d, ...changes }));
+    return json(200, { data: { ...rows[0]!, ...changes } });
   },
 
   // Runs a workflow by hand. The demo's editor runs it itself and sends the finished run to record (standing in for the worker); without one, it's simulated here.

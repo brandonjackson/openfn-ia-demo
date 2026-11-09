@@ -1,5 +1,6 @@
 import type {
   InputHTMLAttributes,
+  Ref,
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from "react";
@@ -12,6 +13,8 @@ interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
   compact?: boolean;
   /** Monospaced, for keys, ids and code. */
   mono?: boolean;
+  /** To focus it, e.g. on the field a form says is missing. */
+  ref?: Ref<HTMLInputElement>;
 }
 
 export function TextInput({ className = "", compact = false, mono = false, ...rest }: TextInputProps) {
@@ -21,6 +24,8 @@ export function TextInput({ className = "", compact = false, mono = false, ...re
 interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   /** Monospaced, for code or JSON. */
   mono?: boolean;
+  /** To focus it, e.g. on the field a form says is missing. */
+  ref?: Ref<HTMLTextAreaElement>;
 }
 
 export function TextArea({ className = "", mono = false, ...rest }: TextAreaProps) {

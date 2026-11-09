@@ -1,4 +1,4 @@
-import { BookOpen, FileText, HeartPulse, Plus, Workflow as WorkflowIcon } from "lucide-react";
+import { BookOpen, Database, FileText, HeartPulse, Plus, Workflow as WorkflowIcon } from "lucide-react";
 import type { JobNode, RunDetails, TriggerNode, Workflow } from "../../model/workflow";
 import { triggerTypes } from "../../model/workflow";
 import type { ProjectComponent } from "../../model/projects";
@@ -6,11 +6,20 @@ import { componentTypeIcons } from "../../model/component-types";
 import NavItem from "../primitives/NavItem";
 import AdaptorLogo from "./AdaptorLogo";
 import StatusPill from "./StatusPill";
+import Text from "../primitives/Text";
+
+/**
+ * The workflow's files besides workflow.yaml that it may or may not have,
+ * which the Workflow group's + adds: its context, its spec, its service
+ * manifest (service.md) and the project's saved dataclips to run it with.
+ */
+export type WorkflowFileKind = "context" | "spec" | "service" | "dataclips";
 
 /**
  * What the code view can have open: one of the workflow's files (a doc added
- * this session goes by its file name), the workflow's health (a page, not a
- * file), the trigger, a step, or a project component the workflow uses.
+ * this session goes by its file name), the workflow's health or its saved
+ * dataclips (pages, not files), the trigger, a step, or a project component
+ * the workflow uses.
  */
 export type ExplorerFile =
   | "workflow"
@@ -18,6 +27,7 @@ export type ExplorerFile =
   | "spec"
   | "service"
   | "health"
+  | "dataclips"
   | "trigger"
   | { docName: string }
   | { stepId: string }
@@ -40,6 +50,14 @@ interface Props {
   components?: ProjectComponent[];
   /** Lists service.md, the listing of the published service the workflow backs. */
   hasService?: boolean;
+  /**
+   * Which of the workflow's optional files it has, and so are listed:
+   * context.md, spec.md, service.md and Saved dataclips. Defaults to the
+   * context and spec, with service.md when `hasService`.
+   */
+  files?: WorkflowFileKind[];
+  /** How many saved dataclips the project has, beside Saved dataclips. */
+  savedDataclipCount?: number;
   /** Docs added alongside context.md and spec.md, by file name. */
   docs?: string[];
   /** On main: each group's + shows but is disabled, pointing to a sandbox. */
@@ -48,16 +66,16 @@ interface Props {
   showWorkflowFiles?: boolean;
   /** List the Components group. Off with the demo's Components flag. */
   showComponents?: boolean;
-  /** The + on each group. */
-  onAddDoc?: () => void;
+  /** The + on each group; the Workflow group's opens what can be added to it. */
+  onAddFile?: () => void;
   onAddStep?: () => void;
   onAddComponent?: () => void;
 }
 
 /**
  * The left-hand explorer in code mode, in three groups: the workflow's own
- * files (its YAML, context, spec, service listing, its Health page and any
- * added docs), its trigger and steps in
+ * files (its YAML, whichever of its context, spec, service manifest and the
+ * project's saved dataclips it has, its Health page and any added docs), its trigger and steps in
  * the order they run, and the project components it uses. Each group adds
  * from the + beside its heading (disabled on main). You move between them here rather than
  * through tabs. With a run loaded, each step shows how it went.
@@ -69,15 +87,18 @@ export default function EditorExplorer({
   run,
   components = [],
   hasService = false,
+  files,
+  savedDataclipCount,
   docs = [],
   readOnly = false,
   showWorkflowFiles = true,
   showComponents = true,
-  onAddDoc,
+  onAddFile,
   onAddStep,
   onAddComponent,
 }: Props) {
   const current = explorerFileId(file);
+  const listed = new Set<WorkflowFileKind>(files ?? ["context", "spec", ...(hasService ? (["service"] as const) : [])]);
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
   const steps = workflow.nodes.filter((n): n is JobNode => n.type === "job");
   const startedAtTrigger =
@@ -88,12 +109,26 @@ export default function EditorExplorer({
       <div className="mb-2 px-2 font-mono text-[11px] uppercase tracking-widest text-gray-400">Explorer</div>
 
       {showWorkflowFiles && (
-        <Section title="Workflow" addLabel="New doc" onAdd={onAddDoc} readOnly={readOnly}>
+        <Section title="Workflow" addLabel="Add to workflow" onAdd={onAddFile} readOnly={readOnly}>
           <NavItem variant="tree" label="workflow.yaml" icon={WorkflowIcon} active={current === "workflow"} onClick={() => onOpen("workflow")} />
-          <NavItem variant="tree" label="context.md" icon={FileText} active={current === "context"} onClick={() => onOpen("context")} />
-          <NavItem variant="tree" label="spec.md" icon={FileText} active={current === "spec"} onClick={() => onOpen("spec")} />
-          {hasService && (
+          {listed.has("context") && (
+            <NavItem variant="tree" label="context.md" icon={FileText} active={current === "context"} onClick={() => onOpen("context")} />
+          )}
+          {listed.has("spec") && (
+            <NavItem variant="tree" label="spec.md" icon={FileText} active={current === "spec"} onClick={() => onOpen("spec")} />
+          )}
+          {listed.has("service") && (
             <NavItem variant="tree" label="service.md" icon={BookOpen} active={current === "service"} onClick={() => onOpen("service")} />
+          )}
+          {listed.has("dataclips") && (
+            <NavItem
+              variant="tree"
+              label="Saved dataclips"
+              icon={Database}
+              trailing={savedDataclipCount !== undefined && <Text tone="subtle" size="xs">{savedDataclipCount}</Text>}
+              active={current === "dataclips"}
+              onClick={() => onOpen("dataclips")}
+            />
           )}
           <NavItem variant="tree" label="Health" icon={HeartPulse} active={current === "health"} onClick={() => onOpen("health")} />
           {docs.map((name) => (

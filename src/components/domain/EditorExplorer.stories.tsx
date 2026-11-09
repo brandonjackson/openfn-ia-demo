@@ -36,21 +36,29 @@ export const ReadOnly: Story = { args: { readOnly: true } };
 
 /** In a sandbox, each group adds from the + beside its heading. */
 export const Editable: Story = {
-  args: { onAddDoc: () => {}, onAddStep: () => {}, onAddComponent: () => {} },
+  args: { onAddFile: () => {}, onAddStep: () => {}, onAddComponent: () => {} },
 };
 
 /** A doc added this session, open. */
 export const AddedDoc: Story = {
-  args: { docs: ["untitled.md"], file: { docName: "untitled.md" }, onAddDoc: () => {}, onAddStep: () => {}, onAddComponent: () => {} },
+  args: { docs: ["untitled.md"], file: { docName: "untitled.md" }, onAddFile: () => {}, onAddStep: () => {}, onAddComponent: () => {} },
 };
 
 /** A workflow behind a published service lists its listing after the context and spec. */
 export const ServiceListing: Story = { args: { hasService: true, file: "service" } };
 
-/** With a run selected, each step shows how it went. */
+/** The project's saved dataclips, listed under the docs with how many there are. */
+export const SavedDataclipsOpen: Story = {
+  args: { files: ["context", "spec", "dataclips"], savedDataclipCount: 2, file: "dataclips", onAddFile: () => {}, onAddStep: () => {} },
+};
+
+/** A new workflow with none of its optional files yet: the + adds them. */
+export const OnlyTheWorkflow: Story = { args: { files: [], file: "workflow", onAddFile: () => {}, onAddStep: () => {} } };
+
 /** Health open: it sits under service.md and opens a page rather than a file. */
 export const HealthOpen: Story = { args: { hasService: true, file: "health" } };
 
+/** With a run selected, each step shows how it went. */
 export const FollowingRun: Story = { args: { run: failedRun, file: { stepId: "create" } } };
 
 export const ComponentOpen: Story = { args: { file: { componentId: components[0].id } } };

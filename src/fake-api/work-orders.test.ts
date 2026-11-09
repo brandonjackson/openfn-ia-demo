@@ -73,3 +73,45 @@ describe("work orders and runs", () => {
     expect((await refusal(request("POST", `/api/projects/${a}/work_orders/retries`, { work_order_ids: [order.id] })))?.code).toBe("forbidden");
   });
 });
+
+describe("saved dataclips", () => {
+  type Clip = { id: string; name?: string; description?: string; body: string; workflow_id: string | null };
+  const clipsIn = (projectId: string) => request<{ data: Clip[] }>("GET", `/api/projects/${projectId}/dataclips?page_size=100`).then((r) => r.data);
+
+  it("saves an input under a name, and refuses one without a name, a name taken or data that isn't JSON", async () => {
+    const { data } = await request<{ data: Clip }>("POST", `/api/demo/projects/${a}/dataclips`, { name: "Late applicant", description: "Applied after the deadline", body: '{"late": true}', workflow_id: planning });
+    expect(data).toMatchObject({ name: "Late applicant", description: "Applied after the deadline", workflow_id: planning });
+    expect((await clipsIn(a)).some((d) => d.id === data.id)).toBe(true);
+    expect((await refusal(request("POST", `/api/demo/projects/${a}/dataclips`, { name: " ", body: "{}" })))?.fieldErrors["name"]).toEqual(["can't be blank"]);
+    expect((await refusal(request("POST", `/api/demo/projects/${a}/dataclips`, { name: "late applicant", body: "{}" })))?.fieldErrors["name"]).toEqual(["has already been taken"]);
+    expect((await refusal(request("POST", `/api/demo/projects/${a}/dataclips`, { name: "Broken", body: "{" })))?.fieldErrors["body"]).toEqual(["must be JSON"]);
+  });
+
+  it("renames and describes a saved one, wherever it's listed", async () => {
+    await request("PATCH", `/api/demo/projects/${a}/dataclips/saved-new-citizen`, { name: "First-time applicant", description: "Not in the registry yet" });
+    const copies = (await clipsIn(a)).filter((d) => d.id === "saved-new-citizen");
+    expect(copies.length).toBeGreaterThan(0);
+    expect(copies.every((d) => d.name === "First-time applicant" && d.description === "Not in the registry yet")).toBe(true);
+    expect((await refusal(request("PATCH", `/api/demo/projects/${a}/dataclips/saved-new-citizen`, { name: "Sample application: existing citizen" })))?.fieldErrors["name"]).toEqual([
+      "has already been taken",
+    ]);
+    expect((await refusal(request("PATCH", `/api/demo/projects/${a}/dataclips/nope`, { name: "x" })))?.code).toBe("not_found");
+  });
+
+  it("brings the saved dataclips asked for into a new sandbox, on its copies of their workflows", async () => {
+    const id = crypto.randomUUID();
+    await request("PUT", `/api/projects/${a}/sandboxes/${id}`, { name: "try-inputs", dataclip_ids: ["saved-existing-citizen"] });
+    const brought = await clipsIn(id);
+    expect(brought).toHaveLength(1);
+    expect(brought[0]).toMatchObject({ name: "Sample application: existing citizen" });
+    expect(brought[0]!.id).not.toBe("saved-existing-citizen");
+    const { workflows: copies } = await request<{ workflows: { id: string }[] }>("GET", `/api/projects/${id}/workflows`);
+    expect(copies.some((w) => w.id === brought[0]!.workflow_id)).toBe(true);
+  });
+
+  it("lets a viewer read saved dataclips but not save one", async () => {
+    signInAs("user-beth");
+    expect((await clipsIn(a)).length).toBeGreaterThan(0);
+    expect((await refusal(request("POST", `/api/demo/projects/${a}/dataclips`, { name: "Mine", body: "{}" })))?.code).toBe("forbidden");
+  });
+});

@@ -1,7 +1,7 @@
 import { sandboxSlug } from "../model/sandboxes";
 import { errorMessageOf, firstProblemOf } from "../model/form-error";
 import { useEffect, useRef, useState } from "react";
-import { Sparkles } from "lucide-react";
+import { BookOpen, Database, FilePlus, FileText, Sparkles } from "lucide-react";
 import type {
   AdaptorKind,
   Dataclip,
@@ -46,7 +46,7 @@ import type { EditorLayout, PanelViewId } from "../components/domain/editor-layo
 import WorkflowCanvas from "../components/domain/WorkflowCanvas";
 import type { NodeAction } from "../components/domain/WorkflowNodeCard";
 import CodeWorkspace from "../components/domain/CodeWorkspace";
-import type { ExplorerFile } from "../components/domain/EditorExplorer";
+import type { ExplorerFile, WorkflowFileKind } from "../components/domain/EditorExplorer";
 import VersionMismatchBanner from "../components/domain/VersionMismatchBanner";
 import StepRunDetails from "../components/domain/StepRunDetails";
 import StepInspector from "../components/domain/StepInspector";
@@ -67,7 +67,10 @@ import PromoteSandboxModal from "../components/domain/PromoteSandboxModal";
 import ConfirmModal from "../components/primitives/ConfirmModal";
 import Modal from "../components/primitives/Modal";
 import type { ProjectComponentType } from "../model/component-types";
-import AddComponentPanel from "../components/domain/AddComponentPanel";
+import AddComponentPanel, { type AddComponentOption } from "../components/domain/AddComponentPanel";
+import SavedDataclipsView from "../components/domain/SavedDataclipsView";
+import DataclipFormModal from "../components/domain/DataclipFormModal";
+import { runInputName, savedDataclips, untitledDataclipName, type DataclipChanges, type DataclipDraft } from "../model/dataclips";
 import WorkflowHealth from "../components/domain/WorkflowHealth";
 import ChannelView from "../components/domain/ChannelView";
 import ComponentView from "../components/domain/ComponentView";
@@ -234,6 +237,7 @@ export default function WorkflowEditorPage({
   defaultEditInSandboxOpen = false,
   defaultRunInputOpen = false,
   defaultRunsFilterOpen = false,
+  defaultAddFileOpen = false,
   assistantConversations = [],
   adaptors,
   catalog,
@@ -253,6 +257,8 @@ export default function WorkflowEditorPage({
   onToggleLive,
   onPromote,
   onCreateSandbox,
+  onCreateDataclip,
+  onSaveDataclip,
 }: {
   workflow: Workflow;
   /** Recent work orders, newest first. */
@@ -321,6 +327,8 @@ export default function WorkflowEditorPage({
   defaultRunInputOpen?: boolean;
   /** Start with the canvas's run list open (useful for stories). */
   defaultRunsFilterOpen?: boolean;
+  /** Start with the Workflow group's "Add to workflow" open, in code mode (useful for stories). */
+  defaultAddFileOpen?: boolean;
   /** Saved assistant conversations for this workflow. */
   assistantConversations?: AssistantConversation[];
   /** What the editor knows about each adaptor a step can use (name, version, snippets), and the project's credentials. */
@@ -375,8 +383,17 @@ export default function WorkflowEditorPage({
    * it, promoting adds a version for the session.
    */
   onPromote?: (message: string) => Promise<void>;
-  /** Makes a sandbox with this name from the one selected; once it resolves, `sandboxes` lists it. */
-  onCreateSandbox?: (name: string) => Promise<void>;
+  /**
+   * Makes a sandbox with this name from the one selected, with the data it
+   * starts with: a saved dataclip it brings across, or a reviewed copy of a
+   * run's input, saved in it under the run's name. Once it resolves,
+   * `sandboxes` lists it and, selected, its `dataclips` hold what came across.
+   */
+  onCreateSandbox?: (name: string, start: SandboxStart) => Promise<void>;
+  /** Saves a new dataclip in the project, to run with; resolves with it. Without it, it lasts as long as the page. */
+  onCreateDataclip?: (draft: DataclipDraft) => Promise<Dataclip>;
+  /** Changes a saved dataclip's title and description. Without it, the change lasts as long as the page. */
+  onSaveDataclip?: (id: string, changes: DataclipChanges) => Promise<void>;
 }) {
   // ---- Where we are ---------------------------------------------------------
 
@@ -501,10 +518,11 @@ export default function WorkflowEditorPage({
     });
   };
 
-  // A page in the code view's main pane (Health) opens with the bottom and right panels hidden, so
-  // it has the room. Showing them there lasts until you leave the page, and leaves the remembered
-  // layout alone, so opening a code item brings the panels back as they were.
-  const onPage = view === "code" && file === "health";
+  // A page in the code view's main pane (Health, Saved dataclips) opens with the bottom and right panels
+  // hidden, so it has the room. Showing them there lasts until you leave the page, and leaves the
+  // remembered layout alone, so opening a code item brings the panels back as they were.
+  const isPage = (f: ExplorerFile) => f === "health" || f === "dataclips";
+  const onPage = view === "code" && isPage(file);
   const [pagePanels, setPagePanels] = useState({ panel: false, details: false });
   const shownLayout: EditorLayout = onPage ? { ...layout, ...pagePanels } : layout;
   const changeLayout = (patch: Partial<EditorLayout>) => {
@@ -516,7 +534,7 @@ export default function WorkflowEditorPage({
     if (Object.keys(rest).length > 0) updateLayout(rest);
   };
   const openFile = (f: ExplorerFile) => {
-    if (f === "health" && file !== "health") setPagePanels({ panel: false, details: false });
+    if (isPage(f) && f !== file) setPagePanels({ panel: false, details: false });
     setFile(f);
   };
 
@@ -727,16 +745,18 @@ export default function WorkflowEditorPage({
   const createSandbox = ({ name: typed, start }: { name: string; start: SandboxStart }) => {
     // Named by its slug, as the Sandboxes page names them.
     const sandboxName = sandboxSlug(typed);
-    // A reviewed copy of a run's input comes along as a named input.
-    if (start.kind === "run") addInput(start.body, `Input from run ${start.runId}`);
     setEditInSandboxOpen(false);
+    // What it brings across shows in the sandbox's Saved dataclips.
+    if (start.kind !== "nothing") addFile("dataclips");
     if (onCreateSandbox) {
-      void onCreateSandbox(sandboxName).then(
+      void onCreateSandbox(sandboxName, start).then(
         () => selectSandbox(sandboxName),
         (e: unknown) => setStatusNote(`Sandbox not made: ${firstProblemOf(e)}`),
       );
       return;
     }
+    // A reviewed copy of a run's input comes along as a named input.
+    if (start.kind === "run") addInput(start.body, runInputName(start.runId));
     setNewSandboxes((current) => [...current, sandboxName]);
     selectSandbox(sandboxName);
   };
@@ -815,6 +835,8 @@ export default function WorkflowEditorPage({
     setSelectedId(id);
   };
 
+  // ---- Workflow files -------------------------------------------------------
+
   // Docs added from the explorer, kept for this session.
   const [docs, setDocs] = useState<string[]>([]);
   const addDoc = () => {
@@ -823,6 +845,58 @@ export default function WorkflowEditorPage({
     for (let n = 2; taken.has(name); n++) name = `untitled-${n}.md`;
     setDocs([...docs, name]);
     setFile({ docName: name });
+  };
+
+  // The workflow's optional files: the ones it has, and any added from the Workflow group's + this session.
+  const saved = savedDataclips(clips);
+  const [addedFiles, setAddedFiles] = useState<WorkflowFileKind[]>([]);
+  const addFile = (kind: WorkflowFileKind) => setAddedFiles((current) => (current.includes(kind) ? current : [...current, kind]));
+  const has: Record<WorkflowFileKind, boolean> = {
+    context: !contents || contents.docs.context !== "",
+    spec: !contents || contents.docs.spec !== "",
+    service: service !== undefined,
+    dataclips: saved.length > 0,
+  };
+  const workflowFiles = (["context", "spec", "service", "dataclips"] as const).filter((k) => has[k] || addedFiles.includes(k));
+  const [addFileOpen, setAddFileOpen] = useState(defaultAddFileOpen);
+  const [newDataclipOpen, setNewDataclipOpen] = useState(false);
+  const added = (kind: WorkflowFileKind) => (workflowFiles.includes(kind) ? "Added" : undefined);
+  const fileOptions: (AddComponentOption & { kind: WorkflowFileKind | "doc" })[] = [
+    ...(publishesServices
+      ? [{ kind: "service" as const, type: "Service manifest", icon: BookOpen, tag: added("service"), description: "service.md: how other teams call the workflow as a service, and what it returns." }]
+      : []),
+    { kind: "spec", type: "Spec", icon: FileText, tag: added("spec"), description: "spec.md: what goes in, what each step writes, and when a run counts as done." },
+    { kind: "dataclips", type: "Saved dataclip", icon: Database, tag: saved.length > 0 ? `${saved.length} saved` : undefined, description: "An input kept in the project to run the workflow with again." },
+    { kind: "context", type: "Context", icon: FileText, tag: added("context"), description: "context.md: the legislation and people behind the workflow, for the assistant to read." },
+    { kind: "doc", type: "Doc", icon: FilePlus, description: "A blank Markdown doc kept alongside the workflow." },
+  ];
+  const pickFile = (kind: WorkflowFileKind | "doc") => {
+    setAddFileOpen(false);
+    if (kind === "doc") return addDoc();
+    if (kind === "dataclips") return setNewDataclipOpen(true);
+    addFile(kind);
+    openFile(kind);
+  };
+
+  /** Save a new dataclip in the project and open Saved dataclips, where it now shows. */
+  const createDataclip = async (draft: DataclipDraft) => {
+    const made: Dataclip = onCreateDataclip
+      ? await onCreateDataclip(draft)
+      : { id: shortId(), type: "saved_input", created: "just now", ...draft, description: draft.description || undefined };
+    setClips((current) => [made, ...current.filter((c) => c.id !== made.id)]);
+    addFile("dataclips");
+    openFile("dataclips");
+  };
+
+  const saveDataclip = async (id: string, changes: DataclipChanges) => {
+    await onSaveDataclip?.(id, changes);
+    setClips((current) => current.map((c) => (c.id === id ? { ...c, name: changes.name, description: changes.description || undefined } : c)));
+  };
+
+  /** Run the workflow with a saved dataclip, and show its log under the list. */
+  const runSaved = (clip: Dataclip) => {
+    startRun({ workOrderId: shortId(), input: clip });
+    showPanel("log");
   };
 
   const deleteStep = (stepId: string) => {
@@ -1045,6 +1119,16 @@ export default function WorkflowEditorPage({
     />
   ) : undefined;
 
+  // Saved dataclips, opened from the explorer's Workflow group, also take the code's place.
+  const dataclipsPane = (
+    <SavedDataclipsView
+      dataclips={saved}
+      onRun={onRun ? runSaved : undefined}
+      onSave={saveDataclip}
+      onCreate={() => setNewDataclipOpen(true)}
+    />
+  );
+
   const layoutMenu = <LayoutMenu layout={shownLayout} onChange={changeLayout} onReset={resetLayout} />;
 
   /** From a snippet in the inspector: open the node in the code view, with that section in the panel. */
@@ -1218,6 +1302,15 @@ export default function WorkflowEditorPage({
             nextVersion={`v${versions.length + 1}`}
             onPromote={promote}
           />
+          <Modal open={addFileOpen} title="Add to workflow" onClose={() => setAddFileOpen(false)} widthClass="max-w-2xl">
+            <AddComponentPanel options={fileOptions} columns={2} bare onSelect={(type) => pickFile(fileOptions.find((o) => o.type === type)!.kind)} />
+          </Modal>
+          <DataclipFormModal
+            open={newDataclipOpen}
+            defaultName={untitledDataclipName(saved)}
+            onClose={() => setNewDataclipOpen(false)}
+            onSubmit={createDataclip}
+          />
           <Modal open={addComponentOpen} title="Add project component" onClose={() => setAddComponentOpen(false)} widthClass="max-w-2xl">
             <AddComponentPanel
               options={addableTypes}
@@ -1342,10 +1435,12 @@ export default function WorkflowEditorPage({
           onCodeChange={onMain ? undefined : changeCode}
           onDeleteStep={onMain ? undefined : deleteStep}
           onAddStep={onMain ? undefined : addStep}
+          files={workflowFiles}
+          savedDataclipCount={saved.length}
           docs={docs}
-          onAddDoc={onMain ? undefined : addDoc}
+          onAddFile={onMain ? undefined : () => setAddFileOpen(true)}
           onAddComponent={onMain || addableTypes.length === 0 ? undefined : () => setAddComponentOpen(true)}
-          pane={file === "health" ? healthPane : componentPane}
+          pane={file === "health" ? healthPane : file === "dataclips" ? dataclipsPane : componentPane}
           showExplorer={layout.explorer}
           showDetails={shownLayout.details}
           detailsView={layout.detailsView}

@@ -35,9 +35,9 @@ Most of the plumbing for 1 to 3 is done.
 - **The fake server already speaks Lightning.** Of the fake's 100 routes
   outside `/api/demo/`, Lightning answers 99 at the same path and method. The
   one it doesn't, `GET /api/projects/:project_id/dataclips`, is Planned in
-  `api/dataclips.md`. The other 33 routes are the demo's own, under
+  `api/dataclips.md`. The other 35 routes are the demo's own, under
   `/api/demo/` (connected systems, organisation, handbook, services,
-  components, maintenance, reset), which Lightning answers 404.
+  components, saved dataclips, maintenance, reset), which Lightning answers 404.
 - **Signing in comes free.** Lightning's API takes the browser's session
   cookie on a request from its own pages (`Sec-Fetch-Site: same-origin`, in
   `LightningWeb.SessionToken`), and a write carries the CSRF token from

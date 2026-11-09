@@ -15,6 +15,8 @@ import { useProject } from "../api/projects";
 import { useProjectCredentials } from "../api/credentials";
 import { useConnectedSystems } from "../api/connected-systems";
 import { useDataclips, useRunSaves, useWorkOrders } from "../api/work-orders";
+import { useDataclipSaves } from "../api/dataclips";
+import { runInputName, savedDataclips } from "../model/dataclips";
 import { useProjectComponents } from "./component-records.query";
 import { eventAddress } from "./channel-records.query";
 import { useCollectionsItems } from "../api/collections";
@@ -178,13 +180,18 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const { workOrders: projectOrders } = useWorkOrders([shown.project_id]);
   const { dataclips: projectClips } = useDataclips(shown.project_id);
   const runSaves = useRunSaves();
-  const history = useMemo(
-    () => ({
+  const dataclipSaves = useDataclipSaves();
+  // Who can save dataclips in the project shown: editors and up, as with its workflows.
+  const canSaveDataclips = !!selected.permissions?.edit_workflow;
+  const history = useMemo(() => {
+    // The shown copy's own dataclips, and every dataclip saved in its project under a name.
+    const own = projectClips.filter((d) => d.workflow_id === shown.id);
+    const ids = new Set(own.map((d) => d.id));
+    return {
       workOrders: projectOrders.filter((o) => o.workflowId === shown.id).map((o) => o.workOrder),
-      dataclips: projectClips.filter((d) => d.workflow_id === shown.id),
-    }),
-    [projectOrders, projectClips, shown.id],
-  );
+      dataclips: [...own, ...savedDataclips(projectClips.filter((d) => !ids.has(d.id)))],
+    };
+  }, [projectOrders, projectClips, shown.id]);
   // The project's components from the API: its channels, collections and the rest. Components belong
   // to the project, so a sandbox's editor shows and changes its project's.
   const records = useProjectComponents(root);
@@ -263,9 +270,13 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       sandbox={selected.id === root.id ? "main" : selected.name}
       onSelectSandbox={setSandbox}
       onViewAllSandboxes={() => navigate(`/projects/${root.id}/sandboxes`)}
-      onCreateSandbox={async (name) => {
-        await sandboxSaves.create(selected.id, { name, color: null });
+      onCreateSandbox={async (name, start) => {
+        // A saved dataclip comes across with the sandbox; a reviewed copy of a run's input is saved in it once it's made.
+        const id = await sandboxSaves.create(selected.id, { name, color: null, dataclipIds: start.kind === "saved" ? [start.dataclip.id] : [] });
+        if (start.kind === "run") await dataclipSaves.create(id, { name: runInputName(start.runId), description: "", body: start.body });
       }}
+      onCreateDataclip={canSaveDataclips ? (draft) => dataclipSaves.create(shown.project_id, draft, shown.id) : undefined}
+      onSaveDataclip={canSaveDataclips ? (id, changes) => dataclipSaves.update(shown.project_id, id, changes) : undefined}
       versions={snapshots.map((s) => s.version)}
       onSaveWorkflow={editable ? async (edited) => void (await saves.save(shown, edited)) : undefined}
       live={isLive(shown)}

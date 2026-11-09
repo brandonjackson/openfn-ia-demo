@@ -66,6 +66,29 @@ export function serviceListing(service: ProjectServiceItem): string {
   return lines.join("\n");
 }
 
+/**
+ * A service manifest for a workflow that isn't published as a service yet:
+ * the headings its listing will have, to fill in before it's published.
+ */
+export function draftServiceManifest(workflowName: string): string {
+  return [
+    `# ${workflowName}`,
+    "",
+    "What the service does, for the teams who'll call it.",
+    "",
+    "Status: Draft",
+    "",
+    "## How to call it",
+    "",
+    "## Input",
+    "| Field | Type | Required | Description |",
+    "| --- | --- | --- | --- |",
+    "",
+    "## Output",
+    "",
+  ].join("\n");
+}
+
 /** Where a webhook service is called, read from how it's invoked (`POST https://…`), if it says. */
 export const serviceUrl = (service: ProjectServiceItem): string | undefined => service.api?.invocation.match(/https?:\/\/\S+/)?.[0];
 

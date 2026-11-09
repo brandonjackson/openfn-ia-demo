@@ -68,11 +68,11 @@ export function useWorkOrders(projectIds: string[]): { status: LoadStatus; workO
 }
 
 /** A project's dataclips (inputs, step results, saved inputs). */
-export function useDataclips(projectId: string | undefined): { status: LoadStatus; dataclips: (Dataclip & { workflow_id: string })[] } {
+export function useDataclips(projectId: string | undefined): { status: LoadStatus; dataclips: (Dataclip & { workflow_id: string | null })[] } {
   const query = useQuery({
     queryKey: runKeys.dataclips(projectId ?? ""),
     enabled: !!projectId,
-    queryFn: () => listAll<Dataclip & { workflow_id: string }>(`/api/projects/${projectId}/dataclips`),
+    queryFn: () => listAll<Dataclip & { workflow_id: string | null }>(`/api/projects/${projectId}/dataclips`),
   });
   return { status: projectId ? statusOf(query) : { state: "ready" }, dataclips: query.data ?? [] };
 }

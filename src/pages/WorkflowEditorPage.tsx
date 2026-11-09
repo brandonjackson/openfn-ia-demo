@@ -18,6 +18,7 @@ import type {
 import { defaultWorkflowSettings, workflowToYaml } from "../model/workflow";
 import type { WorkflowSettings } from "../model/workflow";
 import { workflowChanges } from "../model/workflow-changes";
+import type { EnvVar, EnvVarDraft } from "../model/env-vars";
 import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../model/runs";
 import type { ActivityPeriod, RunProgress, RunRequest } from "../model/runs";
 import type { AdaptorInfo, AdaptorReference } from "../model/adaptor-reference";
@@ -38,6 +39,7 @@ import CodeLayout from "../components/patterns/CodeLayout";
 import EditorTray from "../components/patterns/EditorTray";
 import EditorTopBar from "../components/patterns/EditorTopBar";
 import EditorToolbar from "../components/domain/EditorToolbar";
+import EnvVarsView from "../components/domain/EnvVarsView";
 import type { EditorView } from "../components/domain/EditorToolbar";
 import type { WorkflowMenuAction } from "../components/domain/WorkflowFileMenu";
 import EditorPanel from "../components/patterns/EditorPanel";
@@ -257,6 +259,10 @@ export default function WorkflowEditorPage({
   onCreateSandbox,
   baseline,
   environment,
+  envVars,
+  onCreateEnvVar,
+  onUpdateEnvVar,
+  onDeleteEnvVar,
 }: {
   workflow: Workflow;
   /** Recent work orders, newest first. */
@@ -389,6 +395,14 @@ export default function WorkflowEditorPage({
   baseline?: Workflow;
   /** The environment the selected sandbox (or main) loads credentials from, e.g. "production". */
   environment?: string;
+  /** The project's environment variables, listed under Workflow in the explorer. Left out, the explorer doesn't list them. */
+  envVars?: EnvVar[];
+  /** Makes a project environment variable. Left out where you can't. */
+  onCreateEnvVar?: (draft: EnvVarDraft) => Promise<void>;
+  /** Changes one; a secret's blank value keeps the stored one. Left out where you can't. */
+  onUpdateEnvVar?: (id: string, draft: EnvVarDraft) => Promise<void>;
+  /** Deletes one. Left out where you can't. */
+  onDeleteEnvVar?: (id: string) => Promise<void>;
 }) {
   // ---- Where we are ---------------------------------------------------------
 
@@ -516,7 +530,7 @@ export default function WorkflowEditorPage({
   // A page in the code view's main pane (Health) opens with the bottom and right panels hidden, so
   // it has the room. Showing them there lasts until you leave the page, and leaves the remembered
   // layout alone, so opening a code item brings the panels back as they were.
-  const onPage = view === "code" && file === "health";
+  const onPage = view === "code" && (file === "health" || file === "envVars");
   const [pagePanels, setPagePanels] = useState({ panel: false, details: false });
   const shownLayout: EditorLayout = onPage ? { ...layout, ...pagePanels } : layout;
   const changeLayout = (patch: Partial<EditorLayout>) => {
@@ -528,7 +542,7 @@ export default function WorkflowEditorPage({
     if (Object.keys(rest).length > 0) updateLayout(rest);
   };
   const openFile = (f: ExplorerFile) => {
-    if (f === "health" && file !== "health") setPagePanels({ panel: false, details: false });
+    if ((f === "health" || f === "envVars") && f !== file) setPagePanels({ panel: false, details: false });
     setFile(f);
   };
 
@@ -1017,6 +1031,11 @@ export default function WorkflowEditorPage({
     />
   );
 
+  // The project's environment variables, opened from the explorer's Workflow section.
+  const envVarsPane = envVars && (
+    <EnvVarsView variables={envVars} projectName={projectName} onCreate={onCreateEnvVar} onUpdate={onUpdateEnvVar} onDelete={onDeleteEnvVar} />
+  );
+
   // A component, opened from the explorer's Components, shows in the code's place: the same view as
   // its page in the project. A channel shows its traffic, where a message from a run loads that run;
   // a collection its keys; anything else the file it is, to edit and save.
@@ -1349,6 +1368,7 @@ export default function WorkflowEditorPage({
           onOpenService={onSeeDetails}
           readOnly={onMain}
           showWorkflowFiles={showWorkflowFiles}
+          showEnvVars={envVars !== undefined}
           showComponents={showComponents}
           publishesServices={publishesServices}
           url={url}
@@ -1367,7 +1387,7 @@ export default function WorkflowEditorPage({
           docs={docs}
           onAddDoc={onMain ? undefined : addDoc}
           onAddComponent={onMain || addableTypes.length === 0 ? undefined : () => setAddComponentOpen(true)}
-          pane={file === "health" ? healthPane : componentPane}
+          pane={file === "health" ? healthPane : file === "envVars" ? envVarsPane : componentPane}
           showExplorer={layout.explorer}
           showDetails={shownLayout.details}
           detailsView={layout.detailsView}

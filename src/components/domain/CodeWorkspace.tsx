@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { ReactNode } from "react";
-import { BookOpen, Calendar, ExternalLink, FolderKanban, Globe, History, Layers, Plug, Radio, User, X } from "lucide-react";
+import { BookOpen, Calendar, Cloud, ExternalLink, FolderKanban, Globe, History, Layers, Plug, Radio, User, X } from "lucide-react";
 import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowFileContents, WorkflowSettings } from "../../model/workflow";
 import type { DetailsViewId } from "./editor-layout";
 import { triggerTypes, workflowToYaml } from "../../model/workflow";
@@ -56,6 +56,8 @@ interface Props {
   readOnly?: boolean;
   /** List the workflow's own files (workflow.yaml, docs, service.yaml, Health) in the explorer. */
   showWorkflowFiles?: boolean;
+  /** List the project's environment variables under Workflow in the explorer. */
+  showEnvVars?: boolean;
   /** List the project components the workflow uses in the explorer. */
   showComponents?: boolean;
   /** Whether a workflow can be published as a service, which its webhook trigger's annotations do. */
@@ -154,6 +156,7 @@ export default function CodeWorkspace({
   onOpenService,
   readOnly = false,
   showWorkflowFiles = true,
+  showEnvVars = false,
   showComponents = true,
   publishesServices = true,
   url,
@@ -191,7 +194,8 @@ export default function CodeWorkspace({
   const listing = file === "service" ? service : undefined;
   const addedDoc = typeof file === "object" && "docName" in file ? file.docName : undefined;
   const health = file === "health";
-  const fileName = addedDoc ?? (doc ? `${doc}.md` : listing ? "service.yaml" : health ? "Health" : "workflow.yaml");
+  const envVars = file === "envVars";
+  const fileName = addedDoc ?? (doc ? `${doc}.md` : listing ? "service.yaml" : health ? "Health" : envVars ? "Environment variables" : "workflow.yaml");
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
   const yaml = workflowToYaml(workflow);
   const triggerYaml = yaml.slice(yaml.indexOf("triggers:"), yaml.indexOf("edges:")).trimEnd();
@@ -321,6 +325,16 @@ export default function CodeWorkspace({
         }
         showHeader={false}
       />
+    ) : envVars ? (
+      <FileDetailsPanel
+        title="Environment variables"
+        description="The project's variables, for every workflow in it. Each is set for one or more environments, so a key can hold a different value in production than in staging or mock."
+        properties={[
+          { icon: Cloud, label: "Environments", value: "Production, staging, mock" },
+          { icon: FolderKanban, label: "Project", value: workflow.project },
+        ]}
+        showHeader={false}
+      />
     ) : health ? (
       <FileDetailsPanel
         title="Health"
@@ -380,6 +394,7 @@ export default function CodeWorkspace({
         docs={docs}
         readOnly={readOnly}
         showWorkflowFiles={showWorkflowFiles}
+        showEnvVars={showEnvVars}
         showComponents={showComponents}
         onAddDoc={readOnly ? undefined : onAddDoc}
         onAddStep={readOnly ? undefined : onAddStep}
@@ -405,7 +420,7 @@ export default function CodeWorkspace({
       ? {
           tabs: {
             options: [
-              { id: "config", label: component || doc || listing || addedDoc || health ? "Details" : "Config" },
+              { id: "config", label: component || doc || listing || addedDoc || health || envVars ? "Details" : "Config" },
               ...(step ? [{ id: "snippets", label: "Snippets" }] : []),
               ...(hasIO ? [{ id: "io", label: "I/O" }] : []),
             ],

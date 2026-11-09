@@ -40,6 +40,7 @@ import { handbookRoutes } from "./handbook";
 import { buildIdeaRoutes } from "./build-ideas";
 import { componentRoutes } from "./project-components";
 import { maintenanceRoutes } from "./maintenance";
+import { envVarRoutes } from "./env-vars";
 
 export type { Problem } from "./answers";
 export { signInAs } from "./session";
@@ -73,6 +74,7 @@ const routes: Record<string, Handler> = {
   ...buildIdeaRoutes,
   ...maintenanceRoutes,
   ...componentRoutes,
+  ...envVarRoutes,
   // The demo's own: back to the fixtures.
   "POST /api/demo/reset": () => {
     resetDb();

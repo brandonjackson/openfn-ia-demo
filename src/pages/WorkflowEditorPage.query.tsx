@@ -20,6 +20,7 @@ import { eventAddress } from "./channel-records.query";
 import { useCollectionsItems } from "../api/collections";
 import { starterContent } from "../model/project-components";
 import { combine } from "../api/status";
+import { useEnvVars, useEnvVarSaves } from "../api/env-vars";
 import { asGraph, useProjectWorkflows, useSandboxes, useSandboxSaves, useWorkflow, useWorkflowSaves, useWorkflowSnapshots } from "../api/workflows";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
 import { adaptorChoices, adaptorInfo, adaptorSnippets } from "../fixtures/adaptor-reference";
@@ -198,6 +199,9 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const { items: collectionItems } = useCollectionsItems(root.id, records.collections.map((c) => c.name));
   // Editors and up change a project's components, as they do its workflows.
   const canEditComponents = !!root.permissions?.edit_workflow;
+  // The project's environment variables, like its components, belong to the project, not a sandbox.
+  const { envVars } = useEnvVars(flags.envVars ? root.id : undefined);
+  const envVarSaves = useEnvVarSaves(root.id);
   // What opening the workflow's docs, its service listing and its components shows.
   const contents: WorkflowFileContents = {
     // The docs are written for the fixtures' workflows; any other starts with them blank.
@@ -284,6 +288,10 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       // Until the parent's workflows are in, there's nothing to compare against, so say nothing rather than "new".
       baseline={parentCopy ? asGraph(parentCopy, root.name) : parentStatus.state === "ready" ? undefined : graph}
       environment={selected.env}
+      envVars={flags.envVars ? envVars : undefined}
+      onCreateEnvVar={flags.envVars && canEditComponents ? envVarSaves.create : undefined}
+      onUpdateEnvVar={flags.envVars && canEditComponents ? envVarSaves.update : undefined}
+      onDeleteEnvVar={flags.envVars && canEditComponents ? envVarSaves.remove : undefined}
       url={service?.url}
       service={service?.service}
       onSeeDetails={service ? () => navigate(service.path) : undefined}

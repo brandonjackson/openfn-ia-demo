@@ -22,6 +22,7 @@ export type FlagId =
   | "aiBuild"
   | "deployments"
   | "workflowDocs"
+  | "envVars"
   | "components"
   | "forms"
   | "staticWebsites"
@@ -110,6 +111,13 @@ export const featureFlags: FeatureFlag[] = [
     description:
       "The Workflow section of the editor's explorer: workflow.yaml, context.md, spec.md, service.yaml, Health and new docs.",
     requires: [],
+    group: "Projects",
+  },
+  {
+    id: "envVars",
+    label: "Environment variables",
+    description: "A project's environment variables, set for each environment, under Workflow in the editor's explorer.",
+    requires: ["workflowDocs"],
     group: "Projects",
   },
   {

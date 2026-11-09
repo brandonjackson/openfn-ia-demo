@@ -108,7 +108,7 @@ export const featureFlags: FeatureFlag[] = [
     id: "workflowDocs",
     label: "Workflow docs",
     description:
-      "The Workflow section of the editor's explorer: workflow.yaml, context.md, spec.md, service.md, Health and new docs.",
+      "The Workflow section of the editor's explorer: workflow.yaml, context.md, spec.md, service.yaml, Health and new docs.",
     requires: [],
     group: "Projects",
   },

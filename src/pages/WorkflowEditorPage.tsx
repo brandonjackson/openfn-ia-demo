@@ -153,7 +153,7 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
  * sandbox and promotion, export, pause, delete) and the way back to the
  * project. The view switcher flips between the canvas and code (explorer,
  * code and the open item's settings). In code mode the explorer also lists
- * Health under service.md: the workflow's run history summed up over the
+ * Health under service.yaml: the workflow's run history summed up over the
  * canvas's period (outcomes, runs and failures over time, the steps runs
  * fail at, and failures by reason), shown in the main pane in place of the
  * code. Picking a run there loads it and opens the step it failed at. The assistant toggle sits on its own
@@ -316,7 +316,7 @@ export default function WorkflowEditorPage({
   versions?: WorkflowVersion[];
   /** The URL that starts the workflow, for "Copy webhook URL". */
   url?: string;
-  /** The published service the workflow backs; its listing shows as service.md in code mode. */
+  /** The published service the workflow backs; its listing shows as service.yaml in code mode. */
   service?: ProjectService;
   /** Opens the service listing where the workflow is documented. */
   onSeeDetails?: () => void;
@@ -333,7 +333,7 @@ export default function WorkflowEditorPage({
   catalog: AdaptorCatalog;
   /** The project's connected systems. */
   systems?: ConnectedSystem[];
-  /** List the workflow's own files (workflow.yaml, docs, service.md, Health) in the explorer. Defaults to true; off, code mode falls back to the trigger. */
+  /** List the workflow's own files (workflow.yaml, docs, service.yaml, Health) in the explorer. Defaults to true; off, code mode falls back to the trigger. */
   showWorkflowFiles?: boolean;
   /** List the project components the workflow uses in the explorer. Defaults to true. */
   showComponents?: boolean;

@@ -26,7 +26,8 @@ import { adaptorChoices, adaptorInfo, adaptorSnippets } from "../fixtures/adapto
 import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
 import { codeSummary } from "../fixtures/code-summaries";
 import { workflowDocs } from "../fixtures/workflow-files";
-import { serviceListing, serviceUrl } from "../model/services";
+import { serviceUrl, serviceYaml } from "../model/services";
+import { useOrganizationXRoad } from "../api/organization";
 import { useProjectServices } from "../api/services";
 import type { AdaptorReference } from "../model/adaptor-reference";
 import type { AdaptorCatalog } from "../model/adaptor-catalog";
@@ -176,6 +177,8 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   // "See details" opens the page of the service main's workflow backs, from the services API.
   const { services } = useProjectServices(root.id, flags.serviceCatalog);
   const backed = services.find((s) => s.workflowId === main.id);
+  // service.yaml lists it as X-Road registers it, once the organisation is on X-Road.
+  const { xroad } = useOrganizationXRoad(flags.xroad && !!backed);
   const service = backed && { service: backed, path: `/projects/${root.id}/services/${backed.id}`, url: serviceUrl(backed) };
   // The shown copy's own run history: main's on main; a sandbox's copy starts with none, as in Lightning.
   const { workOrders: projectOrders } = useWorkOrders([shown.project_id]);
@@ -199,7 +202,7 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const contents: WorkflowFileContents = {
     // The docs are written for the fixtures' workflows; any other starts with them blank.
     docs: slug ? workflowDocs : { context: "", spec: "" },
-    serviceListing: service ? serviceListing(service.service) : undefined,
+    serviceListing: service ? serviceYaml(service.service, { code: service.service.code, xroad }) : undefined,
     componentContents: Object.fromEntries(records.contents.map((c) => [c.component.id, c.details])),
     collections: Object.fromEntries(
       records.collections.map((c) => [c.id, { items: collectionItems[c.name] ?? [], itemCount: c.itemCount, byteSize: c.byteSize }]),

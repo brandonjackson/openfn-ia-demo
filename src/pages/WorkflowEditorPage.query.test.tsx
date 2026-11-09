@@ -39,8 +39,14 @@ async function backedService() {
   return { id: s.id, projectId: s.attributes["project_id"] as string, workflowId: s.attributes["workflow_id"] as string };
 }
 
+/** Opens the Fn menu once the workflow is in: while it loads, the button is there but doesn't open. */
 async function openWorkflowMenu() {
-  fireEvent.click(await screen.findByRole("button", { name: "Workflow menu" }, wait));
+  const button = await waitFor(() => {
+    const found = screen.getByRole("button", { name: "Workflow menu" });
+    expect(found.getAttribute("aria-disabled")).toBeNull();
+    return found;
+  }, wait);
+  fireEvent.click(button);
 }
 
 // The canvas measures itself and the assistant scrolls its thread; jsdom does neither.
@@ -64,6 +70,20 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
   afterEach(() => {
     setFlag("serviceCatalog", true);
     setFlag("envVars", true);
+  });
+
+  it("opens into the editor's frame while the workflow loads, never Not Found", async () => {
+    setWait(50);
+    renderEditor(apiWorkflowId("planning-application-workflow"));
+    expect(await screen.findByText("Loading workflow…")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Workflow menu" }).getAttribute("aria-disabled")).toBe("true");
+    // The project is asked for only once the workflow names it: it loads in turn, rather than reading as missing.
+    while (screen.queryByText("Loading workflow…")) {
+      expect(screen.queryByText("Page Not Found")).toBeNull();
+      await act(() => new Promise((r) => setTimeout(r, 10)));
+    }
+    expect(screen.queryByText("Page Not Found")).toBeNull();
+    expect(await screen.findByText("Main / Read-only", {}, wait)).toBeTruthy();
   });
 
   it("links a workflow to the page of the service it backs, from the services API", async () => {

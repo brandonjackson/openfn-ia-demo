@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import WorkflowEditorPage from "./WorkflowEditorPage";
+import WorkflowEditorPage, { WorkflowEditorLoading } from "./WorkflowEditorPage";
 import { type Workflow, type WorkflowFileContents, type WorkOrder } from "../model/workflow";
 import { type WorkflowDocument, isLive } from "../model/workflow-document";
 import type { ProjectDetails } from "../model/projects";
@@ -21,7 +21,7 @@ import { useProjectComponents } from "./component-records.query";
 import { eventAddress } from "./channel-records.query";
 import { useCollectionsItems } from "../api/collections";
 import { starterContent } from "../model/project-components";
-import { combine } from "../api/status";
+import { combine, inTurn } from "../api/status";
 import { useEnvVars, useEnvVarSaves } from "../api/env-vars";
 import { asGraph, useProjectWorkflows, useSandboxes, useSandboxSaves, useWorkflow, useWorkflowSaves, useWorkflowSnapshots } from "../api/workflows";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
@@ -134,7 +134,18 @@ function NewWorkflow({ params }: { params: URLSearchParams }) {
     );
   }, [ready.state, target, workflows, create, navigate, params]);
 
-  return <Loaded status={ready.state === "ready" ? { state: "loading" } : ready} path="/workflow-editor/new">{() => null}</Loaded>;
+  return (
+    <Screen>
+      <Loaded status={ready.state === "ready" ? { state: "loading" } : ready} path="/workflow-editor/new" loading={<WorkflowEditorLoading />}>
+        {() => null}
+      </Loaded>
+    </Screen>
+  );
+}
+
+/** The editor fills the window, loading or loaded. */
+function Screen({ children }: { children: ReactNode }) {
+  return <div className="h-screen">{children}</div>;
 }
 
 function ExistingWorkflow({ id }: { id: string }) {
@@ -143,12 +154,14 @@ function ExistingWorkflow({ id }: { id: string }) {
   const rootId = project?.rootId;
   const { status: rootStatus, project: root } = useProject(rootId);
   const { status: sandboxStatus, sandboxes } = useSandboxes(rootId);
+  // Each waits on the one before: the project isn't asked for until the workflow names it, so until then it's loading, not missing.
+  const ready = inTurn(status, projectStatus, combine(rootStatus, sandboxStatus));
   return (
-    <div className="h-screen">
-      <Loaded status={combine(status, projectStatus, rootStatus, sandboxStatus)} path={`/workflow-editor/${id}`}>
+    <Screen>
+      <Loaded status={ready} path={`/workflow-editor/${id}`} loading={<WorkflowEditorLoading />}>
         {() => <Editor opened={opened!} root={root!} sandboxes={sandboxes} />}
       </Loaded>
-    </div>
+    </Screen>
   );
 }
 

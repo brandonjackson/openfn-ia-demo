@@ -127,3 +127,8 @@ export const NoHistory: Story = {
 export const OlderVersion: Story = {
   args: { version: "v1" },
 };
+
+/** While the workflow loads: the Fn button and a spinner where the name goes, and nothing else yet. */
+export const Loading: Story = {
+  args: { loading: true, name: "" },
+};

@@ -10,6 +10,7 @@ import Picker from "../primitives/Picker";
 import SegmentedControl from "../primitives/SegmentedControl";
 import IconButton from "../primitives/IconButton";
 import Badge from "../primitives/Badge";
+import LoadingState from "../primitives/LoadingState";
 import WorkflowFileMenu from "./WorkflowFileMenu";
 import type { WorkflowMenuAction } from "./WorkflowFileMenu";
 import SandboxChip from "./SandboxChip";
@@ -28,6 +29,12 @@ const editorViews: { id: EditorView; label: string }[] = [
 
 interface Props {
   name: string;
+  /**
+   * The workflow is still on its way: the bar shows the Fn button, which
+   * doesn't open yet, and a spinner where the name goes, and nothing else,
+   * so the editor's frame is there from the start and fills in as it loads.
+   */
+  loading?: boolean;
   /** Renames the workflow. Leave it out where it can't be renamed, e.g. on main. */
   onRename?: (name: string) => void;
   /** Start in rename mode (useful for stories). */
@@ -121,6 +128,7 @@ export interface EditorToolbarGroups {
  */
 export default function EditorToolbar({
   name,
+  loading = false,
   onRename,
   defaultRenaming = false,
   onMenuAction,
@@ -215,6 +223,7 @@ export default function EditorToolbar({
             projectName={projectName}
             url={url}
             hasDetails={hasDetails}
+            disabled={loading}
           />
           <span className="h-6 w-px bg-gray-200" aria-hidden />
           {renaming ? (
@@ -227,7 +236,7 @@ export default function EditorToolbar({
               aria-label="Workflow name"
               className="mx-2 h-7 w-56 rounded-md border border-indigo-300 bg-indigo-50/40 px-2 text-sm text-gray-900 outline-none ring-2 ring-indigo-100"
             />
-          ) : versions.length > 0 && !run ? (
+          ) : versions.length > 0 && !run && !loading ? (
             <span className="mx-1.5 min-w-0">
               <Picker
                 ariaLabel="Switch version"
@@ -254,33 +263,35 @@ export default function EditorToolbar({
               />
             </span>
           ) : (
-            <span className="mx-2 min-w-[4rem] max-w-[16rem] truncate px-1.5 text-sm font-semibold text-gray-900" title={name}>
-              {name}
-            </span>
+            <div className="mx-2 min-w-[4rem] max-w-[16rem] truncate px-1.5 text-sm font-semibold text-gray-900" title={loading ? undefined : name}>
+              {loading ? <LoadingState size="inline" label="Loading workflow…" /> : name}
+            </div>
           )}
-          {onMain ? (
+          {loading ? null : onMain ? (
             <span className="mr-1.5 flex-none">
               <Badge label="Main / Read-only" shape="tag" icon={Lock} />
             </span>
           ) : (
             <SandboxChangesMenu sandbox={sandbox} changes={changes} onGoLive={() => onMenuAction("promote")} />
           )}
-          <SandboxChip
-            sandboxes={sandboxes}
-            value={sandbox}
-            onChange={onSelectSandbox}
-            live={live}
-            onNewSandbox={onNewSandbox}
-            onViewAll={onViewAllSandboxes}
-          />
+          {!loading && (
+            <SandboxChip
+              sandboxes={sandboxes}
+              value={sandbox}
+              onChange={onSelectSandbox}
+              live={live}
+              onNewSandbox={onNewSandbox}
+              onViewAll={onViewAllSandboxes}
+            />
+          )}
         </>
       ),
-      middle: (
+      middle: loading ? undefined : (
         <SegmentedControl variant="pill" size="md" options={editorViews} value={view} onChange={(v) => onViewChange(v as EditorView)} />
       ),
       // The loaded run sits beside the switcher in code mode; the canvas has its own runs bar.
       afterMiddle: run && view === "code" ? <LoadedRunBar run={run} detail={run.version} onUnload={onCloseRun} /> : undefined,
-      end: (
+      end: loading ? undefined : (
         <>
           <EnvironmentMenu sandbox={sandbox} environment={environment} components={components} onOpenComponent={onOpenComponent} />
           <RunMenuButton
@@ -299,7 +310,7 @@ export default function EditorToolbar({
           )}
         </>
       ),
-      aside: onToggleAssistant ? (
+      aside: onToggleAssistant && !loading ? (
         <IconButton variant="toggle" size="md" icon={Sparkles} label="Assistant" hint="Ctrl/⌘ + K" onClick={onToggleAssistant} />
       ) : undefined,
       // Folds away while the assistant is open, since its own header closes it.

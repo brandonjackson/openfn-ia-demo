@@ -42,6 +42,8 @@ interface Props {
   /** Whether the workflow has a service listing; adds "See service listing". */
   hasDetails?: boolean;
   defaultOpen?: boolean;
+  /** Shows the Fn button but doesn't open it, e.g. while the workflow is still loading. */
+  disabled?: boolean;
 }
 
 /**
@@ -59,6 +61,7 @@ export default function WorkflowFileMenu({
   url,
   hasDetails = false,
   defaultOpen = false,
+  disabled = false,
 }: Props) {
   const items: DropdownMenuItem[] = [
     ...(projectName
@@ -88,16 +91,17 @@ export default function WorkflowFileMenu({
       trigger={({ open, toggle }) => (
         <button
           type="button"
-          onClick={toggle}
+          onClick={disabled ? undefined : toggle}
           aria-haspopup="menu"
           aria-expanded={open}
+          aria-disabled={disabled || undefined}
           aria-label="Workflow menu"
           className={`inline-flex h-full items-center gap-1 rounded-l-xl px-3 text-gray-900 transition-colors ${
-            open ? "bg-gray-100" : "hover:bg-gray-50"
+            open ? "bg-gray-100" : disabled ? "cursor-default" : "hover:bg-gray-50"
           }`}
         >
           <span className="text-base font-bold tracking-tight">Fn</span>
-          <ChevronDown size={12} className="text-gray-400" />
+          <ChevronDown size={12} className={disabled ? "text-gray-300" : "text-gray-400"} />
         </button>
       )}
     />

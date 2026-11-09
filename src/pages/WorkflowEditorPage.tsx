@@ -17,6 +17,7 @@ import type {
 } from "../model/workflow";
 import { defaultWorkflowSettings, workflowToYaml } from "../model/workflow";
 import type { WorkflowSettings } from "../model/workflow";
+import { workflowChanges } from "../model/workflow-changes";
 import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../model/runs";
 import type { ActivityPeriod, RunProgress, RunRequest } from "../model/runs";
 import type { AdaptorInfo, AdaptorReference } from "../model/adaptor-reference";
@@ -184,8 +185,9 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
  *
  * On main everything is read-only and the main action is "Edit in sandbox".
  * In a sandbox steps can be renamed, re-adaptored, given credentials, have
- * snippets inserted, be added and deleted, and "Go live" promotes the sandbox
- * to main as a new version.
+ * snippets inserted, be added and deleted, the changes icon beside the name
+ * lists what's changed against main, and its "Go live" promotes the sandbox to
+ * main as a new version.
  *
  * Loading a run draws it on the canvas, marks each step in
  * the explorer and fills the Log, Input and Output views for the step in
@@ -253,6 +255,8 @@ export default function WorkflowEditorPage({
   onToggleLive,
   onPromote,
   onCreateSandbox,
+  baseline,
+  environment,
 }: {
   workflow: Workflow;
   /** Recent work orders, newest first. */
@@ -377,6 +381,14 @@ export default function WorkflowEditorPage({
   onPromote?: (message: string) => Promise<void>;
   /** Makes a sandbox with this name from the one selected; once it resolves, `sandboxes` lists it. */
   onCreateSandbox?: (name: string) => Promise<void>;
+  /**
+   * In a sandbox, the workflow where going live would merge it (its parent's
+   * copy), to say what's changed; left out when the workflow is new in the
+   * sandbox.
+   */
+  baseline?: Workflow;
+  /** The environment the selected sandbox (or main) loads credentials from, e.g. "production". */
+  environment?: string;
 }) {
   // ---- Where we are ---------------------------------------------------------
 
@@ -1151,6 +1163,9 @@ export default function WorkflowEditorPage({
 
   // ---- Layout ---------------------------------------------------------------
 
+  // What going live would carry over: the copy on the canvas, edits and all, against where it merges.
+  const changes = onMain ? [] : workflowChanges(baseline, graph);
+
   const toolbar = (
     <EditorToolbar
       name={name}
@@ -1169,6 +1184,13 @@ export default function WorkflowEditorPage({
       onSelectVersion={setVersion}
       run={selectedRun}
       onCloseRun={deselectRun}
+      changes={changes}
+      environment={environment}
+      components={components}
+      onOpenComponent={(id) => {
+        setFile({ componentId: id });
+        setView("code");
+      }}
       live={live}
       view={view}
       onViewChange={(next) => (next === "code" && view === "canvas" && focusNode ? openInCode(focusNode.id) : setView(next))}

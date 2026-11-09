@@ -55,6 +55,9 @@ const meta: Meta<Args> = {
     onNewSandbox: () => {},
     onViewAllSandboxes: () => {},
     onToggleAssistant: () => {},
+    environment: "production",
+    components: projects[0].components.filter((c) => c.type !== "Workflow"),
+    onOpenComponent: () => {},
   },
   render: (args) => <Stateful {...args} />,
 };
@@ -62,12 +65,26 @@ const meta: Meta<Args> = {
 export default meta;
 type Story = StoryObj<Args>;
 
-/** On main: read-only, with "Edit in sandbox" as the main action. */
+const changes = [
+  { kind: "added" as const, summary: "Added step Check for a duplicate application" },
+  { kind: "changed" as const, summary: "Changed code in Search for duplicate citizens in Identity" },
+  { kind: "removed" as const, summary: "Removed step Queue application for retry" },
+];
+
+/** On main: "Main / Read-only" beside the name, with "Edit in sandbox" as the main action. */
 export const OnMain: Story = {};
 
-/** In a sandbox: the chip turns amber and the main action is "Go live". */
+/**
+ * In a sandbox: the chip turns amber, the changes icon beside the name counts
+ * what's changed (open it for the list and Go live), and Run is the main action.
+ */
 export const InSandbox: Story = {
-  args: { sandbox: projects[0].sandboxes[1], view: "code" },
+  args: { sandbox: projects[0].sandboxes[1], view: "code", changes, environment: "staging" },
+};
+
+/** In a sandbox with nothing changed yet. */
+export const InSandboxUnchanged: Story = {
+  args: { sandbox: projects[0].sandboxes[1], environment: "staging" },
 };
 
 export const Renaming: Story = {

@@ -162,6 +162,9 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const shown = here.find((w) => w.name === opened.name) ?? (selected.id === opened.project_id ? opened : undefined) ?? opened;
   const editable = selected.id !== root.id && shown.project_id === selected.id;
   const main = onMain.find((w) => w.name === opened.name) ?? opened;
+  // Where going live merges the copy: its parent's workflow of the same name, to say what's changed.
+  const { workflows: inParent, status: parentStatus } = useProjectWorkflows(editable ? (selected.parentId ?? undefined) : undefined);
+  const parentCopy = inParent.find((w) => w.name === shown.name);
   const { snapshots } = useWorkflowSnapshots(main.id);
   const saves = useWorkflowSaves();
   const sandboxSaves = useSandboxSaves();
@@ -278,6 +281,9 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
           ? (message) => sandboxSaves.merge(selected.parentId!, selected.id, { targetId: selected.parentId!, workflowIds: [shown.id], message })
           : undefined
       }
+      // Until the parent's workflows are in, there's nothing to compare against, so say nothing rather than "new".
+      baseline={parentCopy ? asGraph(parentCopy, root.name) : parentStatus.state === "ready" ? undefined : graph}
+      environment={selected.env}
       url={service?.url}
       service={service?.service}
       onSeeDetails={service ? () => navigate(service.path) : undefined}

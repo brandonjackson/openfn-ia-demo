@@ -16,6 +16,8 @@ interface Props {
    */
   retry?: { step?: string; hint?: string };
   onRetry?: () => void;
+  /** Draws it as the page's main action, dark, e.g. in a sandbox where running is what you do next. */
+  primary?: boolean;
   /** Disables everything, e.g. while a run is in progress. */
   disabled?: boolean;
   defaultOpen?: boolean;
@@ -35,9 +37,13 @@ export default function RunMenuButton({
   onRunFromStep,
   retry,
   onRetry,
+  primary = false,
   disabled = false,
   defaultOpen = false,
 }: Props) {
+  const look = primary
+    ? { frame: "border-transparent bg-gray-900 text-white", hover: "hover:bg-gray-800", icon: "text-gray-300", split: "border-gray-700 text-gray-300 hover:text-white", open: "bg-gray-800 text-white" }
+    : { frame: "border-gray-200 bg-white text-gray-800", hover: "hover:bg-gray-50", icon: "text-gray-500", split: "border-gray-200 text-gray-400 hover:text-gray-700", open: "bg-gray-50 text-gray-700" };
   const retryLabel = retry ? (retry.step ? `Retry from ${retry.step}` : "Retry this run") : undefined;
   const items: DropdownMenuItem[] = [
     { id: "run", label: "Run", description: "Start a fresh run of the whole workflow", icon: Play },
@@ -62,15 +68,15 @@ export default function RunMenuButton({
   const mainTitle = retry ? [retryLabel, retry.hint].filter(Boolean).join(". ") : fromStep ? `Run from ${fromStep}` : "Run the workflow";
 
   return (
-    <div className="inline-flex h-8 items-stretch rounded-md border border-gray-200 bg-white text-sm font-medium text-gray-800">
+    <div className={`inline-flex h-8 items-stretch rounded-md border text-sm font-medium ${look.frame}`}>
       <button
         type="button"
         disabled={disabled}
         onClick={mainAction}
         title={mainTitle}
-        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-l-md px-3 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+        className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-l-md px-3 ${look.hover} disabled:cursor-not-allowed disabled:opacity-50`}
       >
-        {retry ? <RotateCcw size={13} className="text-gray-500" /> : <Play size={13} className="text-gray-500" />}
+        {retry ? <RotateCcw size={13} className={look.icon} /> : <Play size={13} className={look.icon} />}
         {mainLabel}
       </button>
       <DropdownMenu
@@ -88,8 +94,8 @@ export default function RunMenuButton({
             aria-haspopup="menu"
             aria-expanded={open}
             aria-label="More ways to run"
-            className={`inline-flex h-full items-center rounded-r-md border-l border-gray-200 px-1.5 text-gray-400 hover:bg-gray-50 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 ${
-              open ? "bg-gray-50 text-gray-700" : ""
+            className={`inline-flex h-full items-center rounded-r-md border-l px-1.5 ${look.split} ${look.hover} disabled:cursor-not-allowed disabled:opacity-50 ${
+              open ? look.open : ""
             }`}
           >
             <ChevronDown size={14} />

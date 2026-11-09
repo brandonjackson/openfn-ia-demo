@@ -38,13 +38,13 @@ interface Props {
   run?: RunDetails;
   /** Project components the workflow uses: artifacts, forms, collections, channels. */
   components?: ProjectComponent[];
-  /** Lists service.md, the listing of the published service the workflow backs. */
+  /** Lists service.yaml, the listing of the published service the workflow backs. */
   hasService?: boolean;
   /** Docs added alongside context.md and spec.md, by file name. */
   docs?: string[];
   /** On main: each group's + shows but is disabled, pointing to a sandbox. */
   readOnly?: boolean;
-  /** List the Workflow group (workflow.yaml, its docs, service.md and Health). Off with the demo's Workflow docs flag. */
+  /** List the Workflow group (workflow.yaml, its docs, service.yaml and Health). Off with the demo's Workflow docs flag. */
   showWorkflowFiles?: boolean;
   /** List the Components group. Off with the demo's Components flag. */
   showComponents?: boolean;
@@ -93,7 +93,7 @@ export default function EditorExplorer({
           <NavItem variant="tree" label="context.md" icon={FileText} active={current === "context"} onClick={() => onOpen("context")} />
           <NavItem variant="tree" label="spec.md" icon={FileText} active={current === "spec"} onClick={() => onOpen("spec")} />
           {hasService && (
-            <NavItem variant="tree" label="service.md" icon={BookOpen} active={current === "service"} onClick={() => onOpen("service")} />
+            <NavItem variant="tree" label="service.yaml" icon={BookOpen} active={current === "service"} onClick={() => onOpen("service")} />
           )}
           <NavItem variant="tree" label="Health" icon={HeartPulse} active={current === "health"} onClick={() => onOpen("health")} />
           {docs.map((name) => (

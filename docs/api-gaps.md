@@ -214,4 +214,11 @@ each needs nothing here once Lightning sends it.
   (`POST /api/session`), and a wrong one is said under that field.
 - **A project's dataclips** (`GET /api/projects/:id/dataclips`,
   api/dataclips.md). Lightning answers 404; the editor opens without the
-  saved inputs to run from.
+  saved inputs to run from. The hooks read a missing list as one empty list
+  that stays the same, since the editor takes a new list as new history and
+  would drop a run it's in the middle of (it did: Run reverted to the canvas).
+- **Recording a run the editor made** (`run` and `dataclips` on
+  `POST /api/projects/:id/workflows/:id/work_orders`, the demo's stand-in for
+  the worker). Lightning's worker runs workflows, so it refuses the body (422).
+  On Lightning the editor's run plays out and stays loaded, but isn't saved:
+  reopening the workflow or History doesn't show it.

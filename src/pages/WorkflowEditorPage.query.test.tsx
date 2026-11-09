@@ -4,7 +4,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../api/ApiProvider";
 import { forgetCsrfToken, request } from "../api/client";
 import { setFlag } from "../app/feature-flags";
-import { resetFakeApi, setWait } from "../fake-api";
+import { failNext, resetFakeApi, setWait } from "../fake-api";
 import WorkflowEditorPageQuery from "./WorkflowEditorPage.query";
 
 const wait = { timeout: 5000 };
@@ -74,5 +74,24 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     await openWorkflowMenu();
     await waitFor(() => expect(screen.getByRole("menuitem", { name: /Export as YAML/ })).toBeTruthy(), wait);
     expect(screen.queryByRole("menuitem", { name: /See service listing/ })).toBeNull();
+  });
+
+  it("keeps a run it started loaded when the server has no dataclips and won't record the run, as on Lightning", async () => {
+    // Lightning answers a project's dataclips 404 and refuses the run the editor made (docs/api-gaps.md).
+    failNext("GET /api/projects/:project_id/dataclips", { status: 404, code: "not_found", detail: "Not found." });
+    failNext("POST /api/projects/:project_id/workflows/:workflow_id/work_orders", {
+      status: 422,
+      code: "invalid",
+      detail: "The request is not valid. See errors.",
+    });
+    const service = await backedService();
+    renderEditor(service.workflowId);
+    fireEvent.click(await screen.findByRole("button", { name: "Run" }, wait));
+    // Loaded while it runs, and still loaded once it's finished and the record is refused.
+    expect(await screen.findByRole("button", { name: "Unload run" }, wait)).toBeTruthy();
+    await waitFor(() => expect(screen.queryAllByLabelText("Running")).toHaveLength(0), { timeout: 10000 });
+    // Give the refused record time to come back.
+    await act(() => new Promise((resolve) => setTimeout(resolve, 200)));
+    expect(screen.getByRole("button", { name: "Unload run" })).toBeTruthy();
   });
 });

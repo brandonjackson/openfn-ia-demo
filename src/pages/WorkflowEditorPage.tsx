@@ -17,7 +17,7 @@ import type {
 } from "../model/workflow";
 import { defaultWorkflowSettings, workflowToYaml } from "../model/workflow";
 import type { WorkflowSettings } from "../model/workflow";
-import { workflowChanges } from "../model/workflow-changes";
+import { componentChanges, workflowChanges } from "../model/workflow-changes";
 import type { EnvVar, EnvVarDraft } from "../model/env-vars";
 import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../model/runs";
 import type { ActivityPeriod, RunProgress, RunRequest } from "../model/runs";
@@ -191,7 +191,7 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
  * On main everything is read-only and the main action is "Edit in sandbox".
  * In a sandbox steps can be renamed, re-adaptored, given credentials, have
  * snippets inserted, be added and deleted, the changes icon beside the name
- * lists what's changed against main, and its "Go live" promotes the sandbox to
+ * lists what's changed against main (components added here included), and its "Go live" promotes the sandbox to
  * main as a new version.
  *
  * Loading a run draws it on the canvas, marks each step in
@@ -614,9 +614,12 @@ export default function WorkflowEditorPage({
       (!componentTypeOptions || componentTypeOptions.includes(t.type)) &&
       (t.type === "Channel" ? !!onCreateChannel : t.type === "Collection" ? !!onCreateCollection : isContentComponentType(t.type) && !!onCreateComponent),
   );
-  /** Once a new component is made, open it in the code view. */
+  // Components made here, by sandbox: each counts as a change in that sandbox, though it's the project's.
+  const [addedComponents, setAddedComponents] = useState<Record<string, string[]>>({});
+  /** Once a new component is made, count it as a change and open it in the code view. */
   const openCreated = (id: string) => {
     setCreatingComponent(undefined);
+    if (!onMain) setAddedComponents((current) => ({ ...current, [sandbox]: [...(current[sandbox] ?? []), id] }));
     setFile({ componentId: id });
   };
 
@@ -1267,7 +1270,13 @@ export default function WorkflowEditorPage({
   // ---- Layout ---------------------------------------------------------------
 
   // What going live would carry over: the copy on the canvas, edits and all, against where it merges.
-  const changes = onMain ? [] : workflowChanges(baseline, graph);
+  // Plus the components added from here, once the list has them (a deleted one drops out).
+  const changes = onMain
+    ? []
+    : [
+        ...workflowChanges(baseline, graph),
+        ...componentChanges((addedComponents[sandbox] ?? []).flatMap((id) => components.filter((c) => c.id === id))),
+      ];
 
   const toolbar = (
     <EditorToolbar

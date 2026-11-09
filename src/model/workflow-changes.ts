@@ -1,5 +1,6 @@
 import type { JobNode, Workflow, WorkflowEdge, WorkflowNode } from "./workflow";
 import { triggerTypes } from "./workflow";
+import type { ProjectComponentType } from "./component-types";
 
 /** One thing a sandbox's copy of a workflow does differently from where it would go live. */
 export interface WorkflowChange {
@@ -93,6 +94,20 @@ export function workflowChanges(base: Workflow | undefined, current: Workflow): 
     if (!after.has(key)) changes.push({ kind: "removed", summary: `Disconnected ${label(base.nodes, e.source)} → ${label(base.nodes, e.target)}` });
   }
   return changes;
+}
+
+/**
+ * Components added from a sandbox's editor, as changes. Components belong to
+ * the project, so making one doesn't touch the sandbox's copy of the workflow,
+ * but it's still something the person changed while working there.
+ */
+export function componentChanges(added: { name: string; type: ProjectComponentType }[]): WorkflowChange[] {
+  return added.map((c) => ({ kind: "added", summary: `Added ${componentNoun(c.type)} ${c.name}` }));
+}
+
+/** "channel", "AI skill", "static website". */
+function componentNoun(type: ProjectComponentType): string {
+  return type === "AI Skill" ? "AI skill" : type.toLowerCase();
 }
 
 /** "code", "code and adaptor", "code, adaptor and credential". */

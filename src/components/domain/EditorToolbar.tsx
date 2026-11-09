@@ -1,24 +1,29 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
-import { FlaskConical, GitMerge, Sparkles } from "lucide-react";
+import { FlaskConical, Lock, Sparkles } from "lucide-react";
 import type { RunDetails, WorkflowVersion } from "../../model/workflow";
+import type { WorkflowChange } from "../../model/workflow-changes";
+import type { ProjectComponent } from "../../model/projects";
 import { versionOptions } from "../../model/workflow";
 import Button from "../primitives/Button";
 import Picker from "../primitives/Picker";
 import SegmentedControl from "../primitives/SegmentedControl";
 import IconButton from "../primitives/IconButton";
+import Badge from "../primitives/Badge";
 import WorkflowFileMenu from "./WorkflowFileMenu";
 import type { WorkflowMenuAction } from "./WorkflowFileMenu";
 import SandboxChip from "./SandboxChip";
 import RunMenuButton from "./RunMenuButton";
 import LoadedRunBar from "./LoadedRunBar";
+import SandboxChangesMenu from "./SandboxChangesMenu";
+import EnvironmentMenu from "./EnvironmentMenu";
 
 /** The editor's main surfaces. */
 export type EditorView = "canvas" | "code";
 
 const editorViews: { id: EditorView; label: string }[] = [
   { id: "canvas", label: "Canvas" },
-  { id: "code", label: "Code" },
+  { id: "code", label: "Explorer" },
 ];
 
 interface Props {
@@ -45,6 +50,14 @@ interface Props {
   /** A loaded run; in code mode it shows next to the view switcher, with "Unload run". */
   run?: RunDetails;
   onCloseRun?: () => void;
+  /** In a sandbox, what its copy changes, listed from the changes icon beside the name. */
+  changes?: WorkflowChange[];
+  /** The environment the sandbox (or main) loads credentials from, for the environment menu. */
+  environment?: string;
+  /** The project components the workflow uses, for the environment menu. */
+  components?: ProjectComponent[];
+  /** Opens a component from the environment menu. */
+  onOpenComponent?: (componentId: string) => void;
   /** Whether triggers start runs; the sandbox chip reads this way on main. */
   live?: boolean;
   view: EditorView;
@@ -72,13 +85,13 @@ interface Props {
 
 /** The toolbar's groups of controls, for the page to put in `EditorTopBar`'s slots. */
 export interface EditorToolbarGroups {
-  /** The file menu, the workflow's name (or version picker) and the sandbox chip. */
+  /** The file menu, the workflow's name (or version picker), its changes (or "Main / Read-only") and the sandbox chip. */
   start: ReactNode;
   /** The Canvas/Code switcher. */
   middle: ReactNode;
   /** The loaded run, beside the switcher in code mode. */
   afterMiddle?: ReactNode;
-  /** Run, and the main action: Edit in sandbox or Go live. */
+  /** The environment menu and Run, with Edit in sandbox on main. */
   end: ReactNode;
   /** The assistant's toggle. */
   aside?: ReactNode;
@@ -89,15 +102,18 @@ export interface EditorToolbarGroups {
 /**
  * The editor toolbar, in three groups over the canvas.
  *
- * On the left, a pill holds the Fn file menu, the workflow's title and the
- * sandbox chip. The title reads "Name • v4": click it to open the version
- * history (renaming lives in the Fn menu, or press R in a sandbox). While a
- * run is loaded, the title is just the name. In the middle the view switcher
- * flips between Canvas and Code. In code mode a
- * loaded run sits to its right, styled like the canvas runs bar, with
- * "Unload run". On the right sit the run
- * button and the main action ("Edit in sandbox" on main, "Go live" in a
- * sandbox), then the assistant button in a group of its own. The button hands
+ * On the left, a pill holds the Fn file menu, the workflow's title, what's
+ * changed and the sandbox chip. The title reads "Name • v4": click it to open
+ * the version history (renaming lives in the Fn menu, or press R in a
+ * sandbox). While a run is loaded, the title is just the name. In a sandbox
+ * the changes icon beside it counts what's changed and opens the list, with
+ * "Go live" at its foot; on main a tag says "Main / Read-only" instead. In the
+ * middle the view switcher flips between Canvas and Explorer. In the explorer
+ * a loaded run sits to its right, styled like the canvas runs bar, with
+ * "Unload run". On the right sit the environment menu (where you are, its
+ * environment and the components in use) and Run, which is the main action
+ * in a sandbox; on main "Edit in sandbox" is, after Run. Then the assistant
+ * button in a group of its own. The button hands
  * over to the assistant tray: while the tray slides in from the right, the
  * button folds away in step with it, and it comes back as the tray leaves, so
  * the tray's own close button is the way to close the assistant. Showing and
@@ -121,6 +137,10 @@ export default function EditorToolbar({
   onSelectVersion,
   run,
   onCloseRun,
+  changes = [],
+  environment,
+  components,
+  onOpenComponent,
   live = true,
   view,
   onViewChange,
@@ -238,6 +258,13 @@ export default function EditorToolbar({
               {name}
             </span>
           )}
+          {onMain ? (
+            <span className="mr-1.5 flex-none">
+              <Badge label="Main / Read-only" shape="tag" icon={Lock} />
+            </span>
+          ) : (
+            <SandboxChangesMenu sandbox={sandbox} changes={changes} onGoLive={() => onMenuAction("promote")} />
+          )}
           <SandboxChip
             sandboxes={sandboxes}
             value={sandbox}
@@ -255,7 +282,9 @@ export default function EditorToolbar({
       afterMiddle: run && view === "code" ? <LoadedRunBar run={run} detail={run.version} onUnload={onCloseRun} /> : undefined,
       end: (
         <>
+          <EnvironmentMenu sandbox={sandbox} environment={environment} components={components} onOpenComponent={onOpenComponent} />
           <RunMenuButton
+            primary={!onMain}
             retry={retry}
             fromStep={fromStep}
             onRun={onRun}
@@ -263,13 +292,9 @@ export default function EditorToolbar({
             onRetry={onRetry}
             onRunWithCustomInput={onRunWithCustomInput}
           />
-          {onMain ? (
+          {onMain && (
             <Button variant="dark" size="sm" icon={FlaskConical} className="ml-1 rounded-lg" onClick={() => onMenuAction("edit-in-sandbox")}>
               Edit in sandbox
-            </Button>
-          ) : (
-            <Button variant="dark" size="sm" icon={GitMerge} className="ml-1 rounded-lg" onClick={() => onMenuAction("promote")}>
-              Go live
             </Button>
           )}
         </>

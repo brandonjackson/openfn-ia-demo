@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { BookOpen, Copy, History, Maximize2, MoreVertical, Plus, Sparkles, X } from "lucide-react";
+import { BookOpen, Copy, GitCompare, History, Maximize2, MoreVertical, Plus, Sparkles, X } from "lucide-react";
 import IconButton from "./IconButton";
 
 const meta: Meta<typeof IconButton> = {
@@ -45,6 +45,11 @@ export const Toggle: Story = {
 
 export const TogglePressed: Story = {
   args: { variant: "toggle", size: "md", icon: History, label: "Run history", pressed: true },
+};
+
+/** A count in the corner, e.g. how many changes a sandbox has. */
+export const WithCount: Story = {
+  args: { size: "md", icon: GitCompare, label: "Changes (3)", count: 3 },
 };
 
 export const WithDot: Story = {

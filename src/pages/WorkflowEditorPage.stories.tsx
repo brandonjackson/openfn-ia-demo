@@ -52,6 +52,9 @@ const meta: Meta<typeof WorkflowEditorPage> = {
     onDeleteCollectionItem: async () => {},
     sandboxes: projects[0].sandboxes,
     versions: workflowVersions,
+    environment: "production",
+    // In a sandbox, what's changed is counted against main's copy: this one, so edits made in a story show up.
+    baseline: nationalIdWorkflow,
     assistantConversations,
     url: "https://app.openfn.org/i/8f3c2a1e",
     onBack: () => {},
@@ -228,8 +231,9 @@ export const CustomLayout: Story = {
   },
 };
 
+/** In a sandbox, changed since main's v1: the changes icon beside the name lists what going live takes to main. */
 export const InSandbox: Story = {
-  args: { sandbox: projects[0].sandboxes[1] },
+  args: { sandbox: projects[0].sandboxes[1], environment: "staging", baseline: nationalIdWorkflowAt("v1") },
 };
 
 export const RunWithCustomInput: Story = {

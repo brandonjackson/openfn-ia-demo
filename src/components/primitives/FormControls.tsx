@@ -11,12 +11,14 @@ const controlClasses =
 interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
   /** The height of a `sm` Button, for an input beside one, e.g. a search in a page header. */
   compact?: boolean;
+  /** Monospaced, for keys, ids and code. */
+  mono?: boolean;
   /** To focus it, e.g. on the field a form says is missing. */
   ref?: Ref<HTMLInputElement>;
 }
 
-export function TextInput({ className = "", compact = false, ...rest }: TextInputProps) {
-  return <input type="text" className={`${controlClasses} ${compact ? "py-1.5" : "py-2"} ${className}`} {...rest} />;
+export function TextInput({ className = "", compact = false, mono = false, ...rest }: TextInputProps) {
+  return <input type="text" className={`${controlClasses} ${compact ? "py-1.5" : "py-2"} ${mono ? "font-mono" : ""} ${className}`} {...rest} />;
 }
 
 interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {

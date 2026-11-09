@@ -12,13 +12,15 @@ interface Props {
   disabled?: boolean;
   /** A line under the label explaining what checking it does. */
   hint?: string;
+  /** The box's id, e.g. to move focus to it when a form names a problem with it. */
+  id?: string;
 }
 
 /**
  * A checkbox with its label: picking rows in a table, or turning on one of
  * several options in a form.
  */
-export default function Checkbox({ checked, onChange, label, hideLabel = false, indeterminate = false, disabled = false, hint }: Props) {
+export default function Checkbox({ checked, onChange, label, hideLabel = false, indeterminate = false, disabled = false, hint, id }: Props) {
   const ref = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (ref.current) ref.current.indeterminate = indeterminate;
@@ -28,6 +30,7 @@ export default function Checkbox({ checked, onChange, label, hideLabel = false, 
     <label className={`inline-flex items-start gap-2 ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}`}>
       <input
         ref={ref}
+        id={id}
         type="checkbox"
         checked={checked}
         disabled={disabled}

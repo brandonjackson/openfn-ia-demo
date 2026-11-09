@@ -14,6 +14,11 @@ export const Text: Story = {
   render: () => <TextInput defaultValue="brandon-demo" />,
 };
 
+/** Monospaced, for a key or an id. */
+export const MonoText: Story = {
+  render: () => <TextInput mono defaultValue="DHIS2_BASE_URL" />,
+};
+
 export const Password: Story = {
   render: () => <TextInput type="password" placeholder="Current password" />,
 };

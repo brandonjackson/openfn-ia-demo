@@ -12,6 +12,8 @@ interface Props {
   required?: boolean;
   /** Marks the field "(optional)" after its label. */
   optional?: boolean;
+  /** Reads the label out without drawing it, e.g. in a row of fields under one set of column headings. */
+  hideLabel?: boolean;
   children: ReactNode;
 }
 
@@ -22,7 +24,7 @@ type Described = { "aria-describedby"?: string; "aria-invalid"?: boolean; "aria-
  * single control is told, for screen readers, what its hint or error says,
  * whether it's invalid and whether it's required.
  */
-export default function FormField({ label, htmlFor, hint, error, required = false, optional = false, children }: Props) {
+export default function FormField({ label, htmlFor, hint, error, required = false, optional = false, hideLabel = false, children }: Props) {
   const noteId = useId();
   const note = error || hint ? noteId : undefined;
   const control = isValidElement<Described>(children)
@@ -34,7 +36,7 @@ export default function FormField({ label, htmlFor, hint, error, required = fals
     : children;
   return (
     <div>
-      <label htmlFor={htmlFor} className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={htmlFor} className={hideLabel ? "sr-only" : "block text-sm font-medium text-gray-700 mb-1"}>
         {label}
         {required && (
           <span className="ml-0.5 text-red-500" aria-hidden>

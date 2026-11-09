@@ -10,6 +10,7 @@ import { connectedSystems } from "../fixtures/connected-systems";
 import { codeSummary } from "../fixtures/code-summaries";
 import { channelDetails } from "../fixtures/channels";
 import { workflowDocs } from "../fixtures/workflow-files";
+import { projectAEnvVars } from "../fixtures/env-vars";
 import { serviceYaml } from "../model/services";
 import { orgXRoad } from "../fixtures/xroad";
 import { fixtureComponentContents } from "../fixtures/project-components";
@@ -54,6 +55,10 @@ const meta: Meta<typeof WorkflowEditorPage> = {
     sandboxes: projects[0].sandboxes,
     versions: workflowVersions,
     environment: "production",
+    envVars: projectAEnvVars,
+    onCreateEnvVar: async () => {},
+    onUpdateEnvVar: async () => {},
+    onDeleteEnvVar: async () => {},
     // In a sandbox, what's changed is counted against main's copy: this one, so edits made in a story show up.
     baseline: nationalIdWorkflow,
     assistantConversations,
@@ -338,4 +343,9 @@ export const CodeRedesign: Story = {
     systems: [],
     service: undefined,
   },
+};
+
+/** The project's environment variables, opened from Workflow in the explorer. */
+export const EnvironmentVariables: Story = {
+  args: { initialView: "code", initialFile: "envVars", runId: undefined, initialLayout: { explorer: true } },
 };

@@ -1,4 +1,4 @@
-import { FlaskConical, Layers, Lock } from "lucide-react";
+import { Cloud, FlaskConical, Lock } from "lucide-react";
 import type { ProjectComponent } from "../../model/projects";
 import { componentTypeIcons } from "../../model/component-types";
 import Popover from "../primitives/Popover";
@@ -39,7 +39,7 @@ export default function EnvironmentMenu({ sandbox, environment, components = [],
       widthClass="w-80"
       defaultOpen={defaultOpen}
       trigger={({ open, toggle }) => (
-        <IconButton icon={Layers} size="md" label="Environment" active={open} aria-expanded={open} aria-haspopup="dialog" onClick={toggle} />
+        <IconButton icon={Cloud} size="md" label="Environment" active={open} aria-expanded={open} aria-haspopup="dialog" onClick={toggle} />
       )}
     >
       {(close) => (

@@ -1,4 +1,4 @@
-import { BookOpen, Database, FileText, HeartPulse, Plus, Workflow as WorkflowIcon } from "lucide-react";
+import { BookOpen, Database, FileText, HeartPulse, Plus, Variable, Workflow as WorkflowIcon } from "lucide-react";
 import type { JobNode, RunDetails, TriggerNode, Workflow } from "../../model/workflow";
 import { triggerTypes } from "../../model/workflow";
 import type { ProjectComponent } from "../../model/projects";
@@ -28,6 +28,7 @@ export type ExplorerFile =
   | "service"
   | "health"
   | "dataclips"
+  | "envVars"
   | "trigger"
   | { docName: string }
   | { stepId: string }
@@ -64,6 +65,8 @@ interface Props {
   readOnly?: boolean;
   /** List the Workflow group (workflow.yaml, its docs, service.yaml and Health). Off with the demo's Workflow docs flag. */
   showWorkflowFiles?: boolean;
+  /** List the project's environment variables under Workflow. Off with the demo's Environment variables flag. */
+  showEnvVars?: boolean;
   /** List the Components group. Off with the demo's Components flag. */
   showComponents?: boolean;
   /** The + on each group; the Workflow group's opens what can be added to it. */
@@ -92,6 +95,7 @@ export default function EditorExplorer({
   docs = [],
   readOnly = false,
   showWorkflowFiles = true,
+  showEnvVars = false,
   showComponents = true,
   onAddFile,
   onAddStep,
@@ -131,6 +135,9 @@ export default function EditorExplorer({
             />
           )}
           <NavItem variant="tree" label="Health" icon={HeartPulse} active={current === "health"} onClick={() => onOpen("health")} />
+          {showEnvVars && (
+            <NavItem variant="tree" label="Environment variables" icon={Variable} active={current === "envVars"} onClick={() => onOpen("envVars")} />
+          )}
           {docs.map((name) => (
             <NavItem
               variant="tree"

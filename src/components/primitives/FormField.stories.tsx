@@ -37,3 +37,14 @@ export const WithHint: Story = {
     children: <TextInput id="env" defaultValue="main" />,
   },
 };
+
+/** The label is read out but not drawn, for a row of fields under one set of headings. */
+export const HiddenLabel: Story = {
+  args: {
+    label: "Key",
+    htmlFor: "env-key",
+    hideLabel: true,
+    error: "Enter a key",
+    children: <TextInput id="env-key" mono placeholder="e.g. API_URL" />,
+  },
+};

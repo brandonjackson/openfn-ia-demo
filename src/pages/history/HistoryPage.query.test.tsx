@@ -43,7 +43,8 @@ const serverOrders = (path = `/api/projects/${projectId}/work_orders?include=run
 /** The button that opens a work order's row, by its id. */
 const row = (id: string) => screen.findByRole("button", { name: new RegExp(`^Work order ${id},`) }, wait);
 
-describe("HistoryPageQuery", () => {
+// Rendering a project's whole history (and the editor, for "opens a run") takes several seconds in jsdom, near the default 5s under a full run.
+describe("HistoryPageQuery", { timeout: 15000 }, () => {
   beforeEach(() => {
     setWait(0);
     resetFakeApi();

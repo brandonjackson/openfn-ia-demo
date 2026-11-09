@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { ReactNode } from "react";
-import { BookOpen, Calendar, ExternalLink, FolderKanban, Globe, History, Layers, Plug, Radio, User, X } from "lucide-react";
+import { BookOpen, Calendar, Database, ExternalLink, FolderKanban, Globe, History, Layers, Plug, Radio, User, X } from "lucide-react";
 import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowFileContents, WorkflowSettings } from "../../model/workflow";
 import type { DetailsViewId } from "./editor-layout";
 import { triggerTypes, workflowToYaml } from "../../model/workflow";
@@ -9,6 +9,7 @@ import type { ConnectedSystem } from "../../model/connected-systems";
 import type { ProjectComponent, ProjectService } from "../../model/projects";
 import { channelTypeConfig } from "./channel-types";
 import { componentTypeIcons } from "../../model/component-types";
+import { draftServiceManifest } from "../../model/services";
 import Button from "../primitives/Button";
 import Badge from "../primitives/Badge";
 import IconButton from "../primitives/IconButton";
@@ -17,7 +18,7 @@ import EntityPill from "./EntityPill";
 import AdaptorReferencePanel from "./AdaptorReferencePanel";
 import RunIOPanel from "./RunIOPanel";
 import EditorExplorer from "./EditorExplorer";
-import type { ExplorerFile } from "./EditorExplorer";
+import type { ExplorerFile, WorkflowFileKind } from "./EditorExplorer";
 import CodePaneHeader from "./CodePaneHeader";
 import ReadOnlyNotice from "./ReadOnlyNotice";
 import CodeEditor from "../primitives/CodeEditor";
@@ -73,9 +74,14 @@ interface Props {
   onCodeChange?: (stepId: string, code: string) => void;
   onDeleteStep?: (stepId: string) => void;
   onAddStep?: () => void;
+  /** Which of the workflow's optional files it has (context, spec, service manifest, saved dataclips); see `EditorExplorer`. */
+  files?: WorkflowFileKind[];
+  /** How many saved dataclips the project has, listed beside Saved dataclips. */
+  savedDataclipCount?: number;
   /** Docs added alongside context.md and spec.md, by file name. */
   docs?: string[];
-  onAddDoc?: () => void;
+  /** Opens what can be added to the workflow's files, from the Workflow group's +. */
+  onAddFile?: () => void;
   /** Opens the picker for a new project component. */
   onAddComponent?: () => void;
   /**
@@ -166,8 +172,10 @@ export default function CodeWorkspace({
   onCodeChange,
   onDeleteStep,
   onAddStep,
+  files,
+  savedDataclipCount,
   docs = [],
-  onAddDoc,
+  onAddFile,
   onAddComponent,
   showExplorer = true,
   showDetails = true,
@@ -188,10 +196,13 @@ export default function CodeWorkspace({
     typeof file === "object" && "componentId" in file ? components.find((c) => c.id === file.componentId) : undefined;
   const channel = component?.type === "Channel" ? contents?.channels[component.id] : undefined;
   const doc = file === "context" ? "context" : file === "spec" ? "spec" : undefined;
-  const listing = file === "service" ? service : undefined;
+  const manifest = file === "service";
+  const listing = manifest ? service : undefined;
   const addedDoc = typeof file === "object" && "docName" in file ? file.docName : undefined;
   const health = file === "health";
-  const fileName = addedDoc ?? (doc ? `${doc}.md` : listing ? "service.yaml" : health ? "Health" : "workflow.yaml");
+  const saved = file === "dataclips";
+  const fileName =
+    addedDoc ?? (doc ? `${doc}.md` : manifest ? "service.yaml" : health ? "Health" : saved ? "Saved dataclips" : "workflow.yaml");
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
   const yaml = workflowToYaml(workflow);
   const triggerYaml = yaml.slice(yaml.indexOf("triggers:"), yaml.indexOf("edges:")).trimEnd();
@@ -216,8 +227,8 @@ export default function CodeWorkspace({
         ? triggerYaml
         : doc
           ? (contents?.docs[doc] ?? "")
-          : listing
-            ? (contents?.serviceListing ?? "")
+          : manifest
+            ? (contents?.serviceListing ?? draftServiceManifest(workflow.name))
             : addedDoc
             ? `# ${addedDoc.replace(/\.md$/, "")}\n`
             : yaml;
@@ -321,6 +332,27 @@ export default function CodeWorkspace({
         }
         showHeader={false}
       />
+    ) : manifest ? (
+      <FileDetailsPanel
+        title="service.yaml"
+        tag={<Badge label="Draft" />}
+        description="The manifest other teams will see in the service catalog once the workflow is published as a service: how to call it and what it returns."
+        properties={[
+          { icon: User, label: "Created by", value: "You" },
+          { icon: FolderKanban, label: "Project", value: workflow.project },
+        ]}
+        showHeader={false}
+      />
+    ) : saved ? (
+      <FileDetailsPanel
+        title="Saved dataclips"
+        description="Inputs kept in the project to run the workflow with: written by hand, named from a run, or brought across when a sandbox was made."
+        properties={[
+          { icon: Database, label: "Saved", value: String(savedDataclipCount ?? 0) },
+          { icon: FolderKanban, label: "Project", value: workflow.project },
+        ]}
+        showHeader={false}
+      />
     ) : health ? (
       <FileDetailsPanel
         title="Health"
@@ -377,11 +409,13 @@ export default function CodeWorkspace({
         run={run}
         components={components}
         hasService={service !== undefined}
+        files={files}
+        savedDataclipCount={savedDataclipCount}
         docs={docs}
         readOnly={readOnly}
         showWorkflowFiles={showWorkflowFiles}
         showComponents={showComponents}
-        onAddDoc={readOnly ? undefined : onAddDoc}
+        onAddFile={readOnly ? undefined : onAddFile}
         onAddStep={readOnly ? undefined : onAddStep}
         onAddComponent={readOnly ? undefined : onAddComponent}
       />
@@ -405,7 +439,7 @@ export default function CodeWorkspace({
       ? {
           tabs: {
             options: [
-              { id: "config", label: component || doc || listing || addedDoc || health ? "Details" : "Config" },
+              { id: "config", label: component || doc || manifest || addedDoc || health || saved ? "Details" : "Config" },
               ...(step ? [{ id: "snippets", label: "Snippets" }] : []),
               ...(hasIO ? [{ id: "io", label: "I/O" }] : []),
             ],

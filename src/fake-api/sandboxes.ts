@@ -20,6 +20,7 @@ import { conflict, forbidden, includes, invalid, isUuid, json, now, paged, unkno
 import { record } from "./audit";
 import { findProject, guardProject, members, membersOf, projectEntry, projects, roleIn, rootOf, type ProjectRow } from "./projects";
 import { currentUserId } from "./session";
+import { copyDataclipsInto } from "./work-orders";
 import { cloneInto, liveWorkflowsIn, saveWorkflow, snapshot, workflows, type WorkflowRow } from "./workflows";
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -134,6 +135,10 @@ export const sandboxRoutes: Record<string, Handler> = {
       errors.push({ code: "format", detail: "must be a hex colour like #336699", pointer: "#/color" });
     }
     if (depthOf(parent) + 1 > MAX_DEPTH) errors.push({ code: "invalid", detail: "sandboxes can't be nested any deeper", pointer: "#/name" });
+    const clipIds = body["dataclip_ids"];
+    if (clipIds !== undefined && !(Array.isArray(clipIds) && clipIds.every((c) => typeof c === "string"))) {
+      errors.push({ code: "type", detail: "must be a list of dataclip ids", pointer: "#/dataclip_ids" });
+    }
     if (errors.length) return invalid(errors);
 
     const at = now();
@@ -157,11 +162,15 @@ export const sandboxRoutes: Record<string, Handler> = {
     }
     members.insert({ project_id: sandbox.id, user_id: currentUserId(), role: "owner", failure_alert: true, digest: "never", inserted_at: at });
     // Every workflow, with its triggers off.
+    const copies = new Map<string, string>();
     for (const w of liveWorkflowsIn(parent.id)) {
       const copy = cloneInto(w, sandbox.id, at);
       workflows.insert(copy);
       snapshot(copy);
+      copies.set(w.id, copy.id);
     }
+    // The saved dataclips asked for come along, to run the copies with.
+    copyDataclipsInto(parent.id, sandbox.id, (clipIds as string[] | undefined) ?? [], copies);
     record("created", { type: "project", id: sandbox.id, name: sandbox.name }, { after: { name: sandbox.name, parent_id: parent.id } });
     return json(201, { data: projectEntry(sandbox) });
   },

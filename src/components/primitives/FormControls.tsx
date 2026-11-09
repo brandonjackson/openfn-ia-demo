@@ -1,5 +1,6 @@
 import type {
   InputHTMLAttributes,
+  Ref,
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
 } from "react";
@@ -10,6 +11,8 @@ const controlClasses =
 interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
   /** The height of a `sm` Button, for an input beside one, e.g. a search in a page header. */
   compact?: boolean;
+  /** To focus it, e.g. on the field a form says is missing. */
+  ref?: Ref<HTMLInputElement>;
 }
 
 export function TextInput({ className = "", compact = false, ...rest }: TextInputProps) {
@@ -19,6 +22,8 @@ export function TextInput({ className = "", compact = false, ...rest }: TextInpu
 interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   /** Monospaced, for code or JSON. */
   mono?: boolean;
+  /** To focus it, e.g. on the field a form says is missing. */
+  ref?: Ref<HTMLTextAreaElement>;
 }
 
 export function TextArea({ className = "", mono = false, ...rest }: TextAreaProps) {

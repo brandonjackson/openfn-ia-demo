@@ -313,6 +313,7 @@ const savedInputs: Dataclip[] = [
   {
     id: "saved-new-citizen",
     name: "Sample application: new citizen",
+    description: "Someone not yet in the registry, so the workflow creates a record for them.",
     type: "saved_input",
     created: "Oct 10th, 2:04 PM",
     body: json({ given_name: "Test", family_name: "Applicant", date_of_birth: "2000-01-01", district: "North", phone: "+15555550100" }),
@@ -320,6 +321,7 @@ const savedInputs: Dataclip[] = [
   {
     id: "saved-existing-citizen",
     name: "Sample application: existing citizen",
+    description: "Amara Okafor, already registered, so the workflow finds her and confirms.",
     type: "saved_input",
     created: "Oct 10th, 2:06 PM",
     body: json({ given_name: "Amara", family_name: "Okafor", date_of_birth: "1991-03-14", district: "North", phone: "+15555550101" }),

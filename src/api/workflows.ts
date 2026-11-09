@@ -191,11 +191,12 @@ export function useSandboxSaves() {
   const run = useMutation({ mutationFn: (work: () => Promise<unknown>) => work(), onSuccess: refresh });
   const go = <T,>(work: () => Promise<T>) => run.mutateAsync(work) as Promise<T>;
   return {
-    /** Makes a sandbox under `parentId`; answers with its id. */
-    create: (parentId: string, input: { name: string; color: string | null }) =>
+    /** Makes a sandbox under `parentId`, bringing the parent's saved dataclips in `dataclipIds` along; answers with its id. */
+    create: (parentId: string, input: { name: string; color: string | null; dataclipIds?: string[] }) =>
       go(async () => {
         const id = crypto.randomUUID();
-        await request("PUT", `/api/projects/${parentId}/sandboxes/${id}`, input);
+        const { dataclipIds, ...rest } = input;
+        await request("PUT", `/api/projects/${parentId}/sandboxes/${id}`, { ...rest, ...(dataclipIds?.length && { dataclip_ids: dataclipIds }) });
         return id;
       }),
     /** Renames or recolours a sandbox. */

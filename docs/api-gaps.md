@@ -66,6 +66,16 @@ path in its hook file.
 - **Project components besides workflows, channels and collections** (forms,
   artifacts, AI skills, documents, static websites). Demo:
   `/api/demo/projects/:id/components` (`src/api/project-components.ts`).
+- **Saving and naming dataclips** (the editor's Saved dataclips, its
+  "Add to workflow" and "Edit in sandbox"). api/dataclips.md lists a
+  project's dataclips (Planned), but has no way to save an input under a
+  name, describe it, or rename it. Would need a create (name, description,
+  JSON body, optionally a workflow) and an update of the name and
+  description, a name unique in the project. Demo:
+  `POST /api/demo/projects/:id/dataclips` and
+  `PATCH /api/demo/projects/:id/dataclips/:id` (`src/api/dataclips.ts`);
+  making a sandbox brings saved ones across with `dataclip_ids`, and a
+  reviewed copy of a run's input is saved in the new sandbox afterwards.
 - **Maintenance jobs** (Admin settings, Maintenance). Lightning's
   `/settings/maintenance` has no API. Would need a list of jobs with when
   each last ran, and a way to run one. Demo: `/api/demo/maintenance`

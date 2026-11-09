@@ -235,7 +235,9 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       workflow={graph}
       workOrders={useMemo(() => withoutXRoadCalls(history.workOrders, flags.xroad), [history, flags.xroad])}
       dataclips={history.dataclips}
-      onRunFinished={(made, clips, retryOf) => void runSaves.record(shown.project_id, shown.id, made, clips, retryOf)}
+      // Lightning's worker runs workflows, so it refuses a run the editor made (docs/api-gaps.md): the run then
+      // stays in the editor, loaded, until it's reopened.
+      onRunFinished={(made, clips, retryOf) => void runSaves.record(shown.project_id, shown.id, made, clips, retryOf).catch(() => undefined)}
       graphForVersion={versionGraph}
       runId={runId}
       onRunChange={setRunId}

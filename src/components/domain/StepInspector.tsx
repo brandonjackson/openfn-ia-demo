@@ -60,6 +60,8 @@ interface Props {
   onOpenCode?: () => void;
   onRunFromHere?: () => void;
   onDelete?: () => void;
+  /** Why the step can't be deleted, e.g. other steps run after it: Delete shows, off, saying so. */
+  deleteBlockedReason?: string;
   onClose?: () => void;
   /** Run history over the canvas's period; shown instead of the config while no run is loaded. */
   stats?: InspectorStats;
@@ -106,6 +108,7 @@ export default function StepInspector({
   onOpenCode,
   onRunFromHere,
   onDelete,
+  deleteBlockedReason,
   onClose,
   stats,
   run,
@@ -207,7 +210,15 @@ export default function StepInspector({
         <footer className="flex flex-none items-center justify-between gap-2 border-t border-gray-200 px-5 py-3">
           <div>
             {onDelete && !readOnly && (
-              <Button variant="outline-danger" size="xs" icon={Trash2} onClick={onDelete} aria-label="Delete step">
+              <Button
+                variant="outline-danger"
+                size="xs"
+                icon={Trash2}
+                onClick={onDelete}
+                disabled={!!deleteBlockedReason}
+                title={deleteBlockedReason}
+                aria-label="Delete step"
+              >
                 Delete
               </Button>
             )}

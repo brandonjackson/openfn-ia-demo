@@ -201,6 +201,20 @@ export const edgeConditionLabel: Record<EdgeCondition, string> = {
   js_expression: "when a condition is met",
 };
 
+/**
+ * Why a step can't be deleted, in Lightning's words, or nothing when it can.
+ * As on Lightning (`useJobDeleteValidation`), a step that other steps run
+ * after can't go, nor can the first step, the one the trigger starts.
+ */
+export function stepDeleteBlockedReason(workflow: Workflow, jobId: string): string | undefined {
+  const isJob = (id: string) => workflow.nodes.some((n) => n.id === id && n.type === "job");
+  if (workflow.edges.some((e) => e.source === jobId && isJob(e.target))) return "Cannot delete: other jobs depend on this step";
+  const parents = workflow.edges.filter((e) => e.target === jobId);
+  const fromTrigger = parents.some((e) => !isJob(e.source));
+  if (fromTrigger && !parents.some((e) => isJob(e.source))) return "You can't delete the first step in a workflow.";
+  return undefined;
+}
+
 /** The edge that leads into a job: what it runs after, and when. */
 export function incomingEdge(workflow: Workflow, jobId: string): WorkflowEdge | undefined {
   return workflow.edges.find((e) => e.target === jobId);

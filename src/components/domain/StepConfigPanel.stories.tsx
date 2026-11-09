@@ -39,6 +39,11 @@ export const Editable: Story = {
 
 export const ReadOnly: Story = { args: { readOnly: true } };
 
+/** A step other steps run after: Delete step is off, saying why on hover, as on Lightning. */
+export const DeleteBlocked: Story = {
+  args: { onChange: () => {}, onDelete: () => {}, deleteBlockedReason: "Cannot delete: other jobs depend on this step" },
+};
+
 /** A common step: no credential needed. */
 export const CommonStep: Story = { args: { ...configFor(queue), credentialId: undefined, onChange: () => {} } };
 

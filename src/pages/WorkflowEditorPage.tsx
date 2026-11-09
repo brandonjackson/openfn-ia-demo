@@ -15,7 +15,7 @@ import type {
   WorkflowVersion,
   WorkOrder,
 } from "../model/workflow";
-import { defaultWorkflowSettings, workflowToYaml } from "../model/workflow";
+import { defaultWorkflowSettings, stepDeleteBlockedReason, workflowToYaml } from "../model/workflow";
 import type { WorkflowSettings } from "../model/workflow";
 import { componentChanges, workflowChanges } from "../model/workflow-changes";
 import type { EnvVar, EnvVarDraft } from "../model/env-vars";
@@ -928,7 +928,11 @@ export default function WorkflowEditorPage({
     showPanel("log");
   };
 
+  /** Why a step can't be deleted, as Lightning has it: other steps run after it, or it's the first. */
+  const deleteBlocked = (stepId: string) => stepDeleteBlockedReason(graph, stepId);
+
   const deleteStep = (stepId: string) => {
+    if (deleteBlocked(stepId)) return;
     edit((e) => ({ removed: [...e.removed, stepId] }));
     if (selectedId === stepId) setSelectedId(undefined);
     if (typeof file === "object" && "stepId" in file && file.stepId === stepId) setFile(fallbackFile);
@@ -1201,6 +1205,7 @@ export default function WorkflowEditorPage({
         onOpenCode={focusJob ? () => openInCode(focusJob.id) : undefined}
         onRunFromHere={focusJob ? () => runFresh(focusJob.id) : undefined}
         onDelete={focusJob && !onMain ? () => deleteStep(focusJob.id) : undefined}
+        deleteBlockedReason={focusJob && !onMain ? deleteBlocked(focusJob.id) : undefined}
         onClose={() => setSelectedId(undefined)}
         stats={inspectorStats}
         run={selectedRun}
@@ -1439,6 +1444,7 @@ export default function WorkflowEditorPage({
             onOpen={openNode}
             onNodeAction={onNodeAction}
             readOnly={onMain}
+            deleteBlockedReason={onMain ? undefined : deleteBlocked}
             run={selectedRun}
             activity={activity}
             onShowFailures={setSelectedId}
@@ -1485,6 +1491,7 @@ export default function WorkflowEditorPage({
           onStepChange={onMain ? undefined : changeStep}
           onCodeChange={onMain ? undefined : changeCode}
           onDeleteStep={onMain ? undefined : deleteStep}
+          deleteStepBlockedReason={onMain ? undefined : deleteBlocked}
           onAddStep={onMain ? undefined : addStep}
           files={workflowFiles}
           savedDataclipCount={saved.length}

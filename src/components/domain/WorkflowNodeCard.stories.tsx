@@ -41,6 +41,11 @@ export const Selected: Story = { args: { ...card(httpJob), selected: true } };
 /** On main the delete item is disabled. */
 export const ReadOnly: Story = { args: { ...card(httpJob), readOnly: true } };
 
+/** A step other steps run after: Delete is off in the menu, saying why, as on Lightning. */
+export const DeleteBlocked: Story = {
+  args: { ...card(httpJob), deleteBlockedReason: "Cannot delete: other jobs depend on this step" },
+};
+
 /** Near the canvas's right edge the menu opens under its button instead of beside the card. */
 export const MenuBelow: Story = { args: { ...card(commonJob), menuPlacement: "below" } };
 

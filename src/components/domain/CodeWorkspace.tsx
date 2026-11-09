@@ -75,6 +75,8 @@ interface Props {
   /** A step's code was edited in the editor (or a snippet inserted). Without it, the code is read-only. */
   onCodeChange?: (stepId: string, code: string) => void;
   onDeleteStep?: (stepId: string) => void;
+  /** Why a step can't be deleted, by its id, or nothing when it can; its Delete step says so. */
+  deleteStepBlockedReason?: (stepId: string) => string | undefined;
   onAddStep?: () => void;
   /** Which of the workflow's optional files it has (context, spec, service manifest, saved dataclips); see `EditorExplorer`. */
   files?: WorkflowFileKind[];
@@ -174,6 +176,7 @@ export default function CodeWorkspace({
   onStepChange,
   onCodeChange,
   onDeleteStep,
+  deleteStepBlockedReason,
   onAddStep,
   files,
   savedDataclipCount,
@@ -276,6 +279,7 @@ export default function CodeWorkspace({
         readOnly={readOnly}
         onChange={onStepChange ? (changes) => onStepChange(step.id, changes) : undefined}
         onDelete={onDeleteStep ? () => onDeleteStep(step.id) : undefined}
+        deleteBlockedReason={deleteStepBlockedReason?.(step.id)}
         showHeader={false}
       />
     ) : component ? (

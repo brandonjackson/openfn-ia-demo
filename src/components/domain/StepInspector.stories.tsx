@@ -77,6 +77,11 @@ export const ReadOnly: Story = {
   args: { readOnly: true, credentialId: "cred-identity-prod", onChange: undefined, onDelete: undefined },
 };
 
+/** A step other steps run after: Delete is off, saying why on hover, as on Lightning. */
+export const DeleteBlocked: Story = {
+  args: { deleteBlockedReason: "Cannot delete: other jobs depend on this step" },
+};
+
 /** A step whose code has nothing in it yet: the summary says so. */
 export const EmptyStep: Story = {
   args: {

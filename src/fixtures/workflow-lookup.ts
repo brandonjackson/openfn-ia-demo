@@ -5,7 +5,7 @@
  */
 import type { Dataclip, RunDetails, Workflow, WorkOrder } from "../model/workflow";
 import { nationalIdWorkflow, nationalIdWorkflowAt, workflowGraphs } from "./workflow";
-import { dataclips, runHistories, workOrders } from "./runs";
+import { dataclips, generatedWorkOrderIds, runHistories, whenLabel, workOrders } from "./runs";
 import { projectWorkflowDetails, projects } from "./projects";
 import type { Project } from "../model/projects";
 import type { WorkflowListItem } from "../model/workflow-list";
@@ -38,19 +38,6 @@ function hexId(seed: string): string {
     hash = Math.imul(hash, 0x01000193);
   }
   return (hash >>> 0).toString(16).padStart(8, "0");
-}
-
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-/** "today at 9:42 AM", "yesterday at 5:02 PM" or "Oct 13th, 12:19 PM", as the mock history words it on 20 Oct. */
-function whenLabel(d: Date): string {
-  const h = d.getHours() % 12 || 12;
-  const time = `${h}:${String(d.getMinutes()).padStart(2, "0")} ${d.getHours() < 12 ? "AM" : "PM"}`;
-  if (d.getMonth() === 9 && d.getDate() === 20) return `today at ${time}`;
-  if (d.getMonth() === 9 && d.getDate() === 19) return `yesterday at ${time}`;
-  const day = d.getDate();
-  const suffix = day % 10 === 1 && day !== 11 ? "st" : day % 10 === 2 && day !== 12 ? "nd" : day % 10 === 3 && day !== 13 ? "rd" : "th";
-  return `${MONTHS[d.getMonth()]} ${day}${suffix}, ${time}`;
 }
 
 /** A run's start moved `minutes` earlier, in both of the ways it's written. */
@@ -103,25 +90,31 @@ function enqueued(workflowId: string, input: Dataclip): WorkOrder {
 /**
  * A workflow's run history and the dataclips its runs used. The national ID
  * workflow and those with a history of their own keep theirs as they are.
- * Any other borrows the national ID workflow's under ids of its own, leaving
- * out a different few work orders each, and about half have one more just
- * received and waiting to run.
+ * Any other borrows the national ID workflow's under ids of its own: the
+ * hand-written work orders less a different few each, and about one in five
+ * of the generated ones, a different fifth each, so the seed stays small
+ * enough to keep in the browser. About half have one more just received and
+ * waiting to run. Each gets only the dataclips its runs used, and the saved
+ * and named ones.
  */
 export function workflowHistory(workflowId: string): { workOrders: WorkOrder[]; dataclips: Dataclip[] } {
   const own = runHistories[workflowId];
   if (own) return own;
   if (workflowId === nationalIdWorkflow.id) return { workOrders, dataclips };
   const skip = parseInt(hexId(workflowId).slice(0, 2), 16) % 3;
-  const borrowed = workOrders
-    .filter((_, i) => i % 4 !== skip)
-    .map((o) => {
-      const runs = o.runs.map((r) => borrowRun(r, workflowId));
-      return { ...o, id: runs[0].workOrderId, lastActivity: runs[0].when, runs };
-    });
+  const handWritten = workOrders.filter((o) => !generatedWorkOrderIds.has(o.id));
+  const kept = workOrders.filter((o) =>
+    generatedWorkOrderIds.has(o.id) ? parseInt(hexId(`${workflowId}:${o.id}`).slice(0, 2), 16) % 5 === 0 : handWritten.indexOf(o) % 4 !== skip
+  );
+  const borrowed = kept.map((o) => {
+    const runs = o.runs.map((r) => borrowRun(r, workflowId));
+    return { ...o, id: runs[0].workOrderId, lastActivity: runs[0].when, runs };
+  });
   const firstInput = dataclips.find((d) => d.id === workOrders[0].runs[0].inputId) ?? dataclips[0];
   // About half of them have one waiting to run.
   const waiting = parseInt(hexId(workflowId).slice(6, 8), 16) % 2 === 0 ? [enqueued(workflowId, firstInput)] : [];
-  return { workOrders: [...waiting, ...borrowed], dataclips };
+  const used = new Set([firstInput.id, ...kept.flatMap((o) => o.runs.flatMap((r) => [r.inputId, ...r.steps.flatMap((s) => [s.inputId, s.outputId])]))]);
+  return { workOrders: [...waiting, ...borrowed], dataclips: dataclips.filter((d) => used.has(d.id) || d.name !== undefined) };
 }
 
 /** Every work order in a fixture project, across its workflows. */

@@ -16,7 +16,7 @@ const MENU_ROOM = 210;
 /** Space above the graph so the top card isn't pressed against the toolbar or the runs bar. */
 const TOP_MARGIN = 56;
 /** The busiest connector's width under the history overlay; the rest scale down from it. */
-const MAX_EDGE_WIDTH = 12;
+const MAX_EDGE_WIDTH = 18;
 /** The header's height (e.g. the runs bar) and its gap above the top card. */
 const HEADER_HEIGHT = 40;
 const HEADER_GAP = 16;

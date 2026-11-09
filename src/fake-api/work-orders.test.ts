@@ -62,9 +62,9 @@ describe("work orders and runs", () => {
     const template = order.attributes.runs[0]!;
     const run = { ...template, runId: "feed0001", workOrderId: "feed0000", status: "success" as const };
     await request("POST", `/api/projects/${a}/workflows/${planning}/work_orders`, { run, dataclips: [] });
-    expect((await orders()).data.some((o) => o.id === "feed0000")).toBe(true);
+    expect((await orders(`&workflow_id=${planning}`)).data.some((o) => o.id === "feed0000")).toBe(true);
     await request("POST", `/api/projects/${a}/workflows/${planning}/work_orders`, { run: { ...run, runId: "feed0002" }, work_order_id: "feed0000" });
-    expect((await orders()).data.find((o) => o.id === "feed0000")!.attributes.runs.map((r) => r.runId)).toEqual(["feed0002", "feed0001"]);
+    expect((await orders(`&workflow_id=${planning}`)).data.find((o) => o.id === "feed0000")!.attributes.runs.map((r) => r.runId)).toEqual(["feed0002", "feed0001"]);
   });
 
   it("lets a viewer read history but not retry", async () => {

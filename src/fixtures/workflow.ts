@@ -499,7 +499,7 @@ export const workflowVersions: WorkflowVersion[] = [
     id: "v2",
     message: "Promoted sandbox adding duplicate-application check",
     author: "Brandon Jackson",
-    date: "14 Oct 2026",
+    date: "24 Sep 2026",
   },
   { id: "v1", message: "Initial go-live", author: "Brandon Jackson", date: "2 Sep 2026" },
 ];

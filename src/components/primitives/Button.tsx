@@ -34,6 +34,8 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   icon?: LucideIcon;
+  /** Fills the width it's given, e.g. the one action at the foot of a popover. */
+  fullWidth?: boolean;
   children: ReactNode;
 }
 
@@ -45,6 +47,7 @@ export default function Button({
   variant = "primary",
   size = "md",
   icon: Icon,
+  fullWidth = false,
   className = "",
   type = "button",
   children,
@@ -59,7 +62,7 @@ export default function Button({
       type={type}
       data-ui="button"
       data-variant={variant}
-      className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]} ${sizing} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]} ${sizing} ${fullWidth ? "w-full" : ""} ${className}`}
       {...rest}
     >
       {Icon && <Icon size={14} />}

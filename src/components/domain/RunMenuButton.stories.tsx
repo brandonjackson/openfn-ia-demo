@@ -36,3 +36,8 @@ export const RetryFromStep: Story = {
 };
 
 export const Disabled: Story = { args: { disabled: true } };
+
+/** The main action, as in a sandbox, where running is what you do next. */
+export const Primary: Story = { args: { primary: true } };
+
+export const PrimaryMenuOpen: Story = { args: { primary: true, defaultOpen: true } };

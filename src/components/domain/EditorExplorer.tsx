@@ -48,11 +48,11 @@ interface Props {
   run?: RunDetails;
   /** Project components the workflow uses: artifacts, forms, collections, channels. */
   components?: ProjectComponent[];
-  /** Lists service.md, the listing of the published service the workflow backs. */
+  /** Lists service.yaml, the listing of the published service the workflow backs. */
   hasService?: boolean;
   /**
    * Which of the workflow's optional files it has, and so are listed:
-   * context.md, spec.md, service.md and Saved dataclips. Defaults to the
+   * context.md, spec.md, service.yaml and Saved dataclips. Defaults to the
    * context and spec, with service.md when `hasService`.
    */
   files?: WorkflowFileKind[];
@@ -62,7 +62,7 @@ interface Props {
   docs?: string[];
   /** On main: each group's + shows but is disabled, pointing to a sandbox. */
   readOnly?: boolean;
-  /** List the Workflow group (workflow.yaml, its docs, service.md and Health). Off with the demo's Workflow docs flag. */
+  /** List the Workflow group (workflow.yaml, its docs, service.yaml and Health). Off with the demo's Workflow docs flag. */
   showWorkflowFiles?: boolean;
   /** List the Components group. Off with the demo's Components flag. */
   showComponents?: boolean;
@@ -118,7 +118,7 @@ export default function EditorExplorer({
             <NavItem variant="tree" label="spec.md" icon={FileText} active={current === "spec"} onClick={() => onOpen("spec")} />
           )}
           {listed.has("service") && (
-            <NavItem variant="tree" label="service.md" icon={BookOpen} active={current === "service"} onClick={() => onOpen("service")} />
+            <NavItem variant="tree" label="service.yaml" icon={BookOpen} active={current === "service"} onClick={() => onOpen("service")} />
           )}
           {listed.has("dataclips") && (
             <NavItem

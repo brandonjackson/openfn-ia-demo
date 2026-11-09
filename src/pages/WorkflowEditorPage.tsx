@@ -17,6 +17,7 @@ import type {
 } from "../model/workflow";
 import { defaultWorkflowSettings, workflowToYaml } from "../model/workflow";
 import type { WorkflowSettings } from "../model/workflow";
+import { workflowChanges } from "../model/workflow-changes";
 import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../model/runs";
 import type { ActivityPeriod, RunProgress, RunRequest } from "../model/runs";
 import type { AdaptorInfo, AdaptorReference } from "../model/adaptor-reference";
@@ -155,7 +156,7 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
  * sandbox and promotion, export, pause, delete) and the way back to the
  * project. The view switcher flips between the canvas and code (explorer,
  * code and the open item's settings). In code mode the explorer also lists
- * Health under service.md: the workflow's run history summed up over the
+ * Health under service.yaml: the workflow's run history summed up over the
  * canvas's period (outcomes, runs and failures over time, the steps runs
  * fail at, and failures by reason), shown in the main pane in place of the
  * code. Picking a run there loads it and opens the step it failed at. The assistant toggle sits on its own
@@ -187,8 +188,9 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
  *
  * On main everything is read-only and the main action is "Edit in sandbox".
  * In a sandbox steps can be renamed, re-adaptored, given credentials, have
- * snippets inserted, be added and deleted, and "Go live" promotes the sandbox
- * to main as a new version.
+ * snippets inserted, be added and deleted, the changes icon beside the name
+ * lists what's changed against main, and its "Go live" promotes the sandbox to
+ * main as a new version.
  *
  * Loading a run draws it on the canvas, marks each step in
  * the explorer and fills the Log, Input and Output views for the step in
@@ -259,6 +261,8 @@ export default function WorkflowEditorPage({
   onCreateSandbox,
   onCreateDataclip,
   onSaveDataclip,
+  baseline,
+  environment,
 }: {
   workflow: Workflow;
   /** Recent work orders, newest first. */
@@ -318,7 +322,7 @@ export default function WorkflowEditorPage({
   versions?: WorkflowVersion[];
   /** The URL that starts the workflow, for "Copy webhook URL". */
   url?: string;
-  /** The published service the workflow backs; its listing shows as service.md in code mode. */
+  /** The published service the workflow backs; its listing shows as service.yaml in code mode. */
   service?: ProjectService;
   /** Opens the service listing where the workflow is documented. */
   onSeeDetails?: () => void;
@@ -337,7 +341,7 @@ export default function WorkflowEditorPage({
   catalog: AdaptorCatalog;
   /** The project's connected systems. */
   systems?: ConnectedSystem[];
-  /** List the workflow's own files (workflow.yaml, docs, service.md, Health) in the explorer. Defaults to true; off, code mode falls back to the trigger. */
+  /** List the workflow's own files (workflow.yaml, docs, service.yaml, Health) in the explorer. Defaults to true; off, code mode falls back to the trigger. */
   showWorkflowFiles?: boolean;
   /** List the project components the workflow uses in the explorer. Defaults to true. */
   showComponents?: boolean;
@@ -394,6 +398,14 @@ export default function WorkflowEditorPage({
   onCreateDataclip?: (draft: DataclipDraft) => Promise<Dataclip>;
   /** Changes a saved dataclip's title and description. Without it, the change lasts as long as the page. */
   onSaveDataclip?: (id: string, changes: DataclipChanges) => Promise<void>;
+  /**
+   * In a sandbox, the workflow where going live would merge it (its parent's
+   * copy), to say what's changed; left out when the workflow is new in the
+   * sandbox.
+   */
+  baseline?: Workflow;
+  /** The environment the selected sandbox (or main) loads credentials from, e.g. "production". */
+  environment?: string;
 }) {
   // ---- Where we are ---------------------------------------------------------
 
@@ -863,7 +875,7 @@ export default function WorkflowEditorPage({
   const added = (kind: WorkflowFileKind) => (workflowFiles.includes(kind) ? "Added" : undefined);
   const fileOptions: (AddComponentOption & { kind: WorkflowFileKind | "doc" })[] = [
     ...(publishesServices
-      ? [{ kind: "service" as const, type: "Service manifest", icon: BookOpen, tag: added("service"), description: "service.md: how other teams call the workflow as a service, and what it returns." }]
+      ? [{ kind: "service" as const, type: "Service manifest", icon: BookOpen, tag: added("service"), description: "service.yaml: how the workflow is listed as a service, and how other teams call it." }]
       : []),
     { kind: "spec", type: "Spec", icon: FileText, tag: added("spec"), description: "spec.md: what goes in, what each step writes, and when a run counts as done." },
     { kind: "dataclips", type: "Saved dataclip", icon: Database, tag: saved.length > 0 ? `${saved.length} saved` : undefined, description: "An input kept in the project to run the workflow with again." },
@@ -1235,6 +1247,9 @@ export default function WorkflowEditorPage({
 
   // ---- Layout ---------------------------------------------------------------
 
+  // What going live would carry over: the copy on the canvas, edits and all, against where it merges.
+  const changes = onMain ? [] : workflowChanges(baseline, graph);
+
   const toolbar = (
     <EditorToolbar
       name={name}
@@ -1253,6 +1268,13 @@ export default function WorkflowEditorPage({
       onSelectVersion={setVersion}
       run={selectedRun}
       onCloseRun={deselectRun}
+      changes={changes}
+      environment={environment}
+      components={components}
+      onOpenComponent={(id) => {
+        setFile({ componentId: id });
+        setView("code");
+      }}
       live={live}
       view={view}
       onViewChange={(next) => (next === "code" && view === "canvas" && focusNode ? openInCode(focusNode.id) : setView(next))}

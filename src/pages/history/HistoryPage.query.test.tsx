@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../../api/ApiProvider";
-import { forgetCsrfToken, request } from "../../api/client";
+import { forgetCsrfToken, listAll } from "../../api/client";
 import { setFlag } from "../../app/feature-flags";
 import { findNodeByPath } from "../../app/ia-utils";
 import { failNext, resetFakeApi, setWait } from "../../fake-api";
@@ -37,8 +37,8 @@ function renderAt(url: string) {
 
 type ApiWorkOrder = { id: string; attributes: { state: string; workflow_id: string; runs: unknown[] } };
 
-const serverOrders = async (path = `/api/projects/${projectId}/work_orders?include=runs&page_size=100`) =>
-  (await request<{ data: ApiWorkOrder[] }>("GET", path)).data;
+/** Every work order the server has at `path`, across its pages. */
+const serverOrders = (path = `/api/projects/${projectId}/work_orders?include=runs`) => listAll<ApiWorkOrder>(path);
 
 /** The button that opens a work order's row, by its id. */
 const row = (id: string) => screen.findByRole("button", { name: new RegExp(`^Work order ${id},`) }, wait);
@@ -56,7 +56,8 @@ describe("HistoryPageQuery", () => {
     const orders = await serverOrders();
     renderAt(projectPath);
     expect(await screen.findByText(`${orders.length} work orders, newest first`, {}, wait)).toBeTruthy();
-    for (const o of orders) expect(screen.getByRole("button", { name: new RegExp(`^Work order ${o.id},`) })).toBeTruthy();
+    const shown = screen.getAllByRole("button", { name: /^Work order / }).map((b) => b.getAttribute("aria-label") ?? b.textContent ?? "");
+    for (const o of orders) expect(shown.some((name) => name.startsWith(`Work order ${o.id},`))).toBe(true);
   });
 
   it("reads its filters from the URL", async () => {
@@ -95,7 +96,7 @@ describe("HistoryPageQuery", () => {
   });
 
   it("shows every project's work orders across projects, with no Export", async () => {
-    const all = await serverOrders("/api/work_orders?include=runs&page_size=100");
+    const all = await serverOrders("/api/work_orders?include=runs");
     renderAt("/history");
     expect(await screen.findByText(new RegExp(`^${all.length} work orders, newest first`), {}, wait)).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Export" })).toBeNull();

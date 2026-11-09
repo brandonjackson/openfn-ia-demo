@@ -55,7 +55,7 @@ export const SavedDataclipsOpen: Story = {
 /** A new workflow with none of its optional files yet: the + adds them. */
 export const OnlyTheWorkflow: Story = { args: { files: [], file: "workflow", onAddFile: () => {}, onAddStep: () => {} } };
 
-/** Health open: it sits under service.md and opens a page rather than a file. */
+/** Health open: it sits under service.yaml and opens a page rather than a file. */
 export const HealthOpen: Story = { args: { hasService: true, file: "health" } };
 
 /** With a run selected, each step shows how it went. */

@@ -48,6 +48,13 @@ export const toRecord = ({ id, attributes: a }: ApiWorkOrder, projectId: string)
   receivedAt: a.received_at ?? a.inserted_at,
 });
 
+/**
+ * What a list reads as before it loads, or when the API has none to send (Lightning answers a project's
+ * dataclips 404). One array, the same every render: the editor takes a new list as new history and
+ * starts over from it, which would drop a run it's in the middle of.
+ */
+const none: never[] = [];
+
 export const runKeys = {
   all: ["work_orders"] as const,
   inProjects: (projectIds: string[]) => ["work_orders", ...projectIds] as const,
@@ -64,7 +71,7 @@ export function useWorkOrders(projectIds: string[]): { status: LoadStatus; workO
       return lists.flat();
     },
   });
-  return { status: projectIds.length ? statusOf(query) : { state: "ready" }, workOrders: query.data ?? [] };
+  return { status: projectIds.length ? statusOf(query) : { state: "ready" }, workOrders: query.data ?? none };
 }
 
 /** A project's dataclips (inputs, step results, saved inputs). */
@@ -74,7 +81,7 @@ export function useDataclips(projectId: string | undefined): { status: LoadStatu
     enabled: !!projectId,
     queryFn: () => listAll<Dataclip & { workflow_id: string | null }>(`/api/projects/${projectId}/dataclips`),
   });
-  return { status: projectId ? statusOf(query) : { state: "ready" }, dataclips: query.data ?? [] };
+  return { status: projectId ? statusOf(query) : { state: "ready" }, dataclips: query.data ?? none };
 }
 
 /**

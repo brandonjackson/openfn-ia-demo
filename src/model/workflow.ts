@@ -279,7 +279,7 @@ export function defaultWorkflowSettings(workflow: Workflow): WorkflowSettings {
 export interface WorkflowFileContents {
   /** context.md and spec.md. */
   docs: { context: string; spec: string };
-  /** service.md, when the workflow backs a published service. */
+  /** service.yaml, when the workflow backs a published service. */
   serviceListing?: string;
   /** What each form, artifact, AI skill, document and static website holds, by component id. */
   componentContents: Record<string, ComponentContent>;

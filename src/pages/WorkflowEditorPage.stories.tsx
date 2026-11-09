@@ -10,7 +10,8 @@ import { connectedSystems } from "../fixtures/connected-systems";
 import { codeSummary } from "../fixtures/code-summaries";
 import { channelDetails } from "../fixtures/channels";
 import { workflowDocs } from "../fixtures/workflow-files";
-import { serviceListing } from "../model/services";
+import { serviceYaml } from "../model/services";
+import { orgXRoad } from "../fixtures/xroad";
 import { fixtureComponentContents } from "../fixtures/project-components";
 import type { ProjectComponent, ProjectService } from "../model/projects";
 import type { WorkflowFileContents } from "../model/workflow";
@@ -22,7 +23,7 @@ const later = <T,>(answer: () => T) => new Promise<T>((resolve) => setTimeout(()
 /** What opening a workflow's docs, service listing and components shows, for a project's components. */
 const contentsFor = (components: ProjectComponent[], service?: ProjectService): WorkflowFileContents => ({
   docs: workflowDocs,
-  serviceListing: service ? serviceListing(service) : undefined,
+  serviceListing: service ? serviceYaml(service, { code: service.id, xroad: orgXRoad }) : undefined,
   ...fixtureComponentContents(components),
   channels: Object.fromEntries(components.filter((c) => c.type === "Channel").map((c) => [c.id, channelDetails(c)])),
 });
@@ -52,6 +53,9 @@ const meta: Meta<typeof WorkflowEditorPage> = {
     onDeleteCollectionItem: async () => {},
     sandboxes: projects[0].sandboxes,
     versions: workflowVersions,
+    environment: "production",
+    // In a sandbox, what's changed is counted against main's copy: this one, so edits made in a story show up.
+    baseline: nationalIdWorkflow,
     assistantConversations,
     url: "https://app.openfn.org/i/8f3c2a1e",
     onBack: () => {},
@@ -134,7 +138,7 @@ export const OlderRunAsExecuted: Story = {
   args: { runId: olderRun.runId, initialVersion: olderRun.version },
 };
 
-/** Health, opened from the explorer under service.md: the run history summed up in the main pane, in the code's place. */
+/** Health, opened from the explorer under service.yaml: the run history summed up in the main pane, in the code's place. */
 export const Health: Story = {
   args: { initialView: "code", initialFile: "health" },
 };
@@ -258,8 +262,9 @@ export const CustomLayout: Story = {
   },
 };
 
+/** In a sandbox, changed since main's v1: the changes icon beside the name lists what going live takes to main. */
 export const InSandbox: Story = {
-  args: { sandbox: projects[0].sandboxes[1] },
+  args: { sandbox: projects[0].sandboxes[1], environment: "staging", baseline: nationalIdWorkflowAt("v1") },
 };
 
 export const RunWithCustomInput: Story = {

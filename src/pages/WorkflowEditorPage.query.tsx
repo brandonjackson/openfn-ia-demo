@@ -28,7 +28,8 @@ import { adaptorChoices, adaptorInfo, adaptorSnippets } from "../fixtures/adapto
 import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
 import { codeSummary } from "../fixtures/code-summaries";
 import { workflowDocs } from "../fixtures/workflow-files";
-import { serviceListing, serviceUrl } from "../model/services";
+import { serviceUrl, serviceYaml } from "../model/services";
+import { useOrganizationXRoad } from "../api/organization";
 import { useProjectServices } from "../api/services";
 import type { AdaptorReference } from "../model/adaptor-reference";
 import type { AdaptorCatalog } from "../model/adaptor-catalog";
@@ -163,6 +164,9 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const shown = here.find((w) => w.name === opened.name) ?? (selected.id === opened.project_id ? opened : undefined) ?? opened;
   const editable = selected.id !== root.id && shown.project_id === selected.id;
   const main = onMain.find((w) => w.name === opened.name) ?? opened;
+  // Where going live merges the copy: its parent's workflow of the same name, to say what's changed.
+  const { workflows: inParent, status: parentStatus } = useProjectWorkflows(editable ? (selected.parentId ?? undefined) : undefined);
+  const parentCopy = inParent.find((w) => w.name === shown.name);
   const { snapshots } = useWorkflowSnapshots(main.id);
   const saves = useWorkflowSaves();
   const sandboxSaves = useSandboxSaves();
@@ -175,6 +179,8 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   // "See details" opens the page of the service main's workflow backs, from the services API.
   const { services } = useProjectServices(root.id, flags.serviceCatalog);
   const backed = services.find((s) => s.workflowId === main.id);
+  // service.yaml lists it as X-Road registers it, once the organisation is on X-Road.
+  const { xroad } = useOrganizationXRoad(flags.xroad && !!backed);
   const service = backed && { service: backed, path: `/projects/${root.id}/services/${backed.id}`, url: serviceUrl(backed) };
   // The shown copy's own run history: main's on main; a sandbox's copy starts with none, as in Lightning.
   const { workOrders: projectOrders } = useWorkOrders([shown.project_id]);
@@ -203,7 +209,7 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const contents: WorkflowFileContents = {
     // The docs are written for the fixtures' workflows; any other starts with them blank.
     docs: slug ? workflowDocs : { context: "", spec: "" },
-    serviceListing: service ? serviceListing(service.service) : undefined,
+    serviceListing: service ? serviceYaml(service.service, { code: service.service.code, xroad }) : undefined,
     componentContents: Object.fromEntries(records.contents.map((c) => [c.component.id, c.details])),
     collections: Object.fromEntries(
       records.collections.map((c) => [c.id, { items: collectionItems[c.name] ?? [], itemCount: c.itemCount, byteSize: c.byteSize }]),
@@ -236,7 +242,9 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       workflow={graph}
       workOrders={useMemo(() => withoutXRoadCalls(history.workOrders, flags.xroad), [history, flags.xroad])}
       dataclips={history.dataclips}
-      onRunFinished={(made, clips, retryOf) => void runSaves.record(shown.project_id, shown.id, made, clips, retryOf)}
+      // Lightning's worker runs workflows, so it refuses a run the editor made (docs/api-gaps.md): the run then
+      // stays in the editor, loaded, until it's reopened.
+      onRunFinished={(made, clips, retryOf) => void runSaves.record(shown.project_id, shown.id, made, clips, retryOf).catch(() => undefined)}
       graphForVersion={versionGraph}
       runId={runId}
       onRunChange={setRunId}
@@ -286,6 +294,9 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
           ? (message) => sandboxSaves.merge(selected.parentId!, selected.id, { targetId: selected.parentId!, workflowIds: [shown.id], message })
           : undefined
       }
+      // Until the parent's workflows are in, there's nothing to compare against, so say nothing rather than "new".
+      baseline={parentCopy ? asGraph(parentCopy, root.name) : parentStatus.state === "ready" ? undefined : graph}
+      environment={selected.env}
       url={service?.url}
       service={service?.service}
       onSeeDetails={service ? () => navigate(service.path) : undefined}

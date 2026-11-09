@@ -49,13 +49,13 @@ interface Props {
   components?: ProjectComponent[];
   /** Opens a component's page in the project. */
   onOpenComponent?: (componentId: string) => void;
-  /** The published service the workflow backs, listed as service.md. */
+  /** The published service the workflow backs, listed as service.yaml. */
   service?: ProjectService;
   /** Opens the service's listing page. */
   onOpenService?: () => void;
   /** On main nothing can be changed. */
   readOnly?: boolean;
-  /** List the workflow's own files (workflow.yaml, docs, service.md, Health) in the explorer. */
+  /** List the workflow's own files (workflow.yaml, docs, service.yaml, Health) in the explorer. */
   showWorkflowFiles?: boolean;
   /** List the project components the workflow uses in the explorer. */
   showComponents?: boolean;
@@ -202,7 +202,7 @@ export default function CodeWorkspace({
   const health = file === "health";
   const saved = file === "dataclips";
   const fileName =
-    addedDoc ?? (doc ? `${doc}.md` : manifest ? "service.md" : health ? "Health" : saved ? "Saved dataclips" : "workflow.yaml");
+    addedDoc ?? (doc ? `${doc}.md` : manifest ? "service.yaml" : health ? "Health" : saved ? "Saved dataclips" : "workflow.yaml");
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
   const yaml = workflowToYaml(workflow);
   const triggerYaml = yaml.slice(yaml.indexOf("triggers:"), yaml.indexOf("edges:")).trimEnd();
@@ -315,9 +315,9 @@ export default function CodeWorkspace({
       />
     ) : listing ? (
       <FileDetailsPanel
-        title="service.md"
+        title="service.yaml"
         tag={<Badge label={listing.status} />}
-        description="The listing other teams see in the service catalog: how to call the service and what it returns."
+        description="The listing other teams see: what the service catalog records about the service, how to call it and what it returns, and, once your organisation is on X-Road, how its Security Server registers it."
         properties={[
           { icon: BookOpen, label: "Service", value: listing.name },
           ...(listing.api ? [{ icon: Radio, label: "Trigger", value: triggerTypes[listing.api.trigger === "webhook" ? "webhook" : "cron"].shortLabel }] : []),
@@ -334,7 +334,7 @@ export default function CodeWorkspace({
       />
     ) : manifest ? (
       <FileDetailsPanel
-        title="service.md"
+        title="service.yaml"
         tag={<Badge label="Draft" />}
         description="The manifest other teams will see in the service catalog once the workflow is published as a service: how to call it and what it returns."
         properties={[

@@ -1,9 +1,10 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../api/ApiProvider";
 import { forgetCsrfToken, listAll, request } from "../api/client";
 import { setFlag } from "../app/feature-flags";
+import { setSandbox } from "../app/sandbox-state";
 import { failNext, resetFakeApi, setWait } from "../fake-api";
 import WorkflowEditorPageQuery from "./WorkflowEditorPage.query";
 import { apiWorkflowId } from "../fixtures/ids";
@@ -117,6 +118,28 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     expect(await screen.findByText("First-time applicant", {}, wait)).toBeTruthy();
     const data = await listAll<{ id: string; name?: string; description?: string }>(`/api/projects/${projectIdFor("project-a")}/dataclips`);
     expect(data.find((d) => d.id === "saved-new-citizen")).toMatchObject({ name: "First-time applicant", description: "Not in the registry yet" });
+  });
+
+  it("counts a component added in a sandbox as a change", async () => {
+    const projectId = projectIdFor("project-a");
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${crypto.randomUUID()}`, { name: "add-docs" });
+    act(() => setSandbox(projectId, "add-docs"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      expect(await screen.findByRole("button", { name: "No changes" }, wait)).toBeTruthy();
+
+      fireEvent.click(await screen.findByText("Explorer", {}, wait));
+      fireEvent.click(await screen.findByRole("button", { name: "Add project component" }, wait));
+      fireEvent.click(await screen.findByText("Document", {}, wait));
+      const form = await screen.findByRole("dialog", { name: /document/i }, wait);
+      fireEvent.change(within(form).getByLabelText(/^Name/), { target: { value: "runbook" } });
+      fireEvent.click(screen.getByRole("button", { name: "Create document" }));
+
+      fireEvent.click(await screen.findByRole("button", { name: "1 change" }, wait));
+      expect(await screen.findByText("Added document runbook", {}, wait)).toBeTruthy();
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
   });
 
   it("lists the project's environment variables under Workflow in the explorer, and adds one", async () => {

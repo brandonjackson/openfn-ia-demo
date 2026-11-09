@@ -1,4 +1,5 @@
-import { GitCompare, GitMerge } from "lucide-react";
+import { GitMerge } from "lucide-react";
+import { SquarePlusMinus } from "../primitives/icons";
 import type { WorkflowChange } from "../../model/workflow-changes";
 import Popover from "../primitives/Popover";
 import IconButton from "../primitives/IconButton";
@@ -41,7 +42,7 @@ export default function SandboxChangesMenu({ sandbox, target = "main", changes, 
       defaultOpen={defaultOpen}
       widthClass="w-80"
       trigger={({ open, toggle }) => (
-        <IconButton icon={GitCompare} size="sm" label={label} count={count} active={open} aria-expanded={open} aria-haspopup="dialog" onClick={toggle} />
+        <IconButton icon={SquarePlusMinus} size="sm" label={label} count={count} active={open} aria-expanded={open} aria-haspopup="dialog" onClick={toggle} />
       )}
       footer={
         onGoLive && count > 0

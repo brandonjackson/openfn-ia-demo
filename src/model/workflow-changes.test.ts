@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { JobNode, Workflow } from "./workflow";
-import { workflowChanges } from "./workflow-changes";
+import { componentChanges, workflowChanges } from "./workflow-changes";
 
 const step = (id: string, label: string, x: number, body = "fn(state => state);"): JobNode => ({
   id,
@@ -80,6 +80,13 @@ describe("workflowChanges", () => {
     expect(workflowChanges(base, current).map((c) => c.summary)).toEqual([
       "Made the trigger a cron trigger",
       "Changed when Fetch cases → Send SMS runs",
+    ]);
+  });
+
+  it("names components added in the sandbox", () => {
+    expect(componentChanges([{ name: "runbook", type: "Document" }, { name: "triage", type: "AI Skill" }])).toEqual([
+      { kind: "added", summary: "Added document runbook" },
+      { kind: "added", summary: "Added AI skill triage" },
     ]);
   });
 });

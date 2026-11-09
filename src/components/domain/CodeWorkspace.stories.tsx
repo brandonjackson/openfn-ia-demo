@@ -20,7 +20,8 @@ import { projects } from "../../fixtures/projects";
 import { adaptorChoices, adaptorInfo, adaptorSnippets, projectCredentials } from "../../fixtures/adaptor-reference";
 import { connectedSystems } from "../../fixtures/connected-systems";
 import { workflowDocs } from "../../fixtures/workflow-files";
-import { serviceListing } from "../../model/services";
+import { serviceYaml } from "../../model/services";
+import { orgXRoad } from "../../fixtures/xroad";
 import { fixtureComponentContents } from "../../fixtures/project-components";
 import CollectionView from "./CollectionView";
 import ComponentView from "./ComponentView";
@@ -29,7 +30,7 @@ const components = projects[0].components.filter((c) => c.type !== "Workflow");
 const adaptors = { info: adaptorInfo, snippets: adaptorSnippets, choices: adaptorChoices, credentials: projectCredentials };
 const contents = {
   docs: workflowDocs,
-  serviceListing: serviceListing(projects[0].services[0]),
+  serviceListing: serviceYaml(projects[0].services[0], { code: projects[0].services[0].id, xroad: orgXRoad }),
   ...fixtureComponentContents(components),
   channels: Object.fromEntries(components.filter((c) => c.type === "Channel").map((c) => [c.id, channelDetails(c)])),
 };
@@ -125,7 +126,18 @@ export const ContextDocument: Story = { args: { file: "context" } };
 /** The listing of the published service the workflow backs, after the context and spec. */
 export const ServiceListing: Story = { args: { file: "service", service: projects[0].services[0], onOpenService: () => {} } };
 
-/** Health, from the explorer under service.md: a page in the main pane in place of the code editor. */
+/** service.yaml for a service published to X-Road: its Security Server registration, with the subsystems allowed to call it. */
+const surveillanceService = projects.find((p) => p.id === "case-surveillance")!.services[0];
+export const ServiceListingOnXRoad: Story = {
+  args: {
+    file: "service",
+    service: surveillanceService,
+    onOpenService: () => {},
+    contents: { ...contents, serviceListing: serviceYaml(surveillanceService, { code: "register-suspected-case", xroad: orgXRoad }) },
+  },
+};
+
+/** Health, from the explorer under service.yaml: a page in the main pane in place of the code editor. */
 export const HealthPane: Story = {
   args: {
     file: "health",

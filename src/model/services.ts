@@ -1,5 +1,5 @@
 /** A project's published services: what the Services catalog, a service's page and a project's card show (the demo's own routes; api/ has no services yet, see docs/api-gaps.md). */
-import type { ServiceRecord, XRoadConnectionStatus } from "./xroad";
+import { clientIdOf, type ServiceRecord, type XRoadConnectionStatus, type XRoadIdentity } from "./xroad";
 import type { ChannelType } from "./channels";
 import type { ConnectionMethod } from "./connected-systems";
 
@@ -50,19 +50,105 @@ export interface ServiceApiSpec {
   outputExample: string;
 }
 
-/** A published service's listing, as service.md in the code explorer. */
-export function serviceListing(service: ProjectServiceItem): string {
+/** A YAML scalar: plain when it reads back the same, double-quoted (which JSON's quoting is) otherwise. */
+function yamlScalar(value: string | number | boolean): string {
+  if (typeof value !== "string") return String(value);
+  const plain = /^[A-Za-z0-9_/(][^#]*$/.test(value) && !/:\s|:$|\s$/.test(value) && !/^(true|false|null|yes|no|on|off|~|[-+]?[\d.]+)$/i.test(value);
+  return plain ? value : JSON.stringify(value);
+}
+
+/** `key: value` at an indent, a block scalar (`|`) for text over several lines. */
+function yamlField(indent: number, key: string, value: string | number | boolean): string[] {
+  const pad = " ".repeat(indent);
+  if (typeof value === "string" && value.includes("\n")) return [`${pad}${key}: |`, ...value.split("\n").map((l) => (l ? `${pad}  ${l}` : ""))];
+  return [`${pad}${key}: ${yamlScalar(value)}`];
+}
+
+/** `FJ:GOV:MOH:OPENFN`: a client or subsystem id as the Security Server's API writes it, from the demo's `FJ/GOV/MOH/OPENFN`. */
+const securityServerId = (id: string) => id.replaceAll("/", ":");
+
+/**
+ * A published service's listing, as service.yaml in the code explorer: what
+ * the service catalog records about it, then, once the organisation is on
+ * X-Road, the service as the Security Server registers it, under the
+ * Security Server's own field names (a REST service description, its one
+ * service with its URL, timeout, TLS check and endpoint, and who has access
+ * to it), and last how to call it. A scheduled service has no address to
+ * call, so it has no `x_road` part.
+ */
+export function serviceYaml(service: ProjectServiceItem, { code, xroad }: { code: string; xroad?: XRoadIdentity }): string {
   const api = service.api;
-  const lines = [`# ${service.name}`, "", service.description, "", `Status: ${service.status}`];
-  if (!api) return [...lines, "", "No API published yet. Publishing the service generates one from the workflow.", ""].join("\n");
-  lines.push("", "## How to call it", api.trigger === "webhook" ? `\`${api.invocation}\`` : api.invocation);
-  if (api.auth) lines.push("", `Auth: ${api.auth}`);
-  if (api.inputFields?.length) {
-    lines.push("", "## Input", "| Field | Type | Required | Description |", "| --- | --- | --- | --- |");
-    for (const f of api.inputFields) lines.push(`| ${f.name} | ${f.type} | ${f.required ? "yes" : "no"} | ${f.description} |`);
+  const record = service.record;
+  const lines = [
+    `# service.yaml: how ${service.name} is listed in the service catalog${xroad ? " and on X-Road" : ""}.`,
+    ...yamlField(0, "name", service.name),
+    ...yamlField(0, "description", service.description),
+    `status: ${service.status.toLowerCase()}`,
+  ];
+  if (record) {
+    lines.push(
+      ...yamlField(0, "version", record.version),
+      "catalog:",
+      ...yamlField(2, "owner", record.owner),
+      ...yamlField(2, "purpose", record.purpose),
+      ...yamlField(2, "data_exchanged", record.dataExchanged),
+      ...yamlField(2, "legal_basis", record.legalBasis),
+      `  classification: ${record.classification.toLowerCase()}`,
+      ...yamlField(2, "sla", record.sla),
+      ...yamlField(2, "access_conditions", record.accessConditions),
+    );
   }
-  if (api.requestExample) lines.push("", "## Example request", "```bash", api.requestExample, "```");
-  lines.push("", "## Output", api.outputDescription, "", "```json", api.outputExample, "```", "");
+  if (service.mcpEnabled !== undefined || service.mcpToolName) {
+    lines.push("mcp:", `  enabled: ${Boolean(service.mcpEnabled)}`);
+    if (service.mcpToolName) lines.push(`  tool_name: ${yamlScalar(service.mcpToolName)}`);
+  }
+
+  const url = serviceUrl(service);
+  if (xroad && url) {
+    const serviceCode = service.xroad?.serviceCode ?? code;
+    const method = api?.invocation.match(/^([A-Z]+)\s/)?.[1] ?? "POST";
+    const clients = service.xroad?.clients ?? [];
+    lines.push(
+      "x_road:",
+      `  published: ${Boolean(service.xroad?.published)}`,
+      "  # The subsystem OpenFn publishes as: instance, member class, member code, subsystem.",
+      `  client_id: ${securityServerId(clientIdOf(xroad))}`,
+      "  service_description:",
+      "    type: REST",
+      `    url: ${yamlScalar(url)}`,
+      `    rest_service_code: ${yamlScalar(serviceCode)}`,
+      `    disabled: ${service.status !== "Live"}`,
+      ...(service.status !== "Live" ? ["    disabled_notice: Not live yet"] : []),
+      "  services:",
+      `    - service_code: ${yamlScalar(serviceCode)}`,
+      ...yamlField(6, "title", service.name),
+      `      url: ${yamlScalar(url)}`,
+      "      timeout: 60",
+      `      ssl_auth: ${url.startsWith("https:")}`,
+      "      endpoints:",
+      `        - method: ${method}`,
+      `          path: /`,
+      clients.length ? "  access_rights:" : "  access_rights: []",
+      ...clients.flatMap((id) => [`    - id: ${securityServerId(id)}`, "      service_client_type: SUBSYSTEM"]),
+    );
+  }
+
+  if (!api) return [...lines, "# No API yet: publishing the service generates one from the workflow.", ""].join("\n");
+  lines.push("api:", `  trigger: ${api.trigger}`);
+  if (api.trigger === "webhook" && url) {
+    lines.push(`  method: ${api.invocation.match(/^([A-Z]+)\s/)?.[1] ?? "POST"}`, `  url: ${yamlScalar(url)}`);
+  } else {
+    lines.push(...yamlField(2, "schedule", api.invocation));
+  }
+  if (api.auth) lines.push(...yamlField(2, "auth", api.auth));
+  if (api.inputFields?.length) {
+    lines.push("  input:");
+    for (const f of api.inputFields) {
+      lines.push(`    - name: ${yamlScalar(f.name)}`, `      type: ${yamlScalar(f.type)}`, `      required: ${f.required}`, ...yamlField(6, "description", f.description));
+    }
+  }
+  if (api.requestExample) lines.push(...yamlField(2, "request_example", api.requestExample));
+  lines.push("  output:", ...yamlField(4, "description", api.outputDescription), ...yamlField(4, "example", api.outputExample), "");
   return lines.join("\n");
 }
 

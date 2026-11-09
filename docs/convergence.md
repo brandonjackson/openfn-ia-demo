@@ -355,7 +355,7 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     unchanged.
 
 17. **The editor's service and the sandbox selection from the API**
-    (Lightning run). "See service listing", the webhook URL and service.md
+    (Lightning run). "See service listing", the webhook URL and service.yaml
     come from the services API (the service main's workflow backs), not the
     fixtures' `serviceForWorkflow`; `serviceListing` and a new `serviceUrl`
     moved to `model/services.ts`. The selected sandbox is kept by project id

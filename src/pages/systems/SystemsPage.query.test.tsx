@@ -72,6 +72,15 @@ describe("SystemsPageQuery", () => {
     expect(screen.queryByText("DHIS2")).toBeNull();
   });
 
+  it("leaves out the directory for an organisation not connected to X-Road", async () => {
+    failNext("GET /api/demo/organization/xroad", { status: 404, code: "not_found", detail: "The organisation isn't on X-Road." });
+    renderRoute();
+    await screen.findByText("DHIS2", {}, wait);
+    // Give the directory time to arrive, so its absence isn't just its loading.
+    await new Promise((r) => setTimeout(r, 50));
+    expect(screen.queryByText("Available via X-Road")).toBeNull();
+  });
+
   it("leaves out systems reached over X-Road, and the directory, without X-Road", async () => {
     setFlags({ ...allFlagsOn, xroad: false });
     renderRoute();

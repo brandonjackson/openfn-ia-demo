@@ -4,7 +4,7 @@ import Loaded from "../../app/Loaded";
 import { useFlags } from "../../app/feature-flags";
 import { pageFrame } from "../../app/page-frame";
 import { useAdaptors, useConnectedSystems, useEcosystem, useSystemSaves, useSystemSuggestions } from "../../api/connected-systems";
-import { useXRoadDirectory } from "../../api/organization";
+import { useOrganizationXRoad, useXRoadDirectory } from "../../api/organization";
 import { connectionOf, isXRoadSystem, systemListItem } from "../../model/connected-systems";
 import { ecosystemWithoutXRoad } from "../../model/ecosystem";
 import { findMember, findService, routeKey, type XRoadRoute } from "../../model/xroad";
@@ -18,7 +18,9 @@ import SystemsPage, { type SystemsPageData } from "./SystemsPage";
  * The list doesn't wait for the catalog, the map or the directory; each is
  * left out until it's in, or if it can't load. It suggests three systems, as
  * it always has. Without the Ecosystem map flag there's no map; without
- * X-Road, no system is reached over it and there's no directory.
+ * X-Road, no system is reached over it and there's no directory, and the
+ * directory waits for the organisation to be connected to X-Road (to have an
+ * X-Road identity): one that isn't, as beside Lightning, has none to show.
  */
 export default function SystemsPageQuery({ route }: { route: PageRoute }) {
   const navigate = useNavigate();
@@ -28,6 +30,7 @@ export default function SystemsPageQuery({ route }: { route: PageRoute }) {
   const { adaptors } = useAdaptors();
   const { suggestions } = useSystemSuggestions();
   const { ecosystem } = useEcosystem(flags.ecosystemMap);
+  const { xroad: identity } = useOrganizationXRoad(flags.xroad);
   const { directory } = useXRoadDirectory(flags.xroad);
   const saves = useSystemSaves();
 
@@ -65,7 +68,8 @@ export default function SystemsPageQuery({ route }: { route: PageRoute }) {
               adaptors,
               suggestions: suggestions.slice(0, 3),
               ecosystem,
-              xroad: directory && {
+              // Only an organisation connected to X-Road has a directory to add from.
+              xroad: identity && directory && {
                 directory: directory.members,
                 instance: directory.instance,
                 added: systems.flatMap((s) => {

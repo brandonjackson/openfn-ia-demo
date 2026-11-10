@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { forgetCsrfToken, request, type ApiError } from "../api/client";
 import { handbookSections } from "../fixtures/handbook";
 import { fromMarkdown, toMarkdown } from "../model/handbook-markdown";
-import { resetFakeApi, setWait, signInAs } from ".";
+import { resetFakeApi, seedEmpty, setWait, signInAs } from ".";
 
 const refusal = (p: Promise<unknown>) => p.then(() => undefined, (e: unknown) => e as ApiError);
 type File = { id: string; attributes: { name: string; kind: string; added_by: string } };
@@ -11,6 +11,7 @@ const MB = 1024 * 1024;
 
 beforeEach(() => {
   setWait(0);
+  seedEmpty(false);
   resetFakeApi();
   forgetCsrfToken();
 });
@@ -60,5 +61,18 @@ describe("handbook files", () => {
     signInAs("user-priya");
     await expect(files()).resolves.toBeTruthy();
     expect((await refusal(request("POST", "/api/demo/handbook/files", { name: "more.md", bytes: 10 })))?.code).toBe("forbidden");
+  });
+});
+
+describe("beside Lightning", () => {
+  it("saves the first article, where the handbook starts empty", async () => {
+    seedEmpty();
+    type Handbook = { data: { attributes: { sections: { title: string }[]; updated_at: string | null } } };
+    const get = () => request<Handbook>("GET", "/api/demo/handbook").then((r) => r.data.attributes);
+    expect((await get()).sections).toEqual([]);
+    await request("PUT", "/api/demo/handbook/article", { sections: fromMarkdown("## About us\n\nWe move data.") });
+    const saved = await get();
+    expect(saved.sections.map((s) => s.title)).toEqual(["About us"]);
+    expect(saved.updated_at).toBeTruthy();
   });
 });

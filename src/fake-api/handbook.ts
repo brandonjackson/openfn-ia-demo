@@ -132,7 +132,8 @@ export const handbookRoutes: Record<string, Handler> = {
     if (errors.length) return invalid(errors);
     const me = findUser(currentUserId());
     const row: ArticleRow = { id: "article", sections: sections as WikiSection[], updated_by: me ? fullName(me) : "Someone", updated_at: now() };
-    handbookArticle.update((r) => r.id === "article", () => row);
+    // Written outright: beside Lightning the handbook starts with no article to change.
+    handbookArticle.write([row]);
     record("updated", { type: "handbook", id: "article", name: "Handbook" }, {}, true);
     return json(200, { data: { type: "handbook_articles", attributes: { sections: row.sections, updated_by: row.updated_by, updated_at: row.updated_at } } });
   },

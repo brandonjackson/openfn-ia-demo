@@ -21,6 +21,8 @@ interface Props {
   widthClass?: string;
   /** Start with the panel open (useful for stories and screenshots). */
   defaultOpen?: boolean;
+  /** Lets the trigger shrink in a tight row, e.g. a chip whose label truncates. */
+  shrink?: boolean;
 }
 
 /**
@@ -31,12 +33,12 @@ interface Props {
  * For a list of actions use {@link DropdownMenu}; for picking one value, a
  * `Picker`.
  */
-export default function Popover({ trigger, ariaLabel, children, footer, align = "left", widthClass = "w-72", defaultOpen = false }: Props) {
+export default function Popover({ trigger, ariaLabel, children, footer, align = "left", widthClass = "w-72", defaultOpen = false, shrink = false }: Props) {
   const { open, toggle, close, ref } = usePopover(defaultOpen);
   const render = (slot: ReactNode | ((close: () => void) => ReactNode)) => (typeof slot === "function" ? slot(close) : slot);
 
   return (
-    <div ref={ref} className="relative inline-flex">
+    <div ref={ref} className={`relative inline-flex ${shrink ? "min-w-0 max-w-full" : ""}`}>
       {trigger({ open, toggle })}
       {open && (
         <Surface

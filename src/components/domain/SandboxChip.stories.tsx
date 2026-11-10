@@ -14,7 +14,7 @@ const meta: Meta<typeof SandboxChip> = {
   component: SandboxChip,
   decorators: [
     (Story) => (
-      <div className="h-72 p-4">
+      <div className="h-[28rem] p-4">
         <Story />
       </div>
     ),
@@ -32,4 +32,23 @@ export const Paused: Story = { args: { value: "main", live: false } };
 
 export const InSandbox: Story = { args: { value: projects[0].sandboxes[1] } };
 
-export const Open: Story = { args: { value: projects[0].sandboxes[1], defaultOpen: true } };
+const changes = [
+  { kind: "added" as const, summary: "Added step Check for a duplicate application" },
+  { kind: "changed" as const, summary: "Changed code in Search for duplicate citizens in Identity" },
+  { kind: "removed" as const, summary: "Removed step Notify applicant of existing national ID" },
+];
+
+/** In a sandbox with changes: the chip counts them. */
+export const WithChanges: Story = { args: { value: projects[0].sandboxes[1], changes, onGoLive: () => {} } };
+
+/** Open in a sandbox: the changes and Go live, then the sandboxes to switch to. */
+export const Open: Story = { args: { value: projects[0].sandboxes[1], changes, onGoLive: () => {}, defaultOpen: true } };
+
+/** Open with nothing changed yet: no count, and no Go live. */
+export const OpenNoChanges: Story = { args: { value: projects[0].sandboxes[1], defaultOpen: true } };
+
+/** Without the right to go live, the list stays and the button goes. */
+export const CantGoLive: Story = { args: { value: projects[0].sandboxes[1], changes, defaultOpen: true } };
+
+/** Open on main: just the sandboxes. */
+export const OpenOnMain: Story = { args: { value: "main", defaultOpen: true } };

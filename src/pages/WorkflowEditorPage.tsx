@@ -255,6 +255,7 @@ export default function WorkflowEditorPage({
   assistantSuggestions,
   onAssistantSend,
   onAssistantCarryOutPlan,
+  assistantPrompt,
   onSaveWorkflow,
   onRunFinished,
   live: controlledLive,
@@ -369,6 +370,8 @@ export default function WorkflowEditorPage({
   onAssistantSend?: (prompt: string, jobLabel: string | undefined, mode: AssistantMode) => Promise<AssistantMessage>;
   /** Carries out a plan the assistant proposed; resolves with its message saying how it went. */
   onAssistantCarryOutPlan?: (plan: AssistantPlan) => Promise<AssistantMessage>;
+  /** What the editor was opened to build, e.g. from Create: the assistant opens and starts on it. */
+  assistantPrompt?: string;
   /**
    * Saves the graph as edited (renames, steps added or removed, code,
    * adaptors), a moment after each change in a sandbox. Once it resolves,
@@ -531,7 +534,8 @@ export default function WorkflowEditorPage({
 
   const [savedLayout, setLayout] = useEditorLayout();
   // Stories pin a layout; the app remembers the reader's.
-  const [override, setOverride] = useState<Partial<EditorLayout>>(initialLayout ?? {});
+  // Opened to build something (from Create), the assistant is shown, already working on it.
+  const [override, setOverride] = useState<Partial<EditorLayout>>(() => ({ ...(assistantPrompt && { assistant: true }), ...initialLayout }));
   const layout: EditorLayout = { ...savedLayout, ...override };
   const updateLayout = (requested: Partial<EditorLayout>) => {
     // The panel always opens at its smaller size on the runs tab; it's maximised, or on another view, only on request.
@@ -1268,6 +1272,7 @@ export default function WorkflowEditorPage({
       suggestions={assistantSuggestions}
       onSend={onAssistantSend}
       onCarryOutPlan={onAssistantCarryOutPlan}
+      initialPrompt={assistantPrompt}
     />
   );
 

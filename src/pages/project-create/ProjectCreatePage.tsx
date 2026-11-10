@@ -3,7 +3,6 @@ import type { PageProps } from "../../model/ia-tree";
 import type { BuildIdea } from "../../model/build-ideas";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
 import BuildPrompt from "../../components/domain/BuildPrompt";
-import Callout from "../../components/primitives/Callout";
 import IdeaCard from "../../components/domain/IdeaCard";
 import SectionHeading from "../../components/primitives/SectionHeading";
 
@@ -14,27 +13,26 @@ export interface ProjectCreatePageData {
 }
 
 export interface ProjectCreatePageProps extends PageProps<ProjectCreatePageData> {
-  /** A prompt started on the project Overview: it arrives already submitted. */
-  initialPrompt?: string;
   /** A draft, e.g. from adding a component: it only pre-fills the box. */
   initialDraft?: string;
+  /** Build: starts a new workflow from the prompt (trimmed, never empty), with the assistant working on it. */
+  onBuild: (prompt: string) => void;
 }
 
 /**
  * The project's starting point for something new: a "what would you like to
- * build?" prompt and starter ideas for public services.
+ * build?" prompt and starter ideas for public services. Build hands the
+ * prompt on to a new workflow, where the assistant picks it up.
  */
 export default function ProjectCreatePage({
   node,
   ancestors,
   data,
-  initialPrompt = "",
   initialDraft,
+  onBuild,
 }: ProjectCreatePageProps) {
-  // A prompt started on the project Overview arrives already submitted; a
-  // draft (e.g. from "New Component") only pre-fills the box.
-  const [prompt, setPrompt] = useState(initialPrompt || initialDraft || "");
-  const [submitted, setSubmitted] = useState<string | null>(initialPrompt || null);
+  // A draft (e.g. from "New Component") only pre-fills the box.
+  const [prompt, setPrompt] = useState(initialDraft ?? "");
 
   return (
     <div className="space-y-8">
@@ -50,20 +48,8 @@ export default function ProjectCreatePage({
           need to talk to each other; we'll draft the workflows and channels for you.
         </p>
         <div className="mt-6 text-left">
-          <BuildPrompt
-            value={prompt}
-            onChange={setPrompt}
-            onSubmit={() => prompt.trim() && setSubmitted(prompt.trim())}
-          />
+          <BuildPrompt value={prompt} onChange={setPrompt} onSubmit={onBuild} />
         </div>
-        {submitted && (
-          <div className="mt-4 text-left">
-            <Callout variant="info" title="Drafting your service">
-              This is a demo, so nothing is built yet. In the product, the assistant would now
-              propose workflows and channels for: “{submitted}”
-            </Callout>
-          </div>
-        )}
       </div>
 
       <section>

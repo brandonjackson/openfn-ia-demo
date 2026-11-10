@@ -34,7 +34,9 @@ type View = "sessions" | "chat";
  * conversations and opens "About the assistant". When a run is selected
  * (`runId`), its logs and data can be attached. A `reference`, e.g. the step
  * whose card's Improve opened the assistant, is loaded into the chat input
- * and goes out with the next message.
+ * and goes out with the next message. An `initialPrompt`, e.g. what was asked
+ * for on Create, is sent as the first message of a new conversation as the
+ * panel opens.
  */
 export default function AIAssistantPanel({
   conversations: initialConversations = [],
@@ -52,6 +54,7 @@ export default function AIAssistantPanel({
   suggestions = { workflow: [], job: [] },
   onSend,
   onCarryOutPlan,
+  initialPrompt,
 }: {
   /** Saved conversations for this workflow, newest first. */
   conversations?: AssistantConversation[];
@@ -81,14 +84,20 @@ export default function AIAssistantPanel({
   onSend?: (prompt: string, jobLabel: string | undefined, mode: AssistantMode) => Promise<AssistantMessage>;
   /** Carries out an accepted plan; resolves with the assistant's message saying how it went. */
   onCarryOutPlan?: (plan: AssistantPlan) => Promise<AssistantMessage>;
+  /** Sent as the first message of a new conversation when the panel mounts, e.g. a prompt from Create. */
+  initialPrompt?: string;
 }) {
-  const [conversations, setConversations] = useState(initialConversations);
-  const [conversationId, setConversationId] = useState(defaultConversationId);
-  const [view, setView] = useState<View>(defaultConversationId ? "chat" : "sessions");
+  // A prompt the panel opens with is the first message of a new conversation, open from the start.
+  const [opening] = useState(() =>
+    initialPrompt?.trim() ? newConversation(initialPrompt, jobLabel, author) : undefined,
+  );
+  const [conversations, setConversations] = useState(opening ? [opening, ...initialConversations] : initialConversations);
+  const [conversationId, setConversationId] = useState(opening?.id ?? defaultConversationId);
+  const [view, setView] = useState<View>(opening || defaultConversationId ? "chat" : "sessions");
   const [aboutOpen, setAboutOpen] = useState(defaultAboutOpen);
   const [mode, setMode] = useState<AssistantMode>(defaultMode);
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!!opening && !!onSend);
   const threadRef = useRef<HTMLDivElement>(null);
 
   // Opening a different job leaves a conversation about another one.
@@ -139,15 +148,8 @@ export default function AIAssistantPanel({
     if (reference) onClearReference?.();
     let id = conversation?.id;
     if (!id) {
-      id = shortId();
-      const created: AssistantConversation = {
-        id,
-        title: text.trim().slice(0, 60),
-        jobLabel,
-        updated: "just now",
-        author,
-        messages: [userMessage],
-      };
+      const created = newConversation(text, jobLabel, author, userMessage);
+      id = created.id;
       setConversations((current) => [created, ...current]);
       setConversationId(id);
       setView("chat");
@@ -162,6 +164,20 @@ export default function AIAssistantPanel({
       setLoading(false);
     });
   };
+
+  // ...and goes out once, as the panel opens.
+  const sentOpening = useRef(false);
+  useEffect(() => {
+    if (sentOpening.current || !opening || !onSend) return;
+    sentOpening.current = true;
+    const prompt = opening.messages[0].content;
+    void onSend(prompt, jobLabel, mode).then((reply) => {
+      setConversations((current) =>
+        current.map((c) => (c.id === opening.id ? { ...c, updated: "just now", messages: [...c.messages, reply] } : c)),
+      );
+      setLoading(false);
+    });
+  }, [opening, onSend, jobLabel, mode]);
 
   const showSessions = () => {
     setConversationId(undefined);
@@ -405,4 +421,14 @@ function About({ onClose }: { onClose: () => void }) {
       </div>
     </div>
   );
+}
+
+/** A new conversation that starts with `text`, titled by it. */
+function newConversation(
+  text: string,
+  jobLabel: string | undefined,
+  author: string,
+  first: AssistantMessage = { id: shortId(), role: "user", content: text.trim() },
+): AssistantConversation {
+  return { id: shortId(), title: text.trim().slice(0, 60), jobLabel, updated: "just now", author, messages: [first] };
 }

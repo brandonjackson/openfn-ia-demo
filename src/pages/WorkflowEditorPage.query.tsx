@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, type ReactNode } from "react";
-import { Navigate, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import WorkflowEditorPage, { WorkflowEditorLoading } from "./WorkflowEditorPage";
 import { type Workflow, type WorkflowFileContents, type WorkOrder } from "../model/workflow";
 import { type WorkflowDocument, isLive } from "../model/workflow-document";
@@ -88,7 +88,8 @@ function freeName(taken: string[]): string {
  * version picker lists. Turning the workflow on or off switches its
  * trigger, and deleting marks it deleted and goes back to the project.
  * "New workflow" makes one straight away, in the selected sandbox, so it's
- * in the project's lists from the start.
+ * in the project's lists from the start. Opened from Create's Build, the
+ * prompt rides along in router state and the assistant opens on it.
  *
  * Run history and dataclips are still the fixtures' until runs move to the
  * API, drawn on whichever copy is shown. The selected run is kept in the URL
@@ -105,9 +106,16 @@ export default function WorkflowEditorPageQuery() {
   return <ExistingWorkflow id={workflowId!} />;
 }
 
+/** What the editor can be opened with in router state: a prompt from Create for the assistant. */
+interface EditorState {
+  prompt?: string;
+}
+
 /** Makes a new workflow in the project (and the sandbox selected in it), then opens it. */
 function NewWorkflow({ params }: { params: URLSearchParams }) {
   const navigate = useNavigate();
+  // A prompt from Create is handed on to the new workflow's editor.
+  const prompt = (useLocation().state as EditorState | null)?.prompt;
   const projectParam = params.get("project") ?? "";
   const rootId = fixtureProject(projectParam) ? apiProjectId(fixtureProject(projectParam)!.id) : projectParam;
   const [sandboxName] = useSandbox(rootId);
@@ -129,10 +137,10 @@ function NewWorkflow({ params }: { params: URLSearchParams }) {
       channel: channel?.kind === "channel" ? { name: channel.name, system: channel.system } : undefined,
     });
     void create(target.id, { ...starter, name: freeName(workflows.map((w) => w.name)) }).then(
-      (made) => navigate(`/workflow-editor/${made.id}`, { replace: true }),
+      (made) => navigate(`/workflow-editor/${made.id}`, { replace: true, state: prompt ? { prompt } : undefined }),
       () => navigate(-1),
     );
-  }, [ready.state, target, workflows, create, navigate, params]);
+  }, [ready.state, target, workflows, create, navigate, params, prompt]);
 
   return (
     <Screen>
@@ -169,6 +177,15 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const navigate = useNavigate();
   const flags = useFlags();
   const [searchParams, setSearchParams] = useSearchParams();
+  // A prompt from Create is read once, then taken out of the history entry so a reload doesn't send it again.
+  const location = useLocation();
+  const [assistantPrompt] = useState(() => (location.state as EditorState | null)?.prompt);
+  const promptCleared = useRef(false);
+  useEffect(() => {
+    if (promptCleared.current || !assistantPrompt) return;
+    promptCleared.current = true;
+    navigate(`${location.pathname}${location.search}`, { replace: true, state: null });
+  }, [assistantPrompt, navigate, location.pathname, location.search]);
   // The editor shares the project's selected sandbox with the rest of the app.
   const [sandbox, setSandbox] = useSandbox(root.id);
   const selected = sandbox === "main" ? root : (sandboxes.find((s) => s.name === sandbox) ?? root);
@@ -334,6 +351,7 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       assistantSuggestions={assistantSuggestions}
       onAssistantSend={(prompt, jobLabel, mode) => later(() => assistantReply(prompt, jobLabel, mode))}
       onAssistantCarryOutPlan={(plan) => later(() => assistantPlanResult(plan))}
+      assistantPrompt={assistantPrompt}
     />
   );
 }

@@ -16,7 +16,6 @@ import type { WorkflowMenuAction } from "./WorkflowFileMenu";
 import SandboxChip from "./SandboxChip";
 import RunMenuButton from "./RunMenuButton";
 import LoadedRunBar from "./LoadedRunBar";
-import SandboxChangesMenu from "./SandboxChangesMenu";
 import EnvironmentMenu from "./EnvironmentMenu";
 
 /** The editor's main surfaces. */
@@ -57,7 +56,7 @@ interface Props {
   /** A loaded run; in code mode it shows next to the view switcher, with "Unload run". */
   run?: RunDetails;
   onCloseRun?: () => void;
-  /** In a sandbox, what its copy changes, listed from the changes icon beside the name. */
+  /** In a sandbox, what its copy changes: the sandbox chip counts them and lists them. */
   changes?: WorkflowChange[];
   /** The environment the sandbox (or main) loads credentials from, for the environment menu. */
   environment?: string;
@@ -92,7 +91,7 @@ interface Props {
 
 /** The toolbar's groups of controls, for the page to put in `EditorTopBar`'s slots. */
 export interface EditorToolbarGroups {
-  /** The file menu, the workflow's name (or version picker), its changes (or "Main / Read-only") and the sandbox chip. */
+  /** The file menu, the workflow's name (or version picker), "Main / Read-only" on main, and the sandbox chip with its changes. */
   start: ReactNode;
   /** The Canvas/Code switcher. */
   middle: ReactNode;
@@ -109,12 +108,13 @@ export interface EditorToolbarGroups {
 /**
  * The editor toolbar, in three groups over the canvas.
  *
- * On the left, a pill holds the Fn file menu, the workflow's title, what's
- * changed and the sandbox chip. The title reads "Name • v4": click it to open
+ * On the left, a pill holds the Fn file menu, the workflow's title and the
+ * sandbox chip. The title reads "Name • v4": click it to open
  * the version history (renaming lives in the Fn menu, or press R in a
  * sandbox). While a run is loaded, the title is just the name. In a sandbox
- * the changes icon beside it counts what's changed and opens the list, with
- * "Go live" at its foot; on main a tag says "Main / Read-only" instead. In the
+ * the chip counts what's changed and its panel lists the changes, with
+ * "Go live", above the sandboxes to switch to; on main a tag says
+ * "Main / Read-only" before it. In the
  * middle the view switcher flips between Canvas and Explorer. In the explorer
  * a loaded run sits to its right, styled like the canvas runs bar, with
  * "Unload run". On the right sit the environment menu (where you are, its
@@ -267,12 +267,10 @@ export default function EditorToolbar({
               {loading ? <LoadingState size="inline" label="Loading workflow…" /> : name}
             </div>
           )}
-          {loading ? null : onMain ? (
+          {!loading && onMain && (
             <span className="mr-1.5 flex-none">
               <Badge label="Main / Read-only" shape="tag" icon={Lock} />
             </span>
-          ) : (
-            <SandboxChangesMenu sandbox={sandbox} changes={changes} onGoLive={() => onMenuAction("promote")} />
           )}
           {!loading && (
             <SandboxChip
@@ -280,6 +278,8 @@ export default function EditorToolbar({
               value={sandbox}
               onChange={onSelectSandbox}
               live={live}
+              changes={changes}
+              onGoLive={() => onMenuAction("promote")}
               onNewSandbox={onNewSandbox}
               onViewAll={onViewAllSandboxes}
             />

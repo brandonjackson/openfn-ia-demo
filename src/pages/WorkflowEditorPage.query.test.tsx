@@ -146,7 +146,7 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     act(() => setSandbox(projectId, "add-docs"));
     try {
       renderEditor(apiWorkflowId("planning-application-workflow"));
-      expect(await screen.findByRole("button", { name: "No changes" }, wait)).toBeTruthy();
+      expect(await screen.findByRole("button", { name: "Sandbox add-docs, no changes" }, wait)).toBeTruthy();
 
       fireEvent.click(await screen.findByText("Explorer", {}, wait));
       fireEvent.click(await screen.findByRole("button", { name: "Add project component" }, wait));
@@ -155,7 +155,7 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
       fireEvent.change(within(form).getByLabelText(/^Name/), { target: { value: "runbook" } });
       fireEvent.click(screen.getByRole("button", { name: "Create document" }));
 
-      fireEvent.click(await screen.findByRole("button", { name: "1 change" }, wait));
+      fireEvent.click(await screen.findByRole("button", { name: "Sandbox add-docs, 1 change" }, wait));
       expect(await screen.findByText("Added document runbook", {}, wait)).toBeTruthy();
     } finally {
       act(() => setSandbox(projectId, "main"));

@@ -190,7 +190,7 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
  *
  * On main everything is read-only and the main action is "Edit in sandbox".
  * In a sandbox steps can be renamed, re-adaptored, given credentials, have
- * snippets inserted, be added and deleted, the changes icon beside the name
+ * snippets inserted, be added and deleted, the sandbox chip counts and
  * lists what's changed against main (components added here included), and its "Go live" promotes the sandbox to
  * main as a new version.
  *

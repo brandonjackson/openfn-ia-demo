@@ -1,3 +1,4 @@
+import CountBadge from "./CountBadge";
 import type { ButtonHTMLAttributes, Ref } from "react";
 import type { LucideIcon } from "lucide-react";
 
@@ -78,9 +79,7 @@ export default function IconButton({
     >
       <Icon size={icon} />
       {count > 0 ? (
-        <span className="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-indigo-600 px-1 text-xs font-semibold leading-none text-white" aria-hidden>
-          {count > 99 ? "99+" : count}
-        </span>
+        <CountBadge count={count} corner />
       ) : (
         dot && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-indigo-500" aria-hidden />
       )}

@@ -277,7 +277,7 @@ export const CustomLayout: Story = {
   },
 };
 
-/** In a sandbox, changed since main's v1: the changes icon beside the name lists what going live takes to main. */
+/** In a sandbox, changed since main's v1: the sandbox chip counts the changes and lists what going live takes to main. */
 export const InSandbox: Story = {
   args: { sandbox: projects[0].sandboxes[1], environment: "staging", baseline: nationalIdWorkflowAt("v1") },
 };

@@ -1532,3 +1532,23 @@ export default function WorkflowEditorPage({
     </EditorShell>
   );
 }
+
+/**
+ * The editor while its workflow is on its way: the same frame, with the Fn
+ * button and a spinner where the workflow's name goes over the empty canvas,
+ * so opening a workflow goes straight into the editor and fills in as it loads.
+ */
+export function WorkflowEditorLoading() {
+  return (
+    <EditorShell
+      floatToolbar
+      toolbar={
+        <EditorToolbar loading name="" onMenuAction={() => undefined} view="canvas" onViewChange={() => undefined}>
+          {(bar) => <EditorTopBar {...bar} />}
+        </EditorToolbar>
+      }
+    >
+      {null}
+    </EditorShell>
+  );
+}

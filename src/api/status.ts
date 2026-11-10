@@ -34,3 +34,13 @@ export function combine(...statuses: LoadStatus[]): LoadStatus {
     statuses.find((s) => s.state === "loading") ?? { state: "ready" }
   );
 }
+
+/**
+ * Queries that each wait on the one before, as a workflow, then its project,
+ * then that project's root: the first that isn't ready. Until the one before
+ * is in, a later one has nothing to ask for, so its "not found" means "not
+ * yet" and mustn't win over the loading before it, as `combine` would let it.
+ */
+export function inTurn(...statuses: LoadStatus[]): LoadStatus {
+  return statuses.find((s) => s.state !== "ready") ?? { state: "ready" };
+}

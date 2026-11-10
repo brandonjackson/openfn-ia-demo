@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import WorkflowEditorPage from "./WorkflowEditorPage";
+import WorkflowEditorPage, { WorkflowEditorLoading } from "./WorkflowEditorPage";
 import { nationalIdWorkflow, nationalIdWorkflowAt, registerCaseWorkflow, surveillanceVersions, weeklyCaseReportWorkflow, workflowVersions } from "../fixtures/workflow";
 import { dataclips, failedRun, olderRun, runHistories, sampleRun, simulateRun, workOrders } from "../fixtures/runs";
 import { projects } from "../fixtures/projects";
@@ -348,4 +348,9 @@ export const CodeRedesign: Story = {
 /** The project's environment variables, opened from Workflow in the explorer. */
 export const EnvironmentVariables: Story = {
   args: { initialView: "code", initialFile: "envVars", runId: undefined, initialLayout: { explorer: true } },
+};
+
+/** While the workflow is on its way: the editor's frame, with a spinner where the workflow's name goes. */
+export const Loading: Story = {
+  render: () => <WorkflowEditorLoading />,
 };

@@ -32,3 +32,8 @@ export const InSandbox: Story = {
 export const Paused: Story = {
   args: { live: false },
 };
+
+/** While the workflow loads, the Fn button is there but doesn't open. */
+export const Disabled: Story = {
+  args: { disabled: true, defaultOpen: false },
+};

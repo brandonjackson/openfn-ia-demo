@@ -49,11 +49,13 @@ interface Props {
   /** What the assistant says the step's code does, one point per thing it does. */
   codeSummary?: string[];
   credentialId?: string;
-  /** On main nothing can be changed. */
+  /** On main nothing can be changed, except whether the workflow is live: that's its trigger's switch, not an edit. */
   readOnly?: boolean;
   /** The URL that starts the workflow, for webhook triggers. */
   url?: string;
+  /** Whether the trigger is on, which is whether the workflow is live (off, it's paused). */
   live?: boolean;
+  /** Turns the trigger on or off, the same as pausing or resuming the workflow. Left out, the switch only reads. */
   onToggleLive?: (live: boolean) => void;
   onChange?: (changes: StepChanges) => void;
   /** Opens the step's code. */
@@ -165,7 +167,7 @@ export default function StepInspector({
                 onConnect={(id) => onChange?.({ credentialId: id })}
               />
             )}
-            {trigger && <TriggerConfig trigger={trigger} url={url} live={live} readOnly={readOnly} onToggleLive={onToggleLive} />}
+            {trigger && <TriggerConfig trigger={trigger} url={url} live={live} onToggleLive={onToggleLive} />}
           </InspectorSection>
 
           {job && (
@@ -453,18 +455,20 @@ function AdaptorRow({
   );
 }
 
-/** The trigger's type, its URL for a webhook, and its switch, as label/value rows. */
+/**
+ * The trigger's type, its URL for a webhook, and its switch, as label/value
+ * rows. The switch is the workflow's pause: it works wherever pausing does,
+ * main included.
+ */
 function TriggerConfig({
   trigger,
   url,
   live,
-  readOnly,
   onToggleLive,
 }: {
   trigger: TriggerNode;
   url?: string;
   live: boolean;
-  readOnly: boolean;
   onToggleLive?: (live: boolean) => void;
 }) {
   const { shortLabel, icon } = triggerTypes[trigger.triggerType];
@@ -497,7 +501,7 @@ function TriggerConfig({
       : []),
     {
       label: "Enabled",
-      value: <ToggleSwitch key={String(live)} checked={live} onChange={readOnly ? undefined : onToggleLive} label={live ? "Live" : "Paused"} />,
+      value: <ToggleSwitch key={String(live)} checked={live} onChange={onToggleLive} disabled={!onToggleLive} label={live ? "Live" : "Paused"} />,
     },
   ];
   return <PropertyList variant="plain" properties={properties} />;

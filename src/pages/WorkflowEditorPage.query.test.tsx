@@ -94,6 +94,21 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     expect(await screen.findByText(`Opened /projects/${service.projectId}/services/${service.id}`, {}, wait)).toBeTruthy();
   });
 
+  it("pauses the workflow from its trigger's switch on main, and the menu follows; pausing from the menu turns the trigger off", async () => {
+    const service = await backedService();
+    const doc = () =>
+      request<{ workflow: { triggers: { enabled: boolean }[] } }>("GET", `/api/projects/${service.projectId}/workflows/${service.workflowId}`).then((a) => a.workflow);
+    renderEditor(service.workflowId);
+    fireEvent.click(await screen.findByRole("button", { name: /^Select .*trigger/i }, wait));
+    // On main the workflow is read-only, but its trigger's switch is its pause.
+    fireEvent.click(await screen.findByRole("switch", { name: "Live" }, wait));
+    await waitFor(async () => expect((await doc()).triggers.some((t) => t.enabled)).toBe(false), wait);
+    await openWorkflowMenu();
+    fireEvent.click(await screen.findByRole("menuitem", { name: /Resume workflow/ }, wait));
+    await waitFor(async () => expect((await doc()).triggers.some((t) => t.enabled)).toBe(true), wait);
+    expect(await screen.findByRole("switch", { name: "Live" }, wait)).toBeTruthy();
+  });
+
   it("offers no service listing without the catalog", async () => {
     act(() => setFlag("serviceCatalog", false));
     const service = await backedService();

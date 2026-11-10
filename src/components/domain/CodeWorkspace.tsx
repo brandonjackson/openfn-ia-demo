@@ -65,7 +65,9 @@ interface Props {
   publishesServices?: boolean;
   /** The URL that starts the workflow, shown on the trigger. */
   url?: string;
+  /** Whether the trigger is on, which is whether the workflow is live (off, it's paused); workflow.yaml says so. */
   live?: boolean;
+  /** Turns the trigger on or off, the same as pausing or resuming the workflow; it works on main too. */
   onToggleLive?: (live: boolean) => void;
   settings: WorkflowSettings;
   onSettingsChange?: (settings: WorkflowSettings) => void;
@@ -211,7 +213,7 @@ export default function CodeWorkspace({
   const fileName =
     addedDoc ?? (doc ? `${doc}.md` : manifest ? "service.yaml" : health ? "Health" : saved ? "Saved dataclips" : envVars ? "Environment variables" : "workflow.yaml");
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
-  const yaml = workflowToYaml(workflow);
+  const yaml = workflowToYaml(workflow, { enabled: live });
   const triggerYaml = yaml.slice(yaml.indexOf("triggers:"), yaml.indexOf("edges:")).trimEnd();
   const editor = useRef<CodeEditorHandle>(null);
   const editable = Boolean(step && !readOnly && onCodeChange);

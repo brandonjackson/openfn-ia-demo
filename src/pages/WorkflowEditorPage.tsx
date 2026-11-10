@@ -981,7 +981,7 @@ export default function WorkflowEditorPage({
   };
 
   const exportYaml = () => {
-    const blob = new Blob([workflowToYaml(graph)], { type: "text/yaml" });
+    const blob = new Blob([workflowToYaml(graph, { enabled: live })], { type: "text/yaml" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = `${graph.id}.yaml`;

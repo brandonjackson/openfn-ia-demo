@@ -33,7 +33,7 @@ interface Props {
   onMain?: boolean;
   /** Whether Rename is offered. Whoever uses the menu decides, e.g. not on main. */
   canRename?: boolean;
-  /** Whether triggers currently start runs. */
+  /** Whether the workflow is live: its trigger is on and starts runs. Pausing turns the trigger off. */
   live?: boolean;
   /** The project to go back to; adds "Back to workflows" at the top. */
   projectName?: string;
@@ -76,8 +76,8 @@ export default function WorkflowFileMenu({
     ...(url ? [{ id: "copy-url", label: "Copy webhook URL", icon: Link2 }] : []),
     ...(hasDetails ? [{ id: "see-details", label: "See service listing", icon: BookOpen }] : []),
     live
-      ? { id: "toggle-live", label: "Pause workflow", description: "Stop triggers from starting runs", icon: Pause, divider: true }
-      : { id: "toggle-live", label: "Resume workflow", description: "Let triggers start runs again", icon: Play, divider: true },
+      ? { id: "toggle-live", label: "Pause workflow", description: "Turn its trigger off: runs start only by hand", icon: Pause, divider: true }
+      : { id: "toggle-live", label: "Resume workflow", description: "Turn its trigger back on", icon: Play, divider: true },
     { id: "delete", label: "Delete workflow", icon: Trash2, tone: "danger" },
   ];
 

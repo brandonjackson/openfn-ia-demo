@@ -25,8 +25,11 @@ interface Props {
   trigger: TriggerNode;
   /** The URL that starts the workflow, for webhook triggers. */
   url?: string;
+  /** On main nothing can be changed, except whether the workflow is live: that's the trigger's switch, not an edit. */
   readOnly?: boolean;
+  /** Whether the trigger is on, which is whether the workflow is live (off, it's paused). */
   live?: boolean;
+  /** Turns the trigger on or off, the same as pausing or resuming the workflow. Left out, the switch only reads. */
   onToggleLive?: (live: boolean) => void;
   /** Hide the name row when a column header already names the trigger. */
   showHeader?: boolean;
@@ -38,7 +41,9 @@ interface Props {
 
 /**
  * The trigger's settings in code mode: its type, the webhook URL to copy,
- * and whether it's enabled. A webhook trigger also carries the annotations
+ * and whether it's enabled, which is whether the workflow is live: turning
+ * it off pauses the workflow, and pausing the workflow turns it off, so the
+ * switch works wherever pausing does, main included. A webhook trigger also carries the annotations
  * that publish the workflow as a service (name, description, request and
  * response schema), which generate its OpenAPI 3 docs.
  */
@@ -87,8 +92,8 @@ export default function TriggerConfigPanel({
             </div>
           </FormField>
         )}
-        <FormField label="Enabled" hint="When off, the trigger won't start runs. You can still run manually.">
-          <ToggleSwitch key={String(live)} checked={live} onChange={readOnly ? undefined : onToggleLive} label={live ? "Live" : "Paused"} />
+        <FormField label="Enabled" hint="Off pauses the workflow: the trigger won't start runs. You can still run it by hand.">
+          <ToggleSwitch key={String(live)} checked={live} onChange={onToggleLive} disabled={!onToggleLive} label={live ? "Live" : "Paused"} />
         </FormField>
         {trigger.triggerType === "webhook" && showServiceAnnotations && (
           <div className="space-y-5 border-t border-gray-100 pt-5">

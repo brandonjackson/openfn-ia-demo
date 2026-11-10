@@ -223,9 +223,10 @@ export function incomingEdge(workflow: Workflow, jobId: string): WorkflowEdge | 
 /**
  * The workflow as the YAML the CLI and GitHub sync use, so the editor's
  * `workflow.yaml` reads like a real project file. Job bodies are elided to
- * their first line to keep the file short.
+ * their first line to keep the file short. `enabled` is whether its trigger
+ * is on: whether the workflow is live or paused.
  */
-export function workflowToYaml(workflow: Workflow): string {
+export function workflowToYaml(workflow: Workflow, { enabled = true }: { enabled?: boolean } = {}): string {
   const slug = (s: string) =>
     s
       .toLowerCase()
@@ -247,7 +248,7 @@ export function workflowToYaml(workflow: Workflow): string {
   if (trigger) {
     lines.push(`  ${trigger.triggerType}:`);
     lines.push(`    type: ${trigger.triggerType}`);
-    lines.push(`    enabled: true`);
+    lines.push(`    enabled: ${enabled}`);
   }
   lines.push("edges:");
   for (const edge of workflow.edges) {

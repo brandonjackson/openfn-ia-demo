@@ -191,6 +191,16 @@ export const CanvasInSandbox: Story = {
   },
 };
 
+/** A new workflow opened from Create's Build: the assistant opens on the prompt and starts on it. */
+export const OpenedFromCreate: Story = {
+  args: {
+    sandbox: projects[0].sandboxes[1],
+    assistantConversations: [],
+    assistantPrompt: "When a birth is registered in OpenCRVS, open a child benefit application in Salesforce.",
+    initialLayout: { panel: false, assistant: true },
+  },
+};
+
 /** Code mode in a sandbox: everything editable, with the assistant open. */
 export const CodeInSandbox: Story = {
   args: {

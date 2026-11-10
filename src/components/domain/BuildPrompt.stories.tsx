@@ -23,7 +23,7 @@ const meta: Meta<typeof BuildPrompt> = {
 export default meta;
 type Story = StoryObj<typeof BuildPrompt>;
 
-/** Empty, so the Build button is disabled. */
+/** Empty: Build stays enabled, and pressing it says what's missing. */
 export const Empty: Story = { render: () => <Controlled initial="" /> };
 
 /** Filled from one of the starter ideas. */

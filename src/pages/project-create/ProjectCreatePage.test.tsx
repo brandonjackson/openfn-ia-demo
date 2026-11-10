@@ -23,30 +23,35 @@ const frame = (over: Partial<ProjectCreatePageProps> = {}) => ({
 const box = () => screen.getByLabelText("What would you like to build?") as HTMLTextAreaElement;
 
 describe("ProjectCreatePage", () => {
-  it("offers the starter ideas, and picking one puts its prompt in the box", () => {
-    renderPage(ProjectCreatePage, frame(), []);
+  it("offers the starter ideas, and picking one puts its prompt in the box without building", () => {
+    const page = renderPage(ProjectCreatePage, frame(), ["onBuild"]);
     fireEvent.click(screen.getByText("Enrol newborns in child benefits"));
     expect(box().value).toBe(idea.prompt);
-    expect(screen.queryByText("Drafting your service")).toBeNull();
+    expect(page.calls("onBuild")).toEqual([]);
   });
 
-  it("says it's drafting what was typed once it's sent", () => {
-    renderPage(ProjectCreatePage, frame(), []);
+  it("builds what was typed, trimmed", () => {
+    const page = renderPage(ProjectCreatePage, frame(), ["onBuild"]);
     fireEvent.change(box(), { target: { value: "  Remind mothers of vaccinations  " } });
     fireEvent.click(screen.getByRole("button", { name: "Build" }));
-    expect(screen.getByText("Drafting your service")).toBeTruthy();
-    expect(screen.getByText(/“Remind mothers of vaccinations”/)).toBeTruthy();
+    expect(page.calls("onBuild")).toEqual([["Remind mothers of vaccinations"]]);
   });
 
-  it("arrives already sent with a prompt from the Overview", () => {
-    renderPage(ProjectCreatePage, frame({ initialPrompt: "Track referrals" }), []);
-    expect(screen.getByText("Drafting your service")).toBeTruthy();
-    expect(box().value).toBe("Track referrals");
+  it("says what's missing under the box when Build is pressed empty, and focuses it", () => {
+    const page = renderPage(ProjectCreatePage, frame(), ["onBuild"]);
+    const build = screen.getByRole("button", { name: "Build" });
+    expect(build.hasAttribute("disabled")).toBe(false);
+    fireEvent.click(build);
+    expect(screen.getByRole("alert").textContent).toBe("Describe what you'd like to build");
+    expect(document.activeElement).toBe(box());
+    expect(page.calls("onBuild")).toEqual([]);
+    fireEvent.change(box(), { target: { value: "Track referrals" } });
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 
   it("only fills the box with a draft", () => {
-    renderPage(ProjectCreatePage, frame({ initialDraft: "A new form for" }), []);
+    const page = renderPage(ProjectCreatePage, frame({ initialDraft: "A new form for" }), ["onBuild"]);
     expect(box().value).toBe("A new form for");
-    expect(screen.queryByText("Drafting your service")).toBeNull();
+    expect(page.calls("onBuild")).toEqual([]);
   });
 });

@@ -58,3 +58,11 @@ export const ImproveStep: Story = {
     onClearReference: () => {},
   },
 };
+
+/** Opened from Create's Build: the prompt goes out as the first message, and the assistant answers it. */
+export const FromCreate: Story = {
+  args: {
+    conversations: [],
+    initialPrompt: "When a birth is registered in OpenCRVS, open a child benefit application in Salesforce.",
+  },
+};

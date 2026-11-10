@@ -34,5 +34,11 @@ export const Default: Story = {
     ancestors,
     currentPath: `/projects/${project.id}/create`,
     data: { ideas: buildIdeas },
+    onBuild: () => {},
   },
+};
+
+/** Opened from adding a component: the box starts with a draft to finish. */
+export const WithDraft: Story = {
+  args: { ...Default.args, initialDraft: "Add a form to this project that " },
 };

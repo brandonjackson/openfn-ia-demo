@@ -162,6 +162,23 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     }
   });
 
+  it("opens a new workflow from Create with the assistant shown, working on the prompt", async () => {
+    const prompt = "When a birth is registered in OpenCRVS, open a child benefit application in Salesforce.";
+    render(
+      <ApiProvider retry={false}>
+        <MemoryRouter initialEntries={[{ pathname: "/workflow-editor/new", search: `?project=${projectIdFor("project-a")}`, state: { prompt } }]}>
+          <Routes>
+            <Route path="/workflow-editor/:workflowId" element={<WorkflowEditorPageQuery />} />
+          </Routes>
+        </MemoryRouter>
+      </ApiProvider>,
+    );
+    // The prompt goes out as the first message of a new conversation, and the assistant answers it.
+    expect(await screen.findByText(prompt, {}, wait)).toBeTruthy();
+    expect(await screen.findByText("Here's what I'll change. Nothing is edited until you say so.", {}, wait)).toBeTruthy();
+    expect(screen.getAllByText(prompt)).toHaveLength(1);
+  });
+
   it("lists the project's environment variables under Workflow in the explorer, and adds one", async () => {
     act(() => setFlag("envVars", true));
     const projectId = projectIdFor("project-a");

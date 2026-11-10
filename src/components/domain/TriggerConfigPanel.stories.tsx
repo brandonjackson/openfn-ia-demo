@@ -23,7 +23,10 @@ export default meta;
 type Story = StoryObj<typeof TriggerConfigPanel>;
 
 export const Default: Story = {};
+/** On main: the fields only read, but the switch still pauses and resumes the workflow. */
 export const ReadOnly: Story = { args: { readOnly: true } };
+/** With nothing to turn it on or off (no `onToggleLive`), the switch only reads. */
+export const SwitchReadsOnly: Story = { args: { readOnly: true, onToggleLive: undefined } };
 export const Paused: Story = { args: { live: false } };
 
 /** Published as a service: its annotations generate the OpenAPI 3 docs. */

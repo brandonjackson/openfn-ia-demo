@@ -28,8 +28,6 @@ type Story = StoryObj<typeof SandboxChip>;
 
 export const OnMain: Story = { args: { value: "main" } };
 
-export const Paused: Story = { args: { value: "main", live: false } };
-
 export const InSandbox: Story = { args: { value: projects[0].sandboxes[1] } };
 
 const changes = [
@@ -39,16 +37,16 @@ const changes = [
 ];
 
 /** In a sandbox with changes: the chip counts them. */
-export const WithChanges: Story = { args: { value: projects[0].sandboxes[1], changes, onGoLive: () => {} } };
+export const WithChanges: Story = { args: { value: projects[0].sandboxes[1], changes, onPromote: () => {} } };
 
-/** Open in a sandbox: the changes and Go live, then the sandboxes to switch to. */
-export const Open: Story = { args: { value: projects[0].sandboxes[1], changes, onGoLive: () => {}, defaultOpen: true } };
+/** Open in a sandbox: the changes and "Create promotion request", then the sandboxes to switch to. */
+export const Open: Story = { args: { value: projects[0].sandboxes[1], changes, onPromote: () => {}, defaultOpen: true } };
 
-/** Open with nothing changed yet: no count, and no Go live. */
+/** Open with nothing changed yet: no count, and no promotion request. */
 export const OpenNoChanges: Story = { args: { value: projects[0].sandboxes[1], defaultOpen: true } };
 
-/** Without the right to go live, the list stays and the button goes. */
-export const CantGoLive: Story = { args: { value: projects[0].sandboxes[1], changes, defaultOpen: true } };
+/** Without the right to promote, the list stays and the button goes. */
+export const CantPromote: Story = { args: { value: projects[0].sandboxes[1], changes, defaultOpen: true } };
 
-/** Open on main: just the sandboxes. */
+/** Open on main: just the sandboxes to switch to. */
 export const OpenOnMain: Story = { args: { value: "main", defaultOpen: true } };

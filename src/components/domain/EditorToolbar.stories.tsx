@@ -15,6 +15,7 @@ function Stateful(args: Args) {
   const [name, setName] = useState(args.name);
   const [sandbox, setSandbox] = useState(args.sandbox ?? "main");
   const [assistantOpen, setAssistantOpen] = useState(args.assistantOpen ?? false);
+  const [live, setLive] = useState(args.live ?? true);
   return (
     <EditorToolbar
       {...args}
@@ -25,6 +26,8 @@ function Stateful(args: Args) {
       onViewChange={setView}
       sandbox={sandbox}
       onSelectSandbox={setSandbox}
+      live={live}
+      onToggleLive={setLive}
       assistantOpen={assistantOpen}
       onToggleAssistant={() => setAssistantOpen((o) => !o)}
     >
@@ -56,8 +59,7 @@ const meta: Meta<Args> = {
     onViewAllSandboxes: () => {},
     onToggleAssistant: () => {},
     environment: "production",
-    components: projects[0].components.filter((c) => c.type !== "Workflow"),
-    onOpenComponent: () => {},
+    showEnvVars: true,
   },
   render: (args) => <Stateful {...args} />,
 };
@@ -71,7 +73,7 @@ const changes = [
   { kind: "removed" as const, summary: "Removed step Queue application for retry" },
 ];
 
-/** On main: "Main / Read-only" beside the name, with "Edit in sandbox" as the main action. */
+/** On main: the chip reads "main" with a lock, and "Edit in sandbox" is the main action. Click "Live" for the switch. */
 export const OnMain: Story = {};
 
 /**
@@ -114,8 +116,14 @@ export const AssistantOpen: Story = {
   args: { assistantOpen: true, view: "code" },
 };
 
+/** Paused on main: the trigger is off. */
 export const Paused: Story = {
   args: { live: false },
+};
+
+/** In a sandbox paused as a new one starts. Click "Paused" for what runs here use. */
+export const InSandboxPaused: Story = {
+  args: { sandbox: projects[0].sandboxes[1], changes, environment: "staging", live: false },
 };
 
 /** A new workflow: no versions yet. */

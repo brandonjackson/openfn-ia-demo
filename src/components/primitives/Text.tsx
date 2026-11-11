@@ -13,6 +13,8 @@ const tones = {
   danger: "text-red-600",
   /** Something went right. */
   success: "text-green-700",
+  /** Takes the colour of what it sits in, e.g. a label inside a button. */
+  inherit: "",
 };
 
 export type TextTone = keyof typeof tones;

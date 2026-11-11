@@ -83,7 +83,7 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
       await act(() => new Promise((r) => setTimeout(r, 10)));
     }
     expect(screen.queryByText("Page Not Found")).toBeNull();
-    expect(await screen.findByText("Main / Read-only", {}, wait)).toBeTruthy();
+    expect(await screen.findByRole("button", { name: "main, read-only" }, wait)).toBeTruthy();
   });
 
   it("links a workflow to the page of the service it backs, from the services API", async () => {
@@ -107,6 +107,22 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     fireEvent.click(await screen.findByRole("menuitem", { name: /Resume workflow/ }, wait));
     await waitFor(async () => expect((await doc()).triggers.some((t) => t.enabled)).toBe(true), wait);
     expect(await screen.findByRole("switch", { name: "Live" }, wait)).toBeTruthy();
+  });
+
+  it("pauses and resumes the workflow from the toolbar's Live menu, which says what runs on main use", async () => {
+    const service = await backedService();
+    const doc = () =>
+      request<{ workflow: { triggers: { enabled: boolean }[] } }>("GET", `/api/projects/${service.projectId}/workflows/${service.workflowId}`).then((a) => a.workflow);
+    renderEditor(service.workflowId);
+    fireEvent.click(await screen.findByRole("button", { name: "Triggers: live" }, wait));
+    const panel = await screen.findByRole("dialog", { name: "Triggers" }, wait);
+    expect(within(panel).getByText("Runs on main use")).toBeTruthy();
+    expect(within(panel).getByText("The project's own")).toBeTruthy();
+    fireEvent.click(within(panel).getByRole("switch", { name: "Turn triggers off" }));
+    await waitFor(async () => expect((await doc()).triggers.some((t) => t.enabled)).toBe(false), wait);
+    expect(await screen.findByRole("button", { name: "Triggers: paused" }, wait)).toBeTruthy();
+    fireEvent.click(within(panel).getByRole("switch", { name: "Turn triggers on" }));
+    await waitFor(async () => expect((await doc()).triggers.some((t) => t.enabled)).toBe(true), wait);
   });
 
   it("offers no service listing without the catalog", async () => {

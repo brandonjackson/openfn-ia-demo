@@ -1,22 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
-import { FlaskConical, Lock, Sparkles } from "lucide-react";
+import { FlaskConical, Sparkles } from "lucide-react";
 import type { RunDetails, WorkflowVersion } from "../../model/workflow";
 import type { WorkflowChange } from "../../model/workflow-changes";
-import type { ProjectComponent } from "../../model/projects";
 import { versionOptions } from "../../model/workflow";
 import Button from "../primitives/Button";
 import Picker from "../primitives/Picker";
 import SegmentedControl from "../primitives/SegmentedControl";
 import IconButton from "../primitives/IconButton";
-import Badge from "../primitives/Badge";
 import LoadingState from "../primitives/LoadingState";
 import WorkflowFileMenu from "./WorkflowFileMenu";
 import type { WorkflowMenuAction } from "./WorkflowFileMenu";
 import SandboxChip from "./SandboxChip";
 import RunMenuButton from "./RunMenuButton";
 import LoadedRunBar from "./LoadedRunBar";
-import EnvironmentMenu from "./EnvironmentMenu";
+import TriggerStatusMenu from "./TriggerStatusMenu";
 
 /** The editor's main surfaces. */
 export type EditorView = "canvas" | "code";
@@ -58,14 +56,14 @@ interface Props {
   onCloseRun?: () => void;
   /** In a sandbox, what its copy changes: the sandbox chip counts them and lists them. */
   changes?: WorkflowChange[];
-  /** The environment the sandbox (or main) loads credentials from, for the environment menu. */
+  /** The environment the sandbox (or main) loads credentials from, for the Live/Paused panel. */
   environment?: string;
-  /** The project components the workflow uses, for the environment menu. */
-  components?: ProjectComponent[];
-  /** Opens a component from the environment menu. */
-  onOpenComponent?: (componentId: string) => void;
-  /** Whether triggers start runs; the sandbox chip reads this way on main. */
+  /** Whether the project has environment variables, which the Live/Paused panel then lists among what runs use. */
+  showEnvVars?: boolean;
+  /** Whether the trigger starts runs here: "Live" or "Paused", left of Run. */
   live?: boolean;
+  /** Turns the trigger on or off, from the Live/Paused panel. Left out where you can't. */
+  onToggleLive?: (live: boolean) => void;
   view: EditorView;
   onViewChange: (view: EditorView) => void;
   retry?: { step?: string; hint?: string };
@@ -91,13 +89,13 @@ interface Props {
 
 /** The toolbar's groups of controls, for the page to put in `EditorTopBar`'s slots. */
 export interface EditorToolbarGroups {
-  /** The file menu, the workflow's name (or version picker), "Main / Read-only" on main, and the sandbox chip with its changes. */
+  /** The file menu, the workflow's name (or version picker), and the sandbox chip: main with a lock, or the sandbox with its changes. */
   start: ReactNode;
   /** The Canvas/Code switcher. */
   middle: ReactNode;
   /** The loaded run, beside the switcher in code mode. */
   afterMiddle?: ReactNode;
-  /** The environment menu and Run, with Edit in sandbox on main. */
+  /** Live or Paused and Run, with Edit in sandbox on main. */
   end: ReactNode;
   /** The assistant's toggle. */
   aside?: ReactNode;
@@ -111,14 +109,14 @@ export interface EditorToolbarGroups {
  * On the left, a pill holds the Fn file menu, the workflow's title and the
  * sandbox chip. The title reads "Name • v4": click it to open
  * the version history (renaming lives in the Fn menu, or press R in a
- * sandbox). While a run is loaded, the title is just the name. In a sandbox
- * the chip counts what's changed and its panel lists the changes, with
- * "Go live", above the sandboxes to switch to; on main a tag says
- * "Main / Read-only" before it. In the
+ * sandbox). While a run is loaded, the title is just the name. On main the
+ * chip reads "main" with a lock; in a sandbox it's amber, counts what's
+ * changed and its panel lists the changes, with "Create promotion request",
+ * above the sandboxes to switch to. In the
  * middle the view switcher flips between Canvas and Explorer. In the explorer
  * a loaded run sits to its right, styled like the canvas runs bar, with
- * "Unload run". On the right sit the environment menu (where you are, its
- * environment and the components in use) and Run, which is the main action
+ * "Unload run". On the right sit Live or Paused (whether the trigger starts
+ * runs here; its panel holds the switch and what runs here use) and Run, which is the main action
  * in a sandbox; on main "Edit in sandbox" is, after Run. Then the assistant
  * button in a group of its own. The button hands
  * over to the assistant tray: while the tray slides in from the right, the
@@ -147,9 +145,9 @@ export default function EditorToolbar({
   onCloseRun,
   changes = [],
   environment,
-  components,
-  onOpenComponent,
+  showEnvVars = false,
   live = true,
+  onToggleLive,
   view,
   onViewChange,
   retry,
@@ -267,19 +265,13 @@ export default function EditorToolbar({
               {loading ? <LoadingState size="inline" label="Loading workflow…" /> : name}
             </div>
           )}
-          {!loading && onMain && (
-            <span className="mr-1.5 flex-none">
-              <Badge label="Main / Read-only" shape="tag" icon={Lock} />
-            </span>
-          )}
           {!loading && (
             <SandboxChip
               sandboxes={sandboxes}
               value={sandbox}
               onChange={onSelectSandbox}
-              live={live}
               changes={changes}
-              onGoLive={() => onMenuAction("promote")}
+              onPromote={() => onMenuAction("promote")}
               onNewSandbox={onNewSandbox}
               onViewAll={onViewAllSandboxes}
             />
@@ -293,7 +285,7 @@ export default function EditorToolbar({
       afterMiddle: run && view === "code" ? <LoadedRunBar run={run} detail={run.version} onUnload={onCloseRun} /> : undefined,
       end: loading ? undefined : (
         <>
-          <EnvironmentMenu sandbox={sandbox} environment={environment} components={components} onOpenComponent={onOpenComponent} />
+          <TriggerStatusMenu sandbox={sandbox} live={live} onToggle={onToggleLive} environment={environment} showEnvVars={showEnvVars} />
           <RunMenuButton
             primary={!onMain}
             retry={retry}

@@ -1,6 +1,6 @@
 import { sandboxSlug } from "../model/sandboxes";
 import { errorMessageOf, firstProblemOf } from "../model/form-error";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { BookOpen, Database, FilePlus, FileText, Sparkles } from "lucide-react";
 import type {
   AdaptorKind,
@@ -476,21 +476,25 @@ export default function WorkflowEditorPage({
   }
 
   // In a sandbox, edits are saved a moment after they're made. Once saved they're in `workflow`,
-  // so they're cleared here unless more were made meanwhile.
+  // so they're cleared here unless more were made meanwhile. Only an edit restarts the wait: the
+  // save reads the latest workflow and callback when it runs, so a new one from the wrapper doesn't.
+  const save = useEffectEvent(() => {
+    if (!onSaveWorkflow || (edits === noEdits && name === workflow.name)) return;
+    const saving = edits;
+    onSaveWorkflow(applyEdits(workflow, saving, name, adaptors.info)).then(
+      () => {
+        setStatusNote(undefined);
+        setEdits((current) => (current === saving ? noEdits : current));
+      },
+      (e: unknown) => setStatusNote(`Not saved: ${firstProblemOf(e)}`),
+    );
+  });
+  const canSave = !!onSaveWorkflow && !onMain;
   useEffect(() => {
-    if (!onSaveWorkflow || onMain || (edits === noEdits && name === workflow.name)) return;
-    const timer = setTimeout(() => {
-      const saving = edits;
-      onSaveWorkflow(applyEdits(workflow, saving, name, adaptors.info)).then(
-        () => {
-          setStatusNote(undefined);
-          setEdits((current) => (current === saving ? noEdits : current));
-        },
-        (e: unknown) => setStatusNote(`Not saved: ${firstProblemOf(e)}`),
-      );
-    }, 700);
+    if (!canSave) return;
+    const timer = setTimeout(save, 700);
     return () => clearTimeout(timer);
-  }, [edits, name, workflow, onMain, onSaveWorkflow, adaptors.info]);
+  }, [edits, name, canSave]);
 
   // ---- Runs -----------------------------------------------------------------
 

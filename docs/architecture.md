@@ -104,6 +104,8 @@ The fixture wrappers apply a change straight away and return an already-resolved
 
 **What stays in the page.** UI state stays local: which tab is open, a dropdown, a form you haven't saved yet, the editor's layout. Only things a server would hold go through the seam.
 
+**Props are new every render.** A wrapper builds its callbacks and derived objects afresh each time it renders, and it renders whenever any of its queries moves. So a page can't treat a new prop as news: an effect lists only what should start it again (an edit, an id), and reads anything else it needs, the latest workflow or an `onX`, through `useEffectEvent`. The editor's autosave restarts its wait on an edit, not on the wrapper rendering (`WorkflowEditorPage.tsx`).
+
 **Switching a data source.** `src/app/PageRoute.tsx` holds the route table that says which wrapper feeds each kind of page. To move a page onto the API, write `XPage.query.tsx` beside the page and point its line in the table at it. The page doesn't change. `pageFrame(route, node, projectName)` (`src/app/page-frame.ts`) is where every wrapper gets the page's node and crumbs, with the project's name as the API has it.
 
 **Tests.** A page's `XPage.test.tsx` draws it with `renderPage` (`src/test/renderPage.tsx`): it feeds props, and each `onX` returns a promise the test answers with `resolve` or `reject`, so pending, success and a refusal are each a step to check. Lint holds it to the page's rules, so it can't reach for fixtures or the API either. The wrapper's `XPage.query.test.tsx` renders it on the fake server (`ApiProvider retry={false}`, `resetFakeApi`, `setWait(0)`, and `failNext` for a refusal) and checks what the server decides. `.test.tsx` runs in jsdom, `.test.ts` in Node.

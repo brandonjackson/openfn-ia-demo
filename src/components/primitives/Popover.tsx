@@ -16,6 +16,11 @@ interface Props {
   children: ReactNode | ((close: () => void) => ReactNode);
   /** Pinned under the content, past a divider, e.g. the action the panel leads to. */
   footer?: ReactNode | ((close: () => void) => ReactNode);
+  /**
+   * The footer's inset: `tight` (the default) for a list of rows that carry
+   * their own padding, `even` for text that lines up with the content above.
+   */
+  footerInset?: "tight" | "even";
   /** Which edge of the trigger the panel lines up with. */
   align?: "left" | "right";
   widthClass?: string;
@@ -33,7 +38,7 @@ interface Props {
  * For a list of actions use {@link DropdownMenu}; for picking one value, a
  * `Picker`.
  */
-export default function Popover({ trigger, ariaLabel, children, footer, align = "left", widthClass = "w-72", defaultOpen = false, shrink = false }: Props) {
+export default function Popover({ trigger, ariaLabel, children, footer, footerInset = "tight", align = "left", widthClass = "w-72", defaultOpen = false, shrink = false }: Props) {
   const { open, toggle, close, ref } = usePopover(defaultOpen);
   const render = (slot: ReactNode | ((close: () => void) => ReactNode)) => (typeof slot === "function" ? slot(close) : slot);
 
@@ -48,7 +53,7 @@ export default function Popover({ trigger, ariaLabel, children, footer, align = 
           className={`absolute top-full z-50 mt-1.5 overflow-hidden ${align === "right" ? "right-0" : "left-0"} ${widthClass}`}
         >
           <div className="max-h-96 overflow-y-auto p-3">{render(children)}</div>
-          {footer && <div className="border-t border-gray-100 p-2">{render(footer)}</div>}
+          {footer && <div className={`border-t border-gray-100 ${footerInset === "even" ? "p-3" : "p-2"}`}>{render(footer)}</div>}
         </Surface>
       )}
     </div>

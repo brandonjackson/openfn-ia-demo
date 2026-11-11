@@ -1308,12 +1308,9 @@ export default function WorkflowEditorPage({
       onCloseRun={deselectRun}
       changes={changes}
       environment={environment}
-      components={components}
-      onOpenComponent={(id) => {
-        setFile({ componentId: id });
-        setView("code");
-      }}
+      showEnvVars={envVars !== undefined}
       live={live}
+      onToggleLive={setLive}
       view={view}
       onViewChange={(next) => (next === "code" && view === "canvas" && focusNode ? openInCode(focusNode.id) : setView(next))}
       retry={retryControl}

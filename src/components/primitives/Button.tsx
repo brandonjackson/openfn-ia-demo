@@ -9,6 +9,7 @@ export type ButtonVariant =
   | "outline-primary"
   | "outline-danger"
   | "ghost"
+  | "caution"
   | "link-danger";
 
 export type ButtonSize = "xs" | "sm" | "md";
@@ -21,6 +22,8 @@ const variantClasses: Record<ButtonVariant, string> = {
   "outline-primary": "border border-indigo-300 text-indigo-600 hover:bg-indigo-50",
   "outline-danger": "border border-red-200 text-red-600 hover:bg-red-50",
   ghost: "border border-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700",
+  /** Somewhere that isn't the real thing, e.g. the sandbox you're working in. */
+  caution: "border border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100",
   "link-danger": "text-red-500 hover:text-red-700",
 };
 
@@ -36,6 +39,8 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: LucideIcon;
   /** Fills the width it's given, e.g. the one action at the foot of a popover. */
   fullWidth?: boolean;
+  /** Lets it shrink in a tight row, so a `Text truncate` label inside it cuts off. */
+  shrink?: boolean;
   children: ReactNode;
 }
 
@@ -48,6 +53,7 @@ export default function Button({
   size = "md",
   icon: Icon,
   fullWidth = false,
+  shrink = false,
   className = "",
   type = "button",
   children,
@@ -62,10 +68,10 @@ export default function Button({
       type={type}
       data-ui="button"
       data-variant={variant}
-      className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]} ${sizing} ${fullWidth ? "w-full" : ""} ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${variantClasses[variant]} ${sizing} ${fullWidth ? "w-full" : ""} ${shrink ? "min-w-0 max-w-full" : ""} ${className}`}
       {...rest}
     >
-      {Icon && <Icon size={14} />}
+      {Icon && <Icon size={14} className="flex-none" />}
       {children}
     </button>
   );

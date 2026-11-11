@@ -1,8 +1,7 @@
-import { ChevronDown, FlaskConical, GitMerge, LayoutGrid, Plus } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, FlaskConical, LayoutGrid, Lock, Plus } from "lucide-react";
 import type { WorkflowChange } from "../../model/workflow-changes";
 import Popover from "../primitives/Popover";
 import NavItem from "../primitives/NavItem";
-import Badge from "../primitives/Badge";
 import CountBadge from "../primitives/CountBadge";
 import Button from "../primitives/Button";
 import Stack from "../primitives/Stack";
@@ -14,17 +13,15 @@ interface Props {
   sandboxes: string[];
   value: string;
   onChange?: (sandbox: string) => void;
-  /** Whether main is live or paused; the chip reads that way on main. */
-  live?: boolean;
   /**
    * In a sandbox, what its copy of the workflow does differently, from
    * `workflowChanges`. The chip counts them and its panel lists them.
    */
   changes?: WorkflowChange[];
-  /** Where going live merges the changes. */
+  /** Where promoting merges the changes. */
   target?: string;
-  /** Opens the go-live confirmation. Left out where you can't go live; the button goes with it. */
-  onGoLive?: () => void;
+  /** Opens the promotion request. Left out where you can't promote; the button goes with it. */
+  onPromote?: () => void;
   onNewSandbox?: () => void;
   onViewAll?: () => void;
   defaultOpen?: boolean;
@@ -42,22 +39,21 @@ function changesLabel(count: number) {
 }
 
 /**
- * The chip after the workflow name that says where you are: on main it reads
- * "Live" (or "Paused") with a status dot; in a sandbox it shows the sandbox's
- * name in amber, truncating when the toolbar is tight, with a count of what's
- * changed. Clicking it opens a panel: in a sandbox, the changes first, one
- * line each (+ added, − removed, ~ changed), with "Go live" to take them to
- * main; then the project's sandboxes to switch between, with a way to start a
- * new one or see them all.
+ * The chip after the workflow name that says where you are: on main, "main"
+ * with a lock, since main is read-only; in a sandbox, its name in amber with a
+ * flask, truncating when the toolbar is tight, and a count of what's changed.
+ * Clicking it opens a panel: in a sandbox, the changes first, one line each
+ * (+ added, − removed, ~ changed), with "Create promotion request" to take
+ * them to main; then the project's sandboxes to switch to, with a way to start
+ * a new one or see them all.
  */
 export default function SandboxChip({
   sandboxes,
   value,
   onChange,
-  live = true,
   changes = [],
   target = "main",
-  onGoLive,
+  onPromote,
   onNewSandbox,
   onViewAll,
   defaultOpen = false,
@@ -66,18 +62,12 @@ export default function SandboxChip({
   const count = onMain ? 0 : changes.length;
   const label = changesLabel(count);
 
-  const trigger = onMain
-    ? `inline-flex h-7 max-w-full items-center gap-1.5 rounded-full px-2.5 text-xs font-medium ${
-        live ? "bg-green-50 text-green-800 hover:bg-green-100" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-      }`
-    : "inline-flex h-7 max-w-full items-center gap-1.5 rounded-full bg-amber-50 px-2.5 font-mono text-xs text-amber-800 hover:bg-amber-100";
-
   // Switching sandbox, starting one or seeing them all. In a sandbox it sits
   // under the changes, pinned at the foot so a long list of changes scrolls past it.
   const sandboxList = (close: () => void) => (
     <Stack gap="xs">
       <Text tone="muted" size="xs">
-        Sandboxes
+        Switch to
       </Text>
       <Stack gap="none">
         {sandboxes.map((s) => (
@@ -85,13 +75,21 @@ export default function SandboxChip({
             key={s}
             variant="tree"
             label={s}
-            description={s === "main" ? "Read-only" : undefined}
+            icon={s === "main" ? Lock : FlaskConical}
             active={s === value}
             onClick={() => {
               close();
               if (s !== value) onChange?.(s);
             }}
-            trailing={s === "main" ? <Badge label={live ? "Live" : "Paused"} shape="tag" /> : undefined}
+            trailing={
+              s === value ? (
+                <Check size={14} aria-label="Current" />
+              ) : s === "main" ? (
+                <Text tone="muted" size="xs">
+                  Read-only
+                </Text>
+              ) : undefined
+            }
           />
         ))}
       </Stack>
@@ -131,24 +129,23 @@ export default function SandboxChip({
       widthClass="w-80"
       shrink
       trigger={({ open, toggle }) => (
-        <button
-          type="button"
+        <Button
+          variant={onMain ? "secondary" : "caution"}
+          size="sm"
+          icon={onMain ? Lock : FlaskConical}
+          shrink
           onClick={toggle}
           aria-haspopup="dialog"
           aria-expanded={open}
-          aria-label={onMain ? `main, ${live ? "live" : "paused"}` : `Sandbox ${value}, ${label.toLowerCase()}`}
-          title={onMain ? `main · ${live ? "live" : "paused"}` : `Sandbox ${value} · ${label.toLowerCase()}`}
-          className={trigger}
+          aria-label={onMain ? "main, read-only" : `Sandbox ${value}, ${label.toLowerCase()}`}
+          title={onMain ? "main · read-only" : `Sandbox ${value} · ${label.toLowerCase()}`}
         >
-          {onMain ? (
-            <span className={`h-1.5 w-1.5 flex-none rounded-full ${live ? "bg-green-500" : "bg-gray-400"}`} aria-hidden />
-          ) : (
-            <FlaskConical size={12} className="flex-none text-amber-600" />
-          )}
-          <span className="min-w-0 max-w-[12rem] truncate">{onMain ? (live ? "Live" : "Paused") : value}</span>
+          <Text tone="inherit" mono truncate>
+            {value}
+          </Text>
           {count > 0 && <CountBadge count={count} tone="amber" />}
-          <ChevronDown size={12} className="flex-none opacity-60" />
-        </button>
+          <ChevronDown size={14} />
+        </Button>
       )}
       footer={onMain ? undefined : sandboxList}
     >
@@ -158,10 +155,14 @@ export default function SandboxChip({
         ) : (
           <Stack gap="sm">
             <Stack gap="none">
-              <Text tone="strong">{label}</Text>
               <Text tone="muted" size="xs">
-                {count === 0 ? `Edits you make in ${value} show up here.` : `Going live merges them into ${target} as a new version.`}
+                {label} from {target}
               </Text>
+              {count === 0 && (
+                <Text tone="muted" size="xs">
+                  Edits you make in {value} show up here.
+                </Text>
+              )}
             </Stack>
             {count > 0 && (
               <Stack gap="xs">
@@ -175,18 +176,18 @@ export default function SandboxChip({
                 ))}
               </Stack>
             )}
-            {onGoLive && count > 0 && (
+            {onPromote && count > 0 && (
               <Button
                 size="sm"
                 variant="dark"
-                icon={GitMerge}
+                icon={ArrowRight}
                 fullWidth
                 onClick={() => {
                   close();
-                  onGoLive();
+                  onPromote();
                 }}
               >
-                Go live
+                Create promotion request
               </Button>
             )}
           </Stack>

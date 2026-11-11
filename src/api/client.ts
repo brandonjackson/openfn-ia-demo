@@ -14,7 +14,7 @@ import { send } from "./source";
  * fresh `[]` each render reads as new data to an effect or a reset that watches it (the editor once
  * dropped a run it was in the middle of this way). Write `query.data ?? none`, never `?? []`.
  */
-export const none: never[] = [];
+export const none: never[] = Object.freeze([]) as never[]; // frozen, so a caller that pushes onto it throws instead of filling every hook's empty list
 
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 

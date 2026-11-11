@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { CreditCard, Eye, Layers, Network, Plus, Save, Unplug, UserPlus, Users } from "lucide-react";
+import { Building2, CreditCard, Eye, Layers, Network, Plus, Save, Unplug, UserPlus, Users } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
 import type { OrganizationSettings } from "../../model/organization";
 import { type BillingDetails, type ContextLayer, type OrganizationInvite, type OrganizationMember, type VisibilityScope, organizationRoles } from "../../model/organization";
@@ -25,16 +25,67 @@ import { RadioOption, TextInput } from "../../components/primitives/FormControls
 import ActionMenu from "../../components/primitives/ActionMenu";
 import ConfirmModal from "../../components/primitives/ConfirmModal";
 import InviteOrgMemberModal from "../../components/domain/InviteOrgMemberModal";
+import Inline from "../../components/primitives/Inline";
+import Stack from "../../components/primitives/Stack";
 
 const BASE_PATH = "/organization-settings";
 
 const navItems: SettingsNavItem[] = [
+  { id: "general", label: "General", icon: Building2, to: `${BASE_PATH}/general` },
   { id: "members", label: "Members", icon: Users, to: `${BASE_PATH}/members` },
   { id: "visibility", label: "Visibility", icon: Eye, to: `${BASE_PATH}/visibility` },
   { id: "context", label: "Context", icon: Layers, to: `${BASE_PATH}/context` },
   { id: "xroad", label: "X-Road", icon: Network, to: `${BASE_PATH}/xroad` },
   { id: "billing", label: "Billing", icon: CreditCard, to: `${BASE_PATH}/billing` },
 ];
+
+/* ------------------------------------------------------------------ */
+/*  General                                                            */
+/* ------------------------------------------------------------------ */
+
+function GeneralSection({ name, onRename }: { name: string; onRename?: (name: string) => Promise<void> }) {
+  const [draft, setDraft] = useState(name);
+  // Set when Save is pressed with no name; the field says so until one is typed.
+  const [missing, setMissing] = useState(false);
+  const save = useSave(onRename);
+  const trimmed = draft.trim();
+  const submit = () => {
+    if (!onRename || save.saving) return;
+    setMissing(!trimmed);
+    if (focusFirstProblem([["organization-name", !trimmed]])) return;
+    void save.run(trimmed);
+  };
+  const refused = save.error !== undefined ? (fieldErrorOf(save.error, "name") ?? errorMessageOf(save.error)) : undefined;
+  return (
+    <Stack gap="lg">
+      <SectionHeading title="General" description="How your organisation is named across OpenFn." />
+      {save.saved && trimmed === name && <Callout variant="success" title="Saved">Your organisation is now called {name}.</Callout>}
+      <Card title="Name" description="Shown to everyone in the organisation, and to anyone you share projects, systems or services with.">
+        <form
+          noValidate
+          onSubmit={(e) => {
+            e.preventDefault();
+            submit();
+          }}
+        >
+          <Inline align="end" gap="sm" stackOnMobile>
+            <Stack grow>
+              <FormField label="Organization name" htmlFor="organization-name" required={!!onRename} error={missing && !trimmed ? "Enter a name for the organisation" : refused}>
+                <TextInput id="organization-name" value={draft} readOnly={!onRename} onChange={(e) => setDraft(e.target.value)} />
+              </FormField>
+            </Stack>
+            {/* Enabled until it saves: pressed with no name, it says so under the field. */}
+            {onRename && (
+              <Button type="submit" icon={Save} aria-disabled={save.saving}>
+                {save.saving ? "Saving…" : "Save"}
+              </Button>
+            )}
+          </Inline>
+        </form>
+      </Card>
+    </Stack>
+  );
+}
 
 /* ------------------------------------------------------------------ */
 /*  Members                                                            */
@@ -571,6 +622,8 @@ function BillingSection({ billing }: { billing: BillingDetails }) {
 export type OrganizationSettingsPageData = OrganizationSettings;
 
 export interface OrganizationSettingsPageProps extends PageProps<OrganizationSettingsPageData>, ContextActions, MemberActions {
+  /** Renames the organisation. Left out when you can't change the organisation, which leaves the name to read. */
+  onRename?: (name: string) => Promise<void>;
   /** Saves the defaults for what others can see. Left out when you can't change the organisation. */
   onSaveVisibility?: (visibility: OrganizationSettingsPageData["visibility"]) => Promise<void>;
   /** Saves who manages the organisation's Security Server. Left out when you can't change the organisation. */
@@ -579,7 +632,7 @@ export interface OrganizationSettingsPageProps extends PageProps<OrganizationSet
 
 /**
  * The organisation's settings, from the account menu: everything it sets
- * once. Its members, what others can see by default, the context layers it
+ * once. Its name, its members, what others can see by default, the context layers it
  * draws on, its identity on X-Road (which connected systems and published
  * services reuse), and billing.
  */
@@ -595,6 +648,7 @@ export default function OrganizationSettingsPage({
   onRemoveMember,
   onSaveVisibility,
   onSaveSecurityServerManager,
+  onRename,
 }: OrganizationSettingsPageProps) {
   // Without X-Road there's no X-Road section. The /organization-settings root shows the first section.
   const items = navItems.filter((item) => item.id !== "xroad" || data.xroad);
@@ -607,6 +661,7 @@ export default function OrganizationSettingsPage({
       navItems={items}
       activeId={activeId}
     >
+      {activeId === "general" && <GeneralSection name={data.name} onRename={onRename} />}
       {activeId === "members" && (
         <MembersSection
           members={data.members}

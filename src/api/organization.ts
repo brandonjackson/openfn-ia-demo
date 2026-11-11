@@ -161,13 +161,24 @@ export function useOrganization(): { status: LoadStatus; organization: Organizat
   };
 }
 
-/** The organisation's identity on X-Road, which the X-Road operator sets. Loads nothing while `enabled` is false. */
+/**
+ * The organisation's identity on X-Road, which the X-Road operator sets, or
+ * none. Loads nothing while `enabled` is false.
+ */
 export function useOrganizationXRoad(enabled: boolean): { status: LoadStatus; xroad: XRoadIdentity | undefined } {
   const query = useQuery({
     queryKey: keys.xroad,
-    queryFn: () => request<ApiXRoadIdentity>("GET", "/api/demo/organization/xroad"),
+    // None is a 404 (beside Lightning, an organisation that isn't on X-Road): that's "not on X-Road", not a failure.
+    queryFn: () =>
+      request<ApiXRoadIdentity>("GET", "/api/demo/organization/xroad").then(
+        (a) => a.data.attributes,
+        (e: unknown) => {
+          if ((e as { code?: string }).code === "not_found") return null;
+          throw e;
+        },
+      ),
     enabled,
-    select: ({ data: { attributes: a } }): XRoadIdentity => ({
+    select: (a): XRoadIdentity | null => a && ({
       instance: a.instance,
       memberClass: a.member_class as XRoadMemberClass,
       memberCode: a.member_code,
@@ -184,7 +195,7 @@ export function useOrganizationXRoad(enabled: boolean): { status: LoadStatus; xr
       securityServers: a.security_servers.map((v) => ({ id: v.id, code: v.code, address: v.address, version: v.version, enabled: v.enabled, lastSeen: timeAgo(v.last_seen_at) })),
     }),
   });
-  return enabled ? { status: statusOf(query), xroad: query.data } : { status: { state: "ready" }, xroad: undefined };
+  return enabled ? { status: statusOf(query), xroad: query.data ?? undefined } : { status: { state: "ready" }, xroad: undefined };
 }
 
 /** The X-Road directory: every member on the organisation's X-Road instance, as its Security Server last listed them. */

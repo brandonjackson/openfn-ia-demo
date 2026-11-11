@@ -107,6 +107,14 @@ describe("OrganizationSettingsPageQuery", () => {
     expect(screen.queryByRole("link", { name: "X-Road" })).toBeNull();
   });
 
+  it("leaves X-Road out, and shows the rest, when the organisation has no X-Road identity", async () => {
+    failNext("GET /api/demo/organization/xroad", { status: 404, code: "not_found", detail: "Not found." });
+    renderRoute("/organization-settings/xroad");
+    await screen.findAllByText(/Ministry of Health/, {}, wait);
+    expect(screen.queryByText(/No data found/)).toBeNull();
+    expect(screen.queryByRole("link", { name: "X-Road" })).toBeNull();
+  });
+
   it("shows the server's message when the X-Road identity fails to load", async () => {
     failNext("GET /api/demo/organization/xroad", { status: 500, code: "internal", detail: "The X-Road identity is unavailable." });
     renderRoute("/organization-settings/xroad");

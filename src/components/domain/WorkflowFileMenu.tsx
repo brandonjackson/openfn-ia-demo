@@ -1,10 +1,10 @@
 import {
   ArrowLeft,
+  ArrowRight,
   BookOpen,
   ChevronDown,
   Download,
   FlaskConical,
-  GitMerge,
   Link2,
   Pause,
   Pencil,
@@ -29,7 +29,7 @@ export type WorkflowMenuAction =
 
 interface Props {
   onSelect: (action: WorkflowMenuAction) => void;
-  /** Whether the editor is on main or in a sandbox: main offers "Edit in sandbox", a sandbox "Go live". */
+  /** Whether the editor is on main or in a sandbox: main offers "Edit in sandbox", a sandbox "Create promotion request". */
   onMain?: boolean;
   /** Whether Rename is offered. Whoever uses the menu decides, e.g. not on main. */
   canRename?: boolean;
@@ -71,7 +71,7 @@ export default function WorkflowFileMenu({
     { id: "settings", label: "Settings", icon: Settings },
     onMain
       ? { id: "edit-in-sandbox", label: "Edit in sandbox", icon: FlaskConical }
-      : { id: "promote", label: "Go live", description: "Promote this sandbox to main", icon: GitMerge },
+      : { id: "promote", label: "Create promotion request", description: "Ask to merge this sandbox into main", icon: ArrowRight },
     { id: "export-yaml", label: "Export as YAML", icon: Download },
     ...(url ? [{ id: "copy-url", label: "Copy webhook URL", icon: Link2 }] : []),
     ...(hasDetails ? [{ id: "see-details", label: "See service listing", icon: BookOpen }] : []),

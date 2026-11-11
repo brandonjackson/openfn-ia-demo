@@ -24,7 +24,7 @@ export const OnMain: Story = {
   args: { onMain: true, url: "https://app.openfn.org/i/abc123", hasDetails: true },
 };
 
-/** In a sandbox, renaming is allowed and the menu offers "Go live". */
+/** In a sandbox, renaming is allowed and the menu offers "Create promotion request". */
 export const InSandbox: Story = {
   args: { onMain: false, canRename: true },
 };

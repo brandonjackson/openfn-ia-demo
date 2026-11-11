@@ -84,7 +84,7 @@ function freeName(taken: string[]): string {
  * What's on the canvas is the workflow in the sandbox selected in the
  * project bar: main's, read-only, or a sandbox's own copy, paired by name
  * as a merge pairs them. In a sandbox every edit is saved to that copy;
- * "Go live" merges it into the sandbox's parent as a new version, which the
+ * "Create promotion request" merges it into the sandbox's parent as a new version, which the
  * version picker lists. Turning the workflow on or off switches its
  * trigger, and deleting marks it deleted and goes back to the project.
  * "New workflow" makes one straight away, in the selected sandbox, so it's

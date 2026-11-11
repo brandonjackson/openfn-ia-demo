@@ -73,6 +73,21 @@ describe("ServicesPage", () => {
     expect(host.calls("onStartWorkflow")).toEqual([["p1", "ch-1"]]);
   });
 
+  it("puts the intro above the view switch, and shows it only for the services we publish", () => {
+    renderPage(ServicesPage, frame(), actions);
+    const intro = screen.getByText("Call them from your workflows");
+    const toolbar = screen.getByRole("button", { name: /Services we publish/ });
+    expect(intro.compareDocumentPosition(toolbar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: /Services we use/ }));
+    expect(screen.queryByText("Call them from your workflows")).toBeNull();
+  });
+
+  it("says when nothing is published yet", () => {
+    renderPage(ServicesPage, frame({ ...data, entries: [] }), actions);
+    expect(screen.getByText("No services published yet.")).toBeTruthy();
+    expect(screen.queryByText("Call them from your workflows")).toBeNull();
+  });
+
   it("offers nothing over X-Road when the organisation isn't on it", () => {
     renderPage(ServicesPage, frame({ ...data, xroad: false }), actions);
     expect(screen.queryByText("Offer them over X-Road")).toBeNull();

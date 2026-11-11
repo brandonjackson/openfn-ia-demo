@@ -8,11 +8,15 @@ import ChannelRow from "../../components/domain/ChannelRow";
 import CodeBlock from "../../components/primitives/CodeBlock";
 import ConnectionMethodBadge from "../../components/domain/ConnectionMethodBadge";
 import EmptyState from "../../components/primitives/EmptyState";
+import Grid from "../../components/primitives/Grid";
+import ListPage from "../../components/patterns/ListPage";
 import ListRow from "../../components/primitives/ListRow";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
 import SectionHeading from "../../components/primitives/SectionHeading";
 import SegmentedControl from "../../components/primitives/SegmentedControl";
+import Stack from "../../components/primitives/Stack";
+import Text from "../../components/primitives/Text";
 import ServiceCatalogCard from "../../components/domain/ServiceCatalogCard";
 import { ClassificationBadge } from "../../components/domain/ServiceRecordList";
 import UsageModeCard from "../../components/domain/UsageModeCard";
@@ -83,82 +87,90 @@ export default function ServicesPage({ node, ancestors, data, initialView = "pub
     },
   ]);
 
-  return (
-    <div className="space-y-8">
-      <PageHeader
-        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
-        title={node.label}
-        description={node.description}
+  const publishIntro = published.length > 0 && (
+    <Grid columns={xroad ? 3 : 2} gap="sm">
+      <UsageModeCard
+        icon={Workflow}
+        title="Call them from your workflows"
+        description={`${workflowCallable} services can be dropped into any workflow as a step, so teams reuse each other's work instead of rebuilding it.`}
       />
-
-      {usesSystems && (
-        <SegmentedControl
-          variant="pill"
-          size="md"
-          options={[
-            { id: "publish", label: "Services we publish", count: published.length },
-            { id: "use", label: "Services we use", count: usedCount },
-          ]}
-          value={view}
-          onChange={(v) => setView(v as CatalogView)}
+      <UsageModeCard
+        icon={Bot}
+        title="Give them to your agents"
+        description={`${mcpTools} services are also tools on your organization's MCP server. Point an AI agent at it and it can call them.`}
+        badge="Preview"
+      >
+        {data.mcpServerUrl && <CodeBlock label="MCP server" code={data.mcpServerUrl} />}
+      </UsageModeCard>
+      {xroad && (
+        <UsageModeCard
+          icon={Network}
+          title="Offer them over X-Road"
+          description={`${onXRoad} service${onXRoad === 1 ? " is" : "s are"} published to X-Road, so other government members can call ${onXRoad === 1 ? "it" : "them"} through their Security Servers.`}
         />
       )}
+    </Grid>
+  );
 
+  return (
+    <ListPage
+      header={
+        <PageHeader
+          breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
+          title={node.label}
+          description={node.description}
+        />
+      }
+      intro={view === "publish" && publishIntro}
+      toolbar={
+        usesSystems && (
+          <SegmentedControl
+            variant="pill"
+            size="md"
+            options={[
+              { id: "publish", label: "Services we publish", count: published.length },
+              { id: "use", label: "Services we use", count: usedCount },
+            ]}
+            value={view}
+            onChange={(v) => setView(v as CatalogView)}
+          />
+        )
+      }
+      summary={
+        view === "publish"
+          ? `${published.length} services published across the organization`
+          : `Methods from the ${used.length} systems you've added. Add a system${xroad ? ", or a service from the X-Road directory," : ""} on Systems to see its methods here.`
+      }
+      isEmpty={view === "publish" ? published.length === 0 : used.length === 0}
+      empty={
+        view === "publish" ? (
+          <EmptyState icon={Workflow} title="No services published yet." />
+        ) : (
+          <EmptyState icon={Network} title="You haven't added any systems yet." />
+        )
+      }
+    >
       {view === "publish" && (
-        <>
-          {published.length > 0 && (
-            <div className={`grid gap-3 ${xroad ? "md:grid-cols-3" : "md:grid-cols-2"}`}>
-              <UsageModeCard
-                icon={Workflow}
-                title="Call them from your workflows"
-                description={`${workflowCallable} services can be dropped into any workflow as a step, so teams reuse each other's work instead of rebuilding it.`}
-              />
-              <UsageModeCard
-                icon={Bot}
-                title="Give them to your agents"
-                description={`${mcpTools} services are also tools on your organization's MCP server. Point an AI agent at it and it can call them.`}
-                badge="Preview"
-              >
-                {data.mcpServerUrl && <CodeBlock label="MCP server" code={data.mcpServerUrl} />}
-              </UsageModeCard>
-              {xroad && (
-                <UsageModeCard
-                  icon={Network}
-                  title="Offer them over X-Road"
-                  description={`${onXRoad} service${onXRoad === 1 ? " is" : "s are"} published to X-Road, so other government members can call ${onXRoad === 1 ? "it" : "them"} through their Security Servers.`}
-                />
-              )}
-            </div>
-          )}
-
-          <p className="text-xs text-gray-400">{published.length} services published across the organization</p>
-
+        <Stack gap="xl">
           {groupBy(published, (e) => e.section).map(([section, entries]) => (
             <section key={section}>
               <SectionHeading title={section} variant="label" />
-              <div className="space-y-2">
+              <Stack gap="sm">
                 {entries.map((entry) => (
                   <ServiceCatalogCard key={entry.id} entry={entry} />
                 ))}
-              </div>
+              </Stack>
             </section>
           ))}
-        </>
+        </Stack>
       )}
 
       {view === "use" && (
-        <>
-          <p className="text-xs text-gray-400">
-            Methods from the {used.length} systems you've added. Add a system
-            {xroad ? ", or a service from the X-Road directory," : ""} on Systems to see its methods here.
-          </p>
-
-          {used.length === 0 && <EmptyState icon={Network} title="You haven't added any systems yet." />}
-
+        <Stack gap="xl">
           {used.map(([system, group]) => (
             <section key={system}>
               <SectionHeading title={system} variant="label" />
-              <div className="space-y-2">
+              <Stack gap="sm">
                 {group.services.map((s) => (
                   <ListRow
                     key={s.id}
@@ -180,9 +192,9 @@ export default function ServicesPage({ node, ancestors, data, initialView = "pub
                         {s.record && <span>v{s.record.version}</span>}
                         {s.record && <ClassificationBadge classification={s.record.classification} />}
                         {s.methods.map((m) => (
-                          <code key={m} className="font-mono text-gray-500">
+                          <Text key={m} mono tone="muted" size="xs">
                             {m}
-                          </code>
+                          </Text>
                         ))}
                       </>
                     }
@@ -200,11 +212,11 @@ export default function ServicesPage({ node, ancestors, data, initialView = "pub
                     onStartWorkflow={onStartWorkflow}
                   />
                 ))}
-              </div>
+              </Stack>
             </section>
           ))}
-        </>
+        </Stack>
       )}
-    </div>
+    </ListPage>
   );
 }

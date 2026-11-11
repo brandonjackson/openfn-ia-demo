@@ -43,12 +43,18 @@ Patterns stay reusable across the whole app only if they don't know any of OpenF
 So a pattern gets OpenFn content only through slots. Whoever uses the pattern imports both it and the domain components, and hands the domain components to the pattern as `children` or `ReactNode` props:
 
 ```tsx
-<ListPage title="Credentials" action={...} empty="No credentials yet.">
+<ListPage
+  header={<PageHeader title="Credentials" actions={...} />}
+  intro={showIntro && <FeatureIntro ... />}
+  toolbar={<SegmentedControl ... />}
+  isEmpty={credentials.length === 0}
+  empty={<EmptyState title="No credentials yet." />}
+>
   <CredentialsTable rows={credentials} />
 </ListPage>
 ```
 
-`ListPage` decides where things go and what shows while loading, empty or blocked. It never knows what a credential is.
+`ListPage` (`src/components/patterns/ListPage.tsx`) decides where things go: header, an optional intro, the toolbar, a summary line, the list or what shows when it's empty, then anything after. It never knows what a credential is, and because it holds the order, an intro can't end up between the filters and the list they filter.
 
 That's why patterns can't import domain, and why they can't import `src/model` either: model's types are OpenFn nouns too. A pattern's props are generic (`title`, `action`, `rows: T[]`), never OpenFn's (`workflow`, `run`, `credential`). The test: you could drop it into any other product unchanged.
 

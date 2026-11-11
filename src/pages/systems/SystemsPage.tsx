@@ -142,98 +142,100 @@ export default function SystemsPage({ node, ancestors, currentPath, data, onAddX
   });
 
   return (
-    <ListPage
-      header={
-        <PageHeader
-          breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
-          title={node.label}
-          description={node.description}
-          actions={
-            <>
-              <Button variant="secondary" size="sm" icon={Download}>
-                Export
-              </Button>
-              <Button size="sm" icon={Plus} onClick={() => handleOpenAddFlow()}>
-                Add system
-              </Button>
-            </>
-          }
-        />
-      }
-      intro={<FeatureIntro {...intro} />}
-      toolbar={
-        <Inline gap="md" wrap>
-          {data.ecosystem && (
-            <SegmentedControl
-              variant="pill"
-              options={[
-                { id: "list", label: "List" },
-                { id: "ecosystem", label: "Ecosystem" },
-              ]}
-              value={view}
-              onChange={(v) => setView(v as "list" | "ecosystem")}
-            />
-          )}
-          {view === "list" && (
-            <SegmentedControl label={accessFilter.label} options={accessFilter.options} value={selected} onChange={setSelected} />
-          )}
-        </Inline>
-      }
-      summary={view === "list" && `${filtered.length} system${filtered.length !== 1 ? "s" : ""}`}
-      isEmpty={view === "list" && filtered.length === 0}
-      empty={<EmptyState icon={Globe} title="No systems match the selected filter." />}
-      after={
-        <>
-          {xroad && (
-            <section>
-              <SectionHeading
-                title="Available via X-Road"
-                description="Services other members publish on X-Road, from the national directory. Add one and it joins your systems with its X-Road route already filled in."
-              />
-              <Stack gap="md">
-                {refusal && (
-                  <Callout variant="danger" title={refusal.title} role="alert">
-                    {refusal.detail}
-                  </Callout>
-                )}
-                <XRoadDirectory
-                  members={xroad.directory}
-                  instance={xroad.instance}
-                  added={xroad.added}
-                  syncedAt={xroad.syncedAt}
-                  adding={adding}
-                  onAdd={(route) => void addFromDirectory(route)}
-                />
-              </Stack>
-            </section>
-          )}
-
-          <SuggestedSystemsToAdd suggestions={data.suggestions} onSelect={handleOpenAddFlow} />
-
-          <AddConnectedSystemFlow
-            open={addFlowOpen}
-            onClose={() => setAddFlowOpen(false)}
-            adaptors={data.adaptors}
-            preselectedSystem={preselectedSystem}
-            onAdd={onAddSystem}
+    <>
+      <ListPage
+        header={
+          <PageHeader
+            breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
+            title={node.label}
+            description={node.description}
+            actions={
+              <>
+                <Button variant="secondary" size="sm" icon={Download}>
+                  Export
+                </Button>
+                <Button size="sm" icon={Plus} onClick={() => handleOpenAddFlow()}>
+                  Add system
+                </Button>
+              </>
+            }
           />
-        </>
-      }
-    >
-      {view === "ecosystem" && data.ecosystem ? (
-        <EcosystemView
-          stations={data.ecosystem.stations}
-          workflows={data.ecosystem.workflows}
-          routes={data.ecosystem.routes}
-          systemHref={(id) => (data.items.some((i) => i.id === id) ? `${currentPath}/${id}` : undefined)}
-        />
-      ) : (
-        <Stack gap="sm">
-          {filtered.map((item) => (
-            <ListItemRow key={item.id} item={item} basePath={currentPath} />
-          ))}
-        </Stack>
-      )}
-    </ListPage>
+        }
+        intro={<FeatureIntro {...intro} />}
+        toolbar={
+          <Inline gap="md" wrap>
+            {data.ecosystem && (
+              <SegmentedControl
+                variant="pill"
+                options={[
+                  { id: "list", label: "List" },
+                  { id: "ecosystem", label: "Ecosystem" },
+                ]}
+                value={view}
+                onChange={(v) => setView(v as "list" | "ecosystem")}
+              />
+            )}
+            {view === "list" && (
+              <SegmentedControl label={accessFilter.label} options={accessFilter.options} value={selected} onChange={setSelected} />
+            )}
+          </Inline>
+        }
+        summary={view === "list" && `${filtered.length} system${filtered.length !== 1 ? "s" : ""}`}
+        isEmpty={view === "list" && filtered.length === 0}
+        empty={<EmptyState icon={Globe} title="No systems match the selected filter." />}
+        after={
+          <>
+            {xroad && (
+              <section>
+                <SectionHeading
+                  title="Available via X-Road"
+                  description="Services other members publish on X-Road, from the national directory. Add one and it joins your systems with its X-Road route already filled in."
+                />
+                <Stack gap="md">
+                  {refusal && (
+                    <Callout variant="danger" title={refusal.title} role="alert">
+                      {refusal.detail}
+                    </Callout>
+                  )}
+                  <XRoadDirectory
+                    members={xroad.directory}
+                    instance={xroad.instance}
+                    added={xroad.added}
+                    syncedAt={xroad.syncedAt}
+                    adding={adding}
+                    onAdd={(route) => void addFromDirectory(route)}
+                  />
+                </Stack>
+              </section>
+            )}
+
+            <SuggestedSystemsToAdd suggestions={data.suggestions} onSelect={handleOpenAddFlow} />
+          </>
+        }
+      >
+        {view === "ecosystem" && data.ecosystem ? (
+          <EcosystemView
+            stations={data.ecosystem.stations}
+            workflows={data.ecosystem.workflows}
+            routes={data.ecosystem.routes}
+            systemHref={(id) => (data.items.some((i) => i.id === id) ? `${currentPath}/${id}` : undefined)}
+          />
+        ) : (
+          <Stack gap="sm">
+            {filtered.map((item) => (
+              <ListItemRow key={item.id} item={item} basePath={currentPath} />
+            ))}
+          </Stack>
+        )}
+      </ListPage>
+
+      <AddConnectedSystemFlow
+        open={addFlowOpen}
+        onClose={() => setAddFlowOpen(false)}
+        adaptors={data.adaptors}
+        preselectedSystem={preselectedSystem}
+        onAdd={onAddSystem}
+      />
+    </>
   );
 }

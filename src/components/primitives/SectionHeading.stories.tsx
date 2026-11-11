@@ -43,3 +43,8 @@ export const Label: Story = {
 export const CompactLabel: Story = {
   args: { title: "Summary", variant: "label", compact: true, action: <Button variant="ghost" size="xs">See full code</Button> },
 };
+
+/** A label with how many things the section holds. */
+export const LabelWithCount: Story = {
+  args: { title: "Channels", count: 3, variant: "label" },
+};

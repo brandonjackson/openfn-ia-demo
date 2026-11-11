@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { ProjectComponentItem, ProjectComponentType } from "../../model/component-types";
 import { FormError } from "../../model/form-error";
@@ -24,16 +24,16 @@ const draw = (components: ProjectComponentItem[], types = every, only: readonly 
 describe("ProjectComponentsPage", () => {
   it("groups the components it's given by kind, leaving out empty kinds", () => {
     draw([component("Referrals", "Channel"), component("Intake form", "Form"), component("Patient lookup", "Collection")]);
-    expect(screen.getByText("Channels (1)")).toBeTruthy();
-    expect(screen.getByText("Forms (1)")).toBeTruthy();
-    expect(screen.getByText("Collections (1)")).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Channels" })).getByText("1")).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Forms" })).getByText("1")).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Collections" })).getByText("1")).toBeTruthy();
     expect(screen.queryByText(/^Documents/)).toBeNull();
     expect(screen.getByText("About Intake form")).toBeTruthy();
   });
 
   it("lists only the kinds in its types", () => {
     draw([component("Referrals", "Channel"), component("Intake form", "Form")], ["Channel"]);
-    expect(screen.getByText("Channels (1)")).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Channels" })).getByText("1")).toBeTruthy();
     expect(screen.queryByText("Intake form")).toBeNull();
   });
 

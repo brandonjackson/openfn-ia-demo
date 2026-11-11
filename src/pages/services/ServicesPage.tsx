@@ -9,11 +9,11 @@ import CodeBlock from "../../components/primitives/CodeBlock";
 import ConnectionMethodBadge from "../../components/domain/ConnectionMethodBadge";
 import EmptyState from "../../components/primitives/EmptyState";
 import Grid from "../../components/primitives/Grid";
+import ListGroup from "../../components/primitives/ListGroup";
 import ListPage from "../../components/patterns/ListPage";
 import ListRow from "../../components/primitives/ListRow";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
-import SectionHeading from "../../components/primitives/SectionHeading";
 import SegmentedControl from "../../components/primitives/SegmentedControl";
 import Stack from "../../components/primitives/Stack";
 import Text from "../../components/primitives/Text";
@@ -153,14 +153,11 @@ export default function ServicesPage({ node, ancestors, data, initialView = "pub
       {view === "publish" && (
         <Stack gap="xl">
           {groupBy(published, (e) => e.section).map(([section, entries]) => (
-            <section key={section}>
-              <SectionHeading title={section} variant="label" />
-              <Stack gap="sm">
-                {entries.map((entry) => (
-                  <ServiceCatalogCard key={entry.id} entry={entry} />
-                ))}
-              </Stack>
-            </section>
+            <ListGroup key={section} title={section} count={entries.length}>
+              {entries.map((entry) => (
+                <ServiceCatalogCard key={entry.id} entry={entry} />
+              ))}
+            </ListGroup>
           ))}
         </Stack>
       )}
@@ -168,52 +165,49 @@ export default function ServicesPage({ node, ancestors, data, initialView = "pub
       {view === "use" && (
         <Stack gap="xl">
           {used.map(([system, group]) => (
-            <section key={system}>
-              <SectionHeading title={system} variant="label" />
-              <Stack gap="sm">
-                {group.services.map((s) => (
-                  <ListRow
-                    key={s.id}
-                    icon={Network}
-                    logo={<AdaptorLogo adaptor={s.adaptor} name={s.system} />}
-                    title={s.name}
-                    to={s.systemPath}
-                    badges={
-                      <>
-                        <ConnectionMethodBadge method={s.connection} />
-                        {s.xroadStatus && <XRoadAccessBadge status={s.xroadStatus} />}
-                        {s.builtWithOpenFn && <Badge label="Built with OpenFn" tone="indigo" />}
-                      </>
-                    }
-                    description={s.description}
-                    meta={
-                      <>
-                        <span>{s.owner}</span>
-                        {s.record && <span>v{s.record.version}</span>}
-                        {s.record && <ClassificationBadge classification={s.record.classification} />}
-                        {s.methods.map((m) => (
-                          <Text key={m} mono tone="muted" size="xs">
-                            {m}
-                          </Text>
-                        ))}
-                      </>
-                    }
-                  />
-                ))}
-                {group.channels.map((entry) => (
-                  <ChannelRow
-                    key={entry.id}
-                    id={entry.id}
-                    name={entry.name}
-                    description={entry.description}
-                    channelType={entry.channelType}
-                    system={{ name: entry.system, path: entry.systemPath }}
-                    projects={data.projects}
-                    onStartWorkflow={onStartWorkflow}
-                  />
-                ))}
-              </Stack>
-            </section>
+            <ListGroup key={system} title={system} count={group.services.length + group.channels.length}>
+              {group.services.map((s) => (
+                <ListRow
+                  key={s.id}
+                  icon={Network}
+                  logo={<AdaptorLogo adaptor={s.adaptor} name={s.system} />}
+                  title={s.name}
+                  to={s.systemPath}
+                  badges={
+                    <>
+                      <ConnectionMethodBadge method={s.connection} />
+                      {s.xroadStatus && <XRoadAccessBadge status={s.xroadStatus} />}
+                      {s.builtWithOpenFn && <Badge label="Built with OpenFn" tone="indigo" />}
+                    </>
+                  }
+                  description={s.description}
+                  meta={
+                    <>
+                      <span>{s.owner}</span>
+                      {s.record && <span>v{s.record.version}</span>}
+                      {s.record && <ClassificationBadge classification={s.record.classification} />}
+                      {s.methods.map((m) => (
+                        <Text key={m} mono tone="muted" size="xs">
+                          {m}
+                        </Text>
+                      ))}
+                    </>
+                  }
+                />
+              ))}
+              {group.channels.map((entry) => (
+                <ChannelRow
+                  key={entry.id}
+                  id={entry.id}
+                  name={entry.name}
+                  description={entry.description}
+                  channelType={entry.channelType}
+                  system={{ name: entry.system, path: entry.systemPath }}
+                  projects={data.projects}
+                  onStartWorkflow={onStartWorkflow}
+                />
+              ))}
+            </ListGroup>
           ))}
         </Stack>
       )}

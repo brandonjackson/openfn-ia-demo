@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Search, Workflow } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
+import ListPage from "../../components/patterns/ListPage";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
 import WorkflowRow from "../../components/domain/WorkflowRow";
@@ -11,7 +12,6 @@ import EmptyState from "../../components/primitives/EmptyState";
 import { Select } from "../../components/primitives/FormControls";
 import Inline from "../../components/primitives/Inline";
 import SearchInput from "../../components/primitives/SearchInput";
-import SectionHeading from "../../components/primitives/SectionHeading";
 import Stack from "../../components/primitives/Stack";
 import type { WorkflowListItem } from "../../model/workflow-list";
 import { errorMessageOf } from "../../model/form-error";
@@ -72,69 +72,65 @@ export default function ProjectWorkflowsPage({
   const count = data.workflows.length;
 
   return (
-    <Stack gap="xl">
-      <PageHeader
-        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
-        title={node.label}
-        description={node.description}
-        actions={
-          <Button icon={Plus} size="sm" onClick={onNewWorkflow}>
-            New workflow
-          </Button>
-        }
-      />
-
-      {notice && (
-        <Callout variant={notice.tone} title={notice.title} role={notice.tone === "danger" ? "alert" : undefined}>
-          {notice.detail}
-        </Callout>
-      )}
-
-      {count > 0 ? (
-        <section>
-          <SectionHeading
-            variant="label"
-            title={q ? `${workflows.length} of ${count} workflows` : `${count} workflow${count === 1 ? "" : "s"}`}
-            action={
-              <Inline gap="sm">
-                <SearchInput
-                  compact
-                  placeholder="Search"
-                  aria-label="Search workflows"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-                <Select aria-label="Sort workflows" options={sortOptions} value={sort} onChange={(e) => setSort(e.target.value)} />
-              </Inline>
+    <>
+      <ListPage
+        header={
+          <PageHeader
+            breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
+            title={node.label}
+            description={node.description}
+            actions={
+              <Button icon={Plus} size="sm" onClick={onNewWorkflow}>
+                New workflow
+              </Button>
             }
           />
-          {workflows.length > 0 ? (
-            <Stack gap="sm">
-              {workflows.map((w) => (
-                <WorkflowRow
-                  key={w.id}
-                  workflow={w}
-                  onToggleEnabled={onToggleWorkflow && ((enabled) => void toggle(w, enabled))}
-                  onDelete={onDeleteWorkflow && (() => setDeleting(w))}
-                />
-              ))}
-            </Stack>
-          ) : (
+        }
+        notice={
+          notice && (
+            <Callout variant={notice.tone} title={notice.title} role={notice.tone === "danger" ? "alert" : undefined}>
+              {notice.detail}
+            </Callout>
+          )
+        }
+        toolbar={
+          count > 0 && (
+            <Inline gap="sm">
+              <SearchInput compact placeholder="Search" aria-label="Search workflows" value={query} onChange={(e) => setQuery(e.target.value)} />
+              <Select aria-label="Sort workflows" fit compact options={sortOptions} value={sort} onChange={(e) => setSort(e.target.value)} />
+            </Inline>
+          )
+        }
+        summary={count > 0 && (q ? `${workflows.length} of ${count} workflows` : `${count} workflow${count === 1 ? "" : "s"}`)}
+        isEmpty={workflows.length === 0}
+        empty={
+          count > 0 ? (
             <EmptyState icon={Search} title={`No workflows match "${query.trim()}"`} description="Try another name." />
-          )}
-        </section>
-      ) : (
-        <EmptyState
-          icon={Workflow}
-          title="No workflows yet"
-          description="Workflows move data between your connected systems."
-          action={
-            <Button icon={Plus} onClick={onNewWorkflow}>
-              Create one
-            </Button>
-          }
-        />
-      )}
+          ) : (
+            <EmptyState
+              icon={Workflow}
+              title="No workflows yet"
+              description="Workflows move data between your connected systems."
+              action={
+                <Button icon={Plus} onClick={onNewWorkflow}>
+                  Create one
+                </Button>
+              }
+            />
+          )
+        }
+      >
+        <Stack gap="sm">
+          {workflows.map((w) => (
+            <WorkflowRow
+              key={w.id}
+              workflow={w}
+              onToggleEnabled={onToggleWorkflow && ((enabled) => void toggle(w, enabled))}
+              onDelete={onDeleteWorkflow && (() => setDeleting(w))}
+            />
+          ))}
+        </Stack>
+      </ListPage>
 
       <ConfirmModal
         open={deleting !== null}
@@ -158,6 +154,6 @@ export default function ProjectWorkflowsPage({
         <p>Are you sure you'd like to delete "{deleting?.name}"?</p>
         <p>Its triggers stop at once. Runs it has already made stay in History.</p>
       </ConfirmModal>
-    </Stack>
+    </>
   );
 }

@@ -2,11 +2,12 @@ import { useState } from "react";
 import { FolderKanban, Plus } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
 import type { ProjectSummary } from "../../model/projects";
+import ListPage from "../../components/patterns/ListPage";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
 import Button from "../../components/primitives/Button";
 import Stack from "../../components/primitives/Stack";
-import Text from "../../components/primitives/Text";
+import Inline from "../../components/primitives/Inline";
 import EmptyState from "../../components/primitives/EmptyState";
 import SearchInput from "../../components/primitives/SearchInput";
 import ProjectCard from "../../components/domain/ProjectCard";
@@ -41,40 +42,36 @@ export default function ProjectsPage({ node, ancestors, data, onCreateProject }:
   };
 
   return (
-    <Stack gap="xl">
-      <PageHeader
-        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
-        title={node.label}
-        description={node.description}
-        actions={
-          <>
-            <SearchInput
-              placeholder="Search projects…"
-              aria-label="Search projects"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              compact
-              className="w-56"
-            />
-            <Button icon={Plus} size="sm" onClick={() => setCreateOpen(true)}>
-              New project
-            </Button>
-          </>
+    <>
+      <ListPage
+        header={
+          <PageHeader
+            breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
+            title={node.label}
+            description={node.description}
+            actions={
+              <Button icon={Plus} size="sm" onClick={() => setCreateOpen(true)}>
+                New project
+              </Button>
+            }
+          />
         }
-      />
-
-      <Stack gap="md">
-        <Text size="xs" tone="muted" block role="status">
-          {filtered.length} project{filtered.length !== 1 ? "s" : ""}
-        </Text>
-
-        {filtered.length > 0 ? (
-          <Stack gap="sm">
-            {filtered.map((project) => (
-              <ProjectCard key={project.id} project={project} />
-            ))}
-          </Stack>
-        ) : (
+        toolbar={
+          data.projects.length > 0 && (
+            <Inline>
+              <SearchInput
+                placeholder="Search projects…"
+                aria-label="Search projects"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                compact
+              />
+            </Inline>
+          )
+        }
+        summary={`${filtered.length} project${filtered.length !== 1 ? "s" : ""}`}
+        isEmpty={filtered.length === 0}
+        empty={
           <EmptyState
             icon={FolderKanban}
             title={needle ? `No projects match "${query}"` : "No projects yet"}
@@ -87,14 +84,16 @@ export default function ProjectsPage({ node, ancestors, data, onCreateProject }:
               )
             }
           />
-        )}
-      </Stack>
+        }
+      >
+        <Stack gap="sm">
+          {filtered.map((project) => (
+            <ProjectCard key={project.id} project={project} />
+          ))}
+        </Stack>
+      </ListPage>
 
-      <CreateProjectFlow
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onCreate={handleCreateProject}
-      />
-    </Stack>
+      <CreateProjectFlow open={createOpen} onClose={() => setCreateOpen(false)} onCreate={handleCreateProject} />
+    </>
   );
 }

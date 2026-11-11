@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../../api/ApiProvider";
@@ -60,10 +60,10 @@ describe("ProjectComponentsPageQuery", () => {
   it("lists the project's channels, collections and other components from the server, by kind", async () => {
     const [channels, collections, components] = await Promise.all([serverChannels(), serverCollections(), serverComponents()]);
     renderRoute();
-    expect(await screen.findByText(`Channels (${channels.length})`, {}, wait)).toBeTruthy();
-    expect(screen.getByText(`Collections (${collections.length})`)).toBeTruthy();
+    expect(within(await screen.findByRole("region", { name: "Channels" }, wait)).getByText(String(channels.length))).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Collections" })).getByText(String(collections.length))).toBeTruthy();
     const documents = components.filter((c) => c.attributes["component_type"] === "Document");
-    expect(screen.getByText(`Documents (${documents.length})`)).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Documents" })).getByText(String(documents.length))).toBeTruthy();
     for (const c of [...channels, ...collections]) expect(screen.getByText(c.name)).toBeTruthy();
     for (const d of documents) expect(screen.getByText(d.attributes["name"] as string)).toBeTruthy();
   });
@@ -72,7 +72,7 @@ describe("ProjectComponentsPageQuery", () => {
     const channels = await serverChannels();
     setFlag("components", false);
     renderRoute();
-    expect(await screen.findByText(`Channels (${channels.length})`, {}, wait)).toBeTruthy();
+    expect(within(await screen.findByRole("region", { name: "Channels" }, wait)).getByText(String(channels.length))).toBeTruthy();
     expect(screen.queryByText(/^Collections/)).toBeNull();
     expect(screen.queryByText(/^Documents/)).toBeNull();
     expect(screen.getByRole("button", { name: "New channel" })).toBeTruthy();

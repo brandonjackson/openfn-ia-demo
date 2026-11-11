@@ -1,3 +1,5 @@
+import { FlaskConical, Lock, type LucideIcon } from "lucide-react";
+
 /** How a sandbox's name becomes its slug: lower case, words joined by hyphens. */
 export function sandboxSlug(name: string): string {
   return name
@@ -14,6 +16,14 @@ export function sandboxNameError(name: string, taken: string[]): string | undefi
   if (slug === "main") return "Main is the project's own line; pick another name.";
   if (taken.includes(slug)) return `There's already a sandbox called ${slug}.`;
   return undefined;
+}
+
+/**
+ * The icon that marks a sandbox wherever it's named: main is read-only, so it
+ * carries a lock, as it does in the editor; every other sandbox the beaker.
+ */
+export function sandboxIcon(isMain: boolean): LucideIcon {
+  return isMain ? Lock : FlaskConical;
 }
 
 /** A sandbox's colour as Lightning stores it (hex), by the name the demo's swatches use. */

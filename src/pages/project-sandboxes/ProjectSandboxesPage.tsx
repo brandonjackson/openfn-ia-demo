@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Check, FlaskConical, GitMerge, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
-import type { SandboxDraft, SandboxItem, SandboxMerge } from "../../model/sandboxes";
+import { sandboxIcon, type SandboxDraft, type SandboxItem, type SandboxMerge } from "../../model/sandboxes";
 import { timeAgo } from "../../model/time";
 import { errorMessageOf } from "../../model/form-error";
 import Badge from "../../components/primitives/Badge";
@@ -59,10 +59,11 @@ function SandboxRow({
   onAction: (action: RowAction) => void;
 }) {
   const changed = sandbox.changes.length;
+  const icon = sandboxIcon(sandbox.isMain);
   return (
     <ListRow
-      icon={FlaskConical}
-      logo={<Swatch tone={sandbox.color} size="tile" icon={FlaskConical} />}
+      icon={icon}
+      logo={<Swatch tone={sandbox.color} size="tile" icon={icon} />}
       title={sandbox.name}
       monoTitle
       selected={selected}

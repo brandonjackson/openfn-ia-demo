@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ChannelDetails, ChannelDraft, ChannelMessage } from "../model/channels";
 import type { ProjectComponent } from "../model/projects";
 import type { ChannelRequest } from "../model/history";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 /** A channel as the API sends it, with the demo's extra fields. */
@@ -182,5 +182,5 @@ export function useChannelRequests(projects: { id: string; name: string }[]): { 
         )
       ).flat(),
   });
-  return { status: ids.length ? statusOf(query) : { state: "ready" }, requests: query.data ?? [] };
+  return { status: ids.length ? statusOf(query) : { state: "ready" }, requests: query.data ?? none };
 }

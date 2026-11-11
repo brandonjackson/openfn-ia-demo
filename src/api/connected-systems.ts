@@ -9,7 +9,7 @@ import type { Adaptor } from "../model/adaptors";
 import { lineColors, type Ecosystem, type EcosystemStation, type EcosystemWorkflow, type LineColor } from "../model/ecosystem";
 import { linkId } from "../model/ecosystem-map";
 import { triggerTypes, type TriggerType } from "../model/workflow";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 interface ApiSystem {
@@ -73,7 +73,7 @@ export function useConnectedSystems(): { status: LoadStatus; systems: ConnectedS
     queryFn: () => listAll<ApiSystem>("/api/demo/connected_systems"),
     select: (rows) => rows.map(({ id, attributes }) => ({ ...attributes, id })),
   });
-  return { status: statusOf(query), systems: query.data ?? [] };
+  return { status: statusOf(query), systems: query.data ?? none };
 }
 
 /** An access grant as the demo's grants route sends it. */
@@ -91,7 +91,7 @@ export function useAccessGrants(systemId: string | undefined): { status: LoadSta
     select: (rows): AccessGrant[] =>
       rows.map(({ id, attributes: a }) => ({ id, grantedTo: a.granted_to, grantedToType: a.granted_to_type, scope: a.scope, lastAccessed: a.last_accessed })),
   });
-  return { status: systemId ? statusOf(query) : { state: "ready" }, grants: query.data ?? [] };
+  return { status: systemId ? statusOf(query) : { state: "ready" }, grants: query.data ?? none };
 }
 
 /** What adding a system asks for. */
@@ -163,7 +163,7 @@ export function useAdaptors(enabled = true): { status: LoadStatus; adaptors: Ada
     select: (rows): Adaptor[] => rows.map(({ id, attributes: a }) => ({ id, name: a.name, description: a.description, category: a.category })),
     staleTime: Infinity,
   });
-  return enabled ? { status: statusOf(query), adaptors: query.data ?? [] } : { status: { state: "ready" }, adaptors: [] };
+  return enabled ? { status: statusOf(query), adaptors: query.data ?? none } : { status: { state: "ready" }, adaptors: none };
 }
 
 /** Systems the organisation might connect next, leaving out any it already has. Loads nothing while `enabled` is false. */
@@ -174,7 +174,7 @@ export function useSystemSuggestions(enabled = true): { status: LoadStatus; sugg
     queryFn: () => listAll<ApiSuggestion>("/api/demo/connected_systems/suggestions"),
     select: (rows): SuggestedSystem[] => rows.map(({ attributes: a }) => ({ name: a.name, description: a.description, adaptor: a.adaptor ?? undefined })),
   });
-  return enabled ? { status: statusOf(query), suggestions: query.data ?? [] } : { status: { state: "ready" }, suggestions: [] };
+  return enabled ? { status: statusOf(query), suggestions: query.data ?? none } : { status: { state: "ready" }, suggestions: none };
 }
 
 /** The organisation's ecosystem map. Loads nothing while `enabled` is false. */
@@ -232,6 +232,6 @@ export function useSystemChannels(enabled = true): { status: LoadStatus; channel
         section: a.section,
       })),
   });
-  return enabled ? { status: statusOf(query), channels: query.data ?? [] } : { status: { state: "ready" }, channels: [] };
+  return enabled ? { status: statusOf(query), channels: query.data ?? none } : { status: { state: "ready" }, channels: none };
 }
 

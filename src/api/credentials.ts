@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ProjectCredential } from "../model/adaptor-reference";
 import { rawCredentialSchema, type CredentialDraft, type CredentialField, type CredentialFieldKind, type CredentialSchema, type CredentialSchemaSummary, type OAuthClient, type UserCredential, type Environment } from "../model/credentials";
 import { formatDate } from "../model/time";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 import { workflowKeys } from "./workflows";
 
@@ -148,7 +148,7 @@ export function useCredentialSchemas(): { status: LoadStatus; schemas: Credentia
     // Schemas change only when adaptors do.
     staleTime: Infinity,
   });
-  return { status: statusOf(query), schemas: query.data ?? [] };
+  return { status: statusOf(query), schemas: query.data ?? none };
 }
 
 /**
@@ -191,7 +191,7 @@ export function useMyCredentials(rootProjects: string[]): { status: LoadStatus; 
       return list.map((c, i) => ({ c, envs: envs[i]! }));
     },
   });
-  const credentials = (query.data ?? []).map(
+  const credentials = (query.data ?? none).map(
     ({ c, envs }): UserCredential => ({
       id: c.id,
       name: c.name,
@@ -228,7 +228,7 @@ export function useProjectCredentials(projectId: string | undefined): { status: 
           })),
       ),
   });
-  return { status: projectId ? statusOf(query) : { state: "ready" }, credentials: query.data ?? [] };
+  return { status: projectId ? statusOf(query) : { state: "ready" }, credentials: query.data ?? none };
 }
 
 /** Your OAuth clients and the instance's global ones. */
@@ -238,7 +238,7 @@ export function useOAuthClients(): { status: LoadStatus; clients: OAuthClient[] 
     queryFn: () => listAll<ApiOAuthClient>("/api/oauth_clients"),
     select: (rows) => rows.map(toOAuthClient),
   });
-  return { status: statusOf(query), clients: query.data ?? [] };
+  return { status: statusOf(query), clients: query.data ?? none };
 }
 
 /**

@@ -8,7 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Workflow, WorkflowVersion } from "../model/workflow";
 import { fromDocument, toDocument, type WorkflowDocument, type WorkflowTrigger } from "../model/workflow-document";
 import { formatDate } from "../model/time";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { projectKeys, toProject, type ApiProject } from "./projects";
 import type { ProjectDetails } from "../model/projects";
 import { statusOf, type LoadStatus } from "./status";
@@ -58,7 +58,7 @@ export function useProjectWorkflows(projectId: string | undefined): { status: Lo
     enabled: !!projectId,
     queryFn: () => request<{ workflows: WorkflowDocument[] }>("GET", `/api/projects/${projectId}/workflows`).then((a) => a.workflows),
   });
-  return { status: projectId ? statusOf(query) : { state: "loading" }, workflows: query.data ?? [] };
+  return { status: projectId ? statusOf(query) : { state: "loading" }, workflows: query.data ?? none };
 }
 
 /** One workflow, wherever it is: the top-level route answers for any project you can open. */
@@ -90,7 +90,7 @@ export function useWorkflowSnapshots(id: string | undefined): { status: LoadStat
       );
     },
   });
-  return { status: id ? statusOf(query) : { state: "ready" }, snapshots: query.data ?? [] };
+  return { status: id ? statusOf(query) : { state: "ready" }, snapshots: query.data ?? none };
 }
 
 /** A stored workflow as the canvas draws it. */
@@ -104,7 +104,7 @@ export function useSandboxes(rootId: string | undefined): { status: LoadStatus; 
     queryFn: () => listAll<ApiProject>(`/api/projects/${rootId}/sandboxes?depth=all`),
     select: (rows) => rows.map(toProject),
   });
-  return { status: rootId ? statusOf(query) : { state: "ready" }, sandboxes: query.data ?? [] };
+  return { status: rootId ? statusOf(query) : { state: "ready" }, sandboxes: query.data ?? none };
 }
 
 /** What merging a sandbox into a target would bring, and what changed there since. Writes nothing. */
@@ -121,7 +121,7 @@ export function useMergePreview(parentId: string, sandboxId: string | undefined,
     select: (a): MergePreviewWorkflow[] =>
       a.workflows.map((w) => ({ name: w.name, sourceWorkflowId: w.source_workflow_id, targetWorkflowId: w.target_workflow_id, change: w.change, diverged: w.diverged })),
   });
-  return { status: statusOf(query), workflows: query.data ?? [] };
+  return { status: statusOf(query), workflows: query.data ?? none };
 }
 
 /** Every merge preview at once, for a list of sandboxes, keyed by sandbox id. */
@@ -245,5 +245,5 @@ export function useWorkflowsInProjects(projectIds: string[]): { status: LoadStat
     queryFn: async () =>
       (await Promise.all(projectIds.map((p) => request<{ workflows: WorkflowDocument[] }>("GET", `/api/projects/${p}/workflows`).then((a) => a.workflows)))).flat(),
   });
-  return { status: projectIds.length ? statusOf(query) : { state: "ready" }, workflows: query.data ?? [] };
+  return { status: projectIds.length ? statusOf(query) : { state: "ready" }, workflows: query.data ?? none };
 }

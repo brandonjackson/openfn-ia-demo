@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Environment } from "../model/credentials";
 import type { EnvVar, EnvVarDraft } from "../model/env-vars";
 import { timeAgo } from "../model/time";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 /** A variable as the API sends it. */
@@ -42,7 +42,7 @@ export function useEnvVars(projectId: string | undefined): { status: LoadStatus;
     queryFn: () => listAll<ApiEnvVar>(`/api/demo/projects/${projectId}/env_vars`),
     select: (rows) => rows.map(toEnvVar),
   });
-  return { status: projectId ? statusOf(query) : { state: "ready" }, envVars: query.data ?? [] };
+  return { status: projectId ? statusOf(query) : { state: "ready" }, envVars: query.data ?? none };
 }
 
 /**

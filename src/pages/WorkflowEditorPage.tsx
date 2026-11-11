@@ -108,6 +108,8 @@ interface Edits {
 }
 
 const noEdits: Edits = { labels: {}, adaptors: {}, bodies: {}, credentials: {}, systems: {}, removed: [], added: [], addedEdges: [] };
+// The history a page shows when given none: one empty list, so the reset below doesn't see a new one every render.
+const noHistory: never[] = [];
 
 /** How far apart steps sit on the canvas: one row down, or one branch across. */
 const ROW_GAP = 170;
@@ -205,8 +207,8 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
  */
 export default function WorkflowEditorPage({
   workflow,
-  workOrders: initialWorkOrders = [],
-  dataclips: initialDataclips = [],
+  workOrders: initialWorkOrders = noHistory,
+  dataclips: initialDataclips = noHistory,
   graphForVersion,
   runId: controlledRunId,
   onRunChange,

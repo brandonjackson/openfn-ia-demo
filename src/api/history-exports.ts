@@ -2,7 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { HistoryExport } from "../model/work-orders";
 import { formatDateTime } from "../model/time";
-import { ApiError, getFile, listAll, request } from "./client";
+import { ApiError, getFile, listAll, request, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 interface ApiHistoryExport {
@@ -34,7 +34,7 @@ export function useHistoryExports(projectId: string): { status: LoadStatus; expo
     select: (rows) => rows.map(toExport),
     refetchInterval: (q) => (q.state.data?.some((e) => e.attributes.state === "enqueued" || e.attributes.state === "in_progress") ? 1000 : false),
   });
-  return { status: statusOf(query), exports: query.data ?? [] };
+  return { status: statusOf(query), exports: query.data ?? none };
 }
 
 /**

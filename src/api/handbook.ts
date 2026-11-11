@@ -5,7 +5,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { HandbookFile, HandbookFileKind, WikiSection } from "../model/handbook";
 import { timeAgo } from "../model/time";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 interface ApiFile {
@@ -66,7 +66,7 @@ export function useHandbookFiles(): { status: LoadStatus; files: HandbookFile[] 
         addedAt: timeAgo(a.inserted_at),
       })),
   });
-  return { status: statusOf(query), files: query.data ?? [] };
+  return { status: statusOf(query), files: query.data ?? none };
 }
 
 /**

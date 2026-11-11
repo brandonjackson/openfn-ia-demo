@@ -13,7 +13,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { BillingDetails, ContextLayer, OrganizationInvite, OrganizationMember, VisibilityScope } from "../model/organization";
 import type { SecurityServerManager, ServiceClassification, XRoadCertificate, XRoadIdentity, XRoadMember, XRoadMemberClass } from "../model/xroad";
 import { formatDate, timeAgo } from "../model/time";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { combine, statusOf, type LoadStatus } from "./status";
 
 type Visibility = { projects: VisibilityScope; systems: VisibilityScope; services: VisibilityScope };
@@ -255,7 +255,7 @@ export function useOrganizationMembers(organizationId: string | undefined): { st
         joined: timeAgo(a.inserted_at),
       })),
   });
-  return organizationId ? { status: statusOf(query), members: query.data ?? [] } : { status: { state: "ready" }, members: [] };
+  return organizationId ? { status: statusOf(query), members: query.data ?? none } : { status: { state: "ready" }, members: none };
 }
 
 /** The context layers the organisation draws on, and those it's asked for. */
@@ -273,7 +273,7 @@ export function useContextLayers(): { status: LoadStatus; layers: ContextLayer[]
         ...(a.last_fetched_at && { lastFetched: timeAgo(a.last_fetched_at) }),
       })),
   });
-  return { status: statusOf(query), layers: query.data ?? [] };
+  return { status: statusOf(query), layers: query.data ?? none };
 }
 
 /**

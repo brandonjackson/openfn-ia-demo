@@ -9,7 +9,7 @@ import type { AuditChange, AuditEvent, AuditItemType, AuditQuery } from "../mode
 import type { AdminProject, AdminProjectDraft } from "../model/projects";
 import type { AdminUser, AdminUserDraft } from "../model/users";
 import { formatDate, formatDateTime, timeAgo } from "../model/time";
-import { listAll, listPage, request } from "./client";
+import { listAll, listPage, request, none } from "./client";
 import { projectKeys, toProject, userKeys, type ApiMember, type ApiProject } from "./projects";
 import { statusOf, type LoadStatus } from "./status";
 
@@ -91,7 +91,7 @@ export function useAdminUsers(you: string): { status: LoadStatus; users: AdminUs
     queryFn: () => listAll<ApiAdminUser>("/api/users"),
     select: (rows) => rows.map((r) => toAdminUser(r, you)),
   });
-  return { status: statusOf(query), users: query.data ?? [] };
+  return { status: statusOf(query), users: query.data ?? none };
 }
 
 /** Every project on the instance with its members, scheduled ones included. */
@@ -113,7 +113,7 @@ export function useAdminProjects(): { status: LoadStatus; projects: AdminProject
         scheduledDeletion: project.scheduledDeletion ? formatDate(project.scheduledDeletion) : undefined,
       })),
   });
-  return { status: statusOf(query), projects: query.data ?? [] };
+  return { status: statusOf(query), projects: query.data ?? none };
 }
 
 /**
@@ -155,7 +155,7 @@ export function useAuditTrail(
   const { data, error, isPlaceholderData } = result as { data: unknown; error: Error | null; isPlaceholderData: boolean };
   const status = statusOf({ data: isPlaceholderData && error ? undefined : data, error });
   if (search) {
-    const found = filterAuditEvents(whole.data ?? [], query);
+    const found = filterAuditEvents(whole.data ?? none, query);
     const page = Math.min(query.page, Math.max(1, Math.ceil(found.length / pageSize)));
     const start = (page - 1) * pageSize;
     return { status, entries: found.slice(start, start + pageSize), page, total: found.length };

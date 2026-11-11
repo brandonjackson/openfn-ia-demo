@@ -12,6 +12,7 @@ import {
   type HistoryWorkOrder,
   type HistoryWorkflowOption,
 } from "../../model/history";
+import ListPage from "../../components/patterns/ListPage";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
 import HistoryFilterBar from "../../components/domain/HistoryFilterBar";
@@ -130,142 +131,149 @@ export default function HistoryPage({
     onCancel && ((ids: string[]) => act("cancel", ids, onCancel, `${plural(ids.length, "work order")} not cancelled`, `${plural(ids.length, "work order")} cancelled.`));
 
   return (
-    <Stack gap="lg">
-      <PageHeader
-        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
-        title={node.label}
-        description={node.description}
-        actions={
-          tab === "work-orders" &&
-          onExport && (
-            <Button size="sm" variant="secondary" icon={Download} onClick={() => !busy && setExporting(true)} disabled={shown.length === 0} aria-disabled={!!busy}>
-              {busy === "export" ? "Exporting…" : "Export"}
-            </Button>
+    <>
+      <ListPage
+        header={
+          <PageHeader
+            breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
+            title={node.label}
+            description={node.description}
+            actions={
+              tab === "work-orders" &&
+              onExport && (
+                <Button size="sm" variant="secondary" icon={Download} onClick={() => !busy && setExporting(true)} disabled={shown.length === 0} aria-disabled={!!busy}>
+                  {busy === "export" ? "Exporting…" : "Export"}
+                </Button>
+              )
+            }
+          />
+        }
+        notice={
+          notice && (
+            <Callout key={notice.key} variant={notice.tone} title={notice.title} role={notice.tone === "danger" ? "alert" : "status"}>
+              {notice.detail}
+            </Callout>
           )
         }
-      />
-
-      <SegmentedControl
-        variant="pill"
-        options={[
-          { id: "work-orders", label: "Work orders", count: data.workOrders.length },
-          { id: "channels", label: "Channel requests", count: data.channelRequests.length },
-        ]}
-        value={tab}
-        onChange={(v) => onFiltersChange({ ...filters, tab: v as HistoryFilters["tab"] })}
-      />
-
-      {notice && (
-        <Callout key={notice.key} variant={notice.tone} title={notice.title} role={notice.tone === "danger" ? "alert" : "status"}>
-          {notice.detail}
-        </Callout>
-      )}
-
-      <HistoryFilterBar
-        filters={filters}
-        onChange={onFiltersChange}
-        workOrders={data.workOrders}
-        channelRequests={data.channelRequests}
-        workflows={data.workflows}
-        projects={data.projects}
-      />
-
-      {tab === "work-orders" ? (
-        <Stack gap="sm">
-          <SelectionBar count={pickedIds.length} noun="work order" onClear={() => setSelectedIds([])}>
-            {cancel && (
-              <Button
-                size="sm"
-                variant="secondary"
-                icon={Ban}
-                disabled={!allowed.cancel}
-                aria-disabled={!!busy}
-                title="Only work orders still waiting to run can be cancelled"
-                onClick={() => cancel(pickedIds)}
-              >
-                {busy === "cancel" ? "Cancelling…" : "Cancel"}
-              </Button>
-            )}
-            {retryFrom &&
-              (selectedWorkflow ? (
-                <MenuButton
-                  label={busy === "retry-from" ? "Retrying…" : "Retry from"}
-                  variant="secondary"
-                  menuTitle={`Steps of ${selectedWorkflow.name}`}
-                  align="right"
-                  items={selectedWorkflow.steps.map((s) => ({ id: s.id, label: s.label }))}
-                  onSelect={(jobId) => retryFrom(pickedIds, jobId, selectedWorkflow.steps.find((s) => s.id === jobId)?.label ?? jobId)}
-                />
-              ) : (
-                <Button size="sm" variant="secondary" disabled title="Pick finished work orders of one workflow to retry them from a step">
-                  Retry from
-                </Button>
-              ))}
-            {retry && (
-              <Button size="sm" icon={RotateCcw} disabled={!allowed.retry} aria-disabled={!!busy} title="Only finished work orders can be retried" onClick={() => retry(pickedIds)}>
-                {busy === "retry" ? "Retrying…" : "Retry"}
-              </Button>
-            )}
-          </SelectionBar>
-
-          {shown.length === 0 ? (
-            <EmptyState
-              icon={History}
-              title={data.workOrders.length === 0 ? "No work orders yet" : "No work orders match"}
-              description={
-                data.workOrders.length === 0
-                  ? "Work orders appear here as your workflows' triggers receive work."
-                  : "Try another search, or clear a filter."
-              }
+        toolbar={
+          <Stack gap="md">
+            <SegmentedControl
+              variant="pill"
+              options={[
+                { id: "work-orders", label: "Work orders", count: data.workOrders.length },
+                { id: "channels", label: "Channel requests", count: data.channelRequests.length },
+              ]}
+              value={tab}
+              onChange={(v) => onFiltersChange({ ...filters, tab: v as HistoryFilters["tab"] })}
             />
-          ) : (
-            <Card flush>
-              <Stack divided>
-                <ListHeader
-                  leading={
-                    <Checkbox
-                      label="Select every work order shown"
-                      hideLabel
-                      checked={allShownSelected}
-                      indeterminate={pickedIds.length > 0 && !allShownSelected}
-                      onChange={(on) => setSelectedIds(on ? shown.map((o) => o.workOrder.id) : [])}
-                    />
-                  }
+            <HistoryFilterBar
+              filters={filters}
+              onChange={onFiltersChange}
+              workOrders={data.workOrders}
+              channelRequests={data.channelRequests}
+              workflows={data.workflows}
+              projects={data.projects}
+            />
+          </Stack>
+        }
+      >
+        {tab === "work-orders" ? (
+          <Stack gap="sm">
+            <SelectionBar count={pickedIds.length} noun="work order" onClear={() => setSelectedIds([])}>
+              {cancel && (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  icon={Ban}
+                  disabled={!allowed.cancel}
+                  aria-disabled={!!busy}
+                  title="Only work orders still waiting to run can be cancelled"
+                  onClick={() => cancel(pickedIds)}
                 >
-                  {`${plural(shown.length, "work order")}${shown.length < data.workOrders.length ? ` of ${data.workOrders.length}` : ""}, newest first`}
-                </ListHeader>
-                {shown.map((order) => {
-                  const id = order.workOrder.id;
-                  const workflow = data.workflows.find((w) => w.id === order.workflowId);
-                  return (
-                    <WorkOrderEntry
-                      key={id}
-                      order={order}
-                      showProject={multiProject}
-                      latestVersion={workflow?.latestVersion}
-                      selected={pickedIds.includes(id)}
-                      onSelectChange={(on) => setSelectedIds((s) => toggle(s, id, on))}
-                      expanded={expandedIds.includes(id)}
-                      onToggle={() => setExpandedIds((e) => toggle(e, id, !e.includes(id)))}
-                      onRetry={retry && (() => retry([id]))}
-                      onCancel={cancel && (() => cancel([id]))}
-                      onInspectRun={(run) => onInspectRun(order, run)}
-                      onRetryFromStep={retryFrom && ((_run, step) => retryFrom([id], step.jobId, step.label))}
-                    />
-                  );
-                })}
-              </Stack>
-            </Card>
-          )}
-        </Stack>
-      ) : (
-        <ChannelRequestTable
-          requests={requests}
-          showProject={multiProject}
-          onOpenRun={onOpenChannelRun}
-          emptyMessage={data.channelRequests.length === 0 ? "No channel requests yet." : "No requests match."}
-        />
-      )}
+                  {busy === "cancel" ? "Cancelling…" : "Cancel"}
+                </Button>
+              )}
+              {retryFrom &&
+                (selectedWorkflow ? (
+                  <MenuButton
+                    label={busy === "retry-from" ? "Retrying…" : "Retry from"}
+                    variant="secondary"
+                    menuTitle={`Steps of ${selectedWorkflow.name}`}
+                    align="right"
+                    items={selectedWorkflow.steps.map((s) => ({ id: s.id, label: s.label }))}
+                    onSelect={(jobId) => retryFrom(pickedIds, jobId, selectedWorkflow.steps.find((s) => s.id === jobId)?.label ?? jobId)}
+                  />
+                ) : (
+                  <Button size="sm" variant="secondary" disabled title="Pick finished work orders of one workflow to retry them from a step">
+                    Retry from
+                  </Button>
+                ))}
+              {retry && (
+                <Button size="sm" icon={RotateCcw} disabled={!allowed.retry} aria-disabled={!!busy} title="Only finished work orders can be retried" onClick={() => retry(pickedIds)}>
+                  {busy === "retry" ? "Retrying…" : "Retry"}
+                </Button>
+              )}
+            </SelectionBar>
+
+            {shown.length === 0 ? (
+              <EmptyState
+                icon={History}
+                title={data.workOrders.length === 0 ? "No work orders yet" : "No work orders match"}
+                description={
+                  data.workOrders.length === 0
+                    ? "Work orders appear here as your workflows' triggers receive work."
+                    : "Try another search, or clear a filter."
+                }
+              />
+            ) : (
+              <Card flush>
+                <Stack divided>
+                  <ListHeader
+                    leading={
+                      <Checkbox
+                        label="Select every work order shown"
+                        hideLabel
+                        checked={allShownSelected}
+                        indeterminate={pickedIds.length > 0 && !allShownSelected}
+                        onChange={(on) => setSelectedIds(on ? shown.map((o) => o.workOrder.id) : [])}
+                      />
+                    }
+                  >
+                    {`${plural(shown.length, "work order")}${shown.length < data.workOrders.length ? ` of ${data.workOrders.length}` : ""}, newest first`}
+                  </ListHeader>
+                  {shown.map((order) => {
+                    const id = order.workOrder.id;
+                    const workflow = data.workflows.find((w) => w.id === order.workflowId);
+                    return (
+                      <WorkOrderEntry
+                        key={id}
+                        order={order}
+                        showProject={multiProject}
+                        latestVersion={workflow?.latestVersion}
+                        selected={pickedIds.includes(id)}
+                        onSelectChange={(on) => setSelectedIds((s) => toggle(s, id, on))}
+                        expanded={expandedIds.includes(id)}
+                        onToggle={() => setExpandedIds((e) => toggle(e, id, !e.includes(id)))}
+                        onRetry={retry && (() => retry([id]))}
+                        onCancel={cancel && (() => cancel([id]))}
+                        onInspectRun={(run) => onInspectRun(order, run)}
+                        onRetryFromStep={retryFrom && ((_run, step) => retryFrom([id], step.jobId, step.label))}
+                      />
+                    );
+                  })}
+                </Stack>
+              </Card>
+            )}
+          </Stack>
+        ) : (
+          <ChannelRequestTable
+            requests={requests}
+            showProject={multiProject}
+            onOpenRun={onOpenChannelRun}
+            emptyMessage={data.channelRequests.length === 0 ? "No channel requests yet." : "No requests match."}
+          />
+        )}
+      </ListPage>
 
       {onExport && (
         <ConfirmModal
@@ -290,7 +298,7 @@ export default function HistoryPage({
           included unless the project doesn't keep them.
         </ConfirmModal>
       )}
-    </Stack>
+    </>
   );
 }
 

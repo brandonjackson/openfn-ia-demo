@@ -5,7 +5,9 @@ import ListPage from "./ListPage";
 import PageHeader from "./PageHeader";
 import FeatureIntro from "./FeatureIntro";
 import Button from "../primitives/Button";
+import Callout from "../primitives/Callout";
 import EmptyState from "../primitives/EmptyState";
+import ListGroup from "../primitives/ListGroup";
 import ListRow from "../primitives/ListRow";
 import SectionHeading from "../primitives/SectionHeading";
 import SegmentedControl from "../primitives/SegmentedControl";
@@ -127,5 +129,33 @@ export const WithSectionsAfter: Story = {
         <ListRow icon={FileText} title="Meeting notes" description="Who came, what was decided, what's next." />
       </section>
     ),
+  },
+};
+
+/** Rows split into groups, each under the same small heading. */
+export const Grouped: Story = {
+  args: {
+    header,
+    summary: `${items.length * 2} documents`,
+    children: (
+      <Stack gap="xl">
+        <ListGroup title="Finance" count={items.length}>
+          {rows}
+        </ListGroup>
+        <ListGroup title="Operations" count={items.length} description="Documents the operations team keeps.">
+          {rows}
+        </ListGroup>
+      </Stack>
+    ),
+  },
+};
+
+/** What an action just did, under the header. */
+export const WithNotice: Story = {
+  args: {
+    header,
+    notice: <Callout variant="success" title={'"Supplier list" deleted'} />,
+    summary: `${items.length} documents`,
+    children: rows,
   },
 };

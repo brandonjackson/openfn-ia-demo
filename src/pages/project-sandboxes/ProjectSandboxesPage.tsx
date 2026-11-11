@@ -5,6 +5,7 @@ import { sandboxIcon, type SandboxDraft, type SandboxItem, type SandboxMerge } f
 import { timeAgo } from "../../model/time";
 import { errorMessageOf } from "../../model/form-error";
 import Badge from "../../components/primitives/Badge";
+import ListPage from "../../components/patterns/ListPage";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
 import SandboxFormModal from "../../components/domain/SandboxFormModal";
@@ -16,7 +17,7 @@ import DropdownMenu from "../../components/primitives/DropdownMenu";
 import EmptyState from "../../components/primitives/EmptyState";
 import IconButton from "../../components/primitives/IconButton";
 import ListRow from "../../components/primitives/ListRow";
-import SectionHeading from "../../components/primitives/SectionHeading";
+import ListGroup from "../../components/primitives/ListGroup";
 import Stack from "../../components/primitives/Stack";
 import Swatch from "../../components/primitives/Swatch";
 import Text from "../../components/primitives/Text";
@@ -169,63 +170,69 @@ export default function ProjectSandboxesPage({
       ]
     : [];
 
+  const sandboxCount = sandboxes.filter((s) => !s.isMain).length;
+
   return (
-    <Stack gap="xl">
-      <PageHeader
-        breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
-        title={node.label}
-        description={node.description}
-        actions={
-          onCreateSandbox && (
-            <Button icon={Plus} size="sm" onClick={() => setCreating(true)}>
-              New sandbox
-            </Button>
-          )
-        }
-      />
-
-      {notice && (
-        <Callout variant={notice.tone} title={notice.title} role={notice.tone === "danger" ? "alert" : undefined}>
-          {notice.detail}
-        </Callout>
-      )}
-
-      {selected && (
-        <section>
-          <SectionHeading title="Selected" variant="label" />
-          <SandboxRow sandbox={selected} selected actions={actionsFor(selected)} onAction={act(selected)} />
-        </section>
-      )}
-
-      <section>
-        <SectionHeading title="Active" variant="label" />
-        {others.length > 0 ? (
-          <Stack gap="sm">
-            {others.map((sandbox) => (
-              <SandboxRow
-                key={sandbox.name}
-                sandbox={sandbox}
-                actions={actionsFor(sandbox)}
-                onSelect={() => setSelected(sandbox.name)}
-                onAction={act(sandbox)}
-              />
-            ))}
-          </Stack>
-        ) : (
-          <EmptyState
-            icon={FlaskConical}
-            title="No other sandboxes"
-            description="Create a sandbox to try out changes without touching main."
-            action={
+    <>
+      <ListPage
+        header={
+          <PageHeader
+            breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
+            title={node.label}
+            description={node.description}
+            actions={
               onCreateSandbox && (
-                <Button icon={Plus} size="sm" variant="secondary" onClick={() => setCreating(true)}>
+                <Button icon={Plus} size="sm" onClick={() => setCreating(true)}>
                   New sandbox
                 </Button>
               )
             }
           />
-        )}
-      </section>
+        }
+        notice={
+          notice && (
+            <Callout variant={notice.tone} title={notice.title} role={notice.tone === "danger" ? "alert" : undefined}>
+              {notice.detail}
+            </Callout>
+          )
+        }
+        summary={`${sandboxCount} sandbox${sandboxCount === 1 ? "" : "es"}`}
+      >
+        <Stack gap="xl">
+          {selected && (
+            <ListGroup title="Selected">
+              <SandboxRow sandbox={selected} selected actions={actionsFor(selected)} onAction={act(selected)} />
+            </ListGroup>
+          )}
+
+          <ListGroup title="Active" count={others.length}>
+            {others.length > 0 ? (
+              others.map((sandbox) => (
+                <SandboxRow
+                  key={sandbox.name}
+                  sandbox={sandbox}
+                  actions={actionsFor(sandbox)}
+                  onSelect={() => setSelected(sandbox.name)}
+                  onAction={act(sandbox)}
+                />
+              ))
+            ) : (
+              <EmptyState
+                icon={FlaskConical}
+                title="No other sandboxes"
+                description="Create a sandbox to try out changes without touching main."
+                action={
+                  onCreateSandbox && (
+                    <Button icon={Plus} size="sm" variant="secondary" onClick={() => setCreating(true)}>
+                      New sandbox
+                    </Button>
+                  )
+                }
+              />
+            )}
+          </ListGroup>
+        </Stack>
+      </ListPage>
 
       {onCreateSandbox && (
         <SandboxFormModal
@@ -271,6 +278,6 @@ export default function ProjectSandboxesPage({
           {`Delete ${pendingDelete?.name}? Its changes that haven't been merged will be lost, along with any sandbox made from it. This can't be undone.`}
         </Text>
       </ConfirmModal>
-    </Stack>
+    </>
   );
 }

@@ -3,6 +3,7 @@ import type { SuggestedSystem } from "../../model/connected-systems";
 import AdaptorLogo from "./AdaptorLogo";
 import ListRow from "../primitives/ListRow";
 import SectionHeading from "../primitives/SectionHeading";
+import Stack from "../primitives/Stack";
 import EntityPill from "./EntityPill";
 
 interface Props {
@@ -38,10 +39,12 @@ export default function SuggestedSystemsToAdd({
     );
   }
 
+  if (suggestions.length === 0) return null;
+
   return (
     <section>
-      <SectionHeading title="Suggested to add" variant="label" />
-      <div className="space-y-2">
+      <SectionHeading title="Suggested to add" description="Systems you might connect next. Pick one to add it." />
+      <Stack gap="sm">
         {suggestions.map((sys) => (
           <ListRow
             key={sys.name}
@@ -53,7 +56,7 @@ export default function SuggestedSystemsToAdd({
             dashed
           />
         ))}
-      </div>
+      </Stack>
     </section>
   );
 }

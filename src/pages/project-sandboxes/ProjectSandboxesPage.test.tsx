@@ -30,7 +30,7 @@ const draw = (selectedSandbox = "main") =>
     actions,
   );
 
-const section = (title: string) => screen.getByRole("heading", { name: title }).closest("section")!;
+const section = (title: string) => screen.getByRole("region", { name: title });
 
 describe("ProjectSandboxesPage", () => {
   it("puts the selected sandbox on its own at the top, the rest below, with what each has changed", () => {

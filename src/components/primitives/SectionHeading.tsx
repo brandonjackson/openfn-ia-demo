@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 
 interface Props {
   title: string;
+  /** How many things the section holds, shown quietly after the title. */
+  count?: number;
   description?: string;
   /** Optional action (usually a Button) aligned to the right. */
   action?: ReactNode;
@@ -17,7 +19,7 @@ interface Props {
 /**
  * Heading at the top of a settings section or content panel.
  */
-export default function SectionHeading({ title, description, action, variant = "default", compact = false }: Props) {
+export default function SectionHeading({ title, count, description, action, variant = "default", compact = false }: Props) {
   const isLabel = variant === "label";
   return (
     <div className={`flex justify-between gap-4 ${compact ? "items-baseline" : "items-start"} ${isLabel ? (compact ? "mb-2" : "mb-3") : "mb-6"}`}>
@@ -32,6 +34,7 @@ export default function SectionHeading({ title, description, action, variant = "
           }
         >
           {title}
+          {count !== undefined && <span className="ml-2 font-normal text-gray-400">{count}</span>}
         </h2>
         {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
       </div>

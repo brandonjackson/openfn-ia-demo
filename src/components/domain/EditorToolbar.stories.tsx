@@ -78,7 +78,7 @@ export const OnMain: Story = {};
 
 /**
  * In a sandbox: the chip turns amber and counts what's changed (open it for
- * the list and Go live), and Run is the main action.
+ * the list and "Create promotion request"), and Run is the main action.
  */
 export const InSandbox: Story = {
   args: { sandbox: projects[0].sandboxes[1], view: "code", changes, environment: "staging" },

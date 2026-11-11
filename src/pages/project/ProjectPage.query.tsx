@@ -22,16 +22,16 @@ import ProjectPage, { type ProjectPageData } from "./ProjectPage";
 /**
  * A project's Overview, all from the API: the tiles and every workflow row
  * count the same work orders, the project's over the last 30 days, so the
- * rows add up to the tiles and both match History. Its components are its
- * workflows with the rest of its components (channels and collections from
- * Lightning's API, the other kinds from the demo's), and its services come
+ * rows add up to the tiles and both match History. Its components are
+ * everything but its workflows, which have their own section (channels and
+ * collections from Lightning's API, the other kinds from the demo's), and its services come
  * from the demo's routes; each is left out when its flag is off.
  */
 function projectPageData(
   details: ProjectDetails,
   workflows: WorkflowDocument[],
   workOrdersOf: (workflowId: string) => WorkOrder[],
-  others: ProjectComponentItem[],
+  components: ProjectComponentItem[],
   services: ProjectServiceItem[],
   flags: FeatureFlags,
 ): ProjectPageData {
@@ -44,7 +44,7 @@ function projectPageData(
       .sort((a, b) => (b.lastRunAt ?? "").localeCompare(a.lastRunAt ?? "")),
     services: flags.serviceCatalog ? services : undefined,
     components: flags.components
-      ? componentsFor([...workflows.map((w): ProjectComponentItem => ({ id: w.id, name: w.name, description: "", type: "Workflow" })), ...others], flags)
+      ? componentsFor(components, flags)
       : undefined,
   };
 }

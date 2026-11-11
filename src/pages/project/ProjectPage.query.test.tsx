@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../../api/ApiProvider";
@@ -73,10 +73,13 @@ describe("ProjectPageQuery", () => {
     const workflows = await serverWorkflows();
     const { data: channels } = await request<Many>("GET", `/api/projects/${projectId}/channels?page_size=100`);
     renderRoute();
-    expect(await screen.findByText("Components", {}, wait)).toBeTruthy();
-    // Every workflow and channel is one, and the other kinds from the demo's routes come on top.
+    const heading = await screen.findByText("Components", {}, wait);
+    // Every channel is one, and the other kinds from the demo's routes come on top.
     const count = Number(screen.getByText(/building blocks? in this project/).textContent!.split(" ")[0]);
-    expect(count).toBeGreaterThan(workflows.length + channels.length);
+    expect(count).toBeGreaterThan(channels.length);
+    // Workflows have their own section, so they aren't listed again as components.
+    const section = within(heading.closest("section")!);
+    for (const w of workflows) expect(section.queryByText(w.name)).toBeNull();
 
     act(() => setFlag("components", false));
     await waitFor(() => expect(screen.queryByText("Components")).toBeNull(), wait);

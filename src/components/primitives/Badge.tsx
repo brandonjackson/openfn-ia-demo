@@ -4,11 +4,11 @@ import type { LucideIcon } from "lucide-react";
 export type BadgeTone = "green" | "yellow" | "red" | "indigo" | "pink" | "gray";
 
 const toneClasses: Record<BadgeTone, string> = {
-  green: "bg-green-100 text-green-700",
-  yellow: "bg-yellow-100 text-yellow-700",
-  red: "bg-red-100 text-red-700",
-  indigo: "bg-indigo-100 text-indigo-700",
-  pink: "bg-pink-100 text-pink-700",
+  green: "bg-badge-green-bg text-badge-green-fg",
+  yellow: "bg-badge-yellow-bg text-badge-yellow-fg",
+  red: "bg-badge-red-bg text-badge-red-fg",
+  indigo: "bg-badge-indigo-bg text-badge-indigo-fg",
+  pink: "bg-badge-pink-bg text-badge-pink-fg",
   gray: "bg-gray-100 text-gray-700",
 };
 

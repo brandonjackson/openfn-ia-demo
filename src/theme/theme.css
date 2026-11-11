@@ -69,6 +69,24 @@
   --color-red-950: oklch(24% 0.06 25);
 }
 
+/* Badge colours: each hue pulled toward gray so a status or tag reads as a
+   quiet note beside a name rather than a bright chip. Mixed from the theme's
+   own palette, so every theme still re-skins them. `@theme inline` makes
+   them Tailwind utilities (`bg-badge-green-bg`, `text-badge-green-fg`) that
+   resolve where they're used, under whichever theme is active. */
+@theme inline {
+  --color-badge-green-bg: color-mix(in oklab, var(--color-green-100) 45%, var(--color-gray-100));
+  --color-badge-green-fg: color-mix(in oklab, var(--color-green-700) 60%, var(--color-gray-600));
+  --color-badge-yellow-bg: color-mix(in oklab, var(--color-yellow-100) 45%, var(--color-gray-100));
+  --color-badge-yellow-fg: color-mix(in oklab, var(--color-yellow-800) 60%, var(--color-gray-600));
+  --color-badge-red-bg: color-mix(in oklab, var(--color-red-100) 45%, var(--color-gray-100));
+  --color-badge-red-fg: color-mix(in oklab, var(--color-red-700) 60%, var(--color-gray-600));
+  --color-badge-indigo-bg: color-mix(in oklab, var(--color-indigo-100) 45%, var(--color-gray-100));
+  --color-badge-indigo-fg: color-mix(in oklab, var(--color-indigo-700) 60%, var(--color-gray-600));
+  --color-badge-pink-bg: color-mix(in oklab, var(--color-pink-100) 45%, var(--color-gray-100));
+  --color-badge-pink-fg: color-mix(in oklab, var(--color-pink-700) 60%, var(--color-gray-600));
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--app-bg, #ffffff);

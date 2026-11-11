@@ -25,7 +25,7 @@ const projectData: ProjectPageData = {
   tiles: activityTiles(workOrderActivity(projectHistory(project), "30d"), "30d", `/projects/${project.id}/history`),
   workflows: projectWorkflowItems(project),
   services: project.services,
-  components: project.components,
+  components: project.components.filter((c) => c.type !== "Workflow"),
 };
 
 const meta: Meta<typeof ProjectPage> = {

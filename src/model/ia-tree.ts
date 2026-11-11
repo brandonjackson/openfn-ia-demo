@@ -345,9 +345,15 @@ export const settingsTree: IANode[] = [
     id: "organization-settings",
     flag: "organizations",
     label: "Organization settings",
-    description: "Who's in your organisation, what others can see by default, the context it draws on, its identity on X-Road, and billing.",
+    description: "Your organisation's name, who's in it, what others can see by default, the context it draws on, its identity on X-Road, and billing.",
     pageType: "organization-settings",
     children: [
+      {
+        id: "general",
+        label: "General",
+        description: "The organisation's name.",
+        pageType: "organization-settings",
+      },
       {
         id: "members",
         label: "Members",

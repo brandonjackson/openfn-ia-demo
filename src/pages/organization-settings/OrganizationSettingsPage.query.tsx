@@ -8,7 +8,7 @@ import OrganizationSettingsPage from "./OrganizationSettingsPage";
 import { pageFrame } from "../../app/page-frame";
 
 /**
- * Feeds Organization settings: its name and members from the API's
+ * Feeds Organization settings: its name (which admins change) and members from the API's
  * organizations, and what the demo adds (visibility defaults, who manages the
  * Security Server, context layers, billing) from the demo's own routes. The
  * rest of the X-Road identity is read from its own route (the X-Road operator
@@ -48,6 +48,7 @@ export default function OrganizationSettingsPageQuery({ route }: { route: PageRo
               billing: o.billing,
             }}
             assignableRoles={manage ? organizationRoles : undefined}
+            onRename={manage ? saves.rename : undefined}
             onInviteMember={manage ? saves.invite : undefined}
             onChangeMemberRole={manage ? saves.changeRole : undefined}
             onRemoveMember={manage ? saves.remove : undefined}

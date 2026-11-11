@@ -31,6 +31,7 @@ const onXRoad: OrganizationSettingsPageData = {
 };
 
 const actions = [
+  "onRename",
   "onInviteMember",
   "onChangeMemberRole",
   "onRemoveMember",
@@ -57,6 +58,41 @@ function add(email: string) {
 }
 
 describe("OrganizationSettingsPage", () => {
+  it("renames the organisation, waits while it's saved, then says so", async () => {
+    const host = draw("general", "General");
+    fireEvent.change(screen.getByLabelText(/^Organization name/), { target: { value: "  Ministry of Health and Wellness " } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(host.calls("onRename")).toEqual([["Ministry of Health and Wellness"]]);
+    expect(screen.getByRole("button", { name: "Saving…" }).getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(screen.getByRole("button", { name: "Saving…" }));
+    expect(host.calls("onRename")).toHaveLength(1);
+    await host.resolve("onRename");
+    expect(screen.getByRole("button", { name: "Save" })).toBeTruthy();
+  });
+
+  it("says a name is missing when it's saved without one, and sends nothing", () => {
+    const host = draw("general", "General");
+    fireEvent.change(screen.getByLabelText(/^Organization name/), { target: { value: "  " } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(screen.getByText("Enter a name for the organisation")).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByLabelText(/^Organization name/));
+    expect(host.calls("onRename")).toEqual([]);
+  });
+
+  it("says why under the name when the server refuses it", async () => {
+    const host = draw("general", "General");
+    fireEvent.change(screen.getByLabelText(/^Organization name/), { target: { value: "x".repeat(200) } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await host.reject("onRename", new FormError("The request body is not valid.", { name: ["should be at most 160 character(s)"] }));
+    expect(screen.getByText(/should be at most 160 character/)).toBeTruthy();
+  });
+
+  it("shows the name to read, with no Save, when it can't be changed", () => {
+    renderPage(OrganizationSettingsPage, frame("general", "General", data), []);
+    expect((screen.getByLabelText(/^Organization name/) as HTMLInputElement).value).toBe("Ministry of Health");
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
+  });
+
   it("lists the organisation's members, with when they joined", () => {
     draw();
     expect(screen.getByText("Amina Diallo")).toBeTruthy();

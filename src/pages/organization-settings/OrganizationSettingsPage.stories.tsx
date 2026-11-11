@@ -13,6 +13,7 @@ const meta: Meta<typeof OrganizationSettingsPage> = {
   title: "Pages/OrganizationSettingsPage",
   component: OrganizationSettingsPage,
   args: {
+    onRename: async () => {},
     onRequestContextAccess: async () => {},
     onRemoveContextLayer: async () => {},
     onInviteMember: async () => {},
@@ -27,6 +28,15 @@ const meta: Meta<typeof OrganizationSettingsPage> = {
 
 export default meta;
 type Story = StoryObj<typeof OrganizationSettingsPage>;
+
+export const General: Story = {
+  args: { node: section("general", "General"), ancestors, currentPath: "/organization-settings/general", data: organizationSettingsData },
+};
+
+/** A member who can't change the organisation reads its name, with no Save. */
+export const GeneralReadOnly: Story = {
+  args: { ...General.args, onRename: undefined },
+};
 
 export const Members: Story = {
   args: { node: section("members", "Members"), ancestors, currentPath: "/organization-settings/members", data: organizationSettingsData },

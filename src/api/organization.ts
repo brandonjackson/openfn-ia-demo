@@ -289,6 +289,8 @@ export function useOrganizationSaves(organizationId: string | undefined) {
   const go = (reload: (readonly string[])[], work: () => Promise<unknown>) => run.mutateAsync({ work, reload }).then(() => undefined);
   const members = `/api/organizations/${organizationId}/members`;
   return {
+    // The name is the API's organization, which every page reads from the list.
+    rename: (name: string) => go([keys.organizations], () => request("PATCH", `/api/organizations/${organizationId}`, { name })),
     saveVisibility: (visibility: Partial<Visibility>) => go([keys.organization], () => request("PATCH", "/api/demo/organization", { visibility })),
     saveSecurityServerManager: (managedBy: SecurityServerManager) =>
       go([keys.organization], () => request("PATCH", "/api/demo/organization", { security_server_managed_by: managedBy })),

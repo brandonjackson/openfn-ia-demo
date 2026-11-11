@@ -44,6 +44,24 @@ describe("OrganizationSettingsPageQuery", () => {
     return (await request<{ data: Member[] }>("GET", `/api/organizations/${orgs[0]!.id}/members`)).data;
   };
 
+  it("renames the organisation on the server, and the page reloads with the new name", async () => {
+    renderRoute("/organization-settings/general");
+    const field = (await screen.findByLabelText(/^Organization name/, {}, wait)) as HTMLInputElement;
+    fireEvent.change(field, { target: { value: "Ministry of Health and Wellness" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("Your organisation is now called Ministry of Health and Wellness.", {}, wait)).toBeTruthy();
+    const { data: orgs } = await request<{ data: { attributes: { name: string } }[] }>("GET", "/api/organizations");
+    expect(orgs.some((o) => o.attributes.name === "Ministry of Health and Wellness")).toBe(true);
+  });
+
+  it("says under the name why the server refused it", async () => {
+    renderRoute("/organization-settings/general");
+    const field = await screen.findByLabelText(/^Organization name/, {}, wait);
+    fireEvent.change(field, { target: { value: "x".repeat(161) } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText(/160/, {}, wait)).toBeTruthy();
+  });
+
   it("lists the members the server has", async () => {
     const [first] = await members();
     renderRoute();

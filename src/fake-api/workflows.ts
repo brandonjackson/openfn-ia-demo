@@ -237,6 +237,8 @@ const WORKFLOW_KEYS = ["id", "project_id", "name", "jobs", "triggers", "edges", 
  */
 let credentialUsable: (projectId: string, linkId: string) => boolean = () => true;
 export const setCredentialCheck = (check: typeof credentialUsable) => void (credentialUsable = check);
+/** Whether a project may use a project credential: linked to it, or to a project it's a sandbox of. */
+export const canUseCredential = (projectId: string, linkId: string) => credentialUsable(projectId, linkId);
 
 /** Every problem with a workflow's graph, in one list (api/workflows.md). */
 export function graphProblems(doc: Pick<WorkflowDocument, "jobs" | "triggers" | "edges">, { selfId, projectId }: { selfId?: string; projectId?: string } = {}): Entry[] {

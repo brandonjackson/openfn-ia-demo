@@ -23,7 +23,8 @@ import { useCollectionsItems } from "../api/collections";
 import { starterContent } from "../model/project-components";
 import { combine, inTurn } from "../api/status";
 import { useEnvVars, useEnvVarSaves } from "../api/env-vars";
-import { asGraph, useProjectWorkflows, useSandboxes, useSandboxSaves, useWorkflow, useWorkflowSaves, useWorkflowSnapshots } from "../api/workflows";
+import { asGraph, useProjectWorkflows, useSandboxComponentChanges, useSandboxes, useSandboxSaves, useWorkflow, useWorkflowSaves, useWorkflowSnapshots } from "../api/workflows";
+import { componentChanges } from "../model/workflow-changes";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
 import { adaptorChoices, adaptorInfo, adaptorSnippets } from "../fixtures/adaptor-reference";
 import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
@@ -188,7 +189,10 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   }, [assistantPrompt, navigate, location.pathname, location.search]);
   // The editor shares the project's selected sandbox with the rest of the app.
   const [sandbox, setSandbox] = useSandbox(root.id);
-  const selected = sandbox === "main" ? root : (sandboxes.find((s) => s.name === sandbox) ?? root);
+  const listed = sandbox === "main" ? root : (sandboxes.find((s) => s.name === sandbox) ?? root);
+  // A sandbox as the list has it says nothing of what you may do there; its own details do.
+  const { project: details } = useProject(listed.id === root.id ? undefined : listed.id);
+  const selected = listed.id === root.id ? root : (details ?? listed);
   const { workflows: here } = useProjectWorkflows(selected.id);
   const { workflows: onMain } = useProjectWorkflows(root.id);
   // The copy on the canvas: the selected sandbox's workflow of the same name.
@@ -229,16 +233,24 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       dataclips: [...own, ...savedDataclips(projectClips.filter((d) => !ids.has(d.id)))],
     };
   }, [projectOrders, projectClips, shown.id]);
-  // The project's components from the API: its channels, collections and the rest. Components belong
-  // to the project, so a sandbox's editor shows and changes its project's.
-  const records = useProjectComponents(root);
+  // The components of the project shown, from the API: its channels, collections and the rest. A sandbox
+  // is a copy of its project, components included, so in one the editor shows and changes the sandbox's own.
+  const records = useProjectComponents(selected);
   const components = componentsFor(records.items, flags);
-  const { items: collectionItems } = useCollectionsItems(root.id, records.collections.map((c) => c.name));
+  const { items: collectionItems } = useCollectionsItems(selected.id, records.collections.map((c) => c.name));
   // Editors and up change a project's components, as they do its workflows.
-  const canEditComponents = !!root.permissions?.edit_workflow;
-  // The project's environment variables, like its components, belong to the project, not a sandbox.
-  const { envVars } = useEnvVars(flags.envVars ? root.id : undefined);
-  const envVarSaves = useEnvVarSaves(root.id);
+  const canEditComponents = !!selected.permissions?.edit_workflow;
+  // Its environment variables too: a sandbox has its own, and its runs use their values for its environment.
+  const { envVars } = useEnvVars(flags.envVars ? selected.id : undefined);
+  const envVarSaves = useEnvVarSaves(selected.id);
+  // What the sandbox changes in them against its parent, which merging brings back with the workflow.
+  const componentVersion = [
+    ...records.channels.channels.map((c) => `${c.component.id}:${c.lockVersion}`),
+    ...records.collections.map((c) => c.name),
+    ...records.contents.map((c) => `${c.component.id}:${c.lockVersion}`),
+    ...envVars.map((v) => `${v.id}:${v.updatedAt}`),
+  ].join(",");
+  const { changes: changedComponents } = useSandboxComponentChanges(editable ? (selected.parentId ?? undefined) : undefined, editable ? selected.id : undefined, componentVersion);
   // What opening the workflow's docs, its service listing and its components shows.
   const contents: WorkflowFileContents = {
     // The docs are written for the fixtures' workflows; any other starts with them blank.
@@ -289,9 +301,10 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       }}
       projectName={root.name}
       components={components}
-      onOpenComponent={(componentId) => navigate(`/projects/${root.id}/components/${componentId}`)}
+      // A component's page in the project shows main's, so a sandbox's own copy doesn't link to it.
+      onOpenComponent={selected.id === root.id ? (componentId) => navigate(`/projects/${root.id}/components/${componentId}`) : undefined}
       onCreateChannel={canEditComponents ? (draft) => records.channels.saves.create(draft, eventAddress(root.name, draft.name)) : undefined}
-      onCreateCollection={records.canManageCollections ? (name) => records.saves.collections.create(root.id, name) : undefined}
+      onCreateCollection={records.canManageCollections ? (name) => records.saves.collections.create(selected.id, name) : undefined}
       onCreateComponent={canEditComponents ? (type, draft) => records.saves.components.create(type, draft, starterContent(type, draft.name.trim())) : undefined}
       // Like the project's Components page: drafted from a plain-words description on Create.
       onDraftComponentWithAI={
@@ -308,6 +321,7 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       onSaveCollectionItem={canEditComponents ? (id, key, value) => records.saves.items.save(collectionName(id), key, value) : undefined}
       onDeleteCollectionItem={canEditComponents ? (id, key) => records.saves.items.remove(collectionName(id), key) : undefined}
       componentTypeOptions={componentTypesFor(flags)}
+      componentChanges={editable ? componentChanges(changedComponents) : undefined}
       sandboxes={["main", ...sandboxes.filter((s) => !s.scheduledDeletion).map((s) => s.name)]}
       sandbox={selected.id === root.id ? "main" : selected.name}
       onSelectSandbox={setSandbox}

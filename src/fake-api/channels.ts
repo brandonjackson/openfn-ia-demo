@@ -10,6 +10,11 @@
  * - Turned off (`enabled: false`), it refuses every request.
  * - `DELETE` removes it and every request it recorded.
  * - Editors and up make, change and delete them; any member reads them.
+ * - A sandbox gets its own copy of each of its parent's when it's made,
+ *   with no requests or traffic, and a merge brings its new and changed ones
+ *   back (sandboxes.ts). Like its steps, a sandbox's channel may use its
+ *   parent's credentials and webhook auth methods. Lightning doesn't copy
+ *   channels into sandboxes yet; the demo does, as it does every component.
  *
  * The demo's channels say more than Lightning's: a description, a kind
  * (read, write or event), the system on the other end, a sample payload, a
@@ -23,9 +28,10 @@ import type { ChannelDetails, ChannelMessage } from "../model/channels";
 import { badId, conflict, invalid, isUuid, json, noContent, notFound, now, ORIGIN, paged, unknownKeys, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
 import { ago, seedTime, table } from "./db";
-import { guardProject, projectIdFor } from "./projects";
+import { findProject, guardProject, projectIdFor } from "./projects";
+import { withSandboxCopies } from "./sandbox-copies";
+import { canUseCredential } from "./workflows";
 import { onWebhookAuthDeleted, webhookAuthMethods } from "./webhook-auth";
-import { projectCredentialLinks } from "./credentials";
 
 export interface ChannelRow {
   id: string;
@@ -73,8 +79,32 @@ export const channelIdFor = apiChannelId;
 const fixtureChannels = () =>
   fixtureProjects.flatMap((p) => p.components.filter((c) => c.type === "Channel").map((c) => ({ project: p, component: c, details: channelDetails(c) })));
 
-export const channels = table<ChannelRow>("channels", () =>
-  fixtureChannels().map(({ project, component, details }) => ({
+/** A week with nothing on it, for a channel that's had no traffic. */
+export const quietWeek = (): ChannelDetails["days"] =>
+  ["14 Oct", "15 Oct", "16 Oct", "17 Oct", "18 Oct", "19 Oct", "20 Oct"].map((label, i) => ({ label, tick: ["Wed", "Thu", "Fri", "Sat", "Sun", "Mon", "Tue"][i]!, messages: 0, errors: 0 }));
+
+/** A sandbox's copy of a channel: its setup, with no traffic yet, on the sandbox's copy of its workflow. */
+export const copyChannel = (c: ChannelRow, sandboxId: string): ChannelRow => ({
+  ...c,
+  id: seedId("channel", `${sandboxId}/${c.id}`),
+  project_id: sandboxId,
+  lock_version: 1,
+  days: quietWeek(),
+  median_ms: 0,
+  // The id cloneInto gives the sandbox's copy of the workflow.
+  workflow_id: c.workflow_id && seedId("workflow", `${sandboxId}/${c.workflow_id}`),
+});
+
+/** Whether a project may use a webhook auth method: its own, or one of a project it's a sandbox of. */
+export function canUseAuthMethod(projectId: string, methodId: string): boolean {
+  const m = webhookAuthMethods.rows().find((w) => w.id === methodId && !w.scheduled_deletion);
+  for (let p = findProject(projectId); p; p = p.parent_id ? findProject(p.parent_id) : undefined) if (m?.project_id === p.id) return true;
+  return false;
+}
+
+/** Every project's channels, as the fixtures have them, before the sandboxes' copies. */
+const channelsSeed = (): ChannelRow[] =>
+  fixtureChannels().map(({ project, component, details }): ChannelRow => ({
     id: channelIdFor(project.id, component.id),
     project_id: projectIdFor(project.id),
     name: component.name,
@@ -94,8 +124,9 @@ export const channels = table<ChannelRow>("channels", () =>
     days: details.days,
     median_ms: details.medianMs,
     workflow_id: details.workflowId ? apiWorkflowId(details.workflowId) : null,
-  })),
-);
+  }));
+
+export const channels = table<ChannelRow>("channels", () => withSandboxCopies(channelsSeed(), copyChannel));
 
 export const channelRequests = table<ChannelRequestRow>("channel_requests", () =>
   fixtureChannels().flatMap(({ project, component, details }) =>
@@ -220,10 +251,10 @@ export const channelRoutes: Record<string, Handler> = {
     else if (!/^https?:\/\/\S+$/.test(url)) errors.push({ code: "format", detail: "must be an http or https URL", pointer: "#/destination_url" });
     const methods = (body["client_auth_method_ids"] as string[] | undefined) ?? existing?.client_auth_method_ids ?? [];
     methods.forEach((m, i) => {
-      if (!webhookAuthMethods.rows().some((w) => w.id === m && w.project_id === p.id && !w.scheduled_deletion)) errors.push({ code: "not_found", detail: "isn't one of this project's webhook auth methods", pointer: `#/client_auth_method_ids/${i}` });
+      if (!canUseAuthMethod(p.id, m)) errors.push({ code: "not_found", detail: "isn't one of this project's webhook auth methods", pointer: `#/client_auth_method_ids/${i}` });
     });
     const credential = body["destination_credential_id"] === undefined ? existing?.destination_credential_id ?? null : (body["destination_credential_id"] as string | null);
-    if (credential && !projectCredentialLinks.rows().some((l) => l.id === credential && l.project_id === p.id)) {
+    if (credential && !canUseCredential(p.id, credential)) {
       errors.push({ code: "not_found", detail: "isn't a credential linked to this project", pointer: "#/destination_credential_id" });
     }
     if (errors.length) return invalid(errors);
@@ -249,7 +280,7 @@ export const channelRoutes: Record<string, Handler> = {
       method: pick("method", "POST"),
       auth: pick("auth", "None"),
       payload: pick("payload", "{}"),
-      days: existing?.days ?? (existing ? [] : ["14 Oct", "15 Oct", "16 Oct", "17 Oct", "18 Oct", "19 Oct", "20 Oct"].map((label, i) => ({ label, tick: ["Wed", "Thu", "Fri", "Sat", "Sun", "Mon", "Tue"][i]!, messages: 0, errors: 0 }))),
+      days: existing?.days ?? quietWeek(),
       median_ms: existing?.median_ms ?? 0,
       workflow_id: pick("workflow_id", null),
     };

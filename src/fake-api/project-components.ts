@@ -15,15 +15,18 @@
  *   other's work.
  * - `DELETE` removes it.
  * - Editors and up make, change and delete them; any member reads them.
+ * - A sandbox gets its own copy of each of its parent's when it's made, and
+ *   a merge brings its new and changed ones back (sandboxes.ts).
  */
 import { projects as fixtureProjects } from "../fixtures/projects";
-import { apiComponentId } from "../fixtures/ids";
+import { apiComponentId, seedId } from "../fixtures/ids";
 import { componentContent } from "../fixtures/project-components";
 import { contentComponentTypes, isContentComponentType, isJsonContent, type ContentComponentType } from "../model/project-components";
 import { badId, conflict, invalid, isUuid, json, noContent, notFound, now, ORIGIN, paged, unknownKeys, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
 import { seedTime, table } from "./db";
 import { guardProject, projectIdFor } from "./projects";
+import { withSandboxCopies } from "./sandbox-copies";
 import { currentUserId } from "./session";
 import { findUser, fullName } from "./users";
 
@@ -40,7 +43,16 @@ export interface ComponentRow {
   updated_at: string;
 }
 
-export const components = table<ComponentRow>("components", () =>
+/** A sandbox's copy of a component: the same file, under an id of its own. */
+export const copyComponent = (c: ComponentRow, sandboxId: string): ComponentRow => ({
+  ...c,
+  id: seedId("component", `${sandboxId}/${c.id}`),
+  project_id: sandboxId,
+  lock_version: 1,
+});
+
+/** Every project's components, as the fixtures have them, before the sandboxes' copies. */
+const componentsSeed = (): ComponentRow[] =>
   fixtureProjects.flatMap((p) =>
     p.components.flatMap((c) =>
       isContentComponentType(c.type)
@@ -60,8 +72,9 @@ export const components = table<ComponentRow>("components", () =>
           ]
         : [],
     ),
-  ),
-);
+  );
+
+export const components = table<ComponentRow>("components", () => withSandboxCopies(componentsSeed(), copyComponent));
 
 export function componentEntry(c: ComponentRow) {
   return {

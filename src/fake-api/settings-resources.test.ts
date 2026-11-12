@@ -39,9 +39,11 @@ describe("collections", () => {
   it("keeps collection management to owners and admins, and hides items from outsiders", async () => {
     signInAs("user-john"); // an editor in project-a
     expect((await refusal(list()))?.code).toBe("forbidden");
-    await expect(request("GET", "/collections/applicant-cache")).resolves.toBeTruthy();
+    await expect(request("GET", `/collections/applicant-cache?project_id=${a}`)).resolves.toBeTruthy();
+    // Its sandboxes have one of the same name, so a name alone doesn't say which.
+    expect((await refusal(request("GET", "/collections/applicant-cache")))?.code).toBe("ambiguous_name");
     signInAs("user-grace"); // not in project-a
-    expect((await refusal(request("GET", "/collections/applicant-cache")))?.code).toBe("not_found");
+    expect((await refusal(request("GET", `/collections/applicant-cache?project_id=${a}`)))?.code).toBe("not_found");
   });
 });
 

@@ -35,8 +35,9 @@ interface Use {
  * runs where you are. It opens a panel with the switch that turns the
  * trigger on or off, then what a run here uses: which values credentials and
  * environment variables load, where its run history goes, and whose
- * collections it reads and writes. In a sandbox, what differs from main is
- * tinted, and collections, which a sandbox shares with main, are red.
+ * collections it reads and writes. A sandbox is a copy of its project, so in
+ * one, runs use its own environment variables, run history and collections,
+ * and its environment's credential values; what differs from main is tinted.
  */
 export default function TriggerStatusMenu({ sandbox, live, onToggle, environment, showEnvVars = false, defaultOpen = false }: Props) {
   const onMain = sandbox === "main";
@@ -47,18 +48,19 @@ export default function TriggerStatusMenu({ sandbox, live, onToggle, environment
 
   const uses: Use[] = [
     { label: "Credentials", value: values, tone: envTone },
-    ...(showEnvVars ? [{ label: "Environment variables", value: values, tone: envTone }] : []),
+    // A sandbox has its own environment variables, so its runs use its values, e.g. its staging ones.
+    ...(showEnvVars ? [{ label: "Environment variables", value: onMain || !environment ? values : `Sandbox's ${values}`, tone: envTone }] : []),
     ...(onMain ? [] : [{ label: "Run history", value: "This sandbox only", tone: "yellow" as const }]),
     onMain
       ? { label: "Collections", value: "The project's own", tone: "gray" }
-      : { label: "Collections", value: "Shared with main", tone: "red" },
+      : { label: "Collections", value: "This sandbox only", tone: "yellow" },
   ];
 
   return (
     <Popover
       ariaLabel="Triggers"
       align="right"
-      widthClass="w-80"
+      widthClass="w-96"
       defaultOpen={defaultOpen}
       footerInset="even"
       trigger={({ open, toggle }) => (
@@ -82,7 +84,7 @@ export default function TriggerStatusMenu({ sandbox, live, onToggle, environment
           </Text>
           {uses.map((u) => (
             <Inline key={u.label} justify="between" gap="md">
-              <Text>{u.label}</Text>
+              <Text nowrap>{u.label}</Text>
               <Badge label={u.value} tone={u.tone} shape="tag" />
             </Inline>
           ))}

@@ -35,7 +35,7 @@ export const OpenOnMain: Story = { args: { defaultOpen: true } };
 /** On main, paused. */
 export const PausedOnMain: Story = { args: { live: false } };
 
-/** Open in a sandbox, paused as a new one starts: what differs from main is tinted, and shared collections are red. */
+/** Open in a sandbox, paused as a new one starts: its own environment variables, run history and collections, and its environment's values, tinted where they differ from main. */
 export const OpenInSandbox: Story = {
   args: { sandbox: projects[0].sandboxes[1], live: false, environment: "staging", defaultOpen: true },
 };

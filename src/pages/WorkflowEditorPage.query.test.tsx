@@ -171,9 +171,10 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     expect(data.find((d) => d.id === "saved-new-citizen")).toMatchObject({ name: "First-time applicant", description: "Not in the registry yet" });
   });
 
-  it("counts a component added in a sandbox as a change", async () => {
+  it("adds a component to the sandbox's own copy of the project, counted as a change", async () => {
     const projectId = projectIdFor("project-a");
-    await request("PUT", `/api/projects/${projectId}/sandboxes/${crypto.randomUUID()}`, { name: "add-docs" });
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "add-docs" });
     act(() => setSandbox(projectId, "add-docs"));
     try {
       renderEditor(apiWorkflowId("planning-application-workflow"));
@@ -188,6 +189,10 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
 
       fireEvent.click(await screen.findByRole("button", { name: "Sandbox add-docs, 1 change" }, wait));
       expect(await screen.findByText("Added document runbook", {}, wait)).toBeTruthy();
+      const named = (id: string) =>
+        request<{ data: { attributes: { name: string } }[] }>("GET", `/api/demo/projects/${id}/components?page_size=100`).then((r) => r.data.map((c) => c.attributes.name));
+      expect(await named(sandboxId)).toContain("runbook");
+      expect(await named(projectId)).not.toContain("runbook");
     } finally {
       act(() => setSandbox(projectId, "main"));
     }

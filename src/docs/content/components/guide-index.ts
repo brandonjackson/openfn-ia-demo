@@ -1,0 +1,39 @@
+import type { ComponentType } from "react";
+import {
+  ButtonGuide,
+  IconButtonGuide,
+  CardGuide,
+  StackGuide,
+  InlineGuide,
+  TextGuide,
+  BadgeGuide,
+  CalloutGuide,
+  FormFieldGuide,
+  EmptyStateGuide,
+  NavItemGuide,
+  SegmentedControlGuide,
+  PageHeaderGuide,
+  ListPageGuide,
+  StatusPillGuide,
+  EntityPillGuide,
+} from "./guides";
+
+/** The components with hand-written guidance in guides.tsx, by name. */
+export const guides: Record<string, ComponentType> = {
+  Button: ButtonGuide,
+  IconButton: IconButtonGuide,
+  Card: CardGuide,
+  Stack: StackGuide,
+  Inline: InlineGuide,
+  Text: TextGuide,
+  Badge: BadgeGuide,
+  Callout: CalloutGuide,
+  FormField: FormFieldGuide,
+  EmptyState: EmptyStateGuide,
+  NavItem: NavItemGuide,
+  SegmentedControl: SegmentedControlGuide,
+  PageHeader: PageHeaderGuide,
+  ListPage: ListPageGuide,
+  StatusPill: StatusPillGuide,
+  EntityPill: EntityPillGuide,
+};

@@ -17,6 +17,7 @@ interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
   ref?: Ref<HTMLInputElement>;
 }
 
+/** A one-line text box. Put it in a `FormField` for its label, hint and error. */
 export function TextInput({ className = "", compact = false, mono = false, ...rest }: TextInputProps) {
   return <input type="text" className={`${controlClasses} ${compact ? "py-1.5" : "py-2"} ${mono ? "font-mono" : ""} ${className}`} {...rest} />;
 }
@@ -28,6 +29,7 @@ interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   ref?: Ref<HTMLTextAreaElement>;
 }
 
+/** A text box of several lines, e.g. a description. Put it in a `FormField`. */
 export function TextArea({ className = "", mono = false, ...rest }: TextAreaProps) {
   return <textarea className={`${controlClasses} py-2 ${mono ? "font-mono text-xs" : ""} ${className}`} {...rest} />;
 }
@@ -51,6 +53,7 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   fit?: boolean;
 }
 
+/** A native drop-down of `{ value, label }` options, with an optional placeholder. */
 export function Select({ options, placeholder, compact = false, fullWidth = false, fit = false, className, ...rest }: SelectProps) {
   const width = className ?? (fullWidth ? "w-full" : "w-auto");
   const classes = fit ? controlClasses.replace("w-full ", "") : controlClasses;
@@ -75,6 +78,7 @@ interface RadioOptionProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "
   hint?: string;
 }
 
+/** One choice of a set, with a label and an optional hint under it. */
 export function RadioOption({ label, hint, ...rest }: RadioOptionProps) {
   if (hint) {
     return (

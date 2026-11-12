@@ -17,7 +17,7 @@ import type {
 } from "../model/workflow";
 import { defaultWorkflowSettings, stepDeleteBlockedReason, workflowToYaml } from "../model/workflow";
 import type { WorkflowSettings } from "../model/workflow";
-import { componentChanges, workflowChanges } from "../model/workflow-changes";
+import { workflowChanges, type WorkflowChange } from "../model/workflow-changes";
 import type { EnvVar, EnvVarDraft } from "../model/env-vars";
 import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../model/runs";
 import type { ActivityPeriod, RunProgress, RunRequest } from "../model/runs";
@@ -221,6 +221,7 @@ export default function WorkflowEditorPage({
   components = [],
   onOpenComponent,
   componentTypeOptions,
+  componentChanges = [],
   onCreateChannel,
   onCreateCollection,
   onCreateComponent,
@@ -302,6 +303,11 @@ export default function WorkflowEditorPage({
   onOpenComponent?: (componentId: string) => void;
   /** The kinds of component that can be added. Defaults to every kind but Workflow. */
   componentTypeOptions?: ProjectComponentType[];
+  /**
+   * In a sandbox, what it changes in its own copy of the project's components and environment variables
+   * against where it merges, listed with the workflow's changes. Left out on main.
+   */
+  componentChanges?: WorkflowChange[];
   /** Makes a channel from the code explorer's +; resolves with its id, and it opens. Left out where you can't. */
   onCreateChannel?: (draft: ChannelDraft) => Promise<string>;
   /** Makes a collection with a URL-safe name from the code explorer's +; resolves with its id, and it opens. Left out where you can't. */
@@ -618,12 +624,9 @@ export default function WorkflowEditorPage({
       (!componentTypeOptions || componentTypeOptions.includes(t.type)) &&
       (t.type === "Channel" ? !!onCreateChannel : t.type === "Collection" ? !!onCreateCollection : isContentComponentType(t.type) && !!onCreateComponent),
   );
-  // Components made here, by sandbox: each counts as a change in that sandbox, though it's the project's.
-  const [addedComponents, setAddedComponents] = useState<Record<string, string[]>>({});
-  /** Once a new component is made, count it as a change and open it in the code view. */
+  /** Once a new component is made, open it in the code view. */
   const openCreated = (id: string) => {
     setCreatingComponent(undefined);
-    if (!onMain) setAddedComponents((current) => ({ ...current, [sandbox]: [...(current[sandbox] ?? []), id] }));
     setFile({ componentId: id });
   };
 
@@ -1279,14 +1282,9 @@ export default function WorkflowEditorPage({
 
   // ---- Layout ---------------------------------------------------------------
 
-  // What going live would carry over: the copy on the canvas, edits and all, against where it merges.
-  // Plus the components added from here, once the list has them (a deleted one drops out).
-  const changes = onMain
-    ? []
-    : [
-        ...workflowChanges(baseline, graph),
-        ...componentChanges((addedComponents[sandbox] ?? []).flatMap((id) => components.filter((c) => c.id === id))),
-      ];
+  // What going live would carry over: the copy on the canvas, edits and all, against where it merges,
+  // and the sandbox's new and changed components and environment variables, which go with it.
+  const changes = onMain ? [] : [...workflowChanges(baseline, graph), ...componentChanges];
 
   const toolbar = (
     <EditorToolbar

@@ -7,21 +7,38 @@
  *   off), the parent's members (its owner becomes an admin, you the owner)
  *   and its MFA setting. Its name is unique among the parent's sandboxes.
  *   Sending it again answers 200 with the sandbox unchanged.
+ * - A sandbox is a copy of its project, so its components and environment
+ *   variables come along too: a copy of each channel (no requests or
+ *   traffic), form, artifact, AI skill, document and static website, and
+ *   each variable with its values. Collections come as Lightning makes
+ *   them: an empty one of the same name for each (names, never items).
  * - A merge preview pairs the sandbox's workflows with the target's by name
  *   and says what's new, changed, unchanged or deleted, and whether the
- *   target changed since the copy was made. It writes nothing.
+ *   target changed since the copy was made. It does the same for the
+ *   components (by kind and name) and the environment variables (by the one
+ *   each was copied from, or key), which are only ever new, changed or
+ *   unchanged: a merge never deletes them. It writes nothing.
  * - A merge copies the chosen workflows into the target (by default the
- *   parent) as a new version of each, keeping the target's trigger switches.
+ *   parent) as a new version of each, keeping the target's trigger switches,
+ *   and brings every new and changed component and variable with them. A
+ *   collection only the sandbox has is made, empty, in the target; the
+ *   target's collections keep their items. A channel keeps the target's
+ *   switch and traffic.
  * - Renaming and recolouring go through `PUT /api/projects/:id`; deleting
  *   through `DELETE /api/projects/:id`, which takes its own sandboxes too.
  */
 import { cloneNodeId, newId } from "../fixtures/ids";
+import { canUseAuthMethod, channels, copyChannel, quietWeek, type ChannelRow } from "./channels";
+import { collections, copyCollection } from "./collections";
+import { copyEnvVar, envVars, type EnvVarRow } from "./env-vars";
+import { components, copyComponent, type ComponentRow } from "./project-components";
+import { findUser, fullName } from "./users";
 import { conflict, forbidden, includes, invalid, isUuid, json, now, paged, unknownKeys, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
 import { findProject, guardProject, members, membersOf, projectEntry, projects, roleIn, rootOf, type ProjectRow } from "./projects";
 import { currentUserId } from "./session";
 import { copyDataclipsInto } from "./work-orders";
-import { cloneInto, liveWorkflowsIn, saveWorkflow, snapshot, workflows, type WorkflowRow } from "./workflows";
+import { canUseCredential, cloneInto, findWorkflow, liveWorkflowsIn, saveWorkflow, snapshot, workflows, type WorkflowRow } from "./workflows";
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
 const NAME = /^[a-z0-9-]+$/;
@@ -76,9 +93,212 @@ function preview(sandbox: ProjectRow, target: ProjectRow) {
       })),
       ...gone.map((t) => ({ name: t.name, source_workflow_id: null, target_workflow_id: t.id, change: "deleted", diverged: false })),
     ],
+    components: componentPairs(sandbox, target).map(({ type, name, mine, theirs, same }) => ({
+      component_type: type,
+      name,
+      source_id: mine.id,
+      target_id: theirs?.id ?? null,
+      change: !theirs ? "new" : same ? "unchanged" : "changed",
+    })),
+    env_vars: envVarPairs(sandbox, target).map(({ mine, theirs, same }) => ({
+      key: mine.key,
+      environments: mine.environments,
+      source_id: mine.id,
+      target_id: theirs?.id ?? null,
+      change: !theirs ? "new" : same ? "unchanged" : "changed",
+    })),
     // Credentials the sandbox uses that the target lacks: none until credentials move to the API.
     credentials: [] as { credential_id: string; name: string }[],
   };
+}
+
+/* ---------------- Components and environment variables ---------------- */
+
+/** Every component of a project, as a merge pairs them: by kind and name. */
+const componentKey = (type: string, name: string) => `${type}/${name.toLowerCase()}`;
+
+/** A channel's workflow, by name, so a sandbox's copy and the target's compare. */
+const workflowName = (id: string | null) => (id ? (findWorkflow(id)?.name ?? null) : null);
+
+/** A channel's setup, without its id, switch or traffic, to tell whether two copies differ. */
+const channelContent = (c: ChannelRow) =>
+  JSON.stringify({
+    name: c.name,
+    url: c.destination_url,
+    auth: [...c.client_auth_method_ids].sort(),
+    credential: c.destination_credential_id,
+    description: c.description,
+    type: c.channel_type,
+    system: c.system,
+    method: c.method,
+    authLabel: c.auth,
+    payload: c.payload,
+    workflow: workflowName(c.workflow_id),
+  });
+
+const fileContent = (c: ComponentRow) => JSON.stringify({ name: c.name, description: c.description, content: c.content });
+
+interface ComponentPair {
+  type: string;
+  name: string;
+  mine: { id: string };
+  theirs?: { id: string };
+  same: boolean;
+  apply: () => void;
+}
+
+/**
+ * A sandbox's components paired with a target's: each channel, collection
+ * and file of the sandbox with the target's of the same kind and name, if
+ * there is one, whether they're the same, and what merging it does.
+ */
+function componentPairs(sandbox: ProjectRow, target: ProjectRow): ComponentPair[] {
+  const at = now;
+  const me = () => {
+    const u = findUser(currentUserId());
+    return u ? fullName(u) : "Someone";
+  };
+  const theirChannels = channels.rows().filter((c) => c.project_id === target.id);
+  const theirCollections = collections.rows().filter((c) => c.project_id === target.id);
+  const theirFiles = components.rows().filter((c) => c.project_id === target.id);
+  // The target's workflow of the same name as the sandbox's, once the merge's workflows are in.
+  const workflowThere = (id: string | null) => {
+    const name = workflowName(id);
+    return (name && liveWorkflowsIn(target.id).find((w) => w.name === name)?.id) || null;
+  };
+  // What a channel of the sandbox's becomes in the target: its auth and credential where the target may use them.
+  const channelThere = (c: ChannelRow): Pick<ChannelRow, "client_auth_method_ids" | "destination_credential_id" | "workflow_id"> => ({
+    client_auth_method_ids: c.client_auth_method_ids.filter((m) => canUseAuthMethod(target.id, m)),
+    destination_credential_id: c.destination_credential_id && canUseCredential(target.id, c.destination_credential_id) ? c.destination_credential_id : null,
+    workflow_id: workflowThere(c.workflow_id),
+  });
+
+  return [
+    ...channels
+      .rows()
+      .filter((c) => c.project_id === sandbox.id)
+      .map((c): ComponentPair => {
+        const theirs = theirChannels.find((t) => t.name.toLowerCase() === c.name.toLowerCase());
+        return {
+          type: "Channel",
+          name: c.name,
+          mine: c,
+          theirs,
+          same: !!theirs && channelContent(c) === channelContent(theirs),
+          apply: () => {
+            if (theirs) {
+              // The target keeps its own id, switch and traffic.
+              channels.update(
+                (x) => x.id === theirs.id,
+                (x) => ({ ...c, ...channelThere(c), id: x.id, project_id: x.project_id, enabled: x.enabled, days: x.days, median_ms: x.median_ms, lock_version: x.lock_version + 1, inserted_at: x.inserted_at, updated_at: at() }),
+              );
+              record("updated", { type: "channel", id: theirs.id, name: c.name }, {}, true);
+            } else {
+              const made: ChannelRow = { ...copyChannel(c, target.id), ...channelThere(c), id: newId(), days: quietWeek(), inserted_at: at(), updated_at: at() };
+              channels.insert(made);
+              record("created", { type: "channel", id: made.id, name: made.name }, { after: { name: made.name } }, true);
+            }
+          },
+        };
+      }),
+    ...collections
+      .rows()
+      .filter((c) => c.project_id === sandbox.id)
+      .map((c): ComponentPair => {
+        const theirs = theirCollections.find((t) => t.name === c.name);
+        return {
+          type: "Collection",
+          name: c.name,
+          mine: c,
+          theirs,
+          // Only names merge, so one the target has is the same.
+          same: !!theirs,
+          apply: () => {
+            if (theirs) return;
+            const made = { ...copyCollection(c, target.id, at()), id: newId() };
+            collections.insert(made);
+            record("created", { type: "collection", id: made.id, name: made.name }, { after: { name: made.name } });
+          },
+        };
+      }),
+    ...components
+      .rows()
+      .filter((c) => c.project_id === sandbox.id)
+      .map((c): ComponentPair => {
+        const theirs = theirFiles.find((t) => componentKey(t.type, t.name) === componentKey(c.type, c.name));
+        return {
+          type: c.type,
+          name: c.name,
+          mine: c,
+          theirs,
+          same: !!theirs && fileContent(c) === fileContent(theirs),
+          apply: () => {
+            if (theirs) {
+              components.update(
+                (x) => x.id === theirs.id,
+                (x) => ({ ...x, name: c.name, description: c.description, content: c.content, lock_version: x.lock_version + 1, updated_by: me(), updated_at: at() }),
+              );
+              record("updated", { type: "component", id: theirs.id, name: c.name }, {}, true);
+            } else {
+              const made: ComponentRow = { ...copyComponent(c, target.id), id: newId(), updated_by: me(), inserted_at: at(), updated_at: at() };
+              components.insert(made);
+              record("created", { type: "component", id: made.id, name: made.name }, { after: { name: made.name } }, true);
+            }
+          },
+        };
+      }),
+  ];
+}
+
+const envVarContent = (v: EnvVarRow) => JSON.stringify({ key: v.key, value: v.value, secret: v.secret, environments: [...v.environments].sort() });
+
+/**
+ * A sandbox's environment variables paired with a target's: the one each was
+ * copied from, or else one with its key in an environment it's set for (a key
+ * is set once in each), and what merging it does.
+ */
+function envVarPairs(sandbox: ProjectRow, target: ProjectRow) {
+  const theirs = envVars.rows().filter((v) => v.project_id === target.id);
+  const me = () => {
+    const u = findUser(currentUserId());
+    return u ? fullName(u) : "Someone";
+  };
+  return envVars
+    .rows()
+    .filter((v) => v.project_id === sandbox.id)
+    .map((v) => {
+      const pair =
+        theirs.find((t) => t.id === v.copied_from) ?? theirs.find((t) => t.key === v.key && t.environments.some((e) => v.environments.includes(e)));
+      return {
+        mine: v,
+        theirs: pair,
+        same: !!pair && envVarContent(v) === envVarContent(pair),
+        apply: () => {
+          const at = now();
+          if (pair) {
+            envVars.update((x) => x.id === pair.id, (x) => ({ ...x, key: v.key, value: v.value, secret: v.secret, environments: v.environments, updated_by: me(), updated_at: at }));
+            record("updated", { type: "env_var", id: pair.id, name: v.key }, {}, true);
+          } else {
+            const made: EnvVarRow = { ...copyEnvVar(v, target.id), id: newId(), copied_from: null, updated_by: me(), inserted_at: at, updated_at: at };
+            envVars.insert(made);
+            record("created", { type: "env_var", id: made.id, name: made.key }, { after: { key: made.key } }, true);
+          }
+        },
+      };
+    });
+}
+
+/** Copies a project's components and environment variables into a sandbox just made from it. */
+function copyComponentsInto(parentId: string, sandboxId: string, at: string) {
+  for (const c of channels.rows().filter((x) => x.project_id === parentId)) channels.insert({ ...copyChannel(c, sandboxId), inserted_at: at, updated_at: at });
+  for (const c of collections.rows().filter((x) => x.project_id === parentId)) collections.insert(copyCollection(c, sandboxId, at));
+  for (const c of components.rows().filter((x) => x.project_id === parentId)) components.insert(copyComponent(c, sandboxId));
+  for (const v of envVars.rows().filter((x) => x.project_id === parentId)) envVars.insert(copyEnvVar(v, sandboxId));
+}
+
+/** Merges a sandbox's new and changed components and environment variables into a target. Deletes nothing. */
+function mergeComponents(sandbox: ProjectRow, target: ProjectRow) {
+  for (const pair of [...componentPairs(sandbox, target), ...envVarPairs(sandbox, target)]) if (!pair.same) pair.apply();
 }
 
 /** The target a merge names, or why it can't merge there. */
@@ -171,6 +391,8 @@ export const sandboxRoutes: Record<string, Handler> = {
     }
     // The saved dataclips asked for come along, to run the copies with.
     copyDataclipsInto(parent.id, sandbox.id, (clipIds as string[] | undefined) ?? [], copies);
+    // Its components and environment variables, as the parent has them now.
+    copyComponentsInto(parent.id, sandbox.id, at);
     record("created", { type: "project", id: sandbox.id, name: sandbox.name }, { after: { name: sandbox.name, parent_id: parent.id } });
     return json(201, { data: projectEntry(sandbox) });
   },
@@ -230,6 +452,8 @@ export const sandboxRoutes: Record<string, Handler> = {
         record("created", { type: "workflow", id: created.id, name: created.name }, { after: { name: created.name } });
       }
     }
+    // After the workflows, so a new channel finds the target's copy of its workflow.
+    mergeComponents(sandbox, target);
     projects.update((p) => p.id === target.id, (p) => ({ ...p, updated_at: now() }));
     return json(201, { data: projectEntry(findProject(target.id)!) });
   },

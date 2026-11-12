@@ -16,6 +16,10 @@
  * - `DELETE .../:id` removes it (204).
  * - Editors and up make, change and delete them. Each change is in the
  *   audit trail, without its value.
+ * - Every project has its own, sandboxes included: making a sandbox copies
+ *   its parent's (secrets' stored values too), runs there use the sandbox's
+ *   values for its environment, and a merge brings its new and changed ones
+ *   back (sandboxes.ts).
  */
 import { envVarsByProject, seededSecretValues } from "../fixtures/env-vars";
 import { seedId } from "../fixtures/ids";
@@ -25,6 +29,7 @@ import { badId, invalid, isUuid, json, maxLength, noContent, notFound, now, ORIG
 import { record } from "./audit";
 import { seedTime, table } from "./db";
 import { guardProject, projectIdFor } from "./projects";
+import { withSandboxCopies } from "./sandbox-copies";
 import { currentUserId } from "./session";
 import { findUser, fullName } from "./users";
 
@@ -38,9 +43,20 @@ export interface EnvVarRow {
   updated_by: string;
   inserted_at: string;
   updated_at: string;
+  /** In a sandbox, the parent's variable it was copied from, which a merge changes; null for one made here. */
+  copied_from?: string | null;
 }
 
-export const envVars = table<EnvVarRow>("env_vars", () =>
+/** A sandbox's copy of a variable, value and all, remembering where it came from. */
+export const copyEnvVar = (v: EnvVarRow, sandboxId: string): EnvVarRow => ({
+  ...v,
+  id: seedId("env_var", `${sandboxId}/${v.id}`),
+  project_id: sandboxId,
+  copied_from: v.id,
+});
+
+/** Every project's envVars, as the fixtures have them, before the sandboxes' copies. */
+const envVarsSeed = (): EnvVarRow[] =>
   Object.entries(envVarsByProject).flatMap(([slug, vars]) =>
     vars.map((v) => ({
       id: seedId("env_var", `${slug}/${v.id}`),
@@ -53,8 +69,9 @@ export const envVars = table<EnvVarRow>("env_vars", () =>
       inserted_at: seedTime("3 months ago"),
       updated_at: seedTime(v.updatedAt),
     })),
-  ),
-);
+  );
+
+export const envVars = table<EnvVarRow>("env_vars", () => withSandboxCopies(envVarsSeed(), copyEnvVar));
 
 const entry = (v: EnvVarRow) => ({
   type: "env_vars",

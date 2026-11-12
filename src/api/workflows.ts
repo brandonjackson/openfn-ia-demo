@@ -11,6 +11,7 @@ import { formatDate } from "../model/time";
 import { listAll, request } from "./client";
 import { projectKeys, toProject, type ApiProject } from "./projects";
 import type { ProjectDetails } from "../model/projects";
+import type { ProjectComponentType } from "../model/component-types";
 import { statusOf, type LoadStatus } from "./status";
 
 /** A snapshot as GET /api/workflows/:id/snapshots lists it, with the demo's author and message. */
@@ -122,6 +123,41 @@ export function useMergePreview(parentId: string, sandboxId: string | undefined,
       a.workflows.map((w) => ({ name: w.name, sourceWorkflowId: w.source_workflow_id, targetWorkflowId: w.target_workflow_id, change: w.change, diverged: w.diverged })),
   });
   return { status: statusOf(query), workflows: query.data ?? [] };
+}
+
+/** A merge preview's line for one component or environment variable a merge would bring: never a deletion. */
+export interface MergePreviewComponent {
+  /** The component's kind, or "Environment variable". */
+  type: ProjectComponentType | "Environment variable";
+  /** Its name, or a variable's key. */
+  name: string;
+  change: "new" | "changed";
+}
+
+/**
+ * What a sandbox changes in its project's components and environment
+ * variables against its parent: the new and changed ones a merge would
+ * bring. `version` says when the sandbox's own changed (its components'
+ * lock versions, say), so the preview is asked for again; a merge refreshes
+ * it too.
+ */
+export function useSandboxComponentChanges(parentId: string | undefined, sandboxId: string | undefined, version: string): { status: LoadStatus; changes: MergePreviewComponent[] } {
+  const query = useQuery({
+    queryKey: [...workflowKeys.preview(sandboxId ?? "", parentId ?? ""), "components", version],
+    enabled: !!parentId && !!sandboxId,
+    placeholderData: (previous) => previous,
+    queryFn: () =>
+      // The demo's own extensions to the preview; Lightning's sends neither.
+      request<{
+        components?: { component_type: ProjectComponentType; name: string; change: "new" | "changed" | "unchanged" }[];
+        env_vars?: { key: string; change: "new" | "changed" | "unchanged" }[];
+      }>("POST", `/api/projects/${parentId}/sandboxes/${sandboxId}/merge_previews`, { target_project_id: parentId }),
+    select: (a): MergePreviewComponent[] => [
+      ...(a.components ?? []).flatMap((c) => (c.change === "unchanged" ? [] : [{ type: c.component_type, name: c.name, change: c.change }])),
+      ...(a.env_vars ?? []).flatMap((v) => (v.change === "unchanged" ? [] : [{ type: "Environment variable" as const, name: v.key, change: v.change }])),
+    ],
+  });
+  return { status: statusOf(query), changes: (sandboxId && query.data) || [] };
 }
 
 /** Every merge preview at once, for a list of sandboxes, keyed by sandbox id. */

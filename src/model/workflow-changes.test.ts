@@ -83,10 +83,17 @@ describe("workflowChanges", () => {
     ]);
   });
 
-  it("names components added in the sandbox", () => {
-    expect(componentChanges([{ name: "runbook", type: "Document" }, { name: "triage", type: "AI Skill" }])).toEqual([
+  it("names components and environment variables added or changed in the sandbox", () => {
+    expect(
+      componentChanges([
+        { name: "runbook", type: "Document", change: "new" },
+        { name: "triage", type: "AI Skill", change: "changed" },
+        { name: "DHIS2_URL", type: "Environment variable", change: "new" },
+      ]),
+    ).toEqual([
       { kind: "added", summary: "Added document runbook" },
-      { kind: "added", summary: "Added AI skill triage" },
+      { kind: "changed", summary: "Changed AI skill triage" },
+      { kind: "added", summary: "Added environment variable DHIS2_URL" },
     ]);
   });
 });

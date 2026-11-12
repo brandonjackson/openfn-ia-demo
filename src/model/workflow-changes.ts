@@ -97,16 +97,20 @@ export function workflowChanges(base: Workflow | undefined, current: Workflow): 
 }
 
 /**
- * Components added from a sandbox's editor, as changes. Components belong to
- * the project, so making one doesn't touch the sandbox's copy of the workflow,
- * but it's still something the person changed while working there.
+ * What a sandbox changes in its project's components and environment
+ * variables, as changes: a sandbox is a copy of its project, so a component
+ * added or edited there goes back with the workflow when it merges.
  */
-export function componentChanges(added: { name: string; type: ProjectComponentType }[]): WorkflowChange[] {
-  return added.map((c) => ({ kind: "added", summary: `Added ${componentNoun(c.type)} ${c.name}` }));
+export function componentChanges(changed: { name: string; type: ProjectComponentType | "Environment variable"; change: "new" | "changed" }[]): WorkflowChange[] {
+  return changed.map((c) =>
+    c.change === "new"
+      ? { kind: "added", summary: `Added ${componentNoun(c.type)} ${c.name}` }
+      : { kind: "changed", summary: `Changed ${componentNoun(c.type)} ${c.name}` },
+  );
 }
 
 /** "channel", "AI skill", "static website". */
-function componentNoun(type: ProjectComponentType): string {
+function componentNoun(type: ProjectComponentType | "Environment variable"): string {
   return type === "AI Skill" ? "AI skill" : type.toLowerCase();
 }
 

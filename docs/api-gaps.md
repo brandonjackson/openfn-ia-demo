@@ -191,6 +191,15 @@ path in its hook file.
   /api/credentials/:id/environments` returning those values. Demo: the fake
   server answers that route as a demo extension; a blank secret keeps the
   stored one.
+- **Sandboxes: what a merge brings besides workflows** (the editor's sandbox
+  chip; api/projects.md's merge preview lists workflows and credentials).
+  A sandbox is a copy of its project, components and environment variables
+  included, so the chip lists the new and changed ones a merge would bring.
+  Would need the merge preview to list them too, each with its kind, name
+  and `new` or `changed`. Demo: the fake server's preview sends
+  `components` and `env_vars` as demo extensions, and its merge brings them
+  (collections by name, empty, as Lightning does); on Lightning the chip
+  counts only the workflow's changes.
 
 ## Planned in api/, not yet in Lightning
 

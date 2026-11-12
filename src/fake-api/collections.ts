@@ -12,6 +12,10 @@
  *   your projects have a collection of that name.
  * - Owners and admins manage collections; any member reads items; editors
  *   and up write them.
+ * - A sandbox gets an empty collection of the same name for each of its
+ *   parent's when it's made (names are copied, items never are), and a
+ *   merge makes the ones only the sandbox has, empty, in the target, never
+ *   deleting the target's (sandboxes.ts).
  */
 import { collectionItems as settingsItems, projectCollections } from "../fixtures/project-settings";
 import { componentCollectionItems } from "../fixtures/project-components";
@@ -22,6 +26,7 @@ import { badId, conflict, forbidden, invalid, isUuid, json, noContent, notFound,
 import { record } from "./audit";
 import { seedTime, table } from "./db";
 import { findProject, guardProject, projectIdFor, roleIn } from "./projects";
+import { withSandboxCopies } from "./sandbox-copies";
 import { currentUserId } from "./session";
 import { findUser } from "./users";
 
@@ -68,8 +73,20 @@ function fixtureCollections() {
   return rows;
 }
 
-export const collections = table<CollectionRow>("collections", () =>
-  fixtureCollections().map((c) => {
+/** A sandbox's copy of a collection: its name, with no items. */
+export const copyCollection = (c: CollectionRow, sandboxId: string, at = c.inserted_at): CollectionRow => ({
+  id: seedId("collection", `${sandboxId}/${c.name}`),
+  project_id: sandboxId,
+  name: c.name,
+  inserted_at: at,
+  updated_at: at,
+  unseeded_count: 0,
+  unseeded_bytes: 0,
+});
+
+/** Every project's collections, as the fixtures have them, before the sandboxes' copies. */
+const collectionsSeed = (): CollectionRow[] =>
+  fixtureCollections().map((c): CollectionRow => {
     const sample = fixtureItems[c.slug] ?? [];
     const sampleBytes = sample.reduce((n, i) => n + i.value.length, 0);
     return {
@@ -81,8 +98,9 @@ export const collections = table<CollectionRow>("collections", () =>
       unseeded_count: Math.max(0, c.count - sample.length),
       unseeded_bytes: Math.max(0, c.bytes - sampleBytes),
     };
-  }),
-);
+  });
+
+export const collections = table<CollectionRow>("collections", () => withSandboxCopies(collectionsSeed(), (c, sandboxId) => copyCollection(c, sandboxId)));
 
 export const items = table<ItemRow>("collection_items", () =>
   fixtureCollections().flatMap((c) =>

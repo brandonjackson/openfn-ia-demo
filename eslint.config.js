@@ -182,6 +182,29 @@ export default defineConfig([
     },
   },
   {
+    // The design system's docs (/docs) use the library the way stories do: any component, model and
+    // fixtures for examples, and the router for their own pages. They never load data.
+    files: ['src/docs/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [tanstack],
+          patterns: [
+            api,
+            fakeApi,
+            app,
+            wrappers,
+            {
+              group: ['**/pages', '**/pages/**'],
+              message: `The docs show the library, not the app's screens; Storybook has the pages. ${docs}#the-layers`,
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // The data code: the client, and a file per resource with its types, mapper, keys and hooks.
     files: ['src/api/**/*.{ts,tsx}'],
     ignores: ['src/api/source.ts', '**/*.test.ts'],

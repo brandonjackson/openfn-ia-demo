@@ -80,6 +80,10 @@ So when a domain component would sit inside a pattern's frame, it doesn't draw t
 
 **Reach for the core primitives first.** Most of what domain components draw is one of a few shapes, and each has one primitive: a row in a list of places or choices is `NavItem` (side menus, the code explorer, every dropdown and picker); a bordered box is `Card` (a link or a button with `to` or `onClick`); a glyph or logo on a square is `IconTile`; a small label is `Badge` (`shape="tag"` for a kind beside a name); an id or a bit of code in a sentence is `Code`; a form field is `FormField` with a control from `FormControls`. Extend one of these with a prop before writing another.
 
+### The design system docs
+
+The same ground, for the design system and with live examples, is in the app at `/docs` (`src/docs/`): getting started, core concepts, foundations (colour, type, layout, icons, content), guidelines (forms, lists, empty states, menus, accessibility) and a page per component. It's modelled on GitHub's Primer docs and built from the library it describes; only its frame (`src/docs/parts/`) styles itself. Each component's page reads its description, props and importers from the source at build time (`scripts/component-catalog.ts`, a Vite plugin serving `virtual:component-catalog`), so it can't drift from the code. Lint holds `src/docs` to the stories' rules: any component, model or fixtures, never the API, `src/app` or pages.
+
 ## The seam
 
 Every page has a folder of its own, named for the page (`src/pages/projects/` for `ProjectsPage`), as in openfn-3-poc (its STANDARDS.md pattern 11):

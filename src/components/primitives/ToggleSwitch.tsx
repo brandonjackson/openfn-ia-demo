@@ -16,6 +16,10 @@ interface Props {
   disabled?: boolean;
 }
 
+/**
+ * An on/off switch for a setting that takes effect at once, with its label
+ * beside it (or read out only, with `hideLabel`).
+ */
 export default function ToggleSwitch({ checked = false, onChange, label, detail, hideLabel = false, title, disabled = false }: Props) {
   const [on, setOn] = useState(checked);
   // Follow the prop when whoever owns the value changes it (e.g. the server said no).

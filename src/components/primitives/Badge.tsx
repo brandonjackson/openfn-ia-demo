@@ -31,6 +31,10 @@ interface Props {
   shape?: "pill" | "tag";
 }
 
+/**
+ * A short label in one of a few muted tones: a status such as Live or Draft,
+ * or, as a `tag`, the small note beside a name. Run statuses are `StatusPill`.
+ */
 export default function Badge({ label, tone, icon: Icon, shape = "pill" }: Props) {
   const resolvedTone = tone ?? labelTones[label] ?? "gray";
   const colors = toneClasses[resolvedTone];

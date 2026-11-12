@@ -77,14 +77,14 @@ interface Props {
   label?: string;
 }
 
+const noCalls: readonly string[] = [];
+
 /**
  * A lightweight code editor: a transparent textarea laid exactly over the
  * highlighted code, so typing, selection, undo and paste are the browser's
  * own and the colours stay underneath. Tab indents, Shift+Tab outdents.
  * Without `onChange` it's a read-only view.
  */
-const noCalls: readonly string[] = [];
-
 export default function CodeEditor({ code, onChange, ref, calls = noCalls, frame = "fill", label = "Code" }: Props) {
   const lines = code.split("\n");
   const callSet = useMemo(() => new Set(calls), [calls]);

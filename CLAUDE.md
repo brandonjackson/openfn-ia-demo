@@ -22,6 +22,8 @@ React + TypeScript app built with Vite 8 and Tailwind CSS 4. **Read [docs/archit
 - `npm run storybook` — start Storybook on port 6006
 - `npm run build-storybook` — build Storybook static site
 
+**Design system docs** live in the app at `/docs` (`#/docs` in the browser; `src/docs/`, lazy loaded): an introduction for developers modelled on GitHub's Primer docs, built from the library itself. Its component reference is read from the source at build time (`scripts/component-catalog.ts`, served as `virtual:component-catalog`), so a component's JSDoc and its props' comments are what the docs show: write them well. When a new rule or pattern lands, add it to the right page there too; hand-written guidance for a component goes in `src/docs/content/components/guides.tsx`.
+
 ## Components and pages
 
 The app is built from a component library in four layers, and Storybook is its catalogue.

@@ -1,4 +1,4 @@
-import { BookOpen, Database, FileText, HeartPulse, Plus, Variable, Workflow as WorkflowIcon } from "lucide-react";
+import { BookOpen, Database, FileText, HeartPulse, ListChecks, Plus, Variable, Workflow as WorkflowIcon } from "lucide-react";
 import type { JobNode, RunDetails, TriggerNode, Workflow } from "../../model/workflow";
 import { triggerTypes } from "../../model/workflow";
 import type { ProjectComponent } from "../../model/projects";
@@ -16,12 +16,13 @@ import Text from "../primitives/Text";
 export type WorkflowFileKind = "context" | "spec" | "service" | "dataclips";
 
 /**
- * What the code view can have open: one of the workflow's files (a doc added
- * this session goes by its file name), the workflow's health or its saved
- * dataclips (pages, not files), the trigger, a step, or a project component
- * the workflow uses.
+ * What the code view can have open: the workflow's Overview (where it is in
+ * its life), one of its files (a doc added this session goes by its file
+ * name), its health or its saved dataclips (pages, not files), the trigger,
+ * a step, or a project component the workflow uses.
  */
 export type ExplorerFile =
+  | "overview"
   | "workflow"
   | "context"
   | "spec"
@@ -63,7 +64,9 @@ interface Props {
   docs?: string[];
   /** On main: each group's + shows but is disabled, pointing to a sandbox. */
   readOnly?: boolean;
-  /** List the Workflow group (workflow.yaml, its docs, service.yaml and Health). Off with the demo's Workflow docs flag. */
+  /** The stage the workflow is at, shown beside Overview, e.g. "Test". */
+  stage?: string;
+  /** List the Workflow group (Overview, workflow.yaml, its docs, service.yaml and Health). Off with the demo's Workflow docs flag. */
   showWorkflowFiles?: boolean;
   /** List the project's environment variables under Workflow. Off with the demo's Environment variables flag. */
   showEnvVars?: boolean;
@@ -77,7 +80,7 @@ interface Props {
 
 /**
  * The left-hand explorer in code mode, in three groups: the workflow's own
- * files (its YAML, whichever of its context, spec, service manifest and the
+ * files (its Overview, which says where it is in its life, its YAML, whichever of its context, spec, service manifest and the
  * project's saved dataclips it has, its Health page and any added docs), its trigger and steps in
  * the order they run, and the project components it uses. Each group adds
  * from the + beside its heading (disabled on main). You move between them here rather than
@@ -93,6 +96,7 @@ export default function EditorExplorer({
   files,
   savedDataclipCount,
   docs = [],
+  stage,
   readOnly = false,
   showWorkflowFiles = true,
   showEnvVars = false,
@@ -114,6 +118,14 @@ export default function EditorExplorer({
 
       {showWorkflowFiles && (
         <Section title="Workflow" addLabel="Add to workflow" onAdd={onAddFile} readOnly={readOnly}>
+          <NavItem
+            variant="tree"
+            label="Overview"
+            icon={ListChecks}
+            trailing={stage && <Text tone="subtle" size="xs">{stage}</Text>}
+            active={current === "overview"}
+            onClick={() => onOpen("overview")}
+          />
           <NavItem variant="tree" label="workflow.yaml" icon={WorkflowIcon} active={current === "workflow"} onClick={() => onOpen("workflow")} />
           {listed.has("context") && (
             <NavItem variant="tree" label="context.md" icon={FileText} active={current === "context"} onClick={() => onOpen("context")} />

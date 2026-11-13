@@ -18,6 +18,7 @@ import type {
 import { defaultWorkflowSettings, stepDeleteBlockedReason, workflowToYaml } from "../model/workflow";
 import type { WorkflowSettings } from "../model/workflow";
 import { workflowChanges, type WorkflowChange } from "../model/workflow-changes";
+import { lifecycleStageLabels, lifecycleStages, type LifecycleStageId } from "../model/workflow-lifecycle";
 import type { EnvVar, EnvVarDraft } from "../model/env-vars";
 import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../model/runs";
 import type { ActivityPeriod, RunProgress, RunRequest } from "../model/runs";
@@ -75,6 +76,7 @@ import SavedDataclipsView from "../components/domain/SavedDataclipsView";
 import DataclipFormModal from "../components/domain/DataclipFormModal";
 import { runInputName, savedDataclips, untitledDataclipName, type DataclipChanges, type DataclipDraft } from "../model/dataclips";
 import WorkflowHealth from "../components/domain/WorkflowHealth";
+import WorkflowStages, { type StageLink } from "../components/domain/WorkflowStages";
 import ChannelView from "../components/domain/ChannelView";
 import ComponentView from "../components/domain/ComponentView";
 import CollectionView from "../components/domain/CollectionView";
@@ -434,8 +436,10 @@ export default function WorkflowEditorPage({
 
   const [view, setView] = useState<EditorView>(initialView);
   const [selectedId, setSelectedId] = useState<string | undefined>(initialSelectedId);
-  // With nothing chosen, code mode opens workflow.yaml, or the trigger when the explorer doesn't list the workflow's files.
-  const fallbackFile: ExplorerFile = showWorkflowFiles ? "workflow" : "trigger";
+  // With nothing chosen, code mode opens the workflow's Overview (where it is in its life), or the trigger when the
+  // explorer doesn't list the workflow's files. Its settings live with workflow.yaml.
+  const fallbackFile: ExplorerFile = showWorkflowFiles ? "overview" : "trigger";
+  const settingsFile: ExplorerFile = showWorkflowFiles ? "workflow" : "trigger";
   const [file, setFile] = useState<ExplorerFile>(initialFile ?? (initialSelectedId ? { stepId: initialSelectedId } : fallbackFile));
 
   const [localSandbox, setLocalSandbox] = useState("main");
@@ -554,10 +558,10 @@ export default function WorkflowEditorPage({
     });
   };
 
-  // A page in the code view's main pane (Health, Saved dataclips, Environment variables) opens with the bottom and right panels
+  // A page in the code view's main pane (Overview, Health, Saved dataclips, Environment variables) opens with the bottom and right panels
   // hidden, so it has the room. Showing them there lasts until you leave the page, and leaves the
   // remembered layout alone, so opening a code item brings the panels back as they were.
-  const isPage = (f: ExplorerFile) => f === "health" || f === "dataclips" || f === "envVars";
+  const isPage = (f: ExplorerFile) => f === "overview" || f === "health" || f === "dataclips" || f === "envVars";
   const onPage = view === "code" && isPage(file);
   const [pagePanels, setPagePanels] = useState({ panel: false, details: false });
   const shownLayout: EditorLayout = onPage ? { ...layout, ...pagePanels } : layout;
@@ -598,10 +602,10 @@ export default function WorkflowEditorPage({
 
   const selectNode = (node: WorkflowNode) => setSelectedId(selectedId === node.id ? undefined : node.id);
 
-  /** Open a step's code, the trigger's settings, or the workflow's YAML. */
+  /** Open a step's code, the trigger's settings, or the workflow's YAML and settings. */
   const openInCode = (nodeId?: string) => {
     const node = graph.nodes.find((n) => n.id === nodeId);
-    setFile(node ? (node.type === "trigger" ? "trigger" : { stepId: node.id }) : fallbackFile);
+    setFile(node ? (node.type === "trigger" ? "trigger" : { stepId: node.id }) : settingsFile);
     setView("code");
   };
 
@@ -1119,6 +1123,40 @@ export default function WorkflowEditorPage({
     />
   );
 
+  // The Overview, which code mode opens on: where the workflow is in its life, each stage linking
+  // to where in the explorer it's done.
+  const firstStep = graph.nodes.find((n): n is JobNode => n.type === "job");
+  const graphTrigger = graph.nodes.find((n) => n.type === "trigger");
+  const stages = lifecycleStages({
+    described: workflowFiles.includes("context") || workflowFiles.includes("spec") || docs.length > 0,
+    stepCount: graph.nodes.filter((n) => n.type === "job").length,
+    testedOk: orders.some((o) => o.runs.some((r) => r.status === "success")),
+    onMain,
+    live,
+  });
+  const currentStage = stages.find((s) => s.state === "current")?.id;
+  const open = (label: string, f: ExplorerFile): StageLink => ({ label, onOpen: () => openFile(f) });
+  const stageLinks: Partial<Record<LifecycleStageId, StageLink>> = {
+    describe: workflowFiles.includes("context")
+      ? open("context.md", "context")
+      : workflowFiles.includes("spec")
+        ? open("spec.md", "spec")
+        : onMain
+          ? undefined
+          : { label: "Add context", onOpen: () => setAddFileOpen(true) },
+    build: firstStep ? open(firstStep.label, { stepId: firstStep.id }) : onMain ? undefined : { label: "Add a step", onOpen: addStep },
+    test: workflowFiles.includes("dataclips")
+      ? open("Saved dataclips", "dataclips")
+      : !onMain && onRun
+        ? { label: "Run it", onOpen: () => setRunInputOpen(true) }
+        : undefined,
+    live: onMain
+      ? graphTrigger && open(graphTrigger.label, "trigger")
+      : { label: "Create promotion request", onOpen: () => setPromoteOpen(true) },
+    monitor: open("Health", "health"),
+  };
+  const overviewPane = <WorkflowStages stages={stages} links={stageLinks} onMain={onMain} />;
+
   // The project's environment variables, opened from the explorer's Workflow section.
   const envVarsPane = envVars && (
     <EnvVarsView variables={envVars} projectName={projectName} onCreate={onCreateEnvVar} onUpdate={onUpdateEnvVar} onDelete={onDeleteEnvVar} />
@@ -1498,7 +1536,8 @@ export default function WorkflowEditorPage({
           docs={docs}
           onAddFile={onMain ? undefined : () => setAddFileOpen(true)}
           onAddComponent={onMain || addableTypes.length === 0 ? undefined : () => setAddComponentOpen(true)}
-          pane={file === "health" ? healthPane : file === "dataclips" ? dataclipsPane : file === "envVars" ? envVarsPane : componentPane}
+          stage={currentStage && lifecycleStageLabels[currentStage]}
+          pane={file === "overview" ? overviewPane : file === "health" ? healthPane : file === "dataclips" ? dataclipsPane : file === "envVars" ? envVarsPane : componentPane}
           showExplorer={layout.explorer}
           showDetails={shownLayout.details}
           detailsView={layout.detailsView}

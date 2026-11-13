@@ -153,11 +153,22 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     expect(screen.getByRole("button", { name: "Unload run" })).toBeTruthy();
   });
 
+  it("opens code mode on the Overview, whose stages link to the explorer", async () => {
+    renderEditor(apiWorkflowId("planning-application-workflow"));
+    fireEvent.click(await screen.findByRole("button", { name: "Explorer" }, wait));
+    const stages = await screen.findByRole("list", { name: "Stages" }, wait);
+    expect(within(stages).getByText("Describe")).toBeTruthy();
+    expect(stages.querySelector("[aria-current=step]")).toBeTruthy();
+    fireEvent.click(within(stages).getByRole("button", { name: "Health" }));
+    expect(await screen.findByText("Triage", {}, wait)).toBeTruthy();
+  });
+
   it("lists the project's saved dataclips to run, and saves a new title and description", async () => {
     const workflowId = apiWorkflowId("planning-application-workflow");
     renderEditor(workflowId);
     fireEvent.click(await screen.findByRole("button", { name: "Explorer" }, wait));
-    fireEvent.click(await screen.findByRole("button", { name: /Saved dataclips/ }, wait));
+    const explorer = await screen.findByRole("navigation", { name: "Explorer" }, wait);
+    fireEvent.click(await within(explorer).findByRole("button", { name: /Saved dataclips/ }, wait));
     expect(await screen.findByText("Sample application: new citizen", {}, wait)).toBeTruthy();
     expect(screen.getAllByRole("button", { name: "Run" }).length).toBeGreaterThan(0);
 
@@ -252,7 +263,8 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     const { workflows } = await request<{ workflows: { id: string }[] }>("GET", `/api/projects/${projectId}/workflows`);
     renderEditor(workflows[0]!.id);
     fireEvent.click(await screen.findByText("Explorer", {}, wait));
-    await screen.findByRole("button", { name: "Health" }, wait);
-    expect(screen.queryByRole("button", { name: "Environment variables" })).toBeNull();
+    const explorer = await screen.findByRole("navigation", { name: "Explorer" }, wait);
+    await within(explorer).findByRole("button", { name: "Health" }, wait);
+    expect(within(explorer).queryByRole("button", { name: "Environment variables" })).toBeNull();
   });
 });

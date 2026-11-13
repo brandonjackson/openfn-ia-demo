@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { ReactNode } from "react";
-import { BookOpen, Calendar, Cloud, Database, ExternalLink, FolderKanban, Globe, History, Layers, Plug, Radio, User, X } from "lucide-react";
+import { BookOpen, Calendar, Cloud, Database, ExternalLink, FolderKanban, Globe, History, Layers, ListChecks, Plug, Radio, User, X } from "lucide-react";
 import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowFileContents, WorkflowSettings } from "../../model/workflow";
 import type { DetailsViewId } from "./editor-layout";
 import { triggerTypes, workflowToYaml } from "../../model/workflow";
@@ -86,6 +86,8 @@ interface Props {
   savedDataclipCount?: number;
   /** Docs added alongside context.md and spec.md, by file name. */
   docs?: string[];
+  /** The stage the workflow is at, shown beside Overview in the explorer. */
+  stage?: string;
   /** Opens what can be added to the workflow's files, from the Workflow group's +. */
   onAddFile?: () => void;
   /** Opens the picker for a new project component. */
@@ -183,6 +185,7 @@ export default function CodeWorkspace({
   files,
   savedDataclipCount,
   docs = [],
+  stage,
   onAddFile,
   onAddComponent,
   showExplorer = true,
@@ -208,10 +211,11 @@ export default function CodeWorkspace({
   const listing = manifest ? service : undefined;
   const addedDoc = typeof file === "object" && "docName" in file ? file.docName : undefined;
   const health = file === "health";
+  const overview = file === "overview";
   const envVars = file === "envVars";
   const saved = file === "dataclips";
   const fileName =
-    addedDoc ?? (doc ? `${doc}.md` : manifest ? "service.yaml" : health ? "Health" : saved ? "Saved dataclips" : envVars ? "Environment variables" : "workflow.yaml");
+    addedDoc ?? (doc ? `${doc}.md` : manifest ? "service.yaml" : health ? "Health" : overview ? "Overview" : saved ? "Saved dataclips" : envVars ? "Environment variables" : "workflow.yaml");
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
   const yaml = workflowToYaml(workflow, { enabled: live });
   const triggerYaml = yaml.slice(yaml.indexOf("triggers:"), yaml.indexOf("edges:")).trimEnd();
@@ -373,6 +377,16 @@ export default function CodeWorkspace({
         ]}
         showHeader={false}
       />
+    ) : overview ? (
+      <FileDetailsPanel
+        title="Overview"
+        description="Where the workflow is in its life, from saying what it's for to keeping an eye on it once it's live, with a link to where each stage is done."
+        properties={[
+          { icon: ListChecks, label: "Stage", value: stage ?? "–" },
+          { icon: FolderKanban, label: "Project", value: workflow.project },
+        ]}
+        showHeader={false}
+      />
     ) : health ? (
       <FileDetailsPanel
         title="Health"
@@ -432,6 +446,7 @@ export default function CodeWorkspace({
         files={files}
         savedDataclipCount={savedDataclipCount}
         docs={docs}
+        stage={stage}
         readOnly={readOnly}
         showWorkflowFiles={showWorkflowFiles}
         showEnvVars={showEnvVars}
@@ -460,7 +475,7 @@ export default function CodeWorkspace({
       ? {
           tabs: {
             options: [
-              { id: "config", label: component || doc || manifest || addedDoc || health || saved || envVars ? "Details" : "Config" },
+              { id: "config", label: component || doc || manifest || addedDoc || health || overview || saved || envVars ? "Details" : "Config" },
               ...(step ? [{ id: "snippets", label: "Snippets" }] : []),
               ...(hasIO ? [{ id: "io", label: "I/O" }] : []),
             ],

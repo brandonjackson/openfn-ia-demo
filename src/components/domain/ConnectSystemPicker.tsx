@@ -7,6 +7,7 @@ import {
   Database,
   HeartPulse,
   Landmark,
+  LibraryBig,
   Languages,
   ListCollapse,
   MessageSquare,
@@ -25,9 +26,13 @@ import IconTile from "../primitives/IconTile";
 import AdaptorLogo from "./AdaptorLogo";
 import type { AdaptorCatalog, AiAction, CatalogGroup } from "../../model/adaptor-catalog";
 import SearchInput from "../primitives/SearchInput";
+import type { StepService } from "../../model/services";
 
-/** What was picked: an adaptor to connect, or an AI action to run on the data. */
-export type ConnectChoice = { kind: "adaptor"; adaptor: string } | { kind: "ai"; action: AiAction };
+/** What was picked: an adaptor to connect, an AI action to run on the data, or a published service to call. */
+export type ConnectChoice =
+  | { kind: "adaptor"; adaptor: string }
+  | { kind: "ai"; action: AiAction }
+  | { kind: "service"; service: StepService };
 
 const categoryIcons: Record<string, LucideIcon> = {
   health: HeartPulse,
@@ -54,12 +59,15 @@ const actionIcons: Record<string, LucideIcon> = {
  * **Connected** (the default) lists the systems this project already talks
  * to, beside the built-in tools that don't need a system of their own.
  * **AI** offers actions on the incoming data (generate, summarize,
- * translate, classify, extract) and the models behind them. The rest are
- * every adaptor, sorted by what the system does into titled groups.
+ * translate, classify, extract) and the models behind them. **Services**,
+ * when it's given them, lists the organisation's Live services a step can
+ * call, under who offers each. The rest are every adaptor, sorted by what
+ * the system does into titled groups.
  */
 export default function ConnectSystemPicker({
   catalog,
   connected,
+  services,
   onSelect,
   initialCategory = "connected",
 }: {
@@ -67,6 +75,8 @@ export default function ConnectSystemPicker({
   catalog: AdaptorCatalog;
   /** Adaptor ids of the systems this project is connected to. */
   connected: string[];
+  /** Published services a step can call, each under who offers it. Left out, there's no Services tab and search doesn't look at services. */
+  services?: StepService[];
   onSelect?: (choice: ConnectChoice) => void;
   initialCategory?: string;
 }) {
@@ -75,6 +85,7 @@ export default function ConnectSystemPicker({
   const navItems = [
     { id: "connected", label: "Connected", icon: Plug },
     { id: "ai", label: "AI", icon: Sparkles },
+    ...(services ? [{ id: "services", label: "Services", icon: LibraryBig }] : []),
     ...catalogCategories.map((c) => ({ id: c.id, label: c.label, icon: categoryIcons[c.id] ?? Plug })),
   ];
   const [category, setCategory] = useState(initialCategory);
@@ -114,6 +125,20 @@ export default function ConnectSystemPicker({
       );
     });
 
+  const serviceRows = (list: StepService[]) =>
+    list.map((service) => (
+      <NavItem
+        variant="tree"
+        key={service.id}
+        leading={<IconTile icon={LibraryBig} size="sm" tone="white" />}
+        label={service.name}
+        description={service.description}
+        onClick={() => onSelect?.({ kind: "service", service })}
+      />
+    ));
+
+  const columns = (content: ReactNode) => <div className="grid grid-cols-2 gap-x-6 gap-y-5">{content}</div>;
+
   const group = (title: string, rows: ReactNode) => (
     <section key={title} className="min-w-0">
       <SectionHeading title={title} variant="label" compact />
@@ -126,11 +151,12 @@ export default function ConnectSystemPicker({
   let body: ReactNode;
   if (q) {
     const actions = aiActions.filter((a) => `${a.label} ${a.description}`.toLowerCase().includes(q));
+    const matchedServices = (services ?? []).filter((s) => `${s.name} ${s.description} ${s.offeredBy}`.toLowerCase().includes(q));
     const adaptors = adaptorCatalog
       .filter((a) => `${a.name} ${a.description} ${a.id}`.toLowerCase().includes(q))
       .map((a) => a.id);
     body =
-      actions.length + adaptors.length === 0 ? (
+      actions.length + matchedServices.length + adaptors.length === 0 ? (
         <EmptyState
           icon={Search}
           title="No matches"
@@ -139,29 +165,41 @@ export default function ConnectSystemPicker({
       ) : (
         <div className="space-y-5">
           {actions.length > 0 && group("AI", actionRows(actions))}
+          {matchedServices.length > 0 && group("Services", serviceRows(matchedServices))}
           {adaptors.length > 0 && group("Adaptors", <div className="grid grid-cols-2 gap-x-4">{adaptorRows(adaptors)}</div>)}
         </div>
       );
   } else if (category === "connected") {
-    body = (
-      <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+    body = columns(
+      <>
         {group(
           "Connected to this project",
           connected.length ? adaptorRows(connected) : <p className="px-2 text-sm text-gray-500">No systems connected yet.</p>
         )}
         {group("Built-in tools", adaptorRows(builtInTools))}
-      </div>
+      </>
     );
   } else if (category === "ai") {
-    body = (
-      <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+    body = columns(
+      <>
         {group("Ask AI to", actionRows(aiActions))}
         {group("Models", adaptorRows(aiModels))}
-      </div>
+      </>
+    );
+  } else if (category === "services" && services) {
+    const offeredBy = [...new Set(services.map((s) => s.offeredBy))].sort((a, b) => a.localeCompare(b));
+    body = services.length ? (
+      columns(offeredBy.map((by) => group(by, serviceRows(services.filter((s) => s.offeredBy === by)))))
+    ) : (
+      <EmptyState
+        icon={LibraryBig}
+        title="No services to call yet"
+        description="Live services published from your organization's projects show up here, ready to call from a step."
+      />
     );
   } else {
     const found = catalogCategories.find((c) => c.id === category);
-    body = <div className="grid grid-cols-2 gap-x-6 gap-y-5">{found && groups(found.groups)}</div>;
+    body = columns(found && groups(found.groups));
   }
 
   return (
@@ -170,8 +208,8 @@ export default function ConnectSystemPicker({
         autoFocus
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder={`Search ${adaptorCatalog.length} systems and tools...`}
-        aria-label="Search systems and tools"
+        placeholder={services ? `Search ${adaptorCatalog.length} systems, tools and services...` : `Search ${adaptorCatalog.length} systems and tools...`}
+        aria-label={services ? "Search systems, tools and services" : "Search systems and tools"}
       />
       <div className="flex min-h-0 flex-1 gap-4">
         <SettingsNav

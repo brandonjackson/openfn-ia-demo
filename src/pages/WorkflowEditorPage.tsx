@@ -24,6 +24,7 @@ import type { ActivityPeriod, RunProgress, RunRequest } from "../model/runs";
 import type { AdaptorInfo, AdaptorReference } from "../model/adaptor-reference";
 import type { AdaptorCatalog } from "../model/adaptor-catalog";
 import type { ConnectedSystem } from "../model/connected-systems";
+import { serviceStepBody, type StepService } from "../model/services";
 import type {
   AssistantConversation,
   AssistantMessage,
@@ -250,6 +251,7 @@ export default function WorkflowEditorPage({
   adaptors,
   catalog,
   systems = [],
+  stepServices,
   showWorkflowFiles = true,
   showComponents = true,
   publishesServices = true,
@@ -363,6 +365,8 @@ export default function WorkflowEditorPage({
   catalog: AdaptorCatalog;
   /** The project's connected systems. */
   systems?: ConnectedSystem[];
+  /** Published services a new step can call, offered in "Connect a system" under Services. Left out, the picker has no Services tab. */
+  stepServices?: StepService[];
   /** List the workflow's own files (workflow.yaml, docs, service.yaml, Health) in the explorer. Defaults to true; off, code mode falls back to the trigger. */
   showWorkflowFiles?: boolean;
   /** List the project components the workflow uses in the explorer. Defaults to true. */
@@ -869,16 +873,22 @@ export default function WorkflowEditorPage({
     const source = graph.nodes.find((n) => n.id === sourceId);
     if (!source) return;
     const id = crypto.randomUUID();
-    const adaptor = choice.kind === "ai" ? "claude" : choice.adaptor;
+    // A service is called over HTTP, so its step is an HTTP step named for what the service does.
+    const adaptor = choice.kind === "ai" ? "claude" : choice.kind === "service" ? "http" : choice.adaptor;
     const info = adaptors.info[adaptor];
     const firstSnippet = adaptors.snippets[adaptor]?.[0]?.code;
     const job: JobNode = {
       id,
       type: "job",
-      label: choice.kind === "ai" ? `${choice.action.label} with AI` : `New ${info.name} step`,
+      label: choice.kind === "ai" ? `${choice.action.label} with AI` : choice.kind === "service" ? choice.service.name : `New ${info.name} step`,
       adaptor,
       adaptorPackage: info.package,
-      body: choice.kind === "ai" ? choice.action.body : `// Connect to ${info.name}\n${firstSnippet ?? "fn(state => state);"}\n`,
+      body:
+        choice.kind === "ai"
+          ? choice.action.body
+          : choice.kind === "service"
+            ? serviceStepBody(choice.service)
+            : `// Connect to ${info.name}\n${firstSnippet ?? "fn(state => state);"}\n`,
       ...placeAfter(graph, source),
     };
     edit((e) => ({
@@ -1489,6 +1499,7 @@ export default function WorkflowEditorPage({
             <ConnectSystemPicker
               catalog={catalog}
               connected={connectedAdaptors}
+              services={stepServices}
               onSelect={(choice) => addAfterId && addStepAfter(addAfterId, choice)}
             />
           </Modal>

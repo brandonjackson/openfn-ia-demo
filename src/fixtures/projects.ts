@@ -1,6 +1,7 @@
 import type { SandboxItem } from "../model/sandboxes";
 import type { WorkflowListItem } from "../model/workflow-list";
 import { isoAgo } from "../model/time";
+import { isCallableFromStep, type StepService } from "../model/services";
 import { seedId } from "./ids";
 import type { Project, ProjectService, ProjectSummary } from "../model/projects";
 
@@ -550,6 +551,11 @@ export function serviceForWorkflow(
   }
   return undefined;
 }
+
+/** Every Live service a step can call, offered by its project, for stories of "Connect a system". */
+export const stepServices: StepService[] = projects.flatMap((p) =>
+  p.services.filter(isCallableFromStep).map((s) => ({ ...s, offeredBy: p.name })),
+);
 
 /** A workflow on a project's Workflows list, before its run activity, which comes from its history. */
 export type WorkflowDetails = Omit<WorkflowListItem, "latestRun" | "lastRunAt" | "workOrders" | "failedWorkOrders">;

@@ -31,9 +31,9 @@ import { adaptorChoices, adaptorInfo, adaptorSnippets } from "../fixtures/adapto
 import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
 import { codeSummary } from "../fixtures/code-summaries";
 import { workflowDocs } from "../fixtures/workflow-files";
-import { serviceUrl, serviceYaml } from "../model/services";
+import { isCallableFromStep, serviceUrl, serviceYaml } from "../model/services";
 import { useOrganizationXRoad } from "../api/organization";
-import { useProjectServices } from "../api/services";
+import { useAllServices } from "../api/services";
 import type { AdaptorReference } from "../model/adaptor-reference";
 import type { AdaptorCatalog } from "../model/adaptor-catalog";
 import { useFlags } from "../app/feature-flags";
@@ -218,8 +218,14 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
 
   const slug = fixtureWorkflow(main.id)?.slug;
   // "See details" opens the page of the service main's workflow backs, from the services API.
-  const { services } = useProjectServices(root.id, flags.serviceCatalog);
-  const backed = services.find((s) => s.workflowId === main.id);
+  const { services: allServices } = useAllServices(flags.serviceCatalog);
+  const backed = allServices.find((s) => s.projectId === root.id && s.workflowId === main.id);
+  // What a new step can call: the organisation's Live services over HTTP, filed as the catalog files them, but never the one this workflow backs, which would call itself.
+  const stepServices = flags.serviceCatalog
+    ? allServices
+        .filter((s) => isCallableFromStep(s) && s.workflowId !== main.id)
+        .map((s) => ({ ...s, offeredBy: s.section ?? s.projectName }))
+    : undefined;
   // service.yaml lists it as X-Road registers it, once the organisation is on X-Road.
   const { xroad } = useOrganizationXRoad(flags.xroad && !!backed);
   const service = backed && { service: backed, path: `/projects/${root.id}/services/${backed.id}`, url: serviceUrl(backed) };
@@ -375,6 +381,7 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       adaptors={adaptors}
       catalog={catalog}
       systems={systemsFor(flags, systems)}
+      stepServices={stepServices}
       showWorkflowFiles={flags.workflowDocs}
       showComponents={flags.components}
       publishesServices={flags.serviceCatalog}

@@ -174,6 +174,51 @@ export function draftServiceManifest(workflowName: string): string {
 /** Where a webhook service is called, read from how it's invoked (`POST https://…`), if it says. */
 export const serviceUrl = (service: ProjectServiceItem): string | undefined => service.api?.invocation.match(/https?:\/\/\S+/)?.[0];
 
+/** A Live service a workflow step can call, with who offers it (its section, or its project's name). */
+export interface StepService extends ProjectServiceItem {
+  offeredBy: string;
+}
+
+/** Whether a step can call the service: it's Live and called over HTTP (a scheduled service has no address). */
+export const isCallableFromStep = (service: ProjectServiceItem): boolean =>
+  service.status === "Live" && service.api?.trigger === "webhook" && !!serviceUrl(service);
+
+const identifier = /^[A-Za-z_$][\w$]*$/;
+/** A property name as JavaScript writes it in an object, quoted when it has to be. */
+const jsKey = (name: string) => (identifier.test(name) ? name : JSON.stringify(name));
+/** Reading a field of the incoming data by name. */
+const fromData = (name: string) => (identifier.test(name) ? `$.data.${name}` : `$.data[${JSON.stringify(name)}]`);
+
+/**
+ * The starting code of a step that calls a service: an HTTP request to its
+ * address with a body of its input fields, each read from the same name on
+ * the incoming data and noted with its type and what it is, then what the
+ * service answers with.
+ */
+export function serviceStepBody(service: StepService): string {
+  const api = service.api;
+  const url = serviceUrl(service) ?? "";
+  const method = (api?.invocation.match(/^([A-Z]+)\s/)?.[1] ?? "POST").toLowerCase();
+  const fields = api?.inputFields ?? [];
+  const lines = [`// ${service.name}: a service from ${service.offeredBy}.`];
+  if (api?.auth) lines.push(`// Authentication: ${api.auth}. Pick the credential that holds it.`);
+  if (api?.outputDescription) lines.push(`// ${api.outputDescription}`);
+  if (method === "get" || method === "delete") {
+    lines.push(`${method}('${url}');`, "");
+    return lines.join("\n");
+  }
+  if (!fields.length) {
+    lines.push(`${method}('${url}', $.data);`, "");
+    return lines.join("\n");
+  }
+  lines.push(`${method}('${url}', {`);
+  for (const f of fields) {
+    lines.push(`  // ${f.type}${f.required ? ", required" : ""}: ${f.description}`, `  ${jsKey(f.name)}: ${fromData(f.name)},`);
+  }
+  lines.push("});", "");
+  return lines.join("\n");
+}
+
 /** Ways a published service can be used: as a step in another workflow, as an agent tool over MCP, or by other members over X-Road. */
 export type ServiceConsumer = "workflow" | "mcp" | "xroad";
 

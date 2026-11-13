@@ -26,7 +26,7 @@ const meta: Meta<typeof TestCasesView> = {
     onCreate: () => {},
     onEdit: () => {},
     onDelete: async () => {},
-    onGenerate: () => new Promise((resolve) => setTimeout(() => resolve({ created: 1, upToDate: 3, notInSpec: 0 }), 900)),
+    onGenerate: () => new Promise((resolve) => setTimeout(() => resolve({ created: 1, names: ["Logs never pair a name with a date of birth"], upToDate: 3, notInSpec: 0 }), 900)),
   },
 };
 

@@ -75,7 +75,7 @@ import SavedDataclipsView from "../components/domain/SavedDataclipsView";
 import DataclipFormModal from "../components/domain/DataclipFormModal";
 import TestCasesView from "../components/domain/TestCasesView";
 import TestCaseFormModal from "../components/domain/TestCaseFormModal";
-import { draftOf, testTally, untitledTestName, type TestCase, type TestCaseDraft, type TestGeneration, type TestResult } from "../model/test-cases";
+import { draftOf, testGenerationReply, testTally, untitledTestName, type TestCase, type TestCaseDraft, type TestGeneration, type TestResult } from "../model/test-cases";
 import { runInputName, savedDataclips, untitledDataclipName, type DataclipChanges, type DataclipDraft } from "../model/dataclips";
 import WorkflowHealth from "../components/domain/WorkflowHealth";
 import ChannelView from "../components/domain/ChannelView";
@@ -1330,6 +1330,20 @@ export default function WorkflowEditorPage({
       onSend={onAssistantSend}
       onCarryOutPlan={onAssistantCarryOutPlan}
       initialPrompt={assistantPrompt}
+      // The assistant writes the workflow's test cases from its spec, the same as Generate from spec in Test cases.
+      onGenerateTests={
+        testCases && onGenerateTestCases
+          ? async () => ({ id: shortId(), role: "assistant", ...testGenerationReply(await onGenerateTestCases()) })
+          : undefined
+      }
+      onOpenTests={
+        testCases
+          ? () => {
+              openFile("testCases");
+              setView("code");
+            }
+          : undefined
+      }
     />
   );
 

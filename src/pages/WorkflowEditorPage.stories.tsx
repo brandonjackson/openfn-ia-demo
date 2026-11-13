@@ -65,7 +65,7 @@ const meta: Meta<typeof WorkflowEditorPage> = {
     onCreateTestCase: async () => {},
     onUpdateTestCase: async () => {},
     onDeleteTestCase: async () => {},
-    onGenerateTestCases: async () => ({ created: 1, upToDate: 3, notInSpec: 0 }),
+    onGenerateTestCases: async () => ({ created: 1, names: ["Logs never pair a name with a date of birth"], upToDate: 3, notInSpec: 0 }),
     // In a sandbox, what's changed is counted against main's copy: this one, so edits made in a story show up.
     baseline: nationalIdWorkflow,
     assistantConversations,

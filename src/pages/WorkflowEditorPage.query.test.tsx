@@ -291,6 +291,25 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     }
   });
 
+  it("has the assistant write tests from the spec, and opens them from its reply", async () => {
+    const projectId = projectIdFor("project-a");
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${crypto.randomUUID()}`, { name: "assistant-tests" });
+    act(() => setSandbox(projectId, "assistant-tests"));
+    try {
+      renderEditor(apiWorkflowId("apply-national-id"));
+      const toggle = await screen.findByRole("button", { name: "Assistant" }, wait);
+      if (toggle.getAttribute("aria-pressed") !== "true") fireEvent.click(toggle);
+      fireEvent.click(await screen.findByRole("button", { name: "Generate tests from spec" }, wait));
+      expect(await screen.findByText(/I read spec.md and wrote 1 new test/, {}, wait)).toBeTruthy();
+      expect(screen.getByText("Logs never pair a name with a date of birth")).toBeTruthy();
+
+      fireEvent.click(screen.getByRole("button", { name: "Open test cases" }));
+      expect(await screen.findByRole("button", { name: "Run all tests" }, wait)).toBeTruthy();
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
   it("leaves test cases out with the flag off", async () => {
     act(() => setFlag("testCases", false));
     renderEditor(apiWorkflowId("apply-national-id"));

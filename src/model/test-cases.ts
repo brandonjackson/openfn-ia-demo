@@ -7,6 +7,7 @@
  * the output against the description, runs the test's deterministic tests,
  * or both.
  */
+import type { AssistantMessage } from "./assistant";
 
 /** Where a test's input comes from. */
 export type TestInput =
@@ -85,6 +86,8 @@ export interface TestCaseDraft {
 export interface TestGeneration {
   /** Tests written for requirements nothing covered yet. */
   created: number;
+  /** The names of the tests it wrote. */
+  names: string[];
   /** Requirements a test already covered. */
   upToDate: number;
   /** Generated tests whose requirement is no longer in the spec. */
@@ -140,4 +143,21 @@ export function untitledTestName(taken: TestCase[]): string {
   let name = "Untitled test";
   for (let n = 2; names.has(name.toLowerCase()); n++) name = `Untitled test ${n}`;
   return name;
+}
+
+/**
+ * The assistant's reply once it has synced the tests with the spec: what it
+ * did in a sentence, and a line for each test it wrote, to open them from.
+ */
+export function testGenerationReply(g: TestGeneration): Pick<AssistantMessage, "content" | "result"> {
+  const wrote =
+    g.created === 0
+      ? "I read spec.md: every requirement in it already has a test, so I didn't write any."
+      : `I read spec.md and wrote ${g.created} new ${g.created === 1 ? "test" : "tests"} for requirements nothing covered, each with deterministic tests. Turn on my judgement in a test if you'd like me to check its output against its description too.`;
+  const covered = g.upToDate > 0 && g.created > 0 ? ` ${g.upToDate} ${g.upToDate === 1 ? "requirement was" : "requirements were"} already covered.` : "";
+  const gone = g.notInSpec > 0 ? ` ${g.notInSpec} of the tests I wrote before ${g.notInSpec === 1 ? "covers a requirement" : "cover requirements"} no longer in the spec.` : "";
+  return {
+    content: `${wrote}${covered}${gone}`,
+    result: { about: "tests", items: g.names.map((label) => ({ label, outcome: "ok" as const })) },
+  };
 }

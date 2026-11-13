@@ -4,6 +4,7 @@ import AIAssistantPanel from "./AIAssistantPanel";
 import EditorShell from "../patterns/EditorShell";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../../fixtures/assistant";
 import { sampleRun } from "../../fixtures/runs";
+import { testGenerationReply } from "../../model/test-cases";
 
 /** The fake assistant "thinks" this long before answering. */
 const REPLY_DELAY_MS = 900;
@@ -64,5 +65,23 @@ export const FromCreate: Story = {
   args: {
     conversations: [],
     initialPrompt: "When a birth is registered in OpenCRVS, open a child benefit application in Salesforce.",
+  },
+};
+
+/**
+ * In a sandbox, with no conversations yet: "Generate tests from spec" is
+ * offered under the suggestions (and in the ⋮ menu), and the reply lists the
+ * tests it wrote, with "Open test cases".
+ */
+export const GenerateTests: Story = {
+  args: {
+    conversations: [],
+    onGenerateTests: () =>
+      later(() => ({
+        id: "reply-tests",
+        role: "assistant",
+        ...testGenerationReply({ created: 1, names: ["Logs never pair a name with a date of birth"], upToDate: 3, notInSpec: 0 }),
+      })),
+    onOpenTests: () => {},
   },
 };

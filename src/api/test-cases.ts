@@ -109,7 +109,8 @@ export function useTestCaseSaves(projectId: string, workflowId: string) {
   const remove = useMutation({ mutationFn: (id: string) => request("DELETE", `${path}/${id}`), onSuccess: refresh });
   const run = useMutation({ mutationFn: (id: string) => request<{ data: ApiTestResult }>("POST", `${path}/${id}/runs`, {}), onSuccess: refresh });
   const generate = useMutation({
-    mutationFn: () => request<{ meta: { created: number; up_to_date: number; not_in_spec: number } }>("POST", `${path}/generations`, { workflow_id: workflowId }),
+    mutationFn: () =>
+      request<{ data: ApiTestCase[]; meta: { created: number; up_to_date: number; not_in_spec: number } }>("POST", `${path}/generations`, { workflow_id: workflowId }),
     onSuccess: refresh,
   });
   return {
@@ -120,8 +121,8 @@ export function useTestCaseSaves(projectId: string, workflowId: string) {
     run: async (id: string): Promise<TestResult> => toResult((await run.mutateAsync(id)).data),
     /** Has the assistant sync the tests with the spec; resolves with what it did. */
     generate: async (): Promise<TestGeneration> => {
-      const { meta } = await generate.mutateAsync();
-      return { created: meta.created, upToDate: meta.up_to_date, notInSpec: meta.not_in_spec };
+      const { data, meta } = await generate.mutateAsync();
+      return { created: meta.created, names: data.map((t) => t.attributes.name), upToDate: meta.up_to_date, notInSpec: meta.not_in_spec };
     },
   };
 }

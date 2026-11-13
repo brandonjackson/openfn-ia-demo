@@ -25,3 +25,17 @@ export const OnMain: Story = { args: { onAskToMerge: undefined } };
 export const WithFailure: Story = {
   args: { result: { items: [{ label: "2 saved", outcome: "ok" }, { label: "1 failed", outcome: "failed" }] } },
 };
+
+/** Test cases the assistant wrote from the spec: a line for each, and "Open test cases" instead of the runs. */
+export const TestsWritten: Story = {
+  args: {
+    onOpenTests: () => {},
+    result: {
+      about: "tests",
+      items: [
+        { label: "Logs never pair a name with a date of birth", outcome: "ok" },
+        { label: "Identity is down: application is queued", outcome: "ok" },
+      ],
+    },
+  },
+};

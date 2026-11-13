@@ -22,11 +22,27 @@ type Story = StoryObj<typeof TestCaseFormModal>;
 /** A new test case: the assistant makes the input from its description and judges the output against its own. */
 export const Default: Story = {};
 
+/** Written by hand with its input attached as JSON and the output it expects, which the run is compared with as well as judged. */
+export const AttachedInputAndOutput: Story = {
+  args: { initial: draftOf(nationalIdTestCaseRecords.find((t) => t.input.kind === "attached")!) },
+};
+
+/** Without a saved dataclip, an input is still attached or generated. */
+export const NoSavedDataclips: Story = { args: { dataclips: [] } };
+
 /** Editing one the assistant wrote from the spec: a saved dataclip as its input and deterministic tests, no judgement. */
 export const Editing: Story = { args: { initial: draftOf(nationalIdTestCaseRecords[0]!) } };
 
 /** Saving takes a moment: the button says so and ignores a second press. */
 export const Saving: Story = { args: { onSubmit: () => new Promise(() => {}) } };
+
+/** An attached input the server refuses, e.g. one too big to keep, is said under its field. */
+export const AttachedInputRefused: Story = {
+  args: {
+    initial: draftOf(nationalIdTestCaseRecords.find((t) => t.input.kind === "attached")!),
+    onSubmit: () => Promise.reject(new FormError("Not saved", { input_body: ["should be at most 100000 character(s)"] })),
+  },
+};
 
 /** An end step the start can't reach, refused by the server, shows under the field. */
 export const EndUnreachable: Story = {

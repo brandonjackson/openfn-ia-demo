@@ -18,7 +18,7 @@ interface Result {
 }
 type Test = {
   id: string;
-  attributes: { name: string; requirement: string | null; origin: string; in_spec: boolean; judge: boolean; assertions: string | null; last_result: Result | null; dataclip_name: string | null; start_job_id: string | null; end_job_id: string | null };
+  attributes: { name: string; requirement: string | null; origin: string; in_spec: boolean; judge: boolean; assertions: string | null; last_result: Result | null; dataclip_name: string | null; start_job_id: string | null; end_job_id: string | null; input_body: string | null; expected_output: string | null };
 };
 
 const base = (projectId = a) => `/api/demo/projects/${projectId}/test_cases`;
@@ -75,7 +75,10 @@ describe("test cases", () => {
 
   it("checks the name, the descriptions, the steps and what it checks", async () => {
     const bad = await refusal(make({ name: "", input_description: "", output_description: "", judge: false, assertions: "" }));
-    expect(Object.keys(bad?.fieldErrors ?? {}).sort()).toEqual(["assertions", "input_description", "name", "output_description"]);
+    // Without the assistant judging, the output's description is optional.
+    expect(Object.keys(bad?.fieldErrors ?? {}).sort()).toEqual(["assertions", "input_description", "name"]);
+    const judged = await refusal(make({ name: "Judged", input_description: "x", output_description: "", judge: true }));
+    expect(judged?.fieldErrors["output_description"]).toEqual(["can't be blank while the assistant judges the output"]);
     const taken = await refusal(make({ name: "existing citizen is told their id", input_description: "x", output_description: "y" }));
     expect(taken?.fieldErrors["name"]).toBeTruthy();
     const backwards = await refusal(make({ name: "Backwards", input_description: "x", output_description: "y", start_job_id: step("confirm"), end_job_id: step("verify") }));
@@ -83,6 +86,49 @@ describe("test cases", () => {
     // A saved dataclip stands in for the input's description.
     const withClip = await make({ name: "From a dataclip", output_description: "y", dataclip_id: "saved-new-citizen" });
     expect(withClip.attributes.dataclip_name).toBe("Sample application: new citizen");
+  });
+
+  it("runs with an attached input and compares with an attached expected output", async () => {
+    const input = JSON.stringify({ given_name: "Esi", family_name: "Boateng", date_of_birth: "2001-02-09", consent: "yes" }, null, 2);
+    const made = await make({
+      name: "Attached applicant",
+      // No description is needed with an input attached, nor without the assistant judging.
+      input_description: "",
+      output_description: "",
+      input_body: input,
+      judge: false,
+      expected_output: JSON.stringify({ notified: true }),
+    });
+    expect(made.attributes).toMatchObject({ input_body: input, expected_output: '{"notified":true}', dataclip_name: null });
+
+    const result = await run(made.id);
+    expect(result).toMatchObject({ status: "passed", input });
+    expect(result.checks).toEqual([{ label: "Matches the expected output", passed: true }]);
+
+    // An expected output the workflow can't give fails its comparison.
+    const near = (await list()).find((t) => t.attributes.name === "Near-match goes to a person for review")!;
+    expect(near.attributes.input_body).toMatch(/Okafor/);
+    const failed = await run(near.id);
+    expect(failed.input).toBe(near.attributes.input_body);
+    expect(failed.checks).toEqual([
+      { label: "Matches the expected output", passed: false },
+      { label: "The assistant's judgement", passed: false },
+    ]);
+
+    // Switching to a saved dataclip clears the attached input.
+    const switched = await request<{ data: Test }>("PATCH", `${base()}/${made.id}`, { dataclip_id: "saved-new-citizen", input_body: null });
+    expect(switched.data.attributes).toMatchObject({ input_body: null, dataclip_name: "Sample application: new citizen" });
+  });
+
+  it("checks attached JSON, and that an input isn't both attached and a dataclip", async () => {
+    const bad = await refusal(make({ name: "Bad JSON", input_body: "{ nope", output_description: "y", expected_output: "[1, 2]" }));
+    expect(bad?.fieldErrors["input_body"]).toEqual(["isn't valid JSON"]);
+    expect(bad?.fieldErrors["expected_output"]).toEqual(["must be a JSON object"]);
+    const both = await refusal(make({ name: "Both", input_body: "{}", dataclip_id: "saved-new-citizen", output_description: "y" }));
+    expect(both?.fieldErrors["input_body"]).toBeTruthy();
+    const nothing = await refusal(make({ name: "Nothing checked", input_body: "{}", judge: false }));
+    expect(nothing?.fieldErrors["assertions"]).toEqual(["write deterministic tests, attach an expected output, or let the assistant judge the output"]);
+    expect(nothing?.fieldErrors["output_description"]).toBeUndefined();
   });
 
   it("syncs the tests with the spec, writing deterministic tests for what isn't covered", async () => {

@@ -291,6 +291,42 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     }
   });
 
+  it("adds a test case with an attached input and expected output in a sandbox", async () => {
+    const projectId = projectIdFor("project-a");
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${crypto.randomUUID()}`, { name: "attached-tests" });
+    act(() => setSandbox(projectId, "attached-tests"));
+    try {
+      renderEditor(apiWorkflowId("apply-national-id"));
+      fireEvent.click(await screen.findByText("Explorer", {}, wait));
+      fireEvent.click(await screen.findByRole("button", { name: /Test cases/ }, wait));
+      fireEvent.click(await screen.findByRole("button", { name: "New test case" }, wait));
+      const form = within(await screen.findByRole("form", { name: "New test case" }, wait));
+      fireEvent.change(form.getByLabelText(/Scenario name/), { target: { value: "Attached applicant is notified" } });
+      fireEvent.click(form.getByRole("radio", { name: /Attach an input/ }));
+      fireEvent.click(form.getByLabelText(/Let the assistant judge/));
+      fireEvent.click(form.getByLabelText(/Compare with an expected output/));
+
+      // Nothing attached yet: each says what's missing under it.
+      fireEvent.click(screen.getByRole("button", { name: "Add test case" }));
+      expect(form.getByText("Paste the input, or upload a .json file")).toBeTruthy();
+      expect(form.getByText("Paste the expected output, or upload a .json file")).toBeTruthy();
+      expect(document.activeElement?.id).toBe("test-input-body");
+
+      fireEvent.change(form.getByLabelText(/Attached input/), { target: { value: '{ "given_name": "Esi", "consent": "yes" }' } });
+      // The expected output comes from a file, which fills the box.
+      const upload = document.querySelectorAll<HTMLInputElement>('input[type="file"]')[1]!;
+      fireEvent.change(upload, { target: { files: [new File(['{"notified":true}'], "expected.json", { type: "application/json" })] } });
+      expect(await form.findByText(/Read from expected.json/, {}, wait)).toBeTruthy();
+      expect((form.getByLabelText(/^Expected output/) as HTMLTextAreaElement).value).toBe('{\n  "notified": true\n}');
+
+      fireEvent.click(screen.getByRole("button", { name: "Add test case" }));
+      expect(await screen.findByText("Attached applicant is notified", {}, wait)).toBeTruthy();
+      expect(screen.getAllByText("Attached input").length).toBeGreaterThan(0);
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
   it("has the assistant write tests from the spec, and opens them from its reply", async () => {
     const projectId = projectIdFor("project-a");
     await request("PUT", `/api/projects/${projectId}/sandboxes/${crypto.randomUUID()}`, { name: "assistant-tests" });

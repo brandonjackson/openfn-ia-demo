@@ -30,8 +30,10 @@ interface ApiTestCase {
     end_job_id: string | null;
     dataclip_id: string | null;
     dataclip_name: string | null;
+    input_body: string | null;
     judge: boolean;
     assertions: string | null;
+    expected_output: string | null;
     requirement: string | null;
     origin: "you" | "assistant";
     in_spec: boolean;
@@ -56,9 +58,14 @@ const toTestCase = ({ id, attributes: a }: ApiTestCase): TestCase => ({
   outputDescription: a.output_description,
   startStepId: a.start_job_id ?? undefined,
   endStepId: a.end_job_id ?? undefined,
-  input: a.dataclip_id ? { kind: "dataclip", dataclipId: a.dataclip_id, dataclipName: a.dataclip_name ?? undefined } : { kind: "generated" },
+  input: a.dataclip_id
+    ? { kind: "dataclip", dataclipId: a.dataclip_id, dataclipName: a.dataclip_name ?? undefined }
+    : a.input_body
+      ? { kind: "attached", body: a.input_body }
+      : { kind: "generated" },
   judge: a.judge,
   assertions: a.assertions ?? undefined,
+  expectedOutput: a.expected_output ?? undefined,
   requirement: a.requirement ?? undefined,
   origin: a.origin,
   inSpec: a.in_spec,
@@ -90,15 +97,17 @@ const bodyOf = (d: TestCaseDraft) => ({
   start_job_id: d.startStepId || null,
   end_job_id: d.endStepId || null,
   dataclip_id: d.dataclipId || null,
+  input_body: d.inputBody?.trim() || null,
   judge: d.judge,
   assertions: d.assertions?.trim() || null,
+  expected_output: d.expectedOutput?.trim() || null,
 });
 
 /**
  * Making, changing, deleting, running and generating a workflow's tests.
  * Each resolves once the list has reloaded; a refusal names its field
- * (`name`, `input_description`, `output_description`, `end_job_id`,
- * `assertions`…).
+ * (`name`, `input_description`, `input_body`, `output_description`,
+ * `end_job_id`, `assertions`, `expected_output`…).
  */
 export function useTestCaseSaves(projectId: string, workflowId: string) {
   const queryClient = useQueryClient();

@@ -52,3 +52,6 @@ export const ReadOnly: Story = { args: { onCreate: undefined, onEdit: undefined,
 
 /** A test that can't run says why under its name. */
 export const RunRefused: Story = { args: { onRun: () => Promise.reject(new Error("You can't run tests in this project.")) } };
+
+/** A test written by hand with its input and expected output attached: the input shows as saved, and the comparison is one of its checks. */
+export const AttachedInputAndOutput: Story = { args: { tests: nationalIdTestCaseRecords.filter((t) => t.input.kind === "attached") } };

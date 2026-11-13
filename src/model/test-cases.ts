@@ -4,8 +4,9 @@
  * where in the workflow to start and stop. The assistant makes an input to
  * match the input's description (or the test uses a saved dataclip), runs
  * the workflow between the two steps, and checks what came out: it judges
- * the output against the description, runs the test's deterministic tests,
- * or both.
+ * the output against the description, compares it with an expected output
+ * attached to the test, runs the test's deterministic tests, or any of them.
+ * An input can be attached as JSON too, in place of a generated one.
  */
 import type { AssistantMessage } from "./assistant";
 
@@ -14,11 +15,16 @@ export type TestInput =
   /** The assistant writes one to match the input's description, each time it runs. */
   | { kind: "generated" }
   /** A saved dataclip, run as it is. */
-  | { kind: "dataclip"; dataclipId: string; dataclipName?: string };
+  | { kind: "dataclip"; dataclipId: string; dataclipName?: string }
+  /** JSON attached to the test itself (pasted or uploaded), run as it is. */
+  | { kind: "attached"; body: string };
+
+/** Where a test's input comes from, as its form picks it. */
+export type TestInputKind = TestInput["kind"];
 
 /** One check a run of a test made, and how it went. */
 export interface TestCheck {
-  /** What it checked, e.g. `expect(state.notified).toBe(true)` or "The assistant's judgement". */
+  /** What it checked, e.g. `expect(state.notified).toBe(true)`, "Matches the expected output" or "The assistant's judgement". */
   label: string;
   passed: boolean;
 }
@@ -32,7 +38,7 @@ export interface TestResult {
   input: string;
   /** The steps the run walked, by name, from the start step to the end. */
   steps: string[];
-  /** Each deterministic test, then the assistant's judgement, when it judged. */
+  /** Each deterministic test, then the comparison with the expected output, then the assistant's judgement, as the test has them. */
   checks: TestCheck[];
   /** What the assistant made of the output, in a sentence or two, when it judged it; or why the test couldn't run. */
   verdict?: string;
@@ -44,7 +50,7 @@ export interface TestCase {
   name: string;
   /** What goes in, in plain words; the assistant writes an input to match when the input is generated. */
   inputDescription: string;
-  /** What should come out, in plain words; the assistant judges the output against it. */
+  /** What should come out, in plain words; the assistant judges the output against it. Optional when it doesn't judge. */
   outputDescription: string;
   /** The step it starts at; left out, the workflow's first step. */
   startStepId?: string;
@@ -55,6 +61,12 @@ export interface TestCase {
   judge: boolean;
   /** Deterministic tests, as code run against the final state; left out when there are none. */
   assertions?: string;
+  /**
+   * The state it should end with, as JSON attached to the test: every key in
+   * it must come out with the same value (others may come out too). Left out
+   * when it isn't compared.
+   */
+  expectedOutput?: string;
   /** The requirement in spec.md it was written for, when the assistant generated it from the spec. */
   requirement?: string;
   /** Who wrote it: you, or the assistant from the spec. */
@@ -75,11 +87,15 @@ export interface TestCaseDraft {
   startStepId?: string;
   /** Empty for the workflow's final output. */
   endStepId?: string;
-  /** A saved dataclip to run with; empty to have the assistant generate one. */
+  /** A saved dataclip to run with; empty to have the assistant generate one, or for an attached input. */
   dataclipId?: string;
+  /** JSON to run with, attached to the test; empty to have the assistant generate one, or for a dataclip. */
+  inputBody?: string;
   judge: boolean;
   /** Deterministic tests; empty for none. */
   assertions?: string;
+  /** The state it should end with, as JSON; empty not to compare. */
+  expectedOutput?: string;
 }
 
 /** What syncing the tests with the spec did. */
@@ -111,9 +127,15 @@ export const draftOf = (t: TestCase): TestCaseDraft => ({
   startStepId: t.startStepId,
   endStepId: t.endStepId,
   dataclipId: t.input.kind === "dataclip" ? t.input.dataclipId : undefined,
+  inputBody: t.input.kind === "attached" ? t.input.body : undefined,
   judge: t.judge,
   assertions: t.assertions ?? "",
+  expectedOutput: t.expectedOutput,
 });
+
+/** Where a draft's input comes from: the dataclip it names, the JSON attached, or else the assistant. */
+export const inputKindOf = (d: Pick<TestCaseDraft, "dataclipId" | "inputBody">): TestInputKind =>
+  d.dataclipId ? "dataclip" : d.inputBody ? "attached" : "generated";
 
 /** How a test went, or "not run" before it has: for its badge and the summary. */
 export type TestState = TestResult["status"] | "running" | "not_run";
@@ -132,9 +154,16 @@ export function testTally(tests: TestCase[], running: ReadonlySet<string> = new 
   return tally;
 }
 
-/** What a test checks, in a few words: "AI judge", "Deterministic tests" or both. */
-export function checksOf(t: Pick<TestCase, "judge" | "assertions">): string[] {
-  return [...(t.assertions?.trim() ? ["Deterministic tests"] : []), ...(t.judge ? ["AI judge"] : [])];
+/** One way a test checks what came out. */
+export type TestCheckKind = "Deterministic tests" | "Expected output" | "AI judge";
+
+/** What a test checks, in a few words: "Deterministic tests", "Expected output", "AI judge", or several. */
+export function checksOf(t: Pick<TestCase, "judge" | "assertions" | "expectedOutput">): TestCheckKind[] {
+  return [
+    ...(t.assertions?.trim() ? (["Deterministic tests"] as const) : []),
+    ...(t.expectedOutput?.trim() ? (["Expected output"] as const) : []),
+    ...(t.judge ? (["AI judge"] as const) : []),
+  ];
 }
 
 /** A name for a new test no other has: "Untitled test", "Untitled test 2"… */

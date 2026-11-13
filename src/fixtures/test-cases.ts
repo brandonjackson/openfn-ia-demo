@@ -77,8 +77,12 @@ export interface FixtureTestCase {
   end?: string;
   /** A saved dataclip's id, to run with it instead of a generated input. */
   dataclip?: string;
+  /** JSON attached as the input, to run with instead of a generated one. */
+  inputBody?: string;
   judge: boolean;
   assertions?: string;
+  /** JSON attached as the state it should end with. */
+  expectedOutput?: string;
   requirement?: string;
   origin: "you" | "assistant";
   /** How it went the last time it ran, if it has. */
@@ -116,6 +120,13 @@ export const nationalIdTestCases: FixtureTestCase[] = [
       "Someone with the same name as an existing citizen but a different date of birth, such as a returning applicant whose day and month were swapped.",
     outputDescription: "The application is held for a person to review. No new citizen is created and no ID is issued.",
     start: "search",
+    // Written by hand, with the applicant it's about attached and what should come of them.
+    inputBody: JSON.stringify(
+      { given_name: "Amara", family_name: "Okafor", date_of_birth: "1991-03-15", phone: "+15555550101", consent: "yes" },
+      null,
+      2,
+    ),
+    expectedOutput: JSON.stringify({ heldForReview: true, nationalId: null, notified: false }, null, 2),
     judge: true,
     origin: "you",
     lastRun: {
@@ -154,21 +165,32 @@ export const nationalIdTestCaseRecords: TestCase[] = nationalIdTestCases.map((t,
     outputDescription: t.outputDescription,
     startStepId: t.start,
     endStepId: t.end,
-    input: t.dataclip ? { kind: "dataclip", dataclipId: t.dataclip, dataclipName: "Sample application: existing citizen" } : { kind: "generated" },
+    input: t.dataclip
+      ? { kind: "dataclip", dataclipId: t.dataclip, dataclipName: "Sample application: existing citizen" }
+      : t.inputBody
+        ? { kind: "attached", body: t.inputBody }
+        : { kind: "generated" },
     judge: t.judge,
     assertions: t.assertions,
+    expectedOutput: t.expectedOutput,
     requirement: t.requirement,
     origin: t.origin,
     inSpec: true,
     lastResult: t.lastRun && {
       status: t.lastRun.status,
       ranAt: t.lastRun.ranAt,
-      input: JSON.stringify(plan?.sampleInput ?? { given_name: "Tomas", family_name: "Rivera", date_of_birth: "1990-05-03", phone: "+15555550160", consent: "yes" }, null, 2),
+      input:
+        t.inputBody ??
+        JSON.stringify(plan?.sampleInput ?? { given_name: "Tomas", family_name: "Rivera", date_of_birth: "1990-05-03", phone: "+15555550160", consent: "yes" }, null, 2),
       steps:
         t.lastRun.status === "passed"
           ? ["Verify birth registration in OpenCRVS", "Search for duplicate citizens in Identity", t.end === "notify" ? "Notify applicant of existing national ID" : "Create new citizen in Identity"]
           : ["Search for duplicate citizens in Identity", "Create new citizen in Identity", "Send confirmation notification with national ID"],
-      checks: [...passedChecks, ...(t.judge ? [{ label: "The assistant's judgement", passed: t.lastRun.status === "passed" }] : [])],
+      checks: [
+        ...passedChecks,
+        ...(t.expectedOutput ? [{ label: "Matches the expected output", passed: t.lastRun.status === "passed" }] : []),
+        ...(t.judge ? [{ label: "The assistant's judgement", passed: t.lastRun.status === "passed" }] : []),
+      ],
       verdict: t.lastRun.verdict,
     },
     updatedAt: t.updatedAt,

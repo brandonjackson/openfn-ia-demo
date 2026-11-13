@@ -19,3 +19,8 @@ export const Default: Story = {
 export const Compact: Story = {
   args: { compact: true, title: "Drop files to add them" },
 };
+
+/** Takes one file: a drop of several keeps the first. */
+export const SingleFile: Story = {
+  args: { compact: true, multiple: false, title: "Drop a .json file here or click to upload", accept: ".json,application/json" },
+};

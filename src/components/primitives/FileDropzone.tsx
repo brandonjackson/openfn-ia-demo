@@ -12,6 +12,8 @@ interface Props {
   accept?: string;
   /** A slimmer layout for when files are already listed below. */
   compact?: boolean;
+  /** Whether browsing picks several files at once; off to take one. Defaults to on. */
+  multiple?: boolean;
 }
 
 /**
@@ -23,6 +25,7 @@ export default function FileDropzone({
   description,
   accept,
   compact = false,
+  multiple = true,
 }: Props) {
   const input = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
@@ -30,7 +33,8 @@ export default function FileDropzone({
   const handleDrop = (e: DragEvent) => {
     e.preventDefault();
     setDragging(false);
-    if (e.dataTransfer.files.length) onFiles(Array.from(e.dataTransfer.files));
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length) onFiles(multiple ? files : files.slice(0, 1));
   };
 
   return (
@@ -53,7 +57,7 @@ export default function FileDropzone({
       <input
         ref={input}
         type="file"
-        multiple
+        multiple={multiple}
         accept={accept}
         className="hidden"
         onChange={(e) => {

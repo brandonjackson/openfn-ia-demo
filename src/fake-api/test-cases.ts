@@ -8,17 +8,21 @@
  * - `GET /api/demo/projects/:project_id/test_cases?workflow_id=…` lists a
  *   workflow's tests (every test in the project without it), by name, for
  *   any member, each with how it went last time (`last_result`).
- * - `POST` makes one (201): a `name` unique among the workflow's tests; an
- *   `input_description` (needed unless it runs with a saved dataclip,
- *   `dataclip_id`); an `output_description`; where it starts and stops
- *   (`start_job_id`, `end_job_id`: null for the first step and the final
- *   output, and the end must be reachable from the start); and how it's
- *   checked: `judge` (the assistant judges the output against its
- *   description) and `assertions` (deterministic tests), at least one.
+ * - `POST` makes one (201): a `name` unique among the workflow's tests; what
+ *   goes in, as an `input_description` the assistant writes an input to
+ *   match, a saved dataclip (`dataclip_id`) or JSON attached to the test
+ *   (`input_body`, an object), the last two never both (the description is
+ *   optional with either); an `output_description` (needed when the
+ *   assistant judges); where it starts and stops (`start_job_id`,
+ *   `end_job_id`: null for the first step and the final output, and the end
+ *   must be reachable from the start); and how it's checked: `judge` (the
+ *   assistant judges the output against its description), `assertions`
+ *   (deterministic tests) and `expected_output` (JSON attached to the test,
+ *   an object whose every key must come out the same), at least one.
  * - `PATCH .../:id` changes any of those under the same rules; `DELETE`
  *   removes it (204).
  * - `POST .../:id/runs` runs it (201): the assistant makes an input to
- *   match the description (or takes the dataclip), runs the workflow from
+ *   match the description (or takes the dataclip or the attached input), runs the workflow from
  *   the start step to the end, and checks what came out. The answer is the
  *   result, kept as the test's `last_result`. The run is the demo standing
  *   in for Lightning's worker and the assistant: it isn't in run history.
@@ -65,8 +69,12 @@ export interface TestCaseRow {
   start_job_id: string | null;
   end_job_id: string | null;
   dataclip_id: string | null;
+  /** JSON attached as the input, run as it is; null for a generated input or a dataclip. */
+  input_body: string | null;
   judge: boolean;
   assertions: string | null;
+  /** JSON the final state is compared with; null not to compare. */
+  expected_output: string | null;
   requirement: string | null;
   origin: "you" | "assistant";
   last_result: ResultRow | null;
@@ -108,8 +116,10 @@ const testCasesSeed = (): TestCaseRow[] =>
         start_job_id: t.start ? apiNodeId(slug, t.start) : null,
         end_job_id: t.end ? apiNodeId(slug, t.end) : null,
         dataclip_id: t.dataclip ?? null,
+        input_body: t.inputBody ?? null,
         judge: t.judge,
         assertions: t.assertions ?? null,
+        expected_output: t.expectedOutput ?? null,
         requirement: t.requirement ?? null,
         origin: t.origin,
         last_result: null,
@@ -223,11 +233,14 @@ function unmet(t: TestCaseRow, steps: string[]): string | undefined {
   return undefined;
 }
 
+/** The check a run makes of a test with an expected output attached. */
+export const EXPECTED_OUTPUT_CHECK = "Matches the expected output";
+
 /** A run of the test, as the assistant would make and judge it. `fail` forces a failure, for the seed. */
 function simulate(t: TestCaseRow, fail = false): ResultRow {
   const w = findWorkflow(t.workflow_id);
   const clip = t.dataclip_id ? dataclips.rows().find((d) => d.id === t.dataclip_id) : undefined;
-  const input = clip ? clip.body : generatedInput(t, w);
+  const input = clip ? clip.body : (t.input_body ?? generatedInput(t, w));
   const assertions = (t.assertions ?? "")
     .split("\n")
     .map((l) => l.trim())
@@ -241,8 +254,10 @@ function simulate(t: TestCaseRow, fail = false): ResultRow {
   const steps = w ? walked.map((id) => jobName(w, id)) : [];
   const problem = fail ? "The output doesn't match the description." : unmet(t, steps);
   const checks = [
-    // A failure the assistant judged leaves the deterministic tests passing; without a judge, the first fails.
-    ...assertions.map((label, i) => ({ label, passed: !problem || (t.judge ? true : i !== 0) })),
+    // A failure the assistant judged leaves the deterministic tests passing; without a judge or an expected output, the first fails.
+    ...assertions.map((label, i) => ({ label, passed: !problem || t.judge || !!t.expected_output || i !== 0 })),
+    // An output that isn't what the description asks never matches the one attached.
+    ...(t.expected_output ? [{ label: EXPECTED_OUTPUT_CHECK, passed: !problem }] : []),
     ...(t.judge ? [{ label: "The assistant's judgement", passed: !problem }] : []),
   ];
   return {
@@ -271,8 +286,10 @@ const entry = (t: TestCaseRow) => ({
     end_job_id: t.end_job_id,
     dataclip_id: t.dataclip_id,
     dataclip_name: t.dataclip_id ? (dataclips.rows().find((d) => d.id === t.dataclip_id)?.name ?? null) : null,
+    input_body: t.input_body,
     judge: t.judge,
     assertions: t.assertions,
+    expected_output: t.expected_output,
     requirement: t.requirement,
     origin: t.origin,
     in_spec: inSpec(t),
@@ -288,7 +305,7 @@ const entry = (t: TestCaseRow) => ({
 /*  Checking what's sent                                               */
 /* ------------------------------------------------------------------ */
 
-const KEYS = ["workflow_id", "name", "input_description", "output_description", "start_job_id", "end_job_id", "dataclip_id", "judge", "assertions"];
+const KEYS = ["workflow_id", "name", "input_description", "output_description", "start_job_id", "end_job_id", "dataclip_id", "input_body", "judge", "assertions", "expected_output"];
 
 type Fields = Omit<TestCaseRow, "id" | "project_id" | "requirement" | "origin" | "last_result" | "updated_by" | "inserted_at" | "updated_at" | "copied_from">;
 
@@ -300,6 +317,20 @@ const text = (body: Body, key: string, errors: Entry[], fallback = "") => {
     return fallback;
   }
   return (v ?? "").trim();
+};
+
+/** Attached JSON, which must be an object (a run's state), or null for none. */
+const attachedJson = (body: Body, key: string, errors: Entry[], fallback: string | null) => {
+  const v = text(body, key, errors, fallback ?? "") || null;
+  if (v === null) return null;
+  maxLength(v, 100_000, `#/${key}`, errors);
+  try {
+    const parsed: unknown = JSON.parse(v);
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) errors.push({ code: "format", detail: "must be a JSON object", pointer: `#/${key}` });
+  } catch {
+    errors.push({ code: "format", detail: "isn't valid JSON", pointer: `#/${key}` });
+  }
+  return v;
 };
 
 const nullableId = (body: Body, key: string, errors: Entry[], fallback: string | null) => {
@@ -336,13 +367,21 @@ function checked(projectId: string, body: Body, existing?: TestCaseRow): { error
 
   const dataclip_id = nullableId(body, "dataclip_id", errors, existing?.dataclip_id ?? null);
   if (dataclip_id && !dataclips.rows().some((d) => d.id === dataclip_id)) errors.push({ code: "not_found", detail: "isn't a saved dataclip", pointer: "#/dataclip_id" });
+  // Picking one way in sets the other to null; sending only one of them on a change leaves the other as it was, so check them together.
+  const input_body = attachedJson(body, "input_body", errors, existing?.input_body ?? null);
+  if (input_body && dataclip_id) errors.push({ code: "exclusive", detail: "can't be attached to a test that runs with a saved dataclip", pointer: "#/input_body" });
 
   const input_description = text(body, "input_description", errors, existing?.input_description);
-  if (!input_description && !dataclip_id) errors.push({ code: "required", detail: "say what goes in, or run it with a saved dataclip", pointer: "#/input_description" });
+  if (!input_description && !dataclip_id && !input_body) {
+    errors.push({ code: "required", detail: "say what goes in, attach an input, or run it with a saved dataclip", pointer: "#/input_description" });
+  }
   maxLength(input_description, 4000, "#/input_description", errors);
 
+  if (body["judge"] !== undefined && typeof body["judge"] !== "boolean") errors.push({ code: "type", detail: "must be a boolean", pointer: "#/judge" });
+  const judge = typeof body["judge"] === "boolean" ? body["judge"] : (existing?.judge ?? true);
+
   const output_description = text(body, "output_description", errors, existing?.output_description);
-  if (!output_description) errors.push({ code: "required", detail: "can't be blank", pointer: "#/output_description" });
+  if (!output_description && judge) errors.push({ code: "required", detail: "can't be blank while the assistant judges the output", pointer: "#/output_description" });
   maxLength(output_description, 4000, "#/output_description", errors);
 
   const start_job_id = nullableId(body, "start_job_id", errors, existing?.start_job_id ?? null);
@@ -355,13 +394,17 @@ function checked(projectId: string, body: Body, existing?: TestCaseRow): { error
     }
   }
 
-  if (body["judge"] !== undefined && typeof body["judge"] !== "boolean") errors.push({ code: "type", detail: "must be a boolean", pointer: "#/judge" });
-  const judge = typeof body["judge"] === "boolean" ? body["judge"] : (existing?.judge ?? true);
   const assertions = text(body, "assertions", errors, existing?.assertions ?? "") || null;
   maxLength(assertions ?? "", 20_000, "#/assertions", errors);
-  if (!judge && !assertions) errors.push({ code: "required", detail: "write deterministic tests, or let the assistant judge the output", pointer: "#/assertions" });
+  const expected_output = attachedJson(body, "expected_output", errors, existing?.expected_output ?? null);
+  if (!judge && !assertions && !expected_output) {
+    errors.push({ code: "required", detail: "write deterministic tests, attach an expected output, or let the assistant judge the output", pointer: "#/assertions" });
+  }
 
-  return { errors, fields: { workflow_id, name, input_description, output_description, start_job_id, end_job_id, dataclip_id, judge, assertions } };
+  return {
+    errors,
+    fields: { workflow_id, name, input_description, output_description, start_job_id, end_job_id, dataclip_id, input_body, judge, assertions, expected_output },
+  };
 }
 
 const by = () => {
@@ -387,7 +430,19 @@ export function copyTestCasesInto(sandboxId: string, copies: Map<string, string>
 }
 
 const content = (t: TestCaseRow, jobId: (id: string | null) => string | null = (id) => id) =>
-  JSON.stringify([t.name, t.input_description, t.output_description, jobId(t.start_job_id), jobId(t.end_job_id), t.dataclip_id, t.judge, t.assertions, t.requirement]);
+  JSON.stringify([
+    t.name,
+    t.input_description,
+    t.output_description,
+    jobId(t.start_job_id),
+    jobId(t.end_job_id),
+    t.dataclip_id,
+    t.input_body,
+    t.judge,
+    t.assertions,
+    t.expected_output,
+    t.requirement,
+  ]);
 
 /**
  * Brings a sandbox workflow's new and changed tests into the target's copy
@@ -407,8 +462,10 @@ export function mergeTestCases(sandboxWorkflowId: string, targetWorkflowId: stri
       start_job_id: jobId(t.start_job_id),
       end_job_id: jobId(t.end_job_id),
       dataclip_id: t.dataclip_id,
+      input_body: t.input_body,
       judge: t.judge,
       assertions: t.assertions,
+      expected_output: t.expected_output,
       requirement: t.requirement,
       origin: t.origin,
       updated_by: by(),
@@ -502,6 +559,8 @@ export const testCaseRoutes: Record<string, Handler> = {
         start_job_id: r.start,
         end_job_id: r.end,
         dataclip_id: null,
+        input_body: null,
+        expected_output: null,
         // Deterministic tests by default; the assistant's judgement is yours to turn on.
         judge: false,
         assertions: r.assertions,

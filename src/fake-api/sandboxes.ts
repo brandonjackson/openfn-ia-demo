@@ -24,6 +24,8 @@
  *   collection only the sandbox has is made, empty, in the target; the
  *   target's collections keep their items. A channel keeps the target's
  *   switch and traffic.
+ * - Each workflow's test cases come along with it: copied when the sandbox
+ *   is made, and its new and changed ones merged back (test-cases.ts).
  * - Renaming and recolouring go through `PUT /api/projects/:id`; deleting
  *   through `DELETE /api/projects/:id`, which takes its own sandboxes too.
  */
@@ -37,6 +39,7 @@ import { conflict, forbidden, includes, invalid, isUuid, json, now, paged, unkno
 import { record } from "./audit";
 import { findProject, guardProject, members, membersOf, projectEntry, projects, roleIn, rootOf, type ProjectRow } from "./projects";
 import { currentUserId } from "./session";
+import { copyTestCasesInto, mergeTestCases } from "./test-cases";
 import { copyDataclipsInto } from "./work-orders";
 import { canUseCredential, cloneInto, findWorkflow, liveWorkflowsIn, saveWorkflow, snapshot, workflows, type WorkflowRow } from "./workflows";
 
@@ -391,8 +394,9 @@ export const sandboxRoutes: Record<string, Handler> = {
     }
     // The saved dataclips asked for come along, to run the copies with.
     copyDataclipsInto(parent.id, sandbox.id, (clipIds as string[] | undefined) ?? [], copies);
-    // Its components and environment variables, as the parent has them now.
+    // Its components and environment variables, as the parent has them now, and each workflow's test cases.
     copyComponentsInto(parent.id, sandbox.id, at);
+    copyTestCasesInto(sandbox.id, copies);
     record("created", { type: "project", id: sandbox.id, name: sandbox.name }, { after: { name: sandbox.name, parent_id: parent.id } });
     return json(201, { data: projectEntry(sandbox) });
   },
@@ -426,6 +430,8 @@ export const sandboxRoutes: Record<string, Handler> = {
       if (chosen && !chosen.includes(w.id)) continue;
       if (t) {
         const back = mapBack(sandbox, t);
+        // Its test cases come along whether or not the workflow itself changed.
+        mergeTestCases(w.id, t.id, target.id, back);
         if (content(w, back) === content(t, (x) => x)) continue;
         const next: WorkflowRow = {
           ...t,
@@ -449,6 +455,7 @@ export const sandboxRoutes: Record<string, Handler> = {
         const created: WorkflowRow = { ...cloneInto(w, target.id, at), id: newId(), copied_from: null };
         workflows.insert(created);
         snapshot(created, message);
+        mergeTestCases(w.id, created.id, target.id, (id) => id && cloneNodeId(target.id, id));
         record("created", { type: "workflow", id: created.id, name: created.name }, { after: { name: created.name } });
       }
     }

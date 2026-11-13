@@ -23,6 +23,7 @@ import { useCollectionsItems } from "../api/collections";
 import { starterContent } from "../model/project-components";
 import { combine, inTurn } from "../api/status";
 import { useEnvVars, useEnvVarSaves } from "../api/env-vars";
+import { useTestCases, useTestCaseSaves } from "../api/test-cases";
 import { asGraph, useProjectWorkflows, useSandboxComponentChanges, useSandboxes, useSandboxSaves, useWorkflow, useWorkflowSaves, useWorkflowSnapshots } from "../api/workflows";
 import { componentChanges } from "../model/workflow-changes";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
@@ -67,6 +68,11 @@ const REPLY_DELAY_MS = 900;
 /** The fake assistant's answer, after it has thought about it. */
 function later<T>(answer: () => T): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(answer()), REPLY_DELAY_MS));
+}
+
+/** The fake assistant's work, done no sooner than it would take it to think. */
+function thinking<T>(work: Promise<T>): Promise<T> {
+  return Promise.all([work, new Promise((resolve) => setTimeout(resolve, REPLY_DELAY_MS))]).then(([answer]) => answer);
 }
 
 /** A name for a new workflow that no other workflow in the project has: "Untitled workflow", "Untitled workflow 2"… */
@@ -243,6 +249,12 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   // Its environment variables too: a sandbox has its own, and its runs use their values for its environment.
   const { envVars } = useEnvVars(flags.envVars ? selected.id : undefined);
   const envVarSaves = useEnvVarSaves(selected.id);
+  // The shown copy's test cases: a sandbox's copy has its own, promoted with it. They're written in a
+  // sandbox, like the workflow, and run anywhere you could run the workflow.
+  const { testCases } = useTestCases(flags.testCases ? shown.project_id : undefined, flags.testCases ? shown.id : undefined);
+  const testSaves = useTestCaseSaves(shown.project_id, shown.id);
+  const canWriteTests = flags.testCases && editable && canEditComponents;
+  const canRunTests = flags.testCases && !!selected.permissions?.edit_workflow;
   // What the sandbox changes in them against its parent, which merging brings back with the workflow.
   const componentVersion = [
     ...records.channels.channels.map((c) => `${c.component.id}:${c.lockVersion}`),
@@ -349,6 +361,13 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       onCreateEnvVar={flags.envVars && canEditComponents ? envVarSaves.create : undefined}
       onUpdateEnvVar={flags.envVars && canEditComponents ? envVarSaves.update : undefined}
       onDeleteEnvVar={flags.envVars && canEditComponents ? envVarSaves.remove : undefined}
+      testCases={flags.testCases ? testCases : undefined}
+      // The assistant takes a moment to make an input, run it and judge what came out.
+      onRunTestCase={canRunTests ? (id) => thinking(testSaves.run(id)) : undefined}
+      onCreateTestCase={canWriteTests ? testSaves.create : undefined}
+      onUpdateTestCase={canWriteTests ? testSaves.update : undefined}
+      onDeleteTestCase={canWriteTests ? testSaves.remove : undefined}
+      onGenerateTestCases={canWriteTests ? () => thinking(testSaves.generate()) : undefined}
       url={service?.url}
       service={service?.service}
       onSeeDetails={service ? () => navigate(service.path) : undefined}

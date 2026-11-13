@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { ReactNode } from "react";
-import { BookOpen, Calendar, Cloud, Database, ExternalLink, FolderKanban, Globe, History, Layers, Plug, Radio, User, X } from "lucide-react";
+import { BookOpen, Calendar, Cloud, Database, ExternalLink, FlaskConical, FolderKanban, Globe, History, Layers, Plug, Radio, Sparkles, User, X } from "lucide-react";
 import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowFileContents, WorkflowSettings } from "../../model/workflow";
 import type { DetailsViewId } from "./editor-layout";
 import { triggerTypes, workflowToYaml } from "../../model/workflow";
@@ -84,6 +84,8 @@ interface Props {
   files?: WorkflowFileKind[];
   /** How many saved dataclips the project has, listed beside Saved dataclips. */
   savedDataclipCount?: number;
+  /** The workflow's test cases, listed under Saved dataclips; left out, they aren't listed. See `EditorExplorer`. */
+  testSummary?: { total: number; failed: number };
   /** Docs added alongside context.md and spec.md, by file name. */
   docs?: string[];
   /** Opens what can be added to the workflow's files, from the Workflow group's +. */
@@ -182,6 +184,7 @@ export default function CodeWorkspace({
   onAddStep,
   files,
   savedDataclipCount,
+  testSummary,
   docs = [],
   onAddFile,
   onAddComponent,
@@ -210,8 +213,22 @@ export default function CodeWorkspace({
   const health = file === "health";
   const envVars = file === "envVars";
   const saved = file === "dataclips";
+  const tests = file === "testCases";
   const fileName =
-    addedDoc ?? (doc ? `${doc}.md` : manifest ? "service.yaml" : health ? "Health" : saved ? "Saved dataclips" : envVars ? "Environment variables" : "workflow.yaml");
+    addedDoc ??
+    (doc
+      ? `${doc}.md`
+      : manifest
+        ? "service.yaml"
+        : health
+          ? "Health"
+          : saved
+            ? "Saved dataclips"
+            : tests
+              ? "Test cases"
+              : envVars
+                ? "Environment variables"
+                : "workflow.yaml");
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
   const yaml = workflowToYaml(workflow, { enabled: live });
   const triggerYaml = yaml.slice(yaml.indexOf("triggers:"), yaml.indexOf("edges:")).trimEnd();
@@ -373,6 +390,17 @@ export default function CodeWorkspace({
         ]}
         showHeader={false}
       />
+    ) : tests ? (
+      <FileDetailsPanel
+        title="Test cases"
+        description="Scenarios in plain words that the assistant runs: it makes an input to match (or takes a saved dataclip), runs the workflow between the two steps, and judges the output or runs the deterministic tests. They're promoted with the workflow."
+        properties={[
+          { icon: FlaskConical, label: "Tests", value: String(testSummary?.total ?? 0) },
+          { icon: Sparkles, label: "Synced with", value: "spec.md" },
+          { icon: FolderKanban, label: "Project", value: workflow.project },
+        ]}
+        showHeader={false}
+      />
     ) : health ? (
       <FileDetailsPanel
         title="Health"
@@ -431,6 +459,7 @@ export default function CodeWorkspace({
         hasService={service !== undefined}
         files={files}
         savedDataclipCount={savedDataclipCount}
+        testSummary={testSummary}
         docs={docs}
         readOnly={readOnly}
         showWorkflowFiles={showWorkflowFiles}
@@ -460,7 +489,7 @@ export default function CodeWorkspace({
       ? {
           tabs: {
             options: [
-              { id: "config", label: component || doc || manifest || addedDoc || health || saved || envVars ? "Details" : "Config" },
+              { id: "config", label: component || doc || manifest || addedDoc || health || saved || tests || envVars ? "Details" : "Config" },
               ...(step ? [{ id: "snippets", label: "Snippets" }] : []),
               ...(hasIO ? [{ id: "io", label: "I/O" }] : []),
             ],

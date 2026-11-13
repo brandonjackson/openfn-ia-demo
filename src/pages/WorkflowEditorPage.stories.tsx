@@ -3,7 +3,7 @@ import WorkflowEditorPage, { WorkflowEditorLoading } from "./WorkflowEditorPage"
 import { nationalIdTestCaseRecords } from "../fixtures/test-cases";
 import { nationalIdWorkflow, nationalIdWorkflowAt, registerCaseWorkflow, surveillanceVersions, weeklyCaseReportWorkflow, workflowVersions } from "../fixtures/workflow";
 import { dataclips, failedRun, olderRun, runHistories, sampleRun, simulateRun, workOrders } from "../fixtures/runs";
-import { projects } from "../fixtures/projects";
+import { projects, stepServices } from "../fixtures/projects";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
 import { adaptorChoices, adaptorInfo, adaptorSnippets, projectCredentials } from "../fixtures/adaptor-reference";
 import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
@@ -76,6 +76,7 @@ const meta: Meta<typeof WorkflowEditorPage> = {
     adaptors: { info: adaptorInfo, snippets: adaptorSnippets, choices: adaptorChoices, credentials: projectCredentials },
     catalog: { adaptors: adaptorCatalog, categories: catalogCategories, builtInTools, aiModels, aiActions },
     systems: connectedSystems,
+    stepServices,
     contents: contentsFor(projectAComponents, projectA.services[0]),
     codeSummary,
     onRun: simulateRun,
@@ -363,6 +364,7 @@ export const CodeRedesign: Story = {
     showComponents: false,
     publishesServices: false,
     systems: [],
+    stepServices: undefined,
     service: undefined,
   },
 };

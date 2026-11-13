@@ -49,6 +49,13 @@ async function openWorkflowMenu() {
   fireEvent.click(button);
 }
 
+/** Opens "Connect a system" from a card's +: the last step's, or the first card's (the trigger's). */
+async function openStepPicker(which: "last" | "first" = "last") {
+  const buttons = await screen.findAllByRole("button", { name: /^Add a step after/ }, wait);
+  fireEvent.click(which === "first" ? buttons[0] : buttons.at(-1)!);
+  return screen.findByRole("dialog", { name: "Connect a system" }, wait);
+}
+
 // The canvas measures itself and the assistant scrolls its thread; jsdom does neither.
 beforeAll(() => {
   globalThis.ResizeObserver ??= class {
@@ -207,6 +214,80 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
         request<{ data: { attributes: { name: string } }[] }>("GET", `/api/demo/projects/${id}/components?page_size=100`).then((r) => r.data.map((c) => c.attributes.name));
       expect(await named(sandboxId)).toContain("runbook");
       expect(await named(projectId)).not.toContain("runbook");
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
+  it("adds a step that calls another project's Live service from a card's +, in a sandbox", async () => {
+    const projectId = projectIdFor("project-a");
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "call-registry" });
+    act(() => setSandbox(projectId, "call-registry"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      // A sandbox's copy is made with its trigger off: once it's paused, the cards are the copy's, not main's.
+      await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+      const picker = await openStepPicker();
+      fireEvent.click(within(picker).getByRole("button", { name: "Services" }));
+      // The workflow backs Submit a planning application, so it isn't offered a step that calls itself.
+      expect(within(picker).queryByText("Submit a planning application")).toBeNull();
+      fireEvent.click(within(picker).getByText("Look up a client's national ID"));
+      await waitFor(() => expect(screen.queryByRole("dialog", { name: "Connect a system" })).toBeNull(), wait);
+      // It's an HTTP step named for the service, posting to its address, saved to the sandbox's copy.
+      const step = () =>
+        request<{ workflows: { jobs: { name: string; adaptor: string; body: string }[] }[] }>("GET", `/api/projects/${sandboxId}/workflows`).then(
+          (a) => a.workflows.flatMap((w) => w.jobs).find((j) => j.name === "Look up a client's national ID"),
+        );
+      await waitFor(async () => expect((await step())?.adaptor).toMatch(/^@openfn\/language-http/), wait);
+      expect((await step())?.body).toContain("post('https://app.openfn.org/i/malawi-chw-referrals/client-registry-lookup', {");
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
+  it("puts a step added after the trigger between it and the first step, so the trigger keeps one edge and the save goes through", async () => {
+    const projectId = projectIdFor("project-a");
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "after-trigger" });
+    act(() => setSandbox(projectId, "after-trigger"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+      type Doc = { triggers: { id: string }[]; jobs: { id: string; name: string }[]; edges: { source_trigger_id: string | null; source_job_id: string | null; target_job_id: string }[] };
+      const copies = () => request<{ workflows: Doc[] }>("GET", `/api/projects/${sandboxId}/workflows`).then((a) => a.workflows);
+      const before = await copies();
+      const picker = await openStepPicker("first");
+      fireEvent.click(within(picker).getByRole("button", { name: "AI" }));
+      fireEvent.click(within(picker).getByText("Summarize"));
+
+      const doc = await waitFor(async () => {
+        const found = (await copies()).find((w) => w.jobs.some((j) => j.name === "Summarize with AI"));
+        expect(found).toBeTruthy();
+        return found!;
+      }, wait);
+      const added = doc.jobs.find((j) => j.name === "Summarize with AI")!;
+      const fromTrigger = doc.edges.filter((e) => e.source_trigger_id);
+      expect(fromTrigger.map((e) => e.target_job_id)).toEqual([added.id]);
+      // It leads on to where the trigger used to.
+      const was = before.find((w) => w.triggers[0].id === doc.triggers[0].id)!.edges.find((e) => e.source_trigger_id)!.target_job_id;
+      expect(doc.edges.some((e) => e.source_job_id === added.id && e.target_job_id === was)).toBe(true);
+      expect(screen.queryByText(/Not saved/)).toBeNull();
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
+  it("offers no services to call from a step without the catalog", async () => {
+    act(() => setFlag("serviceCatalog", false));
+    const projectId = projectIdFor("project-a");
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${crypto.randomUUID()}`, { name: "no-catalog" });
+    act(() => setSandbox(projectId, "no-catalog"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+      const picker = await openStepPicker();
+      expect(within(picker).queryByRole("button", { name: "Services" })).toBeNull();
     } finally {
       act(() => setSandbox(projectId, "main"));
     }

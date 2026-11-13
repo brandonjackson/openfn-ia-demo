@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { serviceYaml, type ProjectServiceItem } from "./services";
+import { isCallableFromStep, serviceStepBody, serviceYaml, type ProjectServiceItem, type StepService } from "./services";
 import type { XRoadIdentity } from "./xroad";
 
 const orgXRoad: XRoadIdentity = {
@@ -81,5 +81,43 @@ describe("serviceYaml", () => {
     const yaml = serviceYaml(surveillance, { code: "register-suspected-case", xroad: orgXRoad });
     expect(yaml).toContain('version: "1.2"');
     expect(yaml).toMatch(/data_exchanged: "Sent: disease/);
+  });
+});
+
+describe("serviceStepBody", () => {
+  const withFields: StepService = {
+    ...surveillance,
+    offeredBy: "Ministry of Health",
+    api: {
+      ...api,
+      auth: "API key in the x-api-key header",
+      inputFields: [
+        { name: "disease", type: "string", required: true, description: "The suspected disease." },
+        { name: "national-id", type: "string", required: false, description: "The patient's national ID." },
+      ],
+    },
+  };
+
+  it("posts the service's input fields to its address, each read from the incoming data", () => {
+    const body = serviceStepBody(withFields);
+    expect(body).toContain("// Register a suspected case: a service from Ministry of Health.");
+    expect(body).toContain("// Authentication: API key in the x-api-key header. Pick the credential that holds it.");
+    expect(body).toContain("post('https://app.openfn.org/i/case-surveillance/register-suspected-case', {");
+    expect(body).toContain("  // string, required: The suspected disease.\n  disease: $.data.disease,");
+    expect(body).toContain('  "national-id": $.data["national-id"],');
+  });
+
+  it("passes the incoming data on whole when the service names no fields", () => {
+    expect(serviceStepBody({ ...surveillance, offeredBy: "Ministry of Health" })).toContain(
+      "post('https://app.openfn.org/i/case-surveillance/register-suspected-case', $.data);",
+    );
+  });
+});
+
+describe("isCallableFromStep", () => {
+  it("offers Live services called over HTTP, never a draft or a scheduled one", () => {
+    expect(isCallableFromStep(surveillance)).toBe(true);
+    expect(isCallableFromStep(planning)).toBe(false);
+    expect(isCallableFromStep({ ...surveillance, api: { ...api, trigger: "schedule", invocation: "Every 15 minutes" } })).toBe(false);
   });
 });

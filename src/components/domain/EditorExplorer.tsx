@@ -64,7 +64,7 @@ interface Props {
   docs?: string[];
   /** On main: each group's + shows but is disabled, pointing to a sandbox. */
   readOnly?: boolean;
-  /** The stage the workflow is at, shown beside Overview, e.g. "Test". */
+  /** How far along the workflow is, shown beside Overview, e.g. "3 of 6". */
   stage?: string;
   /** List the Workflow group (Overview, workflow.yaml, its docs, service.yaml and Health). Off with the demo's Workflow docs flag. */
   showWorkflowFiles?: boolean;

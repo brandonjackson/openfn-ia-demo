@@ -86,7 +86,7 @@ interface Props {
   savedDataclipCount?: number;
   /** Docs added alongside context.md and spec.md, by file name. */
   docs?: string[];
-  /** The stage the workflow is at, shown beside Overview in the explorer. */
+  /** How far along the workflow is, shown beside Overview in the explorer, e.g. "3 of 6". */
   stage?: string;
   /** Opens what can be added to the workflow's files, from the Workflow group's +. */
   onAddFile?: () => void;
@@ -380,7 +380,7 @@ export default function CodeWorkspace({
     ) : overview ? (
       <FileDetailsPanel
         title="Overview"
-        description="Where the workflow is in its life, from saying what it's for to keeping an eye on it once it's live, with a link to where each stage is done."
+        description="Where the workflow is in its life, from the problem it answers to sharing it with other teams, loosely following the OECD's public sector innovation lifecycle, with a link to where each stage is done."
         properties={[
           { icon: ListChecks, label: "Stage", value: stage ?? "–" },
           { icon: FolderKanban, label: "Project", value: workflow.project },

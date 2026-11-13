@@ -18,7 +18,7 @@ import type {
 import { defaultWorkflowSettings, stepDeleteBlockedReason, workflowToYaml } from "../model/workflow";
 import type { WorkflowSettings } from "../model/workflow";
 import { workflowChanges, type WorkflowChange } from "../model/workflow-changes";
-import { lifecycleStageLabels, lifecycleStages, type LifecycleStageId } from "../model/workflow-lifecycle";
+import { lifecycleStages, type LifecycleStageId } from "../model/workflow-lifecycle";
 import type { EnvVar, EnvVarDraft } from "../model/env-vars";
 import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../model/runs";
 import type { ActivityPeriod, RunProgress, RunRequest } from "../model/runs";
@@ -1128,32 +1128,35 @@ export default function WorkflowEditorPage({
   const firstStep = graph.nodes.find((n): n is JobNode => n.type === "job");
   const graphTrigger = graph.nodes.find((n) => n.type === "trigger");
   const stages = lifecycleStages({
-    described: workflowFiles.includes("context") || workflowFiles.includes("spec") || docs.length > 0,
+    hasContext: workflowFiles.includes("context"),
+    hasSpec: workflowFiles.includes("spec"),
     stepCount: graph.nodes.filter((n) => n.type === "job").length,
     testedOk: orders.some((o) => o.runs.some((r) => r.status === "success")),
     onMain,
     live,
+    hasRuns: orders.length > 0,
+    published: service !== undefined,
+    canPublish: publishesServices,
   });
-  const currentStage = stages.find((s) => s.state === "current")?.id;
+  const currentStage = stages.findIndex((s) => s.state === "current");
   const open = (label: string, f: ExplorerFile): StageLink => ({ label, onOpen: () => openFile(f) });
+  // In a sandbox, a file the workflow doesn't have yet is added from the Workflow group's +.
+  const addable = (label: string): StageLink | undefined => (onMain ? undefined : { label, onOpen: () => setAddFileOpen(true) });
   const stageLinks: Partial<Record<LifecycleStageId, StageLink>> = {
-    describe: workflowFiles.includes("context")
-      ? open("context.md", "context")
-      : workflowFiles.includes("spec")
-        ? open("spec.md", "spec")
-        : onMain
-          ? undefined
-          : { label: "Add context", onOpen: () => setAddFileOpen(true) },
-    build: firstStep ? open(firstStep.label, { stepId: firstStep.id }) : onMain ? undefined : { label: "Add a step", onOpen: addStep },
-    test: workflowFiles.includes("dataclips")
-      ? open("Saved dataclips", "dataclips")
-      : !onMain && onRun
-        ? { label: "Run it", onOpen: () => setRunInputOpen(true) }
-        : undefined,
+    problem: workflowFiles.includes("context") ? open("context.md", "context") : addable("Add context"),
+    proposal: workflowFiles.includes("spec") ? open("spec.md", "spec") : addable("Add spec"),
+    build: !firstStep
+      ? onMain
+        ? undefined
+        : { label: "Add a step", onOpen: addStep }
+      : workflowFiles.includes("dataclips")
+        ? open("Saved dataclips", "dataclips")
+        : open(firstStep.label, { stepId: firstStep.id }),
     live: onMain
       ? graphTrigger && open(graphTrigger.label, "trigger")
       : { label: "Create promotion request", onOpen: () => setPromoteOpen(true) },
-    monitor: open("Health", "health"),
+    evaluate: open("Health", "health"),
+    share: workflowFiles.includes("service") ? open("service.yaml", "service") : addable("Add service.yaml"),
   };
   const overviewPane = <WorkflowStages stages={stages} links={stageLinks} onMain={onMain} />;
 
@@ -1536,7 +1539,7 @@ export default function WorkflowEditorPage({
           docs={docs}
           onAddFile={onMain ? undefined : () => setAddFileOpen(true)}
           onAddComponent={onMain || addableTypes.length === 0 ? undefined : () => setAddComponentOpen(true)}
-          stage={currentStage && lifecycleStageLabels[currentStage]}
+          stage={currentStage >= 0 ? `${currentStage + 1} of ${stages.length}` : undefined}
           pane={file === "overview" ? overviewPane : file === "health" ? healthPane : file === "dataclips" ? dataclipsPane : file === "envVars" ? envVarsPane : componentPane}
           showExplorer={layout.explorer}
           showDetails={shownLayout.details}

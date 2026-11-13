@@ -157,7 +157,7 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     renderEditor(apiWorkflowId("planning-application-workflow"));
     fireEvent.click(await screen.findByRole("button", { name: "Explorer" }, wait));
     const stages = await screen.findByRole("list", { name: "Stages" }, wait);
-    expect(within(stages).getByText("Describe")).toBeTruthy();
+    expect(within(stages).getByText("Identify the problem")).toBeTruthy();
     expect(stages.querySelector("[aria-current=step]")).toBeTruthy();
     fireEvent.click(within(stages).getByRole("button", { name: "Health" }));
     expect(await screen.findByText("Triage", {}, wait)).toBeTruthy();

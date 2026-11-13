@@ -4,20 +4,21 @@
  * innovation lifecycle (identifying problems, generating ideas, developing
  * proposals, implementing, evaluating and diffusing lessons), told in terms
  * the editor can check: generating ideas is folded into the proposal, and
- * implementing is split into building and testing, then going live. The
+ * implementing is split into building, testing and going live. The
  * editor's Overview draws them as a short checklist, so whoever opens the
  * workflow can see where it is and what comes next.
  */
-export type LifecycleStageId = "problem" | "proposal" | "build" | "live" | "evaluate" | "share";
+export type LifecycleStageId = "problem" | "proposal" | "build" | "test" | "live" | "evaluate" | "share";
 
 /** The stages in the order a workflow goes through them. */
-export const lifecycleStageIds: LifecycleStageId[] = ["problem", "proposal", "build", "live", "evaluate", "share"];
+export const lifecycleStageIds: LifecycleStageId[] = ["problem", "proposal", "build", "test", "live", "evaluate", "share"];
 
 /** The name of each stage, as the Overview shows it. */
 export const lifecycleStageLabels: Record<LifecycleStageId, string> = {
   problem: "Identify the problem",
   proposal: "Develop a proposal",
-  build: "Build and test",
+  build: "Build",
+  test: "Test",
   live: "Go live",
   evaluate: "Evaluate",
   share: "Share lessons",
@@ -31,6 +32,12 @@ export interface LifecycleFacts {
   hasSpec: boolean;
   /** How many steps it has, besides its trigger. */
   stepCount: number;
+  /**
+   * Its test cases: how many it has and how many passed the last time they
+   * ran. Left out where there are none to have (the Test cases flag is off),
+   * and then a run of this copy succeeding is what counts as tested.
+   */
+  tests?: { total: number; passed: number };
   /** At least one run of this copy of it has succeeded. */
   testedOk: boolean;
   /** This is main's copy, not a sandbox's. */
@@ -63,7 +70,8 @@ export function lifecycleStages(facts: LifecycleFacts): LifecycleStage[] {
   const done: Record<LifecycleStageId, boolean> = {
     problem: facts.hasContext,
     proposal: facts.hasSpec,
-    build: facts.stepCount > 0 && facts.testedOk,
+    build: facts.stepCount > 0,
+    test: facts.tests ? facts.tests.total > 0 && facts.tests.passed === facts.tests.total : facts.testedOk,
     live: isLive,
     evaluate: isLive && facts.hasRuns,
     share: facts.published,

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowEditorPage, { WorkflowEditorLoading } from "./WorkflowEditorPage";
+import { nationalIdTestCaseRecords } from "../fixtures/test-cases";
 import { nationalIdWorkflow, nationalIdWorkflowAt, registerCaseWorkflow, surveillanceVersions, weeklyCaseReportWorkflow, workflowVersions } from "../fixtures/workflow";
 import { dataclips, failedRun, olderRun, runHistories, sampleRun, simulateRun, workOrders } from "../fixtures/runs";
 import { projects } from "../fixtures/projects";
@@ -59,6 +60,12 @@ const meta: Meta<typeof WorkflowEditorPage> = {
     onCreateEnvVar: async () => {},
     onUpdateEnvVar: async () => {},
     onDeleteEnvVar: async () => {},
+    testCases: nationalIdTestCaseRecords,
+    onRunTestCase: async () => ({ ...nationalIdTestCaseRecords[0]!.lastResult!, ranAt: "just now" }),
+    onCreateTestCase: async () => {},
+    onUpdateTestCase: async () => {},
+    onDeleteTestCase: async () => {},
+    onGenerateTestCases: async () => ({ created: 1, names: ["Logs never pair a name with a date of birth"], upToDate: 3, notInSpec: 0 }),
     // In a sandbox, what's changed is counted against main's copy: this one, so edits made in a story show up.
     baseline: nationalIdWorkflow,
     assistantConversations,
@@ -151,6 +158,11 @@ export const Health: Story = {
 /** Saved dataclips, opened from the explorer's Workflow group: each with Run as its main action, and its title and description to edit. */
 export const SavedDataclips: Story = {
   args: { initialView: "code", initialFile: "dataclips", onCreateDataclip: undefined },
+};
+
+/** The workflow's test cases, under Saved dataclips in the explorer: Run all tests at the top, each with its own Run, and Generate from spec. */
+export const TestCases: Story = {
+  args: { initialView: "code", initialFile: "testCases", runId: undefined, initialLayout: { explorer: true } },
 };
 
 /** In a sandbox, the Workflow group's + opens what can be added: the service manifest, spec, a saved dataclip, context or a doc. */

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, FileText, Info, MessagesSquare, MoreVertical, Plus, Sparkles, X, Zap } from "lucide-react";
+import { ArrowLeft, FileText, FlaskConical, Info, MessagesSquare, MoreVertical, Plus, Sparkles, X, Zap } from "lucide-react";
 import type {
   AssistantConversation,
   AssistantMessage,
@@ -9,6 +9,7 @@ import type {
   AssistantSuggestions,
 } from "../../model/assistant";
 import { shortId } from "../../model/runs";
+import Button from "../primitives/Button";
 import CodeBlock from "../primitives/CodeBlock";
 import DropdownMenu from "../primitives/DropdownMenu";
 import AssistantChatInput from "./AssistantChatInput";
@@ -36,7 +37,9 @@ type View = "sessions" | "chat";
  * whose card's Improve opened the assistant, is loaded into the chat input
  * and goes out with the next message. An `initialPrompt`, e.g. what was asked
  * for on Create, is sent as the first message of a new conversation as the
- * panel opens.
+ * panel opens. With `onGenerateTests`, "Generate tests from spec" (in the ⋮
+ * menu, and offered when there's no conversation yet) has it write the
+ * workflow's test cases from spec.md, and its reply opens them.
  */
 export default function AIAssistantPanel({
   conversations: initialConversations = [],
@@ -55,6 +58,8 @@ export default function AIAssistantPanel({
   onSend,
   onCarryOutPlan,
   initialPrompt,
+  onGenerateTests,
+  onOpenTests,
 }: {
   /** Saved conversations for this workflow, newest first. */
   conversations?: AssistantConversation[];
@@ -86,6 +91,10 @@ export default function AIAssistantPanel({
   onCarryOutPlan?: (plan: AssistantPlan) => Promise<AssistantMessage>;
   /** Sent as the first message of a new conversation when the panel mounts, e.g. a prompt from Create. */
   initialPrompt?: string;
+  /** Has the assistant sync the workflow's test cases with spec.md; resolves with its reply. Left out where it can't, e.g. on main. */
+  onGenerateTests?: () => Promise<AssistantMessage>;
+  /** Opens the workflow's test cases, from the reply to generating them. */
+  onOpenTests?: () => void;
 }) {
   // A prompt the panel opens with is the first message of a new conversation, open from the start.
   const [opening] = useState(() =>
@@ -143,12 +152,14 @@ export default function AIAssistantPanel({
     });
   };
 
-  const send = (text: string) => {
-    const userMessage: AssistantMessage = { id: shortId(), role: "user", content: text.trim(), reference };
-    if (reference) onClearReference?.();
+  /**
+   * Says what's asked in the open conversation (or a new one), then adds the
+   * reply once `reply` resolves; without one, the question just stands.
+   */
+  const ask = (userMessage: AssistantMessage, reply?: () => Promise<AssistantMessage>) => {
     let id = conversation?.id;
     if (!id) {
-      const created = newConversation(text, jobLabel, author, userMessage);
+      const created = newConversation(userMessage.content, jobLabel, author, userMessage);
       id = created.id;
       setConversations((current) => [created, ...current]);
       setConversationId(id);
@@ -156,13 +167,29 @@ export default function AIAssistantPanel({
     } else {
       addMessage(id, userMessage);
     }
-    if (!onSend) return;
+    if (!reply) return;
     setLoading(true);
     const replyTo = id;
-    void onSend(text, jobLabel, mode).then((reply) => {
-      addMessage(replyTo, reply);
-      setLoading(false);
-    });
+    void reply().then(
+      (message) => {
+        addMessage(replyTo, message);
+        setLoading(false);
+      },
+      (error: unknown) => {
+        addMessage(replyTo, { id: shortId(), role: "assistant", content: `I couldn't do that: ${error instanceof Error ? error.message : "something went wrong"}.` });
+        setLoading(false);
+      },
+    );
+  };
+
+  const send = (text: string) => {
+    if (reference) onClearReference?.();
+    ask({ id: shortId(), role: "user", content: text.trim(), reference }, onSend && (() => onSend(text, jobLabel, mode)));
+  };
+
+  const generateTests = () => {
+    if (!onGenerateTests || loading) return;
+    ask({ id: shortId(), role: "user", content: "Generate tests from spec.md" }, onGenerateTests);
   };
 
   // ...and goes out once, as the panel opens.
@@ -202,11 +229,13 @@ export default function AIAssistantPanel({
             align="right"
             items={[
               { id: "sessions", label: "Conversations", icon: MessagesSquare, selected: !inChat },
+              ...(onGenerateTests ? [{ id: "tests", label: "Generate tests from spec", icon: FlaskConical }] : []),
               { id: "about", label: "About the assistant", icon: Info, divider: true },
               { id: "policy", label: "Responsible AI policy", icon: FileText },
             ]}
             onSelect={(id) => {
               if (id === "sessions") showSessions();
+              else if (id === "tests") generateTests();
               else if (id === "about") setAboutOpen(true);
               else window.open("https://www.openfn.org/ai", "_blank", "noopener,noreferrer");
             }}
@@ -260,6 +289,11 @@ export default function AIAssistantPanel({
                   onPick={send}
                 />
               )}
+              {!jobLabel && onGenerateTests && (
+                <Button variant="secondary" size="sm" icon={FlaskConical} fullWidth onClick={generateTests}>
+                  Generate tests from spec
+                </Button>
+              )}
             </div>
           ) : (
             <div className="space-y-4 p-4">
@@ -278,6 +312,7 @@ export default function AIAssistantPanel({
                   onDeclinePlan={() => resolvePlan(m.id, "declined")}
                   onOpenRuns={onOpenRuns}
                   onAskToMerge={onAskToMerge}
+                  onOpenTests={onOpenTests}
                 />
               ))}
               {loading && (
@@ -320,12 +355,14 @@ function Message({
   onDeclinePlan,
   onOpenRuns,
   onAskToMerge,
+  onOpenTests,
 }: {
   message: AssistantMessage;
   onAcceptPlan?: () => void;
   onDeclinePlan?: () => void;
   onOpenRuns?: () => void;
   onAskToMerge?: () => void;
+  onOpenTests?: () => void;
 }) {
   if (message.role === "user") {
     return (
@@ -351,7 +388,7 @@ function Message({
       <p className="whitespace-pre-wrap">{message.content}</p>
       {message.code && <CodeBlock code={message.code} label="Suggested code" />}
       {message.plan && <AssistantPlanCard plan={message.plan} onAccept={onAcceptPlan} onEdit={onDeclinePlan} />}
-      {message.result && <AssistantResultCard result={message.result} onOpenRuns={onOpenRuns} onAskToMerge={onAskToMerge} />}
+      {message.result && <AssistantResultCard result={message.result} onOpenRuns={onOpenRuns} onOpenTests={onOpenTests} onAskToMerge={onAskToMerge} />}
     </div>
   );
 }

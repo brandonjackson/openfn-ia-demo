@@ -14,7 +14,8 @@ const noop = () => undefined;
 const links = {
   problem: { label: "context.md", onOpen: noop },
   proposal: { label: "spec.md", onOpen: noop },
-  build: { label: "Saved dataclips", onOpen: noop },
+  build: { label: "Verify birth registration", onOpen: noop },
+  test: { label: "Test cases", onOpen: noop },
   live: { label: "Create promotion request", onOpen: noop },
   evaluate: { label: "Health", onOpen: noop },
   share: { label: "Add service.yaml", onOpen: noop },
@@ -39,9 +40,18 @@ export const JustStarted: Story = {
   },
 };
 
-/** In a sandbox, described and built but not yet run. */
-export const BuildingAndTesting: Story = {
-  args: { stages: lifecycleStages({ ...fresh, hasContext: true, hasSpec: true, stepCount: 3 }), links },
+/** In a sandbox, described and built, with a test case still failing. */
+export const Testing: Story = {
+  args: { stages: lifecycleStages({ ...fresh, hasContext: true, hasSpec: true, stepCount: 3, tests: { total: 4, passed: 3 } }), links },
+};
+
+/** Without the Test cases flag, testing is running it with a sample. */
+export const TestingWithoutTestCases: Story = {
+  args: {
+    stages: lifecycleStages({ ...fresh, hasContext: true, hasSpec: true, stepCount: 3 }),
+    links: { ...links, test: { label: "Run it", onOpen: noop } },
+    testCases: false,
+  },
 };
 
 /** Live on main, with runs to look back on, and not yet a service. */

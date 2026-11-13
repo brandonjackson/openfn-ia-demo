@@ -192,7 +192,10 @@ organizations
 └─ handbook
 components
 └─ forms, staticWebsites, aiSkills, documents, artifacts
-aiBuild, deployments, workflowDocs: standalone
+workflowDocs
+├─ envVars
+└─ testCases
+aiBuild, deployments: standalone
 ```
 
 **Who reads them.** The same people who read fixtures: the route table, the shell and the wrappers. Pages and components never do (lint already stops them importing `src/app`).

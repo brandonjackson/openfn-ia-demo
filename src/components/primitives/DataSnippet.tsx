@@ -25,6 +25,8 @@ interface Props {
   onCollapse?: () => void;
   /** Folded to its header, e.g. while another section is expanded. */
   folded?: boolean;
+  /** Starts folded to its header until its chevron opens it, for detail most readers skip. Open by default. */
+  defaultOpen?: boolean;
   /** Dark for logs; light for data that sits among form controls. */
   tone?: "dark" | "light";
   /** Names what the expand control does, when it opens the section somewhere else. */
@@ -55,11 +57,12 @@ export default function DataSnippet({
   onExpand,
   onCollapse,
   folded = false,
+  defaultOpen = true,
   tone = "light",
   expandLabel,
   fill = false,
 }: Props) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(defaultOpen);
   const showing = open && !folded;
   const dark = tone === "dark";
   const shown = expanded || fill ? lines : lines.slice(0, previewLines);

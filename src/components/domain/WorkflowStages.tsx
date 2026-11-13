@@ -19,6 +19,8 @@ interface Props {
   links?: Partial<Record<LifecycleStageId, StageLink>>;
   /** On main, going live is turning the trigger on; in a sandbox it starts with a promotion request. */
   onMain?: boolean;
+  /** Whether the workflow has test cases to write and run; without (the flag off), testing is running it with a sample. Defaults to true. */
+  testCases?: boolean;
 }
 
 /**
@@ -28,11 +30,14 @@ interface Props {
  * innovation lifecycle. Only the stage you're on says what it asks of you;
  * each links to the place in the explorer where it's done.
  */
-export default function WorkflowStages({ stages, links = {}, onMain = false }: Props) {
+export default function WorkflowStages({ stages, links = {}, onMain = false, testCases = true }: Props) {
   const descriptions: Record<LifecycleStageId, string> = {
     problem: "Say where and why a new approach is needed: the rule behind it and who it affects. The assistant reads it too.",
     proposal: "Weigh the options, then write down the one you're going with: what goes in, what comes out and when a run counts as done.",
-    build: "Make it happen: add the steps, then run it with a sample input and check what each step gives back.",
+    build: "Make it happen: add the steps that move the data, one system at a time.",
+    test: testCases
+      ? "Check it does what the proposal says: write test cases for it, then run them until they all pass."
+      : "Check it does what the proposal says: run it with a sample input and look at what each step gives back.",
     live: onMain
       ? "Turn its trigger on so it starts runs by itself."
       : "Ask to merge this sandbox into main, then turn the trigger on there.",

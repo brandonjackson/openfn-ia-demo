@@ -21,6 +21,7 @@ describe("lifecycleStages", () => {
       problem: "current",
       proposal: "upcoming",
       build: "upcoming",
+      test: "upcoming",
       live: "upcoming",
       evaluate: "upcoming",
       share: "upcoming",
@@ -28,11 +29,20 @@ describe("lifecycleStages", () => {
   });
 
   it("makes the first stage that isn't done the current one, keeping later ones done", () => {
-    expect(stateOf({ ...fresh, hasContext: true, stepCount: 2, testedOk: true })).toMatchObject({ problem: "done", proposal: "current", build: "done" });
+    expect(stateOf({ ...fresh, hasContext: true, stepCount: 2, testedOk: true })).toMatchObject({ problem: "done", proposal: "current", build: "done", test: "done" });
   });
 
-  it("counts building as done only once a run has succeeded", () => {
-    expect(stateOf({ ...fresh, hasContext: true, hasSpec: true, stepCount: 2 }).build).toBe("current");
+  it("counts testing as done once every test case passed", () => {
+    const built = { ...fresh, hasContext: true, hasSpec: true, stepCount: 2, testedOk: true };
+    expect(stateOf({ ...built, tests: { total: 0, passed: 0 } }).test).toBe("current");
+    expect(stateOf({ ...built, tests: { total: 3, passed: 2 } }).test).toBe("current");
+    expect(stateOf({ ...built, tests: { total: 3, passed: 3 } }).test).toBe("done");
+  });
+
+  it("counts a successful run as tested where there are no test cases to have", () => {
+    const built = { ...fresh, hasContext: true, hasSpec: true, stepCount: 2 };
+    expect(stateOf(built).test).toBe("current");
+    expect(stateOf({ ...built, testedOk: true }).test).toBe("done");
   });
 
   it("counts a workflow as live only on main with its trigger on", () => {

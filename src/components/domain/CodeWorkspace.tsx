@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { ReactNode } from "react";
-import { BookOpen, Calendar, Cloud, Database, ExternalLink, FolderKanban, Globe, History, Layers, ListChecks, Plug, Radio, User, X } from "lucide-react";
+import { BookOpen, Calendar, Cloud, Database, ExternalLink, FlaskConical, FolderKanban, Globe, History, Layers, ListChecks, Plug, Radio, Sparkles, User, X } from "lucide-react";
 import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowFileContents, WorkflowSettings } from "../../model/workflow";
 import type { DetailsViewId } from "./editor-layout";
 import { triggerTypes, workflowToYaml } from "../../model/workflow";
@@ -84,6 +84,8 @@ interface Props {
   files?: WorkflowFileKind[];
   /** How many saved dataclips the project has, listed beside Saved dataclips. */
   savedDataclipCount?: number;
+  /** The workflow's test cases, listed under Saved dataclips; left out, they aren't listed. See `EditorExplorer`. */
+  testSummary?: { total: number; failed: number };
   /** Docs added alongside context.md and spec.md, by file name. */
   docs?: string[];
   /** How far along the workflow is, shown beside Overview in the explorer, e.g. "3 of 6". */
@@ -184,6 +186,7 @@ export default function CodeWorkspace({
   onAddStep,
   files,
   savedDataclipCount,
+  testSummary,
   docs = [],
   stage,
   onAddFile,
@@ -214,8 +217,24 @@ export default function CodeWorkspace({
   const overview = file === "overview";
   const envVars = file === "envVars";
   const saved = file === "dataclips";
+  const tests = file === "testCases";
   const fileName =
-    addedDoc ?? (doc ? `${doc}.md` : manifest ? "service.yaml" : health ? "Health" : overview ? "Overview" : saved ? "Saved dataclips" : envVars ? "Environment variables" : "workflow.yaml");
+    addedDoc ??
+    (doc
+      ? `${doc}.md`
+      : manifest
+        ? "service.yaml"
+        : health
+          ? "Health"
+          : overview
+            ? "Overview"
+            : saved
+            ? "Saved dataclips"
+            : tests
+              ? "Test cases"
+              : envVars
+                ? "Environment variables"
+                : "workflow.yaml");
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
   const yaml = workflowToYaml(workflow, { enabled: live });
   const triggerYaml = yaml.slice(yaml.indexOf("triggers:"), yaml.indexOf("edges:")).trimEnd();
@@ -377,6 +396,17 @@ export default function CodeWorkspace({
         ]}
         showHeader={false}
       />
+    ) : tests ? (
+      <FileDetailsPanel
+        title="Test cases"
+        description="Scenarios in plain words that the assistant runs: it makes an input to match (or takes a saved dataclip), runs the workflow between the two steps, and judges the output or runs the deterministic tests. They're promoted with the workflow."
+        properties={[
+          { icon: FlaskConical, label: "Tests", value: String(testSummary?.total ?? 0) },
+          { icon: Sparkles, label: "Synced with", value: "spec.md" },
+          { icon: FolderKanban, label: "Project", value: workflow.project },
+        ]}
+        showHeader={false}
+      />
     ) : overview ? (
       <FileDetailsPanel
         title="Overview"
@@ -445,6 +475,7 @@ export default function CodeWorkspace({
         hasService={service !== undefined}
         files={files}
         savedDataclipCount={savedDataclipCount}
+        testSummary={testSummary}
         docs={docs}
         stage={stage}
         readOnly={readOnly}
@@ -475,7 +506,7 @@ export default function CodeWorkspace({
       ? {
           tabs: {
             options: [
-              { id: "config", label: component || doc || manifest || addedDoc || health || overview || saved || envVars ? "Details" : "Config" },
+              { id: "config", label: component || doc || manifest || addedDoc || health || overview || saved || tests || envVars ? "Details" : "Config" },
               ...(step ? [{ id: "snippets", label: "Snippets" }] : []),
               ...(hasIO ? [{ id: "io", label: "I/O" }] : []),
             ],

@@ -76,6 +76,17 @@ path in its hook file.
   `PATCH /api/demo/projects/:id/dataclips/:id` (`src/api/dataclips.ts`);
   making a sandbox brings saved ones across with `dataclip_ids`, and a
   reviewed copy of a run's input is saved in the new sandbox afterwards.
+- **A workflow's test cases** (the editor's Test cases, behind the Test
+  cases flag). api/ has nothing like them: scenarios in plain words (what
+  goes in, what should come out, the start and end step), run by the
+  assistant, which makes an input to match or takes a saved dataclip, and
+  judges the output or runs deterministic tests. Demo:
+  `/api/demo/projects/:id/test_cases?workflow_id=…`, with `…/:id/runs` to
+  run one and `…/generations` to sync them with the spec
+  (`src/api/test-cases.ts`). A test run is the demo standing in for the
+  worker and the assistant: it isn't a work order, so it isn't in History.
+  Making a sandbox copies a workflow's tests and a merge brings new and
+  changed ones back, but the merge preview doesn't list them yet.
 - **Maintenance jobs** (Admin settings, Maintenance). Lightning's
   `/settings/maintenance` has no API. Would need a list of jobs with when
   each last ran, and a way to run one. Demo: `/api/demo/maintenance`

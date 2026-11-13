@@ -1,4 +1,4 @@
-import { BookOpen, Database, FileText, HeartPulse, ListChecks, Plus, Variable, Workflow as WorkflowIcon } from "lucide-react";
+import { BookOpen, Database, FileText, FlaskConical, HeartPulse, ListChecks, Plus, Variable, Workflow as WorkflowIcon } from "lucide-react";
 import type { JobNode, RunDetails, TriggerNode, Workflow } from "../../model/workflow";
 import { triggerTypes } from "../../model/workflow";
 import type { ProjectComponent } from "../../model/projects";
@@ -19,7 +19,8 @@ export type WorkflowFileKind = "context" | "spec" | "service" | "dataclips";
  * What the code view can have open: the workflow's Overview (where it is in
  * its life), one of its files (a doc added this session goes by its file
  * name), its health or its saved dataclips (pages, not files), the trigger,
- * a step, or a project component the workflow uses.
+ * a step, or a project component the workflow uses. Its test cases are a
+ * page too.
  */
 export type ExplorerFile =
   | "overview"
@@ -29,6 +30,7 @@ export type ExplorerFile =
   | "service"
   | "health"
   | "dataclips"
+  | "testCases"
   | "envVars"
   | "trigger"
   | { docName: string }
@@ -60,6 +62,12 @@ interface Props {
   files?: WorkflowFileKind[];
   /** How many saved dataclips the project has, beside Saved dataclips. */
   savedDataclipCount?: number;
+  /**
+   * The workflow's test cases, listed under Saved dataclips: how many it has
+   * and how many failed last time they ran. Left out, they aren't listed
+   * (off with the demo's Test cases flag).
+   */
+  testSummary?: { total: number; failed: number };
   /** Docs added alongside context.md and spec.md, by file name. */
   docs?: string[];
   /** On main: each group's + shows but is disabled, pointing to a sandbox. */
@@ -81,7 +89,7 @@ interface Props {
 /**
  * The left-hand explorer in code mode, in three groups: the workflow's own
  * files (its Overview, which says where it is in its life, its YAML, whichever of its context, spec, service manifest and the
- * project's saved dataclips it has, its Health page and any added docs), its trigger and steps in
+ * project's saved dataclips it has, its test cases, its Health page and any added docs), its trigger and steps in
  * the order they run, and the project components it uses. Each group adds
  * from the + beside its heading (disabled on main). You move between them here rather than
  * through tabs. With a run loaded, each step shows how it went.
@@ -95,6 +103,7 @@ export default function EditorExplorer({
   hasService = false,
   files,
   savedDataclipCount,
+  testSummary,
   docs = [],
   stage,
   readOnly = false,
@@ -144,6 +153,26 @@ export default function EditorExplorer({
               trailing={savedDataclipCount !== undefined && <Text tone="subtle" size="xs">{savedDataclipCount}</Text>}
               active={current === "dataclips"}
               onClick={() => onOpen("dataclips")}
+            />
+          )}
+          {testSummary && (
+            <NavItem
+              variant="tree"
+              label="Test cases"
+              icon={FlaskConical}
+              trailing={
+                testSummary.failed > 0 ? (
+                  <Text tone="danger" size="xs">
+                    {testSummary.failed} failed
+                  </Text>
+                ) : (
+                  <Text tone="subtle" size="xs">
+                    {testSummary.total}
+                  </Text>
+                )
+              }
+              active={current === "testCases"}
+              onClick={() => onOpen("testCases")}
             />
           )}
           <NavItem variant="tree" label="Health" icon={HeartPulse} active={current === "health"} onClick={() => onOpen("health")} />

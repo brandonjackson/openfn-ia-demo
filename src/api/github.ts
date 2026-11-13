@@ -2,7 +2,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { GitHubConnection, GitHubConnectionSettings, GitHubInstallation } from "../model/github-sync";
 import { timeAgo } from "../model/time";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 interface ApiRepoConnection {
@@ -62,7 +62,7 @@ export function useGitHubInstallations(linked: boolean): { status: LoadStatus; i
       return [...installations.values()];
     },
   });
-  return { status: linked ? statusOf(query) : { state: "ready" }, installations: query.data ?? [] };
+  return { status: linked ? statusOf(query) : { state: "ready" }, installations: query.data ?? none };
 }
 
 /** Connecting, syncing and disconnecting a project. Each resolves once the connection has reloaded. */

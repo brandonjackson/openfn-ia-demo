@@ -1,7 +1,7 @@
 /** The instance's maintenance jobs, on the demo's own routes (api/ has none; docs/api-gaps.md). */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { MaintenanceTask } from "../model/admin";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 /** A job as GET /api/demo/maintenance lists it. */
@@ -25,7 +25,7 @@ const keys = { all: ["maintenance"] as const };
 /** Every maintenance job, with when it last ran. Superusers only. */
 export function useMaintenanceTasks(): { status: LoadStatus; tasks: MaintenanceTask[] } {
   const query = useQuery({ queryKey: keys.all, queryFn: () => listAll<ApiMaintenanceJob>("/api/demo/maintenance"), select: (rows) => rows.map(toTask) });
-  return { status: statusOf(query), tasks: query.data ?? [] };
+  return { status: statusOf(query), tasks: query.data ?? none };
 }
 
 /** Running a job. Resolves once the list has reloaded with its result. */

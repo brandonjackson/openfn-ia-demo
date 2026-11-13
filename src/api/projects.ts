@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { DigestFrequency, ProjectRole } from "../model/project-settings";
 import { projectSummaries, type InstanceUserSummary, type ProjectAction, type ProjectDetails, type ProjectMember, type ProjectSummary, type RetentionPolicy } from "../model/projects";
 import { useAllServices } from "./services";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 /** A project as GET /api/projects/:id sends it, planned attributes included. */
@@ -103,7 +103,7 @@ export function useProjectList(): { status: LoadStatus; projects: ProjectDetails
     queryFn: () => listAll<ApiProject>("/api/projects?include=stats"),
     select: (rows) => rows.map(toProject),
   });
-  return { status: statusOf(query), projects: query.data ?? [] };
+  return { status: statusOf(query), projects: query.data ?? none };
 }
 
 /**
@@ -138,7 +138,7 @@ export function useProjectMembers(id: string): { status: LoadStatus; members: Pr
     queryFn: () => listAll<ApiMember>(`/api/projects/${id}/members`),
     select: (rows) => rows.map(toMember),
   });
-  return { status: statusOf(query), members: query.data ?? [] };
+  return { status: statusOf(query), members: query.data ?? none };
 }
 
 /** Everyone on the instance (a superuser's view; planned for personal tokens). */
@@ -149,7 +149,7 @@ export function useInstanceUsers(enabled = true): { status: LoadStatus; users: I
     queryFn: () => listAll<ApiUser>("/api/users"),
     select: (rows) => rows.map(toUser),
   });
-  return { status: statusOf(query), users: query.data ?? [] };
+  return { status: statusOf(query), users: query.data ?? none };
 }
 
 /** What a create or rename sends: the API's own field names. */

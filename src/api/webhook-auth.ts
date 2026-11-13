@@ -5,7 +5,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { WebhookAuthMethod, WebhookAuthMethodDraft, WebhookTriggerOption } from "../model/webhooks";
 import type { WorkflowDocument } from "../model/workflow-document";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 import { workflowKeys } from "./workflows";
 
@@ -40,7 +40,7 @@ export function useWebhookAuthMethods(projectId: string): { status: LoadStatus; 
     queryFn: () => listAll<ApiWebhookAuth>(`/api/projects/${projectId}/webhook_auth_methods`),
     select: (rows) => rows.map(toMethod),
   });
-  return { status: statusOf(query), methods: query.data ?? [] };
+  return { status: statusOf(query), methods: query.data ?? none };
 }
 
 /** A project's webhook triggers, for choosing which a method guards: one per workflow that starts from a webhook. */

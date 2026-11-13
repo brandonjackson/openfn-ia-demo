@@ -222,6 +222,14 @@ export default defineConfig([
           ],
         },
       ],
+      // A hook hands back the same empty list every render, or an effect watching it sees new data.
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "LogicalExpression[operator='??'][left.property.name='data'] > ArrayExpression.right[elements.length=0]",
+          message: 'Write `query.data ?? none` (from ./client): a fresh `[]` is a new list every render. See `none` in src/api/client.ts.',
+        },
+      ],
     },
   },
   {

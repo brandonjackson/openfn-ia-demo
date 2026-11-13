@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ComponentContent, ComponentDraft, ContentComponentType } from "../model/project-components";
 import type { ProjectComponent } from "../model/projects";
 import { timeAgo } from "../model/time";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 /** A component as the API sends it. */
@@ -47,7 +47,7 @@ export function useComponents(projectId: string | undefined): { status: LoadStat
     queryFn: () => listAll<ApiComponent>(`/api/demo/projects/${projectId}/components`),
     select: (rows) => rows.map(toResource),
   });
-  return { status: projectId ? statusOf(query) : { state: "ready" }, components: query.data ?? [] };
+  return { status: projectId ? statusOf(query) : { state: "ready" }, components: query.data ?? none };
 }
 
 /**

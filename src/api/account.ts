@@ -10,7 +10,7 @@ import type { AuthProviderConfig, AuthProviderTest } from "../model/authenticati
 import type { ApiToken, BackupCode, ContactPreference, InstanceInfo, MfaSetup, ProfileDetails, UserProfile } from "../model/account";
 import { formatDate, timeAgo } from "../model/time";
 import { FormError } from "../model/form-error";
-import { isApiError, request } from "./client";
+import { isApiError, request, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 /** You, as `GET /api/me` answers with a session. */
@@ -130,7 +130,7 @@ export function useApiTokens(): { status: LoadStatus; tokens: ApiToken[] } {
         ...(t.last_used_at && { lastUsedAt: timeAgo(t.last_used_at) }),
       })),
   });
-  return { status: statusOf(query), tokens: query.data ?? [] };
+  return { status: statusOf(query), tokens: query.data ?? none };
 }
 
 /** Your backup codes, while MFA is on. */

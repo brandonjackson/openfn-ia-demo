@@ -8,6 +8,14 @@
 import { FormError } from "../model/form-error";
 import { send } from "./source";
 
+/**
+ * What a hook hands back for a list before it loads, or when it isn't asked for: one empty array, the
+ * same every render. React tells a changed list by whether it's the same array, not by what's in it, so a
+ * fresh `[]` each render reads as new data to an effect or a reset that watches it (the editor once
+ * dropped a run it was in the middle of this way). Write `query.data ?? none`, never `?? []`.
+ */
+export const none: never[] = Object.freeze([]) as never[]; // frozen, so a caller that pushes onto it throws instead of filling every hook's empty list
+
 type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 // The session's CSRF token, which every write sends (api/authentication.md,

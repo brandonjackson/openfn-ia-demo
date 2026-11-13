@@ -4,7 +4,7 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import type { BuildIdea } from "../model/build-ideas";
-import { listAll } from "./client";
+import { listAll, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 const keys = { all: ["build_ideas"] as const };
@@ -13,5 +13,5 @@ const keys = { all: ["build_ideas"] as const };
 export function useBuildIdeas(): { status: LoadStatus; ideas: BuildIdea[] } {
   // The route sends each idea in the model's own shape, so there's nothing to map.
   const query = useQuery({ queryKey: keys.all, queryFn: () => listAll<BuildIdea>("/api/demo/build_ideas") });
-  return { status: statusOf(query), ideas: query.data ?? [] };
+  return { status: statusOf(query), ideas: query.data ?? none };
 }

@@ -2,7 +2,7 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AdminCollection, CollectionItem, ProjectCollection } from "../model/collections";
 import { timeAgo } from "../model/time";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { combine, statusOf, type LoadStatus } from "./status";
 
 /** A collection as the API lists it: planned `byte_size_sum`, and the demo's count and last write. */
@@ -46,7 +46,7 @@ export function useCollections(projectId: string, enabled = true): { status: Loa
     queryFn: () => listAll<ApiCollection>(`/api/projects/${projectId}/collections`),
     select: (rows) => rows.map(toCollection),
   });
-  return { status: enabled ? statusOf(query) : { state: "ready" }, collections: query.data ?? [] };
+  return { status: enabled ? statusOf(query) : { state: "ready" }, collections: query.data ?? none };
 }
 
 /** Every collection on the instance, for a superuser, with its project. */
@@ -56,7 +56,7 @@ export function useInstanceCollections(): { status: LoadStatus; collections: Adm
     queryFn: () => listAll<ApiCollection>("/api/collections"),
     select: (rows) => rows.map((c) => ({ id: c.id, name: c.name, projectName: c.project_name ?? "", projectId: c.project_id, items: c.item_count, bytes: c.byte_size_sum })),
   });
-  return { status: statusOf(query), collections: query.data ?? [] };
+  return { status: statusOf(query), collections: query.data ?? none };
 }
 
 /** The first few items of a collection, newest first. */
@@ -100,7 +100,7 @@ export function useCollectionItems(projectId: string | undefined, name: string |
     enabled: !!projectId && !!name,
     queryFn: () => fetchCollectionItems(projectId!, name!, 1000),
   });
-  return { status: projectId && name ? statusOf(query) : { state: "ready" }, items: query.data ?? [] };
+  return { status: projectId && name ? statusOf(query) : { state: "ready" }, items: query.data ?? none };
 }
 
 /** Every key of each of these collections of a project, by collection name, for a view that may open any of them. */
@@ -114,7 +114,7 @@ export function useCollectionsItems(projectId: string | undefined, names: string
   });
   return {
     status: projectId ? combine(...queries.map(statusOf)) : { state: "ready" },
-    items: Object.fromEntries(names.map((name, i) => [name, queries[i]?.data ?? []])),
+    items: Object.fromEntries(names.map((name, i) => [name, queries[i]?.data ?? none])),
   };
 }
 

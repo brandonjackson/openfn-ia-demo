@@ -1,7 +1,7 @@
 /** A project's published services, on the demo's own routes (Lightning's API has no services yet). */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ProjectServiceItem } from "../model/services";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 interface ApiService {
@@ -36,7 +36,7 @@ const keys = { all: ["services"] as const };
 /** Every service in the organisation: the catalog's. Pass `enabled: false` when the catalog is off, and it loads nothing. */
 export function useAllServices(enabled = true): { status: LoadStatus; services: ServiceRecord[] } {
   const query = useQuery({ queryKey: keys.all, enabled, queryFn: () => listAll<ApiService>("/api/demo/services"), select: (rows) => rows.map(toService) });
-  return enabled ? { status: statusOf(query), services: query.data ?? [] } : { status: { state: "ready" }, services: [] };
+  return enabled ? { status: statusOf(query), services: query.data ?? none } : { status: { state: "ready" }, services: none };
 }
 
 /** A project's services. Pass `enabled: false` when the catalog is off, and it loads nothing. */

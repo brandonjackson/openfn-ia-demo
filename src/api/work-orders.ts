@@ -6,7 +6,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Dataclip, RunDetails, RunStatus, WorkOrder } from "../model/workflow";
-import { listAll, request } from "./client";
+import { listAll, request, none } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
 /** A work order as `GET …/work_orders?include=runs` sends it. */
@@ -47,13 +47,6 @@ export const toRecord = ({ id, attributes: a }: ApiWorkOrder, projectId: string)
   input: a.input ?? { id: a.dataclip_id, type: "http_request", body: "{}", created: a.last_activity },
   receivedAt: a.received_at ?? a.inserted_at,
 });
-
-/**
- * What a list reads as before it loads, or when the API has none to send (Lightning answers a project's
- * dataclips 404). One array, the same every render: the editor takes a new list as new history and
- * starts over from it, which would drop a run it's in the middle of.
- */
-const none: never[] = [];
 
 export const runKeys = {
   all: ["work_orders"] as const,

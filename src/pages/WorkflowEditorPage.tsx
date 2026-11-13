@@ -109,9 +109,24 @@ interface Edits {
   added: JobNode[];
   /** The edges into added steps. */
   addedEdges: WorkflowEdge[];
+  /** Existing edges pointed at a different step, by edge id: the trigger's, when a step goes in after it. */
+  retargeted: Record<string, string>;
+  /** Where steps were moved to, by id: those below a step put in after the trigger move down a row. */
+  positions: Record<string, { x: number; y: number }>;
 }
 
-const noEdits: Edits = { labels: {}, adaptors: {}, bodies: {}, credentials: {}, systems: {}, removed: [], added: [], addedEdges: [] };
+const noEdits: Edits = {
+  labels: {},
+  adaptors: {},
+  bodies: {},
+  credentials: {},
+  systems: {},
+  removed: [],
+  added: [],
+  addedEdges: [],
+  retargeted: {},
+  positions: {},
+};
 
 /** How far apart steps sit on the canvas: one row down, or one branch across. */
 const ROW_GAP = 170;
@@ -141,6 +156,7 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
       const adaptor = edits.adaptors[n.id] ?? n.adaptor;
       return {
         ...n,
+        ...edits.positions[n.id],
         label: edits.labels[n.id] ?? n.label,
         adaptor,
         adaptorPackage: info[adaptor].package,
@@ -150,7 +166,9 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
       };
     });
   const ids = new Set(nodes.map((n) => n.id));
-  const edges = [...workflow.edges, ...addedEdges].filter((e) => ids.has(e.source) && ids.has(e.target));
+  const edges = [...workflow.edges, ...addedEdges]
+    .map((e) => (e.id in edits.retargeted ? { ...e, target: edits.retargeted[e.id] } : e))
+    .filter((e) => ids.has(e.source) && ids.has(e.target));
   return { ...workflow, name, nodes, edges };
 }
 
@@ -891,6 +909,25 @@ export default function WorkflowEditorPage({
             : `// Connect to ${info.name}\n${firstSnippet ?? "fn(state => state);"}\n`,
       ...placeAfter(graph, source),
     };
+    // A trigger has exactly one edge out of it, so a step added after it goes in between: the trigger's edge
+    // now leads to the new step, which leads on to where the trigger did, and every step below moves down a row.
+    const outOfTrigger = source.type === "trigger" ? graph.edges.filter((e) => e.source === source.id) : [];
+    const firstSteps = outOfTrigger.flatMap((e) => graph.nodes.find((n) => n.id === e.target) ?? []);
+    if (firstSteps.length) {
+      const below = graph.nodes.filter((n) => n.type === "job" && n.y > source.y);
+      edit((e) => ({
+        added: [...e.added, { ...job, x: firstSteps[0].x, y: firstSteps[0].y }],
+        addedEdges: [
+          ...e.addedEdges,
+          ...firstSteps.map((n): WorkflowEdge => ({ id: crypto.randomUUID(), source: id, target: n.id, condition: "on_success" })),
+        ],
+        retargeted: { ...e.retargeted, ...Object.fromEntries(outOfTrigger.map((edge) => [edge.id, id])) },
+        positions: { ...e.positions, ...Object.fromEntries(below.map((n) => [n.id, { x: n.x, y: n.y + ROW_GAP }])) },
+      }));
+      setAddAfterId(undefined);
+      setSelectedId(id);
+      return;
+    }
     edit((e) => ({
       added: [...e.added, job],
       addedEdges: [

@@ -49,9 +49,10 @@ async function openWorkflowMenu() {
   fireEvent.click(button);
 }
 
-/** Opens "Connect a system" from the last step's + (one after the trigger would be a second edge out of it, which the API refuses). */
-async function openStepPicker() {
-  fireEvent.click((await screen.findAllByRole("button", { name: /^Add a step after/ }, wait)).at(-1)!);
+/** Opens "Connect a system" from a card's +: the last step's, or the first card's (the trigger's). */
+async function openStepPicker(which: "last" | "first" = "last") {
+  const buttons = await screen.findAllByRole("button", { name: /^Add a step after/ }, wait);
+  fireEvent.click(which === "first" ? buttons[0] : buttons.at(-1)!);
   return screen.findByRole("dialog", { name: "Connect a system" }, wait);
 }
 
@@ -227,6 +228,38 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
         );
       await waitFor(async () => expect((await step())?.adaptor).toMatch(/^@openfn\/language-http/), wait);
       expect((await step())?.body).toContain("post('https://app.openfn.org/i/malawi-chw-referrals/client-registry-lookup', {");
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
+  it("puts a step added after the trigger between it and the first step, so the trigger keeps one edge and the save goes through", async () => {
+    const projectId = projectIdFor("project-a");
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "after-trigger" });
+    act(() => setSandbox(projectId, "after-trigger"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+      type Doc = { triggers: { id: string }[]; jobs: { id: string; name: string }[]; edges: { source_trigger_id: string | null; source_job_id: string | null; target_job_id: string }[] };
+      const copies = () => request<{ workflows: Doc[] }>("GET", `/api/projects/${sandboxId}/workflows`).then((a) => a.workflows);
+      const before = await copies();
+      const picker = await openStepPicker("first");
+      fireEvent.click(within(picker).getByRole("button", { name: "AI" }));
+      fireEvent.click(within(picker).getByText("Summarize"));
+
+      const doc = await waitFor(async () => {
+        const found = (await copies()).find((w) => w.jobs.some((j) => j.name === "Summarize with AI"));
+        expect(found).toBeTruthy();
+        return found!;
+      }, wait);
+      const added = doc.jobs.find((j) => j.name === "Summarize with AI")!;
+      const fromTrigger = doc.edges.filter((e) => e.source_trigger_id);
+      expect(fromTrigger.map((e) => e.target_job_id)).toEqual([added.id]);
+      // It leads on to where the trigger used to.
+      const was = before.find((w) => w.triggers[0].id === doc.triggers[0].id)!.edges.find((e) => e.source_trigger_id)!.target_job_id;
+      expect(doc.edges.some((e) => e.source_job_id === added.id && e.target_job_id === was)).toBe(true);
+      expect(screen.queryByText(/Not saved/)).toBeNull();
     } finally {
       act(() => setSandbox(projectId, "main"));
     }

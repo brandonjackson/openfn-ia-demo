@@ -21,3 +21,12 @@ export const Default: Story = {
     </ScrollPane>
   ),
 };
+
+export const Narrow: Story = {
+  render: () => (
+    <ScrollPane width="narrow">
+      <SectionHeading title="A short column" description="For a checklist or a few lines of text, which read badly stretched wide." />
+      <Card title="One card" description="It keeps to a comfortable reading width." />
+    </ScrollPane>
+  ),
+};

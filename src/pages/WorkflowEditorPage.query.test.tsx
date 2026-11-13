@@ -161,11 +161,24 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     expect(screen.getByRole("button", { name: "Unload run" })).toBeTruthy();
   });
 
+  it("opens code mode on the Overview, whose stages link to the explorer", async () => {
+    renderEditor(apiWorkflowId("planning-application-workflow"));
+    fireEvent.click(await screen.findByRole("button", { name: "Explorer" }, wait));
+    const stages = await screen.findByRole("list", { name: "Stages" }, wait);
+    expect(within(stages).getByText("Identify the problem")).toBeTruthy();
+    expect(stages.querySelector("[aria-current=step]")).toBeTruthy();
+    expect(within(stages).getByText("Build")).toBeTruthy();
+    expect(within(stages).getByText("Test")).toBeTruthy();
+    fireEvent.click(within(stages).getByRole("button", { name: "Health" }));
+    expect(await screen.findByText("Triage", {}, wait)).toBeTruthy();
+  });
+
   it("lists the project's saved dataclips to run, and saves a new title and description", async () => {
     const workflowId = apiWorkflowId("planning-application-workflow");
     renderEditor(workflowId);
     fireEvent.click(await screen.findByRole("button", { name: "Explorer" }, wait));
-    fireEvent.click(await screen.findByRole("button", { name: /Saved dataclips/ }, wait));
+    const explorer = await screen.findByRole("navigation", { name: "Explorer" }, wait);
+    fireEvent.click(await within(explorer).findByRole("button", { name: /Saved dataclips/ }, wait));
     expect(await screen.findByText("Sample application: new citizen", {}, wait)).toBeTruthy();
     expect(screen.getAllByRole("button", { name: "Run" }).length).toBeGreaterThan(0);
 
@@ -334,14 +347,15 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     const { workflows } = await request<{ workflows: { id: string }[] }>("GET", `/api/projects/${projectId}/workflows`);
     renderEditor(workflows[0]!.id);
     fireEvent.click(await screen.findByText("Explorer", {}, wait));
-    await screen.findByRole("button", { name: "Health" }, wait);
-    expect(screen.queryByRole("button", { name: "Environment variables" })).toBeNull();
+    const explorer = await screen.findByRole("navigation", { name: "Explorer" }, wait);
+    await within(explorer).findByRole("button", { name: "Health" }, wait);
+    expect(within(explorer).queryByRole("button", { name: "Environment variables" })).toBeNull();
   });
   it("lists the workflow's test cases under Saved dataclips, and runs one", async () => {
     act(() => setFlag("testCases", true));
     renderEditor(apiWorkflowId("apply-national-id"));
     fireEvent.click(await screen.findByText("Explorer", {}, wait));
-    fireEvent.click(await screen.findByRole("button", { name: /Test cases/ }, wait));
+    fireEvent.click(await within(await screen.findByRole("navigation", { name: "Explorer" }, wait)).findByRole("button", { name: /Test cases/ }, wait));
     expect(await screen.findByText("Near-match goes to a person for review", {}, wait)).toBeTruthy();
     // On main the workflow is read-only: tests run, but aren't written there.
     expect(screen.queryByRole("button", { name: "New test case" })).toBeNull();
@@ -356,6 +370,15 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     expect(screen.queryByText("1 not run")).toBeNull();
   });
 
+  it("opens the test cases from the Overview's Test stage", async () => {
+    act(() => setFlag("testCases", true));
+    renderEditor(apiWorkflowId("apply-national-id"));
+    fireEvent.click(await screen.findByText("Explorer", {}, wait));
+    const stages = await screen.findByRole("list", { name: "Stages" }, wait);
+    fireEvent.click(within(stages).getByRole("button", { name: "Test cases" }));
+    expect(await screen.findByRole("button", { name: "Run all tests" }, wait)).toBeTruthy();
+  });
+
   it("writes tests from the spec in a sandbox", async () => {
     const projectId = projectIdFor("project-a");
     await request("PUT", `/api/projects/${projectId}/sandboxes/${crypto.randomUUID()}`, { name: "more-tests" });
@@ -363,7 +386,7 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     try {
       renderEditor(apiWorkflowId("apply-national-id"));
       fireEvent.click(await screen.findByText("Explorer", {}, wait));
-      fireEvent.click(await screen.findByRole("button", { name: /Test cases/ }, wait));
+      fireEvent.click(await within(await screen.findByRole("navigation", { name: "Explorer" }, wait)).findByRole("button", { name: /Test cases/ }, wait));
       fireEvent.click(await screen.findByRole("button", { name: "Generate from spec" }, wait));
       expect(await screen.findByText("Synced with spec.md", {}, wait)).toBeTruthy();
       expect(await screen.findByText("Logs never pair a name with a date of birth", {}, wait)).toBeTruthy();
@@ -395,7 +418,10 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     act(() => setFlag("testCases", false));
     renderEditor(apiWorkflowId("apply-national-id"));
     fireEvent.click(await screen.findByText("Explorer", {}, wait));
-    await screen.findByRole("button", { name: "Health" }, wait);
-    expect(screen.queryByRole("button", { name: /Test cases/ })).toBeNull();
+    const explorer = await screen.findByRole("navigation", { name: "Explorer" }, wait);
+    await within(explorer).findByRole("button", { name: "Health" }, wait);
+    expect(within(explorer).queryByRole("button", { name: /Test cases/ })).toBeNull();
+    // The Overview's Test stage doesn't point at them either.
+    expect(within(screen.getByRole("list", { name: "Stages" })).queryByRole("button", { name: "Test cases" })).toBeNull();
   });
 });

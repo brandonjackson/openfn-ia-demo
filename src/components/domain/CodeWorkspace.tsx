@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import type { ReactNode } from "react";
-import { BookOpen, Calendar, Cloud, Database, ExternalLink, FlaskConical, FolderKanban, Globe, History, Layers, Plug, Radio, Sparkles, User, X } from "lucide-react";
+import { BookOpen, Calendar, Cloud, Database, ExternalLink, FlaskConical, FolderKanban, Globe, History, Layers, ListChecks, Plug, Radio, Sparkles, User, X } from "lucide-react";
 import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowFileContents, WorkflowSettings } from "../../model/workflow";
 import type { DetailsViewId } from "./editor-layout";
 import { triggerTypes, workflowToYaml } from "../../model/workflow";
@@ -88,6 +88,8 @@ interface Props {
   testSummary?: { total: number; failed: number };
   /** Docs added alongside context.md and spec.md, by file name. */
   docs?: string[];
+  /** How far along the workflow is, shown beside Overview in the explorer, e.g. "3 of 6". */
+  stage?: string;
   /** Opens what can be added to the workflow's files, from the Workflow group's +. */
   onAddFile?: () => void;
   /** Opens the picker for a new project component. */
@@ -186,6 +188,7 @@ export default function CodeWorkspace({
   savedDataclipCount,
   testSummary,
   docs = [],
+  stage,
   onAddFile,
   onAddComponent,
   showExplorer = true,
@@ -211,6 +214,7 @@ export default function CodeWorkspace({
   const listing = manifest ? service : undefined;
   const addedDoc = typeof file === "object" && "docName" in file ? file.docName : undefined;
   const health = file === "health";
+  const overview = file === "overview";
   const envVars = file === "envVars";
   const saved = file === "dataclips";
   const tests = file === "testCases";
@@ -222,7 +226,9 @@ export default function CodeWorkspace({
         ? "service.yaml"
         : health
           ? "Health"
-          : saved
+          : overview
+            ? "Overview"
+            : saved
             ? "Saved dataclips"
             : tests
               ? "Test cases"
@@ -401,6 +407,16 @@ export default function CodeWorkspace({
         ]}
         showHeader={false}
       />
+    ) : overview ? (
+      <FileDetailsPanel
+        title="Overview"
+        description="Where the workflow is in its life, from the problem it answers to sharing it with other teams, loosely following the OECD's public sector innovation lifecycle, with a link to where each stage is done."
+        properties={[
+          { icon: ListChecks, label: "Stage", value: stage ?? "–" },
+          { icon: FolderKanban, label: "Project", value: workflow.project },
+        ]}
+        showHeader={false}
+      />
     ) : health ? (
       <FileDetailsPanel
         title="Health"
@@ -461,6 +477,7 @@ export default function CodeWorkspace({
         savedDataclipCount={savedDataclipCount}
         testSummary={testSummary}
         docs={docs}
+        stage={stage}
         readOnly={readOnly}
         showWorkflowFiles={showWorkflowFiles}
         showEnvVars={showEnvVars}
@@ -489,7 +506,7 @@ export default function CodeWorkspace({
       ? {
           tabs: {
             options: [
-              { id: "config", label: component || doc || manifest || addedDoc || health || saved || tests || envVars ? "Details" : "Config" },
+              { id: "config", label: component || doc || manifest || addedDoc || health || overview || saved || tests || envVars ? "Details" : "Config" },
               ...(step ? [{ id: "snippets", label: "Snippets" }] : []),
               ...(hasIO ? [{ id: "io", label: "I/O" }] : []),
             ],

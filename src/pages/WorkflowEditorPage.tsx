@@ -1,7 +1,7 @@
 import { sandboxSlug } from "../model/sandboxes";
 import { errorMessageOf, firstProblemOf } from "../model/form-error";
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, Database, FilePlus, FileText, Sparkles } from "lucide-react";
+import { BookOpen, Database, FilePlus, FileText, FlaskConical, Sparkles } from "lucide-react";
 import type {
   AdaptorKind,
   Dataclip,
@@ -73,6 +73,9 @@ import type { ProjectComponentType } from "../model/component-types";
 import AddComponentPanel, { type AddComponentOption } from "../components/domain/AddComponentPanel";
 import SavedDataclipsView from "../components/domain/SavedDataclipsView";
 import DataclipFormModal from "../components/domain/DataclipFormModal";
+import TestCasesView from "../components/domain/TestCasesView";
+import TestCaseFormModal from "../components/domain/TestCaseFormModal";
+import { draftOf, testGenerationReply, testTally, untitledTestName, type TestCase, type TestCaseDraft, type TestGeneration, type TestResult } from "../model/test-cases";
 import { runInputName, savedDataclips, untitledDataclipName, type DataclipChanges, type DataclipDraft } from "../model/dataclips";
 import WorkflowHealth from "../components/domain/WorkflowHealth";
 import ChannelView from "../components/domain/ChannelView";
@@ -271,6 +274,12 @@ export default function WorkflowEditorPage({
   onCreateEnvVar,
   onUpdateEnvVar,
   onDeleteEnvVar,
+  testCases,
+  onRunTestCase,
+  onCreateTestCase,
+  onUpdateTestCase,
+  onDeleteTestCase,
+  onGenerateTestCases,
 }: {
   workflow: Workflow;
   /** Recent work orders, newest first. */
@@ -429,6 +438,18 @@ export default function WorkflowEditorPage({
   onUpdateEnvVar?: (id: string, draft: EnvVarDraft) => Promise<void>;
   /** Deletes one. Left out where you can't. */
   onDeleteEnvVar?: (id: string) => Promise<void>;
+  /** The workflow's test cases, listed under Workflow in the explorer below Saved dataclips. Left out, the explorer doesn't list them. */
+  testCases?: TestCase[];
+  /** Has the assistant run one; resolves with how it went. Left out where tests can't be run. */
+  onRunTestCase?: (id: string) => Promise<TestResult>;
+  /** Adds a test case to the workflow. Left out where you can't, e.g. on main. */
+  onCreateTestCase?: (draft: TestCaseDraft) => Promise<void>;
+  /** Changes one. Left out where you can't. */
+  onUpdateTestCase?: (id: string, draft: TestCaseDraft) => Promise<void>;
+  /** Deletes one. Left out where you can't. */
+  onDeleteTestCase?: (id: string) => Promise<void>;
+  /** Has the assistant sync the tests with spec.md, writing deterministic tests for what nothing covers. Left out where you can't. */
+  onGenerateTestCases?: () => Promise<TestGeneration>;
 }) {
   // ---- Where we are ---------------------------------------------------------
 
@@ -554,10 +575,10 @@ export default function WorkflowEditorPage({
     });
   };
 
-  // A page in the code view's main pane (Health, Saved dataclips, Environment variables) opens with the bottom and right panels
+  // A page in the code view's main pane (Health, Saved dataclips, Test cases, Environment variables) opens with the bottom and right panels
   // hidden, so it has the room. Showing them there lasts until you leave the page, and leaves the
   // remembered layout alone, so opening a code item brings the panels back as they were.
-  const isPage = (f: ExplorerFile) => f === "health" || f === "dataclips" || f === "envVars";
+  const isPage = (f: ExplorerFile) => f === "health" || f === "dataclips" || f === "testCases" || f === "envVars";
   const onPage = view === "code" && isPage(file);
   const [pagePanels, setPagePanels] = useState({ panel: false, details: false });
   const shownLayout: EditorLayout = onPage ? { ...layout, ...pagePanels } : layout;
@@ -896,19 +917,28 @@ export default function WorkflowEditorPage({
   const workflowFiles = (["context", "spec", "service", "dataclips"] as const).filter((k) => has[k] || addedFiles.includes(k));
   const [addFileOpen, setAddFileOpen] = useState(defaultAddFileOpen);
   const [newDataclipOpen, setNewDataclipOpen] = useState(false);
+  // The test case form: a new one, or the one being edited.
+  const [testForm, setTestForm] = useState<"new" | TestCase>();
   const added = (kind: WorkflowFileKind) => (workflowFiles.includes(kind) ? "Added" : undefined);
-  const fileOptions: (AddComponentOption & { kind: WorkflowFileKind | "doc" })[] = [
+  const fileOptions: (AddComponentOption & { kind: WorkflowFileKind | "doc" | "test" })[] = [
     ...(publishesServices
       ? [{ kind: "service" as const, type: "Service manifest", icon: BookOpen, tag: added("service"), description: "service.yaml: how the workflow is listed as a service, and how other teams call it." }]
       : []),
     { kind: "spec", type: "Spec", icon: FileText, tag: added("spec"), description: "spec.md: what goes in, what each step writes, and when a run counts as done." },
     { kind: "dataclips", type: "Saved dataclip", icon: Database, tag: saved.length > 0 ? `${saved.length} saved` : undefined, description: "An input kept in the project to run the workflow with again." },
+    ...(testCases && onCreateTestCase
+      ? [{ kind: "test" as const, type: "Test case", icon: FlaskConical, tag: testCases.length > 0 ? `${testCases.length} tests` : undefined, description: "A scenario in plain words that the assistant runs and checks." }]
+      : []),
     { kind: "context", type: "Context", icon: FileText, tag: added("context"), description: "context.md: the legislation and people behind the workflow, for the assistant to read." },
     { kind: "doc", type: "Doc", icon: FilePlus, description: "A blank Markdown doc kept alongside the workflow." },
   ];
-  const pickFile = (kind: WorkflowFileKind | "doc") => {
+  const pickFile = (kind: WorkflowFileKind | "doc" | "test") => {
     setAddFileOpen(false);
     if (kind === "doc") return addDoc();
+    if (kind === "test") {
+      openFile("testCases");
+      return setTestForm("new");
+    }
     if (kind === "dataclips") return setNewDataclipOpen(true);
     addFile(kind);
     openFile(kind);
@@ -1174,6 +1204,30 @@ export default function WorkflowEditorPage({
     />
   );
 
+  // The workflow's test cases, opened from the explorer's Workflow group, take the code's place too.
+  const jobSteps = graph.nodes.flatMap((n) => (n.type === "job" ? [{ id: n.id, label: n.label }] : []));
+  const testCasesPane = testCases && (
+    <TestCasesView
+      tests={testCases}
+      steps={jobSteps}
+      onRun={onRunTestCase}
+      onCreate={onCreateTestCase && (() => setTestForm("new"))}
+      onEdit={onUpdateTestCase && ((t) => setTestForm(t))}
+      onDelete={onDeleteTestCase}
+      onGenerate={onGenerateTestCases}
+    />
+  );
+  const tally = testCases && testTally(testCases);
+  // What a test can run with: the saved dataclips, and the one the test being edited uses, which a
+  // test copied into a sandbox can name without the sandbox listing it.
+  const editedInput = typeof testForm === "object" ? testForm.input : undefined;
+  const testDataclips = [
+    ...saved.map((d) => ({ id: d.id, name: d.name ?? d.id })),
+    ...(editedInput?.kind === "dataclip" && !saved.some((d) => d.id === editedInput.dataclipId)
+      ? [{ id: editedInput.dataclipId, name: editedInput.dataclipName ?? editedInput.dataclipId }]
+      : []),
+  ];
+
   const layoutMenu = <LayoutMenu layout={shownLayout} onChange={changeLayout} onReset={resetLayout} />;
 
   /** From a snippet in the inspector: open the node in the code view, with that section in the panel. */
@@ -1276,6 +1330,20 @@ export default function WorkflowEditorPage({
       onSend={onAssistantSend}
       onCarryOutPlan={onAssistantCarryOutPlan}
       initialPrompt={assistantPrompt}
+      // The assistant writes the workflow's test cases from its spec, the same as Generate from spec in Test cases.
+      onGenerateTests={
+        testCases && onGenerateTestCases
+          ? async () => ({ id: shortId(), role: "assistant", ...testGenerationReply(await onGenerateTestCases()) })
+          : undefined
+      }
+      onOpenTests={
+        testCases
+          ? () => {
+              openFile("testCases");
+              setView("code");
+            }
+          : undefined
+      }
     />
   );
 
@@ -1360,6 +1428,18 @@ export default function WorkflowEditorPage({
           <Modal open={addFileOpen} title="Add to workflow" onClose={() => setAddFileOpen(false)} widthClass="max-w-2xl">
             <AddComponentPanel options={fileOptions} columns={2} bare onSelect={(type) => pickFile(fileOptions.find((o) => o.type === type)!.kind)} />
           </Modal>
+          <TestCaseFormModal
+            open={testForm !== undefined}
+            initial={typeof testForm === "object" ? draftOf(testForm) : undefined}
+            defaultName={untitledTestName(testCases ?? [])}
+            steps={jobSteps}
+            dataclips={testDataclips}
+            onClose={() => setTestForm(undefined)}
+            onSubmit={async (draft) => {
+              if (typeof testForm === "object") await onUpdateTestCase?.(testForm.id, draft);
+              else await onCreateTestCase?.(draft);
+            }}
+          />
           <DataclipFormModal
             open={newDataclipOpen}
             defaultName={untitledDataclipName(saved)}
@@ -1495,10 +1575,21 @@ export default function WorkflowEditorPage({
           onAddStep={onMain ? undefined : addStep}
           files={workflowFiles}
           savedDataclipCount={saved.length}
+          testSummary={tally && testCases && { total: testCases.length, failed: tally.failed }}
           docs={docs}
           onAddFile={onMain ? undefined : () => setAddFileOpen(true)}
           onAddComponent={onMain || addableTypes.length === 0 ? undefined : () => setAddComponentOpen(true)}
-          pane={file === "health" ? healthPane : file === "dataclips" ? dataclipsPane : file === "envVars" ? envVarsPane : componentPane}
+          pane={
+            file === "health"
+              ? healthPane
+              : file === "dataclips"
+                ? dataclipsPane
+                : file === "testCases"
+                  ? testCasesPane
+                  : file === "envVars"
+                    ? envVarsPane
+                    : componentPane
+          }
           showExplorer={layout.explorer}
           showDetails={shownLayout.details}
           detailsView={layout.detailsView}

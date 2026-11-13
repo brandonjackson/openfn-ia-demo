@@ -64,6 +64,11 @@ export const Folded: Story = {
   args: { folded: true },
 };
 
+/** Starting folded, for detail most readers skip: its chevron opens it. */
+export const StartsFolded: Story = {
+  args: { defaultOpen: false },
+};
+
 /** Filling its share of a fixed-height column, as in the code view's I/O: every line, scrolling within. */
 export const Fill: Story = {
   args: { fill: true, onExpand: () => {} },

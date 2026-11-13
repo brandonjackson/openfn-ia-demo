@@ -29,6 +29,8 @@ export interface AssistantPlan {
 /** The outcome of changes the assistant made and tested. */
 export interface AssistantResult {
   items: { label: string; outcome: "ok" | "skipped" | "failed" }[];
+  /** What it's about: a change it made and test-ran (the default), or the test cases it wrote, which opens them instead of the runs. */
+  about?: "change" | "tests";
 }
 
 /**

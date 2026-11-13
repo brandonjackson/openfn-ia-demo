@@ -23,6 +23,7 @@ export type FlagId =
   | "deployments"
   | "workflowDocs"
   | "envVars"
+  | "testCases"
   | "components"
   | "forms"
   | "staticWebsites"
@@ -117,6 +118,14 @@ export const featureFlags: FeatureFlag[] = [
     id: "envVars",
     label: "Environment variables",
     description: "A project's environment variables, set for each environment, under Workflow in the editor's explorer.",
+    requires: ["workflowDocs"],
+    group: "Projects",
+  },
+  {
+    id: "testCases",
+    label: "Test cases",
+    description:
+      "A workflow's test cases under Workflow in the editor's explorer: scenarios in plain words that the assistant runs, generates from the spec and checks with deterministic tests.",
     requires: ["workflowDocs"],
     group: "Projects",
   },

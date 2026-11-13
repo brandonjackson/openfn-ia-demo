@@ -52,6 +52,11 @@ export const SavedDataclipsOpen: Story = {
   args: { files: ["context", "spec", "dataclips"], savedDataclipCount: 2, file: "dataclips", onAddFile: () => {}, onAddStep: () => {} },
 };
 
+/** The workflow's test cases, under Saved dataclips, saying how many failed last time. */
+export const TestCasesOpen: Story = {
+  args: { files: ["context", "spec", "dataclips"], savedDataclipCount: 2, testSummary: { total: 4, failed: 1 }, file: "testCases", onAddFile: () => {}, onAddStep: () => {} },
+};
+
 /** A new workflow with none of its optional files yet: the + adds them. */
 export const OnlyTheWorkflow: Story = { args: { files: [], file: "workflow", onAddFile: () => {}, onAddStep: () => {} } };
 

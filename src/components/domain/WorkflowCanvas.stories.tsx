@@ -93,3 +93,20 @@ export const OlderRunAsExecuted: Story = {
 export const OlderRunOnLatest: Story = {
   args: { workflow: nationalIdWorkflow, run: olderRun },
 };
+
+/** Paths as Lightning draws them: labels beside the badges, and a path that's off drawn dashed. Click a badge to select it. */
+export const PathKinds: Story = {
+  args: {
+    workflow: {
+      ...nationalIdWorkflow,
+      edges: nationalIdWorkflow.edges.map((e) => (e.id === "e-search-queue" ? { ...e, enabled: false, label: "Park it for later" } : e)),
+    },
+    selectedEdgeId: "e-search-notify",
+    onSelectEdge: () => {},
+  },
+};
+
+/** A step that needs a credential and has none offers Connect on its card. */
+export const WithConnect: Story = {
+  args: { workflow: nationalIdWorkflow, onConnect: () => {}, needsCredential: (id: string) => id === "search" || id === "create" },
+};

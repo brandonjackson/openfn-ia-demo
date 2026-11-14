@@ -22,6 +22,11 @@ export const Preselected: Story = {
   args: { preselectedSystem: adaptors[0].name },
 };
 
+/** Opened from an adaptor picked in the editor's "Add a step", found by the adaptor's id. */
+export const PreselectedByAdaptor: Story = {
+  args: { preselectedAdaptor: adaptors[1].id },
+};
+
 /** Adding is refused (the name's taken): the form stays open and says why. Pick a system, then add it. */
 export const Refused: Story = {
   args: {

@@ -92,6 +92,8 @@ import { isContentComponentType, type ComponentDraft, type ContentComponentType 
 import type { ChannelDraft } from "../model/channels";
 import ConnectSystemPicker from "../components/domain/ConnectSystemPicker";
 import type { ConnectChoice } from "../components/domain/ConnectSystemPicker";
+import AddConnectedSystemFlow, { type NewSystemInput } from "../components/domain/AddConnectedSystemFlow";
+import type { Adaptor } from "../model/adaptors";
 import { componentTypes } from "../model/component-types";
 
 /** Who starts runs and retries in the prototype. */
@@ -272,6 +274,8 @@ export default function WorkflowEditorPage({
   adaptors,
   catalog,
   systems = [],
+  systemAdaptors,
+  onAddSystem,
   stepServices,
   showWorkflowFiles = true,
   showComponents = true,
@@ -382,11 +386,19 @@ export default function WorkflowEditorPage({
   assistantConversations?: AssistantConversation[];
   /** What the editor knows about each adaptor a step can use (name, version, snippets), and the project's credentials. */
   adaptors: AdaptorReference;
-  /** Every adaptor by category, with the built-in tools and AI actions, for "Connect a system". */
+  /** Every adaptor by category, with the built-in tools and AI actions, for "Add a step". */
   catalog: AdaptorCatalog;
   /** The project's connected systems. */
   systems?: ConnectedSystem[];
-  /** Published services a new step can call, offered in "Connect a system" under Services. Left out, the picker has no Services tab. */
+  /** Every adaptor a new connected system can use, for adding one from "Add a step". */
+  systemAdaptors?: Adaptor[];
+  /**
+   * Adds a connected system from an adaptor picked in "Add a step" that the project has no system for yet;
+   * resolves with its id, and the new step is added on it. Left out (no connected systems, or not
+   * yours to add), picking any adaptor adds its step straight away.
+   */
+  onAddSystem?: (system: NewSystemInput) => Promise<string>;
+  /** Published services a new step can call, offered in "Add a step" under Services. Left out, the picker has no Services tab. */
   stepServices?: StepService[];
   /** List the workflow's own files (workflow.yaml, docs, service.yaml, Health) in the explorer. Defaults to true; off, code mode falls back to the trigger. */
   showWorkflowFiles?: boolean;
@@ -895,13 +907,17 @@ export default function WorkflowEditorPage({
     ]),
   ].filter((a) => !catalog.builtInTools.includes(a));
 
-  const addStepAfter = (sourceId: string, choice: ConnectChoice) => {
+  // An adaptor the project has no system for yet: add the system first, then the step on it.
+  const [newSystem, setNewSystem] = useState<{ afterId: string; adaptor: string }>();
+
+  const addStepAfter = (sourceId: string, choice: ConnectChoice, system?: string) => {
     const source = graph.nodes.find((n) => n.id === sourceId);
     if (!source) return;
     const id = crypto.randomUUID();
     // A service is called over HTTP, so its step is an HTTP step named for what the service does.
     const adaptor = choice.kind === "ai" ? "claude" : choice.kind === "service" ? "http" : choice.adaptor;
-    const info = adaptors.info[adaptor];
+    // An adaptor the editor has no reference for (one picked while adding a system) still gets a step.
+    const info = adaptors.info[adaptor] ?? { ...adaptors.info.common, name: adaptor, package: `@openfn/language-${adaptor}` };
     const firstSnippet = adaptors.snippets[adaptor]?.[0]?.code;
     const job: JobNode = {
       id,
@@ -915,6 +931,7 @@ export default function WorkflowEditorPage({
           : choice.kind === "service"
             ? serviceStepBody(choice.service)
             : `// Connect to ${info.name}\n${firstSnippet ?? "fn(state => state);"}\n`,
+      ...(system && { system }),
       ...placeAfter(graph, source),
     };
     // A trigger has exactly one edge out of it, so a step added after it goes in between: the trigger's edge
@@ -1601,14 +1618,36 @@ export default function WorkflowEditorPage({
               onDraftWithAI={onDraftComponentWithAI ? () => onDraftComponentWithAI(creatingComponent) : undefined}
             />
           )}
-          <Modal open={addAfterId !== undefined} title="Connect a system" onClose={() => setAddAfterId(undefined)} widthClass="max-w-3xl">
+          <Modal open={addAfterId !== undefined} title="Add a step" onClose={() => setAddAfterId(undefined)} widthClass="max-w-3xl">
             <ConnectSystemPicker
               catalog={catalog}
               connected={connectedAdaptors}
               services={stepServices}
               onSelect={(choice) => addAfterId && addStepAfter(addAfterId, choice)}
+              onConnectNew={
+                onAddSystem && systemAdaptors
+                  ? (adaptor) => {
+                      if (!addAfterId) return;
+                      setNewSystem({ afterId: addAfterId, adaptor });
+                      setAddAfterId(undefined);
+                    }
+                  : undefined
+              }
             />
           </Modal>
+          {onAddSystem && systemAdaptors && (
+            <AddConnectedSystemFlow
+              open={newSystem !== undefined}
+              onClose={() => setNewSystem(undefined)}
+              adaptors={systemAdaptors}
+              preselectedAdaptor={newSystem?.adaptor}
+              onAdd={async (input) => {
+                const id = await onAddSystem(input);
+                if (newSystem) addStepAfter(newSystem.afterId, { kind: "adaptor", adaptor: input.adaptor }, id);
+                setNewSystem(undefined);
+              }}
+            />
+          )}
           <ConfirmModal
             open={deleteOpen}
             title="Delete workflow?"

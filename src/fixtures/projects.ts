@@ -552,7 +552,7 @@ export function serviceForWorkflow(
   return undefined;
 }
 
-/** Every Live service a step can call, offered by its project, for stories of "Connect a system". */
+/** Every Live service a step can call, offered by its project, for stories of "Add a step". */
 export const stepServices: StepService[] = projects.flatMap((p) =>
   p.services.filter(isCallableFromStep).map((s) => ({ ...s, offeredBy: p.name })),
 );

@@ -27,3 +27,8 @@ export const ViaXRoad: Story = {
 export const NameTaken: Story = {
   args: { onSave: () => Promise.reject(new FormError("Invalid", { name: ["has already been taken"] })) },
 };
+
+/** Opened from one environment's Edit on the system's page: just where the system lives there. */
+export const OneEnvironment: Story = {
+  args: { environment: "staging" },
+};

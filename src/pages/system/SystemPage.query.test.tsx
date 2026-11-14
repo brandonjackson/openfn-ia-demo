@@ -61,6 +61,30 @@ describe("SystemPageQuery", () => {
     expect((await screen.findAllByText(/FJ\/GOV\/MOI/, {}, wait)).length).toBeGreaterThan(0);
   });
 
+  it("edits one environment's URL on the server, keeping its credential", async () => {
+    const dhis2 = await systemNamed("DHIS2");
+    renderRoute(dhis2.id);
+    fireEvent.click(await screen.findByRole("button", { name: "Edit mock" }, wait));
+    const dialog = screen.getByRole("dialog", { name: "Edit mock" });
+    fireEvent.change(within(dialog).getByLabelText(/Mock URL/), { target: { value: "https://mock2.dhis2.example.org" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull(), wait);
+    expect(await screen.findByText("https://mock2.dhis2.example.org", {}, wait)).toBeTruthy();
+    type One = { data: { attributes: { environments: Record<string, { url?: string; credential?: string }> } } };
+    const saved = await request<One>("GET", `/api/demo/connected_systems/${dhis2.id}`);
+    expect(saved.data.attributes.environments["mock"]).toEqual({ url: "https://mock2.dhis2.example.org", credential: "dhis2-mock" });
+  });
+
+  it("says under the field when the server refuses an OpenAPI spec that isn't a URL", async () => {
+    const dhis2 = await systemNamed("DHIS2");
+    renderRoute(dhis2.id);
+    expect(await screen.findByRole("link", { name: "https://dhis2.example.org/api/openapi.json" }, wait)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.change(screen.getByLabelText(/OpenAPI spec/), { target: { value: "not a url" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("must be an http or https URL", {}, wait)).toBeTruthy();
+  });
+
   it("revokes a grant on the server", async () => {
     const dhis2 = await systemNamed("DHIS2");
     renderRoute(dhis2.id);

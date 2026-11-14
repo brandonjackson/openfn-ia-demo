@@ -1,10 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import Loaded from "../../app/Loaded";
+import { useAnnounceOutcome } from "../../app/announce";
 import { useFlags } from "../../app/feature-flags";
 import { useProjectList, useProjectSummaries } from "../../api/projects";
 import { useWorkOrders } from "../../api/work-orders";
 import { combine } from "../../api/status";
-import { useAdaptors, useConnectedSystems, useSystemSaves, useSystemSuggestions } from "../../api/connected-systems";
+import { useAdaptorCatalog, useConnectedSystems, useSystemSaves, useSystemSuggestions } from "../../api/connected-systems";
 import { systemSummary } from "../../model/connected-systems";
 import { insightsFor, weekTiles, withWorkOrders } from "../../model/insights";
 import { isOpenable } from "../../model/projects";
@@ -15,7 +16,7 @@ import OverviewPage from "./OverviewPage";
  * IA tree, so it takes no route. The week's runs and errors are worked out
  * from the work orders of every project you can open, as Insights has them;
  * your projects, the organisation's systems and the catalog a new system is
- * picked from (adaptors, suggestions it hasn't connected) from their routes.
+ * picked from (the adaptor catalog, suggestions it hasn't connected) from their routes.
  * The page doesn't wait for them: the tiles appear once they're in, and
  * are left out if they can't load (a section's own loading and error
  * state is Brandon's decision 1, not built yet). Nothing in the API says
@@ -33,8 +34,9 @@ export default function OverviewPageQuery() {
   const { status: ordersStatus, workOrders } = useWorkOrders(mine.map((p) => p.id));
   const { status: systemsStatus, systems } = useConnectedSystems();
   const systemSaves = useSystemSaves();
+  const announcing = useAnnounceOutcome();
   // The catalog a new system is picked from doesn't hold the page back either: it's empty until it's in.
-  const { adaptors } = useAdaptors(flags.connectedSystems);
+  const { catalog } = useAdaptorCatalog(flags.connectedSystems);
   const { suggestions: suggested } = useSystemSuggestions(flags.connectedSystems);
   return (
     // The week's runs don't hold the page back: their tiles show once the work orders are in, and are left out if they can't load.
@@ -46,11 +48,12 @@ export default function OverviewPageQuery() {
             connectedSystems: flags.connectedSystems ? systems.map(systemSummary) : undefined,
             recommendedSystems: suggested,
             recommended: systems.length + suggested.length,
-            adaptors,
+            catalog,
             projects,
           }}
           onAddSystem={async (input) => {
-            const id = await systemSaves.add({ name: input.name, description: input.description, adaptor: input.adaptor, endpointUrl: input.endpointUrl, docsUrl: input.docsUrl });
+            // The form says why under its fields if it's refused, so only success is announced.
+            const id = await announcing(systemSaves.add(input), { success: `Connected ${input.name}.` });
             navigate(`/connected-systems/${id}`);
           }}
         />

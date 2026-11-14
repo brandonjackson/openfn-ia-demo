@@ -1729,7 +1729,7 @@ export default function WorkflowEditorPage({
             <AddConnectedSystemFlow
               open={newSystem !== undefined}
               onClose={() => setNewSystem(undefined)}
-              adaptors={systemAdaptors}
+              catalog={catalog}
               preselectedAdaptor={newSystem?.adaptor}
               onAdd={async (input) => {
                 const id = await onAddSystem(input);

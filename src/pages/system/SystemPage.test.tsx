@@ -125,6 +125,42 @@ describe("SystemPage", () => {
     expect(screen.getByRole("alert").textContent).toContain("DHIS2 wasn't deleted");
   });
 
+  it("edits one environment's URL from its Edit, keeping the rest of the system", async () => {
+    const host = renderPage(SystemPage, frame(), actions);
+    fireEvent.click(screen.getByRole("button", { name: "Edit staging" }));
+    const dialog = screen.getByRole("dialog", { name: "Edit staging" });
+    expect(within(dialog).queryByLabelText(/^Name/)).toBeNull();
+    expect(within(dialog).queryByLabelText(/Production URL/)).toBeNull();
+    fireEvent.change(within(dialog).getByLabelText(/Staging URL/), { target: { value: "https://staging.dhis2.example.org" } });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
+    expect(host.calls("onSaveSystem")[0]![0]).toMatchObject({
+      name: "DHIS2",
+      urls: { production: "https://dhis2.example.org", staging: "https://staging.dhis2.example.org", mock: "" },
+    });
+    expect(within(dialog).getByRole("button", { name: "Saving…" }).getAttribute("aria-disabled")).toBe("true");
+    await host.reject("onSaveSystem", new FormError("The request body is not valid.", { "environments.staging.url": ["must be an http or https URL"] }));
+    expect(within(dialog).getByText("must be an http or https URL")).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Save" }));
+    await host.resolve("onSaveSystem");
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("links to the system's OpenAPI spec, and edits it with the system", () => {
+    const host = renderPage(SystemPage, frame({ ...data, system: { ...direct, openApiSpecUrl: "https://dhis2.example.org/api/openapi.json" } }), actions);
+    expect(screen.getByRole("link", { name: "https://dhis2.example.org/api/openapi.json" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    const field = screen.getByLabelText(/OpenAPI spec/) as HTMLInputElement;
+    expect(field.value).toBe("https://dhis2.example.org/api/openapi.json");
+    fireEvent.change(field, { target: { value: "" } });
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(screen.getByText("Enter a name")).toBeTruthy();
+    expect(host.calls("onSaveSystem")).toHaveLength(0);
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "DHIS2" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(host.calls("onSaveSystem")[0]![0]).toMatchObject({ openApiSpecUrl: "" });
+  });
+
   it("leaves out Edit, Delete and Revoke for someone who can't change the system", () => {
     // An X-Road system, which has no environments with their own Edit.
     renderPage(SystemPage, frame({ ...data, system: viaXRoad, xroad: { org: identity, member: moi } }), []);

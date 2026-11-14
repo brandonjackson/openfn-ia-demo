@@ -8,7 +8,7 @@ const badges: Record<XRoadConnectionStatus, { label: string; tone: BadgeTone; ic
   "agreement-pending": { label: "Agreement pending", tone: "yellow", icon: Clock },
   "operator-approval": { label: "Awaiting operator", tone: "yellow", icon: Clock },
   "access-granted": { label: "Access granted", tone: "green", icon: Check },
-  live: { label: "Live", tone: "green", icon: Check },
+  live: { label: "Connected", tone: "green", icon: Check },
 };
 
 /**

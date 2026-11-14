@@ -1,4 +1,4 @@
-import { AlertCircle, Globe, KeyRound, Plus } from "lucide-react";
+import { AlertCircle, Globe, KeyRound, Pencil } from "lucide-react";
 import type { SystemEnvironment } from "../../model/connected-systems";
 import type { Environment } from "../../model/credentials";
 import { ENVIRONMENTS } from "../../model/credentials";
@@ -15,13 +15,16 @@ const missingHint: Record<Environment, string> = {
 
 interface Props {
   environments: Record<Environment, SystemEnvironment>;
+  /** Opens one environment to edit where the system lives there. Left out (reading only), there's no Edit. */
+  onEdit?: (environment: Environment) => void;
 }
 
 /**
  * One row per environment (production, staging, mock) showing where a
- * connected system lives in that environment and which credential reaches it.
+ * connected system lives in that environment and which credential reaches it,
+ * with an Edit on each when it's given `onEdit`.
  */
-export default function SystemEnvironments({ environments }: Props) {
+export default function SystemEnvironments({ environments, onEdit }: Props) {
   return (
     <Card flush className="divide-y divide-gray-100">
       {ENVIRONMENTS.map((env) => {
@@ -56,13 +59,9 @@ export default function SystemEnvironments({ environments }: Props) {
                 )}
               </div>
             </div>
-            {credential ? (
-              <Button variant="secondary" size="xs">
+            {onEdit && (
+              <Button variant="secondary" size="xs" icon={Pencil} onClick={() => onEdit(env)} aria-label={`Edit ${env}`}>
                 Edit
-              </Button>
-            ) : (
-              <Button variant="outline-primary" size="xs" icon={Plus}>
-                Add
               </Button>
             )}
           </div>

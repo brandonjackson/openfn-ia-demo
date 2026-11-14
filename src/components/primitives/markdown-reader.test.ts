@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { headingId, parseInline, parseMarkdown } from "./markdown";
+import { headingId, parseInline, parseMarkdown } from "./markdown-reader";
 
 describe("markdown", () => {
   it("reads inline code, strong, emphasis and links", () => {

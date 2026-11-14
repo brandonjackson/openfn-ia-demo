@@ -4,19 +4,19 @@ import Loaded from "../../app/Loaded";
 import { useFlags } from "../../app/feature-flags";
 import { useProject } from "../../api/projects";
 import { useProjectServices } from "../../api/services";
-import { useProjectWorkflows, useWorkflowSaves } from "../../api/workflows";
+import { useProjectWorkflows } from "../../api/workflows";
 import { combine } from "../../api/status";
 import { useWorkOrders } from "../../api/work-orders";
 import { asListItem, byWorkflow } from "../../model/workflow-list";
-import { useAnnounceOutcome } from "../../app/announce";
+import { useWorkflowListActions } from "../workflow-list.query";
 import { pageFrame } from "../../app/page-frame";
 import ProjectWorkflowsPage from "./ProjectWorkflowsPage";
 
 /**
  * Feeds a project's Workflows list from the API: each row is a workflow there,
- * counting its work orders there, with the status of the service it backs when
+ * counting its work orders there, with whether it's published as a service when
  * the catalog is on. Switching one on or off goes through its trigger, and
- * deleting marks it deleted. api/ workflows have no description or members
+ * deleting marks it deleted; Make a copy is the demo's own route. api/ workflows have no description or members
  * yet, so the rows leave them out (docs/api-gaps.md).
  */
 export default function ProjectWorkflowsPageQuery({ route }: { route: PageRoute }) {
@@ -27,9 +27,7 @@ export default function ProjectWorkflowsPageQuery({ route }: { route: PageRoute 
   const { status, workflows } = useProjectWorkflows(projectId);
   const { status: workOrdersStatus, workOrders } = useWorkOrders(projectId ? [projectId] : []);
   const { status: servicesStatus, services } = useProjectServices(projectId, serviceCatalog);
-  const saves = useWorkflowSaves();
-  const announcing = useAnnounceOutcome();
-  const docOf = (id: string) => workflows.find((w) => w.id === id)!;
+  const actions = useWorkflowListActions(workflows);
   const workOrdersOf = byWorkflow(workOrders);
   // Rows without service badges beat no rows: a failed services load leaves the badges out.
   const backed = servicesStatus.state === "ready" ? services : [];
@@ -40,8 +38,7 @@ export default function ProjectWorkflowsPageQuery({ route }: { route: PageRoute 
           {...pageFrame(route, {}, project!.name)}
           data={{ projectId: project!.id, workflows: workflows.map((w) => asListItem(w, workOrdersOf(w.id), backed)) }}
           onNewWorkflow={() => navigate(`/workflow-editor/new?project=${project!.id}`)}
-          onToggleWorkflow={(id, on) => announcing(saves.setEnabled(docOf(id), on), { failure: `"${docOf(id).name}" wasn't turned ${on ? "on" : "off"}` })}
-          onDeleteWorkflow={(id) => announcing(saves.remove(docOf(id)), { success: `Deleted "${docOf(id).name}".`, failure: `"${docOf(id).name}" wasn't deleted` })}
+          {...actions}
         />
       )}
     </Loaded>

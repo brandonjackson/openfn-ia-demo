@@ -39,7 +39,9 @@ path in its hook file.
   (Systems, Overview). Would need the adaptors Lightning can use (it has a
   registry, but `api/` doesn't list it), suggestions of systems to connect,
   and somewhere to keep where each system sits on the map. Demo, read only:
-  `/api/demo/adaptors`, `/api/demo/connected_systems/suggestions` and
+  `/api/demo/adaptors`, `/api/demo/adaptor_catalog` (every adaptor sorted
+  into the categories "Connect a system" and "Add a step" show),
+  `/api/demo/connected_systems/suggestions` and
   `/api/demo/ecosystem` (stations named by system id; a deleted system
   leaves the map). An adaptor's `id` is its package name, not a UUID.
 - **The organisation, beyond its name and members** (Organization settings:
@@ -125,6 +127,15 @@ path in its hook file.
   `WorkflowRow` drops its Members column without them). Would need a
   `description` on the workflow (Lightning has one on templates only) and
   its recent editors, say from its snapshots' authors.
+
+- **Workflows: making a copy** (a workflow's ⋮ menu on a project's
+  Workflows list and Overview; api/workflows.md). The API can create a
+  workflow from a document, but has no copy, so a client would have to fetch
+  the workflow and post it back with every id changed. Would need
+  `POST /api/projects/:id/workflows/:id/copies`, answering with the new
+  workflow. Demo: `POST /api/demo/projects/:id/workflows/:id/copies`
+  (`useWorkflowSaves().copy`): fresh ids, triggers off and no custom webhook
+  path, named "… (copy)" (or "… (copy 2)") so the name stays unique.
 
 - **Workflows: who made a version and what they said about it** (the
   editor's version picker; api/workflows.md, snapshots). A snapshot has its

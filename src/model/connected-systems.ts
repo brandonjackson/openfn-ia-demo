@@ -38,7 +38,10 @@ export interface ConnectedSystem {
   ownerType: "user" | "org";
   /** Where the system lives, and which credential reaches it, in each environment. */
   environments: Record<Environment, SystemEnvironment>;
+  /** Where its API is documented, for people to read. */
   apiDocsUrl?: string;
+  /** Where its OpenAPI (Swagger) spec is, for tools to read. */
+  openApiSpecUrl?: string;
   linkTo?: string;
   /** Direct (standard credentials) when unset. */
   connection?: SystemConnection;
@@ -64,6 +67,7 @@ export function systemListItem(s: ConnectedSystem): SystemListItem {
       connection: connection.method,
       ...(connection.method === "xroad" ? { xroadStatus: connection.status } : {}),
       ...(url ? { url } : {}),
+      ...(s.openApiSpecUrl ? { openApiSpecUrl: s.openApiSpecUrl } : {}),
     },
     linkTo: s.linkTo,
   };
@@ -80,6 +84,8 @@ export interface SystemChanges {
   description: string;
   /** Where its API is documented; blank for none. */
   docsUrl: string;
+  /** Where its OpenAPI spec is; blank for none. */
+  openApiSpecUrl: string;
   /** Where it lives in each environment. Left out for a system reached over X-Road, whose route says where. */
   urls?: Record<Environment, string>;
 }

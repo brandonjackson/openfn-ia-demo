@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import type { AdaptorKind, RunDetails, Workflow, WorkflowNode } from "../../model/workflow";
+import { isEdgeEnabled } from "../../model/workflow";
+import type { AdaptorKind, RunDetails, Workflow, WorkflowEdge, WorkflowNode } from "../../model/workflow";
 import type { RunActivity } from "../../model/runs";
 import type { AdaptorInfo } from "../../model/adaptor-reference";
 import type { ConnectedSystem } from "../../model/connected-systems";
@@ -47,6 +48,11 @@ const HEADER_TOP = 12;
  * it to move around, and the controls' Center button puts it back. Node
  * coordinates come from the workflow data; there is no zoom or node drag yet.
  *
+ * Each path is drawn as Lightning draws it: its badge says what makes it
+ * fire, with its label beside it, and a path that's off is dashed. With
+ * `onSelectEdge`, clicking a badge selects the path (`selectedEdgeId`),
+ * whose line and badge are picked out.
+ *
  * With `onAddAfter`, each card shows a + on its bottom edge while hovered,
  * to add a step after it. With `onConnect`, a step that `needsCredential`
  * shows Connect on its card.
@@ -71,6 +77,8 @@ export default function WorkflowCanvas({
   deleteBlockedReason,
   onConnect,
   needsCredential,
+  selectedEdgeId,
+  onSelectEdge,
 }: {
   workflow: Workflow;
   selectedId?: string;
@@ -104,6 +112,10 @@ export default function WorkflowCanvas({
   onConnect?: (nodeId: string) => void;
   /** Whether a step needs a credential and has none, by its id: its card offers Connect. */
   needsCredential?: (nodeId: string) => boolean;
+  /** The path open in the inspector: its line and badge are picked out. */
+  selectedEdgeId?: string;
+  /** A path's badge clicked, to open it in the inspector. Without it, badges only say what they are. */
+  onSelectEdge?: (edge: WorkflowEdge) => void;
 }) {
   const nodeById = (id: string) => workflow.nodes.find((n) => n.id === id);
 
@@ -208,12 +220,17 @@ export default function WorkflowCanvas({
             const geometry = edgePath(edge);
             if (!geometry) return null;
             const { d } = geometry;
+            // A path that's off is dashed; the selected one is drawn over everything else in indigo.
+            const dash = isEdgeEnabled(edge) ? undefined : "6 6";
+            if (edge.id === selectedEdgeId) {
+              return <path key={edge.id} d={d} fill="none" className="stroke-indigo-500" strokeWidth={2.5} strokeDasharray={dash} />;
+            }
             if (run) {
               const ran = travelled(edge.source, edge.target);
               const live = flowing(edge.source, edge.target);
               return (
                 <g key={edge.id}>
-                  <path d={d} fill="none" className={ran ? "stroke-slate-500" : "stroke-slate-200"} strokeWidth={ran ? 2.5 : 2} />
+                  <path d={d} fill="none" className={ran ? "stroke-slate-500" : "stroke-slate-200"} strokeWidth={ran ? 2.5 : 2} strokeDasharray={dash} />
                   {live && (
                     <path
                       d={d}
@@ -235,9 +252,10 @@ export default function WorkflowCanvas({
                   <path
                     d={d}
                     fill="none"
-                    className={n === 0 ? "stroke-slate-200" : "stroke-indigo-200"}
+                    className={dash ? "stroke-slate-400" : n === 0 ? "stroke-slate-200" : "stroke-indigo-200"}
                     strokeWidth={strokeWidth}
                     strokeLinecap="round"
+                    strokeDasharray={dash}
                   >
                     <title>{`${n} ${n === 1 ? "run" : "runs"}`}</title>
                   </path>
@@ -254,7 +272,7 @@ export default function WorkflowCanvas({
                 </g>
               );
             }
-            return <path key={edge.id} d={d} fill="none" className="stroke-slate-300" strokeWidth={2} />;
+            return <path key={edge.id} d={d} fill="none" className={dash ? "stroke-slate-400" : "stroke-slate-300"} strokeWidth={2} strokeDasharray={dash} />;
           })}
         </svg>
 
@@ -271,7 +289,14 @@ export default function WorkflowCanvas({
               className={`absolute z-10 cursor-default flex items-center gap-1 ${run && !travelled(edge.source, edge.target) ? "opacity-40" : ""}`}
               style={{ left: cx - 14, top: cy - 14 }}
             >
-              <EdgeBadge condition={edge.condition} />
+              <EdgeBadge
+                condition={edge.condition}
+                expression={edge.expression}
+                label={edge.label}
+                enabled={isEdgeEnabled(edge)}
+                selected={edge.id === selectedEdgeId}
+                onClick={onSelectEdge ? () => onSelectEdge(edge) : undefined}
+              />
               {overlay && n > 0 && (
                 <span
                   className={`rounded-full border bg-white px-1.5 text-[10px] font-medium leading-4 shadow-sm ${

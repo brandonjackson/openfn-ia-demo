@@ -107,7 +107,9 @@ export function workflowChanges(base: Workflow | undefined, current: Workflow): 
     const was = before.get(key);
     const ends = `${label(current.nodes, e.source)} → ${label(current.nodes, e.target)}`;
     if (!was) changes.push({ kind: "added", summary: `Connected ${ends}` });
-    else if (was.condition !== e.condition || (was.expression ?? "") !== (e.expression ?? "")) {
+    else if ((was.enabled !== false) !== (e.enabled !== false)) {
+      changes.push({ kind: "changed", summary: `Turned ${e.enabled === false ? "off" : "on"} ${ends}` });
+    } else if (was.condition !== e.condition || (was.expression ?? "") !== (e.expression ?? "") || (was.label ?? "") !== (e.label ?? "")) {
       changes.push({ kind: "changed", summary: `Changed when ${ends} runs` });
     }
   }

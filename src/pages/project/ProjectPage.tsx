@@ -16,7 +16,7 @@ import SectionHeading from "../../components/primitives/SectionHeading";
 import Stack from "../../components/primitives/Stack";
 import StatTile from "../../components/primitives/StatTile";
 import TextLink from "../../components/primitives/TextLink";
-import WorkflowRow from "../../components/domain/WorkflowRow";
+import WorkflowList from "../../components/domain/WorkflowList";
 
 /** What the Overview draws. */
 export interface ProjectPageData {
@@ -36,21 +36,25 @@ export interface ProjectPageData {
 export interface ProjectPageProps extends PageProps<ProjectPageData> {
   /** Opens a blank workflow in this project, from the empty state. */
   onNewWorkflow: () => void;
+  /** Turns a workflow's triggers on or off. Left out, the rows have no switch. */
+  onToggleWorkflow?: (id: string, enabled: boolean) => Promise<void>;
+  /** Makes a copy of a workflow in the project, paused. Left out, the rows have no Make a copy. */
+  onCopyWorkflow?: (id: string) => Promise<void>;
+  /** Deletes a workflow, once confirmed. Left out, the rows have no Delete. */
+  onDeleteWorkflow?: (id: string) => Promise<void>;
 }
-
-/** How many workflows the Overview lists before "View all". */
-const WORKFLOW_PREVIEW = 5;
 
 /** How many components the Overview lists before "View all". */
 const COMPONENT_PREVIEW = 6;
 
 /**
  * A project at a glance: how it's running (its work orders over the last
- * 30 days, which its workflows' rows add up to), its workflows, then what it
- * publishes and is built from. Services and components are left out when
+ * 30 days, which its workflows' rows add up to), its workflows (the same
+ * list as the Workflows page, in its sections, with its switches and menus),
+ * then what it publishes and is built from. Services and components are left out when
  * their data is (their feature is off).
  */
-export default function ProjectPage({ node, ancestors, currentPath, data, onNewWorkflow }: ProjectPageProps) {
+export default function ProjectPage({ node, ancestors, currentPath, data, onNewWorkflow, onToggleWorkflow, onCopyWorkflow, onDeleteWorkflow }: ProjectPageProps) {
   const { tiles, workflows, services, components } = data;
 
   return (
@@ -101,11 +105,7 @@ export default function ProjectPage({ node, ancestors, currentPath, data, onNewW
         />
         <div className="-mt-3">
           {workflows.length > 0 ? (
-            <Stack gap="sm">
-              {workflows.slice(0, WORKFLOW_PREVIEW).map((w) => (
-                <WorkflowRow key={w.id} workflow={w} />
-              ))}
-            </Stack>
+            <WorkflowList workflows={workflows} onToggleWorkflow={onToggleWorkflow} onCopyWorkflow={onCopyWorkflow} onDeleteWorkflow={onDeleteWorkflow} />
           ) : (
             <EmptyState
               icon={Workflow}
@@ -125,8 +125,8 @@ export default function ProjectPage({ node, ancestors, currentPath, data, onNewW
         {services && (
           <section>
             <SectionHeading
-              title="Published services"
-              description="What this project offers the rest of the organization."
+              title="Service listings"
+              description="How this project's services are listed for the rest of the organization."
             />
             {services.length > 0 ? (
               <div className="-mt-3 space-y-2">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, FolderOpen, Globe, KeyRound, Lock, Network, Pencil, ShieldX, Trash2, User, Users } from "lucide-react";
+import { BookOpen, FileCode, FolderOpen, Globe, KeyRound, Lock, Network, Pencil, ShieldX, Trash2, User, Users } from "lucide-react";
 import Callout from "../../components/primitives/Callout";
 import ConfirmModal from "../../components/primitives/ConfirmModal";
 import { errorMessageOf } from "../../model/form-error";
@@ -26,6 +26,7 @@ import ConnectionMethodBadge from "../../components/domain/ConnectionMethodBadge
 import XRoadAccessBadge from "../../components/domain/XRoadAccessBadge";
 import XRoadConnectionDetails from "../../components/domain/XRoadConnectionDetails";
 import { connectionOf } from "../../model/connected-systems";
+import type { Environment } from "../../model/credentials";
 
 /** What a connected system's page shows. */
 export interface SystemPageData {
@@ -40,7 +41,7 @@ export interface SystemPageData {
 export interface SystemPageProps extends PageProps<SystemPageData> {
   /** Takes away one person's or project's access to the system. Without it, there's no Revoke. */
   onRevokeGrant?: (grantId: string) => Promise<void>;
-  /** Saves changes to the system's name, description, API docs and environment URLs. Rejects with what the server refused. Without it, there's no Edit. */
+  /** Saves changes to the system's name, description, API docs, OpenAPI spec and environment URLs. Rejects with what the server refused. Without it, there's no Edit. */
   onSaveSystem?: (changes: SystemChanges) => Promise<void>;
   /** Removes the system from the organisation, with everyone's access to it. Without it, there's no Delete. */
   onDeleteSystem?: () => Promise<void>;
@@ -86,7 +87,8 @@ export default function SystemPage({ node, ancestors, data, onRevokeGrant, onSav
   const { system } = data;
   const [revoking, setRevoking] = useState<AccessGrant | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [editing, setEditing] = useState(false);
+  /** What's open to edit: the whole system, or one of its environments. */
+  const [editing, setEditing] = useState<"system" | Environment>();
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<{ title: string; detail: string }>();
 
@@ -129,6 +131,17 @@ export default function SystemPage({ node, ancestors, data, onRevokeGrant, onSav
       ),
     });
   }
+  if (system.openApiSpecUrl) {
+    properties.push({
+      icon: FileCode,
+      label: "OpenAPI spec",
+      value: (
+        <TextLink href={system.openApiSpecUrl} variant="inline">
+          {system.openApiSpecUrl}
+        </TextLink>
+      ),
+    });
+  }
 
   return (
     <Stack gap="xl">
@@ -150,7 +163,7 @@ export default function SystemPage({ node, ancestors, data, onRevokeGrant, onSav
             (onSaveSystem || onDeleteSystem) && (
               <Inline gap="sm">
                 {onSaveSystem && (
-                  <Button variant="secondary" size="sm" icon={Pencil} onClick={() => setEditing(true)}>
+                  <Button variant="secondary" size="sm" icon={Pencil} onClick={() => setEditing("system")}>
                     Edit
                   </Button>
                 )}
@@ -180,7 +193,7 @@ export default function SystemPage({ node, ancestors, data, onRevokeGrant, onSav
             title="Environments"
             description="Each credential belongs to one environment. Add staging and mock credentials to build and test changes before they reach production."
           />
-          <SystemEnvironments environments={system.environments} />
+          <SystemEnvironments environments={system.environments} onEdit={onSaveSystem && setEditing} />
         </section>
       )}
 
@@ -192,7 +205,14 @@ export default function SystemPage({ node, ancestors, data, onRevokeGrant, onSav
       )}
 
       {onSaveSystem && (
-        <SystemFormModal open={editing} onClose={() => setEditing(false)} system={system} direct={!xroad} onSave={onSaveSystem} />
+        <SystemFormModal
+          open={!!editing}
+          onClose={() => setEditing(undefined)}
+          system={system}
+          direct={!xroad}
+          environment={editing === "system" ? undefined : editing}
+          onSave={onSaveSystem}
+        />
       )}
       <ConfirmModal
         open={!!revoking}

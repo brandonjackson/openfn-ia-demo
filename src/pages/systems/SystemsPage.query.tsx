@@ -3,7 +3,7 @@ import type { PageRoute } from "../../app/ia-utils";
 import Loaded from "../../app/Loaded";
 import { useFlags } from "../../app/feature-flags";
 import { pageFrame } from "../../app/page-frame";
-import { useAdaptors, useConnectedSystems, useEcosystem, useSystemSaves, useSystemSuggestions } from "../../api/connected-systems";
+import { useAdaptorCatalog, useConnectedSystems, useEcosystem, useSystemSaves, useSystemSuggestions } from "../../api/connected-systems";
 import { useOrganizationXRoad, useXRoadDirectory } from "../../api/organization";
 import { connectionOf, isXRoadSystem, systemListItem } from "../../model/connected-systems";
 import { ecosystemWithoutXRoad } from "../../model/ecosystem";
@@ -28,7 +28,7 @@ export default function SystemsPageQuery({ route }: { route: PageRoute }) {
   const flags = useFlags();
   const { status, systems } = useConnectedSystems();
   // The catalog, the map and the directory don't hold the list back: each shows once it's in, and is left out if it can't load.
-  const { adaptors } = useAdaptors();
+  const { catalog } = useAdaptorCatalog();
   const { suggestions } = useSystemSuggestions();
   const { ecosystem } = useEcosystem(flags.ecosystemMap);
   const { xroad: identity } = useOrganizationXRoad(flags.xroad);
@@ -68,7 +68,7 @@ export default function SystemsPageQuery({ route }: { route: PageRoute }) {
         const data: SystemsPageData = flags.xroad
           ? {
               items: systems.map(systemListItem),
-              adaptors,
+              catalog,
               suggestions: suggestions.slice(0, 3),
               ecosystem,
               // Only an organisation connected to X-Road has a directory to add from.
@@ -88,7 +88,7 @@ export default function SystemsPageQuery({ route }: { route: PageRoute }) {
                 .filter((s) => !isXRoadSystem(s))
                 .map(systemListItem)
                 .map((item) => ({ ...item, metadata: Object.fromEntries(Object.entries(item.metadata ?? {}).filter(([key]) => key !== "connection")) })),
-              adaptors,
+              catalog,
               suggestions: suggestions.slice(0, 3),
               ecosystem: ecosystem && ecosystemWithoutXRoad(ecosystem),
             };
@@ -98,7 +98,8 @@ export default function SystemsPageQuery({ route }: { route: PageRoute }) {
             data={data}
             onAddXRoadService={addFromDirectory}
             onAddSystem={async (input) => {
-              const id = await saves.add({ name: input.name, description: input.description, adaptor: input.adaptor, endpointUrl: input.endpointUrl, docsUrl: input.docsUrl });
+              // The form says why under its fields if it's refused, so only success is announced.
+              const id = await announcing(saves.add(input), { success: `Connected ${input.name}.` });
               navigate(`/connected-systems/${id}`);
             }}
           />

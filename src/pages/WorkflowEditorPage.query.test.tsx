@@ -496,7 +496,7 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
       fireEvent.click(within(picker).getByText("Mailchimp"));
       // The picker gives way to adding the system, with Mailchimp already picked.
       await waitFor(() => expect(screen.queryByRole("dialog", { name: "Add a step" })).toBeNull(), wait);
-      await screen.findByText("Configure System", undefined, wait);
+      await screen.findByRole("dialog", { name: "Connect Mailchimp" }, wait);
       fireEvent.click(screen.getByRole("button", { name: "Add connected system" }));
       type Systems = { data: { id: string; attributes?: { name: string }; name?: string }[] };
       const added = async () => {
@@ -514,6 +514,39 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     } finally {
       act(() => setSandbox(projectId, "main"));
     }
+  });
+
+  it("opens a path from its badge, and in a sandbox saves its label, condition and switch as Lightning's edge does", async () => {
+    const projectId = projectIdFor("project-a");
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "edit-paths" });
+    act(() => setSandbox(projectId, "edit-paths"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+      fireEvent.click(await screen.findByRole("button", { name: "On failure path" }, wait));
+      const inspector = await screen.findByRole("region", { name: "Path inspector" }, wait);
+      fireEvent.change(within(inspector).getByLabelText(/^Label/), { target: { value: "Identity is down" } });
+      fireEvent.click(within(inspector).getByRole("switch", { name: /Enabled/ }));
+      // Off, the path is drawn dashed and its badge says so.
+      expect(await screen.findByRole("button", { name: "On failure path: Identity is down (off)" }, wait)).toBeTruthy();
+      type Edges = { workflows: { edges: { condition_type: string; condition_label: string | null; enabled: boolean }[] }[] };
+      const saved = () =>
+        request<Edges>("GET", `/api/projects/${sandboxId}/workflows?page_size=100`).then((a) =>
+          a.workflows.flatMap((w) => w.edges).some((e) => e.condition_type === "on_job_failure" && e.condition_label === "Identity is down" && !e.enabled),
+        );
+      await waitFor(async () => expect(await saved()).toBe(true), wait);
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
+  it("shows a path read-only on main", async () => {
+    renderEditor(apiWorkflowId("planning-application-workflow"));
+    fireEvent.click(await screen.findByRole("button", { name: "On match path: Exact match" }, wait));
+    const inspector = await screen.findByRole("region", { name: "Path inspector" }, wait);
+    expect((within(inspector).getByLabelText(/^Label/) as HTMLInputElement).disabled).toBe(true);
+    expect((within(inspector).getByLabelText("JavaScript expression") as HTMLTextAreaElement).value).toBe("state.exactMatch === true");
   });
 
   it("puts a step added after the trigger between it and the first step, so the trigger keeps one edge and the save goes through", async () => {

@@ -37,6 +37,13 @@ const copy = (w: Workflow): Workflow => ({
 });
 
 describe("workflowChanges", () => {
+  it("says when a path is turned off, or its condition or label changes", () => {
+    const off = { ...base, edges: base.edges.map((e) => (e.id === "e2" ? { ...e, enabled: false } : e)) };
+    expect(workflowChanges(base, off).map((c) => c.summary)).toEqual(["Turned off Fetch cases → Send SMS"]);
+    const labelled = { ...base, edges: base.edges.map((e) => (e.id === "e2" ? { ...e, label: "Cases found" } : e)) };
+    expect(workflowChanges(base, labelled).map((c) => c.summary)).toEqual(["Changed when Fetch cases → Send SMS runs"]);
+  });
+
   it("finds nothing in an untouched copy, whatever its ids", () => {
     expect(workflowChanges(base, copy(base))).toEqual([]);
   });

@@ -9,6 +9,7 @@ import Callout from "../primitives/Callout";
 import Card from "../primitives/Card";
 import CodeEditor from "../primitives/CodeEditor";
 import Inline from "../primitives/Inline";
+import MarkdownEditor from "../primitives/MarkdownEditor";
 import ScrollPane from "../primitives/ScrollPane";
 import SectionHeading from "../primitives/SectionHeading";
 import Stack from "../primitives/Stack";
@@ -28,7 +29,8 @@ interface Props {
 
 /**
  * A form, artifact, AI skill, document or static website: the one file it
- * is, in an editor, with Save. A form or artifact is JSON and can't be saved
+ * is, in an editor, with Save. An AI skill or document is Markdown, so it's
+ * drawn as it reads, with Edit to change it (`MarkdownEditor`). A form or artifact is JSON and can't be saved
  * until it parses. The same view in two places, as `ChannelView` is: the
  * project's page for the component ("page", under the page's own header),
  * and in the workflow editor, opened from the code view's explorer in the
@@ -57,35 +59,58 @@ export default function ComponentView({ name, description, type, content, varian
 
   const when = content.updatedAt.charAt(0).toLowerCase() + content.updatedAt.slice(1);
   const changed = `Changed ${when}${content.updatedBy ? ` by ${content.updatedBy}` : ""}.`;
+  // A refusal as the Markdown editor shows it: what the server said about the content, or why it refused.
+  const saveMarkdown =
+    onSave &&
+    ((next: string) =>
+      onSave(next).catch((error: unknown) => {
+        throw new Error(fieldErrorOf(error, "content") ?? errorMessageOf(error));
+      }));
   const body = (
     <Stack gap="lg">
       {variant === "pane" && (
         <SectionHeading title={name} description={description || undefined} action={<Badge label={type} icon={componentTypeIcons[type]} shape="tag" />} />
       )}
-      <Card
-        title={format.file}
-        description={format.about}
-        actions={
-          onSave && (
-            <Inline gap="sm">
-              <Text tone={invalid ? "danger" : "muted"} size="xs" nowrap>
-                {saving ? "Saving…" : invalid ? invalid : dirty ? "Unsaved changes" : "Saved"}
-              </Text>
-              <Button size="sm" icon={Save} disabled={!dirty || !!invalid || saving} onClick={() => void save()}>
-                Save
-              </Button>
-            </Inline>
-          )
-        }
-      >
-        <Stack gap="sm">
-          {refusal && <Callout variant="danger" title="Not saved">{refusal}</Callout>}
-          <CodeEditor code={draft} onChange={onSave ? setDraft : undefined} frame="box" label={format.file} />
-          <Text tone="subtle" size="xs">
-            {onSave ? changed : `${changed} Read only.`}
-          </Text>
-        </Stack>
-      </Card>
+      {format.language === "markdown" ? (
+        // Markdown reads as it's written, with Edit to change it.
+        <MarkdownEditor source={content.content} onSave={saveMarkdown} label={format.file}>
+          {({ actions, body: text }) => (
+            <Card title={format.file} description={format.about} actions={actions}>
+              <Stack gap="sm">
+                {text}
+                <Text tone="subtle" size="xs">
+                  {onSave ? changed : `${changed} Read only.`}
+                </Text>
+              </Stack>
+            </Card>
+          )}
+        </MarkdownEditor>
+      ) : (
+        <Card
+          title={format.file}
+          description={format.about}
+          actions={
+            onSave && (
+              <Inline gap="sm">
+                <Text tone={invalid ? "danger" : "muted"} size="xs" nowrap>
+                  {saving ? "Saving…" : invalid ? invalid : dirty ? "Unsaved changes" : "Saved"}
+                </Text>
+                <Button size="sm" icon={Save} disabled={!dirty || !!invalid || saving} onClick={() => void save()}>
+                  Save
+                </Button>
+              </Inline>
+            )
+          }
+        >
+          <Stack gap="sm">
+            {refusal && <Callout variant="danger" title="Not saved">{refusal}</Callout>}
+            <CodeEditor code={draft} onChange={onSave ? setDraft : undefined} frame="box" label={format.file} />
+            <Text tone="subtle" size="xs">
+              {onSave ? changed : `${changed} Read only.`}
+            </Text>
+          </Stack>
+        </Card>
+      )}
     </Stack>
   );
   return variant === "pane" ? <ScrollPane>{body}</ScrollPane> : body;

@@ -140,6 +140,32 @@ describe("sandboxes", () => {
     expect(data[0]!.message).toBe("Fix routing");
   });
 
+  it("lists the merge's version first in main's history, numbered by its lock version, with the promotion's message", async () => {
+    const before = await request<{ data: { lock_version: number }[] }>("GET", `/api/workflows/${planning}/snapshots`);
+    const sid = crypto.randomUUID();
+    await request("PUT", `/api/projects/${a}/sandboxes/${sid}`, { name: "dedupe" });
+    const copy = (await list(sid)).find((w) => w.name === "planning-application-workflow")!;
+    await request("PATCH", `/api/projects/${sid}/workflows/${copy.id}`, { jobs: copy.jobs.map((j, i) => (i === 0 ? { ...j, body: "fn(s => s) // dedupe" } : j)) });
+    await request("POST", `/api/projects/${a}/sandboxes/${sid}/merges`, { workflow_ids: [copy.id], message: "Adds a duplicate check" });
+
+    const after = await get(planning);
+    const { data } = await request<{ data: { lock_version: number; latest: boolean; message: string; author: string }[] }>("GET", `/api/workflows/${planning}/snapshots`);
+    expect(data).toHaveLength(before.data.length + 1);
+    expect(data[0]).toMatchObject({ lock_version: after.lock_version, latest: true, message: "Adds a duplicate check" });
+    expect(data[0]!.author).not.toBe("Unknown");
+    expect(data.slice(1).every((s) => !s.latest)).toBe(true);
+  });
+
+  it("names a merge's version after its sandbox when nothing was said about it", async () => {
+    const sid = crypto.randomUUID();
+    await request("PUT", `/api/projects/${a}/sandboxes/${sid}`, { name: "quiet-fix" });
+    const copy = (await list(sid)).find((w) => w.name === "planning-application-workflow")!;
+    await request("PATCH", `/api/projects/${sid}/workflows/${copy.id}`, { jobs: copy.jobs.map((j, i) => (i === 0 ? { ...j, body: "fn(s => s) // quiet" } : j)) });
+    await request("POST", `/api/projects/${a}/sandboxes/${sid}/merges`, { workflow_ids: [copy.id] });
+    const { data } = await request<{ data: { message: string }[] }>("GET", `/api/workflows/${planning}/snapshots`);
+    expect(data[0]!.message).toBe("Merged from quiet-fix");
+  });
+
   it("deletes a sandbox with the sandboxes made from it", async () => {
     const parent = crypto.randomUUID();
     const child = crypto.randomUUID();

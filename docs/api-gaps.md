@@ -102,7 +102,9 @@ path in its hook file.
   conversations (`code-summaries.ts`, `assistant.ts`; api/ai-assistant.md
   plans AI sessions), a run started in the editor (`simulateRun`; would need
   Lightning's worker behind `POST` a work order), the workflow's context and
-  spec docs (`workflow-files.ts`, behind the workflow docs flag), and the
+  spec docs (`workflow-files.ts`, behind the workflow docs flag; an edit to
+  one, or to a doc added from "Add to workflow", lasts while the editor is
+  open), and the
   starter workflow and channel for "New workflow" from the Services catalog.
 
 - **What isn't running right now** (Overview's Status tile, the Status
@@ -123,6 +125,16 @@ path in its hook file.
   `WorkflowRow` drops its Members column without them). Would need a
   `description` on the workflow (Lightning has one on templates only) and
   its recent editors, say from its snapshots' authors.
+
+- **Workflows: who made a version and what they said about it** (the
+  editor's version picker; api/workflows.md, snapshots). A snapshot has its
+  `lock_version`, `inserted_at` and whether it's the `latest`, but no author
+  and no message, and a merge (`POST …/merges`) takes no message. The
+  editor's picker lists each version with the promotion's message ("What
+  changed?") and who promoted it. Demo: the fake server takes a `message` on
+  a merge (or says "Merged from" the sandbox) and lists each snapshot with
+  `author` and `message` beside Lightning's fields; on Lightning a version
+  reads "Saved" by "Unknown".
 
 - **Admin settings: users, for a superuser** (Admin settings, Users;
   api/users.md). `GET /api/users` and the user routes take the service

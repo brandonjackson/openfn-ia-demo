@@ -195,7 +195,7 @@ components
 workflowDocs
 ├─ envVars
 └─ testCases
-aiBuild, deployments: standalone
+aiBuild, deployments, stepTools: standalone
 ```
 
 **Who reads them.** The same people who read fixtures: the route table, the shell and the wrappers. Pages and components never do (lint already stops them importing `src/app`).

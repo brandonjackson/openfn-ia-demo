@@ -10,6 +10,12 @@
  *   are skipped by a retry (`discarded`), and one of its runs refuses (409).
  * - Only a run nobody has picked up yet (pending, Lightning's `available`)
  *   can be cancelled.
+ * - Planned (docs/api-plans/step-tools.md): a run that reaches a Human in
+ *   the loop step waits (`waiting`) until an editor answers it
+ *   (`POST /api/demo/runs/:id/approval`), then carries on along the edge
+ *   for the decision. A run that reaches a Report outcome step gives its
+ *   work order an `outcome_status` and `outcome_description`, which lists
+ *   filter by.
  *
  * The demo's runs carry their steps, logs and input whole, as the editor and
  * History draw them; they ride along on each work order (`include=runs`).
@@ -21,7 +27,8 @@
 import { projects as fixtureProjects, projectWorkflowDetails } from "../fixtures/projects";
 import { nationalIdWorkflow } from "../fixtures/workflow";
 import { workflowHistory } from "../fixtures/workflow-lookup";
-import { simulateRun } from "../fixtures/runs";
+import { answerRun, simulateRun } from "../fixtures/runs";
+import type { ApprovalAnswer } from "../model/step-tools";
 import { apiNodeId, apiWorkflowId } from "../fixtures/ids";
 import type { Dataclip, RunDetails, RunStatus } from "../model/workflow";
 import { fromDocument } from "../model/workflow-document";
@@ -95,7 +102,11 @@ function fixtureHistories() {
 }
 
 /** A fixture run with its steps named by the API's ids for them. */
-const onApiIds = (slug: string, run: RunDetails): RunDetails => ({ ...run, steps: run.steps.map((s) => ({ ...s, jobId: apiNodeId(slug, s.jobId) })) });
+const onApiIds = (slug: string, run: RunDetails): RunDetails => ({
+  ...run,
+  steps: run.steps.map((s) => ({ ...s, jobId: apiNodeId(slug, s.jobId) })),
+  ...(run.waitingFor && { waitingFor: { ...run.waitingFor, jobId: apiNodeId(slug, run.waitingFor.jobId) } }),
+});
 
 export const workOrders = table<WorkOrderRow>("work_orders", () =>
   fixtureHistories().flatMap(({ slug, projectSlug }) =>
@@ -139,6 +150,9 @@ function workOrderEntry(w: WorkOrderRow, withRuns: boolean) {
       updated_at: w.updated_at,
       workflow_id: w.workflow_id,
       dataclip_id: w.dataclip_id,
+      // Planned: the business outcome its latest run reported, if it reached a Report outcome step.
+      outcome_status: w.runs[0]?.outcome?.status ?? null,
+      outcome_description: w.runs[0]?.outcome?.description ?? null,
       // Planned (include=runs), with the demo's runs whole.
       ...(withRuns && { runs: w.runs, input: input ?? null, received_at: w.received_at }),
     },
@@ -217,12 +231,15 @@ function chosen(projectId: string, body: Body): WorkOrderRow[] | Entry[] {
 
 function list(projectIds: string[], query: URLSearchParams, path: string) {
   const states = (query.get("state") ?? "").split(",").filter(Boolean);
+  // Planned: by the business outcome its latest run reported.
+  const outcomes = (query.get("outcome_status") ?? "").split(",").filter(Boolean);
   const workflowId = query.get("workflow_id");
   const live = new Set(workflows.rows().filter((w) => !w.deleted_at).map((w) => w.id));
   const rows = workOrders
     .rows()
     .filter((w) => projectIds.includes(w.project_id) && live.has(w.workflow_id))
     .filter((w) => (!workflowId || w.workflow_id === workflowId) && (!states.length || states.includes(w.state)))
+    .filter((w) => !outcomes.length || outcomes.includes(w.runs[0]?.outcome?.status ?? ""))
     .map((w) => workOrderEntry(w, (query.get("include") ?? "").split(",").includes("runs")));
   return json(200, paged(path, rows, query, "data", true));
 }
@@ -371,6 +388,40 @@ export const workOrderRoutes: Record<string, Handler> = {
     if (body["state"] !== "cancelled" || Object.keys(body).length !== 1) return invalid([{ code: "not_allowed", detail: "only cancelling is allowed", pointer: "#/state" }]);
     if (!cancel(order)) return invalid([{ code: "not_allowed", detail: "has no run waiting to start", pointer: "#/state" }]);
     return json(200, { data: workOrderEntry(workOrders.rows().find((w) => w.id === id)!, false) });
+  },
+
+  // Planned, the demo's for now: answers the Human in the loop step a run is waiting on, and the run carries on.
+  "POST /api/demo/runs/:id/approval": ({ id }, body) => {
+    const order = workOrders.rows().find((w) => w.runs.some((r) => r.runId === id));
+    if (!order || !roleIn(order.project_id)) return notFound();
+    const p = guardProject(order.project_id, "editor");
+    if (p instanceof Response) return p;
+    const errors = unknownKeys(body, ["decision", "comment"]);
+    const decision = body["decision"];
+    if (decision !== "approved" && decision !== "rejected") errors.push({ code: "invalid", detail: "must be approved or rejected", pointer: "#/decision" });
+    const comment = typeof body["comment"] === "string" ? body["comment"].trim() : "";
+    if (body["comment"] !== undefined && body["comment"] !== null && typeof body["comment"] !== "string") errors.push({ code: "type", detail: "must be text", pointer: "#/comment" });
+    const run = order.runs.find((r) => r.runId === id)!;
+    if (!errors.length && decision === "rejected" && run.waitingFor?.comment === "required_on_reject" && !comment) {
+      errors.push({ code: "required", detail: "say why it's rejected", pointer: "#/comment" });
+    }
+    if (errors.length) return invalid(errors);
+    if (run.status !== "waiting" || !run.waitingFor) return conflict("not_waiting", "This run isn't waiting for an answer.");
+    const { workflow, graph } = current(order.workflow_id);
+    const input = dataclips.rows().find((d) => d.id === run.inputId);
+    if (!workflow || workflow.deleted_at || !graph) return conflict("scheduled_for_deletion", "This run's workflow has been deleted.");
+    if (!input) return conflict("dataclip_wiped", "This run's input is gone.");
+    const answer: ApprovalAnswer = { decision: decision as ApprovalAnswer["decision"], by: startedBy(), at: "just now", ...(comment && { comment }) };
+    const { run: carried, dataclips: made } = answerRun({ workflow: graph, run, input, answer });
+    workOrders.update(
+      (w) => w.id === order.id,
+      (w) => {
+        const runs = w.runs.map((r) => (r.runId === id ? carried : r));
+        return { ...w, runs, state: runs[0]!.status, last_activity: runs[0]!.when, updated_at: now() };
+      },
+    );
+    for (const d of made) if (!dataclips.rows().some((x) => x.id === d.id)) dataclips.insert({ ...d, workflow_id: order.workflow_id, project_id: order.project_id });
+    return json(200, { data: workOrderEntry(workOrders.rows().find((w) => w.id === order.id)!, true) });
   },
 
   // A new run on the same work order, from a step of this run.

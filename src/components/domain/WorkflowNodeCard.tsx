@@ -13,6 +13,9 @@ import StatusPill from "./StatusPill";
 import RunCountBadge from "./RunCountBadge";
 import IconButton from "../primitives/IconButton";
 import Surface from "../primitives/Surface";
+import Inline from "../primitives/Inline";
+import OutcomeBadge from "./OutcomeBadge";
+import { stepToolTypes } from "../../model/step-tools";
 
 /** The card's size, exported so the canvas can place it and anchor edges to it. */
 export const NODE_WIDTH = 280;
@@ -32,6 +35,9 @@ export type NodeAction = "run" | "edit" | "improve" | "delete";
  * The slot before the menu shows the run history (`activity`: how many runs
  * reached the node and how many failed there) or, while a run is loaded, the
  * step's status and duration. Nodes the loaded run never reached are dimmed.
+ *
+ * A tool step (Report outcome, Human in the loop) names its tool in the
+ * pill instead, and a Report outcome step adds the outcome it records.
  *
  * With `onAddAfter`, hovering the card (or tabbing to it) shows a + on its
  * bottom edge that adds a step after it.
@@ -92,6 +98,8 @@ export default function WorkflowNodeCard({
       ? "ring-2 ring-red-300"
       : step?.status === "running"
         ? "ring-2 ring-indigo-300"
+        : step?.status === "waiting"
+          ? "ring-2 ring-amber-300"
         : "hover:ring-2 hover:ring-gray-200";
 
   const items: DropdownMenuItem[] = [
@@ -120,7 +128,17 @@ export default function WorkflowNodeCard({
 
       <div className="pointer-events-none relative flex h-full flex-col p-3">
         <div className="flex h-7 items-center gap-2">
-          {node.type === "job" ? (
+          {node.type === "job" && node.tool ? (
+            // A tool step names its tool, and a Report outcome step the outcome it records.
+            <Inline gap="xs">
+              <EntityPill
+                name={stepToolTypes[node.tool.kind].label}
+                size="sm"
+                icon={<IconTile icon={stepToolTypes[node.tool.kind].icon} size="2xs" tone="indigo" round />}
+              />
+              {node.tool.kind === "outcome" && <OutcomeBadge status={node.tool.status} shape="tag" />}
+            </Inline>
+          ) : node.type === "job" ? (
             <span className="flex min-w-0 flex-1 items-center gap-1">
               {/* The pill gives way (truncating its name) before the badge or the run count do. */}
               <span className="flex min-w-0">

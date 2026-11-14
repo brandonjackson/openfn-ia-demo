@@ -87,6 +87,12 @@ export const projects: Project[] = [
         type: "Workflow",
       },
       {
+        id: "hardship-grant-workflow",
+        name: "hardship-grant-workflow",
+        description: "Checks a hardship grant application in the social registry, has a district officer approve it, and pays it by mobile money.",
+        type: "Workflow",
+      },
+      {
         id: "eplanning-submission-received",
         name: "eplanning-submission-received",
         description: "Fires when a new application is submitted on the e-planning portal.",
@@ -597,6 +603,12 @@ const workflowFacts: Record<string, Pick<WorkflowDetails, "members" | "updatedAt
     updatedAt: "2026-10-21T12:10:00Z",
     enabled: false,
     triggerType: "cron",
+  },
+  "hardship-grant-workflow": {
+    members: ["Jane Doe"],
+    updatedAt: "2026-10-16T09:05:00Z",
+    enabled: true,
+    triggerType: "webhook",
   },
   "register-case-workflow": {
     members: ["Jane Doe", "Amadou Diallo"],

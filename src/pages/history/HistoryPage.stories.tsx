@@ -113,3 +113,12 @@ export const ReadOnly: Story = {
 export const Empty: Story = {
   args: { data: { ...projectData, workOrders: [], channelRequests: [] } },
 };
+
+/** With tools on: work orders show their outcome and filter by it, and a run waiting on someone is approved or rejected from its work order. */
+export const WithTools: Story = {
+  args: {
+    showOutcomes: true,
+    onAnswerApproval: () => new Promise((resolve) => setTimeout(resolve, 600)),
+    filters: { ...defaultHistoryFilters, statuses: ["waiting"] },
+  },
+};

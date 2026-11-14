@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ApprovalDecision } from "../../model/step-tools";
 import { Ban, Download, History, RotateCcw } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
 import type { RunDetails } from "../../model/workflow";
@@ -45,6 +46,10 @@ export interface HistoryPageProps extends PageProps<HistoryPageData> {
   onRetryFromStep?: (workOrderIds: string[], jobId: string) => Promise<void>;
   /** Cancels these work orders while they're still waiting to run. */
   onCancel?: (workOrderIds: string[]) => Promise<void>;
+  /** Answers a run waiting on a Human in the loop step, which then carries on. Left out without tools. */
+  onAnswerApproval?: (runId: string, decision: ApprovalDecision, comment: string) => Promise<void>;
+  /** Whether work orders can be filtered by the outcome a Report outcome step recorded. Off without tools. */
+  showOutcomes?: boolean;
   /** Opens a run in the editor. */
   onInspectRun: (order: HistoryWorkOrder, run: RunDetails) => void;
   /** Opens the run a channel request started or came from. */
@@ -57,7 +62,8 @@ export interface HistoryPageProps extends PageProps<HistoryPageData> {
  * History: every work order received, with the runs made for each, and every
  * request a channel carried. Work orders can be searched and filtered,
  * opened to see their runs and steps, and picked to retry, retry from a
- * step, cancel or export, as in Lightning.
+ * step, cancel or export, as in Lightning. A run waiting on someone is
+ * approved or rejected from its work order.
  */
 export default function HistoryPage({
   node,
@@ -68,6 +74,8 @@ export default function HistoryPage({
   onRetry,
   onRetryFromStep,
   onCancel,
+  onAnswerApproval,
+  showOutcomes = false,
   onInspectRun,
   onOpenChannelRun,
   onExport,
@@ -127,6 +135,13 @@ export default function HistoryPage({
         `${plural(ids.length, "new run")} enqueued from ${label}.`,
         "Open a work order to follow its runs.",
       ));
+  // The card it's answered from shows a refusal itself; once it's through, the notice says so.
+  const answer =
+    onAnswerApproval &&
+    (async (run: RunDetails, decision: ApprovalDecision, comment: string) => {
+      await onAnswerApproval(run.runId, decision, comment);
+      say({ tone: "success", title: decision === "approved" ? `Run ${run.runId} approved.` : `Run ${run.runId} rejected.`, detail: "It carried on from where it was waiting." });
+    });
   const cancel =
     onCancel && ((ids: string[]) => act("cancel", ids, onCancel, `${plural(ids.length, "work order")} not cancelled`, `${plural(ids.length, "work order")} cancelled.`));
 
@@ -173,6 +188,7 @@ export default function HistoryPage({
               channelRequests={data.channelRequests}
               workflows={data.workflows}
               projects={data.projects}
+              showOutcomes={showOutcomes}
             />
           </Stack>
         }
@@ -258,6 +274,7 @@ export default function HistoryPage({
                         onCancel={cancel && (() => cancel([id]))}
                         onInspectRun={(run) => onInspectRun(order, run)}
                         onRetryFromStep={retryFrom && ((_run, step) => retryFrom([id], step.jobId, step.label))}
+                        onAnswer={answer}
                       />
                     );
                   })}

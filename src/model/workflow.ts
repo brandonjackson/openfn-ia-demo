@@ -7,6 +7,7 @@ import { Clock, Globe, Radio } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { XRoadCall } from "./xroad";
 import type { ChannelDetails } from "./channels";
+import type { ApprovalAnswer, ApprovalRequest, RunOutcome, StepTool } from "./step-tools";
 export type AdaptorKind = string;
 
 /** What starts a workflow. */
@@ -30,8 +31,12 @@ export type EdgeCondition =
   | "on_failure"
   | "js_expression";
 
-/** Where a run, step or work order stands. A cancelled one was stopped before it started. */
-export type RunStatus = "success" | "failed" | "running" | "pending" | "cancelled";
+/**
+ * Where a run, step or work order stands. A cancelled one was stopped before
+ * it started; a waiting one is paused on a Human in the loop step until
+ * someone answers.
+ */
+export type RunStatus = "success" | "failed" | "running" | "pending" | "cancelled" | "waiting";
 
 export interface TriggerNode {
   id: string;
@@ -69,6 +74,12 @@ export interface JobNode {
   system?: string;
   /** The project credential it runs with (the project's link to a credential), if one is chosen. */
   credentialId?: string;
+  /**
+   * A tool step (Report outcome, Human in the loop) has settings instead of
+   * code: its panel edits them, and `body` is the code it would run as on a
+   * Lightning that doesn't know tools.
+   */
+  tool?: StepTool;
   x: number;
   y: number;
 }
@@ -137,6 +148,8 @@ export interface RunStep {
   inputId?: string;
   /** Dataclip the step produced. */
   outputId?: string;
+  /** How a Human in the loop step was answered. */
+  answer?: ApprovalAnswer;
 }
 
 export interface LogLine {
@@ -163,6 +176,10 @@ export interface RunDetails {
   logs: LogLine[];
   /** Who called, for a run started by a call over X-Road. */
   xroad?: XRoadCall;
+  /** What a Report outcome step recorded, if the run reached one. */
+  outcome?: RunOutcome;
+  /** What the run is waiting on someone to answer, while it's `waiting`. */
+  waitingFor?: ApprovalRequest;
 }
 
 /**
@@ -176,6 +193,8 @@ export interface WorkOrder {
   /** Pre-formatted relative label for its latest run. */
   lastActivity: string;
   runs: RunDetails[];
+  /** The business outcome its latest run reported, which can differ from `status`: a refusal sent without a hitch is a success with a Rejected outcome. */
+  outcome?: RunOutcome;
 }
 
 /**

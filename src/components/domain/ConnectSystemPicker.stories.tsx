@@ -3,6 +3,7 @@ import ConnectSystemPicker from "./ConnectSystemPicker";
 import Modal from "../primitives/Modal";
 import { connectedSystems } from "../../fixtures/connected-systems";
 import { stepServices } from "../../fixtures/projects";
+import { stepToolKinds } from "../../model/step-tools";
 import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../../fixtures/adaptor-catalog";
 
 const connected = connectedSystems.map((s) => s.adaptor);
@@ -11,7 +12,7 @@ const catalog = { adaptors: adaptorCatalog, categories: catalogCategories, built
 const meta: Meta<typeof ConnectSystemPicker> = {
   title: "Domain/ConnectSystemPicker",
   component: ConnectSystemPicker,
-  args: { catalog, connected, services: stepServices, onSelect: () => {} },
+  args: { catalog, connected, services: stepServices, tools: stepToolKinds, onSelect: () => {} },
   decorators: [
     (Story) => (
       <div className="max-w-3xl rounded-xl border border-gray-200 bg-white p-5">
@@ -34,6 +35,9 @@ export const Services: Story = { args: { initialCategory: "services" } };
 
 /** Nothing published yet: the tab says where services come from. */
 export const NoServices: Story = { args: { initialCategory: "services", services: [] } };
+
+/** Steps that aren't code: Report outcome and Human in the loop. */
+export const Tools: Story = { args: { initialCategory: "tools" } };
 
 /** Without the service catalog there's no Services tab, and search looks only at systems and tools. */
 export const WithoutServices: Story = { args: { services: undefined } };
@@ -59,9 +63,9 @@ export const InDialog: Story = {
   ],
 };
 
-/** Titled for connecting a system rather than adding a step, as a systems page would open it. */
+/** Titled for connecting a system rather than adding a step, as a systems page would open it: no services or tools. */
 export const ConnectASystem: Story = {
-  args: { services: undefined },
+  args: { services: undefined, tools: undefined },
   decorators: [
     (Story) => (
       <Modal open title="Connect a system" onClose={() => {}} widthClass="max-w-3xl">

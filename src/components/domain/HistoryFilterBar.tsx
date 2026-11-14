@@ -19,6 +19,7 @@ import Inline from "../primitives/Inline";
 import Button from "../primitives/Button";
 import SearchInput from "../primitives/SearchInput";
 import FilterChip, { FilterChecklist, FilterDateRange, FilterOptions } from "../primitives/FilterChip";
+import { outcomeStatuses, type OutcomeStatus } from "../../model/step-tools";
 
 interface Props {
   /** The tab showing and what it's filtered by. */
@@ -31,6 +32,8 @@ interface Props {
   workflows: { id: string; name: string; projectId: string }[];
   /** Set across every project, to add the project filter. */
   projects?: { id: string; name: string }[];
+  /** Adds the Outcome filter: the business outcome a work order's latest run reported. Off without tools. */
+  showOutcomes?: boolean;
 }
 
 /** The value FilterOptions uses for "Any". */
@@ -46,16 +49,19 @@ const requestStatusLabels = { ok: "Succeeded", failed: "Failed" } as const;
  * box over a row of chips, each saying what it's set to. Work orders filter
  * by workflow, status (any number, each with how many it would show), when
  * they were received and when they last ran, and where the search looks; a
- * link to one work order adds a chip for it. Channel requests filter by
+ * link to one work order adds a chip for it. With `showOutcomes`, they also
+ * filter by the outcome a Report outcome step recorded. Channel requests filter by
  * channel and outcome. Across every project, both filter by project too.
  */
-export default function HistoryFilterBar({ filters, onChange, workOrders, channelRequests, workflows, projects }: Props) {
+export default function HistoryFilterBar({ filters, onChange, workOrders, channelRequests, workflows, projects, showOutcomes = false }: Props) {
   const set = (change: Partial<HistoryFilters>) => onChange({ ...filters, ...change });
   const { tab, projectId, workflowId, statuses } = filters;
   const projectName = (id: string) => projects?.find((p) => p.id === id)?.name;
 
   const beforeStatus = workOrders.filter((o) => matchesFilters(o, filters, "statuses"));
   const pickedStatuses = historyStatuses.filter((s) => statuses.includes(s.id)).map((s) => s.label);
+  const beforeOutcome = workOrders.filter((o) => matchesFilters(o, filters, "outcomes"));
+  const pickedOutcomes = outcomeStatuses.filter((o) => filters.outcomes.includes(o.id)).map((o) => o.label);
   const workflowsShown = workflows.filter((w) => !projectId || w.projectId === projectId);
   const workflowName = workflows.find((w) => w.id === workflowId)?.name;
 
@@ -138,6 +144,23 @@ export default function HistoryFilterBar({ filters, onChange, workOrders, channe
           />
         )}
       </FilterChip>
+      {showOutcomes && (
+        <FilterChip
+          name="Outcome"
+          label={`Outcome is ${pickedOutcomes.length ? orList(pickedOutcomes) : "any"}`}
+          active={filters.outcomes.length > 0}
+          onClear={() => set({ outcomes: [] })}
+          panelWidthClass="w-60"
+        >
+          {() => (
+            <FilterChecklist
+              options={outcomeStatuses.map((o) => ({ id: o.id, label: o.label, count: beforeOutcome.filter((w) => w.workOrder.outcome?.status === o.id).length }))}
+              checked={filters.outcomes}
+              onChange={(ids) => set({ outcomes: ids as OutcomeStatus[] })}
+            />
+          )}
+        </FilterChip>
+      )}
       <FilterChip
         name="Received"
         label={`Received ${describeDateRange(filters.receivedAfter, filters.receivedBefore)}`}

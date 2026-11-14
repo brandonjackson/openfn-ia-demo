@@ -9,6 +9,8 @@ import Text from "../primitives/Text";
 import IconButton from "../primitives/IconButton";
 import StatusPill from "./StatusPill";
 import RunEntry from "./RunEntry";
+import OutcomeBadge from "./OutcomeBadge";
+import type { ApprovalDecision } from "../../model/step-tools";
 
 interface Props {
   order: HistoryWorkOrder;
@@ -28,12 +30,16 @@ interface Props {
   onInspectRun?: (run: RunDetails) => void;
   /** Runs the order again from one of a run's steps. */
   onRetryFromStep?: (run: RunDetails, step: RunStep) => void;
+  /** Answers a run waiting on a Human in the loop step; resolves once it has carried on. Left out where you can't. */
+  onAnswer?: (run: RunDetails, decision: ApprovalDecision, comment: string) => Promise<void>;
 }
 
 /**
  * A work order in History: the workflow that received it, its id, when it
- * came in and with what, and the status of its latest run. Opening it shows
- * every run made for it, newest first.
+ * came in and with what, and the status of its latest run, beside the
+ * business outcome it reported, if any (a refusal sent without a hitch is a
+ * successful run with a Rejected outcome). Opening it shows every run made
+ * for it, newest first.
  */
 export default function WorkOrderEntry({
   order,
@@ -47,11 +53,12 @@ export default function WorkOrderEntry({
   onCancel,
   onInspectRun,
   onRetryFromStep,
+  onAnswer,
 }: Props) {
   const { workOrder, input } = order;
   const runCount = workOrder.runs.length;
   const pending = workOrder.status === "pending";
-  const finished = !pending && workOrder.status !== "running";
+  const finished = !pending && workOrder.status !== "running" && workOrder.status !== "waiting";
   const where = showProject ? `${order.projectName} · ` : "";
 
   return (
@@ -100,6 +107,7 @@ export default function WorkOrderEntry({
               onInspect={onInspectRun}
               onRetryFromStep={onRetryFromStep}
               onCancel={onCancel ? () => onCancel() : undefined}
+              onAnswer={onAnswer}
             />
           ))}
         </Stack>
@@ -127,6 +135,7 @@ export default function WorkOrderEntry({
               ? workOrder.lastActivity
               : `${runCount} runs · ${workOrder.lastActivity}`}
           </Text>
+          {workOrder.outcome && <OutcomeBadge status={workOrder.outcome.status} />}
           <StatusPill status={workOrder.status} />
         </Inline>
       </Inline>

@@ -11,6 +11,8 @@ import { defaultHistoryFilters, historySearchFields, historyStatuses, newestFirs
 import HistoryPage, { type HistoryPageData } from "./HistoryPage";
 import { pageFrame } from "../../app/page-frame";
 import { isOpenable } from "../../model/projects";
+import { outcomeStatuses, withoutToolResults } from "../../model/step-tools";
+import { useFlags } from "../../app/feature-flags";
 
 /**
  * History's filters, from the URL: `?status=failed,cancelled`,
@@ -18,7 +20,7 @@ import { isOpenable } from "../../model/projects";
  * `?in=id,body`, `?received_after=` / `_before=` and `?activity_after=` /
  * `_before=` (datetime-local values), and on the channel requests tab
  * (`?type=channels`; Insights links it as `Channel+Request`) `?channel=` and
- * `?request_status=ok|failed`. Anything missing or unknown is left unfiltered.
+ * `?request_status=ok|failed`. With tools on, `?outcome=rejected,needs_follow_up`. Anything missing or unknown is left unfiltered.
  */
 function filtersFrom(params: URLSearchParams): HistoryFilters {
   const list = (key: string) => (params.get(key) ?? "").split(",").map((v) => v.trim().toLowerCase()).filter(Boolean);
@@ -31,6 +33,7 @@ function filtersFrom(params: URLSearchParams): HistoryFilters {
     projectId: params.get("project"),
     workflowId: params.get("workflow"),
     statuses: historyStatuses.filter((s) => list("status").some((v) => v === s.id || v === s.label.toLowerCase())).map((s) => s.id),
+    outcomes: outcomeStatuses.filter((o) => list("outcome").includes(o.id)).map((o) => o.id),
     receivedAfter: params.get("received_after"),
     receivedBefore: params.get("received_before"),
     activityAfter: params.get("activity_after"),
@@ -51,6 +54,7 @@ function paramsFor(filters: HistoryFilters): URLSearchParams {
     ["project", f.projectId],
     ["workflow", f.workflowId],
     ["status", f.statuses.join(",") || null],
+    ["outcome", f.outcomes.join(",") || null],
     ["received_after", f.receivedAfter],
     ["received_before", f.receivedBefore],
     ["activity_after", f.activityAfter],
@@ -73,6 +77,7 @@ function paramsFor(filters: HistoryFilters): URLSearchParams {
  */
 export default function HistoryPageQuery({ route }: { route: PageRoute }) {
   const navigate = useNavigate();
+  const flags = useFlags();
   const [searchParams, setSearchParams] = useSearchParams();
   const projectId = route.params["project"];
   const { status: projectStatus, project } = useProject(projectId);
@@ -93,7 +98,8 @@ export default function HistoryPageQuery({ route }: { route: PageRoute }) {
     })
     .sort(newestFirst);
   const data: HistoryPageData = {
-    workOrders: rows,
+    // Without tools, work orders say nothing of outcomes or what a waiting run asks.
+    workOrders: flags.stepTools ? rows : withoutToolResults(rows),
     channelRequests: requests,
     workflows: workflows.map((w) => ({
       id: w.id,
@@ -105,7 +111,8 @@ export default function HistoryPageQuery({ route }: { route: PageRoute }) {
     projects: projectId ? undefined : scope.map((p) => ({ id: p.id, name: p.name })),
   };
   const located = (ids: string[]) => ids.flatMap((id) => rows.filter((r) => r.workOrder.id === id).map((r) => ({ id, projectId: r.projectId })));
-  const filters = filtersFrom(searchParams);
+  const parsed = filtersFrom(searchParams);
+  const filters = flags.stepTools ? parsed : { ...parsed, outcomes: [] };
 
   return (
     <Loaded status={combine(projectId ? projectStatus : { state: "ready" }, listStatus, ordersStatus, workflowsStatus, requestsStatus)} path={route.currentPath}>
@@ -121,6 +128,8 @@ export default function HistoryPageQuery({ route }: { route: PageRoute }) {
           onRetry={(ids) => runs.retry(located(ids))}
           onRetryFromStep={(ids, jobId) => runs.retry(located(ids), jobId)}
           onCancel={(ids) => runs.cancel(located(ids))}
+          onAnswerApproval={flags.stepTools ? (runId, decision, comment) => runs.answer(runId, decision, comment) : undefined}
+          showOutcomes={flags.stepTools}
           onInspectRun={(order, run) => navigate(`/workflow-editor/${order.workflowId}?run=${run.runId}`)}
           onOpenChannelRun={(request) => request.workflowId && navigate(`/workflow-editor/${request.workflowId}?run=${request.runId}`)}
           // An export is made by the project, and shows up in its settings; History across projects has no one project to ask, so offers none.

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { stepToolKinds, withoutStepTools, withoutToolResults } from "../model/step-tools";
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import WorkflowEditorPage, { WorkflowEditorLoading } from "./WorkflowEditorPage";
 import { type Workflow, type WorkflowFileContents, type WorkOrder } from "../model/workflow";
@@ -286,10 +287,12 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   };
   const collectionName = (id: string) => records.collections.find((c) => c.id === id)?.name ?? "";
   const contentResource = (id: string) => records.contents.find((c) => c.component.id === id)!;
-  const graph: Workflow = asGraph(shown, root.name);
+  // With tools off, a tool step is the code step it runs as.
+  const withTools = (g: Workflow) => (flags.stepTools ? g : withoutStepTools(g));
+  const graph: Workflow = withTools(asGraph(shown, root.name));
   const versionGraph = (version: string) => {
     const s = snapshots.find((x) => x.version.id === version);
-    return s ? asGraph(s.document, root.name, version) : undefined;
+    return s ? withTools(asGraph(s.document, root.name, version)) : undefined;
   };
 
   const runId = searchParams.get("run") ?? undefined;
@@ -308,7 +311,10 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   return (
     <WorkflowEditorPage
       workflow={graph}
-      workOrders={useMemo(() => withoutXRoadCalls(history.workOrders, flags.xroad), [history, flags.xroad])}
+      workOrders={useMemo(() => {
+        const orders = withoutXRoadCalls(history.workOrders, flags.xroad);
+        return flags.stepTools ? orders : withoutToolResults(orders);
+      }, [history, flags.xroad, flags.stepTools])}
       dataclips={history.dataclips}
       // Lightning's worker runs workflows, so it refuses a run the editor made (docs/api-gaps.md): the run then
       // stays in the editor, loaded, until it's reopened.
@@ -393,6 +399,7 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
           : undefined
       }
       stepServices={stepServices}
+      tools={flags.stepTools ? stepToolKinds : undefined}
       showWorkflowFiles={flags.workflowDocs}
       showComponents={flags.components}
       publishesServices={flags.serviceCatalog}

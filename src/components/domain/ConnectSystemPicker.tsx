@@ -17,6 +17,7 @@ import {
   Search,
   Sparkles,
   Tags,
+  Wrench,
 } from "lucide-react";
 import SettingsNav from "../primitives/SettingsNav";
 import SectionHeading from "../primitives/SectionHeading";
@@ -27,12 +28,14 @@ import AdaptorLogo from "./AdaptorLogo";
 import type { AdaptorCatalog, AiAction, CatalogGroup } from "../../model/adaptor-catalog";
 import SearchInput from "../primitives/SearchInput";
 import type { StepService } from "../../model/services";
+import { stepToolTypes, type StepToolKind } from "../../model/step-tools";
 
-/** What was picked: an adaptor to connect, an AI action to run on the data, or a published service to call. */
+/** What was picked: an adaptor to connect, an AI action to run on the data, a published service to call, or a tool. */
 export type ConnectChoice =
   | { kind: "adaptor"; adaptor: string }
   | { kind: "ai"; action: AiAction }
-  | { kind: "service"; service: StepService };
+  | { kind: "service"; service: StepService }
+  | { kind: "tool"; tool: StepToolKind };
 
 const categoryIcons: Record<string, LucideIcon> = {
   health: HeartPulse,
@@ -62,8 +65,11 @@ const actionIcons: Record<string, LucideIcon> = {
  * **AI** offers actions on the incoming data (generate, summarize,
  * translate, classify, extract) and the models behind them. **Services**,
  * when it's given them, lists the organisation's Live services a step can
- * call, under who offers each. The rest are every adaptor, sorted by what
- * the system does into titled groups.
+ * call, under who offers each. **Tools**, when it's given them, sits just
+ * beneath: steps that aren't code, like Report outcome (what the run meant
+ * for the person it served) and Human in the loop (wait for someone to
+ * approve). The rest are every adaptor, sorted by what the system does into
+ * titled groups.
  *
  * Given `onConnectNew`, an adaptor this project isn't connected to yet (one
  * picked from a category, AI's models or a search, but not a built-in tool)
@@ -73,6 +79,7 @@ export default function ConnectSystemPicker({
   catalog,
   connected,
   services,
+  tools,
   onSelect,
   onConnectNew,
   initialCategory = "connected",
@@ -83,6 +90,8 @@ export default function ConnectSystemPicker({
   connected: string[];
   /** Published services a step can call, each under who offers it. Left out, there's no Services tab and search doesn't look at services. */
   services?: StepService[];
+  /** The tools a step can be, offered under Tools beneath Services. Left out, there's no Tools tab and search doesn't look at tools. */
+  tools?: StepToolKind[];
   onSelect?: (choice: ConnectChoice) => void;
   /** Called instead of `onSelect` for an adaptor the project has no system for yet (not connected, not a built-in tool), to add one first. Left out, every adaptor goes to `onSelect`. */
   onConnectNew?: (adaptor: string) => void;
@@ -94,6 +103,7 @@ export default function ConnectSystemPicker({
     { id: "connected", label: "Connected", icon: Plug },
     { id: "ai", label: "AI", icon: Sparkles },
     ...(services ? [{ id: "services", label: "Services", icon: LibraryBig }] : []),
+    ...(tools ? [{ id: "tools", label: "Tools", icon: Wrench }] : []),
     ...catalogCategories.map((c) => ({ id: c.id, label: c.label, icon: categoryIcons[c.id] ?? Plug })),
   ];
   const [category, setCategory] = useState(initialCategory);
@@ -148,6 +158,18 @@ export default function ConnectSystemPicker({
       />
     ));
 
+  const toolRows = (list: StepToolKind[]) =>
+    list.map((tool) => (
+      <NavItem
+        variant="tree"
+        key={tool}
+        leading={<IconTile icon={stepToolTypes[tool].icon} size="sm" tone="indigo" />}
+        label={stepToolTypes[tool].label}
+        description={stepToolTypes[tool].description}
+        onClick={() => onSelect?.({ kind: "tool", tool })}
+      />
+    ));
+
   const columns = (content: ReactNode) => <div className="grid grid-cols-2 gap-x-6 gap-y-5">{content}</div>;
 
   const group = (title: string, rows: ReactNode) => (
@@ -163,11 +185,12 @@ export default function ConnectSystemPicker({
   if (q) {
     const actions = aiActions.filter((a) => `${a.label} ${a.description}`.toLowerCase().includes(q));
     const matchedServices = (services ?? []).filter((s) => `${s.name} ${s.description} ${s.offeredBy}`.toLowerCase().includes(q));
+    const matchedTools = (tools ?? []).filter((t) => `${stepToolTypes[t].label} ${stepToolTypes[t].description}`.toLowerCase().includes(q));
     const adaptors = adaptorCatalog
       .filter((a) => `${a.name} ${a.description} ${a.id}`.toLowerCase().includes(q))
       .map((a) => a.id);
     body =
-      actions.length + matchedServices.length + adaptors.length === 0 ? (
+      actions.length + matchedServices.length + matchedTools.length + adaptors.length === 0 ? (
         <EmptyState
           icon={Search}
           title="No matches"
@@ -177,6 +200,7 @@ export default function ConnectSystemPicker({
         <div className="space-y-5">
           {actions.length > 0 && group("AI", actionRows(actions))}
           {matchedServices.length > 0 && group("Services", serviceRows(matchedServices))}
+          {matchedTools.length > 0 && group("Tools", toolRows(matchedTools))}
           {adaptors.length > 0 && group("Adaptors", <div className="grid grid-cols-2 gap-x-4">{adaptorRows(adaptors)}</div>)}
         </div>
       );
@@ -208,6 +232,8 @@ export default function ConnectSystemPicker({
         description="Live services published from your organization's projects show up here, ready to call from a step."
       />
     );
+  } else if (category === "tools" && tools) {
+    body = columns(group("Steps that aren't code", toolRows(tools)));
   } else {
     const found = catalogCategories.find((c) => c.id === category);
     body = columns(found && groups(found.groups));

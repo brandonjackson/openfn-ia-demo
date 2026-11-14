@@ -14,6 +14,8 @@ export const Success: Story = { args: { status: "success" } };
 export const Failed: Story = { args: { status: "failed" } };
 export const Running: Story = { args: { status: "running" } };
 export const Pending: Story = { args: { status: "pending" } };
+/** Paused on a Human in the loop step until someone answers. */
+export const Waiting: Story = { args: { status: "waiting" } };
 
 export const AllStatuses: Story = {
   render: () => (
@@ -22,6 +24,7 @@ export const AllStatuses: Story = {
       <StatusPill status="failed" />
       <StatusPill status="running" />
       <StatusPill status="pending" />
+      <StatusPill status="waiting" />
     </div>
   ),
 };
@@ -34,6 +37,7 @@ export const Dots: Story = {
       <StatusPill status="failed" variant="dot" />
       <StatusPill status="running" variant="dot" />
       <StatusPill status="pending" variant="dot" />
+      <StatusPill status="waiting" variant="dot" />
     </div>
   ),
 };
@@ -46,6 +50,7 @@ export const Icons: Story = {
       <StatusPill status="failed" variant="icon" detail="30 s" />
       <StatusPill status="running" variant="icon" />
       <StatusPill status="pending" variant="icon" />
+      <StatusPill status="waiting" variant="icon" />
     </div>
   ),
 };
@@ -58,6 +63,7 @@ export const Marks: Story = {
       <StatusPill status="failed" variant="mark" />
       <StatusPill status="running" variant="mark" />
       <StatusPill status="pending" variant="mark" />
+      <StatusPill status="waiting" variant="mark" />
     </div>
   ),
 };

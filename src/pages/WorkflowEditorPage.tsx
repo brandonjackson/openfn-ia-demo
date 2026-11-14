@@ -93,6 +93,9 @@ import type { ChannelDraft } from "../model/channels";
 import ConnectSystemPicker from "../components/domain/ConnectSystemPicker";
 import type { ConnectChoice } from "../components/domain/ConnectSystemPicker";
 import AddConnectedSystemFlow, { type NewSystemInput } from "../components/domain/AddConnectedSystemFlow";
+import ReportOutcomeView from "../components/domain/ReportOutcomeView";
+import ApprovalStepView from "../components/domain/ApprovalStepView";
+import { newStepTool, newStepToolLabel, toolBody, toolSummary, type StepTool, type StepToolKind } from "../model/step-tools";
 import type { Adaptor } from "../model/adaptors";
 import { componentTypes } from "../model/component-types";
 
@@ -110,6 +113,8 @@ interface Edits {
   credentials: Record<string, string | undefined>;
   /** The connected system each step talks to, where it was changed. */
   systems: Record<string, string | undefined>;
+  /** A tool step's settings, where they were changed. */
+  tools: Record<string, StepTool>;
   removed: string[];
   added: JobNode[];
   /** The edges into added steps. */
@@ -126,6 +131,7 @@ const noEdits: Edits = {
   bodies: {},
   credentials: {},
   systems: {},
+  tools: {},
   removed: [],
   added: [],
   addedEdges: [],
@@ -159,13 +165,16 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
     .map((n) => {
       if (n.type !== "job") return n;
       const adaptor = edits.adaptors[n.id] ?? n.adaptor;
+      // A tool step's settings, changed: the code it runs as and its summary follow them.
+      const tool = edits.tools[n.id];
       return {
         ...n,
+        ...(tool && { tool, body: toolBody(tool), summary: toolSummary(tool) }),
         ...edits.positions[n.id],
         label: edits.labels[n.id] ?? n.label,
         adaptor,
-        adaptorPackage: info[adaptor].package,
-        body: edits.bodies[n.id] ?? n.body,
+        adaptorPackage: info[adaptor]?.package ?? n.adaptorPackage,
+        body: tool ? toolBody(tool) : (edits.bodies[n.id] ?? n.body),
         system: n.id in edits.systems ? edits.systems[n.id] : n.system,
         credentialId: n.id in edits.credentials ? edits.credentials[n.id] : n.credentialId,
       };
@@ -277,6 +286,7 @@ export default function WorkflowEditorPage({
   systems = [],
   systemAdaptors,
   onAddSystem,
+  tools,
   stepServices,
   showWorkflowFiles = true,
   showComponents = true,
@@ -401,6 +411,8 @@ export default function WorkflowEditorPage({
    * yours to add), picking any adaptor adds its step straight away.
    */
   onAddSystem?: (system: NewSystemInput) => Promise<string>;
+  /** The tools a new step can be, offered in "Add a step" under Tools. Left out, the picker has no Tools tab. */
+  tools?: StepToolKind[];
   /** Published services a new step can call, offered in "Add a step" under Services. Left out, the picker has no Services tab. */
   stepServices?: StepService[];
   /** List the workflow's own files (workflow.yaml, docs, service.yaml, Health) in the explorer. Defaults to true; off, code mode falls back to the trigger. */
@@ -889,6 +901,8 @@ export default function WorkflowEditorPage({
 
   const changeCode = (stepId: string, body: string) => edit((e) => ({ bodies: { ...e.bodies, [stepId]: body } }));
 
+  const changeTool = (stepId: string, tool: StepTool) => edit((e) => ({ tools: { ...e.tools, [stepId]: tool } }));
+
   const addStep = () => {
     const id = crypto.randomUUID();
     const last = graph.nodes.filter((n): n is JobNode => n.type === "job").at(-1);
@@ -926,19 +940,30 @@ export default function WorkflowEditorPage({
     const source = graph.nodes.find((n) => n.id === sourceId);
     if (!source) return;
     const id = crypto.randomUUID();
+    // A tool runs on the common adaptor, with settings in place of code.
+    const tool = choice.kind === "tool" ? newStepTool(choice.tool) : undefined;
     // A service is called over HTTP, so its step is an HTTP step named for what the service does.
-    const adaptor = choice.kind === "ai" ? "claude" : choice.kind === "service" ? "http" : choice.adaptor;
+    const adaptor = choice.kind === "ai" ? "claude" : choice.kind === "service" ? "http" : choice.kind === "tool" ? "common" : choice.adaptor;
     // An adaptor the editor has no reference for (one picked while adding a system) still gets a step.
     const info = adaptors.info[adaptor] ?? { ...adaptors.info.common, name: adaptor, package: `@openfn/language-${adaptor}` };
     const firstSnippet = adaptors.snippets[adaptor]?.[0]?.code;
     const job: JobNode = {
       id,
       type: "job",
-      label: choice.kind === "ai" ? `${choice.action.label} with AI` : choice.kind === "service" ? choice.service.name : `New ${info.name} step`,
+      label:
+        choice.kind === "ai"
+          ? `${choice.action.label} with AI`
+          : choice.kind === "service"
+            ? choice.service.name
+            : choice.kind === "tool"
+              ? newStepToolLabel(choice.tool)
+              : `New ${info.name} step`,
       adaptor,
       adaptorPackage: info.package,
-      body:
-        choice.kind === "ai"
+      ...(tool && { tool, summary: toolSummary(tool) }),
+      body: tool
+        ? toolBody(tool)
+        : choice.kind === "ai"
           ? choice.action.body
           : choice.kind === "service"
             ? serviceStepBody(choice.service)
@@ -1326,6 +1351,15 @@ export default function WorkflowEditorPage({
   const openChannelDetails = openComponent?.type === "Channel" ? contents?.channels[openComponent.id] : undefined;
   const openCollection = openComponent?.type === "Collection" ? contents?.collections[openComponent.id] : undefined;
   const openContent = openComponent && isContentComponentType(openComponent.type) ? contents?.componentContents[openComponent.id] : undefined;
+  // A tool step's settings, in place of its code: edited in a sandbox, read on main.
+  const openTool = view === "code" ? focusJob?.tool : undefined;
+  const toolPane =
+    focusJob && openTool?.kind === "outcome" ? (
+      <ReportOutcomeView key={focusJob.id} tool={openTool} onChange={onMain ? undefined : (tool) => changeTool(focusJob.id, tool)} />
+    ) : focusJob && openTool?.kind === "approval" ? (
+      <ApprovalStepView key={focusJob.id} tool={openTool} onChange={onMain ? undefined : (tool) => changeTool(focusJob.id, tool)} />
+    ) : undefined;
+
   const componentPane = !openComponent ? undefined : openChannelDetails ? (
     <ChannelView
       key={openComponent.id}
@@ -1654,6 +1688,7 @@ export default function WorkflowEditorPage({
               catalog={catalog}
               connected={connectedAdaptors}
               services={stepServices}
+              tools={tools}
               onSelect={(choice) => addAfterId && addStepAfter(addAfterId, choice)}
               onConnectNew={
                 onAddSystem && systemAdaptors
@@ -1778,7 +1813,7 @@ export default function WorkflowEditorPage({
                     ? testCasesPane
                     : file === "envVars"
                       ? envVarsPane
-                      : (docPane || componentPane)
+                      : (docPane || toolPane || componentPane)
           }
           showExplorer={layout.explorer}
           showDetails={shownLayout.details}

@@ -5,7 +5,24 @@
  * edges that connect them. Node positions are stored directly on each node so
  * the canvas can lay things out with simple absolute positioning.
  */
-import type { Workflow, WorkflowVersion } from "../model/workflow";
+import type { JobNode, Workflow, WorkflowVersion } from "../model/workflow";
+import { decisionExpression, toolBody, toolSummary, type StepTool } from "../model/step-tools";
+
+/** A tool step at a place on the canvas, with the code it would run as and its summary. */
+function toolNode(id: string, label: string, tool: StepTool, x: number, y: number): JobNode {
+  return {
+    id,
+    type: "job",
+    label,
+    summary: toolSummary(tool),
+    adaptor: "common",
+    adaptorPackage: "@openfn/language-common",
+    body: toolBody(tool),
+    tool,
+    x,
+    y,
+  };
+}
 
 // ---------------------------------------------------------------------------
 // The "Apply for a national ID" workflow shown in the design reference.
@@ -179,6 +196,28 @@ export const nationalIdWorkflow: Workflow = {
       x: 490,
       y: 740,
     },
+    // Each way an application can end says what it meant for the applicant: a refusal sent without a hitch is still a successful run.
+    toolNode(
+      "outcome-already-registered",
+      "Report outcome: already registered",
+      { kind: "outcome", status: "rejected", description: "{{ application.given_name }} {{ application.family_name }} already holds a national ID" },
+      190,
+      740,
+    ),
+    toolNode(
+      "outcome-queued",
+      "Report outcome: waiting on Identity",
+      { kind: "outcome", status: "needs_follow_up", description: "Identity didn't answer; {{ application.given_name }}'s application is queued to try again" },
+      790,
+      740,
+    ),
+    toolNode(
+      "outcome-issued",
+      "Report outcome: national ID issued",
+      { kind: "outcome", status: "success", description: "National ID {{ nationalId }} issued to {{ application.given_name }} {{ application.family_name }}" },
+      490,
+      910,
+    ),
   ],
   edges: [
     { id: "e-trigger-verify", source: "trigger", target: "verify", condition: "always" },
@@ -199,6 +238,9 @@ export const nationalIdWorkflow: Workflow = {
     },
     { id: "e-search-queue", source: "search", target: "queue", condition: "on_failure" },
     { id: "e-create-confirm", source: "create", target: "confirm", condition: "on_success" },
+    { id: "e-notify-outcome", source: "notify", target: "outcome-already-registered", condition: "on_success" },
+    { id: "e-queue-outcome", source: "queue", target: "outcome-queued", condition: "on_success" },
+    { id: "e-confirm-outcome", source: "confirm", target: "outcome-issued", condition: "on_success" },
   ],
 };
 
@@ -439,10 +481,130 @@ export const weeklyCaseReportWorkflow: Workflow = {
   ],
 };
 
+const checkRegistryBody = `// Look the household up in the social registry
+get('https://registry.social.gov.example/households', {
+  query: { nationalId: $.applicant.nationalId },
+});
+
+// Eligible when the household's income is under the threshold
+fn(state => {
+  const [household] = state.data ?? [];
+  state.household = household;
+  state.eligible = !!household && household.monthlyIncome < 60000;
+  return state;
+});`;
+
+const payGrantBody = `// Send the grant to the applicant's mobile money wallet
+post('https://payments.example/v1/disbursements', {
+  msisdn: $.applicant.phone,
+  amount: $.grant.amount,
+  reference: $.applicant.nationalId,
+});`;
+
+/**
+ * Pay an emergency hardship grant: an application is checked against the
+ * social registry, a district officer approves it (Human in the loop), and
+ * the grant is paid by mobile money. Each way it can end reports an outcome,
+ * so a grant declined without a hitch reads as Rejected, not as a success.
+ */
+export const hardshipGrantWorkflow: Workflow = {
+  id: "hardship-grant-workflow",
+  name: "hardship-grant-workflow",
+  project: "Project A",
+  version: "latest",
+  nodes: [
+    {
+      id: "trigger",
+      type: "trigger",
+      triggerType: "webhook",
+      label: "Webhook trigger",
+      subtitle: "On each application submitted",
+      summary: "**Starts a run** for each hardship grant application.",
+      x: 490,
+      y: 70,
+    },
+    {
+      id: "check-registry",
+      type: "job",
+      label: "Check eligibility in the social registry",
+      summary: "**Checks the social registry** for the household's income.",
+      adaptor: "http",
+      adaptorPackage: "@openfn/language-http",
+      body: checkRegistryBody,
+      x: 490,
+      y: 230,
+    },
+    toolNode(
+      "outcome-not-eligible",
+      "Report outcome: not eligible",
+      { kind: "outcome", status: "rejected", description: "{{ applicant.name }}'s household isn't eligible: its income is over the threshold" },
+      190,
+      400,
+    ),
+    toolNode(
+      "approve-grant",
+      "District officer approves the grant",
+      {
+        kind: "approval",
+        assignee: "District social welfare officer",
+        title: "Pay {{ applicant.name }} a hardship grant of {{ grant.amount }}?",
+        message:
+          "{{ applicant.name }} applied after {{ application.reason }}. The social registry says the household is eligible. Check they haven't had a grant this year before approving.",
+        fields: [
+          { label: "Applicant", path: "applicant.name" },
+          { label: "National ID", path: "applicant.nationalId" },
+          { label: "District", path: "applicant.district" },
+          { label: "Household size", path: "household.size" },
+          { label: "Amount", path: "grant.amount" },
+        ],
+        comment: "required_on_reject",
+        timeout: { amount: 2, unit: "days" },
+        onTimeout: "reject",
+      },
+      490,
+      400,
+    ),
+    {
+      id: "pay-grant",
+      type: "job",
+      label: "Pay the grant by mobile money",
+      summary: "**Pays the grant** to the applicant's mobile money wallet.",
+      adaptor: "http",
+      adaptorPackage: "@openfn/language-http",
+      body: payGrantBody,
+      x: 490,
+      y: 570,
+    },
+    toolNode(
+      "outcome-declined",
+      "Report outcome: declined",
+      { kind: "outcome", status: "rejected", description: "Declined by {{ approval.by }}: {{ approval.comment }}" },
+      790,
+      570,
+    ),
+    toolNode(
+      "outcome-paid",
+      "Report outcome: grant paid",
+      { kind: "outcome", status: "success", description: "{{ grant.amount }} paid to {{ applicant.name }} (reference {{ payment.reference }})" },
+      490,
+      740,
+    ),
+  ],
+  edges: [
+    { id: "e-trigger-check", source: "trigger", target: "check-registry", condition: "always" },
+    { id: "e-check-approve", source: "check-registry", target: "approve-grant", condition: "js_expression", expression: "state.eligible === true" },
+    { id: "e-check-not-eligible", source: "check-registry", target: "outcome-not-eligible", condition: "js_expression", expression: "!state.eligible" },
+    { id: "e-approve-pay", source: "approve-grant", target: "pay-grant", condition: "js_expression", expression: decisionExpression("approved") },
+    { id: "e-approve-declined", source: "approve-grant", target: "outcome-declined", condition: "js_expression", expression: decisionExpression("rejected") },
+    { id: "e-pay-paid", source: "pay-grant", target: "outcome-paid", condition: "on_success" },
+  ],
+};
+
 /** Workflows with a graph of their own, by id. Any other workflow borrows the national ID workflow's. */
 export const workflowGraphs: Record<string, Workflow> = {
   [registerCaseWorkflow.id]: registerCaseWorkflow,
   [weeklyCaseReportWorkflow.id]: weeklyCaseReportWorkflow,
+  [hardshipGrantWorkflow.id]: hardshipGrantWorkflow,
 };
 
 /** The version history of a workflow with its own graph. */

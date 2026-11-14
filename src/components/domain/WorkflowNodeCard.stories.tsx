@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowNodeCard from "./WorkflowNodeCard";
-import { nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "../../fixtures/workflow";
+import { hardshipGrantWorkflow, nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "../../fixtures/workflow";
 import { runActivity } from "../../model/runs";
-import { failedRun, sampleRun, workOrders } from "../../fixtures/runs";
+import { failedRun, sampleRun, waitingRun, workOrders } from "../../fixtures/runs";
 import { adaptorInfo } from "../../fixtures/adaptor-reference";
 import { connectedSystems } from "../../fixtures/connected-systems";
 import type { WorkflowNode } from "../../model/workflow";
@@ -96,3 +96,14 @@ export const OnXRoadSystem: Story = { args: { ...card(registerCaseWorkflow.nodes
 
 /** Workflow B's step on DHIS2, reached directly. It looks the same but for the badge. */
 export const OnDirectSystem: Story = { args: { ...card(weeklyCaseReportWorkflow.nodes.find((n) => n.id === "send-dhis2")!) } };
+
+/** A Report outcome step names its tool and the outcome it records. */
+export const ReportOutcome: Story = { args: { ...card(hardshipGrantWorkflow.nodes.find((n) => n.id === "outcome-declined")!) } };
+
+/** A Human in the loop step. */
+export const HumanInTheLoop: Story = { args: { ...card(hardshipGrantWorkflow.nodes.find((n) => n.id === "approve-grant")!) } };
+
+/** A loaded run waiting on someone to approve it. */
+export const WaitingOnSomeone: Story = {
+  args: { ...card(hardshipGrantWorkflow.nodes.find((n) => n.id === "approve-grant")!), step: waitingRun.steps.at(-1) },
+};

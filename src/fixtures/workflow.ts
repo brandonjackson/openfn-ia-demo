@@ -187,7 +187,7 @@ export const nationalIdWorkflow: Workflow = {
       adaptorPackage: "@openfn/language-common",
       body: "// Park the application so it can be retried later\nfn(state => state);",
       x: 790,
-      y: 570,
+      y: 740,
     },
     {
       id: "confirm",
@@ -214,7 +214,7 @@ export const nationalIdWorkflow: Workflow = {
       "Report outcome: waiting on Identity",
       { kind: "outcome", status: "needs_follow_up", description: "Identity didn't answer; {{ application.given_name }}'s application is queued to try again" },
       790,
-      740,
+      910,
     ),
     toolNode(
       "outcome-issued",
@@ -245,6 +245,7 @@ export const nationalIdWorkflow: Workflow = {
     },
     { id: "e-search-queue", source: "search", target: "queue", condition: "on_failure" },
     { id: "e-create-confirm", source: "create", target: "confirm", condition: "on_success" },
+    { id: "e-create-queue", source: "create", target: "queue", condition: "on_failure" },
     { id: "e-notify-outcome", source: "notify", target: "outcome-already-registered", condition: "on_success" },
     { id: "e-queue-outcome", source: "queue", target: "outcome-queued", condition: "on_success" },
     { id: "e-confirm-outcome", source: "confirm", target: "outcome-issued", condition: "on_success" },

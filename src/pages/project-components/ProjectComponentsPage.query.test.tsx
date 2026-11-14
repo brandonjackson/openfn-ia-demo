@@ -80,7 +80,8 @@ describe("ProjectComponentsPageQuery", () => {
 
   it("makes a document on the server and opens it", async () => {
     renderRoute();
-    fireEvent.click(await screen.findByText("Document", {}, wait));
+    fireEvent.click(await screen.findByRole("button", { name: "New component" }, wait));
+    fireEvent.click(within(screen.getByRole("dialog")).getByText("Document"));
     fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Runbook" } });
     await act(async () => fireEvent.click(screen.getByRole("button", { name: "Create document" })));
     const made = (await serverComponents()).find((c) => c.attributes["name"] === "Runbook");
@@ -90,7 +91,8 @@ describe("ProjectComponentsPageQuery", () => {
 
   it("makes a collection on the server and opens it", async () => {
     renderRoute();
-    fireEvent.click(await screen.findByText("Collection", {}, wait));
+    fireEvent.click(await screen.findByRole("button", { name: "New component" }, wait));
+    fireEvent.click(within(screen.getByRole("dialog")).getByText("Collection"));
     fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Ward codes" } });
     await act(async () => fireEvent.click(screen.getByRole("button", { name: "Save" })));
     await waitFor(async () => expect((await serverCollections()).some((c) => c.name === "ward-codes")).toBe(true), wait);
@@ -103,7 +105,7 @@ describe("ProjectComponentsPageQuery", () => {
     signInAs("user-beth");
     renderRoute();
     expect(await screen.findByText(channel!.name, {}, wait)).toBeTruthy();
-    expect(screen.queryByText("Add project component")).toBeNull();
+    expect(screen.queryByRole("button", { name: "New component" })).toBeNull();
 
     act(() => setFlag("components", false));
     await waitFor(() => expect(screen.queryByText(/^Collections/)).toBeNull(), wait);

@@ -28,7 +28,12 @@ export const Workflow: Story = { args: { component: byType("Workflow") } };
 
 export const Channel: Story = { args: { component: byType("Channel") } };
 
-/** As used on the Components page: description shown, type implied by the group. */
+/** With its description, and its type implied by the group it's in. */
 export const WithDescription: Story = {
   args: { component: byType("Artifact"), showDescription: true, hideType: true },
+};
+
+/** As the Components page lists it: a full-width row, like Workflows and Projects. */
+export const Row: Story = {
+  args: { component: byType("Artifact"), showDescription: true, hideType: true, variant: "row" },
 };

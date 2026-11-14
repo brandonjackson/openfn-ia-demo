@@ -9,7 +9,7 @@ const done = () => Promise.resolve();
 const meta: Meta<typeof WorkflowList> = {
   title: "Domain/WorkflowList",
   component: WorkflowList,
-  args: { onToggleWorkflow: done, onCopyWorkflow: done, onDeleteWorkflow: done },
+  args: { onToggleWorkflow: done, onCopyWorkflow: done, onPublishWorkflow: done, onDeleteWorkflow: done },
   decorators: [
     withRouter,
     (Story) => (
@@ -35,5 +35,5 @@ export const NothingPublished: Story = {
 
 /** Without the callbacks there's no switch, Make a copy or Delete, e.g. for a viewer. */
 export const ReadOnly: Story = {
-  args: { workflows: projectWorkflowItems(projects[0]!), onToggleWorkflow: undefined, onCopyWorkflow: undefined, onDeleteWorkflow: undefined },
+  args: { workflows: projectWorkflowItems(projects[0]!), onToggleWorkflow: undefined, onCopyWorkflow: undefined, onPublishWorkflow: undefined, onDeleteWorkflow: undefined },
 };

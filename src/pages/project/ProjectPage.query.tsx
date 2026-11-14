@@ -60,7 +60,8 @@ export default function ProjectPageQuery({ route }: { route: PageRoute }) {
   const components = useProjectComponents(project);
   const { status: servicesStatus, services } = useProjectServices(projectId, flags.serviceCatalog);
   const { status: workOrdersStatus, workOrders } = useWorkOrders(projectId ? [projectId] : []);
-  const actions = useWorkflowListActions(workflows);
+  // Owners and admins publish a workflow as a service, with the catalog on.
+  const actions = useWorkflowListActions(workflows, flags.serviceCatalog && !!project?.permissions?.edit_project);
   return (
     <Loaded status={combine(status, workflowsStatus, components.status, servicesStatus, workOrdersStatus)} path={route.currentPath}>
       {() => (

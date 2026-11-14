@@ -50,9 +50,7 @@ export default function ProjectCard({ project, onCopy, showSettings = false, men
           </span>
           {project.serviceCount !== undefined && (
             <span>
-              {project.serviceCount === 0
-                ? "No services"
-                : `${project.liveServiceCount ?? 0}/${project.serviceCount} services live`}
+              {project.serviceCount === 0 ? "No services" : plural(project.serviceCount, "service")}
             </span>
           )}
           <span>

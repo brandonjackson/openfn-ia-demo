@@ -17,14 +17,14 @@ const workflow = (name: string, more: Partial<WorkflowListItem> = {}): WorkflowL
   ...more,
 });
 
-const frame: Omit<ProjectWorkflowsPageProps, "data" | "onNewWorkflow" | "onToggleWorkflow" | "onCopyWorkflow" | "onDeleteWorkflow"> = {
+const frame: Omit<ProjectWorkflowsPageProps, "data" | "onNewWorkflow" | "onToggleWorkflow" | "onCopyWorkflow" | "onPublishWorkflow" | "onDeleteWorkflow"> = {
   node: { id: "workflows", label: "Workflows", description: "Every workflow in this project." },
   ancestors: [],
   currentPath: "/projects/p/workflows",
 };
 
 const draw = (workflows: WorkflowListItem[]) =>
-  renderPage(ProjectWorkflowsPage, { ...frame, data: { projectId: "p", workflows } }, ["onNewWorkflow", "onToggleWorkflow", "onCopyWorkflow", "onDeleteWorkflow"]);
+  renderPage(ProjectWorkflowsPage, { ...frame, data: { projectId: "p", workflows } }, ["onNewWorkflow", "onToggleWorkflow", "onCopyWorkflow", "onPublishWorkflow", "onDeleteWorkflow"]);
 
 /** A workflow's row, found by its name. */
 const row = (name: string) => screen.getByText(name).closest("a")!.parentElement!;
@@ -109,6 +109,32 @@ describe("ProjectWorkflowsPage", () => {
     expect(screen.getByRole("switch", { name: "Intake enabled" })).toBeTruthy();
   });
 
+  it("offers Publish only on a workflow that isn't published, and publishes it under the listing written", async () => {
+    const host = draw([workflow("Intake"), workflow("Payroll", { published: true })]);
+    fireEvent.click(within(row("Payroll")).getByRole("button", { name: "Actions for Payroll" }));
+    expect(screen.queryByRole("menuitem", { name: "Publish" })).toBeNull();
+    fireEvent.keyDown(document, { key: "Escape" });
+    fireEvent.click(within(row("Intake")).getByRole("button", { name: "Actions for Intake" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Publish" }));
+    expect((screen.getByLabelText(/^Name/) as HTMLInputElement).value).toBe("Intake");
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Take an application" } });
+    fireEvent.click(screen.getByRole("button", { name: "Publish" }));
+    expect(screen.getByRole("button", { name: "Publishing…" }).getAttribute("aria-disabled")).toBe("true");
+    expect(host.calls("onPublishWorkflow")).toEqual([["Intake", { name: "Take an application", description: "" }]]);
+    await host.resolve("onPublishWorkflow");
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("keeps the publish form open with the server's reason when it refuses", async () => {
+    const host = draw([workflow("Intake")]);
+    fireEvent.click(within(row("Intake")).getByRole("button", { name: "Actions for Intake" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Publish" }));
+    fireEvent.click(screen.getByRole("button", { name: "Publish" }));
+    await host.reject("onPublishWorkflow", new FormError("This workflow is already published as a service."));
+    expect(screen.getByText("This workflow is already published as a service.")).toBeTruthy();
+    expect(screen.getByRole("dialog")).toBeTruthy();
+  });
+
   it("deletes a workflow once confirmed, saying so while it runs", async () => {
     const host = draw([workflow("Intake")]);
     askToDelete("Intake");
@@ -133,5 +159,6 @@ describe("ProjectWorkflowsPage", () => {
     expect(screen.getByRole("menuitem", { name: "Open" })).toBeTruthy();
     expect(screen.queryByRole("menuitem", { name: "Delete" })).toBeNull();
     expect(screen.queryByRole("menuitem", { name: "Make a copy" })).toBeNull();
+    expect(screen.queryByRole("menuitem", { name: "Publish" })).toBeNull();
   });
 });

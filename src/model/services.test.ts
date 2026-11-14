@@ -23,7 +23,6 @@ const surveillance: ProjectServiceItem = {
   id: "register-suspected-case",
   name: "Register a suspected case",
   description: "Records a suspected case of a notifiable disease.",
-  status: "Live",
   api,
   xroad: { serviceCode: "register-case", published: true, clients: ["FJ/GOV/NRH/OPENMRS"] },
   record: {
@@ -42,7 +41,6 @@ const planning: ProjectServiceItem = {
   id: "planning-application-intake",
   name: "Submit a planning application",
   description: "Receives planning applications.",
-  status: "Draft",
   api: { ...api, invocation: "POST https://app.openfn.org/i/project-a/planning-application-intake" },
 };
 
@@ -65,10 +63,10 @@ describe("serviceYaml", () => {
     expect(yaml).toContain("    - id: FJ:GOV:NRH:OPENMRS\n      service_client_type: SUBSYSTEM");
   });
 
-  it("uses the service's own code until it's published, keeps a draft disabled, and grants nobody access yet", () => {
+  it("uses the service's own code until it's published, and grants nobody access yet", () => {
     const yaml = serviceYaml(planning, { code: "planning-application-intake", xroad: orgXRoad });
     expect(yaml).toContain("  published: false\n");
-    expect(yaml).toContain("    disabled: true\n    disabled_notice: Not live yet\n");
+    expect(yaml).not.toContain("status:");
     expect(yaml).toContain("    - service_code: planning-application-intake\n");
     expect(yaml).toContain("  access_rights: []\n");
   });
@@ -115,9 +113,9 @@ describe("serviceStepBody", () => {
 });
 
 describe("isCallableFromStep", () => {
-  it("offers Live services called over HTTP, never a draft or a scheduled one", () => {
+  it("offers services called over HTTP, never a scheduled one", () => {
     expect(isCallableFromStep(surveillance)).toBe(true);
-    expect(isCallableFromStep(planning)).toBe(false);
+    expect(isCallableFromStep(planning)).toBe(true);
     expect(isCallableFromStep({ ...surveillance, api: { ...api, trigger: "schedule", invocation: "Every 15 minutes" } })).toBe(false);
   });
 });

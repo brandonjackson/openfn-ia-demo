@@ -28,7 +28,6 @@ function publishedEntry(service: ServiceRecord, xroad: boolean): WorkflowCatalog
     description: service.description,
     project: projectName,
     projectPath: `/projects/${service.projectId}/services/${service.id}`,
-    badges: [service.status],
     section: service.section ?? projectName,
     callableAs: ["workflow", ...(service.mcpEnabled ? (["mcp"] as const) : []), ...(xroad && service.xroad?.published ? (["xroad"] as const) : [])],
     mcpToolName: service.mcpToolName,
@@ -100,7 +99,7 @@ export default function ServicesPageQuery({ route }: { route: PageRoute }) {
     // With connected systems on, "Services we use" waits for them too, so it never says there are none while they load.
     <Loaded status={flags.connectedSystems ? combine(status, projectsStatus, systemsStatus, channelsStatus, directoryStatus) : combine(status, projectsStatus)} path={route.currentPath}>
       {() => {
-        const published = services.filter((s) => s.status === "Live").map((s) => publishedEntry(s, flags.xroad));
+        const published = services.map((s) => publishedEntry(s, flags.xroad));
         const offered = channels.flatMap((c) => {
           const system = systems.find((s) => s.id === c.systemId);
           return system ? [channelEntry(c, system)] : [];

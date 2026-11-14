@@ -3,6 +3,7 @@ import { workflowSections, workflowSectionTitles, type WorkflowListItem } from "
 import ConfirmModal from "../primitives/ConfirmModal";
 import ListGroup from "../primitives/ListGroup";
 import Stack from "../primitives/Stack";
+import ServiceListingFormModal, { type ServiceListingDraft } from "./ServiceListingFormModal";
 import WorkflowRow from "./WorkflowRow";
 
 interface Props {
@@ -12,6 +13,8 @@ interface Props {
   onToggleWorkflow?: (id: string, enabled: boolean) => Promise<void>;
   /** Makes a copy of a workflow. Left out, the rows have no Make a copy. */
   onCopyWorkflow?: (id: string) => Promise<void>;
+  /** Publishes a workflow as a service under the listing written in its form. Left out, no row offers Publish. */
+  onPublishWorkflow?: (id: string, listing: ServiceListingDraft) => Promise<void>;
   /** Deletes a workflow, once confirmed. Left out, the rows have no Delete. */
   onDeleteWorkflow?: (id: string) => Promise<void>;
 }
@@ -20,14 +23,16 @@ interface Props {
  * A project's workflows, as its Workflows list and Overview both show them:
  * split into Published services, Live workflows and Paused workflows (empty
  * sections left out), each a `WorkflowRow` with its switch and ⋮ menu. Delete
- * asks first. Whoever feeds it says how each action went; a refusal leaves
+ * asks first; Publish, on a workflow that isn't published, opens its listing
+ * form. Whoever feeds it says how each action went; a refusal leaves
  * the list as the server has it.
  */
-export default function WorkflowList({ workflows, onToggleWorkflow, onCopyWorkflow, onDeleteWorkflow }: Props) {
+export default function WorkflowList({ workflows, onToggleWorkflow, onCopyWorkflow, onPublishWorkflow, onDeleteWorkflow }: Props) {
   // UI state: the workflow waiting on a delete confirm, and whether a delete or a copy is under way.
   const [deleting, setDeleting] = useState<WorkflowListItem | null>(null);
   const [busy, setBusy] = useState(false);
   const [copying, setCopying] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState<WorkflowListItem | null>(null);
 
   /** Copies a workflow, once at a time; the wrapper says how it went. */
   const copy = async (id: string) => {
@@ -53,12 +58,22 @@ export default function WorkflowList({ workflows, onToggleWorkflow, onCopyWorkfl
                 workflow={w}
                 onToggleEnabled={onToggleWorkflow && ((enabled) => void onToggleWorkflow(w.id, enabled).catch(() => {}))}
                 onCopy={onCopyWorkflow && (() => void copy(w.id))}
+                onPublish={onPublishWorkflow && !w.published ? () => setPublishing(w) : undefined}
                 onDelete={onDeleteWorkflow && (() => setDeleting(w))}
               />
             ))}
           </ListGroup>
         ))}
       </Stack>
+
+      {onPublishWorkflow && (
+        <ServiceListingFormModal
+          open={publishing !== null}
+          workflowName={publishing?.name}
+          onClose={() => setPublishing(null)}
+          onSubmit={(listing) => onPublishWorkflow(publishing!.id, listing)}
+        />
+      )}
 
       <ConfirmModal
         open={deleting !== null}

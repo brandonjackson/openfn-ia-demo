@@ -28,7 +28,6 @@ function storyArgs(project: Project, serviceIndex: number) {
     ],
     currentPath: `/projects/${project.id}/services/${service.id}`,
     data,
-    onOpenProject: () => {},
     onOpenWorkflow: () => {},
     onEnableMcp: async () => {},
     onPublishToXRoad: async () => {},

@@ -1,4 +1,4 @@
-import { Trash2, Workflow } from "lucide-react";
+import { Copy, Send, Trash2, Workflow } from "lucide-react";
 import type { WorkflowListItem } from "../../model/workflow-list";
 import { triggerTypes } from "../../model/workflow";
 import AvatarStack from "../primitives/AvatarStack";
@@ -29,33 +29,36 @@ interface Props {
   workflow: WorkflowListItem;
   /** Turns its triggers on or off. Left out, there's no switch. */
   onToggleEnabled?: (enabled: boolean) => void;
+  /** Makes a copy of it. Left out, its ⋮ menu has no Make a copy. */
+  onCopy?: () => void;
+  /** Publishes it as a service. Left out (it's published already, or the catalog is off), its ⋮ menu has no Publish. */
+  onPublish?: () => void;
   /** Asks to delete it. Left out, its ⋮ menu has no Delete. */
   onDelete?: () => void;
-  /** More actions for its ⋮ menu, after Open and before Delete. */
+  /** More actions for its ⋮ menu, after Publish and before Delete. */
   menu?: ListRowMenu;
 }
 
 /**
- * A workflow on a project's Workflows list: its name and description, the
- * status of the service it backs, when it last ran and changed, then its
- * latest run, its work orders and failures over the last 30 days, and the
- * people who edit it. A switch turns its triggers on and off, and its ⋮ menu
- * opens or deletes it. Opening it goes to the editor.
+ * A workflow on a project's Workflows list: its name and description, a
+ * Live or Paused pill that says what its switch says, when it last ran and
+ * changed, then its latest run, its work orders and failures over the last 30
+ * days, and the people who edit it. A switch turns its triggers on and off,
+ * and its ⋮ menu opens, copies, publishes or deletes it. Opening it goes to
+ * the editor.
  */
-export default function WorkflowRow({ workflow, onToggleEnabled, onDelete, menu }: Props) {
+export default function WorkflowRow({ workflow, onToggleEnabled, onCopy, onPublish, onDelete, menu }: Props) {
+  const own = [
+    ...(onCopy ? [{ id: "copy", label: "Make a copy", icon: Copy }] : []),
+    ...(onPublish ? [{ id: "publish", label: "Publish", icon: Send }] : []),
+    ...(menu?.items ?? []),
+  ];
   return (
     <ListRow
       to={`/workflow-editor/${workflow.id}`}
       icon={Workflow}
       title={workflow.name}
-      badges={
-        (workflow.serviceStatus || !workflow.enabled) && (
-          <>
-            {workflow.serviceStatus && <Badge label={workflow.serviceStatus} />}
-            {!workflow.enabled && <Badge label="Off" />}
-          </>
-        )
-      }
+      badges={workflow.enabled ? <Badge label="Live" tone="green" /> : <Badge label="Paused" tone="gray" />}
       description={workflow.description}
       meta={
         <>
@@ -89,11 +92,13 @@ export default function WorkflowRow({ workflow, onToggleEnabled, onDelete, menu 
         )
       }
       menu={{
-        items: [
-          ...(menu?.items ?? []),
-          ...(onDelete ? [{ id: "delete", label: "Delete", icon: Trash2, tone: "danger" as const, divider: Boolean(menu?.items?.length) }] : []),
-        ],
-        onSelect: (id) => (id === "delete" ? onDelete?.() : menu?.onSelect?.(id)),
+        items: [...own, ...(onDelete ? [{ id: "delete", label: "Delete", icon: Trash2, tone: "danger" as const, divider: own.length > 0 }] : [])],
+        onSelect: (id) => {
+          if (id === "delete") onDelete?.();
+          else if (id === "copy") onCopy?.();
+          else if (id === "publish") onPublish?.();
+          else menu?.onSelect?.(id);
+        },
       }}
     />
   );

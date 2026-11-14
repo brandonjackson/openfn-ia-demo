@@ -17,6 +17,7 @@ import { activityTiles, workOrderActivity } from "../../model/runs";
 import { asListItem, byWorkflow, LIST_PERIOD } from "../../model/workflow-list";
 import { pageFrame } from "../../app/page-frame";
 import { useProjectComponents } from "../component-records.query";
+import { useWorkflowListActions } from "../workflow-list.query";
 import ProjectPage, { type ProjectPageData } from "./ProjectPage";
 
 /**
@@ -59,6 +60,7 @@ export default function ProjectPageQuery({ route }: { route: PageRoute }) {
   const components = useProjectComponents(project);
   const { status: servicesStatus, services } = useProjectServices(projectId, flags.serviceCatalog);
   const { status: workOrdersStatus, workOrders } = useWorkOrders(projectId ? [projectId] : []);
+  const actions = useWorkflowListActions(workflows);
   return (
     <Loaded status={combine(status, workflowsStatus, components.status, servicesStatus, workOrdersStatus)} path={route.currentPath}>
       {() => (
@@ -66,6 +68,7 @@ export default function ProjectPageQuery({ route }: { route: PageRoute }) {
           {...pageFrame(route, { label: project!.name, description: project!.description }, project!.name)}
           data={projectPageData(project!, workflows, byWorkflow(workOrders), components.items, services, flags)}
           onNewWorkflow={() => navigate(`/workflow-editor/new?project=${project!.id}`)}
+          {...actions}
         />
       )}
     </Loaded>

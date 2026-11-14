@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { JobNode, Workflow } from "./workflow";
-import { componentChanges, counterpartNodeId, workflowChanges } from "./workflow-changes";
+import { counterpartNodeId, fileChanges, workflowChanges } from "./workflow-changes";
 
 const step = (id: string, label: string, x: number, body = "fn(state => state);"): JobNode => ({
   id,
@@ -102,17 +102,23 @@ describe("workflowChanges", () => {
     ]);
   });
 
-  it("names components and environment variables added or changed in the sandbox", () => {
+  it("names every kind of file added or changed in the sandbox the same way", () => {
     expect(
-      componentChanges([
+      fileChanges([
         { name: "runbook", type: "Document", change: "new" },
         { name: "triage", type: "AI Skill", change: "changed" },
         { name: "DHIS2_URL", type: "Environment variable", change: "new" },
+        { name: "spec.md", type: "Doc", change: "changed" },
+        { name: "Duplicate applicant", type: "Test case", change: "new", workflow: { name: "Apply for a national ID" } },
+        { name: "Typical applicant", type: "Saved dataclip", change: "changed" },
       ]),
     ).toEqual([
       { kind: "added", summary: "Added document runbook" },
       { kind: "changed", summary: "Changed AI skill triage" },
       { kind: "added", summary: "Added environment variable DHIS2_URL" },
+      { kind: "changed", summary: "Changed spec.md" },
+      { kind: "added", summary: "Added test case Duplicate applicant in Apply for a national ID" },
+      { kind: "changed", summary: "Changed saved dataclip Typical applicant" },
     ]);
   });
 });

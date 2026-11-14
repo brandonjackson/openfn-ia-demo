@@ -340,8 +340,8 @@ export function defaultWorkflowSettings(workflow: Workflow): WorkflowSettings {
  * components it uses.
  */
 export interface WorkflowFileContents {
-  /** context.md and spec.md. */
-  docs: { context: string; spec: string };
+  /** What each of its docs holds, by file name: context.md, spec.md and any added beside them. A workflow without one has no entry for it. */
+  docs: Record<string, string>;
   /** service.yaml, when the workflow backs a published service. */
   serviceListing?: string;
   /** What each form, artifact, AI skill, document and static website holds, by component id. */

@@ -2,12 +2,12 @@ import { useEffect, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ShellContext } from "../components/domain/shell-context";
 import { useProject, useProjectList } from "../api/projects";
-import { useMergePreview, useSandboxComponentChanges, useSandboxes } from "../api/workflows";
+import { useSandboxPreview, useSandboxes } from "../api/workflows";
 import { useInstance, useMe } from "../api/account";
 import { useOrganization } from "../api/organization";
 import { asProject, isOpenable } from "../model/projects";
 import { sandboxNames } from "../model/sandboxes";
-import { componentChanges, previewChanges } from "../model/workflow-changes";
+import { fileChanges, previewChanges } from "../model/workflow-changes";
 import { instanceInitials, instanceName } from "../model/account";
 import { setSandbox as setSandboxOf, useSandbox } from "./sandbox-state";
 import { noteOpened, useRecentProjectIds } from "./recent-projects";
@@ -56,12 +56,11 @@ export default function ShellQuery({ children }: { children: ReactNode }) {
   const sandbox = names.includes(selected) ? selected : "main";
   const project = details && asProject(details, names);
   // What the selected sandbox would bring back to its parent, for the sandbox chip: its new and changed
-  // workflows, components and environment variables, from the merge preview.
+  // workflows and files (docs, tests, saved dataclips, components, variables), from the merge preview.
   const current = sandbox === "main" ? undefined : sandboxes.find((s) => s.name === sandbox && !s.scheduledDeletion);
   const parentId = current?.parentId ?? undefined;
-  const { workflows: changedWorkflows } = useMergePreview(parentId ?? "", current?.id, parentId);
-  const { changes: changedComponents } = useSandboxComponentChanges(parentId, current?.id, "");
-  const sandboxChanges = current ? [...previewChanges(changedWorkflows), ...componentChanges(changedComponents)] : [];
+  const { preview } = useSandboxPreview(parentId, current?.id);
+  const sandboxChanges = current ? [...previewChanges(preview.workflows), ...fileChanges(preview.files)] : [];
   const sandboxTarget = parentId === details?.id ? "main" : sandboxes.find((s) => s.id === parentId)?.name;
 
   const openable = projects.filter(isOpenable);

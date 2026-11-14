@@ -43,6 +43,7 @@ import { componentRoutes } from "./project-components";
 import { maintenanceRoutes } from "./maintenance";
 import { envVarRoutes } from "./env-vars";
 import { testCaseRoutes } from "./test-cases";
+import { workflowDocRoutes } from "./workflow-docs";
 
 export type { Problem } from "./answers";
 export { signInAs } from "./session";
@@ -79,6 +80,7 @@ const routes: Record<string, Handler> = {
   ...componentRoutes,
   ...envVarRoutes,
   ...testCaseRoutes,
+  ...workflowDocRoutes,
   // The demo's own: back to the fixtures.
   "POST /api/demo/reset": () => {
     resetDb();

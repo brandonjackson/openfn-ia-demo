@@ -24,7 +24,7 @@ const later = <T,>(answer: () => T) => new Promise<T>((resolve) => setTimeout(()
 
 /** What opening a workflow's docs, service listing and components shows, for a project's components. */
 const contentsFor = (components: ProjectComponent[], service?: ProjectService): WorkflowFileContents => ({
-  docs: workflowDocs,
+  docs: { "context.md": workflowDocs.context, "spec.md": workflowDocs.spec },
   serviceListing: service ? serviceYaml(service, { code: service.id, xroad: orgXRoad }) : undefined,
   ...fixtureComponentContents(components),
   channels: Object.fromEntries(components.filter((c) => c.type === "Channel").map((c) => [c.id, channelDetails(c)])),
@@ -186,7 +186,7 @@ export const NewWorkflowFiles: Story = {
     service: undefined,
     dataclips: [],
     workOrders: [],
-    contents: { ...contentsFor(projectAComponents), docs: { context: "", spec: "" } },
+    contents: { ...contentsFor(projectAComponents), docs: {} },
     initialLayout: { assistant: false, panel: false },
   },
 };

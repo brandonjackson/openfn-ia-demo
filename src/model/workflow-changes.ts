@@ -120,16 +120,26 @@ export function workflowChanges(base: Workflow | undefined, current: Workflow): 
 }
 
 /**
- * What a sandbox changes in its project's components and environment
- * variables, as changes: a sandbox is a copy of its project, so a component
- * added or edited there goes back with the workflow when it merges.
+ * The kinds of file a sandbox keeps besides its workflows' steps: a
+ * workflow's docs (context.md, spec.md and the rest) and test cases, the
+ * project's saved dataclips, its components and its environment variables.
  */
-export function componentChanges(changed: { name: string; type: ProjectComponentType | "Environment variable"; change: "new" | "changed" }[]): WorkflowChange[] {
-  return changed.map((c) =>
-    c.change === "new"
-      ? { kind: "added", summary: `Added ${componentNoun(c.type)} ${c.name}` }
-      : { kind: "changed", summary: `Changed ${componentNoun(c.type)} ${c.name}` },
-  );
+export type SandboxFileType = ProjectComponentType | "Environment variable" | "Saved dataclip" | "Test case" | "Doc";
+
+/**
+ * What a sandbox changes in its files, as changes. A sandbox is a copy of
+ * its project, so every file it keeps follows one rule: adding or editing it
+ * there is a change, counted and listed beside the workflow's, and a merge
+ * brings it back. One that belongs to a workflow says which, when `workflow`
+ * is given (the editor, showing one workflow, leaves it out).
+ */
+export function fileChanges(changed: { name: string; type: SandboxFileType; change: "new" | "changed"; workflow?: { name: string } }[]): WorkflowChange[] {
+  return changed.map((c) => {
+    // A doc is named by its file name ("spec.md"); anything else by its kind and name.
+    const what = c.type === "Doc" ? c.name : `${fileNoun(c.type)} ${c.name}`;
+    const where = c.workflow ? ` in ${c.workflow.name}` : "";
+    return c.change === "new" ? { kind: "added", summary: `Added ${what}${where}` } : { kind: "changed", summary: `Changed ${what}${where}` };
+  });
 }
 
 /**
@@ -147,8 +157,8 @@ export function previewChanges(workflows: { name: string; change: "new" | "chang
   );
 }
 
-/** "channel", "AI skill", "static website". */
-function componentNoun(type: ProjectComponentType | "Environment variable"): string {
+/** "channel", "AI skill", "static website", "test case". */
+function fileNoun(type: SandboxFileType): string {
   return type === "AI Skill" ? "AI skill" : type.toLowerCase();
 }
 

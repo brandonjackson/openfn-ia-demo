@@ -26,13 +26,13 @@ import { starterContent } from "../model/project-components";
 import { combine, inTurn } from "../api/status";
 import { useEnvVars, useEnvVarSaves } from "../api/env-vars";
 import { useTestCases, useTestCaseSaves } from "../api/test-cases";
-import { asGraph, useProjectWorkflows, useSandboxComponentChanges, useSandboxes, useSandboxSaves, useWorkflow, useWorkflowSaves, useWorkflowSnapshots } from "../api/workflows";
-import { componentChanges } from "../model/workflow-changes";
+import { asGraph, useProjectWorkflows, useSandboxPreview, useSandboxes, useSandboxSaves, useWorkflow, useWorkflowSaves, useWorkflowSnapshots } from "../api/workflows";
+import { fileChanges } from "../model/workflow-changes";
+import { useWorkflowDocs, useWorkflowDocSaves } from "../api/workflow-docs";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
 import { adaptorChoices, adaptorInfo, adaptorSnippets } from "../fixtures/adaptor-reference";
 import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
 import { codeSummary } from "../fixtures/code-summaries";
-import { workflowDocs } from "../fixtures/workflow-files";
 import { isCallableFromStep, serviceUrl, serviceYaml } from "../model/services";
 import { useOrganizationXRoad } from "../api/organization";
 import { useAllServices } from "../api/services";
@@ -275,18 +275,17 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const testSaves = useTestCaseSaves(shown.project_id, shown.id);
   const canWriteTests = flags.testCases && editable && canEditComponents;
   const canRunTests = flags.testCases && !!selected.permissions?.edit_workflow;
-  // What the sandbox changes in them against its parent, which merging brings back with the workflow.
-  const componentVersion = [
-    ...records.channels.channels.map((c) => `${c.component.id}:${c.lockVersion}`),
-    ...records.collections.map((c) => c.name),
-    ...records.contents.map((c) => `${c.component.id}:${c.lockVersion}`),
-    ...envVars.map((v) => `${v.id}:${v.updatedAt}`),
-  ].join(",");
-  const { changes: changedComponents } = useSandboxComponentChanges(editable ? (selected.parentId ?? undefined) : undefined, editable ? selected.id : undefined, componentVersion);
+  // The shown copy's docs (context.md, spec.md and the rest): a sandbox's copy has its own, promoted with it.
+  const { docs } = useWorkflowDocs(flags.workflowDocs ? shown.project_id : undefined, flags.workflowDocs ? shown.id : undefined);
+  const docSaves = useWorkflowDocSaves(shown.project_id, shown.id, docs);
+  // What the sandbox changes in the files it keeps against its parent, which promoting brings back with the
+  // workflow, from the merge preview: this workflow's docs and tests (not another workflow's, which promoting
+  // this one leaves behind), and the project's saved dataclips, components and environment variables.
+  const { preview } = useSandboxPreview(editable ? (selected.parentId ?? undefined) : undefined, editable ? selected.id : undefined);
+  const changedFiles = preview.files.flatMap(({ workflow, ...f }) => (!workflow ? [f] : workflow.id === shown.id ? [f] : []));
   // What opening the workflow's docs, its service listing and its components shows.
   const contents: WorkflowFileContents = {
-    // The docs are written for the fixtures' workflows; any other starts with them blank.
-    docs: slug ? workflowDocs : { context: "", spec: "" },
+    docs: Object.fromEntries(docs.map((d) => [d.name, d.content])),
     serviceListing: service ? serviceYaml(service.service, { code: service.service.code, xroad }) : undefined,
     componentContents: Object.fromEntries(records.contents.map((c) => [c.component.id, c.details])),
     collections: Object.fromEntries(
@@ -359,7 +358,8 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       onSaveCollectionItem={canEditComponents ? (id, key, value) => records.saves.items.save(collectionName(id), key, value) : undefined}
       onDeleteCollectionItem={canEditComponents ? (id, key) => records.saves.items.remove(collectionName(id), key) : undefined}
       componentTypeOptions={componentTypesFor(flags)}
-      componentChanges={editable ? componentChanges(changedComponents) : undefined}
+      fileChanges={editable ? fileChanges(changedFiles) : undefined}
+      onSaveDoc={editable && canEditComponents && flags.workflowDocs ? docSaves.save : undefined}
       sandboxes={sandboxNames(sandboxes)}
       sandbox={selected.id === root.id ? "main" : selected.name}
       onSelectSandbox={setSandbox}

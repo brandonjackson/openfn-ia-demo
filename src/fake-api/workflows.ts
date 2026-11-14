@@ -67,7 +67,7 @@ function seededGraph(slug: string, graph: Workflow): Workflow {
 }
 
 /** The fixture workflows: each project's Workflow components, and the national ID workflow in Project A. */
-function fixtureWorkflows() {
+export function fixtureWorkflows() {
   const rows: { slug: string; name: string; projectSlug: string; graphAt: (version: string) => Workflow; versions: typeof workflowVersions; enabled: boolean; cron: boolean; updatedAt: string }[] = [];
   for (const p of fixtureProjects) {
     for (const item of projectWorkflowDetails(p)) {

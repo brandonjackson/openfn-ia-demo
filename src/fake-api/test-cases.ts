@@ -39,7 +39,7 @@ import { apiNodeId, apiWorkflowId, cloneNodeId, seedId } from "../fixtures/ids";
 import { badId, invalid, isUuid, json, maxLength, noContent, notFound, now, ORIGIN, paged, unknownKeys, type Body, type Entry, type Handler } from "./answers";
 import { seedTime, table } from "./db";
 import { guardProject, projectIdFor } from "./projects";
-import { withSandboxCopies } from "./sandbox-copies";
+import { withSandboxCopies, type CopyPair } from "./sandbox-copies";
 import { currentUserId } from "./session";
 import { findUser, fullName } from "./users";
 import { dataclips } from "./work-orders";
@@ -390,33 +390,44 @@ const content = (t: TestCaseRow, jobId: (id: string | null) => string | null = (
   JSON.stringify([t.name, t.input_description, t.output_description, jobId(t.start_job_id), jobId(t.end_job_id), t.dataclip_id, t.judge, t.assertions, t.requirement]);
 
 /**
- * Brings a sandbox workflow's new and changed tests into the target's copy
- * of it, its steps' ids turned into the target's by `jobId`. Pairs them by
- * the one each was copied from, or name; deletes nothing.
+ * A sandbox workflow's tests paired with the target's copy of the workflow
+ * (none when the workflow is new there), its steps' ids turned into the
+ * target's by `jobId`: by the one each was copied from, or name. Applying
+ * one brings it over without its results.
  */
-export function mergeTestCases(sandboxWorkflowId: string, targetWorkflowId: string, targetProjectId: string, jobId: (id: string | null) => string | null) {
-  const at = now();
-  for (const t of testCases.rows().filter((x) => x.workflow_id === sandboxWorkflowId)) {
-    const theirs = testCases.rows().filter((x) => x.workflow_id === targetWorkflowId);
-    const pair = theirs.find((x) => x.id === t.copied_from) ?? theirs.find((x) => x.name.toLowerCase() === t.name.toLowerCase());
-    if (pair && content(t, jobId) === content(pair)) continue;
-    const fields = {
-      name: t.name,
-      input_description: t.input_description,
-      output_description: t.output_description,
-      start_job_id: jobId(t.start_job_id),
-      end_job_id: jobId(t.end_job_id),
-      dataclip_id: t.dataclip_id,
-      judge: t.judge,
-      assertions: t.assertions,
-      requirement: t.requirement,
-      origin: t.origin,
-      updated_by: by(),
-      updated_at: at,
-    };
-    if (pair) testCases.update((x) => x.id === pair.id, (x) => ({ ...x, ...fields }));
-    else testCases.insert({ ...t, ...fields, id: crypto.randomUUID(), project_id: targetProjectId, workflow_id: targetWorkflowId, last_result: null, inserted_at: at, copied_from: null });
-  }
+export function testCasePairs(sandboxWorkflowId: string, targetWorkflowId: string | null, targetProjectId: string, jobId: (id: string | null) => string | null): CopyPair[] {
+  const theirs = targetWorkflowId ? testCases.rows().filter((x) => x.workflow_id === targetWorkflowId) : [];
+  return testCases
+    .rows()
+    .filter((x) => x.workflow_id === sandboxWorkflowId)
+    .map((t) => {
+      const pair = theirs.find((x) => x.id === t.copied_from) ?? theirs.find((x) => x.name.toLowerCase() === t.name.toLowerCase());
+      return {
+        name: t.name,
+        isNew: !pair,
+        same: !!pair && content(t, jobId) === content(pair),
+        apply: () => {
+          const at = now();
+          const fields = {
+            name: t.name,
+            input_description: t.input_description,
+            output_description: t.output_description,
+            start_job_id: jobId(t.start_job_id),
+            end_job_id: jobId(t.end_job_id),
+            dataclip_id: t.dataclip_id,
+            judge: t.judge,
+            assertions: t.assertions,
+            requirement: t.requirement,
+            origin: t.origin,
+            updated_by: by(),
+            updated_at: at,
+          };
+          if (pair) testCases.update((x) => x.id === pair.id, (x) => ({ ...x, ...fields }));
+          // The workflow it goes with is made before its tests are, so the id is known by now.
+          else testCases.insert({ ...t, ...fields, id: crypto.randomUUID(), project_id: targetProjectId, workflow_id: targetWorkflowId!, last_result: null, inserted_at: at, copied_from: null });
+        },
+      };
+    });
 }
 
 /* ------------------------------------------------------------------ */

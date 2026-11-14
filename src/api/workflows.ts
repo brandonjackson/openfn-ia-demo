@@ -12,6 +12,7 @@ import { listAll, request } from "./client";
 import { projectKeys, toProject, type ApiProject } from "./projects";
 import type { ProjectDetails } from "../model/projects";
 import type { ProjectComponentType } from "../model/component-types";
+import type { SandboxFileType } from "../model/workflow-changes";
 import { statusOf, type LoadStatus } from "./status";
 
 /** A snapshot as GET /api/workflows/:id/snapshots lists it, with the demo's author and message. */
@@ -46,8 +47,15 @@ export const workflowKeys = {
   one: (id: string) => ["workflows", id] as const,
   snapshots: (id: string) => ["workflows", id, "snapshots"] as const,
   sandboxes: (rootId: string) => ["projects", rootId, "sandboxes"] as const,
-  preview: (sandboxId: string, targetId: string) => ["projects", sandboxId, "merge_preview", targetId] as const,
+  preview: (sandboxId: string, targetId: string) => ["projects", sandboxId, "merge_previews", targetId] as const,
 };
+
+/**
+ * Whether a query is a merge preview, of one sandbox or of a project's
+ * sandboxes. Any save can change what a sandbox brings back (a workflow, a
+ * doc, a test, a component), so `ApiProvider` asks for them again after each.
+ */
+export const isMergePreview = (key: readonly unknown[]) => key.includes("merge_previews");
 
 /** "v3": a version's name, from its lock version. */
 export const versionName = (lockVersion: number) => `v${lockVersion}`;
@@ -108,71 +116,82 @@ export function useSandboxes(rootId: string | undefined): { status: LoadStatus; 
   return { status: rootId ? statusOf(query) : { state: "ready" }, sandboxes: query.data ?? [] };
 }
 
-/** What merging a sandbox into a target would bring, and what changed there since. Writes nothing. */
-export function useMergePreview(parentId: string, sandboxId: string | undefined, targetId: string | undefined) {
-  const query = useQuery({
-    queryKey: workflowKeys.preview(sandboxId ?? "", targetId ?? ""),
-    enabled: !!sandboxId && !!targetId,
-    queryFn: () =>
-      request<{ workflows: { name: string; source_workflow_id: string | null; target_workflow_id: string | null; change: MergePreviewWorkflow["change"]; diverged: boolean }[] }>(
-        "POST",
-        `/api/projects/${parentId}/sandboxes/${sandboxId}/merge_previews`,
-        { target_project_id: targetId },
-      ),
-    select: (a): MergePreviewWorkflow[] =>
-      a.workflows.map((w) => ({ name: w.name, sourceWorkflowId: w.source_workflow_id, targetWorkflowId: w.target_workflow_id, change: w.change, diverged: w.diverged })),
-  });
-  return { status: statusOf(query), workflows: query.data ?? [] };
-}
-
-/** A merge preview's line for one component or environment variable a merge would bring: never a deletion. */
-export interface MergePreviewComponent {
-  /** The component's kind, or "Environment variable". */
-  type: ProjectComponentType | "Environment variable";
-  /** Its name, or a variable's key. */
+/**
+ * A merge preview's line for one of the files a sandbox keeps besides its
+ * workflows' steps that a merge would bring: never a deletion. Lightning's
+ * preview says it for workflows only; the demo's says it the same way for
+ * everything else (components, environment variables, saved dataclips, and
+ * each workflow's docs and test cases), so a sandbox's changes are counted
+ * in one place.
+ */
+export interface SandboxFileChange {
+  type: SandboxFileType;
+  /** Its name, a variable's key, or a doc's file name. */
   name: string;
   change: "new" | "changed";
+  /** For a workflow's doc or test, the sandbox's workflow it belongs to: its id and name. */
+  workflow?: { id: string; name: string };
 }
 
-/**
- * What a sandbox changes in its project's components and environment
- * variables against its parent: the new and changed ones a merge would
- * bring. `version` says when the sandbox's own changed (its components'
- * lock versions, say), so the preview is asked for again; a merge refreshes
- * it too.
- */
-export function useSandboxComponentChanges(parentId: string | undefined, sandboxId: string | undefined, version: string): { status: LoadStatus; changes: MergePreviewComponent[] } {
-  const query = useQuery({
-    queryKey: [...workflowKeys.preview(sandboxId ?? "", parentId ?? ""), "components", version],
-    enabled: !!parentId && !!sandboxId,
-    placeholderData: (previous) => previous,
-    queryFn: () =>
-      // The demo's own extensions to the preview; Lightning's sends neither.
-      request<PreviewAnswer>("POST", `/api/projects/${parentId}/sandboxes/${sandboxId}/merge_previews`, { target_project_id: parentId }),
-    select: previewComponents,
-  });
-  return { status: statusOf(query), changes: (sandboxId && query.data) || [] };
-}
+type FileLine = { name: string; change: "new" | "changed" | "unchanged" };
+type WorkflowFileLine = FileLine & { source_workflow_id: string; workflow_name: string };
 
 type PreviewAnswer = {
   workflows: { name: string; source_workflow_id: string | null; target_workflow_id: string | null; change: MergePreviewWorkflow["change"]; diverged: boolean }[];
-  components?: { component_type: ProjectComponentType; name: string; change: "new" | "changed" | "unchanged" }[];
-  env_vars?: { key: string; change: "new" | "changed" | "unchanged" }[];
+  // The demo's own extensions; Lightning's sends none of these.
+  components?: (Omit<FileLine, "name"> & { component_type: ProjectComponentType; name: string })[];
+  env_vars?: (Omit<FileLine, "name"> & { key: string })[];
+  dataclips?: FileLine[];
+  docs?: WorkflowFileLine[];
+  test_cases?: WorkflowFileLine[];
 };
 
-/** The new and changed components and environment variables in a merge preview. */
-const previewComponents = (a: PreviewAnswer): MergePreviewComponent[] => [
-  ...(a.components ?? []).flatMap((c) => (c.change === "unchanged" ? [] : [{ type: c.component_type, name: c.name, change: c.change }])),
-  ...(a.env_vars ?? []).flatMap((v) => (v.change === "unchanged" ? [] : [{ type: "Environment variable" as const, name: v.key, change: v.change }])),
-];
+/** The new and changed files in a merge preview, in the order the sandbox chip lists them. */
+const previewFiles = (a: PreviewAnswer): SandboxFileChange[] => {
+  const keep = <T extends { change: FileLine["change"] }>(lines: T[] | undefined, line: (l: T) => Omit<SandboxFileChange, "change">): SandboxFileChange[] =>
+    (lines ?? []).flatMap((l) => (l.change === "unchanged" ? [] : [{ ...line(l), change: l.change }]));
+  const ofWorkflow = (type: SandboxFileType) => (l: WorkflowFileLine) => ({ type, name: l.name, workflow: { id: l.source_workflow_id, name: l.workflow_name } });
+  return [
+    ...keep(a.docs, ofWorkflow("Doc")),
+    ...keep(a.test_cases, ofWorkflow("Test case")),
+    ...keep(a.dataclips, (l) => ({ type: "Saved dataclip", name: l.name })),
+    ...keep(a.components, (c) => ({ type: c.component_type, name: c.name })),
+    ...keep(a.env_vars, (v) => ({ type: "Environment variable", name: v.key })),
+  ];
+};
 
-/** One sandbox's merge preview into a target: its workflows, and its components and environment variables. */
+/** What one sandbox brings back to its parent, from the merge preview. */
+export interface SandboxPreview {
+  /** Its workflows, new, changed, unchanged or deleted. */
+  workflows: MergePreviewWorkflow[];
+  /** Its new and changed files: docs, test cases, saved dataclips, components and environment variables. */
+  files: SandboxFileChange[];
+}
+
+/** One sandbox's merge preview into a target. */
 async function fetchPreview(parentId: string, sandboxId: string, targetId: string): Promise<SandboxPreview> {
   const a = await request<PreviewAnswer>("POST", `/api/projects/${parentId}/sandboxes/${sandboxId}/merge_previews`, { target_project_id: targetId });
   return {
     workflows: a.workflows.map((w) => ({ name: w.name, sourceWorkflowId: w.source_workflow_id, targetWorkflowId: w.target_workflow_id, change: w.change, diverged: w.diverged })),
-    components: previewComponents(a),
+    files: previewFiles(a),
   };
+}
+
+/**
+ * What merging a sandbox into its parent would bring: its workflows and its
+ * new and changed files. Writes nothing. Every save anywhere asks for it
+ * again (`ApiProvider`), so it's the one place a sandbox's changes are
+ * counted from. Pass undefined for main, which has none.
+ */
+export function useSandboxPreview(parentId: string | undefined, sandboxId: string | undefined): { status: LoadStatus; preview: SandboxPreview } {
+  const query = useQuery({
+    queryKey: workflowKeys.preview(sandboxId ?? "", parentId ?? ""),
+    enabled: !!parentId && !!sandboxId,
+    // Asked for again after each save: keep showing the last answer meanwhile.
+    placeholderData: (previous, previousQuery) => (previousQuery?.queryKey[1] === sandboxId ? previous : undefined),
+    queryFn: () => fetchPreview(parentId!, sandboxId!, parentId!),
+  });
+  return { status: statusOf(query), preview: (sandboxId && query.data) || { workflows: [], files: [] } };
 }
 
 /**
@@ -264,24 +283,15 @@ export function useSandboxSaves() {
   };
 }
 
-/** What one sandbox brings back to its parent, from the merge preview. */
-export interface SandboxPreview {
-  /** Its new and changed workflows. */
-  workflows: MergePreviewWorkflow[];
-  /** Its new and changed components and environment variables (the demo's extension; Lightning sends none). */
-  components: MergePreviewComponent[];
-}
-
 /**
  * What each sandbox has changed since it was made from its parent, by
  * sandbox id: the merge preview against its parent, keeping only what a
- * merge would bring (new and changed workflows, components and environment
- * variables).
+ * merge would bring (new and changed workflows and files).
  */
 export function useSandboxChanges(rootId: string | undefined, sandboxes: ProjectDetails[]): { status: LoadStatus; changes: Record<string, SandboxPreview> } {
   const ids = sandboxes.map((s) => `${s.id}:${s.parentId}`).join(",");
   const query = useQuery({
-    queryKey: [...workflowKeys.sandboxes(rootId ?? ""), "changes", ids],
+    queryKey: [...workflowKeys.sandboxes(rootId ?? ""), "merge_previews", ids],
     enabled: !!rootId,
     // A sandbox made or deleted changes the key: keep showing this project's last answer, so the page isn't
     // swapped for a spinner. Another project's would put its changes on the wrong sandboxes.
@@ -291,7 +301,7 @@ export function useSandboxChanges(rootId: string | undefined, sandboxes: Project
       return Object.fromEntries(
         sandboxes.map((s, i): [string, SandboxPreview] => [
           s.id,
-          { workflows: previews[i]!.workflows.filter((w) => w.change === "new" || w.change === "changed"), components: previews[i]!.components },
+          { workflows: previews[i]!.workflows.filter((w) => w.change === "new" || w.change === "changed"), files: previews[i]!.files },
         ]),
       );
     },

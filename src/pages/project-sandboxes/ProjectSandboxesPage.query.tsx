@@ -5,7 +5,7 @@ import { useProject, useProjectList } from "../../api/projects";
 import { useSandboxChanges, useSandboxes, useSandboxSaves } from "../../api/workflows";
 import { combine } from "../../api/status";
 import { type SandboxItem, sandboxSlug } from "../../model/sandboxes";
-import { componentChanges, previewChanges } from "../../model/workflow-changes";
+import { fileChanges, previewChanges } from "../../model/workflow-changes";
 import type { ProjectDetails } from "../../model/projects";
 import ProjectSandboxesPage from "./ProjectSandboxesPage";
 import { pageFrame } from "../../app/page-frame";
@@ -42,8 +42,8 @@ export default function ProjectSandboxesPageQuery({ route }: { route: PageRoute 
     lastActivity: s.lastActivity ?? s.createdAt,
     env: s.env,
     parent: nameOf(s.parentId),
-    // As the sandbox chip counts them: its workflows, then its components and environment variables.
-    changes: [...previewChanges(changes[s.id]?.workflows ?? []), ...componentChanges(changes[s.id]?.components ?? [])],
+    // As the sandbox chip counts them: its workflows, then its files.
+    changes: [...previewChanges(changes[s.id]?.workflows ?? []), ...fileChanges(changes[s.id]?.files ?? [])],
   });
 
   return (

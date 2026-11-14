@@ -42,6 +42,8 @@ interface Props {
   defaultOpen?: boolean;
   /** Tints the trigger yellow, e.g. while viewing an older version. */
   highlight?: boolean;
+  /** `xs` (the default) a compact chip; `sm` the height and padding of a small `Button`, to sit beside one. */
+  size?: "xs" | "sm";
   /**
    * Draws the trigger's content in place of the chip, e.g. a title, as plain
    * text with a hover background. Given the selected option.
@@ -67,6 +69,7 @@ export default function Picker({
   menuWidthClass = "w-72",
   defaultOpen = false,
   highlight = false,
+  size = "xs",
   trigger,
 }: Props) {
   const { open, setOpen, ref } = usePopover(defaultOpen);
@@ -88,12 +91,14 @@ export default function Picker({
             ? `inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-0.5 text-sm ${maxWidthClass} ${
                 open ? "bg-gray-100" : "hover:bg-gray-100"
               }`
-            : `inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-sm transition-colors ${maxWidthClass} ${
+            : `inline-flex items-center gap-1.5 rounded-md border text-sm transition-colors ${maxWidthClass} ${
+                size === "sm" ? "px-3 py-1.5" : "px-2 py-1"
+              } ${
                 highlight
                   ? "border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100"
                   : open
                     ? "border-gray-300 bg-gray-50 text-gray-700"
-                    : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                    : `${size === "sm" ? "border-gray-300" : "border-gray-200"} bg-white text-gray-700 hover:bg-gray-50`
               }`
         }
       >

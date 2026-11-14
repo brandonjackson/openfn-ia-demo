@@ -91,3 +91,14 @@ export interface SandboxMerge {
   /** The sandbox-only credentials to bring across. */
   credentials: string[];
 }
+
+/**
+ * The names a sandbox picker lists for a project: "main" first, then each
+ * sandbox in the tree that isn't scheduled for deletion, once. Names are
+ * unique only among a parent's own sandboxes, so a sandbox of a sandbox can
+ * share a name with one elsewhere in the tree (or one brought back from
+ * deletion); the picker selects by name, so it lists each name once.
+ */
+export function sandboxNames(sandboxes: { name: string; scheduledDeletion?: unknown }[]): string[] {
+  return [...new Set(["main", ...sandboxes.filter((s) => !s.scheduledDeletion).map((s) => s.name)])];
+}

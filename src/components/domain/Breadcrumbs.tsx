@@ -19,7 +19,8 @@ export default function Breadcrumbs({
   ancestors: Crumb[];
   current: string;
 }) {
-  const { currentPath: pathname, project, recentProjects, sandbox, onSelectSandbox, onNavigate } = useShell();
+  const { currentPath: pathname, project, recentProjects, sandbox, onSelectSandbox, sandboxChanges, sandboxTarget, onSwitchProject, onNavigate } =
+    useShell();
 
   if (project) {
     const base = `/projects/${project.id}`;
@@ -29,6 +30,9 @@ export default function Breadcrumbs({
         recentProjects={recentProjects}
         sandbox={sandbox}
         onSelectSandbox={onSelectSandbox}
+        sandboxChanges={sandboxChanges}
+        sandboxTarget={sandboxTarget}
+        onSwitchProject={onSwitchProject}
         currentPath={pathname}
         onNavigate={onNavigate}
         // The workflow editor sits outside the project's URLs but belongs to it.

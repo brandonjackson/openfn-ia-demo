@@ -48,6 +48,11 @@ export const ProjectOpen: Story = {
   args: { ...Project.args, defaultOpen: true },
 };
 
+/** As a small button's height, beside one: the project switcher next to the sandbox chip in the project bar. */
+export const SmallSize: Story = {
+  args: { ...Project.args, size: "sm" },
+};
+
 export const LongProjectName: Story = {
   args: { ...Project.args, value: "malawi-chw-referrals" },
 };

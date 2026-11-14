@@ -15,7 +15,7 @@ import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
 import Button from "../../components/primitives/Button";
 import FilesPanel from "../../components/patterns/FilesPanel";
-import WikiArticle from "../../components/patterns/WikiArticle";
+import Markdown from "../../components/primitives/Markdown";
 
 /** What the Handbook shows: the handbook, as the API gives it. */
 export type HandbookPageData = Handbook;
@@ -89,7 +89,7 @@ export default function HandbookPage({ node, ancestors, data, onSaveArticle, onU
         <div className="max-w-3xl">
           {draft === null ? (
             data.sections.length ? (
-              <WikiArticle sections={data.sections} />
+              <Markdown source={toMarkdown(data.sections)} contents />
             ) : (
               <EmptyState icon={BookOpen} title="Nothing written yet" description="The organisation's handbook is empty." />
             )

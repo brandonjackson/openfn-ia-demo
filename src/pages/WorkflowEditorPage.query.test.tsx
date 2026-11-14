@@ -173,6 +173,38 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     expect(await screen.findByText("Triage", {}, wait)).toBeTruthy();
   });
 
+  it("shows spec.md drawn as it reads on main, with Edit in sandbox in Edit's place", async () => {
+    renderEditor(apiWorkflowId("planning-application-workflow"));
+    fireEvent.click(await screen.findByRole("button", { name: "Explorer" }, wait));
+    fireEvent.click((await screen.findAllByRole("button", { name: /^spec\.md/ }, wait))[0]!);
+    expect(await screen.findByRole("heading", { name: "Spec", level: 1 }, wait)).toBeTruthy();
+    expect(screen.getByRole("columnheader", { name: "Adaptor" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Edit" })).toBeNull();
+    fireEvent.click(screen.getAllByRole("button", { name: "Edit in sandbox" }).at(-1)!);
+    expect(await screen.findByRole("dialog", {}, wait)).toBeTruthy();
+  });
+
+  it("edits context.md in a sandbox from Edit, and draws what was saved", async () => {
+    const projectId = projectIdFor("project-a");
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${crypto.randomUUID()}`, { name: "context-notes" });
+    act(() => setSandbox(projectId, "context-notes"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+      fireEvent.click(await screen.findByRole("button", { name: "Explorer" }, wait));
+      fireEvent.click((await screen.findAllByRole("button", { name: /^context\.md/ }, wait))[0]!);
+      expect(await screen.findByRole("heading", { name: "Legislation", level: 2 }, wait)).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+      fireEvent.change(screen.getByLabelText("context.md"), { target: { value: "# Context\n\n## Who it serves\n\n- Applicants" } });
+      fireEvent.click(screen.getByRole("button", { name: "Save" }));
+      expect(await screen.findByRole("heading", { name: "Who it serves", level: 2 }, wait)).toBeTruthy();
+      expect(screen.getByText("Applicants").closest("li")).toBeTruthy();
+      expect(screen.getByRole("button", { name: "Edit" })).toBeTruthy();
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
   it("lists the project's saved dataclips to run, and saves a new title and description", async () => {
     const workflowId = apiWorkflowId("planning-application-workflow");
     renderEditor(workflowId);
@@ -190,6 +222,44 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     expect(await screen.findByText("First-time applicant", {}, wait)).toBeTruthy();
     const data = await listAll<{ id: string; name?: string; description?: string }>(`/api/projects/${projectIdFor("project-a")}/dataclips`);
     expect(data.find((d) => d.id === "saved-new-citizen")).toMatchObject({ name: "First-time applicant", description: "Not in the registry yet" });
+  });
+
+  it("lists main's versions in the title's picker, even when there's only one", async () => {
+    renderEditor(apiWorkflowId("planning-application-workflow"));
+    const picker = await screen.findByRole("button", { name: "Switch version" }, wait);
+    expect(picker.textContent).toContain("v2");
+    fireEvent.click(picker);
+    const list = await screen.findByRole("listbox", { name: "Switch version" }, wait);
+    expect(within(list).getByText("Promoted sandbox adding duplicate-application check")).toBeTruthy();
+    expect(within(list).getByText("Initial go-live")).toBeTruthy();
+  });
+
+  it("shows the new version in the title on main once a sandbox is promoted, with its message first in the picker", async () => {
+    const projectId = projectIdFor("project-a");
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "dedupe" });
+    type Docs = { workflows: { id: string; name: string; jobs: { body: string }[] }[] };
+    const copy = (await request<Docs>("GET", `/api/projects/${sandboxId}/workflows`)).workflows.find((w) => w.name === "planning-application-workflow")!;
+    await request("PATCH", `/api/projects/${sandboxId}/workflows/${copy.id}`, { jobs: copy.jobs.map((j, i) => (i === 0 ? { ...j, body: "fn(s => s) // dedupe" } : j)) });
+    act(() => setSandbox(projectId, "dedupe"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      fireEvent.click(await screen.findByRole("button", { name: /^Sandbox dedupe, 1 change/ }, wait));
+      fireEvent.click(await screen.findByRole("button", { name: "Create promotion request" }, wait));
+      const form = await screen.findByRole("dialog", { name: "Promote to main" }, wait);
+      expect(within(form).getByText("v3")).toBeTruthy();
+      fireEvent.change(within(form).getByLabelText(/What changed/), { target: { value: "Adds a duplicate check" } });
+      fireEvent.click(within(form).getByRole("button", { name: "Promote to main" }));
+
+      // Back on main, at the new version, without a reload.
+      await waitFor(() => expect(screen.getByRole("button", { name: "Switch version" }).textContent).toContain("v3"), wait);
+      fireEvent.click(screen.getByRole("button", { name: "Switch version" }));
+      const options = within(await screen.findByRole("listbox", { name: "Switch version" }, wait)).getAllByRole("option");
+      expect(options[0]!.textContent).toContain("Adds a duplicate check");
+      expect(options[0]!.textContent).toContain("Latest");
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
   });
 
   it("adds a component to the sandbox's own copy of the project, counted as a change", async () => {

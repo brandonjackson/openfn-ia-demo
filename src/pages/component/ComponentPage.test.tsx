@@ -41,9 +41,27 @@ const openMenu = (name: string) => fireEvent.click(screen.getByRole("button", { 
 describe("ComponentPage", () => {
   it("draws a document with its kind, description and file", () => {
     draw(documentData);
-    expect(screen.getByRole("heading", { name: "Runbook" })).toBeTruthy();
+    // The page's own heading, then the document's # heading, drawn from its Markdown.
+    expect(screen.getAllByRole("heading", { name: "Runbook" }).map((h) => h.tagName)).toEqual(["H1", "H1"]);
+    expect(screen.getByText("Restart the intake.").closest("p")).toBeTruthy();
     expect(screen.getAllByText("Document").length).toBeGreaterThan(0);
     expect(screen.getAllByText("What to do when intake stops.").length).toBeGreaterThan(0);
+  });
+
+  it("edits a document's Markdown from Edit, saves it, and keeps the draft when the save is refused", async () => {
+    const host = draw(documentData);
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    const editor = screen.getByLabelText("document.md");
+    fireEvent.change(editor, { target: { value: "# Runbook\n\nRestart it twice." } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(screen.getByRole("button", { name: "Saving…" }).getAttribute("aria-disabled")).toBe("true");
+    expect(host.calls("onSaveContent").at(-1)).toEqual(["# Runbook\n\nRestart it twice."]);
+    await host.reject("onSaveContent", new FormError("Someone else saved it first."));
+    expect(screen.getByText("Someone else saved it first.")).toBeTruthy();
+    expect((screen.getByLabelText("document.md") as HTMLTextAreaElement).value).toBe("# Runbook\n\nRestart it twice.");
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await host.resolve("onSaveContent");
+    expect(screen.getByRole("button", { name: "Edit" })).toBeTruthy();
   });
 
   it("deletes a document once confirmed, and takes a refusal quietly (the wrapper says why)", async () => {
@@ -53,7 +71,8 @@ describe("ComponentPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Delete document" }));
     expect(host.calls("onDelete")).toHaveLength(1);
     await host.reject("onDelete", new FormError("You can't delete components in this project."));
-    expect(screen.getByRole("heading", { name: "Runbook" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Delete document" })).toBeNull();
+    expect(screen.getAllByRole("heading", { name: "Runbook" }).length).toBeGreaterThan(0);
   });
 
   it("lists a collection's keys, and asks for its name before deleting it", () => {

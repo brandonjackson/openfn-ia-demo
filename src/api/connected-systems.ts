@@ -6,6 +6,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ConnectedSystem, SystemChanges, AccessGrant, SuggestedSystem, SystemChannel } from "../model/connected-systems";
 import type { Adaptor } from "../model/adaptors";
+import type { AdaptorCatalog } from "../model/adaptor-catalog";
 import { lineColors, type Ecosystem, type EcosystemStation, type EcosystemWorkflow, type LineColor } from "../model/ecosystem";
 import { linkId } from "../model/ecosystem-map";
 import { triggerTypes, type TriggerType } from "../model/workflow";
@@ -101,6 +102,7 @@ export interface SystemDraft {
   adaptor: string;
   endpointUrl?: string;
   docsUrl?: string;
+  openApiSpecUrl?: string;
 }
 
 /** Adding, editing, removing and revoking access to systems. Each resolves once the systems have reloaded. */
@@ -120,6 +122,7 @@ export function useSystemSaves() {
           description: draft.description,
           adaptor: draft.adaptor,
           ...(draft.docsUrl && { apiDocsUrl: draft.docsUrl }),
+          ...(draft.openApiSpecUrl && { openApiSpecUrl: draft.openApiSpecUrl }),
           environments: { production: { ...blank, url: draft.endpointUrl ?? "" }, staging: blank, mock: blank },
         });
         return id;
@@ -138,6 +141,7 @@ export function useSystemSaves() {
           name: changes.name,
           description: changes.description,
           apiDocsUrl: changes.docsUrl,
+          openApiSpecUrl: changes.openApiSpecUrl,
           ...(changes.urls && {
             environments: Object.fromEntries(
               Object.entries(system.environments).map(([env, value]) => [env, { ...value, url: changes.urls![env as keyof typeof changes.urls].trim() }]),
@@ -164,6 +168,34 @@ export function useAdaptors(enabled = true): { status: LoadStatus; adaptors: Ada
     staleTime: Infinity,
   });
   return enabled ? { status: statusOf(query), adaptors: query.data ?? [] } : { status: { state: "ready" }, adaptors: [] };
+}
+
+interface ApiAdaptorCatalog {
+  data: {
+    attributes: Pick<AdaptorCatalog, "adaptors" | "categories"> & {
+      built_in_tools: string[];
+      ai_models: string[];
+      ai_actions: AdaptorCatalog["aiActions"];
+    };
+  };
+}
+
+/** Every adaptor, sorted into the categories "Add a step" and "Connect a system" show. Loads nothing while `enabled` is false. */
+export function useAdaptorCatalog(enabled = true): { status: LoadStatus; catalog: AdaptorCatalog | undefined } {
+  const query = useQuery({
+    queryKey: ["adaptor_catalog"],
+    enabled,
+    queryFn: () => request<ApiAdaptorCatalog>("GET", "/api/demo/adaptor_catalog"),
+    select: ({ data: { attributes: a } }): AdaptorCatalog => ({
+      adaptors: a.adaptors,
+      categories: a.categories,
+      builtInTools: a.built_in_tools,
+      aiModels: a.ai_models,
+      aiActions: a.ai_actions,
+    }),
+    staleTime: Infinity,
+  });
+  return enabled ? { status: statusOf(query), catalog: query.data } : { status: { state: "ready" }, catalog: undefined };
 }
 
 /** Systems the organisation might connect next, leaving out any it already has. Loads nothing while `enabled` is false. */

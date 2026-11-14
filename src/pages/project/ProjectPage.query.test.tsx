@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { AnnouncementsProvider } from "../../app/announcements";
 import ApiProvider from "../../api/ApiProvider";
 import { forgetCsrfToken, request } from "../../api/client";
 import { setFlag } from "../../app/feature-flags";
@@ -23,12 +24,14 @@ function renderRoute() {
   const route = { ...findNodeByPath(iaTree, path)!, currentPath: path };
   render(
     <ApiProvider retry={false}>
-      <MemoryRouter initialEntries={[path]}>
-        <Routes>
-          <Route path="/projects/:project" element={<ProjectPageQuery route={route} />} />
-          <Route path="/workflow-editor/:id" element={<Opened />} />
-        </Routes>
-      </MemoryRouter>
+      <AnnouncementsProvider>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route path="/projects/:project" element={<ProjectPageQuery route={route} />} />
+            <Route path="/workflow-editor/:id" element={<Opened />} />
+          </Routes>
+        </MemoryRouter>
+      </AnnouncementsProvider>
     </ApiProvider>,
   );
 }
@@ -66,7 +69,18 @@ describe("ProjectPageQuery", () => {
     expect(await screen.findByText(service.attributes["name"] as string, {}, wait)).toBeTruthy();
 
     act(() => setFlag("serviceCatalog", false));
-    await waitFor(() => expect(screen.queryByText("Published services")).toBeNull(), wait);
+    await waitFor(() => expect(screen.queryByText("Service listings")).toBeNull(), wait);
+    expect(screen.queryByRole("region", { name: "Published services" })).toBeNull();
+  });
+
+  it("makes a copy of a workflow from the Overview, which lists it there at once", async () => {
+    const [first] = await serverWorkflows();
+    renderRoute();
+    const row = (await screen.findByText(first!.name, {}, wait)).closest("a")!.parentElement!;
+    fireEvent.click(within(row).getByRole("button", { name: `Actions for ${first!.name}` }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Make a copy" }));
+    expect(await screen.findByText(`Made "${first!.name} (copy)".`, {}, wait)).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Paused workflows" })).getByText(`${first!.name} (copy)`)).toBeTruthy();
   });
 
   it("lists the project's components from the server, and leaves them out without components", async () => {

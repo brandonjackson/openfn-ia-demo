@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../../api/ApiProvider";
@@ -55,7 +55,10 @@ describe("OverviewPageQuery", () => {
     const before = (await request<{ data: ApiSystem[] }>("GET", "/api/demo/connected_systems?page_size=100")).data;
     draw();
     fireEvent.click(await screen.findByRole("button", { name: "Add system" }, wait));
-    fireEvent.click(screen.getByRole("button", { name: /ArcGIS/ }));
+    // "Connect a system": the same picker as the editor's "Add a step", searched for ArcGIS.
+    const picker = await screen.findByRole("dialog", { name: "Connect a system" }, wait);
+    fireEvent.change(within(picker).getByRole("searchbox"), { target: { value: "ArcGIS" } });
+    fireEvent.click(within(picker).getByRole("button", { name: /ArcGIS/ }));
     fireEvent.change(screen.getByDisplayValue("ArcGIS"), { target: { value: "County maps" } });
     fireEvent.click(screen.getByRole("button", { name: "Add connected system" }));
     const opened = await screen.findByText(/^Opened \/connected-systems\//, {}, wait);

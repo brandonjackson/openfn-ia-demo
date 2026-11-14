@@ -5,11 +5,11 @@ import { insightsFor, weekTiles } from "../../model/insights";
 import { insightsData } from "../../fixtures/insights";
 import { connectedSystemSummaries, recommendedSystems } from "../../fixtures/connected-systems";
 import { projectSummaries } from "../../fixtures/projects";
-import { adaptors } from "../../fixtures/adaptors";
+import { fullAdaptorCatalog } from "../../fixtures/adaptor-catalog";
 
 /** A busy organisation's Overview, from the fixtures' pieces. */
 const data: OverviewPageData = {
-  adaptors,
+  catalog: fullAdaptorCatalog,
   tiles: weekTiles(insightsData),
   connectedSystems: connectedSystemSummaries,
   recommendedSystems,

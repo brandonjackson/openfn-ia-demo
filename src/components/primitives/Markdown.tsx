@@ -2,7 +2,7 @@ import { useMemo, type ReactNode } from "react";
 import Code from "./Code";
 import CodeBlock from "./CodeBlock";
 import TextLink from "./TextLink";
-import { headingId, parseMarkdown, type MarkdownBlock, type MarkdownInline } from "./markdown";
+import { headingId, parseMarkdown, type MarkdownBlock, type MarkdownInline } from "./markdown-reader";
 
 interface Props {
   /** The Markdown to show. */
@@ -152,7 +152,7 @@ function Block({ block, ids }: { block: MarkdownBlock; ids: Map<MarkdownBlock, s
  * rules, with `code`, **strong**, *emphasis* and links inside them (a link to
  * a path stays in the app; any other opens in a new tab). Each `##` heading
  * starts a section, spaced apart and underlined, that `contents` links to,
- * the way a wiki article reads. The reader is in `markdown.ts`.
+ * the way a wiki article reads. The reader is in `markdown-reader.ts`.
  */
 export default function Markdown({ source, contents = false }: Props) {
   const { intro, sections, ids } = useMemo(() => {

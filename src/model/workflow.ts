@@ -86,14 +86,42 @@ export interface JobNode {
 
 export type WorkflowNode = TriggerNode | JobNode;
 
+/**
+ * A path from a trigger or step to the next step, as Lightning has it: what
+ * makes it fire, an optional label drawn beside its badge, and whether it's
+ * on. A path that's off is drawn dashed and never runs.
+ */
 export interface WorkflowEdge {
   id: string;
   source: string;
   target: string;
   condition: EdgeCondition;
-  /** Used when condition is "js_expression" — shown as a tooltip / inspector value. */
+  /** The JavaScript expression a "js_expression" path matches on, with `state` in scope, e.g. "!state.error". */
   expression?: string;
+  /** A name for the path, drawn beside its badge, e.g. "Exact match". */
+  label?: string;
+  /** Off, the path never runs. On when left out. */
+  enabled?: boolean;
 }
+
+/** Whether a path runs at all: it's on unless it's been turned off. */
+export const isEdgeEnabled = (edge: Pick<WorkflowEdge, "enabled">) => edge.enabled !== false;
+
+/** The conditions a path can have, in Lightning's words and order. A path from a trigger is Always or On match. */
+export const edgeConditionOptions: { value: EdgeCondition; label: string }[] = [
+  { value: "always", label: "Always" },
+  { value: "on_success", label: "On success" },
+  { value: "on_failure", label: "On failure" },
+  { value: "js_expression", label: "On match" },
+];
+
+/** The conditions a path from this source can have: a trigger's path has no step before it to succeed or fail. */
+export function edgeConditionsFor(fromTrigger: boolean) {
+  return fromTrigger ? edgeConditionOptions.filter((o) => o.value === "always" || o.value === "js_expression") : edgeConditionOptions;
+}
+
+/** Words in an expression that Lightning warns may be unsafe to run. */
+export const isUnsafeExpression = (expression: string) => /(\bimport\b|\brequire\b|\bprocess\b|\bawait\b|\beval\b)/.test(expression);
 
 export interface Workflow {
   id: string;
@@ -281,7 +309,8 @@ export function workflowToYaml(workflow: Workflow, { enabled = true }: { enabled
     lines.push(`    target_job: ${to}`);
     lines.push(`    condition_type: ${edge.condition}`);
     if (edge.expression) lines.push(`    condition_expression: ${edge.expression}`);
-    lines.push(`    enabled: true`);
+    if (edge.label) lines.push(`    condition_label: ${edge.label}`);
+    lines.push(`    enabled: ${isEdgeEnabled(edge)}`);
   }
   return lines.join("\n");
 }

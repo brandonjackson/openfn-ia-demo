@@ -10,7 +10,7 @@ const chwWorkflows = projectWorkflowItems(projects[2]);
 const meta: Meta<typeof WorkflowRow> = {
   title: "Domain/WorkflowRow",
   component: WorkflowRow,
-  args: { onToggleEnabled: () => {}, onDelete: () => {} },
+  args: { onToggleEnabled: () => {}, onCopy: () => {}, onDelete: () => {} },
   decorators: [
     withRouter,
     (Story) => (
@@ -24,20 +24,21 @@ const meta: Meta<typeof WorkflowRow> = {
 export default meta;
 type Story = StoryObj<typeof WorkflowRow>;
 
-/** Backs a live service; its latest run failed; seven people edit it. */
+/** Live, and published as a service; its latest run failed; seven people edit it. */
 export const Default: Story = {
   args: { workflow: planning },
 };
 
-export const DraftService: Story = {
-  args: { workflow: decisions },
+/** Not published yet, so its ⋮ menu offers Publish. */
+export const Unpublished: Story = {
+  args: { workflow: { ...decisions, published: false }, onPublish: () => {} },
 };
 
 export const Running: Story = {
   args: { workflow: chwWorkflows.find((w) => w.latestRun === "running")! },
 };
 
-/** Its trigger is off, so it only runs when someone starts it by hand. */
+/** Its trigger is off, so it's Paused: it only runs when someone starts it by hand. */
 export const Disabled: Story = {
   args: { workflow: chwWorkflows.find((w) => !w.enabled && w.latestRun)! },
 };
@@ -48,7 +49,7 @@ export const NeverRun: Story = {
 
 /** Without the callbacks there's no switch or menu, e.g. for a viewer. */
 export const ReadOnly: Story = {
-  args: { workflow: planning, onToggleEnabled: undefined, onDelete: undefined },
+  args: { workflow: planning, onToggleEnabled: undefined, onCopy: undefined, onDelete: undefined },
 };
 
 /** As the API sends it: api/ workflows have no description or members yet, so the row leaves both out. */

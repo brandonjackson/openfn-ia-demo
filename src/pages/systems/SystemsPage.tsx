@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { ComponentProps } from "react";
-import { Check, Globe, Lock, Plus, Download, KeyRound, Sparkles, Zap } from "lucide-react";
+import { Check, FileCode, Globe, Lock, Plus, Download, KeyRound, Sparkles, Zap } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
-import type { Adaptor } from "../../model/adaptors";
+import type { AdaptorCatalog } from "../../model/adaptor-catalog";
 import type { Ecosystem } from "../../model/ecosystem";
 import AdaptorLogo from "../../components/domain/AdaptorLogo";
 import Badge from "../../components/primitives/Badge";
@@ -30,8 +30,8 @@ import { routeKey, type XRoadConnectionStatus, type XRoadMember, type XRoadRoute
 export interface SystemsPageData {
   /** The organisation's systems, as rows. */
   items: SystemListItem[];
-  /** Every adaptor a new system can be connected with. */
-  adaptors: Adaptor[];
+  /** Every adaptor a new system can be connected with, sorted into the categories "Connect a system" shows. Absent until it's loaded, when there's no form to add one. */
+  catalog?: AdaptorCatalog;
   /** Systems to suggest adding, without the ones already connected. */
   suggestions: SuggestedSystem[];
   /** The organisation's systems and the workflows between them, drawn as a transport map. Absent without the Ecosystem map. */
@@ -69,7 +69,7 @@ const intro: ComponentProps<typeof FeatureIntro> = {
 export interface SystemsPageProps extends PageProps<SystemsPageData> {
   /** Adds a service from the X-Road directory to your systems, with its route filled in. */
   onAddXRoadService: (route: XRoadRoute) => Promise<void>;
-  /** Adds a system from the "Add connected system" form. Without it the form only pretends. */
+  /** Adds a system from "Connect a system". Without it the form only pretends. */
   onAddSystem?: (system: NewSystemInput) => Promise<void>;
 }
 
@@ -97,6 +97,7 @@ function ListItemRow({ item, basePath }: { item: SystemListItem; basePath: strin
           ) : access === "no" ? (
             <Badge label="No access" tone="gray" icon={Lock} />
           ) : null}
+          {item.metadata?.openApiSpecUrl && <Badge label="OpenAPI" shape="tag" icon={FileCode} />}
         </>
       }
       description={item.description}
@@ -219,13 +220,15 @@ export default function SystemsPage({ node, ancestors, currentPath, data, onAddX
         )}
       </ListPage>
 
-      <AddConnectedSystemFlow
-        open={addFlowOpen}
-        onClose={() => setAddFlowOpen(false)}
-        adaptors={data.adaptors}
-        preselectedSystem={preselectedSystem}
-        onAdd={onAddSystem}
-      />
+      {data.catalog && (
+        <AddConnectedSystemFlow
+          open={addFlowOpen}
+          onClose={() => setAddFlowOpen(false)}
+          catalog={data.catalog}
+          preselectedSystem={preselectedSystem}
+          onAdd={onAddSystem}
+        />
+      )}
     </>
   );
 }

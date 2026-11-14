@@ -14,6 +14,10 @@
  *   `lock_version` in the body is a 409 `concurrent_edit`.
  * - `DELETE` marks it deleted: its triggers go off, it leaves every list and
  *   its GET is a 404. Its run history stays.
+ * - The demo's own `POST /api/demo/projects/:id/workflows/:id/copies` makes a
+ *   copy in the same project (api/ has no copy): every id new, its triggers
+ *   off and with no custom webhook path (so it can't take the original's
+ *   traffic), named "… (copy)", or "… (copy 2)" when that's taken.
  */
 import { approvalTimeoutActions, outcomeStatuses } from "../model/step-tools";
 import { projects as fixtureProjects, projectWorkflowDetails } from "../fixtures/projects";
@@ -21,6 +25,7 @@ import { authMethods } from "../fixtures/project-settings";
 import { nationalIdWorkflow, nationalIdWorkflowAt, surveillanceVersions, workflowGraphs, workflowVersions } from "../fixtures/workflow";
 import { apiNodeId, apiSystemId, apiWorkflowId, cloneNodeId, newId, seedId } from "../fixtures/ids";
 import type { Workflow } from "../model/workflow";
+import { copyName } from "../model/workflow-list";
 import { toDocument, type WorkflowDocEdge, type WorkflowDocument, type WorkflowJob, type WorkflowTrigger } from "../model/workflow-document";
 import { badId, conflict, forbidden, invalid, isUuid, json, noContent, notFound, now, ORIGIN, paged, unknownKeys, type Body, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
@@ -560,6 +565,46 @@ export const workflowRoutes: Record<string, Handler> = {
     );
     record("marked_for_deletion", { type: "workflow", id: w.id, name: w.name }, {}, true);
     return noContent();
+  },
+
+  // The demo's own: a copy of a workflow in its project, paused, with fresh ids and a name of its own.
+  "POST /api/demo/projects/:project_id/workflows/:id/copies": ({ project_id, id }, body) => {
+    const p = guardProject(project_id!, "editor");
+    if (p instanceof Response) return p;
+    if (!isUuid(id)) return badId("id");
+    const w = findWorkflow(id);
+    if (!w || w.project_id !== p.id) return notFound();
+    const errors = unknownKeys(body, []);
+    if (errors.length) return invalid(errors);
+    const fresh = new Map<string, string>();
+    const idFor = (old: string) => fresh.get(old) ?? (fresh.set(old, newId()), fresh.get(old)!);
+    const at = now();
+    const name = copyName(w.name, liveWorkflowsIn(p.id).map((x) => x.name));
+    const copy: WorkflowRow = {
+      ...w,
+      id: newId(),
+      name,
+      jobs: w.jobs.map((j) => ({ ...j, id: idFor(j.id) })),
+      triggers: w.triggers.map((t) => ({ ...t, id: idFor(t.id), enabled: false, custom_path: null })),
+      edges: w.edges.map((e) => ({
+        ...e,
+        id: idFor(e.id),
+        source_trigger_id: e.source_trigger_id && idFor(e.source_trigger_id),
+        source_job_id: e.source_job_id && idFor(e.source_job_id),
+        target_job_id: idFor(e.target_job_id),
+      })),
+      positions: w.positions && Object.fromEntries(Object.entries(w.positions).map(([k, v]) => [idFor(k), v])),
+      inserted_at: at,
+      updated_at: at,
+      lock_version: 1,
+      deleted_at: null,
+      // `copied_from` pairs a sandbox's copy with its parent's; a copy beside the original is a workflow of its own.
+      copied_from: null,
+    };
+    workflows.insert(copy);
+    snapshot(copy);
+    record("created", { type: "workflow", id: copy.id, name }, { after: { name, copied_from: w.id } });
+    return one(copy, 201);
   },
 
   "GET /api/workflows/:id/snapshots": ({ id }, _body, query) => {

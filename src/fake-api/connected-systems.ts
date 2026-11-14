@@ -7,12 +7,16 @@
  *
  * Lifecycle:
  * - `PUT /api/demo/connected_systems/:id` adds a system (201) or changes it
- *   (200). Its name is unique in the organisation; its URLs are http(s).
+ *   (200). Its name is unique in the organisation; its URLs (each
+ *   environment's, its API docs and its OpenAPI spec) are http(s).
  * - Adding one from the X-Road directory gives it an X-Road connection whose
  *   status starts at "discovered": terms are agreed later.
  * - `DELETE` removes it, with every access grant to it.
  * - Revoking a grant removes that one person's or project's access.
- * - The adaptors a system can use (`GET /api/demo/adaptors`) and the
+ * - The adaptors a system can use (`GET /api/demo/adaptors`), the catalog
+ *   they're picked from, sorted into categories (`GET
+ *   /api/demo/adaptor_catalog`, which "Add a step" and "Connect a system"
+ *   share), and the
  *   systems it might connect next (`GET /api/demo/connected_systems/suggestions`,
  *   leaving out any it already has by that name) are read only, as are the
  *   channels each system offers to workflows (`GET
@@ -22,6 +26,7 @@
  */
 import { connectedSystems, recommendedSystems, systemAccessGrants } from "../fixtures/connected-systems";
 import { adaptors } from "../fixtures/adaptors";
+import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
 import { serviceCatalogData } from "../fixtures/service-catalog";
 import { apiSystemId, seedId } from "../fixtures/ids";
 import type { ConnectedSystem, AccessGrant } from "../model/connected-systems";
@@ -56,7 +61,7 @@ const entry = (s: SystemRow) => ({
 });
 
 const URL_RE = /^https?:\/\/\S+$/;
-const SYSTEM_KEYS = ["name", "description", "adaptor", "credentialType", "hasAccess", "color", "owner", "ownerType", "environments", "apiDocsUrl", "linkTo", "connection"];
+const SYSTEM_KEYS = ["name", "description", "adaptor", "credentialType", "hasAccess", "color", "owner", "ownerType", "environments", "apiDocsUrl", "openApiSpecUrl", "linkTo", "connection"];
 
 export const systemRoutes: Record<string, Handler> = {
   // Every adaptor a system can be connected with, named by its package.
@@ -64,6 +69,15 @@ export const systemRoutes: Record<string, Handler> = {
     const rows = adaptors.map((a) => ({ type: "adaptors", id: a.id, attributes: { name: a.name, description: a.description, category: a.category } }));
     return json(200, paged("/api/demo/adaptors", rows, query));
   },
+  // Every adaptor, sorted into the categories "Add a step" and "Connect a system" show, with the built-in tools and the AI tab's actions.
+  "GET /api/demo/adaptor_catalog": () =>
+    json(200, {
+      data: {
+        type: "adaptor_catalogs",
+        id: "adaptor-catalog",
+        attributes: { adaptors: adaptorCatalog, categories: catalogCategories, built_in_tools: builtInTools, ai_models: aiModels, ai_actions: aiActions },
+      },
+    }),
   // What each connected system offers to workflows, filed under who offers it.
   "GET /api/demo/connected_systems/channels": (_params, _body, query) => {
     const rows = serviceCatalogData.entries.flatMap((e) => {
@@ -110,8 +124,10 @@ export const systemRoutes: Record<string, Handler> = {
     else if (systems.rows().some((r) => r.id !== id && r.name.toLowerCase() === name.toLowerCase())) errors.push({ code: "taken", detail: "has already been taken", pointer: "#/name" });
     if (typeof body["description"] === "string" && body["description"].length > 240) errors.push({ code: "too_long", detail: "should be at most 240 character(s)", pointer: "#/description" });
     if (!existing && (typeof body["adaptor"] !== "string" || !body["adaptor"])) errors.push({ code: "required", detail: "can't be blank", pointer: "#/adaptor" });
-    const docs = body["apiDocsUrl"];
-    if (typeof docs === "string" && docs && !URL_RE.test(docs)) errors.push({ code: "format", detail: "must be an http or https URL", pointer: "#/apiDocsUrl" });
+    for (const key of ["apiDocsUrl", "openApiSpecUrl"]) {
+      const url = body[key];
+      if (typeof url === "string" && url && !URL_RE.test(url)) errors.push({ code: "format", detail: "must be an http or https URL", pointer: `#/${key}` });
+    }
     const envs = body["environments"] as SystemRow["environments"] | undefined;
     if (envs) {
       for (const [env, value] of Object.entries(envs)) {

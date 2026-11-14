@@ -63,9 +63,12 @@ export const InDialog: Story = {
   ],
 };
 
-/** Titled for connecting a system rather than adding a step, as a systems page would open it: no services or tools. */
+/** For connecting a system (the Systems page's "Connect a system"): only the categories, with no Connected, AI or Services. */
+export const ForSystem: Story = { args: { purpose: "system", services: undefined, tools: undefined } };
+
+/** As the Systems page and Overview open it, through `AddConnectedSystemFlow`. */
 export const ConnectASystem: Story = {
-  args: { services: undefined, tools: undefined },
+  args: { purpose: "system", services: undefined, tools: undefined },
   decorators: [
     (Story) => (
       <Modal open title="Connect a system" onClose={() => {}} widthClass="max-w-3xl">

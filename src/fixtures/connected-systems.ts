@@ -33,6 +33,7 @@ export const connectedSystems: ConnectedSystem[] = [
       mock: { url: "https://mock.dhis2.example.org", credential: "dhis2-mock" },
     },
     apiDocsUrl: "https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/introduction.html",
+    openApiSpecUrl: "https://dhis2.example.org/api/openapi.json",
   },
   {
     id: "dhis2-malaria",
@@ -49,6 +50,7 @@ export const connectedSystems: ConnectedSystem[] = [
       staging: { url: "https://staging.malaria.dhis2.example.org", credential: "Malaria programme DHIS2" },
       mock: { url: undefined },
     },
+    openApiSpecUrl: "https://malaria.dhis2.example.org/api/openapi.json",
   },
   {
     id: "salesforce",
@@ -100,6 +102,7 @@ export const connectedSystems: ConnectedSystem[] = [
       mock: { url: undefined, credential: undefined },
     },
     apiDocsUrl: "https://support.kobotoolbox.org/api.html",
+    openApiSpecUrl: "https://kf.kobotoolbox.org/api/v2/schema/",
   },
   {
     id: "google-sheets",
@@ -134,6 +137,7 @@ export const connectedSystems: ConnectedSystem[] = [
       mock: { url: "https://mock.fhir.example.org/r4", credential: "fhir-mock" },
     },
     apiDocsUrl: "https://hl7.org/fhir/http.html",
+    openApiSpecUrl: "https://fhir.example.org/r4/api-docs",
   },
   {
     id: "opencrvs",

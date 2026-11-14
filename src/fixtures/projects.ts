@@ -630,14 +630,14 @@ const workflowFacts: Record<string, Pick<WorkflowDetails, "members" | "updatedAt
   },
 };
 
-/** A project's workflows with their service status, members and trigger. */
+/** A project's workflows with whether each is published, their members and trigger. */
 export function projectWorkflowDetails(project: Project): WorkflowDetails[] {
   return project.components
     .filter((c) => c.type === "Workflow")
     .map((c) => ({
       ...c,
       type: "Workflow" as const,
-      serviceStatus: project.services.find((s) => s.workflowId === c.id)?.status,
+      published: project.services.some((s) => s.workflowId === c.id),
       ...(workflowFacts[c.id] ?? { members: [], updatedAt: "2026-01-01T00:00:00Z", enabled: false }),
     }));
 }

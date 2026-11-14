@@ -9,7 +9,7 @@ import TextLink from "../../components/primitives/TextLink";
 import type { StatTileData } from "../../model/page-data";
 import type { ConnectedSystemSummary, SuggestedSystem } from "../../model/connected-systems";
 import type { ProjectSummary } from "../../model/projects";
-import type { Adaptor } from "../../model/adaptors";
+import type { AdaptorCatalog } from "../../model/adaptor-catalog";
 
 export interface OverviewPageProps {
   /** Everything the page shows. */
@@ -70,13 +70,15 @@ export default function OverviewPage({ data, onAddSystem }: OverviewPageProps) {
         </div>
       </section>
 
-      <AddConnectedSystemFlow
-        open={addFlowOpen && !!data.connectedSystems}
-        onClose={() => setAddFlowOpen(false)}
-        adaptors={data.adaptors}
-        preselectedSystem={preselectedSystem}
-        onAdd={onAddSystem}
-      />
+      {data.catalog && (
+        <AddConnectedSystemFlow
+          open={addFlowOpen && !!data.connectedSystems}
+          onClose={() => setAddFlowOpen(false)}
+          catalog={data.catalog}
+          preselectedSystem={preselectedSystem}
+          onAdd={onAddSystem}
+        />
+      )}
     </div>
   );
 }
@@ -93,6 +95,6 @@ export interface OverviewPageData {
   projects: ProjectSummary[];
   /** How many systems setup counts towards: those connected and those suggested. */
   recommended: number;
-  /** Every adaptor a new system can be connected with. */
-  adaptors: Adaptor[];
+  /** Every adaptor a new system can be connected with, sorted into the categories "Connect a system" shows. Absent until it's loaded, when there's no form to add one. */
+  catalog?: AdaptorCatalog;
 }

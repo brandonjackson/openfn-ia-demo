@@ -1,4 +1,4 @@
-import type { AiAction, CatalogAdaptor, CatalogCategory } from "../model/adaptor-catalog";
+import type { AdaptorCatalog, AiAction, CatalogAdaptor, CatalogCategory } from "../model/adaptor-catalog";
 
 export const adaptorCatalog: CatalogAdaptor[] = [
   { id: "arcgis", name: "ArcGIS", description: "Geospatial data and mapping", version: "1.1.2" },
@@ -229,3 +229,6 @@ export const aiActions: AiAction[] = [
     body: prompt("Extract the name, date of birth and phone number from this text as JSON."),
   },
 ];
+
+/** The whole catalog, as "Add a step" and "Connect a system" take it. */
+export const fullAdaptorCatalog: AdaptorCatalog = { adaptors: adaptorCatalog, categories: catalogCategories, builtInTools, aiModels, aiActions };

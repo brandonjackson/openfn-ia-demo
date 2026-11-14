@@ -14,14 +14,17 @@ interface Props {
  * a bar pinned to its bottom and a card floating over its right edge. The
  * card starts below the editor's toolbar when that floats over the canvas,
  * reading its height from `EditorShell`'s `--editor-toolbar-h`. There are no
- * trays here: anything about runs on the canvas floats over it.
+ * trays here: anything about runs on the canvas floats over it. The
+ * overlay's frame reaches the bottom so the card can grow to fit, but only
+ * the card takes the pointer: the canvas under the empty space below it
+ * still pans and drags.
  */
 export default function CanvasLayout({ children, bottom, rightOverlay }: Props) {
   return (
     <div className="relative h-full">
       {children}
       {rightOverlay && (
-        <div className="absolute bottom-4 right-4 top-[calc(var(--editor-toolbar-h,0px)+0.75rem)] z-30 flex items-start justify-end">
+        <div className="pointer-events-none absolute bottom-4 right-4 top-[calc(var(--editor-toolbar-h,0px)+0.75rem)] z-30 flex items-start justify-end [&>*]:pointer-events-auto">
           {rightOverlay}
         </div>
       )}

@@ -43,6 +43,21 @@ export interface ProjectSummary {
 }
 
 /**
+ * A project on the instance you aren't a member of: listed under "Other
+ * projects", where you can ask to join it but can't open it.
+ */
+export interface OtherProject {
+  id: string;
+  name: string;
+  description: string;
+  /** Who owns it, by name. Absent when nothing says. */
+  ownerName?: string;
+  memberCount: number;
+  /** Whether you've already asked to join. */
+  joinRequested: boolean;
+}
+
+/**
  * A project's card from the API: its counts from `include=stats`, and its
  * services' counts when it's given them (leave `services` out without the
  * service catalog, and the card shows none).
@@ -62,11 +77,12 @@ export function toProjectSummary(details: ProjectDetails, services?: Pick<Projec
 
 /**
  * The cards for the projects you can open, each with its own services'
- * counts. Leave `services` out without the service catalog, or while they
+ * counts. Sandboxes aren't projects of their own here (a superuser's list
+ * holds them too), so they're left out. Leave `services` out without the service catalog, or while they
  * can't be loaded, and the cards show no counts rather than wrong ones.
  */
 export function projectSummaries(projects: ProjectDetails[], services?: (Pick<ProjectService, "status"> & { projectId: string })[]): ProjectSummary[] {
-  return projects.filter(isOpenable).map((p) => toProjectSummary(p, services?.filter((s) => s.projectId === p.id)));
+  return projects.filter((p) => isOpenable(p) && !p.parentId).map((p) => toProjectSummary(p, services?.filter((s) => s.projectId === p.id)));
 }
 
 /** The projects you're a member of that aren't being deleted: what the projects list, Overview and the sidebar show. */

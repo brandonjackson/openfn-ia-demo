@@ -1,7 +1,7 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { FormError } from "../../model/form-error";
-import type { ProjectSummary } from "../../model/projects";
+import type { OtherProject, ProjectSummary } from "../../model/projects";
 import { renderPage } from "../../test/renderPage";
 import ProjectsPage, { type ProjectsPageProps } from "./ProjectsPage";
 
@@ -15,13 +15,24 @@ const project = (name: string, description = ""): ProjectSummary => ({
   workflowCount: 2,
 });
 
-const frame: Omit<ProjectsPageProps, "data" | "onCreateProject"> = {
+const other = (name: string, more: Partial<OtherProject> = {}): OtherProject => ({
+  id: name,
+  name,
+  description: "",
+  ownerName: "Priya Nair",
+  memberCount: 2,
+  joinRequested: false,
+  ...more,
+});
+
+const frame: Omit<ProjectsPageProps, "data" | "onCreateProject" | "onCopyProject" | "onRequestToJoin"> = {
   node: { id: "projects", label: "Projects", description: "Every integration project in your organization." },
   ancestors: [],
   currentPath: "/projects",
 };
 
-const draw = (projects: ProjectSummary[]) => renderPage(ProjectsPage, { ...frame, data: { projects } }, ["onCreateProject"]);
+const draw = (projects: ProjectSummary[], otherProjects?: OtherProject[]) =>
+  renderPage(ProjectsPage, { ...frame, data: { projects, otherProjects } }, ["onCreateProject", "onCopyProject", "onRequestToJoin"]);
 
 function fillInAndCreate(name: string) {
   fireEvent.click(screen.getAllByRole("button", { name: "New project" })[0]!);
@@ -36,6 +47,54 @@ describe("ProjectsPage", () => {
     fireEvent.change(screen.getByRole("searchbox", { name: "Search projects" }), { target: { value: "portal" } });
     expect(screen.getByText("planning-intake")).toBeTruthy();
     expect(screen.queryByText("payroll")).toBeNull();
+  });
+
+  it("splits projects into Your projects, which open, and Other projects, which don't", () => {
+    draw([project("payroll")], [other("registry")]);
+    const yours = screen.getByRole("region", { name: "Your projects" });
+    expect(within(yours).getByText("payroll").closest("a")!.getAttribute("href")).toBe("/projects/payroll");
+    const others = screen.getByRole("region", { name: "Other projects" });
+    expect(within(others).getByText("registry").closest("a")).toBeNull();
+    expect(within(others).getByText("Owned by Priya Nair")).toBeTruthy();
+  });
+
+  it("leaves Other projects out when it isn't given any", () => {
+    draw([project("payroll")]);
+    expect(screen.queryByRole("region", { name: "Other projects" })).toBeNull();
+  });
+
+  it("asks to join another project, says so while it runs, and ignores a second press", async () => {
+    const host = draw([project("payroll")], [other("registry")]);
+    fireEvent.click(screen.getByRole("button", { name: "Request to join" }));
+    const pending = screen.getByRole("button", { name: "Requesting…" });
+    expect(pending.getAttribute("aria-disabled")).toBe("true");
+    fireEvent.click(pending);
+    expect(host.calls("onRequestToJoin")).toEqual([["registry"]]);
+    await host.resolve("onRequestToJoin");
+    expect(screen.getByRole("button", { name: "Request to join" })).toBeTruthy();
+  });
+
+  it("shows Requested, with no button, once you've asked", () => {
+    draw([], [other("registry", { joinRequested: true })]);
+    expect(screen.getByText("Requested")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Request to join" })).toBeNull();
+  });
+
+  it("takes a refused request quietly (the wrapper says why)", async () => {
+    const host = draw([], [other("registry")]);
+    fireEvent.click(screen.getByRole("button", { name: "Request to join" }));
+    await host.reject("onRequestToJoin", new FormError("You're already a member of this project."));
+    expect(screen.getByRole("button", { name: "Request to join" })).toBeTruthy();
+  });
+
+  it("makes a copy of one of your projects, and links to its settings, from its menu", async () => {
+    const host = draw([project("payroll")]);
+    fireEvent.click(screen.getByRole("button", { name: "Actions for payroll" }));
+    expect(screen.getByRole("menuitem", { name: "Settings" }).getAttribute("href")).toBe("/projects/payroll/settings");
+    fireEvent.click(screen.getByRole("menuitem", { name: "Make a copy" }));
+    expect(host.calls("onCopyProject")).toEqual([["payroll"]]);
+    await host.reject("onCopyProject", new FormError("Only a member can copy a project."));
+    expect(screen.getByText("payroll")).toBeTruthy();
   });
 
   it("says how long ago each project was active, or that it hasn't been", () => {

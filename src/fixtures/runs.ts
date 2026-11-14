@@ -478,7 +478,7 @@ const built = [
     started: "19/10/2026, 11:11:26",
     duration: "34 s",
     input: inputs.kofi,
-    path: ["verify", "search", "create"],
+    path: ["verify", "search", "create", "queue"],
     failAt: { jobId: "create", error: "Identity returned 502 Bad Gateway" },
   }),
   buildRun({
@@ -602,7 +602,7 @@ const v2Outcomes: { weight: number; outcome: Outcome }[] = [
   },
   {
     weight: 4,
-    outcome: { path: ["verify", "search", "create"], duration: "34 s", failAt: { jobId: "create", error: "Identity returned 502 Bad Gateway" } },
+    outcome: { path: ["verify", "search", "create", "queue"], duration: "34 s", failAt: { jobId: "create", error: "Identity returned 502 Bad Gateway" } },
   },
   {
     weight: 3,

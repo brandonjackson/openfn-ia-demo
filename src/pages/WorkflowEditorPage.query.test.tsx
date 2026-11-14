@@ -548,7 +548,8 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     try {
       renderEditor(apiWorkflowId("planning-application-workflow"));
       await screen.findByRole("button", { name: "Triggers: paused" }, wait);
-      fireEvent.click(await screen.findByRole("button", { name: "On failure path" }, wait));
+      // Failures at the search and at the create both go to the queue: take the first.
+      fireEvent.click((await screen.findAllByRole("button", { name: "On failure path" }, wait))[0]);
       const inspector = await screen.findByRole("region", { name: "Path inspector" }, wait);
       fireEvent.change(within(inspector).getByLabelText(/^Label/), { target: { value: "Identity is down" } });
       fireEvent.click(within(inspector).getByRole("switch", { name: /Enabled/ }));

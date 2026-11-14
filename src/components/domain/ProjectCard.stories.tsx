@@ -23,6 +23,11 @@ export const Default: Story = {
   args: { project: projectSummaries[0] },
 };
 
+/** One of your projects: its ⋮ menu makes a copy and opens its settings. */
+export const WithActions: Story = {
+  args: { project: projectSummaries[0], onCopy: () => {}, showSettings: true },
+};
+
 export const LongName: Story = {
   args: { project: projectSummaries[2] },
 };

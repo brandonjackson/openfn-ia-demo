@@ -20,6 +20,7 @@ import { projectRoutes } from "./projects";
 import { userRoutes } from "./user-routes";
 import { auditRoutes } from "./audit";
 import { workflowRoutes } from "./workflows";
+import { projectDirectoryRoutes } from "./project-directory";
 import { sandboxRoutes } from "./sandboxes";
 import { collectionRoutes } from "./collections";
 import { webhookAuthRoutes } from "./webhook-auth";
@@ -56,6 +57,7 @@ const routes: Record<string, Handler> = {
   ...auditRoutes,
   ...workflowRoutes,
   ...sandboxRoutes,
+  ...projectDirectoryRoutes,
   ...collectionRoutes,
   ...webhookAuthRoutes,
   ...historyExportRoutes,

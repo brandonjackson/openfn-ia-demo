@@ -1,7 +1,7 @@
 /** Projects and their members on Lightning's API (api/projects.md): the API's shape, its mappers, its keys, and the hooks a .query wrapper calls. */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { DigestFrequency, ProjectRole } from "../model/project-settings";
-import { projectSummaries, type InstanceUserSummary, type ProjectAction, type ProjectDetails, type ProjectMember, type ProjectSummary, type RetentionPolicy } from "../model/projects";
+import { projectSummaries, type InstanceUserSummary, type OtherProject, type ProjectAction, type ProjectDetails, type ProjectMember, type ProjectSummary, type RetentionPolicy } from "../model/projects";
 import { useAllServices } from "./services";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
@@ -90,6 +90,7 @@ export const projectKeys = {
   list: ["projects", "list"] as const,
   one: (id: string) => ["projects", id] as const,
   members: (id: string) => ["projects", id, "members"] as const,
+  others: ["projects", "others"] as const,
 };
 export const userKeys = { all: ["users"] as const };
 
@@ -118,6 +119,35 @@ export function useProjectSummaries(withServices: boolean): { status: LoadStatus
   const { status: servicesStatus, services } = useAllServices(withServices);
   const counted = withServices && servicesStatus.state === "ready" ? services : undefined;
   return { status, projects: projectSummaries(projects, counted) };
+}
+
+/** A project you aren't in, as the demo's `GET /api/demo/projects/others` sends it. */
+interface ApiOtherProject {
+  id: string;
+  attributes: { name: string; description: string | null; owner_name: string | null; member_count: number; join_requested: boolean };
+}
+
+/**
+ * The projects on the instance you aren't a member of, for Projects' "Other
+ * projects" (the demo's own route: api/ lists only your projects). Pass
+ * `enabled: false` to load nothing.
+ */
+export function useOtherProjects(enabled = true): { status: LoadStatus; projects: OtherProject[] } {
+  const query = useQuery({
+    queryKey: projectKeys.others,
+    enabled,
+    queryFn: () => listAll<ApiOtherProject>("/api/demo/projects/others"),
+    select: (rows) =>
+      rows.map(({ id, attributes: a }): OtherProject => ({
+        id,
+        name: a.name,
+        description: a.description ?? "",
+        ...(a.owner_name && { ownerName: a.owner_name }),
+        memberCount: a.member_count,
+        joinRequested: a.join_requested,
+      })),
+  });
+  return enabled ? { status: statusOf(query), projects: query.data ?? [] } : { status: { state: "ready" }, projects: [] };
 }
 
 /** One project, with your permissions in it. Not found (or not yours to see) is `notFound`. */
@@ -200,7 +230,20 @@ export function useProjectSaves() {
     mutationFn: ({ id, allow }: { id: string; allow: boolean }) => request("PUT", `/api/projects/${id}/support_access`, { allow_support_access: allow }),
     onSuccess: refresh,
   });
+  const copy = useMutation({
+    // The demo's own route: api/ has no copy.
+    mutationFn: (id: string) => request<{ data: ApiProject }>("POST", `/api/demo/projects/${id}/copies`, {}).then((a) => toProject(a.data)),
+    onSuccess: () => Promise.all([refresh(), queryClient.invalidateQueries({ queryKey: ["workflows"] })]),
+  });
+  const requestToJoin = useMutation({
+    mutationFn: (id: string) => request("POST", `/api/demo/projects/${id}/join_requests`, {}),
+    onSuccess: refresh,
+  });
   return {
+    /** Copies a project you're in, with its workflows (paused) and components; you own the copy. Answers with it. */
+    copy: (id: string) => copy.mutateAsync(id),
+    /** Asks to join a project you aren't in. */
+    requestToJoin: async (id: string) => void (await requestToJoin.mutateAsync(id)),
     /** Creates a project, you its owner, and answers with it. */
     create: (input: ProjectInput) => create.mutateAsync(input),
     update: async (id: string, input: ProjectInput) => void (await update.mutateAsync({ id, ...input })),

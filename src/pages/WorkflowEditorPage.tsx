@@ -65,6 +65,7 @@ import FailureBreakdown from "../components/domain/FailureBreakdown";
 import type { FailureScope } from "../components/domain/FailureBreakdown";
 import RunHistoryList from "../components/domain/RunHistoryList";
 import type { StepChanges } from "../components/domain/StepConfigPanel";
+import EdgeInspector, { type EdgeChanges } from "../components/domain/EdgeInspector";
 import AIAssistantPanel from "../components/domain/AIAssistantPanel";
 import RunLabel from "../components/domain/RunLabel";
 import RunInputModal from "../components/domain/RunInputModal";
@@ -121,6 +122,8 @@ interface Edits {
   retargeted: Record<string, string>;
   /** Where steps were moved to, by id: those below a step put in after the trigger move down a row. */
   positions: Record<string, { x: number; y: number }>;
+  /** Changes to paths, by edge id: their condition, expression, label and whether they're on. */
+  edges: Record<string, EdgeChanges>;
 }
 
 const noEdits: Edits = {
@@ -134,6 +137,7 @@ const noEdits: Edits = {
   addedEdges: [],
   retargeted: {},
   positions: {},
+  edges: {},
 };
 
 /** How far apart steps sit on the canvas: one row down, or one branch across. */
@@ -176,6 +180,7 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
   const ids = new Set(nodes.map((n) => n.id));
   const edges = [...workflow.edges, ...addedEdges]
     .map((e) => (e.id in edits.retargeted ? { ...e, target: edits.retargeted[e.id] } : e))
+    .map((e) => (e.id in edits.edges ? { ...e, ...edits.edges[e.id] } : e))
     .filter((e) => ids.has(e.source) && ids.has(e.target));
   return { ...workflow, name, nodes, edges };
 }
@@ -690,7 +695,16 @@ export default function WorkflowEditorPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layout, view, file, pagePanels]);
 
-  const selectNode = (node: WorkflowNode) => setSelectedId(selectedId === node.id ? undefined : node.id);
+  const selectNode = (node: WorkflowNode) => {
+    setSelectedEdgeId(undefined);
+    setSelectedId(selectedId === node.id ? undefined : node.id);
+  };
+  // The path open in the inspector, picked from its badge on the canvas; a node and a path aren't both open.
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string>();
+  const selectEdge = (edge: WorkflowEdge) => {
+    setSelectedId(undefined);
+    setSelectedEdgeId(selectedEdgeId === edge.id ? undefined : edge.id);
+  };
 
   /** Open a step's code, the trigger's settings, or the workflow's YAML and settings. */
   const openInCode = (nodeId?: string) => {
@@ -916,6 +930,9 @@ export default function WorkflowEditorPage({
       credentials: "credentialId" in changes ? { ...e.credentials, [stepId]: changes.credentialId } : e.credentials,
       systems: "system" in changes ? { ...e.systems, [stepId]: changes.system } : e.systems,
     }));
+
+  const changeEdge = (edgeId: string, changes: EdgeChanges) =>
+    edit((e) => ({ edges: { ...e.edges, [edgeId]: { ...e.edges[edgeId], ...changes } } }));
 
   const changeCode = (stepId: string, body: string) => edit((e) => ({ bodies: { ...e.bodies, [stepId]: body } }));
 
@@ -1451,9 +1468,26 @@ export default function WorkflowEditorPage({
         }
       : undefined;
 
+  // The canvas's side UI for the selected path: its condition, label and switch, read-only on main.
+  const focusEdge = graph.edges.find((e) => e.id === selectedEdgeId);
+  const nodeLabel = (id: string) => graph.nodes.find((n) => n.id === id)?.label ?? id;
+  const edgeInspector = focusEdge && (
+    <EdgeInspector
+      key={focusEdge.id}
+      edge={focusEdge}
+      sourceLabel={nodeLabel(focusEdge.source)}
+      targetLabel={nodeLabel(focusEdge.target)}
+      fromTrigger={graph.nodes.some((n) => n.id === focusEdge.source && n.type === "trigger")}
+      onChange={onMain || version !== "latest" ? undefined : (c) => changeEdge(focusEdge.id, c)}
+      onClose={() => setSelectedEdgeId(undefined)}
+    />
+  );
+
   // The canvas's side UI for the selected node: config, run history or the loaded run.
   const inspector =
-    view === "canvas" && focusNode ? (
+    view === "canvas" && edgeInspector ? (
+      edgeInspector
+    ) : view === "canvas" && focusNode ? (
       <StepInspector
         key={focusNode.id}
         node={focusNode}
@@ -1772,6 +1806,8 @@ export default function WorkflowEditorPage({
             readOnly={onMain}
             deleteBlockedReason={onMain ? undefined : deleteBlocked}
             onConnect={onMain || version !== "latest" ? undefined : connectStep}
+            selectedEdgeId={focusEdge?.id}
+            onSelectEdge={selectEdge}
             needsCredential={missingCredential}
             run={selectedRun}
             activity={activity}

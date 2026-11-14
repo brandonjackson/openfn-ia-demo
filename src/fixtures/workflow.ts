@@ -194,6 +194,7 @@ export const nationalIdWorkflow: Workflow = {
       target: "notify",
       condition: "js_expression",
       expression: "state.exactMatch === true",
+      label: "Exact match",
     },
     {
       id: "e-search-create",
@@ -201,6 +202,7 @@ export const nationalIdWorkflow: Workflow = {
       target: "create",
       condition: "js_expression",
       expression: "state.exactMatch === false",
+      label: "No match",
     },
     { id: "e-search-queue", source: "search", target: "queue", condition: "on_failure" },
     { id: "e-create-confirm", source: "create", target: "confirm", condition: "on_success" },
@@ -242,7 +244,7 @@ export function nationalIdWorkflowAt(version: string): Workflow {
  */
 export function happyPath(workflow: Workflow, fromJobId?: string): string[] {
   const next = (id: string) => {
-    const out = workflow.edges.filter((e) => e.source === id && e.condition !== "on_failure");
+    const out = workflow.edges.filter((e) => e.source === id && e.condition !== "on_failure" && e.enabled !== false);
     return (out.find((e) => e.expression?.includes("false")) ?? out[0])?.target;
   };
   const trigger = workflow.nodes.find((n) => n.type === "trigger");

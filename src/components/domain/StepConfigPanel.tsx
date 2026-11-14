@@ -5,6 +5,7 @@ import type { AdaptorInfo, ProjectCredential } from "../../model/adaptor-referen
 import FormField from "../primitives/FormField";
 import { Select, TextInput } from "../primitives/FormControls";
 import Button from "../primitives/Button";
+import Inline from "../primitives/Inline";
 import Text from "../primitives/Text";
 import EntityPill from "./EntityPill";
 import ConnectionMethodBadge from "./ConnectionMethodBadge";
@@ -125,7 +126,7 @@ export default function StepConfigPanel({
               </>
             }
           >
-            <div className="flex items-center gap-2">
+            <Inline gap="sm">
               <Select
                 id="step-system"
                 className="w-full"
@@ -139,7 +140,7 @@ export default function StepConfigPanel({
                 }}
               />
               {method && <ConnectionMethodBadge method={method} />}
-            </div>
+            </Inline>
           </FormField>
         ) : (
           <FormField label="Adaptor" htmlFor="step-adaptor" hint={`${info.package}@${info.version}`}>

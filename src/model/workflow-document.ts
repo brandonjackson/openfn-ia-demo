@@ -9,7 +9,7 @@
  * to. Those ride along on each job and trigger as `summary`, `label`,
  * `subtitle` and `system_id`, which a real Lightning would drop.
  */
-import type { EdgeCondition, JobNode, TriggerNode, TriggerType, Workflow, WorkflowEdge } from "./workflow";
+import { isEdgeEnabled, type EdgeCondition, type JobNode, type TriggerNode, type TriggerType, type Workflow, type WorkflowEdge } from "./workflow";
 
 export type ConditionType = "always" | "on_job_success" | "on_job_failure" | "js_expression";
 
@@ -142,9 +142,9 @@ export function toDocument(graph: Workflow, { enabled = true, triggers = [] as W
       source_job_id: isTrigger(e.source) ? null : e.source,
       target_job_id: e.target,
       condition_type: toCondition[e.condition],
-      condition_expression: e.expression ?? null,
-      condition_label: null,
-      enabled: true,
+      condition_expression: e.condition === "js_expression" ? (e.expression ?? null) : null,
+      condition_label: e.label?.trim() || null,
+      enabled: isEdgeEnabled(e),
     })),
     positions: Object.fromEntries(nodes.map((n) => [n.id, { x: n.x, y: n.y }])),
   };
@@ -185,17 +185,18 @@ export function fromDocument(doc: Pick<WorkflowDocument, "id" | "name" | "jobs" 
         }),
       ),
     ],
-    edges: doc.edges
-      .filter((e) => e.enabled)
-      .map(
-        (e): WorkflowEdge => ({
-          id: e.id,
-          source: (e.source_trigger_id ?? e.source_job_id)!,
-          target: e.target_job_id,
-          condition: fromCondition[e.condition_type],
-          ...(e.condition_expression && { expression: e.condition_expression }),
-        }),
-      ),
+    // Every path, on or off: one that's off is drawn dashed and never runs.
+    edges: doc.edges.map(
+      (e): WorkflowEdge => ({
+        id: e.id,
+        source: (e.source_trigger_id ?? e.source_job_id)!,
+        target: e.target_job_id,
+        condition: fromCondition[e.condition_type],
+        ...(e.condition_expression && { expression: e.condition_expression }),
+        ...(e.condition_label && { label: e.condition_label }),
+        ...(!e.enabled && { enabled: false }),
+      }),
+    ),
   };
 }
 

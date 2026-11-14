@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react";
 import type {
   InputHTMLAttributes,
   Ref,
@@ -53,22 +54,35 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   fit?: boolean;
 }
 
-/** A native drop-down of `{ value, label }` options, with an optional placeholder. */
+/**
+ * A native drop-down of `{ value, label }` options, with an optional placeholder.
+ * It draws its own chevron rather than the browser's, so the text sits where a
+ * text input's does and the arrow sits inside the border in every browser.
+ */
 export function Select({ options, placeholder, compact = false, fullWidth = false, fit = false, className, ...rest }: SelectProps) {
-  const width = className ?? (fullWidth ? "w-full" : "w-auto");
-  const classes = fit ? controlClasses.replace("w-full ", "") : controlClasses;
+  const width = className ?? (fit && !fullWidth ? "w-fit" : "w-full");
   return (
-    <select className={`${classes} ${compact ? "py-1" : "py-2"} ${width}`} {...rest}>
-      {placeholder !== undefined && <option value="">{placeholder}</option>}
-      {options.map((opt) => {
-        const { value, label } = typeof opt === "string" ? { value: opt, label: opt } : opt;
-        return (
-          <option key={value} value={value}>
-            {label}
-          </option>
-        );
-      })}
-    </select>
+    <span className={`relative inline-flex ${width}`}>
+      <select
+        className={`${controlClasses} appearance-none pr-9 ${compact ? "py-1" : "py-2"}`}
+        {...rest}
+      >
+        {placeholder !== undefined && <option value="">{placeholder}</option>}
+        {options.map((opt) => {
+          const { value, label } = typeof opt === "string" ? { value: opt, label: opt } : opt;
+          return (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          );
+        })}
+      </select>
+      <ChevronDown
+        aria-hidden
+        size={compact ? 14 : 16}
+        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+      />
+    </span>
   );
 }
 

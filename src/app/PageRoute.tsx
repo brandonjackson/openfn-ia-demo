@@ -82,7 +82,6 @@ const movedPaths: Record<string, string> = {
   "/instance-settings": "/organization-settings",
   "/instance-settings/collaboration": "/organization-settings/members",
   "/instance-settings/billing": "/organization-settings/billing",
-  "/instance-settings/context": "/organization-settings/context",
 };
 
 /**

@@ -15,6 +15,8 @@ export interface Shell {
   currentPath: string;
   /** The instance you're signed in to, for the logo and the account menu; blank until it's loaded. */
   instance: { name: string; initials: string };
+  /** The organisation you're in, for the top-left corner in the instance's place: its name, initials and logo (a data URL) when it has one. Left out without Organizations, or while it loads or if you're in none, when the corner shows the instance. */
+  organization?: { name: string; initials: string; logo?: string };
   /** You, for the account menu; left out until you're loaded. */
   user?: UserProfile;
   /** Projects you've opened lately, most recent first: the sidebar's list and the project switcher's shortlist. */

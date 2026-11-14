@@ -12,14 +12,14 @@ import LoadingState from "../components/primitives/LoadingState";
 /** The design system's docs, loaded only when someone opens them. */
 const DocsApp = lazy(() => import("../docs/DocsApp"));
 
-/** The page frame, with OpenFn's sidebar and the instance's logo in its slots. */
+/** The page frame, with OpenFn's sidebar and the organisation's logo (or, without one to show, the instance's) in its slots. */
 function Framed() {
-  const { currentPath, instance } = useShell();
+  const { currentPath, instance, organization } = useShell();
   return (
     <Layout
       currentPath={currentPath}
       sidebar={(drawer) => <Sidebar {...drawer} />}
-      logo={<InstanceLogo instance={instance} />}
+      logo={<InstanceLogo instance={organization ?? instance} />}
     >
       <Outlet />
     </Layout>

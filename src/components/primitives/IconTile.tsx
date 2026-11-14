@@ -30,6 +30,10 @@ interface Props {
   icon?: LucideIcon;
   /** Anything in place of the icon, e.g. a logo image. */
   children?: ReactNode;
+  /** An image to fill the tile with, e.g. an uploaded logo (a URL or data URL), fitted inside it. Wins over the icon and children. */
+  image?: string;
+  /** What the image shows, for screen readers. Left out, it's decorative. */
+  imageAlt?: string;
   size?: IconTileSize;
   tone?: keyof typeof tones;
   /** Takes the colour of the row it's in when that row is hovered (`group`). */
@@ -42,14 +46,14 @@ interface Props {
  * A rounded square holding one glyph or logo: the start of a list row, a
  * feature card, a pick in the "Connect a system" list, an adaptor's logo.
  */
-export default function IconTile({ icon: Icon, children, size = "md", tone = "gray", hoverTint = false, round = false }: Props) {
+export default function IconTile({ icon: Icon, children, image, imageAlt = "", size = "md", tone = "gray", hoverTint = false, round = false }: Props) {
   return (
     <span
       className={`inline-flex flex-shrink-0 items-center justify-center overflow-hidden ${round ? box[size].replace(/rounded(-\w+)?/, "rounded-full") : box[size]} ${tones[tone]} ${
         hoverTint ? "group-hover:bg-indigo-50 group-hover:text-indigo-500" : ""
       }`}
     >
-      {children ?? (Icon && <Icon size={glyph[size]} />)}
+      {image ? <img src={image} alt={imageAlt} className="h-full w-full object-contain" /> : (children ?? (Icon && <Icon size={glyph[size]} />))}
     </span>
   );
 }

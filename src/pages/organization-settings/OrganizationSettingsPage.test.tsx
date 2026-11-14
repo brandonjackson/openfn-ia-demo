@@ -1,4 +1,4 @@
-import { fireEvent, screen, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { FormError } from "../../model/form-error";
 import { renderPage } from "../../test/renderPage";
@@ -11,7 +11,6 @@ const data: OrganizationSettingsPageData = {
     { id: "m2", name: "Tomas Reyes", email: "tomas@example.org", role: "Member", joined: "3 days ago" },
   ],
   visibility: { projects: "project" },
-  contextLayers: [],
   xroadUsage: { systems: 0, services: 0 },
   billing: { plan: "Core", price: "$1,200 / month", renewsOn: "1 Nov 2026", runsUsed: 100, runsIncluded: 1000, invoices: [] },
 };
@@ -37,8 +36,8 @@ const actions = [
   "onRemoveMember",
   "onSaveVisibility",
   "onSaveSecurityServerManager",
-  "onRequestContextAccess",
-  "onRemoveContextLayer",
+  "onSaveLogo",
+  "onRemoveLogo",
 ] satisfies (keyof OrganizationSettingsPageProps)[];
 
 const frame = (section: string, label: string, pageData: OrganizationSettingsPageData) => ({
@@ -135,12 +134,39 @@ describe("OrganizationSettingsPage", () => {
     expect(host.calls("onInviteMember")).toEqual([]);
   });
 
-  it("says a context layer URL is missing when access is requested without one", () => {
-    const host = draw("context", "Context");
-    fireEvent.click(screen.getByRole("button", { name: "Request access" }));
-    expect(screen.getByText("Enter a context layer URL")).toBeTruthy();
-    expect(document.activeElement).toBe(screen.getByLabelText(/^Context layer URL/));
-    expect(host.calls("onRequestContextAccess")).toEqual([]);
+  it("calls the members' role their org role", () => {
+    draw();
+    expect(screen.getByRole("columnheader", { name: "Org role" })).toBeTruthy();
+  });
+
+  it("has no Context section", () => {
+    draw("general", "General");
+    expect(screen.queryByRole("link", { name: "Context" })).toBeNull();
+  });
+
+  it("uploads a logo as a data URL, says under the field why it was refused, and refuses a file that isn't an image", async () => {
+    const host = draw("general", "General");
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+    fireEvent.change(input, { target: { files: [new File(["hello"], "notes.txt", { type: "text/plain" })] } });
+    expect(await screen.findByText("Pick a PNG, JPEG, SVG or WebP image")).toBeTruthy();
+    expect(host.calls("onSaveLogo")).toEqual([]);
+    fireEvent.change(input, { target: { files: [new File(["<svg/>"], "logo.svg", { type: "image/svg+xml" })] } });
+    await waitFor(() => expect(host.calls("onSaveLogo")).toHaveLength(1));
+    expect(host.calls("onSaveLogo")[0]![0]).toMatch(/^data:image\/svg\+xml;base64,/);
+    expect(screen.getByText("Uploading…")).toBeTruthy();
+    await host.reject("onSaveLogo", new FormError("The request body is not valid.", { logo: ["must be 256 KB or smaller"] }));
+    expect(screen.getByText("must be 256 KB or smaller")).toBeTruthy();
+  });
+
+  it("shows the logo with Remove, or the initials without one", async () => {
+    const host = draw("general", "General", { ...data, logo: "data:image/png;base64,AAAA" });
+    expect(screen.getByRole("img", { name: "Ministry of Health logo" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+    expect(host.calls("onRemoveLogo")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Removing…" }).getAttribute("aria-disabled")).toBe("true");
+    await host.resolve("onRemoveLogo");
+    draw("general", "General");
+    expect(screen.getByText("MH")).toBeTruthy();
   });
 
   it("reads only, with no add button, when it's given no actions", () => {

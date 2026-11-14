@@ -59,7 +59,7 @@ path in its hook file.
   `/api/demo/ecosystem` (stations named by system id; a deleted system
   leaves the map). An adaptor's `id` is its package name, not a UUID.
 - **The organisation, beyond its name and members** (Organization settings:
-  visibility defaults, context layers, Security Server, billing, and its X-Road
+  visibility defaults, its logo, Security Server, billing, and its X-Road
   identity, read only; a system's and a service's page read the identity too).
   Its name, your role and its members are the API's
   (`/api/organizations`, api/organizations.md, Planned there and on

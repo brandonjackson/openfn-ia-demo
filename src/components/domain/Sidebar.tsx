@@ -170,12 +170,8 @@ function OrgNav() {
             label={project.name}
           />
         ))}
-        <NavItem
-          to="/projects"
-          icon={FolderKanban}
-          label="View all"
-          active={pathname === "/projects"}
-        />
+        {/* A way to every project, not a place of its own, so it's never marked as where you are. */}
+        <NavItem to="/projects" icon={FolderKanban} label="View all" />
       </NavSection>
     </nav>
   );
@@ -193,7 +189,7 @@ function OrgNav() {
  * slides back out on its close button, a tap outside or Escape.
  */
 export default function Sidebar({ open = false, onClose }: { open?: boolean; onClose?: () => void }) {
-  const { project, currentPath: pathname, user, instance, flags, isSuperuser } = useShell();
+  const { project, currentPath: pathname, user, instance, organization, flags, isSuperuser } = useShell();
   const getHelp = supportTree.find((n) => n.id === "get-help")!;
   const ref = useDismiss<HTMLElement>(open, () => onClose?.());
 
@@ -213,10 +209,10 @@ export default function Sidebar({ open = false, onClose }: { open?: boolean; onC
           open ? "translate-x-0 shadow-xl md:shadow-none" : "-translate-x-full"
         }`}
       >
-        {/* Logo: always a clear way back to the root. */}
+        {/* Logo: the organisation's (or, without one to show, the instance's), always a clear way back to the root. */}
         <div data-ui="sidebar-logo" className="px-4 py-4 flex items-center justify-between gap-2">
           <InstanceLogo
-            instance={instance}
+            instance={organization ?? instance}
             title={flags.organizations ? "Back to Overview" : "Back to projects"}
           />
           <div className="md:hidden">

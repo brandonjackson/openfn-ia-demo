@@ -367,12 +367,6 @@ export const settingsTree: IANode[] = [
         pageType: "organization-settings",
       },
       {
-        id: "context",
-        label: "Context",
-        description: "Context layers the organisation draws its handbook, systems and services from.",
-        pageType: "organization-settings",
-      },
-      {
         id: "xroad",
         flag: "xroad",
         label: "X-Road",

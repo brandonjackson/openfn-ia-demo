@@ -2,6 +2,7 @@ import { ArrowUpRight, Bot, Network, Workflow } from "lucide-react";
 import type { ServiceConsumer, WorkflowCatalogEntry } from "../../model/services";
 import Badge from "../primitives/Badge";
 import ListRow from "../primitives/ListRow";
+import type { ListRowMenu } from "../primitives/ListRow";
 
 const consumerLabels: Record<ServiceConsumer, { label: string; icon: typeof Workflow }> = {
   workflow: { label: "Workflow step", icon: Workflow },
@@ -11,6 +12,8 @@ const consumerLabels: Record<ServiceConsumer, { label: string; icon: typeof Work
 
 interface Props {
   entry: WorkflowCatalogEntry;
+  /** Actions for its ⋮ menu, after Open. */
+  menu?: ListRowMenu;
 }
 
 /**
@@ -18,12 +21,13 @@ interface Props {
  * can be called (from other workflows, as an agent tool over MCP, by other
  * members over X-Road) and how much it's used.
  */
-export default function ServiceCatalogCard({ entry }: Props) {
+export default function ServiceCatalogCard({ entry, menu = {} }: Props) {
   return (
     <ListRow
       icon={Workflow}
       title={entry.name}
       to={entry.projectPath}
+      menu={menu}
       badges={entry.badges?.map((b) => <Badge key={b} label={b} />)}
       description={entry.description}
       meta={

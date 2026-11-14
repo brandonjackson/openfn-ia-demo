@@ -2,22 +2,26 @@ import { Folder, Workflow, Users } from "lucide-react";
 import type { ProjectSummary } from "../../model/projects";
 import { timeAgo } from "../../model/time";
 import ListRow from "../primitives/ListRow";
+import type { ListRowMenu } from "../primitives/ListRow";
 
 interface Props {
   project: ProjectSummary;
+  /** Actions for its ⋮ menu, after Open. */
+  menu?: ListRowMenu;
 }
 
 /**
  * Full-width row on the Projects list, laid out like the Systems and
  * Services lists. Opening it drops you into the project.
  */
-export default function ProjectCard({ project }: Props) {
+export default function ProjectCard({ project, menu = {} }: Props) {
   const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
   return (
     <ListRow
       to={`/projects/${project.id}`}
       icon={Folder}
+      menu={menu}
       title={project.name}
       description={
         project.description || <span className="italic text-gray-500">No description</span>

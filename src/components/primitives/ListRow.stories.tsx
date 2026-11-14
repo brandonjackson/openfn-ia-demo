@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Check, FlaskConical, Globe, Trash2 } from "lucide-react";
+import { Check, Copy, FlaskConical, Globe, Trash2 } from "lucide-react";
 import ListRow from "./ListRow";
 import Badge from "./Badge";
 import Button from "./Button";
@@ -33,7 +33,27 @@ export const Link: Story = {
     title: system.name,
     description: system.description,
     badges: <Badge label="You have access" tone="green" icon={Check} />,
+    menu: {},
   },
+};
+
+/** A row in a list page: the whole row opens it, and its ⋮ menu starts with Open, then the row's own actions. */
+export const WithMenu: Story = {
+  args: {
+    ...Link.args,
+    menu: {
+      items: [
+        { id: "copy", label: "Make a copy", icon: Copy },
+        { id: "delete", label: "Delete", icon: Trash2, tone: "danger" },
+      ],
+      onSelect: () => {},
+    },
+  },
+};
+
+/** A row of a picker or a list of things to add: no menu, just the row. */
+export const WithoutMenu: Story = {
+  args: { ...Link.args, menu: undefined },
 };
 
 export const Clickable: Story = {

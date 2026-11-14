@@ -51,7 +51,7 @@ const rows = (
   </Stack>
 );
 
-/** The whole shape: header, intro, toolbar, summary and the list. */
+/** The whole shape: header, intro, toolbar and the list. */
 export const Default: Story = {
   render: function Render() {
     const [filter, setFilter] = useState("All");
@@ -60,7 +60,6 @@ export const Default: Story = {
         header={header}
         intro={intro}
         toolbar={<SegmentedControl label="Show" options={["All", "Mine", "Shared"]} value={filter} onChange={setFilter} />}
-        summary={`${items.length} documents`}
       >
         {rows}
       </ListPage>
@@ -73,7 +72,6 @@ export const WithoutIntro: Story = {
   args: {
     header,
     toolbar: <SegmentedControl label="Show" options={["All", "Mine", "Shared"]} value="All" onChange={() => {}} />,
-    summary: `${items.length} documents`,
     children: rows,
   },
 };
@@ -111,7 +109,6 @@ export const IntroPerView: Story = {
 export const Empty: Story = {
   args: {
     header,
-    summary: "0 documents",
     isEmpty: true,
     empty: <EmptyState icon={Inbox} title="No documents yet." action={<Button size="sm">New document</Button>} />,
   },
@@ -121,7 +118,6 @@ export const Empty: Story = {
 export const WithSectionsAfter: Story = {
   args: {
     header,
-    summary: `${items.length} documents`,
     children: rows,
     after: (
       <section>
@@ -136,7 +132,6 @@ export const WithSectionsAfter: Story = {
 export const Grouped: Story = {
   args: {
     header,
-    summary: `${items.length * 2} documents`,
     children: (
       <Stack gap="xl">
         <ListGroup title="Finance" count={items.length}>
@@ -155,7 +150,6 @@ export const WithNotice: Story = {
   args: {
     header,
     notice: <Callout variant="success" title={'"Supplier list" deleted'} />,
-    summary: `${items.length} documents`,
     children: rows,
   },
 };

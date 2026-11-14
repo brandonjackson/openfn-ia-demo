@@ -121,7 +121,16 @@ export default function ServicesPage({ node, ancestors, data, initialView = "pub
           description={node.description}
         />
       }
-      intro={view === "publish" && publishIntro}
+      intro={
+        view === "publish" ? (
+          publishIntro
+        ) : (
+          <Text tone="subtle" size="sm" block>
+            Methods from the {used.length} systems you've added. Add a system{xroad ? ", or a service from the X-Road directory," : ""} on
+            Systems to see its methods here.
+          </Text>
+        )
+      }
       toolbar={
         usesSystems && (
           <SegmentedControl
@@ -135,11 +144,6 @@ export default function ServicesPage({ node, ancestors, data, initialView = "pub
             onChange={(v) => setView(v as CatalogView)}
           />
         )
-      }
-      summary={
-        view === "publish"
-          ? `${published.length} services published across the organization`
-          : `Methods from the ${used.length} systems you've added. Add a system${xroad ? ", or a service from the X-Road directory," : ""} on Systems to see its methods here.`
       }
       isEmpty={view === "publish" ? published.length === 0 : used.length === 0}
       empty={
@@ -173,6 +177,7 @@ export default function ServicesPage({ node, ancestors, data, initialView = "pub
                   logo={<AdaptorLogo adaptor={s.adaptor} name={s.system} />}
                   title={s.name}
                   to={s.systemPath}
+                  menu={{}}
                   badges={
                     <>
                       <ConnectionMethodBadge method={s.connection} />

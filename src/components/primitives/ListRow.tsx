@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import Link from "./Link";
-import { ChevronRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import IconTile from "./IconTile";
+import ActionMenu from "./ActionMenu";
+import type { DropdownMenuItem } from "./DropdownMenu";
 
 /** A labelled value at the right of a row, lined up with the same column in the rows above and below. */
 export interface ListRowColumn {
@@ -10,6 +11,17 @@ export interface ListRowColumn {
   value: ReactNode;
   /** `sm` 64px for a count, `md` 96px for a status, `lg` 144px for names or a date. */
   width?: "sm" | "md" | "lg";
+}
+
+/**
+ * The row's ⋮ menu. It always opens with Open (where the row goes), then
+ * these items; give `items` and `onSelect` to add the row's own actions.
+ */
+export interface ListRowMenu {
+  /** The row's actions after Open, e.g. Make a copy, Delete (`tone: "danger"`). */
+  items?: DropdownMenuItem[];
+  /** Called with the picked item's id; Open is handled by the row. */
+  onSelect?: (id: string) => void;
 }
 
 const columnWidths = { sm: "w-16", md: "w-24", lg: "w-36" };
@@ -34,8 +46,14 @@ interface Props {
    * updated), hidden on narrow screens where there's no room to line them up.
    */
   columns?: ListRowColumn[];
-  /** Replaces the chevron on the right, e.g. with a status or action. */
+  /** Something at the right edge inside the row, e.g. a status or a "Join" cue. */
   trailing?: ReactNode;
+  /**
+   * A ⋮ menu at the right edge, outside the row's link, starting with Open.
+   * Every row in a list page has one (pass `{}` while it has no actions of
+   * its own); pickers and lists of things to add leave it out.
+   */
+  menu?: ListRowMenu;
   /**
    * Buttons shown at the right edge, outside the row's link or click target,
    * so they can be pressed without also opening the row (e.g. Delete).
@@ -52,6 +70,8 @@ interface Props {
 /**
  * Full-width row used by every list page (Systems, Projects, Sandboxes): an
  * icon tile, a title with badges, a description and an optional meta line.
+ * The whole row opens it, so it shows a pointer and highlights on hover; its
+ * actions live in the ⋮ `menu` on the right, never behind a chevron.
  */
 export default function ListRow({
   icon: Icon,
@@ -66,19 +86,38 @@ export default function ListRow({
   columns,
   trailing,
   actions,
+  menu,
   selected,
   monoTitle = false,
   dashed = false,
 }: Props) {
+  // Open comes first, then the row's own actions past a divider.
+  const openItem: DropdownMenuItem[] = to || onClick ? [{ id: "open", label: "Open", to }] : [];
+  const ownItems = (menu?.items ?? []).map((item, i) => (i === 0 && openItem.length > 0 ? { ...item, divider: true } : item));
+  const menuItems = menu ? [...openItem, ...ownItems] : [];
+  const side =
+    actions || menuItems.length > 0 ? (
+      <>
+        {actions}
+        {menuItems.length > 0 && (
+          <ActionMenu
+            label={`Actions for ${title}`}
+            items={menuItems}
+            onSelect={(id) => (id === "open" ? (to ? undefined : onClick?.()) : menu?.onSelect?.(id))}
+          />
+        )}
+      </>
+    ) : null;
   const interactive = Boolean(to || onClick);
   const frame = `group flex w-full items-center rounded-lg border text-left transition-all ${
     dashed ? "border-dashed" : ""
   } ${selected ? "border-indigo-300 bg-indigo-50/40" : "border-gray-200 bg-white"} ${interactive ? "hover:border-indigo-300 hover:shadow-sm" : ""}`;
-  // With actions, the frame wraps both the row and the action buttons, and
-  // only the inner part is the link or button.
-  const className = actions
-    ? "flex flex-1 min-w-0 items-center gap-4 p-4 text-left"
-    : `${frame} gap-4 p-4`;
+  // With actions or a menu, the frame wraps both the row and them, and only
+  // the inner part is the link or button.
+  const pointer = interactive ? "cursor-pointer" : "";
+  const className = side
+    ? `flex flex-1 min-w-0 items-center gap-4 p-4 text-left ${pointer}`
+    : `${frame} gap-4 p-4 ${pointer}`;
   const hoverText = interactive ? "group-hover:text-indigo-600" : "";
 
   const content = (
@@ -112,11 +151,7 @@ export default function ListRow({
           ))}
         </div>
       )}
-      {/* With actions, the buttons hold the right edge, so the chevron steps aside. */}
-      {trailing ??
-        (interactive && !actions && (
-          <ChevronRight size={16} className="text-gray-300 group-hover:text-indigo-400 flex-shrink-0" />
-        ))}
+      {trailing}
     </>
   );
 
@@ -132,11 +167,11 @@ export default function ListRow({
     <div className={className}>{content}</div>
   );
 
-  if (!actions) return row;
+  if (!side) return row;
   return (
     <div className={frame}>
       {row}
-      <div className="flex flex-shrink-0 items-center gap-2 pr-4">{actions}</div>
+      <div className="flex flex-shrink-0 items-center gap-2 pr-4">{side}</div>
     </div>
   );
 }

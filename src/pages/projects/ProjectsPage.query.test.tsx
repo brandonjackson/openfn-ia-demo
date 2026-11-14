@@ -55,6 +55,8 @@ describe("ProjectsPageQuery", () => {
     renderRoute();
     expect(await card("project-a")).toBeTruthy();
     expect(screen.queryByText("data-quality-checks")).toBeNull();
+    // Sandboxes are in their projects, not listed beside them.
+    expect(screen.queryByText("intake-validation-v2")).toBeNull();
   });
 
   it("counts each project's services from the server, and shows none without the service catalog", async () => {

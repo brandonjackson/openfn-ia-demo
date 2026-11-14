@@ -77,11 +77,12 @@ export function toProjectSummary(details: ProjectDetails, services?: Pick<Projec
 
 /**
  * The cards for the projects you can open, each with its own services'
- * counts. Leave `services` out without the service catalog, or while they
+ * counts. Sandboxes aren't projects of their own here (a superuser's list
+ * holds them too), so they're left out. Leave `services` out without the service catalog, or while they
  * can't be loaded, and the cards show no counts rather than wrong ones.
  */
 export function projectSummaries(projects: ProjectDetails[], services?: (Pick<ProjectService, "status"> & { projectId: string })[]): ProjectSummary[] {
-  return projects.filter(isOpenable).map((p) => toProjectSummary(p, services?.filter((s) => s.projectId === p.id)));
+  return projects.filter((p) => isOpenable(p) && !p.parentId).map((p) => toProjectSummary(p, services?.filter((s) => s.projectId === p.id)));
 }
 
 /** The projects you're a member of that aren't being deleted: what the projects list, Overview and the sidebar show. */

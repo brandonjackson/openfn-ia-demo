@@ -68,6 +68,12 @@ const actionIcons: Record<string, LucideIcon> = {
  * Given `onConnectNew`, an adaptor this project isn't connected to yet (one
  * picked from a category, AI's models or a search, but not a built-in tool)
  * goes to it instead of `onSelect`, so the system can be added first.
+ *
+ * With `purpose="system"` (a systems page's "Connect a system") it offers
+ * only systems to connect: the categories, and a search over every adaptor
+ * but the built-in tools (HTTP aside, for any other API). There's no
+ * Connected, AI or Services, which only make sense for a step, and every
+ * pick goes to `onSelect`.
  */
 export default function ConnectSystemPicker({
   catalog,
@@ -75,7 +81,8 @@ export default function ConnectSystemPicker({
   services,
   onSelect,
   onConnectNew,
-  initialCategory = "connected",
+  purpose = "step",
+  initialCategory = purpose === "system" ? catalog.categories[0]?.id ?? "" : "connected",
 }: {
   /** Every adaptor, sorted into categories, with the built-in tools and what the AI tab offers. */
   catalog: AdaptorCatalog;
@@ -86,14 +93,21 @@ export default function ConnectSystemPicker({
   onSelect?: (choice: ConnectChoice) => void;
   /** Called instead of `onSelect` for an adaptor the project has no system for yet (not connected, not a built-in tool), to add one first. Left out, every adaptor goes to `onSelect`. */
   onConnectNew?: (adaptor: string) => void;
+  /** What's being picked: a step to add (the default), or a system to connect, which leaves out what only a step can be. */
+  purpose?: "step" | "system";
   initialCategory?: string;
 }) {
   const { adaptors: adaptorCatalog, categories: catalogCategories, builtInTools, aiModels, aiActions } = catalog;
   const catalogAdaptor = (id: string) => adaptorCatalog.find((a) => a.id === id);
+  const forSystem = purpose === "system";
   const navItems = [
-    { id: "connected", label: "Connected", icon: Plug },
-    { id: "ai", label: "AI", icon: Sparkles },
-    ...(services ? [{ id: "services", label: "Services", icon: LibraryBig }] : []),
+    ...(forSystem
+      ? []
+      : [
+          { id: "connected", label: "Connected", icon: Plug },
+          { id: "ai", label: "AI", icon: Sparkles },
+          ...(services ? [{ id: "services", label: "Services", icon: LibraryBig }] : []),
+        ]),
     ...catalogCategories.map((c) => ({ id: c.id, label: c.label, icon: categoryIcons[c.id] ?? Plug })),
   ];
   const [category, setCategory] = useState(initialCategory);
@@ -101,6 +115,7 @@ export default function ConnectSystemPicker({
   const q = query.trim().toLowerCase();
 
   const pickAdaptor = (adaptor: string) =>
+    !forSystem &&
     onConnectNew && !connected.includes(adaptor) && !builtInTools.includes(adaptor)
       ? onConnectNew(adaptor)
       : onSelect?.({ kind: "adaptor", adaptor });
@@ -161,9 +176,10 @@ export default function ConnectSystemPicker({
 
   let body: ReactNode;
   if (q) {
-    const actions = aiActions.filter((a) => `${a.label} ${a.description}`.toLowerCase().includes(q));
-    const matchedServices = (services ?? []).filter((s) => `${s.name} ${s.description} ${s.offeredBy}`.toLowerCase().includes(q));
+    const actions = forSystem ? [] : aiActions.filter((a) => `${a.label} ${a.description}`.toLowerCase().includes(q));
+    const matchedServices = forSystem ? [] : (services ?? []).filter((s) => `${s.name} ${s.description} ${s.offeredBy}`.toLowerCase().includes(q));
     const adaptors = adaptorCatalog
+      .filter((a) => !forSystem || a.id === "http" || !builtInTools.includes(a.id))
       .filter((a) => `${a.name} ${a.description} ${a.id}`.toLowerCase().includes(q))
       .map((a) => a.id);
     body =
@@ -177,7 +193,7 @@ export default function ConnectSystemPicker({
         <div className="space-y-5">
           {actions.length > 0 && group("AI", actionRows(actions))}
           {matchedServices.length > 0 && group("Services", serviceRows(matchedServices))}
-          {adaptors.length > 0 && group("Adaptors", <div className="grid grid-cols-2 gap-x-4">{adaptorRows(adaptors)}</div>)}
+          {adaptors.length > 0 && group(forSystem ? "Systems" : "Adaptors", <div className="grid grid-cols-2 gap-x-4">{adaptorRows(adaptors)}</div>)}
         </div>
       );
   } else if (category === "connected") {
@@ -219,8 +235,14 @@ export default function ConnectSystemPicker({
         autoFocus
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder={services ? `Search ${adaptorCatalog.length} systems, tools and services...` : `Search ${adaptorCatalog.length} systems and tools...`}
-        aria-label={services ? "Search systems, tools and services" : "Search systems and tools"}
+        placeholder={
+          forSystem
+            ? "Search systems (e.g. DHIS2, Salesforce, PostgreSQL)..."
+            : services
+              ? `Search ${adaptorCatalog.length} systems, tools and services...`
+              : `Search ${adaptorCatalog.length} systems and tools...`
+        }
+        aria-label={forSystem ? "Search systems" : services ? "Search systems, tools and services" : "Search systems and tools"}
       />
       <div className="flex min-h-0 flex-1 gap-4">
         <SettingsNav

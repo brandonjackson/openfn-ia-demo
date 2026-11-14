@@ -39,7 +39,9 @@ path in its hook file.
   (Systems, Overview). Would need the adaptors Lightning can use (it has a
   registry, but `api/` doesn't list it), suggestions of systems to connect,
   and somewhere to keep where each system sits on the map. Demo, read only:
-  `/api/demo/adaptors`, `/api/demo/connected_systems/suggestions` and
+  `/api/demo/adaptors`, `/api/demo/adaptor_catalog` (every adaptor sorted
+  into the categories "Connect a system" and "Add a step" show),
+  `/api/demo/connected_systems/suggestions` and
   `/api/demo/ecosystem` (stations named by system id; a deleted system
   leaves the map). An adaptor's `id` is its package name, not a UUID.
 - **The organisation, beyond its name and members** (Organization settings:

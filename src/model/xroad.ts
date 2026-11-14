@@ -143,7 +143,7 @@ export const xroadStatusSteps: { id: XRoadConnectionStatus; label: string }[] = 
   { id: "agreement-pending", label: "Agreement pending" },
   { id: "operator-approval", label: "Operator approval" },
   { id: "access-granted", label: "Access granted" },
-  { id: "live", label: "Live" },
+  { id: "live", label: "Connected" },
 ];
 
 /** Whether a status means calls will go through. */

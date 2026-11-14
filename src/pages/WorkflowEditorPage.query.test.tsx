@@ -475,7 +475,7 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
       fireEvent.click(within(picker).getByText("Mailchimp"));
       // The picker gives way to adding the system, with Mailchimp already picked.
       await waitFor(() => expect(screen.queryByRole("dialog", { name: "Add a step" })).toBeNull(), wait);
-      await screen.findByText("Configure System", undefined, wait);
+      await screen.findByRole("dialog", { name: "Connect Mailchimp" }, wait);
       fireEvent.click(screen.getByRole("button", { name: "Add connected system" }));
       type Systems = { data: { id: string; attributes?: { name: string }; name?: string }[] };
       const added = async () => {

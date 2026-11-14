@@ -9,12 +9,12 @@ import { connectionOf } from "../../model/connected-systems";
 import { isoAgo } from "../../model/time";
 import { routeKey } from "../../model/xroad";
 import type { SystemsPageData } from "./SystemsPage";
-import { adaptors } from "../../fixtures/adaptors";
+import { fullAdaptorCatalog } from "../../fixtures/adaptor-catalog";
 
 /** Everything the page shows on X-Road with the map on, as the wrapper passes it. */
 const fullData: SystemsPageData = {
   items: connectedSystemListItems,
-  adaptors,
+  catalog: fullAdaptorCatalog,
   suggestions: recommendedSystems.slice(0, 3),
   ecosystem: { stations: ecosystemStations, workflows: ecosystemWorkflows, routes: ecosystemRoutes },
   xroad: {
@@ -52,7 +52,7 @@ export const Default: Story = {
     node,
     ancestors,
     currentPath: "/connected-systems",
-    data: { items: connectedSystemListItems, adaptors, suggestions: recommendedSystems.slice(0, 3) },
+    data: { items: connectedSystemListItems, catalog: fullAdaptorCatalog, suggestions: recommendedSystems.slice(0, 3) },
   },
 };
 
@@ -61,7 +61,7 @@ export const EmptyList: Story = {
     node,
     ancestors,
     currentPath: "/connected-systems",
-    data: { items: [], adaptors, suggestions: recommendedSystems.slice(0, 3) },
+    data: { items: [], catalog: fullAdaptorCatalog, suggestions: recommendedSystems.slice(0, 3) },
   },
 };
 

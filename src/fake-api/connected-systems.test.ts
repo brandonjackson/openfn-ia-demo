@@ -17,8 +17,11 @@ describe("connected systems", () => {
     const id = crypto.randomUUID();
     expect((await refusal(request("PUT", `/api/demo/connected_systems/${id}`, { name: "DHIS2", adaptor: "dhis2" })))?.fieldErrors["name"]).toEqual(["has already been taken"]);
     expect((await refusal(request("PUT", `/api/demo/connected_systems/${id}`, { name: "Lab", adaptor: "http", apiDocsUrl: "docs" })))?.fieldErrors["apiDocsUrl"]).toBeTruthy();
-    await request("PUT", `/api/demo/connected_systems/${id}`, { name: "Lab results", adaptor: "http" });
+    expect((await refusal(request("PUT", `/api/demo/connected_systems/${id}`, { name: "Lab", adaptor: "http", openApiSpecUrl: "spec.json" })))?.fieldErrors["openApiSpecUrl"]).toBeTruthy();
+    await request("PUT", `/api/demo/connected_systems/${id}`, { name: "Lab results", adaptor: "http", openApiSpecUrl: "https://lab.example.org/openapi.json" });
     expect((await list()).some((s) => s.id === id)).toBe(true);
+    const added = await request<{ data: { attributes: { openApiSpecUrl?: string } } }>("GET", `/api/demo/connected_systems/${id}`);
+    expect(added.data.attributes.openApiSpecUrl).toBe("https://lab.example.org/openapi.json");
   });
 
   it("edits a system's details and URLs, keeping what it isn't sent, and refuses a name another has", async () => {
@@ -57,6 +60,17 @@ describe("the catalog a new system is picked from", () => {
     await request("PUT", `/api/demo/connected_systems/${crypto.randomUUID()}`, { name: first, description: "", adaptor: "http", credentialType: "org", hasAccess: true, color: "gray", owner: "Us", ownerType: "org", environments: { production: { url: "" }, staging: { url: "" }, mock: { url: "" } } });
     const after = await request<Rows>("GET", "/api/demo/connected_systems/suggestions");
     expect(after.data.map((s) => s.attributes.name)).not.toContain(first);
+  });
+});
+
+describe("the adaptor catalog", () => {
+  it("sorts every adaptor into the categories the pickers show, each one in the catalog", async () => {
+    type Catalog = { data: { attributes: { adaptors: { id: string }[]; categories: { groups: { adaptors: string[] }[] }[]; built_in_tools: string[] } } };
+    const { data } = await request<Catalog>("GET", "/api/demo/adaptor_catalog");
+    const ids = new Set(data.attributes.adaptors.map((a) => a.id));
+    expect(ids.has("dhis2")).toBe(true);
+    for (const id of data.attributes.categories.flatMap((c) => c.groups.flatMap((g) => g.adaptors))) expect(ids.has(id)).toBe(true);
+    expect(data.attributes.built_in_tools).toContain("http");
   });
 });
 

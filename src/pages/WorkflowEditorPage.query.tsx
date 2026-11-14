@@ -397,7 +397,7 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       systemAdaptors={flags.connectedSystems && editable ? systemAdaptors : undefined}
       onAddSystem={
         flags.connectedSystems && editable
-          ? (input) => systemSaves.add({ name: input.name, description: input.description, adaptor: input.adaptor, endpointUrl: input.endpointUrl, docsUrl: input.docsUrl })
+          ? (input) => systemSaves.add(input)
           : undefined
       }
       stepServices={stepServices}

@@ -64,16 +64,14 @@ describe("ServicePage", () => {
     expect(screen.queryByRole("alert")).toBeNull();
   });
 
-  it("says why when the server refuses to turn MCP on", async () => {
+  it("offers Enable MCP again when the server refuses (the wrapper says why)", async () => {
     const host = renderPage(ServicePage, frame(), actions);
     fireEvent.click(screen.getByRole("button", { name: "Enable MCP" }));
     await host.reject("onEnableMcp", new FormError("MCP is off for this organisation."));
-    expect(screen.getByRole("alert").textContent).toContain("MCP wasn't turned on");
-    expect(screen.getByRole("alert").textContent).toContain("MCP is off for this organisation.");
     expect(screen.getByRole("button", { name: "Enable MCP" })).toBeTruthy();
   });
 
-  it("publishes to X-Road from its checklist, waiting while it's published, and says why if the server refuses", async () => {
+  it("publishes to X-Road from its checklist, waiting while it's published", async () => {
     const host = renderPage(ServicePage, frame(), actions);
     fireEvent.click(screen.getByRole("button", { name: "Publish to X-Road" }));
     fireEvent.click(screen.getByRole("button", { name: "Mark as published" }));
@@ -83,7 +81,7 @@ describe("ServicePage", () => {
     fireEvent.click(busy);
     expect(screen.queryByRole("button", { name: "Mark as published" })).toBeNull();
     await host.reject("onPublishToXRoad", new FormError("is not a service code"));
-    expect(screen.getByRole("alert").textContent).toContain("It wasn't published to X-Road");
+    expect(screen.queryByRole("button", { name: "Publishing…" })).toBeNull();
   });
 
   it("opens the project and the workflow behind the service", () => {

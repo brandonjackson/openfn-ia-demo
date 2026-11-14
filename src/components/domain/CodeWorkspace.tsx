@@ -75,6 +75,12 @@ interface Props {
   onSettingsChange?: (settings: WorkflowSettings) => void;
   /** Each step's credential, by step id. */
   credentials?: Record<string, string | undefined>;
+  /** Where the workflow runs, which a step's credential must have values for: the sandbox's environment, or "production" on main. */
+  environment?: string;
+  /** Changes each time the step's Config should scroll to its credential, e.g. from the canvas's Connect. */
+  focusCredential?: number;
+  /** Opens the credential form for a step's system. Left out, there's no New credential. */
+  onNewCredential?: (stepId: string) => void;
   onStepChange?: (stepId: string, changes: StepChanges) => void;
   /** A step's code was edited in the editor (or a snippet inserted). Without it, the code is read-only. */
   onCodeChange?: (stepId: string, code: string) => void;
@@ -181,6 +187,9 @@ export default function CodeWorkspace({
   settings,
   onSettingsChange,
   credentials = {},
+  environment,
+  focusCredential,
+  onNewCredential,
   onStepChange,
   onCodeChange,
   onDeleteStep,
@@ -243,6 +252,8 @@ export default function CodeWorkspace({
   const editor = useRef<CodeEditorHandle>(null);
   const editable = Boolean(step && !readOnly && onCodeChange);
   const stepAdaptor = step ? adaptors.info[step.adaptor] : undefined;
+  // A step's type is its connected system, drawn with its adaptor's logo; a step on none shows its adaptor.
+  const stepSystem = step?.system ? systems.find((s) => s.id === step.system) : undefined;
 
   const path =
     step !== undefined
@@ -280,9 +291,9 @@ export default function CodeWorkspace({
     />
   ) : step && stepAdaptor && (
     <EntityPill
-      name={stepAdaptor.name}
+      name={stepSystem?.name ?? stepAdaptor.name}
       adaptor={step.adaptor}
-      suffix={stepAdaptor.version}
+      suffix={stepSystem ? undefined : stepAdaptor.version}
       size="xs"
       title="Open the step's config"
       onClick={onDetailsViewChange ? () => onDetailsViewChange("config") : undefined}
@@ -324,9 +335,12 @@ export default function CodeWorkspace({
         step={step}
         adaptor={stepAdaptor}
         adaptorChoices={adaptors.choices.map((a) => adaptors.info[a])}
-        credentials={adaptors.credentials.filter((c) => c.adaptor === step.adaptor)}
+        credentials={adaptors.credentials}
         systems={systems}
         credentialId={credentials[step.id]}
+        environment={environment}
+        focusCredential={focusCredential}
+        onNewCredential={onNewCredential ? () => onNewCredential(step.id) : undefined}
         readOnly={readOnly}
         onChange={onStepChange ? (changes) => onStepChange(step.id, changes) : undefined}
         onDelete={onDeleteStep ? () => onDeleteStep(step.id) : undefined}
@@ -496,6 +510,7 @@ export default function CodeWorkspace({
     nav: showExplorer ? (
       <EditorExplorer
         workflow={workflow}
+        systems={systems}
         file={file}
         onOpen={onOpen}
         run={run}

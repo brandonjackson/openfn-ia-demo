@@ -66,31 +66,30 @@ describe("HistoryPage", () => {
     expect(screen.queryByRole("button", { name: "Work order aaa111, success" })).toBeNull();
   });
 
-  it("retries a finished work order, and says so once the server has it", async () => {
-    const host = draw([order("aaa111", "failed")]);
-    fireEvent.click(screen.getByRole("button", { name: "Retry work order aaa111" }));
-    expect(host.calls("onRetry")).toEqual([[["aaa111"]]]);
+  it("retries the picked work orders, then clears the picks", async () => {
+    const host = draw([order("aaa111", "failed"), order("bbb222", "success")]);
+    fireEvent.click(screen.getByRole("checkbox", { name: "Select every work order shown" }));
+    fireEvent.click(within(screen.getByRole("toolbar", { name: "Actions for 2 selected" })).getByRole("button", { name: "Retry" }));
+    expect(host.calls("onRetry")).toEqual([[["aaa111", "bbb222"]]]);
     await host.resolve("onRetry");
-    expect(screen.getByText("1 new run enqueued.")).toBeTruthy();
+    expect(screen.queryByRole("toolbar", { name: "Actions for 2 selected" })).toBeNull();
   });
 
-  it("says why when the server refuses a retry, keeping the picks to try again", async () => {
+  it("keeps the picks to try again when the server refuses a retry (the wrapper says why)", async () => {
     const host = draw([order("aaa111", "failed"), order("bbb222", "success")]);
     fireEvent.click(screen.getByRole("checkbox", { name: "Select every work order shown" }));
     fireEvent.click(within(screen.getByRole("toolbar", { name: "Actions for 2 selected" })).getByRole("button", { name: "Retry" }));
     expect(host.calls("onRetry")).toEqual([[["aaa111", "bbb222"]]]);
     await host.reject("onRetry", new FormError("This workflow has been deleted."));
-    const alert = screen.getByRole("alert");
-    expect(alert.textContent).toContain("2 work orders not retried");
-    expect(alert.textContent).toContain("This workflow has been deleted.");
     expect(screen.getByRole("toolbar", { name: "Actions for 2 selected" })).toBeTruthy();
   });
 
-  it("cancels a work order still waiting to run, and says why when it can't", async () => {
+  it("cancels a work order still waiting to run", async () => {
     const host = draw([order("ccc333", "pending")]);
     fireEvent.click(screen.getByRole("button", { name: "Cancel work order ccc333" }));
+    expect(host.calls("onCancel")).toEqual([[["ccc333"]]]);
     await host.reject("onCancel", new FormError("Only runs nobody has picked up can be cancelled."));
-    expect(screen.getByRole("alert").textContent).toContain("Only runs nobody has picked up can be cancelled.");
+    expect(screen.getByRole("button", { name: "Cancel work order ccc333" })).toBeTruthy();
   });
 
   it("leaves Export out where it isn't given, as History across projects does", () => {
@@ -104,7 +103,7 @@ describe("HistoryPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Start export" }));
     expect(host.calls("onExport")).toEqual([[["aaa111"]]]);
     await host.resolve("onExport");
-    expect(screen.getByText("Export started.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Start export" })).toBeNull();
   });
 
   it("switches to channel requests through the filters", () => {
@@ -136,7 +135,7 @@ describe("HistoryPage", () => {
       return { ...o, workOrder: { ...o.workOrder, runs: [r] } };
     };
 
-    it("approves a waiting run from its work order, saying so while it's sent and once it's through", async () => {
+    it("approves a waiting run from its work order, saying so while it's sent", async () => {
       const host = draw([waiting()], defaultHistoryFilters, ["onFiltersChange", "onInspectRun", "onAnswerApproval"]);
       // A run waiting on someone isn't finished, so it isn't offered a retry.
       expect(screen.queryByRole("button", { name: "Retry work order ccc333" })).toBeNull();
@@ -146,7 +145,8 @@ describe("HistoryPage", () => {
       expect(host.calls("onAnswerApproval")).toEqual([["run-ccc333", "approved", ""]]);
       expect(screen.getByRole("button", { name: "Approving…" }).getAttribute("aria-disabled")).toBe("true");
       await host.resolve("onAnswerApproval");
-      expect(screen.getByText("Run run-ccc333 approved.")).toBeTruthy();
+      // Once it's through the button is back; the wrapper's toast says it carried on.
+      expect(screen.getByRole("button", { name: "Approve" })).toBeTruthy();
     });
 
     it("asks why before rejecting, and shows a refusal on the card", async () => {

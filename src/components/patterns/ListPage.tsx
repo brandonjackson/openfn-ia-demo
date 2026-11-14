@@ -4,8 +4,6 @@ import Stack from "../primitives/Stack";
 interface Props {
   /** The top of the page, e.g. a `PageHeader` with its breadcrumbs and actions. */
   header: ReactNode;
-  /** What an action just did, e.g. a Callout saying something was deleted or refused. */
-  notice?: ReactNode;
   /**
    * What the list is for, above the toolbar: a feature intro or a row of
    * cards, or the ways to add something. Optional, since most of the time
@@ -27,18 +25,18 @@ interface Props {
 
 /**
  * The shape of a page that lists things, in one order every list page shares:
- * header, a notice, an optional intro, the toolbar, then the list (or what
+ * header, an optional intro, the toolbar, then the list (or what
  * to show when it's empty), then anything that follows it. Search, sort and
  * filters go in `toolbar`, never in a heading or the header's actions; the
- * list doesn't count its rows, since they're there to see. Modals sit beside it, not in it. Everything
+ * list doesn't count its rows, since they're there to see. Modals sit beside it, not in it, and what an
+ * action just did is a toast (`useAnnounce`), never a banner in the page. Everything
  * arrives through slots, so the intro can never land between the filters
  * and the list they filter.
  */
-export default function ListPage({ header, notice, intro, toolbar, isEmpty = false, empty, children, after }: Props) {
+export default function ListPage({ header, intro, toolbar, isEmpty = false, empty, children, after }: Props) {
   return (
     <Stack gap="xl">
       {header}
-      {notice}
       {intro}
       <Stack gap="md">
         {toolbar}

@@ -14,6 +14,7 @@ import { componentsFor } from "../../model/component-types";
 import { pageFrame } from "../../app/page-frame";
 import { channelDraft } from "../channel-records.query";
 import { useProjectComponents } from "../component-records.query";
+import { useAnnounceOutcome } from "../../app/announce";
 
 /**
  * Feeds a project component's page, from the API. A channel opens
@@ -34,6 +35,7 @@ export default function ComponentPageQuery({ route }: { route: PageRoute }) {
   const componentId = route.params["component"] ?? "";
   const { status: projectStatus, project } = useProject(projectId);
   const records = useProjectComponents(project);
+  const announcing = useAnnounceOutcome();
   const { status: workflowsStatus, workflows } = useProjectWorkflows(projectId);
   const collection = records.collections.find((c) => c.id === componentId);
   const { status: itemsStatus, items } = useCollectionItems(project?.id, collection?.name);
@@ -62,11 +64,22 @@ export default function ComponentPageQuery({ route }: { route: PageRoute }) {
               takenNames={records.channels.channels.filter((c) => c !== channel).map((c) => c.component.name)}
               credentials={credentialNames}
               onEditChannel={permissions.update_channel ? (draft) => saves.update(channel, draft) : undefined}
-              onSetEnabled={permissions.update_channel ? (enabled) => saves.setEnabled(channel, enabled) : undefined}
+              onSetEnabled={
+                permissions.update_channel
+                  ? (enabled) =>
+                      announcing(saves.setEnabled(channel, enabled), {
+                        success: `Turned ${channel.component.name} ${enabled ? "on" : "off"}.`,
+                        failure: `The channel wasn't turned ${enabled ? "on" : "off"}`,
+                      })
+                  : undefined
+              }
               onDeleteChannel={
                 permissions.delete_channel
                   ? async () => {
-                      await saves.remove(channel.component.id);
+                      await announcing(saves.remove(channel.component.id), {
+                        success: `Deleted ${channel.component.name}.`,
+                        failure: "The channel wasn't deleted",
+                      });
                       navigate(listPath);
                     }
                   : undefined
@@ -100,7 +113,10 @@ export default function ComponentPageQuery({ route }: { route: PageRoute }) {
               onDelete={
                 records.canManageCollections
                   ? async () => {
-                      await collectionSaves.remove(project!.id, collection.id);
+                      await announcing(collectionSaves.remove(project!.id, collection.id), {
+                        success: `Deleted ${component.name}.`,
+                        failure: `${component.name} wasn't deleted`,
+                      });
                       navigate(listPath);
                     }
                   : undefined
@@ -123,7 +139,10 @@ export default function ComponentPageQuery({ route }: { route: PageRoute }) {
             onDelete={
               canEdit
                 ? async () => {
-                    await saves.remove(resource.component.id);
+                    await announcing(saves.remove(resource.component.id), {
+                      success: `Deleted ${component.name}.`,
+                      failure: `${component.name} wasn't deleted`,
+                    });
                     navigate(listPath);
                   }
                 : undefined

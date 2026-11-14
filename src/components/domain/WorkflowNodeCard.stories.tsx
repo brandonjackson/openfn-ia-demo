@@ -97,6 +97,22 @@ export const OnXRoadSystem: Story = { args: { ...card(registerCaseWorkflow.nodes
 /** Workflow B's step on DHIS2, reached directly. It looks the same but for the badge. */
 export const OnDirectSystem: Story = { args: { ...card(weeklyCaseReportWorkflow.nodes.find((n) => n.id === "send-dhis2")!) } };
 
+/** A step that needs a credential and has none, in a sandbox: Connect opens its config at the credential. */
+export const NeedsCredential: Story = { args: { ...card(httpJob), onConnect: () => {} } };
+
+/** Two steps on different DHIS2 systems: each is named by its system, with DHIS2's logo. */
+export const TwoDhis2Systems: Story = {
+  render: () => {
+    const send = weeklyCaseReportWorkflow.nodes.find((n) => n.id === "send-dhis2")!;
+    return (
+      <div className="flex gap-4">
+        <WorkflowNodeCard {...card(send)} />
+        <WorkflowNodeCard {...card({ ...send, id: "send-malaria", label: "Send malaria cases to the programme", system: "dhis2-malaria" } as typeof send)} />
+      </div>
+    );
+  },
+};
+
 /** A Report outcome step names its tool and the outcome it records. */
 export const ReportOutcome: Story = { args: { ...card(hardshipGrantWorkflow.nodes.find((n) => n.id === "outcome-declined")!) } };
 

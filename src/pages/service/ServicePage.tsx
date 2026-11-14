@@ -3,7 +3,6 @@ import { Bot, ClipboardList, Clock, FileCode2, Folder, KeyRound, ListChecks, Net
 import type { PageProps } from "../../model/ia-tree";
 import type { ProjectServiceItem, ServiceApiField, ServiceApiSpec } from "../../model/services";
 import type { XRoadIdentity } from "../../model/xroad";
-import { errorMessageOf } from "../../model/form-error";
 import Badge from "../../components/primitives/Badge";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
@@ -87,17 +86,15 @@ export default function ServicePage({
   const [publishOpen, setPublishOpen] = useState(false);
   const [enabling, setEnabling] = useState(false);
   const [publishing, setPublishing] = useState(false);
-  const [refusal, setRefusal] = useState<{ title: string; detail: string }>();
 
-  /** Runs one of the service's actions once at a time, and says why if the server refuses. */
-  const run = async (busy: boolean, setBusy: (busy: boolean) => void, action: (() => Promise<void>) | undefined, failed: string) => {
+  /** Runs one of the service's actions once at a time; the wrapper says why if the server refuses. */
+  const run = async (busy: boolean, setBusy: (busy: boolean) => void, action: (() => Promise<void>) | undefined) => {
     if (busy || !action) return;
-    setRefusal(undefined);
     setBusy(true);
     try {
       await action();
-    } catch (error) {
-      setRefusal({ title: failed, detail: errorMessageOf(error) });
+    } catch {
+      // Refused: the wrapper said why.
     } finally {
       setBusy(false);
     }
@@ -206,11 +203,6 @@ export default function ServicePage({
         )}
       </div>
 
-      {refusal && (
-        <Callout variant="danger" title={refusal.title} role="alert">
-          {refusal.detail}
-        </Callout>
-      )}
 
       {isWebhook && (
         <section>
@@ -248,7 +240,7 @@ export default function ServicePage({
                     size="sm"
                     icon={Bot}
                     aria-disabled={enabling || undefined}
-                    onClick={() => void run(enabling, setEnabling, onEnableMcp, "MCP wasn't turned on")}
+                    onClick={() => void run(enabling, setEnabling, onEnableMcp)}
                   >
                     {enabling ? "Enabling…" : "Enable MCP"}
                   </Button>
@@ -327,7 +319,7 @@ export default function ServicePage({
           onClose={() => setPublishOpen(false)}
           onPublished={() => {
             setPublishOpen(false);
-            void run(publishing, setPublishing, onPublishToXRoad, "It wasn't published to X-Road");
+            void run(publishing, setPublishing, onPublishToXRoad);
           }}
           serviceName={service.name}
           serviceCode={serviceCode}

@@ -48,7 +48,8 @@ const HEADER_TOP = 12;
  * coordinates come from the workflow data; there is no zoom or node drag yet.
  *
  * With `onAddAfter`, each card shows a + on its bottom edge while hovered,
- * to add a step after it.
+ * to add a step after it. With `onConnect`, a step that `needsCredential`
+ * shows Connect on its card.
  */
 export default function WorkflowCanvas({
   workflow,
@@ -68,6 +69,8 @@ export default function WorkflowCanvas({
   adaptors = {},
   systems = [],
   deleteBlockedReason,
+  onConnect,
+  needsCredential,
 }: {
   workflow: Workflow;
   selectedId?: string;
@@ -97,6 +100,10 @@ export default function WorkflowCanvas({
   systems?: ConnectedSystem[];
   /** Why a step can't be deleted, by its id, or nothing when it can; its card's Delete says so. */
   deleteBlockedReason?: (nodeId: string) => string | undefined;
+  /** Opens a step's config at its credential, from Connect on the card of a step that `needsCredential`. */
+  onConnect?: (nodeId: string) => void;
+  /** Whether a step needs a credential and has none, by its id: its card offers Connect. */
+  needsCredential?: (nodeId: string) => boolean;
 }) {
   const nodeById = (id: string) => workflow.nodes.find((n) => n.id === id);
 
@@ -299,6 +306,7 @@ export default function WorkflowCanvas({
               adaptorName={node.type === "job" ? adaptors[node.adaptor]?.name : undefined}
               system={node.type === "job" && node.system ? systems.find((s) => s.id === node.system) : undefined}
               deleteBlockedReason={node.type === "job" ? deleteBlockedReason?.(node.id) : undefined}
+              onConnect={onConnect && node.type === "job" && needsCredential?.(node.id) ? (n) => onConnect(n.id) : undefined}
             />
           </div>
         ))}

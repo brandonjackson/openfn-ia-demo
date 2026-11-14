@@ -297,8 +297,7 @@ export function CalloutGuide() {
       <Section title="Usage">
         <Bullets
           items={[
-            <>For notices, warnings and danger zones. On a list page it goes in <Code>ListPage</Code>'s <Code>notice</Code>.</>,
-            <>A refusal that appears after something was pressed gets <Code>role="alert"</Code>, so it's read out at once.</>,
+            <>For notes, warnings and danger zones that belong to the page. What an action just did (saved, deleted, refused) is a toast instead: see <Code>Toast</Code>.</>,
             <>A refusal about one field goes under that field instead, as <Code>FormField</Code>'s <Code>error</Code>.</>,
           ]}
         />
@@ -443,8 +442,8 @@ export function ListPageGuide() {
   return (
     <Section title="Usage">
       <P>
-        Every page that lists things uses <Code>ListPage</Code>, which holds the order: header, notice, intro, toolbar,
-        summary, the list (or empty), then after. There's a live, searchable example in{" "}
+        Every page that lists things uses <Code>ListPage</Code>, which holds the order: header, intro, toolbar, the list
+        (or empty), then after. What an action just did is a toast, not part of the page. There's a live, searchable example in{" "}
         <TextLink to="/docs/guidelines/lists" variant="inline">Lists</TextLink> and{" "}
         <TextLink to="/docs/core-concepts#slots" variant="inline">Core concepts</TextLink>.
       </P>
@@ -506,5 +505,18 @@ export function EntityPillGuide() {
         </P>
       </Section>
     </>
+  );
+}
+
+export function ToastGuide() {
+  return (
+    <Section title="Usage">
+      <P>
+        Don't draw a <Code>Toast</Code> yourself: a wrapper calls <Code>useAnnounce</Code> or{" "}
+        <Code>useAnnounceOutcome</Code> from <Code>src/app/announce.ts</Code>, and the app's{" "}
+        <Code>ToastStack</Code> shows it. The rules and a live example are in{" "}
+        <TextLink to="/docs/guidelines/notifications" variant="inline">Notifications</TextLink>.
+      </P>
+    </Section>
   );
 }

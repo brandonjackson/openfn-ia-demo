@@ -3,7 +3,7 @@ import StepInspector from "./StepInspector";
 import { nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "../../fixtures/workflow";
 import { withRouter } from "../../stories/decorators";
 import type { JobNode, WorkflowNode } from "../../model/workflow";
-import { adaptorInfo, credentialsFor } from "../../fixtures/adaptor-reference";
+import { adaptorInfo, projectCredentials } from "../../fixtures/adaptor-reference";
 import { codeSummary } from "../../fixtures/code-summaries";
 import { connectedSystems } from "../../fixtures/connected-systems";
 import { failureReasons, runActivity } from "../../model/runs";
@@ -18,7 +18,7 @@ const inspect = (node: WorkflowNode) =>
     ? {
         node,
         adaptor: adaptorInfo[node.adaptor],
-        credentials: credentialsFor(node.adaptor),
+        credentials: projectCredentials,
         system: node.system ? connectedSystems.find((s) => s.id === node.system) : undefined,
         codeSummary: codeSummary(node),
       }
@@ -42,6 +42,7 @@ const meta: Meta<typeof StepInspector> = {
     url: "https://app.openfn.org/i/8f3c2a1e",
     latestVersion: "v2",
     onChange: () => {},
+    onConnect: () => {},
     onOpenCode: () => {},
     onRunFromHere: () => {},
     onDelete: () => {},
@@ -67,7 +68,7 @@ type Story = StoryObj<typeof StepInspector>;
 /** No runs on the canvas: the step's adaptor and credential, then what its code does, summarised by the assistant. Click the title to rename the step. */
 export const Default: Story = {};
 
-/** The step needs a credential it doesn't have yet. */
+/** The step needs a credential it doesn't have yet: Connect opens its config at the credential. */
 export const NeedsCredential: Story = {
   args: { ...inspect(job("create")) },
 };

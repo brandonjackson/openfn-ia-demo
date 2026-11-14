@@ -16,6 +16,7 @@ import PropertyList from "../primitives/PropertyList";
 import SectionHeading from "../primitives/SectionHeading";
 import StatTile from "../primitives/StatTile";
 import TextLink from "../primitives/TextLink";
+import Text from "../primitives/Text";
 import ToggleSwitch from "../primitives/ToggleSwitch";
 import EntityPill from "./EntityPill";
 import StatusPill from "./StatusPill";
@@ -47,7 +48,7 @@ interface Props {
   node: WorkflowNode;
   /** The step's adaptor: its name, version and whether it needs a credential. */
   adaptor?: AdaptorInfo;
-  /** The project's credentials for the step's adaptor; Connect picks the first. */
+  /** The project's credentials, to name the step's. */
   credentials?: ProjectCredential[];
   /** The connected system the step talks to, if any. */
   system?: ConnectedSystem;
@@ -63,6 +64,8 @@ interface Props {
   /** Turns the trigger on or off, the same as pausing or resuming the workflow. Left out, the switch only reads. */
   onToggleLive?: (live: boolean) => void;
   onChange?: (changes: StepChanges) => void;
+  /** Opens the step's config in the code view, at its credential, for a step that needs one and has none. Left out (on main), there's no Connect. */
+  onConnect?: () => void;
   /** Opens the step's code. */
   onOpenCode?: () => void;
   onRunFromHere?: () => void;
@@ -112,6 +115,7 @@ export default function StepInspector({
   live = true,
   onToggleLive,
   onChange,
+  onConnect,
   onOpenCode,
   onRunFromHere,
   onDelete,
@@ -169,8 +173,7 @@ export default function StepInspector({
                 info={adaptor}
                 credentials={credentials}
                 credentialId={credentialId}
-                readOnly={readOnly}
-                onConnect={(id) => onChange?.({ credentialId: id })}
+                onConnect={readOnly ? undefined : onConnect}
               />
             )}
             {trigger && <TriggerConfig trigger={trigger} url={url} live={live} onToggleLive={onToggleLive} />}
@@ -428,7 +431,6 @@ function AdaptorRow({
   info,
   credentials,
   credentialId,
-  readOnly,
   onConnect,
 }: {
   system?: ConnectedSystem;
@@ -436,8 +438,7 @@ function AdaptorRow({
   info: AdaptorInfo;
   credentials: ProjectCredential[];
   credentialId?: string;
-  readOnly: boolean;
-  onConnect: (credentialId?: string) => void;
+  onConnect?: () => void;
 }) {
   const credential = credentials.find((c) => c.id === credentialId);
   const method = system ? connectionOf(system).method : undefined;
@@ -458,23 +459,24 @@ function AdaptorRow({
               },
             ]
           : []),
-        { label: "Adaptor", value: <EntityPill name={info.name} adaptor={adaptor} suffix={info.version} size="sm" /> },
+        // A step on a system is typed by the system; its adaptor follows from it, so it's only text.
+        system
+          ? { label: "Adaptor", value: <Text tone="muted" truncate>{`${info.name} ${info.version}`}</Text> }
+          : { label: "Adaptor", value: <EntityPill name={info.name} adaptor={adaptor} suffix={info.version} size="sm" /> },
         {
           label: "Credential",
           value: method === "xroad" ? (
             <span className="text-gray-500">Not needed: X-Road adds your identity</span>
-          ) : method === "direct" && system && !credential ? (
-            <span className="truncate">{system.environments.production.credential ?? "None yet"}</span>
           ) : credential ? (
             <span className="truncate">{credential.name}</span>
           ) : !info.needsCredential ? (
             <span className="text-gray-500">Not needed</span>
-          ) : readOnly ? (
+          ) : !onConnect ? (
             <span className="text-gray-500">None</span>
           ) : (
             <>
               <span className="text-gray-500">None yet</span>
-              <TextLink variant="action" onClick={() => onConnect(credentials[0]?.id)}>
+              <TextLink variant="action" onClick={onConnect}>
                 <span className="text-xs">Connect →</span>
               </TextLink>
             </>

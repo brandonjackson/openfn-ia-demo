@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { MoreVertical, Pencil, Trash2 } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
-import { errorMessageOf } from "../../model/form-error";
-import Callout from "../../components/primitives/Callout";
 import { isContentComponentType, type ComponentDraft } from "../../model/project-components";
 import { componentTypeIcons } from "../../model/component-types";
 import PageHeader from "../../components/patterns/PageHeader";
@@ -71,7 +69,6 @@ export default function ComponentPage({
   const { component, content, collection } = data;
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [refusal, setRefusal] = useState<string>();
   const type = component.type;
   const canRename = isContentComponentType(type) ? !!onEditDetails : !!onRenameCollection;
   const menu = [
@@ -101,11 +98,6 @@ export default function ComponentPage({
         }
       />
 
-      {refusal && (
-        <Callout variant="danger" title={`${component.name} wasn't deleted`} role="alert">
-          {refusal}
-        </Callout>
-      )}
       {content && isContentComponentType(type) && (
         <ComponentView
           key={component.id}
@@ -151,8 +143,8 @@ export default function ComponentPage({
           onClose={() => setDeleting(false)}
           onConfirm={() => {
             setDeleting(false);
-            setRefusal(undefined);
-            onDelete().catch((error: unknown) => setRefusal(errorMessageOf(error)));
+            // A refusal is said by the wrapper.
+            onDelete().catch(() => {});
           }}
         >
           {type === "Collection"

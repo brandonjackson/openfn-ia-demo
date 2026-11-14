@@ -78,5 +78,26 @@ export const credentialSchemas: CredentialSchema[] = [
     description: "Cloud spreadsheets, with an access token",
     fields: [{ key: "access_token", label: "Access token", kind: "secret", description: "Your Google Sheets access token", required: true }],
   },
+  {
+    id: "opencrvs",
+    name: "OpenCRVS",
+    adaptor: "opencrvs",
+    description: "Civil registration, with a client ID and secret",
+    fields: [
+      { key: "domain", label: "Domain", kind: "url", description: "Your OpenCRVS instance", placeholder: "https://gateway.farajaland.opencrvs.org", required: true },
+      { key: "clientId", label: "Client ID", kind: "text", required: true },
+      { key: "clientSecret", label: "Client secret", kind: "secret", required: true },
+    ],
+  },
+  {
+    id: "twilio",
+    name: "Twilio",
+    adaptor: "twilio",
+    description: "SMS and voice, with an account SID and auth token",
+    fields: [
+      { key: "accountSid", label: "Account SID", kind: "text", required: true },
+      { key: "authToken", label: "Auth token", kind: "secret", required: true },
+    ],
+  },
   rawCredentialSchema,
 ];

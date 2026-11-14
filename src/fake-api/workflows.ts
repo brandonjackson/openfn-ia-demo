@@ -19,7 +19,7 @@ import { approvalTimeoutActions, outcomeStatuses } from "../model/step-tools";
 import { projects as fixtureProjects, projectWorkflowDetails } from "../fixtures/projects";
 import { authMethods } from "../fixtures/project-settings";
 import { nationalIdWorkflow, nationalIdWorkflowAt, surveillanceVersions, workflowGraphs, workflowVersions } from "../fixtures/workflow";
-import { apiNodeId, apiWorkflowId, cloneNodeId, newId, seedId } from "../fixtures/ids";
+import { apiNodeId, apiSystemId, apiWorkflowId, cloneNodeId, newId, seedId } from "../fixtures/ids";
 import type { Workflow } from "../model/workflow";
 import { toDocument, type WorkflowDocEdge, type WorkflowDocument, type WorkflowJob, type WorkflowTrigger } from "../model/workflow-document";
 import { badId, conflict, forbidden, invalid, isUuid, json, noContent, notFound, now, ORIGIN, paged, unknownKeys, type Body, type Entry, type Handler } from "./answers";
@@ -51,12 +51,12 @@ export interface SnapshotRow {
 /*  Seed                                                               */
 /* ------------------------------------------------------------------ */
 
-/** A fixture graph with every id made a UUID unique to this workflow. */
+/** A fixture graph with every id made a UUID unique to this workflow, and each step's system named by its id on the API. */
 function seededGraph(slug: string, graph: Workflow): Workflow {
   const id = (nodeId: string) => apiNodeId(slug, nodeId);
   return {
     ...graph,
-    nodes: graph.nodes.map((n) => ({ ...n, id: id(n.id) })),
+    nodes: graph.nodes.map((n) => ({ ...n, id: id(n.id), ...(n.type === "job" && n.system && { system: apiSystemId(n.system) }) })),
     edges: graph.edges.map((e) => ({ ...e, id: id(e.id), source: id(e.source), target: id(e.target) })),
   };
 }

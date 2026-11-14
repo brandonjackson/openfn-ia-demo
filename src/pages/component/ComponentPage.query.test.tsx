@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { AnnouncementsProvider } from "../../app/announcements";
 import ApiProvider from "../../api/ApiProvider";
 import { forgetCsrfToken, request } from "../../api/client";
 import { setFlag } from "../../app/feature-flags";
@@ -29,20 +30,23 @@ function Component() {
 function renderRoute(componentId: string) {
   render(
     <ApiProvider retry={false}>
-      <MemoryRouter initialEntries={[`${listPath}/${componentId}`]}>
-        <Routes>
-          <Route path="/projects/:project/components/:component" element={<Component />} />
-          <Route path="/projects/:project/components" element={<Opened />} />
-          <Route path="/workflow-editor/:id" element={<Opened />} />
-        </Routes>
-      </MemoryRouter>
+      <AnnouncementsProvider>
+        <MemoryRouter initialEntries={[`${listPath}/${componentId}`]}>
+          <Routes>
+            <Route path="/projects/:project/components/:component" element={<Component />} />
+            <Route path="/projects/:project/components" element={<Opened />} />
+            <Route path="/workflow-editor/:id" element={<Opened />} />
+          </Routes>
+        </MemoryRouter>
+      </AnnouncementsProvider>
     </ApiProvider>,
   );
 }
 
 type Resource = { id: string; attributes: Record<string, unknown> };
 
-const serverComponents = async () => (await request<{ data: Resource[] }>("GET", `/api/demo/projects/${projectId}/components?page_size=100`)).data;
+const serverComponents = async () =>
+  (await request<{ data: Resource[] }>("GET", `/api/demo/projects/${projectId}/components?page_size=100`)).data;
 const serverChannels = async () => (await request<{ data: Resource[] }>("GET", `/api/projects/${projectId}/channels?page_size=100`)).data;
 const serverChannel = async (id: string) => (await request<{ data: Resource }>("GET", `/api/projects/${projectId}/channels/${id}`)).data;
 
@@ -92,10 +96,15 @@ describe("ComponentPageQuery", () => {
 
   it("says why when the server refuses to turn a channel off", async () => {
     const channel = (await serverChannels()).find((c) => c.attributes["enabled"] !== false)!;
-    failNext("PUT /api/projects/:project_id/channels/:id", { status: 409, code: "concurrent_edit", detail: "Someone else changed this channel." });
+    failNext("PUT /api/projects/:project_id/channels/:id", {
+      status: 409,
+      code: "concurrent_edit",
+      detail: "Someone else changed this channel.",
+    });
     renderRoute(channel.id);
     await pick(channel.attributes["name"] as string, "Turn off");
-    expect((await screen.findByRole("alert", {}, wait)).textContent).toContain("Someone else changed this channel.");
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("Someone else changed this channel."), wait);
+    expect(screen.getByRole("alert").textContent).toContain("The channel wasn't turned off");
     expect((await serverChannel(channel.id)).attributes["enabled"]).not.toBe(false);
   });
 
@@ -119,7 +128,11 @@ describe("ComponentPageQuery", () => {
   });
 
   it("shows the server's message in the page's place when the components fail to load", async () => {
-    failNext("GET /api/demo/projects/:project_id/components", { status: 500, code: "internal", detail: "Something went wrong in Lightning." });
+    failNext("GET /api/demo/projects/:project_id/components", {
+      status: 500,
+      code: "internal",
+      detail: "Something went wrong in Lightning.",
+    });
     renderRoute(crypto.randomUUID());
     expect(await screen.findByText("Something went wrong in Lightning.", {}, wait)).toBeTruthy();
   });

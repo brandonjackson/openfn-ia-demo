@@ -85,7 +85,6 @@ export default function Lists() {
           ordered
           items={[
             <><Code>header</Code>: a <Code>PageHeader</Code> with the main action ("New credential").</>,
-            <><Code>notice</Code>: what an action just did, as a <Code>Callout</Code>.</>,
             <><Code>intro</Code>: optional, what the list is for, above the toolbar.</>,
             <><Code>toolbar</Code>: search, sort, filters, a view switch. Never in a heading or the header's actions.</>,
             <>The list itself, or <Code>empty</Code> when <Code>isEmpty</Code>.</>,

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import StepConfigPanel from "./StepConfigPanel";
 import { nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "../../fixtures/workflow";
 import type { JobNode } from "../../model/workflow";
-import { adaptorChoices, adaptorInfo, credentialsFor } from "../../fixtures/adaptor-reference";
+import { adaptorChoices, adaptorInfo, projectCredentials } from "../../fixtures/adaptor-reference";
 import { connectedSystems } from "../../fixtures/connected-systems";
 
 const search = nationalIdWorkflow.nodes.find((n) => n.id === "search") as JobNode;
@@ -13,7 +13,7 @@ const configFor = (step: JobNode) => ({
   step,
   adaptor: adaptorInfo[step.adaptor],
   adaptorChoices: adaptorChoices.map((a) => adaptorInfo[a]),
-  credentials: credentialsFor(step.adaptor),
+  credentials: projectCredentials,
   systems: connectedSystems,
 });
 
@@ -59,3 +59,27 @@ export const OnDirectSystem: Story = {
 
 /** Without connected systems: a step is an adaptor and a credential, with no System field. */
 export const WithoutSystems: Story = { args: { systems: [], onChange: () => {} } };
+
+/** A step on a system with no credential yet: the project's credentials for it with production values, each one click to add, and New credential. */
+export const NeedsCredential: Story = {
+  args: { ...configFor(search), credentialId: undefined, onChange: () => {}, onNewCredential: () => {} },
+};
+
+/** The same step in a staging sandbox: only credentials with staging values are offered. */
+export const NeedsCredentialInStaging: Story = {
+  args: { ...configFor(search), credentialId: undefined, environment: "staging", onChange: () => {}, onNewCredential: () => {} },
+};
+
+/** A step whose credential has no values for where it runs: it says so, and offers the ones that do. */
+export const CredentialMissingHere: Story = {
+  args: { ...configFor(search), credentialId: "cred-identity-prod", environment: "staging", onChange: () => {}, onNewCredential: () => {} },
+};
+
+/** One of two DHIS2 systems: the step is named by its system, and offered DHIS2 credentials. */
+export const OneOfTwoDhis2Systems: Story = {
+  args: {
+    ...configFor({ ...(weeklyCaseReportWorkflow.nodes.find((n) => n.id === "send-dhis2") as JobNode), system: "dhis2-malaria" }),
+    onChange: () => {},
+    onNewCredential: () => {},
+  },
+};

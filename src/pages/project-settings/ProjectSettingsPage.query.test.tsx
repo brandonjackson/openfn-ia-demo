@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { AnnouncementsProvider } from "../../app/announcements";
 import ApiProvider from "../../api/ApiProvider";
 import { forgetCsrfToken, request } from "../../api/client";
 import { findNodeByPath } from "../../app/ia-utils";
@@ -17,11 +18,13 @@ function renderRoute(hash = "") {
   const route = { ...findNodeByPath(iaTree, path)!, currentPath: path };
   render(
     <ApiProvider retry={false}>
-      <MemoryRouter initialEntries={[path + hash]}>
-        <Routes>
-          <Route path="/projects/:project/settings" element={<ProjectSettingsPageQuery route={route} />} />
-        </Routes>
-      </MemoryRouter>
+      <AnnouncementsProvider>
+        <MemoryRouter initialEntries={[path + hash]}>
+          <Routes>
+            <Route path="/projects/:project/settings" element={<ProjectSettingsPageQuery route={route} />} />
+          </Routes>
+        </MemoryRouter>
+      </AnnouncementsProvider>
     </ApiProvider>,
   );
 }
@@ -76,7 +79,8 @@ describe("ProjectSettingsPageQuery", () => {
     failNext("GET /api/provision/yaml", { status: 403, code: "forbidden", detail: "You are not allowed to do that." });
     renderRoute();
     fireEvent.click(await screen.findByRole("button", { name: "Export project" }, wait));
-    expect((await screen.findByRole("alert", {}, wait)).textContent).toContain("You are not allowed to do that.");
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("You are not allowed to do that."), wait);
+    expect(screen.getByRole("alert").textContent).toContain("The project didn't export");
   });
 
   it("downloads a finished export's file from the server", async () => {
@@ -101,8 +105,7 @@ describe("ProjectSettingsPageQuery", () => {
     renderRoute("#history-exports");
     const row = (await screen.findByText(done.attributes.filename!, {}, wait)).closest("tr")!;
     fireEvent.click(within(row).getByRole("button", { name: "Download" }));
-    const alert = await screen.findByRole("alert", {}, wait);
-    expect(alert.textContent).toContain(`${done.attributes.filename} didn't download`);
-    expect(alert.textContent).toContain("Not found.");
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toContain(`${done.attributes.filename} didn't download`), wait);
+    expect(screen.getByRole("alert").textContent).toContain("Not found.");
   });
 });

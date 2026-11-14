@@ -61,7 +61,7 @@ describe("SystemsPage", () => {
     expect(screen.getByText(/Synced from the X-Road directory 12 minutes ago/)).toBeTruthy();
   });
 
-  it("adds a service from the X-Road directory, and says why if the server refuses", async () => {
+  it("adds a service from the X-Road directory, once at a time, and lets it be tried again after a refusal", async () => {
     const host = renderPage(SystemsPage, frame(withDirectory), actions);
     fireEvent.click(within(screen.getByRole("region", { name: "Ministry of Interior" })).getByRole("button", { name: "Add" }));
     expect(host.calls("onAddXRoadService")).toEqual([[{ memberId: "moi", subsystem: "IDENTITY", service: "verify-national-id" }]]);
@@ -70,8 +70,7 @@ describe("SystemsPage", () => {
     fireEvent.click(busy);
     expect(host.calls("onAddXRoadService")).toHaveLength(1);
     await host.reject("onAddXRoadService", new FormError("There's already a system called that."));
-    expect(screen.getByRole("alert").textContent).toContain("Verify a national ID wasn't added");
-    expect(screen.getByRole("alert").textContent).toContain("There's already a system called that.");
+    expect(within(screen.getByRole("region", { name: "Ministry of Interior" })).getByRole("button", { name: "Add" })).toBeTruthy();
   });
 
   it("leaves out the directory for an organisation not on X-Road", () => {

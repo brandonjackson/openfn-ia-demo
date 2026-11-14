@@ -52,13 +52,14 @@ describe("ChannelPage", () => {
     expect(screen.getByText("This channel is off")).toBeTruthy();
   });
 
-  it("turns the channel off, and says why when the server refuses", async () => {
+  it("turns the channel off, and takes a refusal quietly (the wrapper says why)", async () => {
     const host = draw();
     pick("Turn off");
     expect(host.calls("onSetEnabled")).toEqual([[false]]);
     await host.reject("onSetEnabled", new FormError("Someone else changed this channel."));
-    expect(screen.getByRole("alert").textContent).toContain("The channel wasn't turned off");
-    expect(screen.getByRole("alert").textContent).toContain("Someone else changed this channel.");
+    // It can be tried again.
+    pick("Turn off");
+    expect(host.calls("onSetEnabled")).toHaveLength(2);
   });
 
   it("ignores a second Turn off while the first is still saving", async () => {
@@ -69,13 +70,13 @@ describe("ChannelPage", () => {
     await host.resolve("onSetEnabled");
   });
 
-  it("deletes the channel once confirmed, and says why when the server refuses", async () => {
+  it("deletes the channel once confirmed, and takes a refusal quietly (the wrapper says why)", async () => {
     const host = draw();
     pick("Delete");
     fireEvent.click(screen.getByRole("button", { name: "Delete channel" }));
     expect(host.calls("onDeleteChannel")).toHaveLength(1);
     await host.reject("onDeleteChannel", new FormError("You can't delete channels in this project."));
-    expect(screen.getByRole("alert").textContent).toContain("You can't delete channels in this project.");
+    expect(screen.queryByRole("button", { name: "Delete channel" })).toBeNull();
   });
 
   it("opens the workflow behind its messages", () => {

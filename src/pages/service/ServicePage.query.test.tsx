@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { AnnouncementsProvider } from "../../app/announcements";
 import ApiProvider from "../../api/ApiProvider";
 import { forgetCsrfToken, request } from "../../api/client";
 import { setFlags } from "../../app/feature-flags";
@@ -31,9 +32,11 @@ function renderRoute(service: Service) {
   const route = { ...findNodeByPath(iaTree, path)!, currentPath: path };
   render(
     <ApiProvider retry={false}>
-      <MemoryRouter initialEntries={[path]}>
-        <ServicePageQuery route={route} />
-      </MemoryRouter>
+      <AnnouncementsProvider>
+        <MemoryRouter initialEntries={[path]}>
+          <ServicePageQuery route={route} />
+        </MemoryRouter>
+      </AnnouncementsProvider>
     </ApiProvider>,
   );
 }
@@ -67,9 +70,14 @@ describe("ServicePageQuery", () => {
     const service = await serviceWithoutMcp();
     renderRoute(service);
     const button = await screen.findByRole("button", { name: "Enable MCP" }, wait);
-    failNext("PATCH /api/demo/projects/:project_id/services/:id", { status: 422, code: "invalid", detail: "MCP is off for this organisation." });
+    failNext("PATCH /api/demo/projects/:project_id/services/:id", {
+      status: 422,
+      code: "invalid",
+      detail: "MCP is off for this organisation.",
+    });
     fireEvent.click(button);
-    expect((await screen.findByRole("alert", {}, wait)).textContent).toContain("MCP wasn't turned on");
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("MCP wasn't turned on"), wait);
+    expect(screen.getByRole("alert").textContent).toContain("MCP is off for this organisation.");
   });
 
   it("shows the service off X-Road without the X-Road flag", async () => {

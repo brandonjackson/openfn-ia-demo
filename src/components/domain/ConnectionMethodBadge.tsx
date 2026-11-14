@@ -4,38 +4,24 @@ import Badge from "../primitives/Badge";
 
 const methods: Record<
   ConnectionMethod,
-  { label: string; title: string; tone: "gray" | "indigo"; icon: typeof Network; chip: string }
+  { label: string; title: string; tone: "gray" | "indigo"; icon: typeof Network }
 > = {
-  direct: { label: "Direct", title: "Reached directly with a credential", tone: "gray", icon: KeyRound, chip: "bg-gray-100 text-gray-700" },
+  direct: { label: "Direct", title: "Reached directly with a credential", tone: "gray", icon: KeyRound },
   xroad: {
     label: "X-Road",
     title: "Reached through your X-Road Security Server",
     tone: "indigo",
     icon: Network,
-    chip: "bg-badge-indigo-bg text-badge-indigo-fg",
   },
 };
 
 /**
  * How a connected system is reached: directly with a credential, or over
- * X-Road. Steps, rows and pages show the same small badge, and it's the only
- * place a workflow shows the transport at all. `compact` is just the icon in
- * a small round chip (named by its tooltip), for a canvas card's crowded head.
+ * X-Road. A step's config, rows and pages show the same small badge; the
+ * workflow canvas never shows the transport.
  */
-export default function ConnectionMethodBadge({ method, compact = false }: { method: ConnectionMethod; compact?: boolean }) {
+export default function ConnectionMethodBadge({ method }: { method: ConnectionMethod }) {
   const m = methods[method];
-  if (compact) {
-    const Icon = m.icon;
-    return (
-      <span
-        title={m.title}
-        className={`inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full ${m.chip}`}
-      >
-        <Icon size={11} aria-hidden />
-        <span className="sr-only">{m.label}</span>
-      </span>
-    );
-  }
   return (
     <span title={m.title} className="inline-flex">
       <Badge label={m.label} tone={m.tone} icon={m.icon} />

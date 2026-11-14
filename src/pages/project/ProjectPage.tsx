@@ -138,6 +138,7 @@ export default function ProjectPage({ node, ancestors, currentPath, data, onNewW
                     badges={<Badge label={svc.status} />}
                     description={svc.description}
                     to={`${currentPath}/services/${svc.id}`}
+                    menu={{}}
                   />
                 ))}
               </div>

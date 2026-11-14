@@ -12,7 +12,6 @@ import ListGroup from "../../../components/primitives/ListGroup";
 import ListRow from "../../../components/primitives/ListRow";
 import SearchInput from "../../../components/primitives/SearchInput";
 import Stack from "../../../components/primitives/Stack";
-import Text from "../../../components/primitives/Text";
 import { Bullets, DocPage, P, Section } from "../../parts/Doc";
 import { Example } from "../../parts/Example";
 
@@ -40,11 +39,6 @@ function CredentialsList() {
           </Stack>
         </Inline>
       }
-      summary={
-        <Text tone="muted" role="status">
-          {shown.length} {shown.length === 1 ? "credential" : "credentials"}
-        </Text>
-      }
       isEmpty={shown.length === 0}
       empty={<EmptyState icon={KeyRound} title="No credentials match." description="Try another search." />}
     >
@@ -59,6 +53,7 @@ function CredentialsList() {
                     badges={<Badge label={c.kind} shape="tag" />}
                     description={`Owned by ${c.owner}`}
                     onClick={() => {}}
+                    menu={{}}
                   />
             ))}
           </ListGroup>
@@ -74,7 +69,7 @@ export default function Lists() {
     <DocPage
       eyebrow="Guidelines"
       title="Lists"
-      lead="Projects, workflows, credentials, channels, history: much of OpenFn is a list of things. Every list page is laid out in the same order, so people always know where the filters, the count and the list are."
+      lead="Projects, workflows, credentials, channels, history: much of OpenFn is a list of things. Every list page is laid out in the same order, so people always know where the filters and the list are."
     >
       <Section title="Try it">
         <Example backdrop column>
@@ -93,7 +88,6 @@ export default function Lists() {
             <><Code>notice</Code>: what an action just did, as a <Code>Callout</Code>.</>,
             <><Code>intro</Code>: optional, what the list is for, above the toolbar.</>,
             <><Code>toolbar</Code>: search, sort, filters, a view switch. Never in a heading or the header's actions.</>,
-            <><Code>summary</Code>: the count, which a search narrows. Give it <Code>role="status"</Code> so the change is read out.</>,
             <>The list itself, or <Code>empty</Code> when <Code>isEmpty</Code>.</>,
             <><Code>after</Code>: sections that follow, such as suggestions of what to add.</>,
           ]}
@@ -106,7 +100,14 @@ export default function Lists() {
           groups in a <Code>Stack gap="xl"</Code>. A list never heads its groups any other way. Each row is a{" "}
           <Code>ListRow</Code>, a card of its own, straight inside the group. Rows that open to show more are{" "}
           <Code>ExpandableRow</Code>s in a <Code>Card flush</Code> and a <Code>Stack divided</Code>, and a table of records
-          is a <Code>DataTable</Code>.
+          is a <Code>DataTable</Code>. A list page doesn't count its rows: they're there to see, and a group's heading
+          carries its count.
+        </P>
+        <P>
+          Clicking anywhere on a row opens it, so the whole row shows the pointing hand and lights up on hover, and there's
+          no chevron on the right. In its place is the row's ⋮ <Code>menu</Code>, which always starts with Open and then
+          lists the row's own actions: pass <Code>{"menu={{}}"}</Code> while a row has none, and{" "}
+          <Code>{"menu={{ items, onSelect }}"}</Code> to add them. Pickers and lists of things to add leave the menu out.
         </P>
         <Callout title="Filters say what they're set to">
           Over a long list like History, each filter is a <Code>FilterChip</Code> that reads as a sentence: "Workflow is any",

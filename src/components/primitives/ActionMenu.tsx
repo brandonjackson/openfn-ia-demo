@@ -23,7 +23,7 @@ export default function ActionMenu({ label, items, onSelect, defaultOpen = false
       items={items}
       onSelect={onSelect}
       align="right"
-      widthClass="w-48"
+      widthClass="w-56"
       defaultOpen={defaultOpen}
       trigger={({ open, toggle }) => (
         <IconButton icon={MoreVertical} label={label} active={open} aria-expanded={open} aria-haspopup="menu" onClick={toggle} />

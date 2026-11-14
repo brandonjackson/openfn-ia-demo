@@ -54,7 +54,7 @@ describe("ProjectWorkflowsPageQuery", () => {
   it("lists the project's workflows from the server", async () => {
     const workflows = await serverWorkflows();
     renderRoute();
-    expect(await screen.findByText(`${workflows.length} workflows`, {}, wait)).toBeTruthy();
+    expect(await screen.findByText(workflows[0]!.name, {}, wait)).toBeTruthy();
     for (const w of workflows) expect(screen.getByText(w.name)).toBeTruthy();
   });
 

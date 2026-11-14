@@ -81,8 +81,7 @@ and to mark what would change the look.
      project, sandbox, component and editor forms (`InviteCollaboratorsModal`,
      `AddCollaboratorsModal`, `GitHubSyncForm`, `RunInputModal`,
      `WebhookAuthMethodModal`, `SystemFormModal`, `ComponentView`'s
-     validity, `EditInSandboxModal`, `CollectionNameModal`,
-     `SandboxFormModal`, `AddConnectedSystemFlow`, `PromoteSandboxModal`,
+     validity, `CollectionNameModal`, `AddConnectedSystemFlow`,
      Project settings' name, `ComponentFormModal`, `CollectionItemModal`,
      and `ConfirmModal`'s `confirmPhrase`). Use `focusFirstProblem`
      (`src/components/primitives/focus-field.ts`) with ids from `useId`;
@@ -549,8 +548,9 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   sandbox" notice; it now keeps the project's last answer while the new one
   loads (never another project's). A refused delete now says why in an
   alert, as Workflows does, instead of failing silently. Still to do under
-  decision 4 (already on its list): `SandboxFormModal` disables Create while
-  the name is wrong, and shows no refusal or "Creating…". Checked on the
+  decision 4: `SandboxFormModal` disabled Create while the name was wrong
+  and showed no refusal or "Creating…" (done since, when it became the one
+  form for New, Edit and Edit in sandbox). Checked on the
   fake server only. Counts (after lanes 1, 2 and 3): page-data.ts 335 →
   274 lines; files importing it 38 → 32; pages in their own folder 16 → 17
   of 24; page and query tests 32 → 34; tests 345 → 357; the rest

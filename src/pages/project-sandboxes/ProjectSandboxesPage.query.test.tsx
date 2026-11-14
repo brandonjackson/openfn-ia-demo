@@ -41,8 +41,8 @@ describe("ProjectSandboxesPageQuery", () => {
     expect(screen.getByText("decision-sync-fix")).toBeTruthy();
     expect(within(section("Selected")).getByText("main")).toBeTruthy();
     // What each has changed comes from the server's merge preview.
-    expect(await screen.findByText("2 changed workflows", {}, wait)).toBeTruthy();
-    expect(screen.getByText("1 changed workflow")).toBeTruthy();
+    expect(await screen.findByText("2 changes", {}, wait)).toBeTruthy();
+    expect(screen.getByText("1 change")).toBeTruthy();
   });
 
   it("makes a sandbox on the server, goes into it, and lists it", async () => {
@@ -53,8 +53,30 @@ describe("ProjectSandboxesPageQuery", () => {
     expect(await screen.findByText("Created try-a-fix from main.", {}, wait)).toBeTruthy();
     await waitFor(() => expect(within(section("Selected")).getByText("try-a-fix")).toBeTruthy(), wait);
     // The others keep what they've changed; the new one has changed nothing.
-    expect(screen.getByText("2 changed workflows")).toBeTruthy();
-    expect(within(section("Selected")).queryByText(/changed workflow/)).toBeNull();
+    expect(screen.getByText("2 changes")).toBeTruthy();
+    expect(within(section("Selected")).queryByText(/changes?$/)).toBeNull();
+  });
+
+  it("moves a sandbox to another environment on the server", async () => {
+    draw();
+    fireEvent.click(await screen.findByRole("button", { name: "Actions for decision-sync-fix" }, wait));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
+    fireEvent.change(screen.getByLabelText("Environment"), { target: { value: "mock" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("Saved decision-sync-fix.", {}, wait)).toBeTruthy();
+    await waitFor(() => expect(screen.getByText("Mock")).toBeTruthy(), wait);
+  });
+
+  it("promotes a sandbox into main on the server, after which it has nothing left to promote", async () => {
+    draw();
+    // Promote is offered once the merge preview says there's something to promote.
+    expect(await screen.findByText("1 change", {}, wait)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Actions for intake-validation-v2" }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Promote" }));
+    fireEvent.change(screen.getByLabelText("What changed?"), { target: { value: "Stricter intake" } });
+    fireEvent.click(screen.getByRole("button", { name: "Promote to main" }));
+    expect(await screen.findByText(/Promoted intake-validation-v2 into main/, {}, wait)).toBeTruthy();
+    await waitFor(() => expect(screen.queryByText("1 change")).toBeNull(), wait);
   });
 
   it("deletes a sandbox on the server and takes it off the list", async () => {

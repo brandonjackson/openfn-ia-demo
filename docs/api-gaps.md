@@ -223,6 +223,19 @@ path in its hook file.
   `components` and `env_vars` as demo extensions, and its merge brings them
   (collections by name, empty, as Lightning does); on Lightning the chip
   counts only the workflow's changes.
+- **Sandboxes: changing a sandbox's environment** (the Sandboxes page's
+  Edit; api/projects.md). A project's `env` is set when it's made and
+  `PUT /api/projects/:id` refuses a change (`not_allowed`). The sandbox form
+  lets you move a sandbox to another environment (production, staging or
+  mock), since its runs load credentials' values for it. Would need `env`
+  writable on a sandbox. Demo: the fake server takes a new `env` for a
+  sandbox (a project with a parent) and still refuses one for a root
+  project; on Lightning the change is refused under the field.
+- **Sandboxes: saved dataclips come along** (api/projects.md's sandbox
+  create). A sandbox is a copy of its project, so the sandbox form no longer
+  offers "start with a saved input". Would need making a sandbox to copy the
+  parent's saved dataclips. Demo: the fake server copies every one of them
+  (`dataclip_ids` is still taken, and adds nothing).
 
 ## Planned in api/, not yet in Lightning
 

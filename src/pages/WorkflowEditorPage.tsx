@@ -1,4 +1,4 @@
-import { sandboxSlug } from "../model/sandboxes";
+import { sandboxSlug, type SandboxDraft } from "../model/sandboxes";
 import { errorMessageOf, firstProblemOf } from "../model/form-error";
 import { useEffect, useRef, useState } from "react";
 import { BookOpen, Database, FilePlus, FileText, FlaskConical, Sparkles } from "lucide-react";
@@ -69,8 +69,7 @@ import AIAssistantPanel from "../components/domain/AIAssistantPanel";
 import RunLabel from "../components/domain/RunLabel";
 import RunInputModal from "../components/domain/RunInputModal";
 import type { RunInput } from "../components/domain/RunInputModal";
-import EditInSandboxModal from "../components/domain/EditInSandboxModal";
-import type { SandboxStart } from "../components/domain/EditInSandboxModal";
+import SandboxFormModal from "../components/domain/SandboxFormModal";
 import PromoteSandboxModal from "../components/domain/PromoteSandboxModal";
 import ConfirmModal from "../components/primitives/ConfirmModal";
 import Modal from "../components/primitives/Modal";
@@ -297,6 +296,7 @@ export default function WorkflowEditorPage({
   onToggleLive,
   onPromote,
   onCreateSandbox,
+  promoteTarget,
   onCreateDataclip,
   onSaveDataclip,
   baseline,
@@ -459,12 +459,16 @@ export default function WorkflowEditorPage({
    */
   onPromote?: (message: string) => Promise<void>;
   /**
-   * Makes a sandbox with this name from the one selected, with the data it
-   * starts with: a saved dataclip it brings across, or a reviewed copy of a
-   * run's input, saved in it under the run's name. Once it resolves,
-   * `sandboxes` lists it and, selected, its `dataclips` hold what came across.
+   * Makes a sandbox, from New sandbox or "Edit in sandbox": its name (the
+   * slug of what was typed), environment and the sandbox it's made from, and
+   * with a run loaded, maybe a reviewed copy of the run's input, saved in it
+   * under the run's name. Once it resolves, `sandboxes` lists it and,
+   * selected, its `dataclips` hold the input. A refusal shows under the
+   * form's field.
    */
-  onCreateSandbox?: (name: string, start: SandboxStart) => Promise<void>;
+  onCreateSandbox?: (draft: SandboxDraft) => Promise<void>;
+  /** Where promoting the selected sandbox takes its changes: its parent. Main when left out. */
+  promoteTarget?: string;
   /** Saves a new dataclip in the project, to run with; resolves with it. Without it, it lasts as long as the page. */
   onCreateDataclip?: (draft: DataclipDraft) => Promise<Dataclip>;
   /** Changes a saved dataclip's title and description. Without it, the change lasts as long as the page. */
@@ -717,7 +721,8 @@ export default function WorkflowEditorPage({
   const [newCredentialFor, setNewCredentialFor] = useState<string>();
 
   const [runInputOpen, setRunInputOpen] = useState(defaultRunInputOpen);
-  const [editInSandboxOpen, setEditInSandboxOpen] = useState(defaultEditInSandboxOpen);
+  // The sandbox form, as New sandbox (from the chip) or "Edit in sandbox" (from main), or closed.
+  const [sandboxForm, setSandboxForm] = useState<"new" | "editInSandbox" | undefined>(defaultEditInSandboxOpen ? "editInSandbox" : undefined);
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [addComponentOpen, setAddComponentOpen] = useState(false);
@@ -867,43 +872,28 @@ export default function WorkflowEditorPage({
 
   // ---- Sandboxes ------------------------------------------------------------
 
+  // Rejects with the server's reason, which the promotion request shows under its message.
   const promote = async (message: string) => {
+    if (onPromote) await onPromote(message);
+    else setSessionVersions((added) => [{ id: nextVersion, message, author: CURRENT_USER, date: "20 Oct 2026" }, ...added]);
     setPromoteOpen(false);
-    if (onPromote) {
-      try {
-        await onPromote(message);
-      } catch (e) {
-        setStatusNote(errorMessageOf(e));
-        return;
-      }
-    } else {
-      setSessionVersions((added) => [{ id: nextVersion, message, author: CURRENT_USER, date: "20 Oct 2026" }, ...added]);
-    }
     setVersion("latest");
     selectSandbox("main");
   };
 
-  const createSandbox = ({ name: typed, start }: { name: string; start: SandboxStart }) => {
+  const createSandbox = async (draft: SandboxDraft) => {
     // Named by its slug, as the Sandboxes page names them.
-    const sandboxName = sandboxSlug(typed);
-    setEditInSandboxOpen(false);
-    // What it brings across shows in the sandbox's Saved dataclips.
-    if (start.kind !== "nothing") addFile("dataclips");
+    const sandboxName = sandboxSlug(draft.name);
     if (onCreateSandbox) {
-      void onCreateSandbox(sandboxName, start).then(
-        () => selectSandbox(sandboxName),
-        (e: unknown) => setStatusNote(`Sandbox not made: ${firstProblemOf(e)}`),
-      );
-      return;
+      // A refusal rejects, and the form shows it under its field.
+      await onCreateSandbox({ ...draft, parent: draft.parent ?? sandbox });
+    } else {
+      // A reviewed copy of a run's input comes along as a named input.
+      if (draft.runInput) addInput(draft.runInput.body, runInputName(draft.runInput.runId));
+      setNewSandboxes((current) => [...current, sandboxName]);
     }
-    // A reviewed copy of a run's input comes along as a named input.
-    if (start.kind === "run") addInput(start.body, runInputName(start.runId));
-    setNewSandboxes((current) => [...current, sandboxName]);
-    selectSandbox(sandboxName);
-  };
-
-  const joinSandbox = (sandboxName: string) => {
-    setEditInSandboxOpen(false);
+    // What it brings across shows in the sandbox's Saved dataclips.
+    if (draft.runInput) addFile("dataclips");
     selectSandbox(sandboxName);
   };
 
@@ -1038,7 +1028,7 @@ export default function WorkflowEditorPage({
       description={docAbout[openDoc] ?? "A doc kept alongside the workflow. The assistant reads it with the context and spec."}
       content={docText(openDoc)}
       onSave={onMain ? undefined : async (text) => setDocEdits((edits) => ({ ...edits, [`${sandbox}/${openDoc}`]: text }))}
-      onEditInSandbox={onMain ? () => setEditInSandboxOpen(true) : undefined}
+      onEditInSandbox={onMain ? () => setSandboxForm("editInSandbox") : undefined}
     />
   );
 
@@ -1179,7 +1169,7 @@ export default function WorkflowEditorPage({
       case "settings":
         return openInCode();
       case "edit-in-sandbox":
-        return setEditInSandboxOpen(true);
+        return setSandboxForm("editInSandbox");
       case "promote":
         return setPromoteOpen(true);
       case "export-yaml":
@@ -1570,7 +1560,7 @@ export default function WorkflowEditorPage({
       sandboxes={allSandboxes}
       sandbox={sandbox}
       onSelectSandbox={selectSandbox}
-      onNewSandbox={() => setEditInSandboxOpen(true)}
+      onNewSandbox={() => setSandboxForm("new")}
       onViewAllSandboxes={onViewAllSandboxes}
       versions={versions}
       version={version}
@@ -1610,23 +1600,27 @@ export default function WorkflowEditorPage({
       overlays={
         <>
           <RunInputModal open={runInputOpen} onClose={() => setRunInputOpen(false)} dataclips={clips} onRun={runWithInput} />
-          <EditInSandboxModal
-            open={editInSandboxOpen}
-            onClose={() => setEditInSandboxOpen(false)}
-            sandboxes={allSandboxes.filter((s) => s !== "main")}
-            reservedNames={["main"]}
-            run={selectedRun}
-            runInput={selectedRun ? clips.find((d) => d.id === selectedRun.inputId) : undefined}
+          <SandboxFormModal
+            open={sandboxForm !== undefined}
+            title={sandboxForm === "editInSandbox" ? "Edit in sandbox" : undefined}
+            onClose={() => setSandboxForm(undefined)}
+            sandboxes={allSandboxes}
+            defaultParent={sandbox}
+            // Only "Edit in sandbox" offers to start with the loaded run's input.
+            run={
+              sandboxForm === "editInSandbox" && selectedRun
+                ? { runId: selectedRun.runId, version: selectedRun.version, input: selectedRun ? clips.find((d) => d.id === selectedRun.inputId)?.body : undefined }
+                : undefined
+            }
             latestVersion={latestVersion}
-            dataclips={clips}
-            onCreate={createSandbox}
-            onJoin={joinSandbox}
+            onSubmit={createSandbox}
           />
           <PromoteSandboxModal
             open={promoteOpen && !onMain}
             onClose={() => setPromoteOpen(false)}
             sandbox={sandbox}
-            workflowName={name}
+            target={promoteTarget}
+            changes={changes}
             nextVersion={nextVersion}
             onPromote={promote}
           />
@@ -1758,7 +1752,7 @@ export default function WorkflowEditorPage({
     >
       {view === "canvas" && (
         <CanvasLayout
-          bottom={onMain && <ReadOnlyNotice onEditInSandbox={() => setEditInSandboxOpen(true)} />}
+          bottom={onMain && <ReadOnlyNotice onEditInSandbox={() => setSandboxForm("editInSandbox")} />}
           rightOverlay={inspector}
         >
           <WorkflowCanvas

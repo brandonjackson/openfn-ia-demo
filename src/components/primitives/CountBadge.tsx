@@ -13,15 +13,22 @@ interface Props {
   tone?: CountBadgeTone;
   /** Pinned to the top-right corner of a `relative` parent, as on an icon button. */
   corner?: boolean;
+  /**
+   * A word to show after the count, e.g. "changes", when it stands on its
+   * own rather than inside a control that says it. The count and the word
+   * are then read out together.
+   */
+  label?: string;
 }
 
 /**
  * A small round count in white on a solid colour: how many changes a sandbox
  * holds, how many things an icon button lists. It's decoration, so it's
- * hidden from screen readers; say the count in the control's label.
+ * hidden from screen readers; say the count in the control's label, or give
+ * it a `label` of its own.
  */
-export default function CountBadge({ count, tone = "indigo", corner = false }: Props) {
-  return (
+export default function CountBadge({ count, tone = "indigo", corner = false, label }: Props) {
+  const badge = (
     <span
       className={`inline-flex h-4 min-w-4 flex-none items-center justify-center rounded-full px-1 font-sans text-[11px] font-semibold leading-none text-white ${tones[tone]} ${
         corner ? "absolute -right-1 -top-1" : ""
@@ -29,6 +36,14 @@ export default function CountBadge({ count, tone = "indigo", corner = false }: P
       aria-hidden
     >
       {count > 99 ? "99+" : count}
+    </span>
+  );
+  if (!label) return badge;
+  return (
+    <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+      {badge}
+      <span aria-hidden>{label}</span>
+      <span className="sr-only">{`${count} ${label}`}</span>
     </span>
   );
 }

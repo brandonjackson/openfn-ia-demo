@@ -18,7 +18,6 @@ import { createdAt as fixtureCreatedAt, instanceUsers, memberships as fixtureMem
 import { projectMemberships as settingsMemberships, projectSettingsRecord } from "../fixtures/project-settings";
 import { projects as fixtureProjects, projectSandboxRecords } from "../fixtures/projects";
 import { hasRole, type DigestFrequency, type ProjectRole } from "../model/project-settings";
-import { sandboxColorHex } from "../model/sandboxes";
 import {
   badId,
   badInclude,
@@ -140,7 +139,7 @@ export const projects = table<ProjectRow>("projects", () =>
       name: sandbox.name,
       description: sandbox.description || null,
       env: "staging",
-      color: sandboxColorHex[sandbox.color] ?? null,
+      color: sandbox.color,
       parent_id: parentId,
       concurrency: null,
       retention_policy: "retain_all",
@@ -476,8 +475,10 @@ export const projectRoutes: Record<string, Handler> = {
         if (listed.filter((l) => l.role === "owner").length !== 1) errors.push({ code: "one_owner", detail: "needs exactly one owner", pointer: "#/members" });
       }
     }
+    // A project's environment is set when it's made. A sandbox's can be changed (a demo extension; docs/api-gaps.md).
     if (existing && body["env"] !== undefined && body["env"] !== existing.env) {
-      errors.push({ code: "not_allowed", detail: "can't be changed", pointer: "#/env" });
+      if (!existing.parent_id) errors.push({ code: "not_allowed", detail: "can't be changed", pointer: "#/env" });
+      else if (typeof body["env"] !== "string" || !body["env"]) errors.push({ code: "required", detail: "can't be blank", pointer: "#/env" });
     }
     if (errors.length) return invalid(errors);
 
@@ -488,6 +489,7 @@ export const projectRoutes: Record<string, Handler> = {
         name: name!,
         description,
         ...(body["color"] !== undefined && { color: body["color"] as string | null }),
+        ...(existing.parent_id && typeof body["env"] === "string" && body["env"] && { env: body["env"] }),
         ...(body["concurrency"] !== undefined && { concurrency: body["concurrency"] as number | null }),
       };
       const changes = diff(existing as unknown as Record<string, unknown>, next as unknown as Record<string, unknown>);

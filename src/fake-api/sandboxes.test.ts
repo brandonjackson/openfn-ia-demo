@@ -109,3 +109,24 @@ describe("a sandbox is a copy of its project", () => {
     expect((await preview(sid)).components.every((c) => c.change === "unchanged")).toBe(true);
   });
 });
+
+describe("a sandbox's environment", () => {
+  type One = { data: { attributes: { env: string } } };
+  const envOf = (id: string) => request<One>("GET", `/api/projects/${id}`).then((r) => r.data.attributes.env);
+
+  it("is set when the sandbox is made, and can be changed after, unlike a project's", async () => {
+    const id = crypto.randomUUID();
+    await request("PUT", `/api/projects/${a}/sandboxes/${id}`, { name: "on-mock", env: "mock" });
+    expect(await envOf(id)).toBe("mock");
+
+    await request("PUT", `/api/projects/${id}`, { name: "on-mock", env: "production" });
+    expect(await envOf(id)).toBe("production");
+
+    const blank = await request("PUT", `/api/projects/${id}`, { name: "on-mock", env: "" }).catch((e: { problems?: { pointer?: string }[] }) => e);
+    expect(JSON.stringify(blank)).toContain("#/env");
+
+    const root = await request("PUT", `/api/projects/${a}`, { name: "project-a", env: "mock" }).catch((e: unknown) => e);
+    expect(JSON.stringify(root)).toContain("#/env");
+    expect(await envOf(a)).not.toBe("mock");
+  });
+});

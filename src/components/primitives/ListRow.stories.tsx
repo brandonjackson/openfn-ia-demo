@@ -81,6 +81,17 @@ export const Selected: Story = {
   },
 };
 
+/** Selected in amber, as the Sandboxes page marks the sandbox you're in. */
+export const SelectedAmber: Story = {
+  args: {
+    ...Clickable.args,
+    onClick: undefined,
+    selected: true,
+    selectedTone: "amber",
+    badges: undefined,
+  },
+};
+
 export const WithActions: Story = {
   args: {
     ...Clickable.args,

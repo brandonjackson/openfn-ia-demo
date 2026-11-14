@@ -62,12 +62,11 @@ describe("ProjectsPageQuery", () => {
   it("counts each project's services from the server, and shows none without the service catalog", async () => {
     const { data } = await request<Many>("GET", "/api/demo/services?page_size=100");
     const mine = data.filter((s) => s.attributes["project_id"] === projectIdFor("project-a"));
-    const live = mine.filter((s) => s.attributes["status"] === "Live").length;
     renderRoute();
-    expect(within(await card("project-a")).getByText(`${live}/${mine.length} services live`)).toBeTruthy();
+    expect(within(await card("project-a")).getByText(`${mine.length} service${mine.length === 1 ? "" : "s"}`)).toBeTruthy();
 
     act(() => setFlag("serviceCatalog", false));
-    await waitFor(() => expect(screen.queryByText(/services live/)).toBeNull(), wait);
+    await waitFor(() => expect(within(screen.getByText("project-a").closest("a")!).queryByText(/^\d+ services?$/)).toBeNull(), wait);
     expect(await card("project-a")).toBeTruthy();
   });
 
@@ -75,7 +74,7 @@ describe("ProjectsPageQuery", () => {
     failNext("GET /api/demo/services", { status: 500, code: "internal", detail: "Something went wrong." });
     renderRoute();
     expect(await card("project-a")).toBeTruthy();
-    expect(screen.queryByText(/services live|No services/)).toBeNull();
+    expect(screen.queryByText(/^\d+ services?$|No services/)).toBeNull();
   });
 
   it("shows the server's message in the page's place when the list fails to load", async () => {

@@ -69,7 +69,6 @@ export default function ProjectsPage({ node, ancestors, data, onCreateProject }:
             </Inline>
           )
         }
-        summary={`${filtered.length} project${filtered.length !== 1 ? "s" : ""}`}
         isEmpty={filtered.length === 0}
         empty={
           <EmptyState

@@ -4,6 +4,7 @@ import WorkflowEditorPage, { WorkflowEditorLoading } from "./WorkflowEditorPage"
 import { type Workflow, type WorkflowFileContents, type WorkOrder } from "../model/workflow";
 import { type WorkflowDocument, isLive } from "../model/workflow-document";
 import type { ProjectDetails } from "../model/projects";
+import { sandboxNames } from "../model/sandboxes";
 import { buildStarterWorkflow, workflowGraphs } from "../fixtures/workflow";
 import { simulateRun } from "../fixtures/runs";
 import { apiProjectId, fixtureProject, fixtureWorkflow } from "../fixtures/projects";
@@ -13,7 +14,7 @@ import { useSandbox } from "../app/sandbox-state";
 import Loaded from "../app/Loaded";
 import { useProject } from "../api/projects";
 import { useCreateStepCredential, useCredentialSchemaLoader, useCredentialSchemas, useProjectCredentials } from "../api/credentials";
-import { useConnectedSystems } from "../api/connected-systems";
+import { useAdaptors, useConnectedSystems, useSystemSaves } from "../api/connected-systems";
 import { useDataclips, useRunSaves, useWorkOrders } from "../api/work-orders";
 import { useDataclipSaves } from "../api/dataclips";
 import { runInputName, savedDataclips } from "../model/dataclips";
@@ -47,7 +48,7 @@ const adaptorReference: Omit<AdaptorReference, "credentials"> = {
   choices: adaptorChoices,
 };
 
-/** Every adaptor, for "Connect a system". */
+/** Every adaptor, for "Add a step". */
 const catalog: AdaptorCatalog = {
   adaptors: adaptorCatalog,
   categories: catalogCategories,
@@ -214,6 +215,9 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   // Sandboxes share their project's credentials: a step anywhere in the tree picks from the project's links.
   const { credentials } = useProjectCredentials(root.id);
   const { systems } = useConnectedSystems();
+  // An adaptor picked in "Add a step" that the project has no system for is added as one first.
+  const { adaptors: systemAdaptors } = useAdaptors(flags.connectedSystems && editable);
+  const systemSaves = useSystemSaves();
   const adaptors: AdaptorReference = { ...adaptorReference, credentials };
   // A step's New credential makes one shared with the project, which every sandbox in it uses too.
   const { schemas: credentialSchemas } = useCredentialSchemas();
@@ -323,6 +327,7 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       }}
       projectName={root.name}
       components={components}
+      componentsLoading={records.status.state === "loading"}
       // A component's page in the project shows main's, so a sandbox's own copy doesn't link to it.
       onOpenComponent={selected.id === root.id ? (componentId) => navigate(`/projects/${root.id}/components/${componentId}`) : undefined}
       onCreateChannel={canEditComponents ? (draft) => records.channels.saves.create(draft, eventAddress(root.name, draft.name)) : undefined}
@@ -344,7 +349,7 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       onDeleteCollectionItem={canEditComponents ? (id, key) => records.saves.items.remove(collectionName(id), key) : undefined}
       componentTypeOptions={componentTypesFor(flags)}
       componentChanges={editable ? componentChanges(changedComponents) : undefined}
-      sandboxes={["main", ...sandboxes.filter((s) => !s.scheduledDeletion).map((s) => s.name)]}
+      sandboxes={sandboxNames(sandboxes)}
       sandbox={selected.id === root.id ? "main" : selected.name}
       onSelectSandbox={setSandbox}
       onViewAllSandboxes={() => navigate(`/projects/${root.id}/sandboxes`)}
@@ -389,6 +394,12 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       adaptors={adaptors}
       catalog={catalog}
       systems={systemsFor(flags, systems)}
+      systemAdaptors={flags.connectedSystems && editable ? systemAdaptors : undefined}
+      onAddSystem={
+        flags.connectedSystems && editable
+          ? (input) => systemSaves.add({ name: input.name, description: input.description, adaptor: input.adaptor, endpointUrl: input.endpointUrl, docsUrl: input.docsUrl })
+          : undefined
+      }
       stepServices={stepServices}
       showWorkflowFiles={flags.workflowDocs}
       showComponents={flags.components}

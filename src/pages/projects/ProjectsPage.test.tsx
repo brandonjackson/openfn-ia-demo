@@ -32,9 +32,8 @@ function fillInAndCreate(name: string) {
 describe("ProjectsPage", () => {
   it("lists every project it's given, and narrows them by name or description as you search", () => {
     draw([project("planning-intake", "Applications from the portal"), project("payroll", "Monthly runs")]);
-    expect(screen.getByText("2 projects")).toBeTruthy();
+    expect(screen.getByText("payroll")).toBeTruthy();
     fireEvent.change(screen.getByRole("searchbox", { name: "Search projects" }), { target: { value: "portal" } });
-    expect(screen.getByText("1 project")).toBeTruthy();
     expect(screen.getByText("planning-intake")).toBeTruthy();
     expect(screen.queryByText("payroll")).toBeNull();
   });

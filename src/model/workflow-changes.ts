@@ -35,13 +35,29 @@ function pairNodes(base: WorkflowNode[], current: WorkflowNode[]): Map<string, s
 }
 
 /**
+ * The node in another copy of a workflow (a sandbox's, or main's) that is the
+ * same as `id` in `from`, paired as `workflowChanges` pairs them: the trigger
+ * with the trigger, a step by name, then by where it sits. Ids differ between
+ * copies, so this is how what's open stays open across a sandbox switch.
+ */
+export function counterpartNodeId(from: Workflow, to: Workflow, id: string): string | undefined {
+  return pairNodes(to.nodes, from.nodes).get(id);
+}
+
+/**
  * What a sandbox's copy of a workflow changes, compared with the copy where
  * going live would merge it (`base`; undefined when the workflow is new in
  * the sandbox): steps added, removed, renamed or edited, the trigger's kind,
  * and the connections between steps. Positions on the canvas aren't changes.
  */
 export function workflowChanges(base: Workflow | undefined, current: Workflow): WorkflowChange[] {
-  if (!base) return [{ kind: "added", summary: `Added the workflow ${current.name}` }];
+  // A workflow new in the sandbox is one change, plus one for each step it has, so adding a step still counts.
+  if (!base) {
+    return [
+      { kind: "added", summary: `Added the workflow ${current.name}` },
+      ...current.nodes.filter((n) => n.type === "job").map((n): WorkflowChange => ({ kind: "added", summary: `Added step ${n.label}` })),
+    ];
+  }
 
   const changes: WorkflowChange[] = [];
   if (base.name !== current.name) changes.push({ kind: "changed", summary: `Renamed the workflow to ${current.name}` });
@@ -106,6 +122,21 @@ export function componentChanges(changed: { name: string; type: ProjectComponent
     c.change === "new"
       ? { kind: "added", summary: `Added ${componentNoun(c.type)} ${c.name}` }
       : { kind: "changed", summary: `Changed ${componentNoun(c.type)} ${c.name}` },
+  );
+}
+
+/**
+ * The workflows a merge preview says a sandbox brings back, as changes: one
+ * line for each workflow new or changed there. The editor says what changed
+ * inside one workflow (`workflowChanges`); this is the whole sandbox's view.
+ */
+export function previewChanges(workflows: { name: string; change: "new" | "changed" | "unchanged" | "deleted" }[]): WorkflowChange[] {
+  return workflows.flatMap((w): WorkflowChange[] =>
+    w.change === "new"
+      ? [{ kind: "added", summary: `Added the workflow ${w.name}` }]
+      : w.change === "changed"
+        ? [{ kind: "changed", summary: `Changed the workflow ${w.name}` }]
+        : [],
   );
 }
 

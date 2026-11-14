@@ -48,3 +48,18 @@ export const DeepPage: Story = {
 export const LongProjectName: Story = {
   args: { project: projects[2], current: "History" },
 };
+
+/** In a sandbox: the same chip as the editor's, amber, counting what the sandbox would bring back to main. */
+export const InASandbox: Story = {
+  args: {
+    project: projectA,
+    sandbox: projectA.sandboxes[1] ?? "main",
+    sandboxTarget: "main",
+    sandboxChanges: [
+      { kind: "changed", summary: "Changed the workflow Apply for a national ID" },
+      { kind: "added", summary: "Added the workflow Notify applicants" },
+      { kind: "added", summary: "Added channel case-updates" },
+    ],
+    current: "Workflows",
+  },
+};

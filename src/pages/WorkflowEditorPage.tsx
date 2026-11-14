@@ -17,7 +17,7 @@ import type {
 } from "../model/workflow";
 import { defaultWorkflowSettings, stepDeleteBlockedReason, workflowToYaml } from "../model/workflow";
 import type { WorkflowSettings } from "../model/workflow";
-import { workflowChanges, type WorkflowChange } from "../model/workflow-changes";
+import { counterpartNodeId, workflowChanges, type WorkflowChange } from "../model/workflow-changes";
 import { lifecycleStages, type LifecycleStageId } from "../model/workflow-lifecycle";
 import type { EnvVar, EnvVarDraft } from "../model/env-vars";
 import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../model/runs";
@@ -94,6 +94,8 @@ import { isContentComponentType, type ComponentDraft, type ContentComponentType 
 import type { ChannelDraft } from "../model/channels";
 import ConnectSystemPicker from "../components/domain/ConnectSystemPicker";
 import type { ConnectChoice } from "../components/domain/ConnectSystemPicker";
+import AddConnectedSystemFlow, { type NewSystemInput } from "../components/domain/AddConnectedSystemFlow";
+import type { Adaptor } from "../model/adaptors";
 import { componentTypes } from "../model/component-types";
 
 /** Who starts runs and retries in the prototype. */
@@ -246,6 +248,7 @@ export default function WorkflowEditorPage({
   onDelete,
   projectName,
   components = [],
+  componentsLoading = false,
   onOpenComponent,
   componentTypeOptions,
   componentChanges = [],
@@ -274,6 +277,8 @@ export default function WorkflowEditorPage({
   adaptors,
   catalog,
   systems = [],
+  systemAdaptors,
+  onAddSystem,
   stepServices,
   showWorkflowFiles = true,
   showComponents = true,
@@ -337,6 +342,8 @@ export default function WorkflowEditorPage({
   projectName?: string;
   /** Project components the workflow uses, listed in the code explorer. */
   components?: ProjectComponent[];
+  /** While the components are still loading, e.g. just after switching sandbox: what was open waits for them. */
+  componentsLoading?: boolean;
   /** Opens a component's page in the project. */
   onOpenComponent?: (componentId: string) => void;
   /** The kinds of component that can be added. Defaults to every kind but Workflow. */
@@ -388,11 +395,19 @@ export default function WorkflowEditorPage({
   assistantConversations?: AssistantConversation[];
   /** What the editor knows about each adaptor a step can use (name, version, snippets), and the project's credentials. */
   adaptors: AdaptorReference;
-  /** Every adaptor by category, with the built-in tools and AI actions, for "Connect a system". */
+  /** Every adaptor by category, with the built-in tools and AI actions, for "Add a step". */
   catalog: AdaptorCatalog;
   /** The project's connected systems. */
   systems?: ConnectedSystem[];
-  /** Published services a new step can call, offered in "Connect a system" under Services. Left out, the picker has no Services tab. */
+  /** Every adaptor a new connected system can use, for adding one from "Add a step". */
+  systemAdaptors?: Adaptor[];
+  /**
+   * Adds a connected system from an adaptor picked in "Add a step" that the project has no system for yet;
+   * resolves with its id, and the new step is added on it. Left out (no connected systems, or not
+   * yours to add), picking any adaptor adds its step straight away.
+   */
+  onAddSystem?: (system: NewSystemInput) => Promise<string>;
+  /** Published services a new step can call, offered in "Add a step" under Services. Left out, the picker has no Services tab. */
   stepServices?: StepService[];
   /** List the workflow's own files (workflow.yaml, docs, service.yaml, Health) in the explorer. Defaults to true; off, code mode falls back to the trigger. */
   showWorkflowFiles?: boolean;
@@ -540,11 +555,20 @@ export default function WorkflowEditorPage({
   const viewingVersion = version === "latest" ? latestVersion : version;
 
   // Another copy of the workflow (another sandbox, or main): its own edits start afresh.
-  const [shownId, setShownId] = useState(workflow.id);
-  if (shownId !== workflow.id) {
-    setShownId(workflow.id);
+  // What's open stays open: the same step (or trigger) in the new copy, found by name since ids differ
+  // between copies, or the default where the new copy hasn't got it.
+  const [shownWorkflow, setShownWorkflow] = useState(workflow);
+  if (shownWorkflow.id !== workflow.id) {
+    const previous = applyEdits(shownWorkflow, edits, name, adaptors.info);
+    const counterpart = (id: string) => counterpartNodeId(previous, workflow, id);
+    setShownWorkflow(workflow);
     setEdits(noEdits);
     setName(workflow.name);
+    if (typeof file === "object" && "stepId" in file) {
+      const id = counterpart(file.stepId);
+      setFile(id ? { stepId: id } : fallbackFile);
+    }
+    if (selectedId) setSelectedId(counterpart(selectedId));
   }
 
   // In a sandbox, edits are saved a moment after they're made. Once saved they're in `workflow`,
@@ -921,13 +945,17 @@ export default function WorkflowEditorPage({
     ]),
   ].filter((a) => !catalog.builtInTools.includes(a));
 
-  const addStepAfter = (sourceId: string, choice: ConnectChoice) => {
+  // An adaptor the project has no system for yet: add the system first, then the step on it.
+  const [newSystem, setNewSystem] = useState<{ afterId: string; adaptor: string }>();
+
+  const addStepAfter = (sourceId: string, choice: ConnectChoice, system?: string) => {
     const source = graph.nodes.find((n) => n.id === sourceId);
     if (!source) return;
     const id = crypto.randomUUID();
     // A service is called over HTTP, so its step is an HTTP step named for what the service does.
     const adaptor = choice.kind === "ai" ? "claude" : choice.kind === "service" ? "http" : choice.adaptor;
-    const info = adaptors.info[adaptor];
+    // An adaptor the editor has no reference for (one picked while adding a system) still gets a step.
+    const info = adaptors.info[adaptor] ?? { ...adaptors.info.common, name: adaptor, package: `@openfn/language-${adaptor}` };
     const firstSnippet = adaptors.snippets[adaptor]?.[0]?.code;
     const job: JobNode = {
       id,
@@ -941,6 +969,7 @@ export default function WorkflowEditorPage({
           : choice.kind === "service"
             ? serviceStepBody(choice.service)
             : `// Connect to ${info.name}\n${firstSnippet ?? "fn(state => state);"}\n`,
+      ...(system && { system }),
       ...placeAfter(graph, source),
     };
     // A trigger has exactly one edge out of it, so a step added after it goes in between: the trigger's edge
@@ -995,7 +1024,8 @@ export default function WorkflowEditorPage({
     service: service !== undefined,
     dataclips: saved.length > 0,
   };
-  const workflowFiles = (["context", "spec", "service", "dataclips"] as const).filter((k) => has[k] || addedFiles.includes(k));
+  // The one open stays listed too, e.g. Saved dataclips after switching to a sandbox that has none yet.
+  const workflowFiles = (["context", "spec", "service", "dataclips"] as const).filter((k) => has[k] || addedFiles.includes(k) || file === k);
   const [addFileOpen, setAddFileOpen] = useState(defaultAddFileOpen);
   const [newDataclipOpen, setNewDataclipOpen] = useState(false);
   // The test case form: a new one, or the one being edited.
@@ -1287,6 +1317,24 @@ export default function WorkflowEditorPage({
   // a collection its keys; anything else the file it is, to edit and save.
   const openComponent =
     typeof file === "object" && "componentId" in file ? components.find((c) => c.id === file.componentId) : undefined;
+  // Switching sandbox swaps the components for the new project's copies, under new ids: the one that was
+  // open is found again by its kind and name once the new list is in, or the default opens where it has none.
+  const openComponentKey = useRef<{ type: string; name: string }>(undefined);
+  useEffect(() => {
+    if (openComponent) openComponentKey.current = { type: openComponent.type, name: openComponent.name };
+  }, [openComponent]);
+  const [componentSandbox, setComponentSandbox] = useState(sandbox);
+  const [carriedComponent, setCarriedComponent] = useState<{ type: string; name: string }>();
+  if (componentSandbox !== sandbox) {
+    setComponentSandbox(sandbox);
+    setCarriedComponent(typeof file === "object" && "componentId" in file ? openComponentKey.current : undefined);
+  }
+  useEffect(() => {
+    if (!carriedComponent || componentsLoading) return;
+    const same = components.find((c) => c.type === carriedComponent.type && c.name === carriedComponent.name);
+    setFile(same ? { componentId: same.id } : fallbackFile);
+    setCarriedComponent(undefined);
+  }, [carriedComponent, components, componentsLoading, fallbackFile]);
   const openChannelDetails = openComponent?.type === "Channel" ? contents?.channels[openComponent.id] : undefined;
   const openCollection = openComponent?.type === "Collection" ? contents?.collections[openComponent.id] : undefined;
   const openContent = openComponent && isContentComponentType(openComponent.type) ? contents?.componentContents[openComponent.id] : undefined;
@@ -1632,14 +1680,36 @@ export default function WorkflowEditorPage({
               onDraftWithAI={onDraftComponentWithAI ? () => onDraftComponentWithAI(creatingComponent) : undefined}
             />
           )}
-          <Modal open={addAfterId !== undefined} title="Connect a system" onClose={() => setAddAfterId(undefined)} widthClass="max-w-3xl">
+          <Modal open={addAfterId !== undefined} title="Add a step" onClose={() => setAddAfterId(undefined)} widthClass="max-w-3xl">
             <ConnectSystemPicker
               catalog={catalog}
               connected={connectedAdaptors}
               services={stepServices}
               onSelect={(choice) => addAfterId && addStepAfter(addAfterId, choice)}
+              onConnectNew={
+                onAddSystem && systemAdaptors
+                  ? (adaptor) => {
+                      if (!addAfterId) return;
+                      setNewSystem({ afterId: addAfterId, adaptor });
+                      setAddAfterId(undefined);
+                    }
+                  : undefined
+              }
             />
           </Modal>
+          {onAddSystem && systemAdaptors && (
+            <AddConnectedSystemFlow
+              open={newSystem !== undefined}
+              onClose={() => setNewSystem(undefined)}
+              adaptors={systemAdaptors}
+              preselectedAdaptor={newSystem?.adaptor}
+              onAdd={async (input) => {
+                const id = await onAddSystem(input);
+                if (newSystem) addStepAfter(newSystem.afterId, { kind: "adaptor", adaptor: input.adaptor }, id);
+                setNewSystem(undefined);
+              }}
+            />
+          )}
           <ConfirmModal
             open={deleteOpen}
             title="Delete workflow?"

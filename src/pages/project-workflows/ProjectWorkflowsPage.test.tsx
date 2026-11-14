@@ -36,11 +36,11 @@ function askToDelete(name: string) {
 }
 
 describe("ProjectWorkflowsPage", () => {
-  it("counts the workflows it's given and narrows them by name as you search", () => {
+  it("lists the workflows it's given and narrows them by name as you search", () => {
     draw([workflow("Intake"), workflow("Payroll")]);
-    expect(screen.getByText("2 workflows")).toBeTruthy();
+    expect(screen.getByText("Intake")).toBeTruthy();
     fireEvent.change(screen.getByRole("searchbox", { name: "Search workflows" }), { target: { value: "pay" } });
-    expect(screen.getByText("1 of 2 workflows")).toBeTruthy();
+    expect(screen.getByText("Payroll")).toBeTruthy();
     expect(screen.queryByText("Intake")).toBeNull();
   });
 
@@ -87,9 +87,11 @@ describe("ProjectWorkflowsPage", () => {
     expect(screen.getByRole("alert").textContent).toContain("Only an editor can delete workflows.");
   });
 
-  it("leaves out the switch and menu when the viewer can't use them", () => {
+  it("leaves out the switch and Delete when the viewer can't use them", () => {
     renderPage(ProjectWorkflowsPage, { ...frame, data: { projectId: "p", workflows: [workflow("Intake")] } }, ["onNewWorkflow"]);
     expect(screen.queryByRole("switch")).toBeNull();
-    expect(screen.queryByRole("button", { name: "Actions for Intake" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Actions for Intake" }));
+    expect(screen.getByRole("menuitem", { name: "Open" })).toBeTruthy();
+    expect(screen.queryByRole("menuitem", { name: "Delete" })).toBeNull();
   });
 });

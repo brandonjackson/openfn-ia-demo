@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { JobNode, Workflow } from "./workflow";
-import { componentChanges, workflowChanges } from "./workflow-changes";
+import { componentChanges, counterpartNodeId, workflowChanges } from "./workflow-changes";
 
 const step = (id: string, label: string, x: number, body = "fn(state => state);"): JobNode => ({
   id,
@@ -41,8 +41,20 @@ describe("workflowChanges", () => {
     expect(workflowChanges(base, copy(base))).toEqual([]);
   });
 
-  it("says a workflow that's only in the sandbox is new", () => {
-    expect(workflowChanges(undefined, base)).toEqual([{ kind: "added", summary: "Added the workflow Intake" }]);
+  it("says a workflow that's only in the sandbox is new, with each of its steps", () => {
+    expect(workflowChanges(undefined, base)).toEqual([
+      { kind: "added", summary: "Added the workflow Intake" },
+      { kind: "added", summary: "Added step Fetch cases" },
+      { kind: "added", summary: "Added step Send SMS" },
+    ]);
+  });
+
+  it("counts one more change when a step is added to a new workflow", () => {
+    // Given a new workflow (a trigger and its first step), when a step is added, the count goes up.
+    const started: Workflow = { ...base, nodes: base.nodes.slice(0, 2), edges: base.edges.slice(0, 1) };
+    const before = workflowChanges(undefined, started).length;
+    const after = workflowChanges(undefined, { ...started, nodes: [...started.nodes, step("n", "Untitled step", 200)] }).length;
+    expect(after).toBe(before + 1);
   });
 
   it("names steps added, removed and edited", () => {
@@ -95,5 +107,20 @@ describe("workflowChanges", () => {
       { kind: "changed", summary: "Changed AI skill triage" },
       { kind: "added", summary: "Added environment variable DHIS2_URL" },
     ]);
+  });
+});
+
+describe("counterpartNodeId", () => {
+  it("finds the same step in another copy by name, and the trigger as the trigger", () => {
+    const other = copy(base);
+    expect(counterpartNodeId(base, other, "b")).toBe("copy-b");
+    expect(counterpartNodeId(base, other, "t")).toBe("copy-t");
+    expect(counterpartNodeId(other, base, "copy-a")).toBe("a");
+  });
+
+  it("finds nothing for a step the other copy doesn't have", () => {
+    const other = copy(base);
+    other.nodes = other.nodes.filter((n) => n.id !== "copy-b");
+    expect(counterpartNodeId(base, other, "b")).toBeUndefined();
   });
 });

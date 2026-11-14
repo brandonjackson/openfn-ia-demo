@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, FlaskConical, GitMerge, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, FlaskConical, GitMerge, Pencil, Plus, Trash2 } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
 import { sandboxIcon, type SandboxDraft, type SandboxItem, type SandboxMerge } from "../../model/sandboxes";
 import { timeAgo } from "../../model/time";
@@ -13,9 +13,7 @@ import MergeSandboxModal from "../../components/domain/MergeSandboxModal";
 import Button from "../../components/primitives/Button";
 import Callout from "../../components/primitives/Callout";
 import ConfirmModal from "../../components/primitives/ConfirmModal";
-import DropdownMenu from "../../components/primitives/DropdownMenu";
 import EmptyState from "../../components/primitives/EmptyState";
-import IconButton from "../../components/primitives/IconButton";
 import ListRow from "../../components/primitives/ListRow";
 import ListGroup from "../../components/primitives/ListGroup";
 import Stack from "../../components/primitives/Stack";
@@ -69,22 +67,14 @@ function SandboxRow({
       monoTitle
       selected={selected}
       onClick={onSelect}
-      actions={
-        actions.length > 0 && (
-          <DropdownMenu
-            ariaLabel={`Actions for ${sandbox.name}`}
-            align="right"
-            widthClass="w-44"
-            items={[
-              ...(actions.includes("edit") ? [{ id: "edit", label: "Edit", icon: Pencil }] : []),
-              ...(actions.includes("merge") ? [{ id: "merge", label: "Merge", icon: GitMerge }] : []),
-              ...(actions.includes("delete") ? [{ id: "delete", label: "Delete", icon: Trash2, tone: "danger" as const, divider: actions.length > 1 }] : []),
-            ]}
-            onSelect={(id) => onAction(id as RowAction)}
-            trigger={({ toggle }) => <IconButton icon={MoreVertical} label={`Actions for ${sandbox.name}`} onClick={toggle} />}
-          />
-        )
-      }
+      menu={{
+        items: [
+          ...(actions.includes("edit") ? [{ id: "edit", label: "Edit", icon: Pencil }] : []),
+          ...(actions.includes("merge") ? [{ id: "merge", label: "Merge", icon: GitMerge }] : []),
+          ...(actions.includes("delete") ? [{ id: "delete", label: "Delete", icon: Trash2, tone: "danger" as const, divider: actions.length > 1 }] : []),
+        ],
+        onSelect: (id) => onAction(id as RowAction),
+      }}
       badges={
         <>
           {selected && <Badge label="Selected" tone="indigo" icon={Check} />}
@@ -170,7 +160,6 @@ export default function ProjectSandboxesPage({
       ]
     : [];
 
-  const sandboxCount = sandboxes.filter((s) => !s.isMain).length;
 
   return (
     <>
@@ -196,7 +185,6 @@ export default function ProjectSandboxesPage({
             </Callout>
           )
         }
-        summary={`${sandboxCount} sandbox${sandboxCount === 1 ? "" : "es"}`}
       >
         <Stack gap="xl">
           {selected && (

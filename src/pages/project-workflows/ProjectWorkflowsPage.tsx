@@ -101,7 +101,6 @@ export default function ProjectWorkflowsPage({
             </Inline>
           )
         }
-        summary={count > 0 && (q ? `${workflows.length} of ${count} workflows` : `${count} workflow${count === 1 ? "" : "s"}`)}
         isEmpty={workflows.length === 0}
         empty={
           count > 0 ? (

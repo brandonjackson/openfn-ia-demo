@@ -49,11 +49,11 @@ async function openWorkflowMenu() {
   fireEvent.click(button);
 }
 
-/** Opens "Connect a system" from a card's +: the last step's, or the first card's (the trigger's). */
+/** Opens "Add a step" from a card's +: the last step's, or the first card's (the trigger's). */
 async function openStepPicker(which: "last" | "first" = "last") {
   const buttons = await screen.findAllByRole("button", { name: /^Add a step after/ }, wait);
   fireEvent.click(which === "first" ? buttons[0] : buttons.at(-1)!);
-  return screen.findByRole("dialog", { name: "Connect a system" }, wait);
+  return screen.findByRole("dialog", { name: "Add a step" }, wait);
 }
 
 // The canvas measures itself and the assistant scrolls its thread; jsdom does neither.
@@ -220,6 +220,85 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     }
   });
 
+  it("counts a new workflow in a sandbox as a change, and adding a step to it as one more", async () => {
+    const projectId = projectIdFor("project-a");
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${crypto.randomUUID()}`, { name: "new-flow" });
+    act(() => setSandbox(projectId, "new-flow"));
+    try {
+      renderEditor(`new?project=${projectId}`);
+      const chip = await screen.findByRole("button", { name: /^Sandbox new-flow, \d+ changes?$/ }, wait);
+      const count = () => Number(/(\d+) change/.exec(chip.getAttribute("aria-label") ?? "")?.[1] ?? 0);
+      const before = count();
+      expect(before).toBeGreaterThan(0);
+
+      fireEvent.click(screen.getByText("Explorer"));
+      fireEvent.click(await screen.findByRole("button", { name: "Add step" }, wait));
+      await waitFor(() => expect(screen.getByRole("button", { name: /^Sandbox new-flow/ }).getAttribute("aria-label")).toBe(`Sandbox new-flow, ${before + 1} changes`), wait);
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
+  it("keeps the open step, component or file when switching sandbox from the chip, falling back where it isn't", async () => {
+    const projectId = projectIdFor("project-a");
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${crypto.randomUUID()}`, { name: "switch-here" });
+    renderEditor(apiWorkflowId("planning-application-workflow"));
+    fireEvent.click(await screen.findByRole("button", { name: "Explorer" }, wait));
+    const explorer = await screen.findByRole("navigation", { name: "Explorer" }, wait);
+    const open = () => explorer.querySelector("[aria-current]")?.textContent ?? "";
+    const switchTo = async (name: string) => {
+      fireEvent.click(screen.getByRole("button", { name: /^main, read-only$|^Sandbox / }));
+      fireEvent.click(within(await screen.findByRole("dialog", {}, wait)).getByRole("button", { name: new RegExp(`^${name}`) }));
+    };
+
+    // A step: the sandbox's copy has the same step under another id.
+    // The Steps group: its heading's row, then the group around it.
+    const steps = within(explorer).getByText("Steps").parentElement!.parentElement!;
+    const step = within(steps).getAllByRole("button").find((b) => b.textContent && !/trigger|Add step/i.test(b.textContent + (b.getAttribute("aria-label") ?? "")))!;
+    const stepName = step.textContent!;
+    fireEvent.click(step);
+    await switchTo("switch-here");
+    await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+    await waitFor(() => expect(open()).toBe(stepName), wait);
+
+    // A component: found again by its kind and name in the sandbox's copy of the project.
+    const component = within(explorer).getAllByRole("button").find((b) => /channel$/.test(b.textContent ?? ""))!;
+    const componentName = component.textContent!;
+    fireEvent.click(component);
+    await waitFor(() => expect(open()).toBe(componentName), wait);
+    await switchTo("main");
+    await waitFor(() => expect(open()).toBe(componentName), wait);
+
+    // A file: Health is the same wherever you are.
+    fireEvent.click(within(explorer).getByRole("button", { name: /^Health/ }));
+    await switchTo("switch-here");
+    await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+    await waitFor(() => expect(open()).toMatch(/^Health/), wait);
+    act(() => setSandbox(projectId, "main"));
+  });
+
+  it("won't make a sandbox whose name, once made a slug, is taken elsewhere in the project", async () => {
+    // Names are unique only among a parent's own sandboxes, and from inside a sandbox a new one is made
+    // under it. The form checked the name as typed ("Decision Sync Fix"), not the slug it becomes, so a
+    // sandbox of a sandbox could take a name already in the tree and the picker listed it twice.
+    const projectId = projectIdFor("project-a");
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${crypto.randomUUID()}`, { name: "nested-parent" });
+    act(() => setSandbox(projectId, "nested-parent"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      fireEvent.click(await screen.findByRole("button", { name: /^Sandbox nested-parent/ }, wait));
+      fireEvent.click(within(await screen.findByRole("dialog", {}, wait)).getByRole("button", { name: "New sandbox…" }));
+      fireEvent.change(await screen.findByLabelText("Sandbox name", {}, wait), { target: { value: "Decision Sync Fix" } });
+      expect(screen.getByText("There's already a sandbox called decision-sync-fix.")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Create sandbox" }));
+
+      const all = await listAll<{ attributes: { name: string } }>(`/api/projects/${projectId}/sandboxes?depth=all`);
+      expect(all.filter((s) => s.attributes.name === "decision-sync-fix")).toHaveLength(1);
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
   it("adds a step that calls another project's Live service from a card's +, in a sandbox", async () => {
     const projectId = projectIdFor("project-a");
     const sandboxId = crypto.randomUUID();
@@ -234,7 +313,7 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
       // The workflow backs Submit a planning application, so it isn't offered a step that calls itself.
       expect(within(picker).queryByText("Submit a planning application")).toBeNull();
       fireEvent.click(within(picker).getByText("Look up a client's national ID"));
-      await waitFor(() => expect(screen.queryByRole("dialog", { name: "Connect a system" })).toBeNull(), wait);
+      await waitFor(() => expect(screen.queryByRole("dialog", { name: "Add a step" })).toBeNull(), wait);
       // It's an HTTP step named for the service, posting to its address, saved to the sandbox's copy.
       const step = () =>
         request<{ workflows: { jobs: { name: string; adaptor: string; body: string }[] }[] }>("GET", `/api/projects/${sandboxId}/workflows`).then(
@@ -308,6 +387,39 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
       expect(await screen.findByRole("button", { name: "Remove OpenCRVS for the sandbox" }, wait)).toBeTruthy();
       const linked = await listAll<{ name: string; schema: string }>(`/api/projects/${projectId}/credentials`, "credentials");
       expect(linked.find((c) => c.name === "OpenCRVS for the sandbox")?.schema).toMatch(/opencrvs/);
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
+  it("adds a system the project isn't connected to before its step, when its adaptor is picked from a category", async () => {
+    const projectId = projectIdFor("project-a");
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "new-system" });
+    act(() => setSandbox(projectId, "new-system"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+      const picker = await openStepPicker();
+      fireEvent.change(within(picker).getByRole("searchbox"), { target: { value: "Mailchimp" } });
+      fireEvent.click(within(picker).getByText("Mailchimp"));
+      // The picker gives way to adding the system, with Mailchimp already picked.
+      await waitFor(() => expect(screen.queryByRole("dialog", { name: "Add a step" })).toBeNull(), wait);
+      await screen.findByText("Configure System", undefined, wait);
+      fireEvent.click(screen.getByRole("button", { name: "Add connected system" }));
+      type Systems = { data: { id: string; attributes?: { name: string }; name?: string }[] };
+      const added = async () => {
+        const answer = await request<Systems>("GET", "/api/demo/connected_systems");
+        return answer.data.find((s) => (s.attributes?.name ?? s.name) === "Mailchimp");
+      };
+      await waitFor(async () => expect(await added()).toBeDefined(), wait);
+      const systemId = (await added())!.id;
+      // The step is added on the new system, and saved to the sandbox's copy.
+      const step = () =>
+        request<{ workflows: { jobs: { name: string; system_id?: string | null }[] }[] }>("GET", `/api/projects/${sandboxId}/workflows`).then(
+          (a) => a.workflows.flatMap((w) => w.jobs).find((j) => j.name === "New mailchimp step" || j.name === "New Mailchimp step"),
+        );
+      await waitFor(async () => expect((await step())?.system_id).toBe(systemId), wait);
     } finally {
       act(() => setSandbox(projectId, "main"));
     }

@@ -47,9 +47,11 @@ describe("ProjectSandboxesPage", () => {
     expect(host.calls("onSelectSandbox")).toEqual([["dedup"]]);
   });
 
-  it("offers main no actions, and never deleting the sandbox you're in", () => {
+  it("offers main nothing but Open, and never deleting the sandbox you're in", () => {
     draw("intake-v2");
-    expect(screen.queryByRole("button", { name: "Actions for main" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Actions for main" }));
+    expect(screen.getAllByRole("menuitem").map((m) => m.textContent)).toEqual(["Open"]);
+    fireEvent.keyDown(document, { key: "Escape" });
     fireEvent.click(screen.getByRole("button", { name: "Actions for intake-v2" }));
     expect(screen.queryByRole("menuitem", { name: "Delete" })).toBeNull();
   });

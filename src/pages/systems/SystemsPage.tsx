@@ -85,6 +85,7 @@ function ListItemRow({ item, basePath }: { item: SystemListItem; basePath: strin
       // A system just added from the directory has no page until it's saved.
       to={item.metadata?.justAdded ? undefined : (item.linkTo ?? `${basePath}/${item.id}`)}
       icon={Globe}
+      menu={{}}
       logo={item.metadata?.adaptor && <AdaptorLogo adaptor={item.metadata.adaptor} name={item.name} />}
       title={item.name}
       badges={
@@ -180,7 +181,6 @@ export default function SystemsPage({ node, ancestors, currentPath, data, onAddX
             )}
           </Inline>
         }
-        summary={view === "list" && `${filtered.length} system${filtered.length !== 1 ? "s" : ""}`}
         isEmpty={view === "list" && filtered.length === 0}
         empty={<EmptyState icon={Globe} title="No systems match the selected filter." />}
         after={

@@ -17,7 +17,7 @@ import type {
 } from "../model/workflow";
 import { defaultWorkflowSettings, stepDeleteBlockedReason, workflowToYaml } from "../model/workflow";
 import type { WorkflowSettings } from "../model/workflow";
-import { workflowChanges, type WorkflowChange } from "../model/workflow-changes";
+import { counterpartNodeId, workflowChanges, type WorkflowChange } from "../model/workflow-changes";
 import { lifecycleStages, type LifecycleStageId } from "../model/workflow-lifecycle";
 import type { EnvVar, EnvVarDraft } from "../model/env-vars";
 import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../model/runs";
@@ -246,6 +246,7 @@ export default function WorkflowEditorPage({
   onDelete,
   projectName,
   components = [],
+  componentsLoading = false,
   onOpenComponent,
   componentTypeOptions,
   componentChanges = [],
@@ -335,6 +336,8 @@ export default function WorkflowEditorPage({
   projectName?: string;
   /** Project components the workflow uses, listed in the code explorer. */
   components?: ProjectComponent[];
+  /** While the components are still loading, e.g. just after switching sandbox: what was open waits for them. */
+  componentsLoading?: boolean;
   /** Opens a component's page in the project. */
   onOpenComponent?: (componentId: string) => void;
   /** The kinds of component that can be added. Defaults to every kind but Workflow. */
@@ -537,11 +540,20 @@ export default function WorkflowEditorPage({
   const viewingVersion = version === "latest" ? latestVersion : version;
 
   // Another copy of the workflow (another sandbox, or main): its own edits start afresh.
-  const [shownId, setShownId] = useState(workflow.id);
-  if (shownId !== workflow.id) {
-    setShownId(workflow.id);
+  // What's open stays open: the same step (or trigger) in the new copy, found by name since ids differ
+  // between copies, or the default where the new copy hasn't got it.
+  const [shownWorkflow, setShownWorkflow] = useState(workflow);
+  if (shownWorkflow.id !== workflow.id) {
+    const previous = applyEdits(shownWorkflow, edits, name, adaptors.info);
+    const counterpart = (id: string) => counterpartNodeId(previous, workflow, id);
+    setShownWorkflow(workflow);
     setEdits(noEdits);
     setName(workflow.name);
+    if (typeof file === "object" && "stepId" in file) {
+      const id = counterpart(file.stepId);
+      setFile(id ? { stepId: id } : fallbackFile);
+    }
+    if (selectedId) setSelectedId(counterpart(selectedId));
   }
 
   // In a sandbox, edits are saved a moment after they're made. Once saved they're in `workflow`,
@@ -1010,7 +1022,8 @@ export default function WorkflowEditorPage({
     service: service !== undefined,
     dataclips: saved.length > 0,
   };
-  const workflowFiles = (["context", "spec", "service", "dataclips"] as const).filter((k) => has[k] || addedFiles.includes(k));
+  // The one open stays listed too, e.g. Saved dataclips after switching to a sandbox that has none yet.
+  const workflowFiles = (["context", "spec", "service", "dataclips"] as const).filter((k) => has[k] || addedFiles.includes(k) || file === k);
   const [addFileOpen, setAddFileOpen] = useState(defaultAddFileOpen);
   const [newDataclipOpen, setNewDataclipOpen] = useState(false);
   // The test case form: a new one, or the one being edited.
@@ -1292,6 +1305,24 @@ export default function WorkflowEditorPage({
   // a collection its keys; anything else the file it is, to edit and save.
   const openComponent =
     typeof file === "object" && "componentId" in file ? components.find((c) => c.id === file.componentId) : undefined;
+  // Switching sandbox swaps the components for the new project's copies, under new ids: the one that was
+  // open is found again by its kind and name once the new list is in, or the default opens where it has none.
+  const openComponentKey = useRef<{ type: string; name: string }>(undefined);
+  useEffect(() => {
+    if (openComponent) openComponentKey.current = { type: openComponent.type, name: openComponent.name };
+  }, [openComponent]);
+  const [componentSandbox, setComponentSandbox] = useState(sandbox);
+  const [carriedComponent, setCarriedComponent] = useState<{ type: string; name: string }>();
+  if (componentSandbox !== sandbox) {
+    setComponentSandbox(sandbox);
+    setCarriedComponent(typeof file === "object" && "componentId" in file ? openComponentKey.current : undefined);
+  }
+  useEffect(() => {
+    if (!carriedComponent || componentsLoading) return;
+    const same = components.find((c) => c.type === carriedComponent.type && c.name === carriedComponent.name);
+    setFile(same ? { componentId: same.id } : fallbackFile);
+    setCarriedComponent(undefined);
+  }, [carriedComponent, components, componentsLoading, fallbackFile]);
   const openChannelDetails = openComponent?.type === "Channel" ? contents?.channels[openComponent.id] : undefined;
   const openCollection = openComponent?.type === "Collection" ? contents?.collections[openComponent.id] : undefined;
   const openContent = openComponent && isContentComponentType(openComponent.type) ? contents?.componentContents[openComponent.id] : undefined;

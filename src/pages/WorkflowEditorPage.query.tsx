@@ -4,6 +4,7 @@ import WorkflowEditorPage, { WorkflowEditorLoading } from "./WorkflowEditorPage"
 import { type Workflow, type WorkflowFileContents, type WorkOrder } from "../model/workflow";
 import { type WorkflowDocument, isLive } from "../model/workflow-document";
 import type { ProjectDetails } from "../model/projects";
+import { sandboxNames } from "../model/sandboxes";
 import { buildStarterWorkflow, workflowGraphs } from "../fixtures/workflow";
 import { simulateRun } from "../fixtures/runs";
 import { apiProjectId, fixtureProject, fixtureWorkflow } from "../fixtures/projects";
@@ -322,6 +323,7 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       }}
       projectName={root.name}
       components={components}
+      componentsLoading={records.status.state === "loading"}
       // A component's page in the project shows main's, so a sandbox's own copy doesn't link to it.
       onOpenComponent={selected.id === root.id ? (componentId) => navigate(`/projects/${root.id}/components/${componentId}`) : undefined}
       onCreateChannel={canEditComponents ? (draft) => records.channels.saves.create(draft, eventAddress(root.name, draft.name)) : undefined}
@@ -343,7 +345,7 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       onDeleteCollectionItem={canEditComponents ? (id, key) => records.saves.items.remove(collectionName(id), key) : undefined}
       componentTypeOptions={componentTypesFor(flags)}
       componentChanges={editable ? componentChanges(changedComponents) : undefined}
-      sandboxes={["main", ...sandboxes.filter((s) => !s.scheduledDeletion).map((s) => s.name)]}
+      sandboxes={sandboxNames(sandboxes)}
       sandbox={selected.id === root.id ? "main" : selected.name}
       onSelectSandbox={setSandbox}
       onViewAllSandboxes={() => navigate(`/projects/${root.id}/sandboxes`)}

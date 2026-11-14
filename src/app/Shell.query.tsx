@@ -2,11 +2,13 @@ import { useEffect, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ShellContext } from "../components/domain/shell-context";
 import { useProject, useProjectList } from "../api/projects";
-import { useSandboxes } from "../api/workflows";
+import { useMergePreview, useSandboxComponentChanges, useSandboxes } from "../api/workflows";
 import { useInstance, useMe } from "../api/account";
 import { asProject, isOpenable } from "../model/projects";
+import { sandboxNames } from "../model/sandboxes";
+import { componentChanges, previewChanges } from "../model/workflow-changes";
 import { instanceInitials, instanceName } from "../model/account";
-import { useSandbox } from "./sandbox-state";
+import { setSandbox as setSandboxOf, useSandbox } from "./sandbox-state";
 import { noteOpened, useRecentProjectIds } from "./recent-projects";
 import { useFlags } from "./feature-flags";
 
@@ -39,10 +41,18 @@ export default function ShellQuery({ children }: { children: ReactNode }) {
   // The selected sandbox is kept by the app, per project, by its id.
   const [selected, setSandbox] = useSandbox(details?.id ?? "");
   const { sandboxes } = useSandboxes(details?.id);
-  const live = sandboxes.filter((s) => !s.scheduledDeletion).map((s) => s.name);
+  const names = sandboxNames(sandboxes);
   // A sandbox that's gone (deleted, or never made) leaves you on main.
-  const sandbox = live.includes(selected) ? selected : "main";
-  const project = details && asProject(details, ["main", ...live]);
+  const sandbox = names.includes(selected) ? selected : "main";
+  const project = details && asProject(details, names);
+  // What the selected sandbox would bring back to its parent, for the sandbox chip: its new and changed
+  // workflows, components and environment variables, from the merge preview.
+  const current = sandbox === "main" ? undefined : sandboxes.find((s) => s.name === sandbox && !s.scheduledDeletion);
+  const parentId = current?.parentId ?? undefined;
+  const { workflows: changedWorkflows } = useMergePreview(parentId ?? "", current?.id, parentId);
+  const { changes: changedComponents } = useSandboxComponentChanges(parentId, current?.id, "");
+  const sandboxChanges = current ? [...previewChanges(changedWorkflows), ...componentChanges(changedComponents)] : [];
+  const sandboxTarget = parentId === details?.id ? "main" : sandboxes.find((s) => s.id === parentId)?.name;
 
   const openable = projects.filter(isOpenable);
   const recentProjects = [
@@ -60,6 +70,13 @@ export default function ShellQuery({ children }: { children: ReactNode }) {
         project,
         sandbox,
         onSelectSandbox: setSandbox,
+        sandboxChanges,
+        sandboxTarget,
+        // Another project opens on main, whichever sandbox you were last in there.
+        onSwitchProject: (id, path) => {
+          setSandboxOf(id, "main");
+          navigate(path);
+        },
         onNavigate: (path) => navigate(path),
         flags: useFlags(),
         // Unknown while you load or if you couldn't be; refused outright, you're not one.

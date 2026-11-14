@@ -1,11 +1,10 @@
 import { Trash2, Workflow } from "lucide-react";
 import type { WorkflowListItem } from "../../model/workflow-list";
 import { triggerTypes } from "../../model/workflow";
-import ActionMenu from "../primitives/ActionMenu";
 import AvatarStack from "../primitives/AvatarStack";
 import Badge from "../primitives/Badge";
-import Inline from "../primitives/Inline";
 import ListRow from "../primitives/ListRow";
+import type { ListRowMenu } from "../primitives/ListRow";
 import Text from "../primitives/Text";
 import ToggleSwitch from "../primitives/ToggleSwitch";
 import StatusPill from "./StatusPill";
@@ -30,19 +29,20 @@ interface Props {
   workflow: WorkflowListItem;
   /** Turns its triggers on or off. Left out, there's no switch. */
   onToggleEnabled?: (enabled: boolean) => void;
-  /** Asks to delete it. Left out, there's no ⋮ menu. */
+  /** Asks to delete it. Left out, its ⋮ menu has no Delete. */
   onDelete?: () => void;
+  /** More actions for its ⋮ menu, after Open and before Delete. */
+  menu?: ListRowMenu;
 }
 
 /**
  * A workflow on a project's Workflows list: its name and description, the
  * status of the service it backs, when it last ran and changed, then its
  * latest run, its work orders and failures over the last 30 days, and the
- * people who edit it. A switch turns its triggers on and off, and a ⋮ deletes
- * it. Opening it goes to the editor.
+ * people who edit it. A switch turns its triggers on and off, and its ⋮ menu
+ * opens or deletes it. Opening it goes to the editor.
  */
-export default function WorkflowRow({ workflow, onToggleEnabled, onDelete }: Props) {
-  const hasActions = Boolean(onToggleEnabled || onDelete);
+export default function WorkflowRow({ workflow, onToggleEnabled, onDelete, menu }: Props) {
   return (
     <ListRow
       to={`/workflow-editor/${workflow.id}`}
@@ -77,28 +77,24 @@ export default function WorkflowRow({ workflow, onToggleEnabled, onDelete }: Pro
         ...(workflow.members ? [{ label: "Members", value: <AvatarStack names={workflow.members} />, width: "lg" as const }] : []),
       ]}
       actions={
-        hasActions && (
-          <Inline gap="sm">
-            {onToggleEnabled && (
-              <ToggleSwitch
-                checked={workflow.enabled}
-                label={`${workflow.name} enabled`}
-                hideLabel
-                title={stateTooltip(workflow)}
-                disabled={!workflow.triggerType}
-                onChange={onToggleEnabled}
-              />
-            )}
-            {onDelete && (
-              <ActionMenu
-                label={`Actions for ${workflow.name}`}
-                items={[{ id: "delete", label: "Delete", icon: Trash2, tone: "danger" }]}
-                onSelect={() => onDelete()}
-              />
-            )}
-          </Inline>
+        onToggleEnabled && (
+          <ToggleSwitch
+            checked={workflow.enabled}
+            label={`${workflow.name} enabled`}
+            hideLabel
+            title={stateTooltip(workflow)}
+            disabled={!workflow.triggerType}
+            onChange={onToggleEnabled}
+          />
         )
       }
+      menu={{
+        items: [
+          ...(menu?.items ?? []),
+          ...(onDelete ? [{ id: "delete", label: "Delete", icon: Trash2, tone: "danger" as const, divider: Boolean(menu?.items?.length) }] : []),
+        ],
+        onSelect: (id) => (id === "delete" ? onDelete?.() : menu?.onSelect?.(id)),
+      }}
     />
   );
 }

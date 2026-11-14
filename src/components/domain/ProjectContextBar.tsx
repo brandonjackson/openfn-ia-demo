@@ -1,8 +1,9 @@
 import Link from "../primitives/Link";
-import { ChevronRight, FlaskConical, Folder, FolderKanban } from "lucide-react";
+import { ChevronRight, Folder, FolderKanban } from "lucide-react";
 import type { Project } from "../../model/projects";
-import { sandboxIcon } from "../../model/sandboxes";
+import type { WorkflowChange } from "../../model/workflow-changes";
 import Picker from "../primitives/Picker";
+import SandboxChip from "./SandboxChip";
 
 interface Crumb {
   label: string;
@@ -21,6 +22,12 @@ interface Props {
   sandbox: string;
   /** Selects a sandbox in this project. */
   onSelectSandbox: (sandbox: string) => void;
+  /** What the selected sandbox changes against its parent: the chip counts them and lists them. */
+  sandboxChanges?: WorkflowChange[];
+  /** Where the selected sandbox's changes would merge: "main" or its parent sandbox. */
+  sandboxTarget?: string;
+  /** Opens another project at a path, on its main. Left out, the switch goes through `onNavigate`. */
+  onSwitchProject?: (projectId: string, path: string) => void;
   /** The URL being shown, so a project switch can stay on the same section. */
   currentPath: string;
   /** Goes to a page in the app. */
@@ -32,8 +39,10 @@ const sharedSections = ["workflows", "channels", "sandboxes", "history", "settin
 
 /**
  * Top bar shown on every page inside a project, in place of breadcrumbs. A
- * project picker and a sandbox picker make it clear you're inside a project
- * and let you switch either one; any deeper pages follow as crumbs.
+ * project picker and the sandbox chip (the same one as the workflow editor's,
+ * with its count of changes) make it clear you're inside a project and let
+ * you switch either one; any deeper pages follow as crumbs. Switching project
+ * opens the other one on main.
  */
 export default function ProjectContextBar({
   project,
@@ -42,6 +51,9 @@ export default function ProjectContextBar({
   recentProjects,
   sandbox,
   onSelectSandbox,
+  sandboxChanges,
+  sandboxTarget,
+  onSwitchProject,
   currentPath: pathname,
   onNavigate: navigate,
 }: Props) {
@@ -57,9 +69,10 @@ export default function ProjectContextBar({
     if (id === project.id) return;
     // Stay on the same section (e.g. History) when the other project has it.
     const section = pathname.split("/")[3];
-    navigate(
-      sharedSections.includes(section) ? `/projects/${id}/${section}` : `/projects/${id}`
-    );
+    const path = sharedSections.includes(section) ? `/projects/${id}/${section}` : `/projects/${id}`;
+    // Another project always opens on main.
+    if (onSwitchProject) onSwitchProject(id, path);
+    else navigate(path);
   };
 
   return (
@@ -70,21 +83,16 @@ export default function ProjectContextBar({
         options={projectOptions}
         value={project.id}
         onChange={switchProject}
+        size="sm"
         footerAction={{ label: "View all", icon: FolderKanban, onClick: () => navigate("/projects") }}
       />
-      <Picker
-        icon={FlaskConical}
-        ariaLabel="Switch sandbox"
-        // main carries its lock; every other sandbox the picker's beaker.
-        options={project.sandboxes.map((s) => ({ id: s, label: s, icon: s === "main" ? sandboxIcon(true) : undefined }))}
+      <SandboxChip
+        sandboxes={project.sandboxes}
         value={sandbox}
         onChange={onSelectSandbox}
-        footerAction={{
-          label: "View all",
-          icon: FlaskConical,
-          onClick: () => navigate(`/projects/${project.id}/sandboxes`),
-        }}
-        maxWidthClass="max-w-[14rem]"
+        changes={sandboxChanges}
+        target={sandboxTarget}
+        onViewAll={() => navigate(`/projects/${project.id}/sandboxes`)}
       />
       {trail.map((crumb) => (
         <span key={crumb.path} className="flex items-center gap-1.5">

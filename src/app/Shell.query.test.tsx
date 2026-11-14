@@ -1,12 +1,14 @@
-import { render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../api/ApiProvider";
-import { forgetCsrfToken } from "../api/client";
+import { forgetCsrfToken, request } from "../api/client";
 import { useShell } from "../components/domain/shell-context";
 import { failNext, resetFakeApi, setWait, signInAs } from "../fake-api";
 import PageRoute from "./PageRoute";
 import ShellQuery from "./Shell.query";
+import { setSandbox } from "./sandbox-state";
+import { projectIdFor } from "../fake-api/projects";
 
 const wait = { timeout: 3000 };
 
@@ -33,6 +35,25 @@ function draw(path = "/projects", page = <Chrome />) {
         </ShellQuery>
       </MemoryRouter>
     </ApiProvider>,
+  );
+}
+
+/** The project bar's part of the chrome, written out, with a way to switch project as its picker does. */
+function ProjectChrome({ switchTo }: { switchTo?: string }) {
+  const { project, sandbox, sandboxChanges = [], sandboxTarget, onSwitchProject } = useShell();
+  return (
+    <div>
+      <p>project: {project?.name ?? "none"}</p>
+      <p>sandbox: {sandbox}</p>
+      <p>sandboxes: {project?.sandboxes.join(", ")}</p>
+      <p>target: {sandboxTarget ?? "none"}</p>
+      <ul aria-label="Changes">
+        {sandboxChanges.map((c) => (
+          <li key={c.summary}>{c.summary}</li>
+        ))}
+      </ul>
+      {switchTo && <button onClick={() => onSwitchProject?.(switchTo, `/projects/${switchTo}`)}>Switch project</button>}
+    </div>
   );
 }
 
@@ -82,5 +103,45 @@ describe("ShellQuery", () => {
     signInAs("user-john");
     draw("/admin-settings", <PageRoute />);
     expect(await screen.findByText("Page Not Found", {}, wait)).toBeTruthy();
+  });
+
+  describe("in a project", () => {
+    const projectA = projectIdFor("project-a");
+    const projectB = projectIdFor("project-b");
+    beforeEach(() => {
+      act(() => {
+        setSandbox(projectA, "main");
+        setSandbox(projectB, "main");
+      });
+    });
+
+    it("gives the sandbox chip what the selected sandbox would bring back to main", async () => {
+      act(() => setSandbox(projectA, "decision-sync-fix"));
+      draw(`/projects/${projectA}`, <ProjectChrome />);
+      expect(await screen.findByText("sandbox: decision-sync-fix", {}, wait)).toBeTruthy();
+      expect((await screen.findAllByText(/^Changed the workflow /, {}, wait)).length).toBeGreaterThan(0);
+      expect(screen.getByText("target: main")).toBeTruthy();
+    });
+
+    it("opens another project on main, whichever sandbox you were last in there", async () => {
+      const sandboxId = crypto.randomUUID();
+      await request("PUT", `/api/projects/${projectB}/sandboxes/${sandboxId}`, { name: "left-open" });
+      act(() => setSandbox(projectB, "left-open"));
+      draw(`/projects/${projectA}`, <ProjectChrome switchTo={projectB} />);
+      fireEvent.click(await screen.findByRole("button", { name: "Switch project" }, wait));
+      expect(await screen.findByText("project: project-b", {}, wait)).toBeTruthy();
+      expect(await screen.findByText(/sandboxes: .*left-open/, {}, wait)).toBeTruthy();
+      expect(screen.getByText("sandbox: main")).toBeTruthy();
+    });
+
+    it("lists a sandbox name once, even when a sandbox of a sandbox shares it", async () => {
+      // Names are unique only among a parent's own sandboxes, as on Lightning.
+      const outer = crypto.randomUUID();
+      await request("PUT", `/api/projects/${projectA}/sandboxes/${outer}`, { name: "outer" });
+      await request("PUT", `/api/projects/${outer}/sandboxes/${crypto.randomUUID()}`, { name: "decision-sync-fix" });
+      draw(`/projects/${projectA}`, <ProjectChrome />);
+      const listed = await screen.findByText(/sandboxes: .*outer/, {}, wait);
+      expect(listed.textContent!.split(": ")[1].split(", ").filter((n) => n === "decision-sync-fix")).toHaveLength(1);
+    });
   });
 });

@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 import type { Project } from "../../model/projects";
 import type { UserProfile } from "../../model/account";
+import type { WorkflowChange } from "../../model/workflow-changes";
 import { allFlagsOn, type FeatureFlags } from "../../model/feature-flags";
 
 /**
@@ -24,6 +25,12 @@ export interface Shell {
   sandbox: string;
   /** Selects a sandbox in that project. */
   onSelectSandbox: (sandbox: string) => void;
+  /** What the selected sandbox changes against its parent, for the sandbox chip; empty on main. */
+  sandboxChanges?: WorkflowChange[];
+  /** The selected sandbox's parent, where its changes would merge: "main" or a sandbox's name. */
+  sandboxTarget?: string;
+  /** Opens another project at `path`, on its main. Left out, the switch just navigates. */
+  onSwitchProject?: (projectId: string, path: string) => void;
   /** Goes to a page in the app, e.g. after switching project. */
   onNavigate: (path: string) => void;
   /** The feature flags in effect, for which menu items to show. */

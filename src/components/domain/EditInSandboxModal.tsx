@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ArrowRight, FlaskConical } from "lucide-react";
 import type { Dataclip, RunDetails } from "../../model/workflow";
+import { sandboxSlug } from "../../model/sandboxes";
 import { describeJsonProblem } from "./json-input";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";
@@ -80,7 +81,9 @@ function EditInSandboxForm({
   const [reviewBody, setReviewBody] = useState(runInput?.body ?? "");
 
   const trimmed = name.trim();
-  const nameTaken = sandboxes.includes(trimmed) || reservedNames.includes(trimmed);
+  // A sandbox is named by its slug ("Fix bug" makes fix-bug), so that's what has to be free.
+  const slug = sandboxSlug(trimmed);
+  const nameTaken = slug !== "" && (sandboxes.includes(slug) || reservedNames.includes(slug));
   const named = dataclips.filter((d) => d.name);
   const travelling = named.filter(canTravel);
   const runInputMissing = choice === "run" && !runInput;
@@ -183,7 +186,7 @@ function EditInSandboxForm({
               onChange={(e) => setName(e.target.value)}
               autoFocus
             />
-            {nameTaken && <p className="mt-1 text-xs text-red-600">A sandbox with this name exists already.</p>}
+            {nameTaken && <p className="mt-1 text-xs text-red-600">There's already a sandbox called {slug}.</p>}
           </div>
 
           <fieldset className="space-y-2">

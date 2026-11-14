@@ -5,9 +5,7 @@ import type { NodeActivity } from "../../model/runs";
 import DropdownMenu from "../primitives/DropdownMenu";
 import type { DropdownMenuItem } from "../primitives/DropdownMenu";
 import EntityPill from "./EntityPill";
-import { connectionOf } from "../../model/connected-systems";
 import type { ConnectedSystem } from "../../model/connected-systems";
-import ConnectionMethodBadge from "./ConnectionMethodBadge";
 import IconTile from "../primitives/IconTile";
 import StatusPill from "./StatusPill";
 import RunCountBadge from "./RunCountBadge";
@@ -27,8 +25,9 @@ export type NodeAction = "run" | "edit" | "improve" | "delete";
 
 /**
  * A node on the workflow canvas: a card with the step's connected system (or
- * its adaptor, or the trigger's kind) as a pill in its head, with a small
- * badge when the system is reached over X-Road, the step's name in bold, and a ⋮ menu of actions: run from here, edit
+ * its adaptor, or the trigger's kind) as a pill in its head (never how the
+ * system is reached: X-Road or direct is for the system's page and the step's
+ * config), the step's name in bold, and a ⋮ menu of actions: run from here, edit
  * (which opens the step in code), improve (which opens the assistant about this
  * step) and delete. Clicking the card selects it; selecting toggles a indigo
  * ring. Double-clicking it opens it (`onOpen`).
@@ -91,7 +90,7 @@ export default function WorkflowNodeCard({
   onAddAfter?: (node: WorkflowNode) => void;
   /** The step's adaptor's display name, shown when the step isn't on a connected system. */
   adaptorName?: string;
-  /** The connected system the step talks to, if any: it names the step, with a badge for how it's reached. */
+  /** The connected system the step talks to, if any: it names the step. */
   system?: ConnectedSystem;
   /** Why this step can't be deleted, e.g. other steps run after it: Delete stays in the menu, off, with this under it. */
   deleteBlockedReason?: string;
@@ -147,13 +146,9 @@ export default function WorkflowNodeCard({
               {node.tool.kind === "outcome" && <OutcomeBadge status={node.tool.status} shape="tag" />}
             </Inline>
           ) : node.type === "job" ? (
-            <span className="flex min-w-0 flex-1 items-center gap-1">
-              {/* The pill gives way (truncating its name) before the badge or the run count do. */}
-              <span className="flex min-w-0">
-                <EntityPill name={system?.name ?? adaptorName ?? node.adaptor} adaptor={node.adaptor} size="sm" />
-              </span>
-              {/* Direct is the usual way; only X-Road is called out, leaving the system's name the room. */}
-              {system && connectionOf(system).method === "xroad" && <ConnectionMethodBadge method="xroad" compact />}
+            // The pill gives way (truncating its name) before the run count does.
+            <span className="flex min-w-0">
+              <EntityPill name={system?.name ?? adaptorName ?? node.adaptor} adaptor={node.adaptor} size="sm" />
             </span>
           ) : (
             <EntityPill

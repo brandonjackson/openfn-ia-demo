@@ -91,10 +91,10 @@ export const Gallery: Story = {
   ),
 };
 
-/** Workflow A's step on OpenMRS, reached over X-Road. */
+/** Workflow A's step on OpenMRS, reached over X-Road. The card doesn't say how a system is reached. */
 export const OnXRoadSystem: Story = { args: { ...card(registerCaseWorkflow.nodes.find((n) => n.id === "openmrs-patient")!) } };
 
-/** Workflow B's step on DHIS2, reached directly. It looks the same but for the badge. */
+/** Workflow B's step on DHIS2, reached directly. It looks the same as one over X-Road. */
 export const OnDirectSystem: Story = { args: { ...card(weeklyCaseReportWorkflow.nodes.find((n) => n.id === "send-dhis2")!) } };
 
 /** A step that needs a credential and has none, in a sandbox: Connect opens its config at the credential. */

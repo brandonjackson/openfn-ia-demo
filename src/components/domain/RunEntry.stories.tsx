@@ -39,7 +39,7 @@ export const WaitingOnSomeone: Story = {
 /** Waiting, for someone who can't answer it. */
 export const WaitingReadOnly: Story = { args: { run: waitingRun, latestVersion: "v1" } };
 
-/** Declined by the officer: a successful run with a Rejected outcome, and who answered on the step. */
+/** Declined by the officer: a successful run with a Refused outcome, and who answered on the step. */
 export const WithOutcome: Story = {
-  args: { run: hardshipGrantWorkOrders.find((o) => o.outcome?.status === "rejected" && o.runs[0].steps.some((s) => s.answer))!.runs[0], latestVersion: "v1" },
+  args: { run: hardshipGrantWorkOrders.find((o) => o.outcome?.status === "refused" && o.runs[0].steps.some((s) => s.answer))!.runs[0], latestVersion: "v1" },
 };

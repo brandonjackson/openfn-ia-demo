@@ -5,8 +5,8 @@ import { nationalIdWorkflow } from "../../fixtures/workflow";
 import type { OutcomeTool } from "../../model/step-tools";
 
 /** The national ID workflow's "already registered" outcome: a refusal, from a run that went fine. */
-const rejected = nationalIdWorkflow.nodes.find((n) => n.id === "outcome-already-registered");
-const tool = (rejected?.type === "job" && rejected.tool?.kind === "outcome" ? rejected.tool : { kind: "outcome", status: "rejected", description: "" }) as OutcomeTool;
+const refused = nationalIdWorkflow.nodes.find((n) => n.id === "outcome-already-registered");
+const tool = (refused?.type === "job" && refused.tool?.kind === "outcome" ? refused.tool : { kind: "outcome", status: "refused", description: "" }) as OutcomeTool;
 
 /** The view with its changes kept, as the editor keeps them. */
 function Editing({ initial }: { initial: OutcomeTool }) {

@@ -221,7 +221,7 @@ export interface WorkOrder {
   /** Pre-formatted relative label for its latest run. */
   lastActivity: string;
   runs: RunDetails[];
-  /** The business outcome its latest run reported, which can differ from `status`: a refusal sent without a hitch is a success with a Rejected outcome. */
+  /** The business outcome its latest run reported, which can differ from `status`: a refusal sent without a hitch is a success with a Refused outcome. */
   outcome?: RunOutcome;
 }
 

@@ -13,7 +13,7 @@ import { outcomeStatuses, stepToolTypes, type OutcomeTool } from "../../model/st
 
 /**
  * A Report outcome step's settings, shown where a step's code would be: the
- * outcome it records for the run (Success, Rejected, Needs follow-up…) and a
+ * outcome it records for the run (Success, Refused, Needs follow-up…) and a
  * line saying what happened, which can use the run's state. It's what
  * History lists a work order by, beside the run's own status.
  *

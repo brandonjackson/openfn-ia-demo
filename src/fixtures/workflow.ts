@@ -205,7 +205,7 @@ export const nationalIdWorkflow: Workflow = {
     toolNode(
       "outcome-already-registered",
       "Report outcome: already registered",
-      { kind: "outcome", status: "rejected", description: "{{ application.given_name }} {{ application.family_name }} already holds a national ID" },
+      { kind: "outcome", status: "refused", description: "{{ application.given_name }} {{ application.family_name }} already holds a national ID" },
       190,
       740,
     ),
@@ -512,7 +512,7 @@ post('https://payments.example/v1/disbursements', {
  * Pay an emergency hardship grant: an application is checked against the
  * social registry, a district officer approves it (Human in the loop), and
  * the grant is paid by mobile money. Each way it can end reports an outcome,
- * so a grant declined without a hitch reads as Rejected, not as a success.
+ * so a grant declined without a hitch reads as Refused, not as a success.
  */
 export const hardshipGrantWorkflow: Workflow = {
   id: "hardship-grant-workflow",
@@ -544,7 +544,7 @@ export const hardshipGrantWorkflow: Workflow = {
     toolNode(
       "outcome-not-eligible",
       "Report outcome: not eligible",
-      { kind: "outcome", status: "rejected", description: "{{ applicant.name }}'s household isn't eligible: its income is over the threshold" },
+      { kind: "outcome", status: "refused", description: "{{ applicant.name }}'s household isn't eligible: its income is over the threshold" },
       190,
       400,
     ),
@@ -585,7 +585,7 @@ export const hardshipGrantWorkflow: Workflow = {
     toolNode(
       "outcome-declined",
       "Report outcome: declined",
-      { kind: "outcome", status: "rejected", description: "Declined by {{ approval.by }}: {{ approval.comment }}" },
+      { kind: "outcome", status: "refused", description: "Declined by {{ approval.by }}: {{ approval.comment }}" },
       790,
       570,
     ),

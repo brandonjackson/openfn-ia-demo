@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Bot, ClipboardList, Clock, FileCode2, Folder, KeyRound, ListChecks, Network, Webhook, Workflow } from "lucide-react";
+import { Bot, ClipboardList, Pencil, Clock, FileCode2, Folder, KeyRound, ListChecks, Network, Webhook, Workflow } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
 import type { ProjectServiceItem, ServiceApiField, ServiceApiSpec } from "../../model/services";
 import type { XRoadIdentity } from "../../model/xroad";
@@ -7,7 +7,6 @@ import Badge from "../../components/primitives/Badge";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
 import Button from "../../components/primitives/Button";
-import Callout from "../../components/primitives/Callout";
 import CodeBlock from "../../components/primitives/CodeBlock";
 import DataTable from "../../components/primitives/DataTable";
 import type { DataTableColumn } from "../../components/primitives/DataTable";
@@ -18,6 +17,7 @@ import TextLink from "../../components/primitives/TextLink";
 import UsageModeCard from "../../components/domain/UsageModeCard";
 import CopyValue from "../../components/primitives/CopyValue";
 import PublishToXRoadModal from "../../components/domain/PublishToXRoadModal";
+import ServiceListingFormModal, { type ServiceListingDraft } from "../../components/domain/ServiceListingFormModal";
 import ServiceRecordList from "../../components/domain/ServiceRecordList";
 import StatTile from "../../components/primitives/StatTile";
 import { mcpToolSnippet, openApiUrl, webhookUrl, workflowCallSnippet, xroadCallerSnippet } from "../../model/service-usage";
@@ -38,10 +38,10 @@ export interface ServicePageData {
 }
 
 export interface ServicePageProps extends PageProps<ServicePageData> {
-  /** Opens the project the service belongs to. */
-  onOpenProject: () => void;
   /** Opens the workflow behind the service. */
   onOpenWorkflow: (workflowId: string) => void;
+  /** Saves what its listing says (its name and description); resolves once saved, or rejects with why not. Left out when you can't change the service. */
+  onEditListing?: (listing: ServiceListingDraft) => Promise<void>;
   /** Lets AI agents call the service as a tool on the organization's MCP server. Left out when you can't change the service. */
   onEnableMcp?: () => Promise<void>;
   /** Publishes the service to X-Road, once its checklist is done. Left out when you can't change the service. */
@@ -70,8 +70,8 @@ const fieldColumns: DataTableColumn<ServiceApiField>[] = [
 export default function ServicePage({
   ancestors,
   data,
-  onOpenProject,
   onOpenWorkflow,
+  onEditListing,
   onEnableMcp,
   onPublishToXRoad,
 }: ServicePageProps) {
@@ -84,6 +84,7 @@ export default function ServicePage({
   const onXRoad = !!xroadOrg && !!service.xroad?.published;
   const openfnClientId = xroadOrg ? clientIdOf(xroadOrg) : "";
   const [publishOpen, setPublishOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
   const [enabling, setEnabling] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
@@ -154,16 +155,17 @@ export default function ServicePage({
           title={service.name}
           badges={
             <>
-              <Badge label={service.status} />
               {onXRoad && <Badge label="On X-Road" tone="indigo" icon={Network} />}
             </>
           }
           description={service.description}
           actions={
             <>
-              <Button variant="secondary" size="sm" onClick={onOpenProject}>
-                View project
-              </Button>
+              {onEditListing && (
+                <Button variant="secondary" size="sm" icon={Pencil} onClick={() => setEditing(true)}>
+                  Edit listing
+                </Button>
+              )}
               {workflow && (
                 <Button icon={Workflow} size="sm" onClick={() => onOpenWorkflow(workflow.id)}>
                   Open workflow
@@ -193,14 +195,6 @@ export default function ServicePage({
           <PropertyList properties={properties} />
         </div>
 
-        {service.status === "Draft" && (
-          <div className="mt-4">
-            <Callout variant="warning" title="Not live yet">
-              This service is still a draft, so other teams can't call it. Details may change before it goes
-              live.
-            </Callout>
-          </div>
-        )}
       </div>
 
 
@@ -312,6 +306,15 @@ export default function ServicePage({
           <CodeBlock label={isWebhook ? "Example response" : "Example output"} code={api.outputExample} />
         </div>
       </section>
+
+      {onEditListing && (
+        <ServiceListingFormModal
+          open={editing}
+          initial={{ name: service.name, description: service.description }}
+          onClose={() => setEditing(false)}
+          onSubmit={onEditListing}
+        />
+      )}
 
       {isWebhook && url && docsUrl && xroadOrg && (
         <PublishToXRoadModal

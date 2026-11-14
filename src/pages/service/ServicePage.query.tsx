@@ -72,8 +72,9 @@ export default function ServicePageQuery({ route }: { route: PageRoute }) {
           <ServicePage
             {...pageFrame(route, { label: service.name }, project!.name)}
             data={data}
-            onOpenProject={() => navigate(`/projects/${project!.id}`)}
             onOpenWorkflow={(id) => navigate(`/workflow-editor/${id}`)}
+            // A form says its problems under its fields, so only success is announced.
+            onEditListing={canChange ? (listing) => announcing(saves.editListing(service, listing), { success: "Saved the listing." }) : undefined}
             onEnableMcp={canChange ? () => announcing(saves.enableMcp(service), { success: "MCP is on.", failure: "MCP wasn't turned on" }) : undefined}
             onPublishToXRoad={
               canChange

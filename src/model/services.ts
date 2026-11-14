@@ -7,7 +7,6 @@ export interface ProjectServiceItem {
   id: string;
   name: string;
   description: string;
-  status: "Live" | "Draft";
   /** The workflow component that runs this service. */
   workflowId?: string;
   /** How other teams call the service. Generated from the workflow when absent. */
@@ -83,7 +82,6 @@ export function serviceYaml(service: ProjectServiceItem, { code, xroad }: { code
     `# service.yaml: how ${service.name} is listed in the service catalog${xroad ? " and on X-Road" : ""}.`,
     ...yamlField(0, "name", service.name),
     ...yamlField(0, "description", service.description),
-    `status: ${service.status.toLowerCase()}`,
   ];
   if (record) {
     lines.push(
@@ -117,8 +115,7 @@ export function serviceYaml(service: ProjectServiceItem, { code, xroad }: { code
       "    type: REST",
       `    url: ${yamlScalar(url)}`,
       `    rest_service_code: ${yamlScalar(serviceCode)}`,
-      `    disabled: ${service.status !== "Live"}`,
-      ...(service.status !== "Live" ? ["    disabled_notice: Not live yet"] : []),
+      "    disabled: false",
       "  services:",
       `    - service_code: ${yamlScalar(serviceCode)}`,
       ...yamlField(6, "title", service.name),
@@ -161,7 +158,6 @@ export function draftServiceManifest(workflowName: string): string {
     `# service.yaml: how ${workflowName} will be listed in the service catalog once it's published.`,
     ...yamlField(0, "name", workflowName),
     'description: ""',
-    "status: draft",
     "api:",
     "  trigger: webhook",
     "  input: []",
@@ -179,9 +175,8 @@ export interface StepService extends ProjectServiceItem {
   offeredBy: string;
 }
 
-/** Whether a step can call the service: it's Live and called over HTTP (a scheduled service has no address). */
-export const isCallableFromStep = (service: ProjectServiceItem): boolean =>
-  service.status === "Live" && service.api?.trigger === "webhook" && !!serviceUrl(service);
+/** Whether a step can call the service: it's called over HTTP (a scheduled service has no address). */
+export const isCallableFromStep = (service: ProjectServiceItem): boolean => service.api?.trigger === "webhook" && !!serviceUrl(service);
 
 const identifier = /^[A-Za-z_$][\w$]*$/;
 /** A property name as JavaScript writes it in an object, quoted when it has to be. */

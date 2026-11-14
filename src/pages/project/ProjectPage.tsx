@@ -4,7 +4,6 @@ import type { StatTileData } from "../../model/page-data";
 import type { ProjectComponentItem } from "../../model/component-types";
 import type { ProjectServiceItem } from "../../model/services";
 import type { WorkflowListItem } from "../../model/workflow-list";
-import Badge from "../../components/primitives/Badge";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
 import Button from "../../components/primitives/Button";
@@ -17,6 +16,7 @@ import Stack from "../../components/primitives/Stack";
 import StatTile from "../../components/primitives/StatTile";
 import TextLink from "../../components/primitives/TextLink";
 import WorkflowList from "../../components/domain/WorkflowList";
+import type { ServiceListingDraft } from "../../components/domain/ServiceListingFormModal";
 
 /** What the Overview draws. */
 export interface ProjectPageData {
@@ -40,6 +40,8 @@ export interface ProjectPageProps extends PageProps<ProjectPageData> {
   onToggleWorkflow?: (id: string, enabled: boolean) => Promise<void>;
   /** Makes a copy of a workflow in the project, paused. Left out, the rows have no Make a copy. */
   onCopyWorkflow?: (id: string) => Promise<void>;
+  /** Publishes a workflow as a service under the listing written in its form; rejects with why not, shown under its field. Left out (the catalog is off, or you can't), no row offers Publish. */
+  onPublishWorkflow?: (id: string, listing: ServiceListingDraft) => Promise<void>;
   /** Deletes a workflow, once confirmed. Left out, the rows have no Delete. */
   onDeleteWorkflow?: (id: string) => Promise<void>;
 }
@@ -54,7 +56,7 @@ const COMPONENT_PREVIEW = 6;
  * then what it publishes and is built from. Services and components are left out when
  * their data is (their feature is off).
  */
-export default function ProjectPage({ node, ancestors, currentPath, data, onNewWorkflow, onToggleWorkflow, onCopyWorkflow, onDeleteWorkflow }: ProjectPageProps) {
+export default function ProjectPage({ node, ancestors, currentPath, data, onNewWorkflow, onToggleWorkflow, onCopyWorkflow, onPublishWorkflow, onDeleteWorkflow }: ProjectPageProps) {
   const { tiles, workflows, services, components } = data;
 
   return (
@@ -105,7 +107,7 @@ export default function ProjectPage({ node, ancestors, currentPath, data, onNewW
         />
         <div className="-mt-3">
           {workflows.length > 0 ? (
-            <WorkflowList workflows={workflows} onToggleWorkflow={onToggleWorkflow} onCopyWorkflow={onCopyWorkflow} onDeleteWorkflow={onDeleteWorkflow} />
+            <WorkflowList workflows={workflows} onToggleWorkflow={onToggleWorkflow} onCopyWorkflow={onCopyWorkflow} onPublishWorkflow={onPublishWorkflow} onDeleteWorkflow={onDeleteWorkflow} />
           ) : (
             <EmptyState
               icon={Workflow}
@@ -135,7 +137,6 @@ export default function ProjectPage({ node, ancestors, currentPath, data, onNewW
                     key={svc.id}
                     icon={ClipboardList}
                     title={svc.name}
-                    badges={<Badge label={svc.status} />}
                     description={svc.description}
                     to={`${currentPath}/services/${svc.id}`}
                     menu={{}}

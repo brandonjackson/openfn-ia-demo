@@ -33,7 +33,7 @@ const toService = ({ id, attributes: { project_id, project_name, code, workflow_
 
 const keys = { all: ["services"] as const };
 
-/** Every service in the organisation: the catalog's. Pass `enabled: false` when the catalog is off, and it loads nothing. */
+/** Every service in the organisation: the catalog's (a service is published: there's no draft). Pass `enabled: false` when the catalog is off, and it loads nothing. */
 export function useAllServices(enabled = true): { status: LoadStatus; services: ServiceRecord[] } {
   const query = useQuery({ queryKey: keys.all, enabled, queryFn: () => listAll<ApiService>("/api/demo/services"), select: (rows) => rows.map(toService) });
   return enabled ? { status: statusOf(query), services: query.data ?? [] } : { status: { state: "ready" }, services: [] };
@@ -45,15 +45,29 @@ export function useProjectServices(projectId: string | undefined, enabled = true
   return { status, services: services.filter((s) => s.projectId === projectId) };
 }
 
-/** Turning MCP on and publishing to X-Road. Each resolves once the catalog has reloaded. */
+/**
+ * Publishing a workflow as a service, editing its listing, turning MCP on and
+ * publishing to X-Road. Each resolves once the catalog has reloaded, and
+ * rejects with the server's refusal (a field it names goes under it).
+ */
 export function useServiceSaves() {
   const queryClient = useQueryClient();
+  const refresh = () => Promise.all([queryClient.invalidateQueries({ queryKey: keys.all }), queryClient.invalidateQueries({ queryKey: ["audit_events"] })]);
   const patch = useMutation({
     mutationFn: ({ service, body }: { service: ServiceRecord; body: Record<string, unknown> }) =>
       request("PATCH", `/api/demo/projects/${service.projectId}/services/${service.id}`, body),
-    onSuccess: () => Promise.all([queryClient.invalidateQueries({ queryKey: keys.all }), queryClient.invalidateQueries({ queryKey: ["audit_events"] })]),
+    onSuccess: refresh,
+  });
+  const publish = useMutation({
+    mutationFn: ({ projectId, workflowId, listing }: { projectId: string; workflowId: string; listing: { name: string; description: string } }) =>
+      request<{ data: ApiService }>("POST", `/api/demo/projects/${projectId}/services`, { workflow_id: workflowId, ...listing }).then((a) => toService(a.data)),
+    onSuccess: refresh,
   });
   return {
+    /** Publishes a workflow as a service under a listing, and answers with the service. */
+    publish: (projectId: string, workflowId: string, listing: { name: string; description: string }) => publish.mutateAsync({ projectId, workflowId, listing }),
+    /** Changes what its listing says. */
+    editListing: async (service: ServiceRecord, listing: { name: string; description: string }) => void (await patch.mutateAsync({ service, body: listing })),
     enableMcp: async (service: ServiceRecord) => void (await patch.mutateAsync({ service, body: { mcpEnabled: true } })),
     publishToXRoad: async (service: ServiceRecord) =>
       void (await patch.mutateAsync({ service, body: { xroad: { ...service.xroad, serviceCode: service.xroad?.serviceCode ?? service.code, published: true } } })),

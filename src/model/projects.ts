@@ -37,9 +37,8 @@ export interface ProjectSummary {
   lastActivity: string | null;
   memberCount: number;
   workflowCount: number;
-  /** Its published services, and how many are live. Absent without the service catalog. */
+  /** How many services it publishes. Absent without the service catalog. */
   serviceCount?: number;
-  liveServiceCount?: number;
 }
 
 /**
@@ -62,7 +61,7 @@ export interface OtherProject {
  * services' counts when it's given them (leave `services` out without the
  * service catalog, and the card shows none).
  */
-export function toProjectSummary(details: ProjectDetails, services?: Pick<ProjectService, "status">[]): ProjectSummary {
+export function toProjectSummary(details: ProjectDetails, services?: unknown[]): ProjectSummary {
   return {
     id: details.id,
     name: details.name,
@@ -71,7 +70,7 @@ export function toProjectSummary(details: ProjectDetails, services?: Pick<Projec
     lastActivity: details.lastActivity ?? null,
     memberCount: details.collaboratorsCount ?? 0,
     workflowCount: details.workflowsCount ?? 0,
-    ...(services && { serviceCount: services.length, liveServiceCount: services.filter((s) => s.status === "Live").length }),
+    ...(services && { serviceCount: services.length }),
   };
 }
 
@@ -81,7 +80,7 @@ export function toProjectSummary(details: ProjectDetails, services?: Pick<Projec
  * holds them too), so they're left out. Leave `services` out without the service catalog, or while they
  * can't be loaded, and the cards show no counts rather than wrong ones.
  */
-export function projectSummaries(projects: ProjectDetails[], services?: (Pick<ProjectService, "status"> & { projectId: string })[]): ProjectSummary[] {
+export function projectSummaries(projects: ProjectDetails[], services?: { projectId: string }[]): ProjectSummary[] {
   return projects.filter((p) => isOpenable(p) && !p.parentId).map((p) => toProjectSummary(p, services?.filter((s) => s.projectId === p.id)));
 }
 

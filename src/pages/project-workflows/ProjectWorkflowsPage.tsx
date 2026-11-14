@@ -5,6 +5,7 @@ import ListPage from "../../components/patterns/ListPage";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
 import WorkflowList from "../../components/domain/WorkflowList";
+import type { ServiceListingDraft } from "../../components/domain/ServiceListingFormModal";
 import Button from "../../components/primitives/Button";
 import EmptyState from "../../components/primitives/EmptyState";
 import { Select } from "../../components/primitives/FormControls";
@@ -28,6 +29,8 @@ export interface ProjectWorkflowsPageProps extends PageProps<ProjectWorkflowsPag
   onToggleWorkflow?: (id: string, enabled: boolean) => Promise<void>;
   /** Makes a copy of a workflow in the same project, paused. Left out, the rows have no Make a copy. */
   onCopyWorkflow?: (id: string) => Promise<void>;
+  /** Publishes a workflow as a service under the listing written in its form; rejects with why not, shown under its field. Left out (the catalog is off, or you can't), no row offers Publish. */
+  onPublishWorkflow?: (id: string, listing: ServiceListingDraft) => Promise<void>;
   /** Deletes a workflow, once confirmed. Left out, the rows have no Delete. */
   onDeleteWorkflow?: (id: string) => Promise<void>;
 }
@@ -48,6 +51,7 @@ export default function ProjectWorkflowsPage({
   onNewWorkflow,
   onToggleWorkflow,
   onCopyWorkflow,
+  onPublishWorkflow,
   onDeleteWorkflow,
 }: ProjectWorkflowsPageProps) {
   // UI state: the sort and the search.
@@ -98,7 +102,7 @@ export default function ProjectWorkflowsPage({
         )
       }
     >
-      <WorkflowList workflows={workflows} onToggleWorkflow={onToggleWorkflow} onCopyWorkflow={onCopyWorkflow} onDeleteWorkflow={onDeleteWorkflow} />
+      <WorkflowList workflows={workflows} onToggleWorkflow={onToggleWorkflow} onCopyWorkflow={onCopyWorkflow} onPublishWorkflow={onPublishWorkflow} onDeleteWorkflow={onDeleteWorkflow} />
     </ListPage>
   );
 }

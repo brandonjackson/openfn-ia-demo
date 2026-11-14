@@ -18,6 +18,12 @@ const frame: Omit<ProjectComponentsPageProps, "data" | `on${string}`> = {
 
 const actions = ["onCreateChannel", "onCreateCollection", "onCreateComponent", "onDraftWithAI"] as const;
 
+/** Opens New component and picks a kind. */
+function pick(kind: string) {
+  fireEvent.click(screen.getAllByRole("button", { name: "New component" })[0]!);
+  fireEvent.click(within(screen.getByRole("dialog")).getByText(kind));
+}
+
 const draw = (components: ProjectComponentItem[], types = every, only: readonly (typeof actions)[number][] = actions) =>
   renderPage(ProjectComponentsPage, { ...frame, data: { projectId: "p", components, types } }, [...only]);
 
@@ -29,6 +35,25 @@ describe("ProjectComponentsPage", () => {
     expect(within(screen.getByRole("region", { name: "Collections" })).getByText("1")).toBeTruthy();
     expect(screen.queryByText(/^Documents/)).toBeNull();
     expect(screen.getByText("About Intake form")).toBeTruthy();
+  });
+
+  it("lists each component as a full-width row that opens it, with a menu starting with Open", () => {
+    draw([component("Intake form", "Form")]);
+    expect(screen.getByText("Intake form").closest("a")!.getAttribute("href")).toBe("/projects/p/components/Intake form");
+    fireEvent.click(screen.getByRole("button", { name: "Actions for Intake form" }));
+    expect(screen.getByRole("menuitem", { name: "Open" })).toBeTruthy();
+  });
+
+  it("keeps the kinds out of sight until New component is pressed", () => {
+    draw([component("Intake form", "Form")]);
+    expect(screen.queryByText("Add project component")).toBeNull();
+    expect(screen.queryByText("Static Website")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "New component" }));
+    const dialog = screen.getByRole("dialog", { name: "New component" });
+    expect(within(dialog).getByText("Static Website")).toBeTruthy();
+    fireEvent.click(within(dialog).getByText("Document"));
+    expect(screen.queryByRole("dialog", { name: "New component" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Create document" })).toBeTruthy();
   });
 
   it("lists only the kinds in its types", () => {
@@ -45,7 +70,7 @@ describe("ProjectComponentsPage", () => {
 
   it("makes a document from the panel, closes the form once it's made, and keeps the form open with the server's reason when refused", async () => {
     const host = draw([]);
-    fireEvent.click(screen.getByText("Document"));
+    pick("Document");
     fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Runbook" } });
     fireEvent.click(screen.getByRole("button", { name: "Create document" }));
     expect(host.calls("onCreateComponent")).toEqual([["Document", { name: "Runbook", description: "" }]]);
@@ -59,7 +84,7 @@ describe("ProjectComponentsPage", () => {
 
   it("makes a collection under its URL-safe name", async () => {
     const host = draw([]);
-    fireEvent.click(screen.getByText("Collection"));
+    pick("Collection");
     fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Patient Lookup" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(host.calls("onCreateCollection")).toEqual([["patient-lookup"]]);
@@ -69,21 +94,21 @@ describe("ProjectComponentsPage", () => {
 
   it("offers to hand a kind to AI from its form, with Build with AI", () => {
     const host = draw([]);
-    fireEvent.click(screen.getByText("Form"));
+    pick("Form");
     fireEvent.click(screen.getByRole("button", { name: "Describe it to AI instead" }));
     expect(host.calls("onDraftWithAI")).toEqual([["Form"]]);
   });
 
   it("with just channels, is the Channels page with a New channel button", () => {
     draw([], ["Channel"]);
-    expect(screen.queryByText("Add project component")).toBeNull();
+    expect(screen.queryByRole("button", { name: "New component" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "New channel" }));
     expect(screen.getByRole("dialog")).toBeTruthy();
   });
 
   it("offers nothing to add to a viewer", () => {
     draw([component("Referrals", "Channel")], every, []);
-    expect(screen.queryByText("Add project component")).toBeNull();
+    expect(screen.queryByRole("button", { name: "New component" })).toBeNull();
     expect(screen.queryByRole("button", { name: "New channel" })).toBeNull();
     expect(screen.getByText("Referrals")).toBeTruthy();
   });

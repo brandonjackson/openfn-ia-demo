@@ -38,5 +38,5 @@ export const EmptyProject: Story = {
 
 /** Without the service catalog: no service counts. */
 export const WithoutServices: Story = {
-  args: { project: { ...projectSummaries[0], serviceCount: undefined, liveServiceCount: undefined } },
+  args: { project: { ...projectSummaries[0], serviceCount: undefined } },
 };

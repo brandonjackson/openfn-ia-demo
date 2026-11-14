@@ -26,3 +26,24 @@ export function withSandboxCopies<T extends { project_id: string }>(rows: T[], c
   }
   return all;
 }
+
+/**
+ * One of a sandbox's things paired with the target's, as a merge preview and
+ * a merge see it: a workflow's doc or test, a saved dataclip, a component or
+ * an environment variable. Everything a sandbox keeps is paired this way, so
+ * the preview says what's new or changed, and a merge brings exactly that
+ * back (`apply`), never deleting the target's.
+ */
+export interface CopyPair {
+  /** Its name, or a variable's key. */
+  name: string;
+  /** Whether the target has none to pair it with. */
+  isNew: boolean;
+  /** Whether the target's is the same. */
+  same: boolean;
+  /** Brings it into the target: makes it there, or changes the target's to match. */
+  apply: () => void;
+}
+
+/** What a merge preview says of a pair. */
+export const changeOf = (p: Pick<CopyPair, "isNew" | "same">): "new" | "changed" | "unchanged" => (p.isNew ? "new" : p.same ? "unchanged" : "changed");

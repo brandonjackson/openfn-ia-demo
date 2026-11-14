@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { forgetCsrfToken, listAll, request } from "../api/client";
 import { resetFakeApi, setWait } from ".";
+import { apiWorkflowId } from "../fixtures/ids";
 import { projectIdFor, sandboxIdFor } from "./projects";
 
 const a = projectIdFor("project-a");
@@ -9,10 +10,16 @@ type Named = { id: string; name: string };
 type Component = { id: string; attributes: { component_type: string; name: string; content: string; lock_version: number } };
 type Var = { id: string; attributes: { key: string; value: string | null; secret: boolean; environments: string[] } };
 type Channel = { id: string; name: string; description: string; workflow_id: string | null };
+type Line = { name: string; change: string };
+type WorkflowLine = Line & { source_workflow_id: string; workflow_name: string };
 type Preview = {
   components: { component_type: string; name: string; change: string }[];
   env_vars: { key: string; change: string }[];
+  docs: WorkflowLine[];
+  test_cases: WorkflowLine[];
+  dataclips: Line[];
 };
+type Doc = { id: string; attributes: { name: string; content: string } };
 
 const channels = (project: string) => listAll<Channel>(`/api/projects/${project}/channels`);
 const collections = (project: string) => listAll<Named & { item_count: number }>(`/api/projects/${project}/collections`);
@@ -107,6 +114,60 @@ describe("a sandbox is a copy of its project", () => {
     expect((await channels(a)).some((c) => c.name === channel!.name)).toBe(true);
     // Nothing left to bring.
     expect((await preview(sid)).components.every((c) => c.change === "unchanged")).toBe(true);
+  });
+});
+
+describe("every file a sandbox keeps is one of its changes", () => {
+  const docs = (project: string, workflow: string) =>
+    request<{ data: Doc[] }>("GET", `/api/demo/projects/${project}/workflow_docs?workflow_id=${workflow}`).then((r) => r.data);
+  const tests = (project: string, workflow: string) =>
+    request<{ data: { attributes: { name: string } }[] }>("GET", `/api/demo/projects/${project}/test_cases?workflow_id=${workflow}`).then((r) => r.data);
+  const clips = (project: string) => listAll<{ name?: string; body: string }>(`/api/projects/${project}/dataclips`);
+  const changed = (lines: Line[]) => lines.filter((l) => l.change !== "unchanged").map((l) => `${l.change} ${l.name}`);
+
+  it("copies a workflow's docs, previews new and changed ones with its tests and saved dataclips, and merges them back", async () => {
+    const mainId = apiWorkflowId("apply-national-id");
+    const sid = await makeSandbox();
+    const { workflows } = await request<{ workflows: Named[] }>("GET", `/api/projects/${sid}/workflows`);
+    const { workflows: onMain } = await request<{ workflows: Named[] }>("GET", `/api/projects/${a}/workflows`);
+    const copy = workflows.find((w) => w.name === onMain.find((m) => m.id === mainId)!.name)!;
+
+    // A fresh copy changes nothing.
+    const myDocs = await docs(sid, copy.id);
+    expect(names(myDocs.map((d) => d.attributes))).toEqual(["context.md", "spec.md"]);
+    const fresh = await preview(sid);
+    expect([...changed(fresh.docs), ...changed(fresh.test_cases), ...changed(fresh.dataclips)]).toEqual([]);
+
+    // Edit spec.md, add a doc, a test and a saved dataclip.
+    const spec = myDocs.find((d) => d.attributes.name === "spec.md")!;
+    await request("PATCH", `/api/demo/projects/${sid}/workflow_docs/${spec.id}`, { content: "# Spec\n\nEdited in the sandbox." });
+    await request("POST", `/api/demo/projects/${sid}/workflow_docs`, { workflow_id: copy.id, name: "untitled.md", content: "" });
+    await request("POST", `/api/demo/projects/${sid}/test_cases`, { workflow_id: copy.id, name: "Made in the sandbox", input_description: "An applicant", output_description: "An ID", judge: true });
+    await request("POST", `/api/demo/projects/${sid}/dataclips`, { name: "Sandbox input", body: "{}" });
+
+    const p = await preview(sid);
+    expect(changed(p.docs).sort()).toEqual(["changed spec.md", "new untitled.md"]);
+    expect(p.docs.find((d) => d.name === "untitled.md")).toMatchObject({ source_workflow_id: copy.id, workflow_name: copy.name });
+    expect(changed(p.test_cases)).toEqual(["new Made in the sandbox"]);
+    expect(changed(p.dataclips)).toEqual(["new Sandbox input"]);
+
+    await request("POST", `/api/projects/${a}/sandboxes/${sid}/merges`, { workflow_ids: [copy.id] });
+
+    const merged = await docs(a, mainId);
+    expect(merged.find((d) => d.attributes.name === "spec.md")?.attributes.content).toBe("# Spec\n\nEdited in the sandbox.");
+    expect(merged.some((d) => d.attributes.name === "untitled.md")).toBe(true);
+    expect((await tests(a, mainId)).some((t) => t.attributes.name === "Made in the sandbox")).toBe(true);
+    expect((await clips(a)).some((d) => d.name === "Sandbox input")).toBe(true);
+    // Nothing left to bring.
+    const after = await preview(sid);
+    expect([...changed(after.docs), ...changed(after.test_cases), ...changed(after.dataclips)]).toEqual([]);
+  });
+
+  it("seeds the fixtures' sandboxes with their own copies of the docs", async () => {
+    const sid = sandboxIdFor("project-a", "intake-validation-v2");
+    const p = await preview(sid);
+    expect(p.docs.length).toBeGreaterThan(0);
+    expect(changed(p.docs)).toEqual([]);
   });
 });
 

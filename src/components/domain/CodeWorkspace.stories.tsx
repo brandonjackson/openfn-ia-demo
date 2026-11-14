@@ -29,7 +29,7 @@ import ComponentView from "./ComponentView";
 const components = projects[0].components.filter((c) => c.type !== "Workflow");
 const adaptors = { info: adaptorInfo, snippets: adaptorSnippets, choices: adaptorChoices, credentials: projectCredentials };
 const contents = {
-  docs: workflowDocs,
+  docs: { "context.md": workflowDocs.context, "spec.md": workflowDocs.spec },
   serviceListing: serviceYaml(projects[0].services[0], { code: projects[0].services[0].id, xroad: orgXRoad }),
   ...fixtureComponentContents(components),
   channels: Object.fromEntries(components.filter((c) => c.type === "Channel").map((c) => [c.id, channelDetails(c)])),

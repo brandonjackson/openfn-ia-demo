@@ -36,6 +36,7 @@ import { shortId } from "../model/runs";
 import { conflict, forbidden, invalid, isUuid, json, notFound, now, ORIGIN, paged, unknownKeys, type Body, type Entry, type Handler } from "./answers";
 import { seedTime, table } from "./db";
 import { findProject, guardProject, projectIdFor, roleIn } from "./projects";
+import type { CopyPair } from "./sandbox-copies";
 import { currentUserId } from "./session";
 import { findUser, fullName } from "./users";
 import { workflows, type WorkflowRow } from "./workflows";
@@ -60,6 +61,8 @@ export interface DataclipRow extends Dataclip {
   /** The workflow whose run used or made it; none for one saved in the project by hand. */
   workflow_id: string | null;
   project_id: string;
+  /** In a sandbox, the saved dataclip in the parent it was copied from, which a merge changes; none for one saved here. */
+  copied_from?: string | null;
 }
 
 const SAVED_KEYS = ["name", "description", "body", "workflow_id"];
@@ -91,8 +94,35 @@ export function copyDataclipsInto(fromProjectId: string, sandboxId: string, ids:
   for (const id of new Set(chosen)) {
     const d = dataclips.rows().find((x) => x.id === id && x.project_id === fromProjectId && x.name);
     if (!d) continue;
-    dataclips.insert({ ...d, id: shortId(), project_id: sandboxId, workflow_id: d.workflow_id ? (copies.get(d.workflow_id) ?? null) : null, created: "just now" });
+    dataclips.insert({ ...d, id: shortId(), project_id: sandboxId, workflow_id: d.workflow_id ? (copies.get(d.workflow_id) ?? null) : null, created: "just now", copied_from: d.id });
   }
+}
+
+/** A saved dataclip without its id or where it lives, to tell whether two copies differ. */
+const savedContent = (d: DataclipRow) => JSON.stringify([d.name, d.description ?? "", d.body]);
+
+/**
+ * A sandbox's saved dataclips paired with a target's: the one each was
+ * copied from, or else one of the same name. Applying one saves it in the
+ * target, on the target's workflow of the same name (`workflowThere`).
+ */
+export function savedDataclipPairs(sandboxId: string, targetId: string, workflowThere: (id: string | null) => string | null): CopyPair[] {
+  const theirs = dataclips.rows().filter((d) => d.project_id === targetId && d.name);
+  return dataclips
+    .rows()
+    .filter((d) => d.project_id === sandboxId && d.name)
+    .map((d) => {
+      const pair = theirs.find((t) => t.id === d.copied_from) ?? theirs.find((t) => t.name!.toLowerCase() === d.name!.toLowerCase());
+      return {
+        name: d.name!,
+        isNew: !pair,
+        same: !!pair && savedContent(d) === savedContent(pair),
+        apply: () => {
+          if (pair) dataclips.update((x) => x.id === pair.id, (x) => ({ ...x, name: d.name, description: d.description, body: d.body }));
+          else dataclips.insert({ ...d, id: shortId(), project_id: targetId, workflow_id: workflowThere(d.workflow_id), created: "just now", copied_from: null });
+        },
+      };
+    });
 }
 
 /** The fixture workflows that have a run history: each project's, and the national ID workflow in Project A. */

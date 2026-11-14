@@ -271,11 +271,11 @@ export default function CodeWorkspace({
       : file === "trigger"
         ? triggerYaml
         : doc
-          ? (contents?.docs[doc] ?? "")
+          ? (contents?.docs[`${doc}.md`] ?? "")
           : manifest
             ? (contents?.serviceListing ?? draftServiceManifest(workflow.name))
             : addedDoc
-            ? `# ${addedDoc.replace(/\.md$/, "")}\n`
+            ? (contents?.docs[addedDoc] ?? `# ${addedDoc.replace(/\.md$/, "")}\n`)
             : yaml;
 
   // A tool step (Report outcome, Human in the loop) has settings instead of code: its pane is passed in, and it has no snippets.

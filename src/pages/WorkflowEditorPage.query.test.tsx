@@ -206,13 +206,15 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     }
   });
 
-  it("edits context.md in a sandbox from Edit, and draws what was saved", async () => {
+  it("edits context.md in a sandbox from Edit, saves it in the sandbox and counts it as a change", async () => {
     const projectId = projectIdFor("project-a");
-    await request("PUT", `/api/projects/${projectId}/sandboxes/${crypto.randomUUID()}`, { name: "context-notes" });
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "context-notes" });
     act(() => setSandbox(projectId, "context-notes"));
     try {
       renderEditor(apiWorkflowId("planning-application-workflow"));
       await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+      expect(await screen.findByRole("button", { name: "Sandbox context-notes, no changes" }, wait)).toBeTruthy();
       fireEvent.click(await screen.findByRole("button", { name: "Explorer" }, wait));
       fireEvent.click((await screen.findAllByRole("button", { name: /^context\.md/ }, wait))[0]!);
       expect(await screen.findByRole("heading", { name: "Legislation", level: 2 }, wait)).toBeTruthy();
@@ -222,6 +224,16 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
       expect(await screen.findByRole("heading", { name: "Who it serves", level: 2 }, wait)).toBeTruthy();
       expect(screen.getByText("Applicants").closest("li")).toBeTruthy();
       expect(screen.getByRole("button", { name: "Edit" })).toBeTruthy();
+
+      // It's a file the sandbox keeps: saved there, not on main, and one of the sandbox's changes.
+      const contextOf = (id: string) =>
+        request<{ data: { attributes: { name: string; content: string; workflow_id: string } }[] }>("GET", `/api/demo/projects/${id}/workflow_docs`).then(
+          (r) => r.data.filter((d) => d.attributes.name === "context.md").map((d) => d.attributes.content),
+        );
+      expect(await contextOf(sandboxId)).toContain("# Context\n\n## Who it serves\n\n- Applicants");
+      expect(await contextOf(projectId)).not.toContain("# Context\n\n## Who it serves\n\n- Applicants");
+      fireEvent.click(await screen.findByRole("button", { name: "Sandbox context-notes, 1 change" }, wait));
+      expect(await screen.findByText("Changed context.md", {}, wait)).toBeTruthy();
     } finally {
       act(() => setSandbox(projectId, "main"));
     }

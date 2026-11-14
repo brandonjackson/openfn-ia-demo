@@ -101,8 +101,15 @@ path in its hook file.
   run one and `…/generations` to sync them with the spec
   (`src/api/test-cases.ts`). A test run is the demo standing in for the
   worker and the assistant: it isn't a work order, so it isn't in History.
-  Making a sandbox copies a workflow's tests and a merge brings new and
-  changed ones back, but the merge preview doesn't list them yet.
+  Making a sandbox copies a workflow's tests, the merge preview lists the
+  new and changed ones, and a merge brings them back.
+- **A workflow's docs** (context.md, spec.md and docs added beside them,
+  behind the Workflow docs flag). api/ has nowhere to keep Markdown with a
+  workflow. Would need a doc resource under a workflow (name, content).
+  Demo: `/api/demo/projects/:id/workflow_docs?workflow_id=…`
+  (`src/api/workflow-docs.ts`), seeded from `workflow-files.ts`. A
+  sandbox's copy of a workflow has its own, copied, previewed and merged
+  like its tests.
 - **Maintenance jobs** (Admin settings, Maintenance). Lightning's
   `/settings/maintenance` has no API. Would need a list of jobs with when
   each last ran, and a way to run one. Demo: `/api/demo/maintenance`
@@ -117,10 +124,7 @@ path in its hook file.
   credential schemas and docs), the assistant's summaries, replies and past
   conversations (`code-summaries.ts`, `assistant.ts`; api/ai-assistant.md
   plans AI sessions), a run started in the editor (`simulateRun`; would need
-  Lightning's worker behind `POST` a work order), the workflow's context and
-  spec docs (`workflow-files.ts`, behind the workflow docs flag; an edit to
-  one, or to a doc added from "Add to workflow", lasts while the editor is
-  open), and the
+  Lightning's worker behind `POST` a work order), and the
   starter workflow and channel for "New workflow" from the Services catalog.
 
 - **What isn't running right now** (Overview's Status tile, the Status
@@ -248,15 +252,18 @@ path in its hook file.
   /api/credentials/:id/environments` returning those values. Demo: the fake
   server answers that route as a demo extension; a blank secret keeps the
   stored one.
-- **Sandboxes: what a merge brings besides workflows** (the editor's sandbox
-  chip; api/projects.md's merge preview lists workflows and credentials).
-  A sandbox is a copy of its project, components and environment variables
-  included, so the chip lists the new and changed ones a merge would bring.
-  Would need the merge preview to list them too, each with its kind, name
-  and `new` or `changed`. Demo: the fake server's preview sends
-  `components` and `env_vars` as demo extensions, and its merge brings them
-  (collections by name, empty, as Lightning does); on Lightning the chip
-  counts only the workflow's changes.
+- **Sandboxes: what a merge brings besides workflows** (the sandbox chip,
+  the Sandboxes page and the promotion request; api/projects.md's merge
+  preview lists workflows and credentials). A sandbox is a copy of its
+  project, so every file it keeps is one of its changes: each workflow's
+  docs and test cases, and the project's saved dataclips, components and
+  environment variables. Would need the merge preview to list them too,
+  each with its kind, name (and workflow, for a doc or test) and `new` or
+  `changed`, and the merge to bring them. Demo: the fake server's preview
+  sends `docs`, `test_cases`, `dataclips`, `components` and `env_vars` as
+  demo extensions, and its merge brings exactly what they list
+  (collections by name, empty, as Lightning does); on Lightning the counts
+  are the workflows' changes only.
 - **Sandboxes: changing a sandbox's environment** (the Sandboxes page's
   Edit; api/projects.md). A project's `env` is set when it's made and
   `PUT /api/projects/:id` refuses a change (`not_allowed`). The sandbox form

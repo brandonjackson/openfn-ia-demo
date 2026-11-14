@@ -24,8 +24,11 @@
  *   collection only the sandbox has is made, empty, in the target; the
  *   target's collections keep their items. A channel keeps the target's
  *   switch and traffic.
- * - Each workflow's test cases come along with it: copied when the sandbox
- *   is made, and its new and changed ones merged back (test-cases.ts).
+ * - Each workflow's docs and test cases come along with it: copied when the
+ *   sandbox is made, listed in the preview, and its new and changed ones
+ *   merged back (workflow-docs.ts, test-cases.ts). So are saved dataclips,
+ *   by name. Everything a sandbox keeps is paired the same way
+ *   (`CopyPair`), so what the preview lists is what a merge brings.
  * - Renaming and recolouring go through `PUT /api/projects/:id`; deleting
  *   through `DELETE /api/projects/:id`, which takes its own sandboxes too.
  */
@@ -39,8 +42,10 @@ import { conflict, forbidden, includes, invalid, isUuid, json, now, paged, unkno
 import { record } from "./audit";
 import { findProject, guardProject, members, membersOf, projectEntry, projects, roleIn, rootOf, type ProjectRow } from "./projects";
 import { currentUserId } from "./session";
-import { copyTestCasesInto, mergeTestCases } from "./test-cases";
-import { copyDataclipsInto } from "./work-orders";
+import { changeOf, type CopyPair } from "./sandbox-copies";
+import { copyTestCasesInto, testCasePairs } from "./test-cases";
+import { copyDataclipsInto, savedDataclipPairs } from "./work-orders";
+import { copyWorkflowDocsInto, workflowDocPairs } from "./workflow-docs";
 import { canUseCredential, cloneInto, findWorkflow, liveWorkflowsIn, saveWorkflow, snapshot, workflows, type WorkflowRow } from "./workflows";
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
@@ -82,8 +87,34 @@ function content(w: WorkflowRow, back: (id: string | null) => string | null) {
   });
 }
 
+/**
+ * What belongs to one of a sandbox's workflows besides its steps, paired
+ * with the target's copy of it (`theirs`, none when the workflow is new
+ * there): its docs and its test cases. A merge brings them with it.
+ */
+function workflowFilePairs(sandbox: ProjectRow, target: ProjectRow, w: WorkflowRow, theirs: WorkflowRow | undefined) {
+  const jobId = theirs ? mapBack(sandbox, theirs) : (id: string | null) => id;
+  return {
+    docs: workflowDocPairs(w.id, theirs?.id ?? null, target.id),
+    testCases: testCasePairs(w.id, theirs?.id ?? null, target.id, jobId),
+  };
+}
+
+/** A preview's line for each of a workflow's docs or tests. */
+const workflowFileLines = (w: WorkflowRow, list: CopyPair[]) =>
+  list.map((p) => ({ name: p.name, source_workflow_id: w.id, workflow_name: w.name, change: changeOf(p) }));
+
+/**
+ * What merging a sandbox into a target would do. Lightning's preview says
+ * it for workflows; the demo says it the same way for everything else a
+ * sandbox keeps: components, environment variables, saved dataclips, and
+ * each workflow's docs and test cases. Whatever it lists as new or changed
+ * is exactly what a merge brings back, and what the sandbox counts as its
+ * changes.
+ */
 function preview(sandbox: ProjectRow, target: ProjectRow) {
   const { mine, gone } = pairs(sandbox, target);
+  const files = mine.map(({ w, target: t }) => ({ w, ...workflowFilePairs(sandbox, target, w, t) }));
   return {
     target_project_id: target.id,
     workflows: [
@@ -110,6 +141,9 @@ function preview(sandbox: ProjectRow, target: ProjectRow) {
       target_id: theirs?.id ?? null,
       change: !theirs ? "new" : same ? "unchanged" : "changed",
     })),
+    docs: files.flatMap(({ w, docs }) => workflowFileLines(w, docs)),
+    test_cases: files.flatMap(({ w, testCases }) => workflowFileLines(w, testCases)),
+    dataclips: savedDataclipPairs(sandbox.id, target.id, workflowThereIn(target)).map((p) => ({ name: p.name, change: changeOf(p) })),
     // Credentials the sandbox uses that the target lacks: none until credentials move to the API.
     credentials: [] as { credential_id: string; name: string }[],
   };
@@ -122,6 +156,12 @@ const componentKey = (type: string, name: string) => `${type}/${name.toLowerCase
 
 /** A channel's workflow, by name, so a sandbox's copy and the target's compare. */
 const workflowName = (id: string | null) => (id ? (findWorkflow(id)?.name ?? null) : null);
+
+/** The target's workflow of the same name as a sandbox's, once a merge's workflows are in. */
+const workflowThereIn = (target: ProjectRow) => (id: string | null) => {
+  const name = workflowName(id);
+  return (name && liveWorkflowsIn(target.id).find((w) => w.name === name)?.id) || null;
+};
 
 /** A channel's setup, without its id, switch or traffic, to tell whether two copies differ. */
 const channelContent = (c: ChannelRow) =>
@@ -164,11 +204,7 @@ function componentPairs(sandbox: ProjectRow, target: ProjectRow): ComponentPair[
   const theirChannels = channels.rows().filter((c) => c.project_id === target.id);
   const theirCollections = collections.rows().filter((c) => c.project_id === target.id);
   const theirFiles = components.rows().filter((c) => c.project_id === target.id);
-  // The target's workflow of the same name as the sandbox's, once the merge's workflows are in.
-  const workflowThere = (id: string | null) => {
-    const name = workflowName(id);
-    return (name && liveWorkflowsIn(target.id).find((w) => w.name === name)?.id) || null;
-  };
+  const workflowThere = workflowThereIn(target);
   // What a channel of the sandbox's becomes in the target: its auth and credential where the target may use them.
   const channelThere = (c: ChannelRow): Pick<ChannelRow, "client_auth_method_ids" | "destination_credential_id" | "workflow_id"> => ({
     client_auth_method_ids: c.client_auth_method_ids.filter((m) => canUseAuthMethod(target.id, m)),
@@ -299,9 +335,16 @@ function copyComponentsInto(parentId: string, sandboxId: string, at: string) {
   for (const v of envVars.rows().filter((x) => x.project_id === parentId)) envVars.insert(copyEnvVar(v, sandboxId));
 }
 
-/** Merges a sandbox's new and changed components and environment variables into a target. Deletes nothing. */
+/** Merges a sandbox's new and changed components, environment variables and saved dataclips into a target. Deletes nothing. */
 function mergeComponents(sandbox: ProjectRow, target: ProjectRow) {
-  for (const pair of [...componentPairs(sandbox, target), ...envVarPairs(sandbox, target)]) if (!pair.same) pair.apply();
+  const all = [...componentPairs(sandbox, target), ...envVarPairs(sandbox, target), ...savedDataclipPairs(sandbox.id, target.id, workflowThereIn(target))];
+  for (const pair of all) if (!pair.same) pair.apply();
+}
+
+/** Merges a sandbox workflow's new and changed docs and tests into the target's copy of it (`theirs`, made by now). Deletes nothing. */
+function mergeWorkflowFiles(sandbox: ProjectRow, target: ProjectRow, w: WorkflowRow, theirs: WorkflowRow) {
+  const { docs, testCases } = workflowFilePairs(sandbox, target, w, theirs);
+  for (const pair of [...docs, ...testCases]) if (!pair.same) pair.apply();
 }
 
 /** The target a merge names, or why it can't merge there. */
@@ -398,6 +441,7 @@ export const sandboxRoutes: Record<string, Handler> = {
     // Its components and environment variables, as the parent has them now, and each workflow's test cases.
     copyComponentsInto(parent.id, sandbox.id, at);
     copyTestCasesInto(sandbox.id, copies);
+    copyWorkflowDocsInto(sandbox.id, copies);
     record("created", { type: "project", id: sandbox.id, name: sandbox.name }, { after: { name: sandbox.name, parent_id: parent.id } });
     return json(201, { data: projectEntry(sandbox) });
   },
@@ -427,6 +471,7 @@ export const sandboxRoutes: Record<string, Handler> = {
     }
     copyComponentsInto(original.id, copy.id, at);
     copyTestCasesInto(copy.id, copies);
+    copyWorkflowDocsInto(copy.id, copies);
     record("created", { type: "project", id: copy.id, name }, { after: { name, copied_from: original.id } });
     return json(201, { data: projectEntry(copy) });
   },
@@ -460,8 +505,8 @@ export const sandboxRoutes: Record<string, Handler> = {
       if (chosen && !chosen.includes(w.id)) continue;
       if (t) {
         const back = mapBack(sandbox, t);
-        // Its test cases come along whether or not the workflow itself changed.
-        mergeTestCases(w.id, t.id, target.id, back);
+        // Its docs and test cases come along whether or not the workflow itself changed.
+        mergeWorkflowFiles(sandbox, target, w, t);
         if (content(w, back) === content(t, (x) => x)) continue;
         const next: WorkflowRow = {
           ...t,
@@ -485,7 +530,7 @@ export const sandboxRoutes: Record<string, Handler> = {
         const created: WorkflowRow = { ...cloneInto(w, target.id, at), id: newId(), copied_from: null };
         workflows.insert(created);
         snapshot(created, message);
-        mergeTestCases(w.id, created.id, target.id, (id) => id && cloneNodeId(target.id, id));
+        mergeWorkflowFiles(sandbox, target, w, created);
         record("created", { type: "workflow", id: created.id, name: created.name }, { after: { name: created.name } });
       }
     }

@@ -18,6 +18,7 @@ import type {
 import { defaultWorkflowSettings, stepDeleteBlockedReason, workflowToYaml } from "../model/workflow";
 import type { WorkflowSettings } from "../model/workflow";
 import { counterpartNodeId, workflowChanges, type WorkflowChange } from "../model/workflow-changes";
+import { newDocName } from "../model/workflow-docs";
 import { lifecycleStages, type LifecycleStageId } from "../model/workflow-lifecycle";
 import type { EnvVar, EnvVarDraft } from "../model/env-vars";
 import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../model/runs";
@@ -265,7 +266,8 @@ export default function WorkflowEditorPage({
   componentsLoading = false,
   onOpenComponent,
   componentTypeOptions,
-  componentChanges = [],
+  fileChanges = [],
+  onSaveDoc,
   onCreateChannel,
   onCreateCollection,
   onCreateComponent,
@@ -365,10 +367,16 @@ export default function WorkflowEditorPage({
   /** The kinds of component that can be added. Defaults to every kind but Workflow. */
   componentTypeOptions?: ProjectComponentType[];
   /**
-   * In a sandbox, what it changes in its own copy of the project's components and environment variables
-   * against where it merges, listed with the workflow's changes. Left out on main.
+   * In a sandbox, what it changes in the files it keeps against where it merges, listed with the workflow's
+   * changes: this workflow's docs and test cases, and the project's saved dataclips, components and
+   * environment variables. Left out on main.
    */
-  componentChanges?: WorkflowChange[];
+  fileChanges?: WorkflowChange[];
+  /**
+   * Saves one of the workflow's docs (context.md, spec.md or one added beside them) by file name, making it if
+   * it's new; `contents` then holds what was saved. Left out, edits last while the editor is open.
+   */
+  onSaveDoc?: (name: string, content: string) => Promise<void>;
   /** Makes a channel from the code explorer's +; resolves with its id, and it opens. Left out where you can't. */
   onCreateChannel?: (draft: ChannelDraft) => Promise<string>;
   /** Makes a collection with a URL-safe name from the code explorer's +; resolves with its id, and it opens. Left out where you can't. */
@@ -1040,25 +1048,28 @@ export default function WorkflowEditorPage({
 
   // ---- Workflow files -------------------------------------------------------
 
-  // Docs added from the explorer, kept for this session.
-  const [docs, setDocs] = useState<string[]>([]);
-  const addDoc = () => {
-    const taken = new Set(["context.md", "spec.md", ...docs]);
-    let name = "untitled.md";
-    for (let n = 2; taken.has(name); n++) name = `untitled-${n}.md`;
-    setDocs([...docs, name]);
-    setFile({ docName: name });
-  };
-
   // The workflow's Markdown files (context.md, spec.md and added docs), opened from the explorer: drawn as they
-  // read, with Edit in a sandbox. The docs aren't on the API (docs/api-gaps.md), so an edit is kept in the editor
-  // while it's open, for the sandbox it was made in.
+  // read, with Edit in a sandbox. Each is a file the sandbox keeps, so a save goes to the server (`onSaveDoc`),
+  // where it's one of the sandbox's changes. Without it, an edit is kept while the editor is open, for the
+  // sandbox it was made in.
   const [docEdits, setDocEdits] = useState<Record<string, string>>({});
+  const docText = (name: string) => docEdits[`${sandbox}/${name}`] ?? contents?.docs[name] ?? (/^(context|spec)\.md$/.test(name) ? "" : `# ${name.replace(/\.md$/, "")}\n`);
+  const saveDoc = async (name: string, text: string) => {
+    if (onSaveDoc) await onSaveDoc(name, text);
+    else setDocEdits((edits) => ({ ...edits, [`${sandbox}/${name}`]: text }));
+  };
+  // Docs beside context.md and spec.md: the workflow's own, and any added this session that aren't saved yet.
+  const [addedDocs, setAddedDocs] = useState<string[]>([]);
+  const docs = [...new Set([...Object.keys(contents?.docs ?? {}), ...addedDocs])].filter((n) => n !== "context.md" && n !== "spec.md");
+  const addDoc = () => {
+    const name = newDocName(["context.md", "spec.md", ...docs]);
+    setAddedDocs([...addedDocs, name]);
+    setFile({ docName: name });
+    // Adding a doc makes the file, so it's kept, and counted, before anything is written in it.
+    if (!onMain) void saveDoc(name, docText(name)).catch((e: unknown) => setStatusNote(errorMessageOf(e)));
+  };
   const openDoc =
     file === "context" || file === "spec" ? `${file}.md` : typeof file === "object" && "docName" in file ? file.docName : undefined;
-  const docText = (name: string) =>
-    docEdits[`${sandbox}/${name}`] ??
-    (name === "context.md" ? (contents?.docs.context ?? "") : name === "spec.md" ? (contents?.docs.spec ?? "") : `# ${name.replace(/\.md$/, "")}\n`);
   const docAbout: Record<string, string> = {
     "context.md": "The legislation behind the workflow and the groups of citizens it affects. The assistant reads it before proposing changes.",
     "spec.md": "What goes in, what each step writes, and when a run counts as done.",
@@ -1069,7 +1080,7 @@ export default function WorkflowEditorPage({
       name={openDoc}
       description={docAbout[openDoc] ?? "A doc kept alongside the workflow. The assistant reads it with the context and spec."}
       content={docText(openDoc)}
-      onSave={onMain ? undefined : async (text) => setDocEdits((edits) => ({ ...edits, [`${sandbox}/${openDoc}`]: text }))}
+      onSave={onMain ? undefined : (text) => saveDoc(openDoc, text)}
       onEditInSandbox={onMain ? () => setSandboxForm("editInSandbox") : undefined}
     />
   );
@@ -1079,8 +1090,8 @@ export default function WorkflowEditorPage({
   const [addedFiles, setAddedFiles] = useState<WorkflowFileKind[]>([]);
   const addFile = (kind: WorkflowFileKind) => setAddedFiles((current) => (current.includes(kind) ? current : [...current, kind]));
   const has: Record<WorkflowFileKind, boolean> = {
-    context: !contents || contents.docs.context !== "",
-    spec: !contents || contents.docs.spec !== "",
+    context: !contents || "context.md" in contents.docs,
+    spec: !contents || "spec.md" in contents.docs,
     service: service !== undefined,
     dataclips: saved.length > 0,
   };
@@ -1111,6 +1122,10 @@ export default function WorkflowEditorPage({
       return setTestForm("new");
     }
     if (kind === "dataclips") return setNewDataclipOpen(true);
+    // context.md and spec.md are files the sandbox keeps: adding one makes it, so it's counted before it's written.
+    if ((kind === "context" || kind === "spec") && !has[kind] && !onMain) {
+      void saveDoc(`${kind}.md`, "").catch((e: unknown) => setStatusNote(errorMessageOf(e)));
+    }
     addFile(kind);
     openFile(kind);
   };
@@ -1614,8 +1629,8 @@ export default function WorkflowEditorPage({
   // ---- Layout ---------------------------------------------------------------
 
   // What going live would carry over: the copy on the canvas, edits and all, against where it merges,
-  // and the sandbox's new and changed components and environment variables, which go with it.
-  const changes = onMain ? [] : [...workflowChanges(baseline, graph), ...componentChanges];
+  // and the sandbox's new and changed files (docs, tests, saved dataclips, components, variables), which go with it.
+  const changes = onMain ? [] : [...workflowChanges(baseline, graph), ...fileChanges];
 
   const toolbar = (
     <EditorToolbar

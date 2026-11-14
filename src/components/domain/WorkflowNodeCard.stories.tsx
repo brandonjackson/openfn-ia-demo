@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowNodeCard from "./WorkflowNodeCard";
-import { nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "../../fixtures/workflow";
+import { hardshipGrantWorkflow, nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "../../fixtures/workflow";
 import { runActivity } from "../../model/runs";
-import { failedRun, sampleRun, workOrders } from "../../fixtures/runs";
+import { failedRun, sampleRun, waitingRun, workOrders } from "../../fixtures/runs";
 import { adaptorInfo } from "../../fixtures/adaptor-reference";
 import { connectedSystems } from "../../fixtures/connected-systems";
 import type { WorkflowNode } from "../../model/workflow";
@@ -111,4 +111,15 @@ export const TwoDhis2Systems: Story = {
       </div>
     );
   },
+};
+
+/** A Report outcome step names its tool and the outcome it records. */
+export const ReportOutcome: Story = { args: { ...card(hardshipGrantWorkflow.nodes.find((n) => n.id === "outcome-declined")!) } };
+
+/** A Human in the loop step. */
+export const HumanInTheLoop: Story = { args: { ...card(hardshipGrantWorkflow.nodes.find((n) => n.id === "approve-grant")!) } };
+
+/** A loaded run waiting on someone to approve it. */
+export const WaitingOnSomeone: Story = {
+  args: { ...card(hardshipGrantWorkflow.nodes.find((n) => n.id === "approve-grant")!), step: waitingRun.steps.at(-1) },
 };

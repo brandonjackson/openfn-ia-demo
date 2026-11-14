@@ -37,7 +37,7 @@ const data = (workOrders: HistoryWorkOrder[], more: Partial<HistoryPageData> = {
   ...more,
 });
 
-type Actions = "onFiltersChange" | "onRetry" | "onRetryFromStep" | "onCancel" | "onInspectRun" | "onOpenChannelRun" | "onExport";
+type Actions = "onFiltersChange" | "onRetry" | "onRetryFromStep" | "onCancel" | "onInspectRun" | "onOpenChannelRun" | "onExport" | "onAnswerApproval";
 
 const draw = (workOrders: HistoryWorkOrder[], filters: HistoryFilters = defaultHistoryFilters, actions: Actions[] = ["onFiltersChange", "onRetry", "onRetryFromStep", "onCancel", "onInspectRun", "onExport"], more: Partial<HistoryPageData> = {}) => {
   const frame: Omit<HistoryPageProps, Actions> = {
@@ -110,5 +110,64 @@ describe("HistoryPage", () => {
     const host = draw([order("aaa111", "success")]);
     fireEvent.click(screen.getByRole("button", { name: /Channel requests/ }));
     expect(host.calls("onFiltersChange")[0]![0].tab).toBe("channels");
+  });
+
+  describe("with tools", () => {
+    /** A work order whose run waits on a Human in the loop step that needs a comment to reject. */
+    const waiting = (): HistoryWorkOrder => {
+      const o = order("ccc333", "waiting");
+      const r: RunDetails = {
+        ...o.workOrder.runs[0]!,
+        steps: [{ id: "s1", jobId: "approve", label: "Officer approves", status: "waiting", duration: "" }],
+        waitingFor: {
+          stepId: "s1",
+          jobId: "approve",
+          assignee: "District officer",
+          title: "Pay Amina a grant?",
+          message: "Check she hasn't had one this year.",
+          fields: [{ label: "Applicant", value: "Amina" }],
+          comment: "required_on_reject",
+          asked: "today",
+          expires: "2 days after it was asked",
+          onTimeout: "reject",
+        },
+      };
+      return { ...o, workOrder: { ...o.workOrder, runs: [r] } };
+    };
+
+    it("approves a waiting run from its work order, saying so while it's sent", async () => {
+      const host = draw([waiting()], defaultHistoryFilters, ["onFiltersChange", "onInspectRun", "onAnswerApproval"]);
+      // A run waiting on someone isn't finished, so it isn't offered a retry.
+      expect(screen.queryByRole("button", { name: "Retry work order ccc333" })).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "Work order ccc333, waiting" }));
+      expect(screen.getByText("Pay Amina a grant?")).toBeTruthy();
+      fireEvent.click(screen.getByRole("button", { name: "Approve" }));
+      expect(host.calls("onAnswerApproval")).toEqual([["run-ccc333", "approved", ""]]);
+      expect(screen.getByRole("button", { name: "Approving…" }).getAttribute("aria-disabled")).toBe("true");
+      await host.resolve("onAnswerApproval");
+      // Once it's through the button is back; the wrapper's toast says it carried on.
+      expect(screen.getByRole("button", { name: "Approve" })).toBeTruthy();
+    });
+
+    it("asks why before rejecting, and shows a refusal on the card", async () => {
+      const host = draw([waiting()], defaultHistoryFilters, ["onFiltersChange", "onInspectRun", "onAnswerApproval"]);
+      fireEvent.click(screen.getByRole("button", { name: "Work order ccc333, waiting" }));
+      fireEvent.click(screen.getByRole("button", { name: "Reject" }));
+      expect(host.calls("onAnswerApproval")).toEqual([]);
+      expect(screen.getByText("Say why it's rejected")).toBeTruthy();
+      expect(document.activeElement).toBe(screen.getByRole("textbox", { name: /Comment/ }));
+      fireEvent.change(screen.getByRole("textbox", { name: /Comment/ }), { target: { value: "Had one in March" } });
+      fireEvent.click(screen.getByRole("button", { name: "Reject" }));
+      expect(host.calls("onAnswerApproval")).toEqual([["run-ccc333", "rejected", "Had one in March"]]);
+      await host.reject("onAnswerApproval", new FormError("This run isn't waiting for an answer."));
+      expect(screen.getByRole("alert").textContent).toBe("This run isn't waiting for an answer.");
+    });
+
+    it("shows a work order's outcome beside its status, and filters by it", () => {
+      const refused: HistoryWorkOrder = { ...order("ddd444", "success"), workOrder: { ...order("ddd444", "success").workOrder, outcome: { status: "rejected", description: "Not eligible" } } };
+      draw([refused, order("eee555", "success")], { ...defaultHistoryFilters, outcomes: ["rejected"] });
+      expect(screen.getByText("1 work order of 2, newest first")).toBeTruthy();
+      expect(screen.getByText("Rejected")).toBeTruthy();
+    });
   });
 });

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import RunEntry from "./RunEntry";
-import { failedRun, olderRun, sampleRun } from "../../fixtures/runs";
+import { failedRun, hardshipGrantWorkOrders, olderRun, sampleRun, waitingRun } from "../../fixtures/runs";
 
 const meta: Meta<typeof RunEntry> = {
   title: "Domain/RunEntry",
@@ -30,3 +30,16 @@ export const Cancelled: Story = {
 
 /** Without permission to run the workflow: no retry from a step. */
 export const ReadOnly: Story = { args: { run: failedRun, onRetryFromStep: undefined } };
+
+/** Waiting on a Human in the loop step: what it asks, to approve or reject here. */
+export const WaitingOnSomeone: Story = {
+  args: { run: waitingRun, latestVersion: "v1", onAnswer: () => new Promise((resolve) => setTimeout(resolve, 600)) },
+};
+
+/** Waiting, for someone who can't answer it. */
+export const WaitingReadOnly: Story = { args: { run: waitingRun, latestVersion: "v1" } };
+
+/** Declined by the officer: a successful run with a Rejected outcome, and who answered on the step. */
+export const WithOutcome: Story = {
+  args: { run: hardshipGrantWorkOrders.find((o) => o.outcome?.status === "rejected" && o.runs[0].steps.some((s) => s.answer))!.runs[0], latestVersion: "v1" },
+};

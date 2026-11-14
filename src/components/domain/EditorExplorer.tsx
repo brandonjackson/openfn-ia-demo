@@ -1,4 +1,6 @@
 import { BookOpen, Database, FileText, FlaskConical, HeartPulse, ListChecks, Plus, Variable, Workflow as WorkflowIcon } from "lucide-react";
+import IconTile from "../primitives/IconTile";
+import { stepToolTypes } from "../../model/step-tools";
 import type { JobNode, RunDetails, TriggerNode, Workflow } from "../../model/workflow";
 import { triggerTypes } from "../../model/workflow";
 import type { ProjectComponent } from "../../model/projects";
@@ -216,7 +218,7 @@ export default function EditorExplorer({
               key={step.id}
               label={step.label}
               description={systemOf(step)?.name}
-              leading={<AdaptorLogo adaptor={step.adaptor} size="2xs" />}
+              leading={step.tool ? <IconTile icon={stepToolTypes[step.tool.kind].icon} size="2xs" tone="indigo" /> : <AdaptorLogo adaptor={step.adaptor} size="2xs" />}
               trailing={status && <StatusPill status={status} variant="mark" />}
               active={current === `step:${step.id}`}
               onClick={() => onOpen({ stepId: step.id })}

@@ -1,7 +1,7 @@
 /**
  * The organisation: its name, your role and its members from the API
  * (`/api/organizations`, api/organizations.md), and what the demo adds, its
- * visibility defaults, X-Road identity, context layers and billing, from the
+ * visibility defaults, logo, X-Road identity and billing, from the
  * demo's own routes (`/api/demo/organization`). The hooks Organization
  * settings calls.
  *
@@ -10,7 +10,7 @@
  * first). Picking between several is still to come (docs/api-gaps.md).
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { BillingDetails, ContextLayer, OrganizationInvite, OrganizationMember, VisibilityScope } from "../model/organization";
+import type { BillingDetails, OrganizationInvite, OrganizationMember, VisibilityScope } from "../model/organization";
 import type { SecurityServerManager, ServiceClassification, XRoadCertificate, XRoadIdentity, XRoadMember, XRoadMemberClass } from "../model/xroad";
 import { formatDate, timeAgo } from "../model/time";
 import { listAll, request } from "./client";
@@ -30,6 +30,7 @@ interface ApiOrganizationSettings {
     attributes: {
       visibility: Visibility;
       security_server_managed_by: SecurityServerManager;
+      logo: string | null;
       xroad_usage: { systems: number; services: number };
       billing: BillingDetails;
       mcp_server_url: string;
@@ -42,22 +43,19 @@ interface ApiMember {
   attributes: { email: string; first_name: string; last_name: string; role: "admin" | "member"; inserted_at: string };
 }
 
-interface ApiLayer {
-  id: string;
-  attributes: { name: string; host: string; url: string; status: ContextLayer["status"]; last_fetched_at: string | null };
-}
-
 /** The organisation as Organization settings shows it, with what you may change. */
 export interface Organization {
   id: string;
   name: string;
   visibility: Visibility;
   managedBy: SecurityServerManager;
+  /** Its logo, as a data URL. Absent without one. */
+  logo?: string;
   xroadUsage: { systems: number; services: number };
   billing: BillingDetails;
   /** Its MCP server, where every service with MCP on is a tool for agents. */
   mcpServerUrl: string;
-  /** Its admins change its settings, members and context layers. */
+  /** Its admins change its settings, logo and members. */
   canManage: boolean;
 }
 
@@ -118,13 +116,13 @@ const keys = {
   xroad: ["organization", "xroad"] as const,
   directory: ["organization", "xroad", "directory"] as const,
   members: ["organization", "members"] as const,
-  layers: ["organization", "context_layers"] as const,
 };
 
 /** The organisation you're in: the first by name that you belong to, or the first you're listed. */
-function useYourOrganization() {
+function useYourOrganization(enabled = true) {
   return useQuery({
     queryKey: keys.organizations,
+    enabled,
     queryFn: () => listAll<ApiOrganization>("/api/organizations"),
     select: (rows) => rows.find((o) => o.attributes.role) ?? rows[0],
   });
@@ -132,17 +130,20 @@ function useYourOrganization() {
 
 /**
  * The organisation you're in, with what the demo adds to it. `organization`
- * stays undefined, with the status ready, when you're in none.
+ * stays undefined, with the status ready, when you're in none. Loads nothing
+ * while `enabled` is false.
  */
-export function useOrganization(): { status: LoadStatus; organization: Organization | undefined } {
-  const yours = useYourOrganization();
+export function useOrganization(enabled = true): { status: LoadStatus; organization: Organization | undefined } {
+  const yours = useYourOrganization(enabled);
   const settings = useQuery({
     queryKey: keys.organization,
+    enabled,
     queryFn: () => request<ApiOrganizationSettings>("GET", "/api/demo/organization"),
     select: ({ data: { attributes: a } }) => a,
   });
   const o = yours.data;
   const a = settings.data;
+  if (!enabled) return { status: { state: "ready" }, organization: undefined };
   return {
     status: combine(statusOf(yours), statusOf(settings)),
     organization:
@@ -152,6 +153,7 @@ export function useOrganization(): { status: LoadStatus; organization: Organizat
             name: o.attributes.name,
             visibility: a.visibility,
             managedBy: a.security_server_managed_by,
+            ...(a.logo && { logo: a.logo }),
             xroadUsage: a.xroad_usage,
             billing: a.billing,
             mcpServerUrl: a.mcp_server_url,
@@ -269,24 +271,6 @@ export function useOrganizationMembers(organizationId: string | undefined): { st
   return organizationId ? { status: statusOf(query), members: query.data ?? [] } : { status: { state: "ready" }, members: [] };
 }
 
-/** The context layers the organisation draws on, and those it's asked for. */
-export function useContextLayers(): { status: LoadStatus; layers: ContextLayer[] } {
-  const query = useQuery({
-    queryKey: keys.layers,
-    queryFn: () => listAll<ApiLayer>("/api/demo/organization/context_layers"),
-    select: (rows) =>
-      rows.map(({ id, attributes: a }): ContextLayer => ({
-        id,
-        name: a.name,
-        host: a.host,
-        url: a.url,
-        status: a.status,
-        ...(a.last_fetched_at && { lastFetched: timeAgo(a.last_fetched_at) }),
-      })),
-  });
-  return { status: statusOf(query), layers: query.data ?? [] };
-}
-
 /**
  * Every change Organization settings makes. Each resolves once what it
  * changed has reloaded, and rejects with what the server said.
@@ -309,7 +293,8 @@ export function useOrganizationSaves(organizationId: string | undefined) {
     // Your own role may change, and with it what you can do: reload the organisation and its members.
     changeRole: (userId: string, role: OrganizationMember["role"]) => go([keys.organizations, ["organization"]], () => request("PATCH", `${members}/${userId}`, { role: apiRole(role) })),
     remove: (userId: string) => go([keys.organizations, ["organization"]], () => request("DELETE", `${members}/${userId}`)),
-    requestContextLayer: (url: string) => go([keys.layers], () => request("POST", "/api/demo/organization/context_layers", { url })),
-    removeContextLayer: (id: string) => go([keys.layers], () => request("DELETE", `/api/demo/organization/context_layers/${id}`)),
+    // The logo shows in the shell's corner too, which reads the organisation.
+    saveLogo: (logo: string) => go([keys.organization], () => request("PUT", "/api/demo/organization/logo", { logo })),
+    removeLogo: () => go([keys.organization], () => request("DELETE", "/api/demo/organization/logo")),
   };
 }

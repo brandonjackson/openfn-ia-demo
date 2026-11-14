@@ -81,8 +81,7 @@ and to mark what would change the look.
      project, sandbox, component and editor forms (`InviteCollaboratorsModal`,
      `AddCollaboratorsModal`, `GitHubSyncForm`, `RunInputModal`,
      `WebhookAuthMethodModal`, `SystemFormModal`, `ComponentView`'s
-     validity, `EditInSandboxModal`, `CollectionNameModal`,
-     `SandboxFormModal`, `AddConnectedSystemFlow`, `PromoteSandboxModal`,
+     validity, `CollectionNameModal`, `AddConnectedSystemFlow`,
      Project settings' name, `ComponentFormModal`, `CollectionItemModal`,
      and `ConfirmModal`'s `confirmPhrase`). Use `focusFirstProblem`
      (`src/components/primitives/focus-field.ts`) with ids from `useId`;
@@ -242,7 +241,7 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
 9. **Organization settings into its folder, X-Road identity from the API.**
    `src/pages/organization-settings/` with its first page and query tests.
    The organisation's types left page-data.ts for `model/organization.ts`
-   (`OrganizationMember`, `BillingDetails`, `ContextLayer`,
+   (`OrganizationMember`, `BillingDetails`,
    `VisibilityScope`, `organizationRoles`, `OrganizationInvite`, and
    `OrganizationSettings`, which the fixture, the fake server's seed and the
    page share; the page's `OrganizationSettingsPageData` names it). The
@@ -309,9 +308,9 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     `ProjectFormModal`, `InviteOrgMemberModal`, `DeleteAccountModal`,
     `TransferCredentialModal`, `AuthProviderForm` (Save and Test),
     `ProfileDetailsForm`'s validity, the credential picker's "Configure
-    credential" and Organization settings' context layer URL stay enabled:
+    credential" and Organization settings' name stay enabled:
     pressed with something missing, each says so under the field ("Enter a
-    first name", "Enter a project name", "Enter a context layer URL"; the
+    first name", "Enter a project name", "Enter a name for the organisation"; the
     picker's "Choose a credential type") and focuses it, sending nothing.
     Those and `OAuthClientModal`, `ChangeEmailForm`, `ChangePasswordForm`,
     `MfaSetupFlow`, the credential form's Save, Handbook's Save and
@@ -321,8 +320,8 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
     too; `ListRow` takes an `id`; the credential form, saved with a field
     wrong on another environment, switches to it and focuses the field; the
     owner problem in `ProjectFormModal` is a fresh alert on each press;
-    AuthProviderForm's errors use `FormField`'s `error`; the context layer
-    form is `noValidate`. Counts: tests 176 → 183; the rest unchanged.
+    AuthProviderForm's errors use `FormField`'s `error`; the organisation's
+    name form is `noValidate`. Counts: tests 176 → 183; the rest unchanged.
 
 15. **Workflows reads only the API** (Lightning run). The page moved to
     `src/pages/project-workflows/` with its page and query tests. Its rows
@@ -549,8 +548,9 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   sandbox" notice; it now keeps the project's last answer while the new one
   loads (never another project's). A refused delete now says why in an
   alert, as Workflows does, instead of failing silently. Still to do under
-  decision 4 (already on its list): `SandboxFormModal` disables Create while
-  the name is wrong, and shows no refusal or "Creating…". Checked on the
+  decision 4: `SandboxFormModal` disabled Create while the name was wrong
+  and showed no refusal or "Creating…" (done since, when it became the one
+  form for New, Edit and Edit in sandbox). Checked on the
   fake server only. Counts (after lanes 1, 2 and 3): page-data.ts 335 →
   274 lines; files importing it 38 → 32; pages in their own folder 16 → 17
   of 24; page and query tests 32 → 34; tests 345 → 357; the rest

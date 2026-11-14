@@ -1,12 +1,12 @@
 import { ArrowRight, Check, ChevronDown, FlaskConical, LayoutGrid, Lock, Plus } from "lucide-react";
-import type { WorkflowChange } from "../../model/workflow-changes";
+import { changesLabel, type WorkflowChange } from "../../model/workflow-changes";
 import Popover from "../primitives/Popover";
 import NavItem from "../primitives/NavItem";
 import CountBadge from "../primitives/CountBadge";
 import Button from "../primitives/Button";
 import Stack from "../primitives/Stack";
-import Inline from "../primitives/Inline";
 import Text from "../primitives/Text";
+import SandboxChangeList from "./SandboxChangeList";
 
 interface Props {
   /** Sandboxes of the project, "main" first. */
@@ -25,17 +25,6 @@ interface Props {
   onNewSandbox?: () => void;
   onViewAll?: () => void;
   defaultOpen?: boolean;
-}
-
-const marks: Record<WorkflowChange["kind"], { sign: string; tone: "success" | "danger" | "muted" }> = {
-  added: { sign: "+", tone: "success" },
-  removed: { sign: "−", tone: "danger" },
-  changed: { sign: "~", tone: "muted" },
-};
-
-/** "No changes", "1 change", "3 changes". */
-function changesLabel(count: number) {
-  return count === 0 ? "No changes" : `${count} ${count === 1 ? "change" : "changes"}`;
 }
 
 /**
@@ -164,18 +153,7 @@ export default function SandboxChip({
                 </Text>
               )}
             </Stack>
-            {count > 0 && (
-              <Stack gap="xs">
-                {changes.map((c, i) => (
-                  <Inline key={i} gap="sm" align="start">
-                    <Text mono tone={marks[c.kind].tone}>
-                      {marks[c.kind].sign}
-                    </Text>
-                    <Text>{c.summary}</Text>
-                  </Inline>
-                ))}
-              </Stack>
-            )}
+            {count > 0 && <SandboxChangeList changes={changes} />}
             {onPromote && count > 0 && (
               <Button
                 size="sm"

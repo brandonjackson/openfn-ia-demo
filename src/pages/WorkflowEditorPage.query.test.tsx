@@ -185,6 +185,27 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     expect(await screen.findByRole("dialog", {}, wait)).toBeTruthy();
   });
 
+  it("makes a sandbox from Edit in sandbox in the environment picked, with main's saved dataclips, and goes into it", async () => {
+    const projectId = projectIdFor("project-a");
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      fireEvent.click((await screen.findAllByRole("button", { name: "Edit in sandbox" }, wait))[0]!);
+      const form = await screen.findByRole("dialog", { name: "Edit in sandbox" }, wait);
+      expect(within(form).queryByText(/saved input/i)).toBeNull();
+      fireEvent.change(within(form).getByLabelText("Name"), { target: { value: "On mock" } });
+      fireEvent.change(within(form).getByLabelText("Environment"), { target: { value: "mock" } });
+      fireEvent.click(within(form).getByRole("button", { name: "Create sandbox" }));
+      await screen.findByRole("button", { name: /^Sandbox on-mock/ }, wait);
+      const all = await listAll<{ id: string; attributes: { name: string; env: string } }>(`/api/projects/${projectId}/sandboxes?depth=all`);
+      const made = all.find((p) => p.attributes.name === "on-mock")!;
+      expect(made.attributes.env).toBe("mock");
+      const clips = await listAll<{ name?: string }>(`/api/projects/${made.id}/dataclips`);
+      expect(clips.some((d) => d.name === "Sample application: existing citizen")).toBe(true);
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
   it("edits context.md in a sandbox from Edit, and draws what was saved", async () => {
     const projectId = projectIdFor("project-a");
     await request("PUT", `/api/projects/${projectId}/sandboxes/${crypto.randomUUID()}`, { name: "context-notes" });
@@ -247,8 +268,8 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
       renderEditor(apiWorkflowId("planning-application-workflow"));
       fireEvent.click(await screen.findByRole("button", { name: /^Sandbox dedupe, 1 change/ }, wait));
       fireEvent.click(await screen.findByRole("button", { name: "Create promotion request" }, wait));
-      const form = await screen.findByRole("dialog", { name: "Promote to main" }, wait);
-      expect(within(form).getByText("v3")).toBeTruthy();
+      const form = await screen.findByRole("dialog", { name: "Create promotion request" }, wait);
+      expect(within(form).getByText(/v3/)).toBeTruthy();
       fireEvent.change(within(form).getByLabelText(/What changed/), { target: { value: "Adds a duplicate check" } });
       fireEvent.click(within(form).getByRole("button", { name: "Promote to main" }));
 
@@ -358,9 +379,9 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
       renderEditor(apiWorkflowId("planning-application-workflow"));
       fireEvent.click(await screen.findByRole("button", { name: /^Sandbox nested-parent/ }, wait));
       fireEvent.click(within(await screen.findByRole("dialog", {}, wait)).getByRole("button", { name: "New sandbox…" }));
-      fireEvent.change(await screen.findByLabelText("Sandbox name", {}, wait), { target: { value: "Decision Sync Fix" } });
-      expect(screen.getByText("There's already a sandbox called decision-sync-fix.")).toBeTruthy();
+      fireEvent.change(await screen.findByLabelText("Name", {}, wait), { target: { value: "Decision Sync Fix" } });
       fireEvent.click(screen.getByRole("button", { name: "Create sandbox" }));
+      expect(screen.getByText("There's already a sandbox called decision-sync-fix.")).toBeTruthy();
 
       const all = await listAll<{ attributes: { name: string } }>(`/api/projects/${projectId}/sandboxes?depth=all`);
       expect(all.filter((s) => s.attributes.name === "decision-sync-fix")).toHaveLength(1);
@@ -490,6 +511,30 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
           (a) => a.workflows.flatMap((w) => w.jobs).find((j) => j.name === "New mailchimp step" || j.name === "New Mailchimp step"),
         );
       await waitFor(async () => expect((await step())?.system_id).toBe(systemId), wait);
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
+  it("adds a Report outcome from the Tools tab, saved as a tool job with its settings", async () => {
+    const projectId = projectIdFor("project-a");
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "add-outcome" });
+    act(() => setSandbox(projectId, "add-outcome"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+      const picker = await openStepPicker();
+      fireEvent.click(within(picker).getByRole("button", { name: "Tools" }));
+      fireEvent.click(within(picker).getByText("Report outcome"));
+      await waitFor(() => expect(screen.queryByRole("dialog", { name: "Add a step" })).toBeNull(), wait);
+      type Job = { name: string; kind?: string; config?: { status?: string } };
+      const step = () =>
+        request<{ workflows: { jobs: Job[] }[] }>("GET", `/api/projects/${sandboxId}/workflows`).then((a) =>
+          a.workflows.flatMap((w) => w.jobs).find((j) => j.name === "Report outcome"),
+        );
+      await waitFor(async () => expect((await step())?.kind).toBe("report_outcome"), wait);
+      expect((await step())?.config?.status).toBe("success");
     } finally {
       act(() => setSandbox(projectId, "main"));
     }

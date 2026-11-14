@@ -1,6 +1,6 @@
 /**
  * The organisation. Its name and members are the API's
- * (api/organizations.md); its visibility defaults, context layers, X-Road
+ * (api/organizations.md); its visibility defaults, logo, X-Road
  * identity and billing are on the demo's own routes (`/api/demo/organization`).
  */
 import type { OrgXRoadSettings } from "./xroad";
@@ -27,18 +27,6 @@ export interface BillingDetails {
   invoices: { id: string; date: string; amount: string; status: "Paid" | "Due" }[];
 }
 
-/** A context layer: a shared source of handbook, systems and services. */
-export interface ContextLayer {
-  id: string;
-  name: string;
-  /** Where the layer lives, e.g. "Hosted on OpenFn Cloud". */
-  host: string;
-  url: string;
-  status: "connected" | "pending";
-  /** Human-readable time of the last successful fetch. */
-  lastFetched?: string;
-}
-
 /** Who can find and use something by default: its project's members, the whole organisation, or everyone on the server. */
 export type VisibilityScope = "project" | "organization" | "server";
 
@@ -51,17 +39,29 @@ export interface OrganizationInvite {
   role: OrganizationMember["role"];
 }
 
-/** Everything the organisation sets once: who's in it, what others see, where its context comes from, X-Road and billing. */
+/** Everything the organisation sets once: who's in it, how it looks, what others see, X-Road and billing. */
 export interface OrganizationSettings {
   name: string;
   members: OrganizationMember[];
   /** Default discoverability and access for new projects, systems and services. Systems and services are absent when the organisation has none. */
   visibility: { projects: VisibilityScope; systems?: VisibilityScope; services?: VisibilityScope };
-  /** Shared sources of handbook pages, systems and services the organisation draws on. */
-  contextLayers: ContextLayer[];
+  /** Its logo, as a data URL, shown in the top-left corner. Absent without one, when its initials stand in. */
+  logo?: string;
   /** Its identity on X-Road. Absent when it isn't on X-Road, which leaves out the X-Road section. */
   xroad?: OrgXRoadSettings;
   /** How many connected systems and published services use the X-Road settings. */
   xroadUsage: { systems: number; services: number };
   billing: BillingDetails;
+}
+
+/** The images a logo can be, as a file input's `accept`. */
+export const LOGO_ACCEPT = "image/png,image/jpeg,image/svg+xml,image/webp";
+/** The largest logo the server takes. */
+export const LOGO_MAX_BYTES = 256 * 1024;
+
+/** What's wrong with a file picked as the organisation's logo, if anything: the server refuses the same. */
+export function logoProblem(file: { type: string; size: number }): string | undefined {
+  if (!LOGO_ACCEPT.split(",").includes(file.type)) return "Pick a PNG, JPEG, SVG or WebP image";
+  if (file.size > LOGO_MAX_BYTES) return "Pick an image of 256 KB or smaller";
+  return undefined;
 }

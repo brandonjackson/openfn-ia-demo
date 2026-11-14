@@ -24,6 +24,7 @@ export type FlagId =
   | "workflowDocs"
   | "envVars"
   | "testCases"
+  | "stepTools"
   | "components"
   | "forms"
   | "staticWebsites"
@@ -127,6 +128,14 @@ export const featureFlags: FeatureFlag[] = [
     description:
       "A workflow's test cases under Workflow in the editor's explorer: scenarios in plain words that the assistant runs, generates from the spec and checks with deterministic tests.",
     requires: ["workflowDocs"],
+    group: "Projects",
+  },
+  {
+    id: "stepTools",
+    label: "Tools",
+    description:
+      "Steps that aren't code, under Tools in \"Add a step\": Report outcome (a run's business outcome, shown in History) and Human in the loop (a run that waits for someone to approve it). Off, they run as plain code steps.",
+    requires: [],
     group: "Projects",
   },
   {

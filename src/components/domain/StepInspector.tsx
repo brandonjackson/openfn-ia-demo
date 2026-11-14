@@ -27,6 +27,11 @@ import type { StepChanges } from "./StepConfigPanel";
 import type { RunDataSection } from "./panel-views";
 import IconButton from "../primitives/IconButton";
 import Surface from "../primitives/Surface";
+import IconTile from "../primitives/IconTile";
+import Stack from "../primitives/Stack";
+import OutcomeBadge from "./OutcomeBadge";
+import ApprovalRequestCard from "./ApprovalRequestCard";
+import { approvalTimeoutActions, stepToolTypes, type StepTool } from "../../model/step-tools";
 
 /** The node's run history over the canvas's period: the step's, or the whole workflow's for the trigger. */
 export interface InspectorStats {
@@ -160,7 +165,8 @@ export default function StepInspector({
       ) : (
         <div className="min-h-0 flex-1 divide-y divide-gray-200 overflow-y-auto">
           <InspectorSection>
-            {job && adaptor && (
+            {job?.tool && <ToolSettings tool={job.tool} />}
+            {job && !job.tool && adaptor && (
               <AdaptorRow
                 system={system}
                 adaptor={job.adaptor}
@@ -173,7 +179,7 @@ export default function StepInspector({
             {trigger && <TriggerConfig trigger={trigger} url={url} live={live} onToggleLive={onToggleLive} />}
           </InspectorSection>
 
-          {job && (
+          {job && !job.tool && (
             <InspectorSection
               heading="What this step does"
               aside={
@@ -240,6 +246,28 @@ export default function StepInspector({
 }
 
 /** One section of the inspector: an optional small heading, with something to its right, over its content. */
+/** A tool step's settings, in place of an adaptor and a summary of its code. */
+function ToolSettings({ tool }: { tool: StepTool }) {
+  const type = stepToolTypes[tool.kind];
+  const properties =
+    tool.kind === "outcome"
+      ? [
+          { icon: type.icon, label: "Records", value: <OutcomeBadge status={tool.status} /> },
+          { label: "Says", value: tool.description || "Nothing yet" },
+        ]
+      : [
+          { icon: type.icon, label: "Asks", value: tool.assignee || "Nobody yet" },
+          { label: "Question", value: tool.title },
+          { label: "Waits", value: `Up to ${tool.timeout.amount} ${tool.timeout.unit}, then ${approvalTimeoutActions.find((a) => a.id === tool.onTimeout)?.label.toLowerCase()}` },
+        ];
+  return (
+    <Stack gap="sm">
+      <EntityPill name={type.label} size="sm" icon={<IconTile icon={type.icon} size="2xs" tone="indigo" round />} />
+      <PropertyList variant="plain" properties={properties} />
+    </Stack>
+  );
+}
+
 function InspectorSection({ heading, aside, children }: { heading?: string; aside?: ReactNode; children: ReactNode }) {
   return (
     <section aria-label={heading} className="flex flex-col gap-3 px-5 py-4">
@@ -356,6 +384,8 @@ function RunData({
       <div className="rounded-lg border border-gray-200 bg-gray-50 py-1.5 pl-3 pr-1.5">
         <RunLabel run={run} detail={step?.duration || run.when} onUnload={onUnload} />
       </div>
+
+      {job && run.waitingFor?.jobId === job.id && <ApprovalRequestCard request={run.waitingFor} />}
 
       {!job && run.xroad && (
         <div className="space-y-2">

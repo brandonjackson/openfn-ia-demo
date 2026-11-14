@@ -9,8 +9,9 @@
  * rest of the month's traffic is generated from a fixed seed
  * (`generatedHistory`), so the canvas's 24h, 7d and 30d each show more.
  */
-import type { Dataclip, LogLine, RunDetails, RunStep, Workflow, WorkOrder } from "../model/workflow";
-import { happyPath, nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "./workflow";
+import type { Dataclip, JobNode, LogLine, RunDetails, RunStep, Workflow, WorkOrder } from "../model/workflow";
+import { fillTemplate, readPath, type ApprovalAnswer, type ApprovalRequest, type ApprovalTool, type RunOutcome } from "../model/step-tools";
+import { happyPath, hardshipGrantWorkflow, nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow } from "./workflow";
 import type { XRoadCall } from "../model/xroad";
 import { openfnClientId, routeUrl } from "./xroad";
 import { stampTime } from "../model/runs";
@@ -94,6 +95,10 @@ function stepOutput(jobId: string, input: State, seed: string): State {
       };
     case "send-dhis2":
       return { ...input, importSummary: { status: "SUCCESS", imported: 4, updated: 0, ignored: 0 } };
+    case "check-registry":
+      return { ...input, household: { id: `HH-${seed.slice(0, 6).toUpperCase()}`, size: 5, monthlyIncome: 42000 }, eligible: true };
+    case "pay-grant":
+      return { ...input, payment: { reference: `MM-${seed.slice(0, 6).toUpperCase()}`, status: "sent" } };
     default:
       return input;
   }
@@ -123,6 +128,10 @@ function requestLog(jobId: string, input: State, failed: boolean): LogLine | und
       return { source: "ADA", message: `GET ${OPENMRS}/patient?identifier=… - ${status(200)}` };
     case "send-dhis2":
       return { source: "ADA", message: `POST ${DHIS2}/dataValueSets - ${status(200)}` };
+    case "check-registry":
+      return { source: "ADA", message: `GET https://registry.social.gov.example/households?nationalId=… - ${status(200)}` };
+    case "pay-grant":
+      return { source: "ADA", message: `POST https://payments.example/v1/disbursements - ${status(201)}` };
     default:
       return undefined;
   }
@@ -152,6 +161,57 @@ interface RunSpec {
    * running and the rest are pending. Unset means the run is over.
    */
   progress?: number;
+  /** How each Human in the loop step on the path was answered, by job id. One with no answer is where the run waits. */
+  answers?: Record<string, ApprovalAnswer>;
+}
+
+/**
+ * The fixture's id for a step, which says what it outputs: the same id, or,
+ * on a graph from the API (whose ids are UUIDs), the fixture step of the
+ * same name.
+ */
+function fixtureJobId(workflow: Workflow, jobId: string): string {
+  const label = workflow.nodes.find((n) => n.id === jobId)?.label;
+  if (!label) return jobId;
+  for (const graph of [nationalIdWorkflow, registerCaseWorkflow, weeklyCaseReportWorkflow, hardshipGrantWorkflow]) {
+    const match = graph.nodes.find((n) => n.label === label);
+    if (match) return match.id;
+  }
+  return jobId;
+}
+
+/** The job on the graph, if it's a tool step. */
+const toolStep = (workflow: Workflow, jobId: string) => {
+  const node = workflow.nodes.find((n): n is JobNode => n.id === jobId && n.type === "job");
+  return node?.tool ? { node, tool: node.tool } : undefined;
+};
+
+/**
+ * The path with the Report outcome step it ends on, when the graph has one
+ * right after its last step: hand-written runs list the steps that do the
+ * work, and the outcome follows from where they ended.
+ */
+function withOutcomeStep(workflow: Workflow, path: string[], failed: boolean): string[] {
+  const last = path.at(-1);
+  if (!last || failed) return path;
+  const next = workflow.edges.find((e) => e.source === last && e.condition !== "on_failure" && toolStep(workflow, e.target)?.tool.kind === "outcome");
+  return next && !path.includes(next.target) ? [...path, next.target] : path;
+}
+
+/** What a Human in the loop step asks, with the run's values filled in. */
+function approvalRequest(tool: ApprovalTool, state: State, stepId: string, jobId: string, asked: string): ApprovalRequest {
+  return {
+    stepId,
+    jobId,
+    assignee: tool.assignee,
+    title: fillTemplate(tool.title, state),
+    message: fillTemplate(tool.message, state),
+    fields: tool.fields.map((f) => ({ label: f.label, value: readPath(state, f.path) || "—" })),
+    comment: tool.comment,
+    asked,
+    expires: `${tool.timeout.amount} ${tool.timeout.unit} after it was asked`,
+    onTimeout: tool.onTimeout,
+  };
 }
 
 /**
@@ -178,15 +238,37 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
   let inputId = spec.input.id;
 
   const inProgress = spec.progress !== undefined;
-  spec.path.forEach((jobId, i) => {
+  let outcome: RunOutcome | undefined;
+  let waitingFor: ApprovalRequest | undefined;
+  const path = withOutcomeStep(workflow, spec.path, !!spec.failAt);
+  // A Human in the loop step nobody has answered is where the run stops and waits.
+  const waitIndex = path.findIndex((jobId) => toolStep(workflow, jobId)?.tool.kind === "approval" && !spec.answers?.[jobId]);
+  const walked = waitIndex >= 0 ? path.slice(0, waitIndex + 1) : path;
+  walked.forEach((jobId, i) => {
+    if (waitingFor) return;
     const stepId = `${spec.runId}-${jobId}`;
     const failed = spec.failAt?.jobId === jobId;
+    const tool = toolStep(workflow, jobId)?.tool;
     // Whether this step is over yet; in a finished run every step is.
     const done = !inProgress || i < spec.progress!;
-    const status = !done ? (i === spec.progress ? "running" : "pending") : failed ? "failed" : "success";
+    if (done && i === waitIndex && tool?.kind === "approval") {
+      // It asks, and waits: no output until someone answers.
+      waitingFor = approvalRequest(tool, state, stepId, jobId, spec.when);
+      steps.push({ id: stepId, jobId, label: label(jobId), status: "waiting", duration: "", inputId });
+      logs.push({ source: "R/T", message: `Starting step ${label(jobId)}`, stepId });
+      logs.push({ source: "R/T", message: `Waiting for ${tool.assignee} to approve or reject`, stepId });
+      return;
+    }
+    const answer = tool?.kind === "approval" ? spec.answers?.[jobId] : undefined;
     const output = failed
       ? { ...state, error: spec.failAt!.error }
-      : spec.outputs?.[jobId] ?? stepOutput(jobId, state, spec.runId);
+      : answer
+        ? { ...state, approval: answer }
+        : tool?.kind === "outcome"
+          ? { ...state, outcome: { status: tool.status, description: fillTemplate(tool.description, state) } }
+          : spec.outputs?.[jobId] ?? stepOutput(fixtureJobId(workflow, jobId), state, spec.runId);
+    const status = !done ? (i === spec.progress ? "running" : "pending") : failed ? "failed" : "success";
+    if (done && !failed && tool?.kind === "outcome") outcome = { status: tool.status, description: fillTemplate(tool.description, state) };
     const duration = failed ? (spec.failAt!.duration ?? "30 s") : DEFAULT_DURATION[jobId] ?? "12 ms";
 
     const outputId = `${stepId}-out`;
@@ -202,6 +284,7 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
       error: done && failed ? spec.failAt!.error : undefined,
       inputId,
       outputId: done ? outputId : undefined,
+      ...(done && answer && { answer }),
     });
 
     if (status === "running") logs.push({ source: "R/T", message: `Starting step ${label(jobId)}`, stepId });
@@ -213,6 +296,8 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
       const request = requestLog(jobId, state, failed);
       if (request) logs.push({ ...request, stepId });
       if (jobId === "queue") logs.push({ source: "JOB", message: "Parked application for retry", stepId });
+      if (answer) logs.push({ source: "R/T", message: `${answer.decision === "approved" ? "Approved" : "Rejected"} by ${answer.by}${answer.comment ? `: "${answer.comment}"` : ""}`, stepId });
+      if (outcome && tool?.kind === "outcome") logs.push({ source: "R/T", message: `Reported outcome: ${outcome.status}${outcome.description ? `, ${outcome.description}` : ""}`, stepId });
       logs.push(
         failed
           ? { source: "JOB", message: `Error: ${spec.failAt!.error}`, stepId }
@@ -224,7 +309,7 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
     inputId = outputId;
   });
 
-  if (!inProgress) {
+  if (!inProgress && !waitingFor) {
     logs.push({ source: "R/T", message: `Run ${spec.failAt ? "failed" : "complete"} in ${spec.duration}` });
   }
 
@@ -232,8 +317,8 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
     run: {
       workOrderId: spec.workOrderId,
       runId: spec.runId,
-      status: inProgress ? "running" : spec.failAt ? "failed" : "success",
-      duration: inProgress ? "" : spec.duration,
+      status: waitingFor ? "waiting" : inProgress ? "running" : spec.failAt ? "failed" : "success",
+      duration: inProgress || waitingFor ? "" : spec.duration,
       started: spec.started,
       when: spec.when,
       startedBy: spec.startedBy ?? "webhook trigger",
@@ -242,6 +327,8 @@ function buildRun(spec: RunSpec): { run: RunDetails; dataclips: Dataclip[] } {
       steps,
       logs,
       xroad: spec.xroad,
+      ...(outcome && { outcome }),
+      ...(waitingFor && { waitingFor }),
     },
     dataclips,
   };
@@ -630,7 +717,7 @@ function toWorkOrders(runs: RunDetails[]): WorkOrder[] {
   for (const run of runs) {
     const order = orders.find((o) => o.id === run.workOrderId);
     if (order) order.runs.push(run);
-    else orders.push({ id: run.workOrderId, status: run.status, lastActivity: run.when, runs: [run] });
+    else orders.push({ id: run.workOrderId, status: run.status, lastActivity: run.when, runs: [run], ...(run.outcome && { outcome: run.outcome }) });
   }
   return orders;
 }
@@ -895,10 +982,107 @@ export const weeklyReportWorkOrders: WorkOrder[] = toWorkOrders(builtWeekly.map(
 
 export const weeklyReportDataclips: Dataclip[] = builtWeekly.flatMap((b) => b.dataclips);
 
+// ---------------------------------------------------------------------------
+// Hardship grants: a district officer approves each before it's paid.
+// ---------------------------------------------------------------------------
+
+function grantApplication(id: string, when: string, name: string, nationalId: string, district: string, reason: string, amount = "150,000 MWK"): Dataclip {
+  return {
+    id,
+    type: "http_request",
+    created: when,
+    body: json({ applicant: { name, nationalId, district, phone: "+265 99 000 0000" }, application: { reason }, grant: { amount } }),
+  };
+}
+
+const grantInputs = {
+  esi: grantApplication("g7a1c0e2", "today at 9:40 AM", "Esi Owusu", "MW-1988-221904", "Central", "floods damaged the family's home"),
+  musa: grantApplication("g3d9b4f1", "today at 8:15 AM", "Musa Bello", "MW-1975-118377", "North", "the main earner lost their job", "100,000 MWK"),
+  halima: grantApplication("g5e2a7c3", "yesterday at 2:05 PM", "Halima Juma", "MW-1992-307715", "Coast", "a fire destroyed the family's crops"),
+  peter: grantApplication("g1b8d6e4", "yesterday at 10:30 AM", "Peter Tembo", "MW-1969-090412", "East", "a medical emergency"),
+  ruth: grantApplication("g9c4f2a5", "Oct 16th, 11:20 AM", "Ruth Mwangi", "MW-1990-402281", "West", "floods damaged the family's home"),
+};
+
+const officer = "Grace Banda";
+
+const builtGrants = [
+  // Waiting on the district officer.
+  buildRun({
+    runId: "h7c2e9a1",
+    workOrderId: "h7c2e9a1",
+    version: "v1",
+    when: "today at 9:40 AM",
+    started: "20/10/2026, 09:40:12",
+    duration: "",
+    input: grantInputs.esi,
+    path: ["check-registry", "approve-grant"],
+    workflow: hardshipGrantWorkflow,
+  }),
+  buildRun({
+    runId: "h3f8a1d6",
+    workOrderId: "h3f8a1d6",
+    version: "v1",
+    when: "today at 8:15 AM",
+    started: "20/10/2026, 08:15:47",
+    duration: "",
+    input: grantInputs.musa,
+    path: ["check-registry", "approve-grant"],
+    workflow: hardshipGrantWorkflow,
+  }),
+  // Approved and paid.
+  buildRun({
+    runId: "h5a0b7e3",
+    workOrderId: "h5a0b7e3",
+    version: "v1",
+    when: "yesterday at 2:05 PM",
+    started: "19/10/2026, 14:05:31",
+    duration: "3 h",
+    input: grantInputs.halima,
+    path: ["check-registry", "approve-grant", "pay-grant"],
+    workflow: hardshipGrantWorkflow,
+    answers: { "approve-grant": { decision: "approved", by: officer, at: "yesterday at 5:12 PM" } },
+  }),
+  // Declined: the run went fine, the application didn't.
+  buildRun({
+    runId: "h1d4c8f2",
+    workOrderId: "h1d4c8f2",
+    version: "v1",
+    when: "yesterday at 10:30 AM",
+    started: "19/10/2026, 10:30:09",
+    duration: "1 h",
+    input: grantInputs.peter,
+    path: ["check-registry", "approve-grant", "outcome-declined"],
+    workflow: hardshipGrantWorkflow,
+    answers: { "approve-grant": { decision: "rejected", by: officer, comment: "Already received a hardship grant in March", at: "yesterday at 11:41 AM" } },
+  }),
+  // Not eligible: refused on the registry's numbers, without asking anyone.
+  buildRun({
+    runId: "h9e6f3b0",
+    workOrderId: "h9e6f3b0",
+    version: "v1",
+    when: "Oct 16th, 11:20 AM",
+    started: "16/10/2026, 11:20:44",
+    duration: "2 s",
+    input: grantInputs.ruth,
+    path: ["check-registry", "outcome-not-eligible"],
+    outputs: { "check-registry": { ...JSON.parse(grantInputs.ruth.body), household: { id: "HH-9C4F2A", size: 3, monthlyIncome: 95000 }, eligible: false } },
+    workflow: hardshipGrantWorkflow,
+  }),
+];
+
+/** Recent hardship grant applications, newest first: two waiting on the officer. */
+export const hardshipGrantWorkOrders: WorkOrder[] = toWorkOrders(newestFirst(builtGrants).map((b) => b.run));
+
+export const hardshipGrantDataclips: Dataclip[] = [...Object.values(grantInputs), ...builtGrants.flatMap((b) => b.dataclips)];
+
+/** A run waiting on someone to approve it, for stories. */
+export const waitingRun: RunDetails = hardshipGrantWorkOrders[0].runs[0];
+
 /** Run history for each workflow that has its own, by workflow id. */
 export const runHistories: Record<string, { workOrders: WorkOrder[]; dataclips: Dataclip[] }> = {
   [registerCaseWorkflow.id]: { workOrders: registerCaseWorkOrders, dataclips: registerCaseDataclips },
   [weeklyCaseReportWorkflow.id]: { workOrders: weeklyReportWorkOrders, dataclips: weeklyReportDataclips },
+  [hardshipGrantWorkflow.id]: { workOrders: hardshipGrantWorkOrders, dataclips: hardshipGrantDataclips },
 };
 
 /**
@@ -943,5 +1127,45 @@ export function simulateRun({
     path: happyPath(workflow, fromJobId),
     workflow,
     progress,
+  });
+}
+
+/**
+ * A waiting run carried on once someone has answered its Human in the loop
+ * step: the same run, the answer on state, along the edge that names the
+ * decision (or the step's success edge), then every step it would take when
+ * all goes well. Steps already done are built again from the same input and
+ * come out the same.
+ */
+export function answerRun({
+  workflow,
+  run,
+  input,
+  answer,
+}: {
+  workflow: Workflow;
+  run: RunDetails;
+  input: Dataclip;
+  answer: ApprovalAnswer;
+}): { run: RunDetails; dataclips: Dataclip[] } {
+  const waiting = run.waitingFor;
+  if (!waiting) return { run, dataclips: [] };
+  const before = run.steps.filter((s) => s.status !== "waiting").map((s) => s.jobId);
+  const answers = Object.fromEntries(run.steps.flatMap((s) => (s.answer ? [[s.jobId, s.answer]] : [])));
+  const out = workflow.edges.filter((e) => e.source === waiting.jobId);
+  const next = out.find((e) => e.expression?.includes(`'${answer.decision}'`)) ?? out.find((e) => e.condition === "on_success" || e.condition === "always");
+  return buildRun({
+    runId: run.runId,
+    workOrderId: run.workOrderId,
+    version: run.version,
+    when: answer.at,
+    started: run.started,
+    startedBy: run.startedBy,
+    duration: run.duration || "3 s",
+    input,
+    path: [...before, waiting.jobId, ...(next ? happyPath(workflow, next.target) : [])],
+    workflow,
+    xroad: run.xroad,
+    answers: { ...answers, [waiting.jobId]: answer },
   });
 }

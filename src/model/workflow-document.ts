@@ -8,8 +8,16 @@
  * one-line summary, a trigger's label, and the connected system a step talks
  * to. Those ride along on each job and trigger as `summary`, `label`,
  * `subtitle` and `system_id`, which a real Lightning would drop.
+ *
+ * A tool step (Report outcome, Human in the loop) is a job with a `kind`
+ * and its settings in `config`, as planned in docs/api-plans/step-tools.md;
+ * its `body` is the code a Lightning without tools runs it as.
  */
 import { isEdgeEnabled, type EdgeCondition, type JobNode, type TriggerNode, type TriggerType, type Workflow, type WorkflowEdge } from "./workflow";
+import type { ApprovalTool, OutcomeTool, StepTool } from "./step-tools";
+
+/** What a job is: code (Lightning's only kind today), or one of the planned tools. */
+export type JobKind = "code" | "report_outcome" | "approval";
 
 export type ConditionType = "always" | "on_job_success" | "on_job_failure" | "js_expression";
 
@@ -23,6 +31,25 @@ export interface WorkflowJob {
   keychain_credential_id: string | null;
   summary?: string;
   system_id?: string | null;
+  /** Planned: what kind of job it is; code when left out. */
+  kind?: JobKind;
+  /** Planned: a tool's settings (docs/api-plans/step-tools.md). */
+  config?: Omit<OutcomeTool, "kind"> | Omit<ApprovalTool, "kind">;
+}
+
+/** A tool as a job's `kind` and `config`. */
+function toolFields(tool: StepTool | undefined): Pick<WorkflowJob, "kind" | "config"> {
+  if (!tool) return {};
+  const { kind, ...config } = tool;
+  return { kind: kind === "outcome" ? "report_outcome" : "approval", config };
+}
+
+/** A job's `kind` and `config` as a tool, if it is one. */
+function toolOf(job: WorkflowJob): StepTool | undefined {
+  if (!job.config) return undefined;
+  if (job.kind === "report_outcome") return { kind: "outcome", ...(job.config as Omit<OutcomeTool, "kind">) };
+  if (job.kind === "approval") return { kind: "approval", ...(job.config as Omit<ApprovalTool, "kind">) };
+  return undefined;
 }
 
 export interface WorkflowTrigger {
@@ -117,6 +144,7 @@ export function toDocument(graph: Workflow, { enabled = true, triggers = [] as W
         keychain_credential_id: null,
         ...(n.summary !== undefined && { summary: n.summary }),
         system_id: n.system ?? null,
+        ...toolFields(n.tool),
       })),
     triggers: nodes
       .filter((n): n is TriggerNode => n.type === "trigger")
@@ -181,6 +209,7 @@ export function fromDocument(doc: Pick<WorkflowDocument, "id" | "name" | "jobs" 
           body: j.body,
           ...(j.system_id && { system: j.system_id }),
           ...(j.project_credential_id && { credentialId: j.project_credential_id }),
+          ...(toolOf(j) && { tool: toolOf(j) }),
           ...at(j.id, i + doc.triggers.length),
         }),
       ),

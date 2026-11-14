@@ -24,6 +24,8 @@ export interface ListRowMenu {
   onSelect?: (id: string) => void;
 }
 
+const selectedFrames = { indigo: "border-indigo-300 bg-indigo-50/40", amber: "border-amber-300 bg-amber-50/60" };
+
 const columnWidths = { sm: "w-16", md: "w-24", lg: "w-36" };
 
 interface Props {
@@ -61,6 +63,8 @@ interface Props {
   actions?: ReactNode;
   /** Highlights the row, e.g. the currently selected item. Given with `onClick`, the row is a toggle button that says whether it's picked. */
   selected?: boolean;
+  /** The tint of a selected row and its icon: `indigo` (the default), or `amber` for a sandbox you're in, as the editor marks one. */
+  selectedTone?: "indigo" | "amber";
   /** Renders the title in a monospace font (names like branches or slugs). */
   monoTitle?: boolean;
   /** A dashed border, for something you could add rather than one that exists. */
@@ -88,6 +92,7 @@ export default function ListRow({
   actions,
   menu,
   selected,
+  selectedTone = "indigo",
   monoTitle = false,
   dashed = false,
 }: Props) {
@@ -111,7 +116,7 @@ export default function ListRow({
   const interactive = Boolean(to || onClick);
   const frame = `group flex w-full items-center rounded-lg border text-left transition-all ${
     dashed ? "border-dashed" : ""
-  } ${selected ? "border-indigo-300 bg-indigo-50/40" : "border-gray-200 bg-white"} ${interactive ? "hover:border-indigo-300 hover:shadow-sm" : ""}`;
+  } ${selected ? selectedFrames[selectedTone] : "border-gray-200 bg-white"} ${interactive ? "hover:border-indigo-300 hover:shadow-sm" : ""}`;
   // With actions or a menu, the frame wraps both the row and them, and only
   // the inner part is the link or button.
   const pointer = interactive ? "cursor-pointer" : "";
@@ -122,7 +127,7 @@ export default function ListRow({
 
   const content = (
     <>
-      {logo ?? <IconTile icon={Icon} tone={selected ? "indigo" : "gray"} hoverTint={interactive} />}
+      {logo ?? <IconTile icon={Icon} tone={selected ? selectedTone : "gray"} hoverTint={interactive} />}
       <div className="flex-1 min-w-0">
         {/* On small screens badges drop below a long title rather than squeezing it. */}
         <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-2 gap-y-1 min-w-0">

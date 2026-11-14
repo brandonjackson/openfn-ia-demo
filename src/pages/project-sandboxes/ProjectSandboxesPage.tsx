@@ -1,21 +1,21 @@
 import { useState } from "react";
-import { Check, FlaskConical, GitMerge, Pencil, Plus, Trash2 } from "lucide-react";
+import { FlaskConical, GitMerge, Pencil, Plus, Trash2 } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
-import { sandboxIcon, type SandboxDraft, type SandboxItem, type SandboxMerge } from "../../model/sandboxes";
+import { sandboxIcon, type SandboxDraft, type SandboxItem } from "../../model/sandboxes";
+import { ENVIRONMENTS, environmentLabels, type Environment } from "../../model/credentials";
 import { timeAgo } from "../../model/time";
-import Badge from "../../components/primitives/Badge";
 import ListPage from "../../components/patterns/ListPage";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
 import SandboxFormModal from "../../components/domain/SandboxFormModal";
-import MergeSandboxModal from "../../components/domain/MergeSandboxModal";
+import PromoteSandboxModal from "../../components/domain/PromoteSandboxModal";
 import Button from "../../components/primitives/Button";
 import ConfirmModal from "../../components/primitives/ConfirmModal";
+import CountBadge from "../../components/primitives/CountBadge";
 import EmptyState from "../../components/primitives/EmptyState";
 import ListRow from "../../components/primitives/ListRow";
 import ListGroup from "../../components/primitives/ListGroup";
 import Stack from "../../components/primitives/Stack";
-import Swatch from "../../components/primitives/Swatch";
 import Text from "../../components/primitives/Text";
 
 /** What the Sandboxes page shows. */
@@ -31,78 +31,81 @@ export interface ProjectSandboxesPageProps extends PageProps<ProjectSandboxesPag
   onSelectSandbox: (name: string) => void;
   /** Makes a sandbox from another, named the slug of the name typed. Left out where you can't make sandboxes. */
   onCreateSandbox?: (draft: SandboxDraft) => Promise<void>;
-  /** Renames or recolours a sandbox (never main). */
+  /** Renames a sandbox or changes its environment (never main). Left out where you can't. */
   onEditSandbox?: (name: string, draft: SandboxDraft) => Promise<void>;
-  /** Brings a sandbox's changed workflows and credentials into another sandbox. */
-  onMergeSandbox?: (name: string, merge: SandboxMerge) => Promise<void>;
+  /**
+   * Promotes a sandbox's changes into its parent, with what was said about
+   * them, as the editor's promotion request does. Left out where you can't.
+   */
+  onPromoteSandbox?: (name: string, message: string) => Promise<void>;
   /** Deletes a sandbox (never main, never the selected one). The wrapper says how it went, refusals included. */
   onDeleteSandbox: (name: string) => Promise<void>;
 }
 
-type RowAction = "edit" | "merge" | "delete";
+type RowAction = "edit" | "promote" | "delete";
+
+/** "Production", or the stored name as it is when it's none the forms offer. */
+const envLabel = (env: string) => ((ENVIRONMENTS as string[]).includes(env) ? environmentLabels[env as Environment] : env);
 
 function SandboxRow({
   sandbox,
   selected,
   actions,
-  onSelect,
+  onSwitch,
   onAction,
 }: {
   sandbox: SandboxItem;
+  /** The sandbox you're in: tinted, blue for main and amber for a sandbox, as the editor marks them. */
   selected?: boolean;
   /** What the row's menu offers. */
   actions: RowAction[];
-  onSelect?: () => void;
+  onSwitch?: () => void;
   onAction: (action: RowAction) => void;
 }) {
   const changed = sandbox.changes.length;
-  const icon = sandboxIcon(sandbox.isMain);
   return (
     <ListRow
-      icon={icon}
-      logo={<Swatch tone={sandbox.color} size="tile" icon={icon} />}
+      icon={sandboxIcon(sandbox.isMain)}
       title={sandbox.name}
       monoTitle
       selected={selected}
-      onClick={onSelect}
-      menu={{
-        items: [
-          ...(actions.includes("edit") ? [{ id: "edit", label: "Edit", icon: Pencil }] : []),
-          ...(actions.includes("merge") ? [{ id: "merge", label: "Merge", icon: GitMerge }] : []),
-          ...(actions.includes("delete") ? [{ id: "delete", label: "Delete", icon: Trash2, tone: "danger" as const, divider: actions.length > 1 }] : []),
-        ],
-        onSelect: (id) => onAction(id as RowAction),
-      }}
-      badges={
-        <>
-          {selected && <Badge label="Selected" tone="indigo" icon={Check} />}
-          {sandbox.isMain && <Badge label="Main" />}
-          {changed > 0 && <Badge label={`${changed} changed workflow${changed === 1 ? "" : "s"}`} tone="gray" />}
-        </>
-      }
-      description={sandbox.description || <Text tone="subtle">No description</Text>}
+      selectedTone={sandbox.isMain ? "indigo" : "amber"}
+      onClick={onSwitch}
+      badges={changed > 0 && <CountBadge count={changed} tone="amber" label={changed === 1 ? "change" : "changes"} />}
       meta={
         <>
+          <span>{envLabel(sandbox.env)}</span>
           <span>{sandbox.parent ? `Made from ${sandbox.parent} by ${sandbox.createdBy}` : `Created by ${sandbox.createdBy}`}</span>
           <span>{sandbox.lastActivity ? `Active ${timeAgo(sandbox.lastActivity)}` : "No activity yet"}</span>
         </>
       }
+      actions={
+        onSwitch && (
+          <Button variant="secondary" size="xs" onClick={onSwitch} aria-label={`Switch to ${sandbox.name}`}>
+            Switch
+          </Button>
+        )
+      }
+      menu={{
+        items: [
+          ...(actions.includes("edit") ? [{ id: "edit", label: "Edit", icon: Pencil }] : []),
+          ...(actions.includes("promote") ? [{ id: "promote", label: "Promote", icon: GitMerge }] : []),
+          ...(actions.includes("delete") ? [{ id: "delete", label: "Delete", icon: Trash2, tone: "danger" as const, divider: actions.length > 1 }] : []),
+        ],
+        onSelect: (id) => onAction(id as RowAction),
+      }}
     />
   );
 }
 
-/** The sandboxes made from `name`, and the ones made from those, which it can't merge into. */
-function descendants(name: string, sandboxes: SandboxItem[]): string[] {
-  const children = sandboxes.filter((s) => s.parent === name).map((s) => s.name);
-  return [...children, ...children.flatMap((c) => descendants(c, sandboxes))];
-}
-
 /**
  * A project's sandboxes. The one you're working in sits on its own at the
- * top; the rest are listed below, and picking one switches to it. As in
- * Lightning, a sandbox can be made from another, renamed and recoloured,
- * merged back (or into another), and deleted, except main and the one
- * you're in.
+ * top, tinted as the editor marks it; the rest are listed below, each with
+ * Switch, and a count of what it changes where it has changes. As in
+ * Lightning, a sandbox can be made from another, renamed or moved to another
+ * environment, promoted into its parent, and deleted, except main and the
+ * one you're in. Making and editing one use the same form as the editor, and
+ * Promote opens the editor's promotion request.
  */
 export default function ProjectSandboxesPage({
   node,
@@ -112,14 +115,15 @@ export default function ProjectSandboxesPage({
   onSelectSandbox: setSelected,
   onCreateSandbox,
   onEditSandbox,
-  onMergeSandbox,
+  onPromoteSandbox,
   onDeleteSandbox,
 }: ProjectSandboxesPageProps) {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<SandboxItem>();
-  const [merging, setMerging] = useState<SandboxItem>();
+  const [promoting, setPromoting] = useState<SandboxItem>();
   const [pendingDelete, setPendingDelete] = useState<SandboxItem | null>(null);
   const sandboxes = data.sandboxes;
+  const names = sandboxes.map((s) => s.name);
   const main = sandboxes.find((s) => s.isMain);
   const selected = sandboxes.find((s) => s.name === selectedName) ?? main ?? sandboxes[0];
   const others = sandboxes.filter((s) => s !== selected);
@@ -129,11 +133,11 @@ export default function ProjectSandboxesPage({
       ? []
       : [
           ...(onEditSandbox ? (["edit"] as const) : []),
-          ...(onMergeSandbox ? (["merge"] as const) : []),
+          ...(onPromoteSandbox && sandbox.parent && sandbox.changes.length > 0 ? (["promote"] as const) : []),
           ...(sandbox !== selected ? (["delete"] as const) : []),
         ];
   const act = (sandbox: SandboxItem) => (action: RowAction) =>
-    action === "edit" ? setEditing(sandbox) : action === "merge" ? setMerging(sandbox) : setPendingDelete(sandbox);
+    action === "edit" ? setEditing(sandbox) : action === "promote" ? setPromoting(sandbox) : setPendingDelete(sandbox);
 
   const confirmDelete = async () => {
     const name = pendingDelete?.name;
@@ -143,16 +147,6 @@ export default function ProjectSandboxesPage({
       await onDeleteSandbox(name).catch(() => {});
     }
   };
-
-  const mergeTargets = merging
-    ? [
-        ...(merging.parent ? [merging.parent] : []),
-        ...sandboxes
-          .map((s) => s.name)
-          .filter((n) => n !== merging.name && n !== merging.parent && !descendants(merging.name, sandboxes).includes(n)),
-      ]
-    : [];
-
 
   return (
     <>
@@ -186,7 +180,7 @@ export default function ProjectSandboxesPage({
                   key={sandbox.name}
                   sandbox={sandbox}
                   actions={actionsFor(sandbox)}
-                  onSelect={() => setSelected(sandbox.name)}
+                  onSwitch={() => setSelected(sandbox.name)}
                   onAction={act(sandbox)}
                 />
               ))
@@ -211,7 +205,7 @@ export default function ProjectSandboxesPage({
       {onCreateSandbox && (
         <SandboxFormModal
           open={creating}
-          sandboxes={sandboxes}
+          sandboxes={names}
           defaultParent={selected?.name}
           onClose={() => setCreating(false)}
           onSubmit={onCreateSandbox}
@@ -221,17 +215,19 @@ export default function ProjectSandboxesPage({
         <SandboxFormModal
           open={!!editing}
           sandbox={editing}
-          sandboxes={sandboxes}
+          sandboxes={names}
           onClose={() => setEditing(undefined)}
           onSubmit={(draft) => onEditSandbox(editing!.name, draft)}
         />
       )}
-      {onMergeSandbox && (
-        <MergeSandboxModal
-          sandbox={merging}
-          targets={mergeTargets}
-          onClose={() => setMerging(undefined)}
-          onMerge={(merge) => onMergeSandbox(merging!.name, merge)}
+      {onPromoteSandbox && (
+        <PromoteSandboxModal
+          open={!!promoting}
+          sandbox={promoting?.name ?? ""}
+          target={promoting?.parent}
+          changes={promoting?.changes ?? []}
+          onClose={() => setPromoting(undefined)}
+          onPromote={(message) => onPromoteSandbox(promoting!.name, message)}
         />
       )}
 
@@ -243,7 +239,7 @@ export default function ProjectSandboxesPage({
         onClose={() => setPendingDelete(null)}
       >
         <Text block>
-          {`Delete ${pendingDelete?.name}? Its changes that haven't been merged will be lost, along with any sandbox made from it. This can't be undone.`}
+          {`Delete ${pendingDelete?.name}? Its changes that haven't been promoted will be lost, along with any sandbox made from it. This can't be undone.`}
         </Text>
       </ConfirmModal>
     </>

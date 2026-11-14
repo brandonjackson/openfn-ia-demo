@@ -3,13 +3,15 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ShellContext } from "../components/domain/shell-context";
 import { projects, recentProjects } from "../fixtures/projects";
 import { currentInstance, currentUser, currentUserIsSuperuser } from "../fixtures/user";
+import { organizationSettingsData } from "../fixtures/organization";
+import { instanceInitials } from "../model/account";
 import { useSandbox } from "./sandbox-state";
 import { useFlags } from "./feature-flags";
 import type { FeatureFlags } from "../model/feature-flags";
 
 /**
  * Feeds the app's chrome from fixtures and the router: who you are, which
- * instance, your recent projects, the project the URL is inside, its
+ * instance and organisation, your recent projects, the project the URL is inside, its
  * selected sandbox, the feature flags in effect and whether you're a superuser. The shell's equivalent of a page's wrapper.
  */
 export default function ShellFixtures({
@@ -34,6 +36,8 @@ export default function ShellFixtures({
       value={{
         currentPath: pathname,
         instance: currentInstance,
+        // With Organizations, the corner is the organisation's.
+        ...(flags.organizations && { organization: { name: organizationSettingsData.name, initials: instanceInitials(organizationSettingsData.name) } }),
         user: currentUser,
         recentProjects,
         project,

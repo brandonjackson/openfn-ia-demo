@@ -19,6 +19,7 @@
  *   off and with no custom webhook path (so it can't take the original's
  *   traffic), named "… (copy)", or "… (copy 2)" when that's taken.
  */
+import { approvalTimeoutActions, outcomeStatuses } from "../model/step-tools";
 import { projects as fixtureProjects, projectWorkflowDetails } from "../fixtures/projects";
 import { authMethods } from "../fixtures/project-settings";
 import { nationalIdWorkflow, nationalIdWorkflowAt, surveillanceVersions, workflowGraphs, workflowVersions } from "../fixtures/workflow";
@@ -261,6 +262,7 @@ export function graphProblems(doc: Pick<WorkflowDocument, "jobs" | "triggers" | 
     if (!j.id) errors.push({ code: "required", detail: "can't be blank", pointer: `#/jobs/${i}/id` });
     if (!j.name?.trim()) errors.push({ code: "required", detail: "can't be blank", pointer: `#/jobs/${i}/name` });
     if (!j.adaptor) errors.push({ code: "required", detail: "can't be blank", pointer: `#/jobs/${i}/adaptor` });
+    errors.push(...toolProblems(j, i));
   });
   doc.triggers.forEach((t, i) => {
     if (!["webhook", "cron", "kafka"].includes(t.type)) errors.push({ code: "invalid", detail: "must be webhook or cron", pointer: `#/triggers/${i}/type` });
@@ -312,6 +314,32 @@ export function graphProblems(doc: Pick<WorkflowDocument, "jobs" | "triggers" | 
 const nameTaken = (projectId: string, name: string, except?: string) =>
   liveWorkflowsIn(projectId).some((w) => w.id !== except && w.name.trim().toLowerCase() === name.trim().toLowerCase());
 
+/**
+ * Planned (docs/api-plans/step-tools.md): a job's `kind` is code, a Report
+ * outcome or a Human in the loop step, and a tool's `config` says how it's set.
+ */
+function toolProblems(j: WorkflowJob, i: number): Entry[] {
+  const at = (field: string) => `#/jobs/${i}/${field}`;
+  if (j.kind === undefined || j.kind === "code") return j.config ? [{ code: "not_allowed", detail: "only a tool has a config", pointer: at("config") }] : [];
+  if (j.kind !== "report_outcome" && j.kind !== "approval") return [{ code: "invalid", detail: "must be code, report_outcome or approval", pointer: at("kind") }];
+  const config = j.config as Record<string, unknown> | undefined;
+  if (!config || typeof config !== "object") return [{ code: "required", detail: "a tool needs its config", pointer: at("config") }];
+  const errors: Entry[] = [];
+  if (j.kind === "report_outcome") {
+    if (!outcomeStatuses.some((o) => o.id === config["status"])) errors.push({ code: "invalid", detail: "isn't an outcome", pointer: at("config/status") });
+    if (typeof config["description"] !== "string") errors.push({ code: "type", detail: "must be text", pointer: at("config/description") });
+  } else {
+    const timeout = config["timeout"] as { amount?: unknown; unit?: unknown } | undefined;
+    if (typeof config["assignee"] !== "string" || !config["assignee"].trim()) errors.push({ code: "required", detail: "say who's asked", pointer: at("config/assignee") });
+    if (typeof config["title"] !== "string" || !config["title"].trim()) errors.push({ code: "required", detail: "can't be blank", pointer: at("config/title") });
+    if (!timeout || typeof timeout.amount !== "number" || timeout.amount < 1 || !["hours", "days"].includes(timeout.unit as string)) {
+      errors.push({ code: "invalid", detail: "must wait at least an hour", pointer: at("config/timeout") });
+    }
+    if (!approvalTimeoutActions.some((a) => a.id === config["onTimeout"])) errors.push({ code: "invalid", detail: "must be reject, approve or fail", pointer: at("config/onTimeout") });
+  }
+  return errors;
+}
+
 /** Fills a job, trigger or edge the client sent with the fields it left out. */
 const job = (j: Partial<WorkflowJob>): WorkflowJob => ({
   id: j.id ?? newId(),
@@ -322,6 +350,8 @@ const job = (j: Partial<WorkflowJob>): WorkflowJob => ({
   keychain_credential_id: j.keychain_credential_id ?? null,
   ...(j.summary !== undefined && { summary: j.summary }),
   system_id: j.system_id ?? null,
+  ...(j.kind !== undefined && j.kind !== "code" && { kind: j.kind }),
+  ...(j.config !== undefined && { config: j.config }),
 });
 const trigger = (t: Partial<WorkflowTrigger>): WorkflowTrigger => ({
   id: t.id ?? newId(),

@@ -14,16 +14,6 @@ export const organizationSettingsData: OrganizationSettings = {
     { id: "m-4", name: "Beth Wilson", email: "bwilson@example.org", role: "Member", joined: "2 weeks ago" },
   ],
   visibility: { projects: "project", systems: "organization", services: "server" },
-  contextLayers: [
-    {
-      id: "dtu-central",
-      name: "DTU Central",
-      host: "Hosted on OpenFn Cloud",
-      url: "https://app.openfn.org/context/dtu-central",
-      status: "connected",
-      lastFetched: "14 minutes ago",
-    },
-  ],
   xroad: orgXRoad,
   xroadUsage: {
     systems: connectedSystems.filter((s) => connectionOf(s).method === "xroad").length,
@@ -42,3 +32,10 @@ export const organizationSettingsData: OrganizationSettings = {
     ],
   },
 };
+
+/**
+ * A logo the organisation might upload: a health ministry's shield, as the
+ * data URL the fake server keeps. Not seeded, so the corner shows the
+ * organisation's initials until someone uploads one; stories use it.
+ */
+export const organizationLogo = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTIiIGZpbGw9IiMwZjc2NmUiLz48cGF0aCBkPSJNMzIgMTJsMTYgNnYxMmMwIDExLTcgMTktMTYgMjItOS0zLTE2LTExLTE2LTIyVjE4eiIgZmlsbD0iI2ZmZiIvPjxwYXRoIGQ9Ik0yOSAyNGg2djZoNnY2aC02djZoLTZ2LTZoLTZ2LTZoNnoiIGZpbGw9IiMwZjc2NmUiLz48L3N2Zz4=";

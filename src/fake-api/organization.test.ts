@@ -27,14 +27,20 @@ describe("organisation settings", () => {
     expect(Object.keys(bad?.fieldErrors ?? {}).sort()).toEqual(["security_server_managed_by", "visibility.projects"]);
   });
 
-  it("requests a context layer by URL, refuses one it already has, and removes it", async () => {
-    const layers = () => request<{ data: { id: string; attributes: { url: string; status: string } }[] }>("GET", "/api/demo/organization/context_layers").then((r) => r.data);
-    const { data } = await request<{ data: { id: string; attributes: { status: string; name: string } } }>("POST", "/api/demo/organization/context_layers", { url: "https://context.example.org/health" });
-    expect(data.attributes).toMatchObject({ status: "pending", name: "context.example.org" });
-    expect((await refusal(request("POST", "/api/demo/organization/context_layers", { url: "https://context.example.org/health" })))?.fieldErrors["url"]).toBeTruthy();
-    expect((await refusal(request("POST", "/api/demo/organization/context_layers", { url: "not a url" })))?.fieldErrors["url"]).toBeTruthy();
-    await request("DELETE", `/api/demo/organization/context_layers/${data.id}`);
-    expect((await layers()).some((l) => l.id === data.id)).toBe(false);
+  it("sets a logo from an image's data URL, refusing what isn't one, a type it doesn't take or one too big, and takes it off", async () => {
+    type Org = { data: { attributes: { logo: string | null } } };
+    const logo = `data:image/png;base64,${btoa("a tiny png")}`;
+    await request("PUT", "/api/demo/organization/logo", { logo });
+    expect((await request<Org>("GET", "/api/demo/organization")).data.attributes.logo).toBe(logo);
+    expect((await refusal(request("PUT", "/api/demo/organization/logo", { logo: "https://example.org/logo.png" })))?.fieldErrors["logo"]).toEqual(["must be an image sent as a base64 data URL"]);
+    expect((await refusal(request("PUT", "/api/demo/organization/logo", { logo: `data:image/gif;base64,${btoa("gif")}` })))?.fieldErrors["logo"]).toEqual(["must be a PNG, JPEG, SVG or WebP image"]);
+    const big = `data:image/png;base64,${"A".repeat(Math.ceil((256 * 1024 * 4) / 3) + 8)}`;
+    expect((await refusal(request("PUT", "/api/demo/organization/logo", { logo: big })))?.fieldErrors["logo"]).toEqual(["must be 256 KB or smaller"]);
+    signInAs("user-beth");
+    expect((await refusal(request("DELETE", "/api/demo/organization/logo")))?.code).toBe("forbidden");
+    signInAs("user-amadou");
+    await request("DELETE", "/api/demo/organization/logo");
+    expect((await request<Org>("GET", "/api/demo/organization")).data.attributes.logo).toBeNull();
   });
 });
 

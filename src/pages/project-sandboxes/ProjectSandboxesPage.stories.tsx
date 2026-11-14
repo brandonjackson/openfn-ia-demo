@@ -8,7 +8,7 @@ const node: IANode = {
   id: "sandboxes",
   label: "Sandboxes",
   description:
-    "Isolated copies of this project for trying out changes before merging them back.",
+    "Isolated copies of this project for trying out changes before promoting them back.",
 };
 
 const project = projects[2];
@@ -27,7 +27,7 @@ const meta: Meta<typeof ProjectSandboxesPage> = {
     onSelectSandbox: () => {},
     onCreateSandbox: async () => {},
     onEditSandbox: async () => {},
-    onMergeSandbox: async () => {},
+    onPromoteSandbox: async () => {},
     onDeleteSandbox: async () => {},
   },
   decorators: [withRouterAt(`/projects/${project.id}/sandboxes`)],

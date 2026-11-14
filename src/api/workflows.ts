@@ -148,26 +148,31 @@ export function useSandboxComponentChanges(parentId: string | undefined, sandbox
     placeholderData: (previous) => previous,
     queryFn: () =>
       // The demo's own extensions to the preview; Lightning's sends neither.
-      request<{
-        components?: { component_type: ProjectComponentType; name: string; change: "new" | "changed" | "unchanged" }[];
-        env_vars?: { key: string; change: "new" | "changed" | "unchanged" }[];
-      }>("POST", `/api/projects/${parentId}/sandboxes/${sandboxId}/merge_previews`, { target_project_id: parentId }),
-    select: (a): MergePreviewComponent[] => [
-      ...(a.components ?? []).flatMap((c) => (c.change === "unchanged" ? [] : [{ type: c.component_type, name: c.name, change: c.change }])),
-      ...(a.env_vars ?? []).flatMap((v) => (v.change === "unchanged" ? [] : [{ type: "Environment variable" as const, name: v.key, change: v.change }])),
-    ],
+      request<PreviewAnswer>("POST", `/api/projects/${parentId}/sandboxes/${sandboxId}/merge_previews`, { target_project_id: parentId }),
+    select: previewComponents,
   });
   return { status: statusOf(query), changes: (sandboxId && query.data) || [] };
 }
 
-/** Every merge preview at once, for a list of sandboxes, keyed by sandbox id. */
-export async function fetchMergePreview(parentId: string, sandboxId: string, targetId: string): Promise<MergePreviewWorkflow[]> {
-  const a = await request<{ workflows: { name: string; source_workflow_id: string | null; target_workflow_id: string | null; change: MergePreviewWorkflow["change"]; diverged: boolean }[] }>(
-    "POST",
-    `/api/projects/${parentId}/sandboxes/${sandboxId}/merge_previews`,
-    { target_project_id: targetId },
-  );
-  return a.workflows.map((w) => ({ name: w.name, sourceWorkflowId: w.source_workflow_id, targetWorkflowId: w.target_workflow_id, change: w.change, diverged: w.diverged }));
+type PreviewAnswer = {
+  workflows: { name: string; source_workflow_id: string | null; target_workflow_id: string | null; change: MergePreviewWorkflow["change"]; diverged: boolean }[];
+  components?: { component_type: ProjectComponentType; name: string; change: "new" | "changed" | "unchanged" }[];
+  env_vars?: { key: string; change: "new" | "changed" | "unchanged" }[];
+};
+
+/** The new and changed components and environment variables in a merge preview. */
+const previewComponents = (a: PreviewAnswer): MergePreviewComponent[] => [
+  ...(a.components ?? []).flatMap((c) => (c.change === "unchanged" ? [] : [{ type: c.component_type, name: c.name, change: c.change }])),
+  ...(a.env_vars ?? []).flatMap((v) => (v.change === "unchanged" ? [] : [{ type: "Environment variable" as const, name: v.key, change: v.change }])),
+];
+
+/** One sandbox's merge preview into a target: its workflows, and its components and environment variables. */
+async function fetchPreview(parentId: string, sandboxId: string, targetId: string): Promise<SandboxPreview> {
+  const a = await request<PreviewAnswer>("POST", `/api/projects/${parentId}/sandboxes/${sandboxId}/merge_previews`, { target_project_id: targetId });
+  return {
+    workflows: a.workflows.map((w) => ({ name: w.name, sourceWorkflowId: w.source_workflow_id, targetWorkflowId: w.target_workflow_id, change: w.change, diverged: w.diverged })),
+    components: previewComponents(a),
+  };
 }
 
 /**
@@ -235,16 +240,15 @@ export function useSandboxSaves() {
   const run = useMutation({ mutationFn: (work: () => Promise<unknown>) => work(), onSuccess: refresh });
   const go = <T,>(work: () => Promise<T>) => run.mutateAsync(work) as Promise<T>;
   return {
-    /** Makes a sandbox under `parentId`, bringing the parent's saved dataclips in `dataclipIds` along; answers with its id. */
-    create: (parentId: string, input: { name: string; color: string | null; dataclipIds?: string[] }) =>
+    /** Makes a sandbox under `parentId` in an environment, a copy of it, saved dataclips included; answers with its id. */
+    create: (parentId: string, input: { name: string; color: string | null; env?: string }) =>
       go(async () => {
         const id = crypto.randomUUID();
-        const { dataclipIds, ...rest } = input;
-        await request("PUT", `/api/projects/${parentId}/sandboxes/${id}`, { ...rest, ...(dataclipIds?.length && { dataclip_ids: dataclipIds }) });
+        await request("PUT", `/api/projects/${parentId}/sandboxes/${id}`, input);
         return id;
       }),
-    /** Renames or recolours a sandbox. */
-    update: (id: string, input: { name: string; description: string; color: string | null }) =>
+    /** Renames a sandbox or moves it to another environment, keeping its description and colour. */
+    update: (id: string, input: { name: string; description: string; color: string | null; env?: string }) =>
       go(() => request("PUT", `/api/projects/${id}`, input)).then(() => undefined),
     /** Merges a sandbox's chosen workflows into its target as a new version of each. */
     merge: (parentId: string, sandboxId: string, input: { targetId: string; workflowIds?: string[]; message?: string }) =>
@@ -260,12 +264,21 @@ export function useSandboxSaves() {
   };
 }
 
+/** What one sandbox brings back to its parent, from the merge preview. */
+export interface SandboxPreview {
+  /** Its new and changed workflows. */
+  workflows: MergePreviewWorkflow[];
+  /** Its new and changed components and environment variables (the demo's extension; Lightning sends none). */
+  components: MergePreviewComponent[];
+}
+
 /**
  * What each sandbox has changed since it was made from its parent, by
  * sandbox id: the merge preview against its parent, keeping only what a
- * merge would bring (new and changed workflows).
+ * merge would bring (new and changed workflows, components and environment
+ * variables).
  */
-export function useSandboxChanges(rootId: string | undefined, sandboxes: ProjectDetails[]): { status: LoadStatus; changes: Record<string, MergePreviewWorkflow[]> } {
+export function useSandboxChanges(rootId: string | undefined, sandboxes: ProjectDetails[]): { status: LoadStatus; changes: Record<string, SandboxPreview> } {
   const ids = sandboxes.map((s) => `${s.id}:${s.parentId}`).join(",");
   const query = useQuery({
     queryKey: [...workflowKeys.sandboxes(rootId ?? ""), "changes", ids],
@@ -274,8 +287,13 @@ export function useSandboxChanges(rootId: string | undefined, sandboxes: Project
     // swapped for a spinner. Another project's would put its changes on the wrong sandboxes.
     placeholderData: (previous, previousQuery) => (previousQuery?.queryKey[1] === rootId ? previous : undefined),
     queryFn: async () => {
-      const previews = await Promise.all(sandboxes.map((s) => fetchMergePreview(s.parentId!, s.id, s.parentId!)));
-      return Object.fromEntries(sandboxes.map((s, i) => [s.id, previews[i]!.filter((w) => w.change === "new" || w.change === "changed")]));
+      const previews = await Promise.all(sandboxes.map((s) => fetchPreview(s.parentId!, s.id, s.parentId!)));
+      return Object.fromEntries(
+        sandboxes.map((s, i): [string, SandboxPreview] => [
+          s.id,
+          { workflows: previews[i]!.workflows.filter((w) => w.change === "new" || w.change === "changed"), components: previews[i]!.components },
+        ]),
+      );
     },
   });
   return { status: statusOf(query), changes: query.data ?? {} };

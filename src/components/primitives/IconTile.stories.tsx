@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Folder, Sparkles, Workflow } from "lucide-react";
 import IconTile from "./IconTile";
+import { organizationLogo } from "../../fixtures/organization";
 
 const meta: Meta<typeof IconTile> = {
   title: "Primitives/IconTile",
@@ -33,3 +34,6 @@ export const Sizes: Story = {
 export const Letters: Story = { args: { icon: undefined, tone: "dark", children: "ab" } };
 
 export const Round: Story = { args: { icon: Workflow, tone: "white", size: "2xs", round: true } };
+
+/** Filled with an uploaded image, such as an organisation's logo, fitted inside the tile. */
+export const Image: Story = { args: { icon: undefined, image: organizationLogo, imageAlt: "Ministry of Health logo", tone: "white", size: "lg" } };

@@ -1,4 +1,4 @@
-import { sandboxSlug } from "../model/sandboxes";
+import { sandboxSlug, type SandboxDraft } from "../model/sandboxes";
 import { errorMessageOf, firstProblemOf } from "../model/form-error";
 import { useEffect, useRef, useState } from "react";
 import { BookOpen, Database, FilePlus, FileText, FlaskConical, Sparkles } from "lucide-react";
@@ -70,8 +70,7 @@ import AIAssistantPanel from "../components/domain/AIAssistantPanel";
 import RunLabel from "../components/domain/RunLabel";
 import RunInputModal from "../components/domain/RunInputModal";
 import type { RunInput } from "../components/domain/RunInputModal";
-import EditInSandboxModal from "../components/domain/EditInSandboxModal";
-import type { SandboxStart } from "../components/domain/EditInSandboxModal";
+import SandboxFormModal from "../components/domain/SandboxFormModal";
 import PromoteSandboxModal from "../components/domain/PromoteSandboxModal";
 import ConfirmModal from "../components/primitives/ConfirmModal";
 import Modal from "../components/primitives/Modal";
@@ -97,6 +96,9 @@ import type { ChannelDraft } from "../model/channels";
 import ConnectSystemPicker from "../components/domain/ConnectSystemPicker";
 import type { ConnectChoice } from "../components/domain/ConnectSystemPicker";
 import AddConnectedSystemFlow, { type NewSystemInput } from "../components/domain/AddConnectedSystemFlow";
+import ReportOutcomeView from "../components/domain/ReportOutcomeView";
+import ApprovalStepView from "../components/domain/ApprovalStepView";
+import { newStepTool, newStepToolLabel, toolBody, toolSummary, type StepTool, type StepToolKind } from "../model/step-tools";
 import type { Adaptor } from "../model/adaptors";
 import { componentTypes } from "../model/component-types";
 
@@ -114,6 +116,8 @@ interface Edits {
   credentials: Record<string, string | undefined>;
   /** The connected system each step talks to, where it was changed. */
   systems: Record<string, string | undefined>;
+  /** A tool step's settings, where they were changed. */
+  tools: Record<string, StepTool>;
   removed: string[];
   added: JobNode[];
   /** The edges into added steps. */
@@ -132,6 +136,7 @@ const noEdits: Edits = {
   bodies: {},
   credentials: {},
   systems: {},
+  tools: {},
   removed: [],
   added: [],
   addedEdges: [],
@@ -166,13 +171,16 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
     .map((n) => {
       if (n.type !== "job") return n;
       const adaptor = edits.adaptors[n.id] ?? n.adaptor;
+      // A tool step's settings, changed: the code it runs as and its summary follow them.
+      const tool = edits.tools[n.id];
       return {
         ...n,
+        ...(tool && { tool, body: toolBody(tool), summary: toolSummary(tool) }),
         ...edits.positions[n.id],
         label: edits.labels[n.id] ?? n.label,
         adaptor,
-        adaptorPackage: info[adaptor].package,
-        body: edits.bodies[n.id] ?? n.body,
+        adaptorPackage: info[adaptor]?.package ?? n.adaptorPackage,
+        body: tool ? toolBody(tool) : (edits.bodies[n.id] ?? n.body),
         system: n.id in edits.systems ? edits.systems[n.id] : n.system,
         credentialId: n.id in edits.credentials ? edits.credentials[n.id] : n.credentialId,
       };
@@ -285,6 +293,7 @@ export default function WorkflowEditorPage({
   systems = [],
   systemAdaptors,
   onAddSystem,
+  tools,
   stepServices,
   showWorkflowFiles = true,
   showComponents = true,
@@ -302,6 +311,7 @@ export default function WorkflowEditorPage({
   onToggleLive,
   onPromote,
   onCreateSandbox,
+  promoteTarget,
   onCreateDataclip,
   onSaveDataclip,
   baseline,
@@ -413,6 +423,8 @@ export default function WorkflowEditorPage({
    * yours to add), picking any adaptor adds its step straight away.
    */
   onAddSystem?: (system: NewSystemInput) => Promise<string>;
+  /** The tools a new step can be, offered in "Add a step" under Tools. Left out, the picker has no Tools tab. */
+  tools?: StepToolKind[];
   /** Published services a new step can call, offered in "Add a step" under Services. Left out, the picker has no Services tab. */
   stepServices?: StepService[];
   /** List the workflow's own files (workflow.yaml, docs, service.yaml, Health) in the explorer. Defaults to true; off, code mode falls back to the trigger. */
@@ -464,12 +476,16 @@ export default function WorkflowEditorPage({
    */
   onPromote?: (message: string) => Promise<void>;
   /**
-   * Makes a sandbox with this name from the one selected, with the data it
-   * starts with: a saved dataclip it brings across, or a reviewed copy of a
-   * run's input, saved in it under the run's name. Once it resolves,
-   * `sandboxes` lists it and, selected, its `dataclips` hold what came across.
+   * Makes a sandbox, from New sandbox or "Edit in sandbox": its name (the
+   * slug of what was typed), environment and the sandbox it's made from, and
+   * with a run loaded, maybe a reviewed copy of the run's input, saved in it
+   * under the run's name. Once it resolves, `sandboxes` lists it and,
+   * selected, its `dataclips` hold the input. A refusal shows under the
+   * form's field.
    */
-  onCreateSandbox?: (name: string, start: SandboxStart) => Promise<void>;
+  onCreateSandbox?: (draft: SandboxDraft) => Promise<void>;
+  /** Where promoting the selected sandbox takes its changes: its parent. Main when left out. */
+  promoteTarget?: string;
   /** Saves a new dataclip in the project, to run with; resolves with it. Without it, it lasts as long as the page. */
   onCreateDataclip?: (draft: DataclipDraft) => Promise<Dataclip>;
   /** Changes a saved dataclip's title and description. Without it, the change lasts as long as the page. */
@@ -731,7 +747,8 @@ export default function WorkflowEditorPage({
   const [newCredentialFor, setNewCredentialFor] = useState<string>();
 
   const [runInputOpen, setRunInputOpen] = useState(defaultRunInputOpen);
-  const [editInSandboxOpen, setEditInSandboxOpen] = useState(defaultEditInSandboxOpen);
+  // The sandbox form, as New sandbox (from the chip) or "Edit in sandbox" (from main), or closed.
+  const [sandboxForm, setSandboxForm] = useState<"new" | "editInSandbox" | undefined>(defaultEditInSandboxOpen ? "editInSandbox" : undefined);
   const [promoteOpen, setPromoteOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [addComponentOpen, setAddComponentOpen] = useState(false);
@@ -881,43 +898,28 @@ export default function WorkflowEditorPage({
 
   // ---- Sandboxes ------------------------------------------------------------
 
+  // Rejects with the server's reason, which the promotion request shows under its message.
   const promote = async (message: string) => {
+    if (onPromote) await onPromote(message);
+    else setSessionVersions((added) => [{ id: nextVersion, message, author: CURRENT_USER, date: "20 Oct 2026" }, ...added]);
     setPromoteOpen(false);
-    if (onPromote) {
-      try {
-        await onPromote(message);
-      } catch (e) {
-        setStatusNote(errorMessageOf(e));
-        return;
-      }
-    } else {
-      setSessionVersions((added) => [{ id: nextVersion, message, author: CURRENT_USER, date: "20 Oct 2026" }, ...added]);
-    }
     setVersion("latest");
     selectSandbox("main");
   };
 
-  const createSandbox = ({ name: typed, start }: { name: string; start: SandboxStart }) => {
+  const createSandbox = async (draft: SandboxDraft) => {
     // Named by its slug, as the Sandboxes page names them.
-    const sandboxName = sandboxSlug(typed);
-    setEditInSandboxOpen(false);
-    // What it brings across shows in the sandbox's Saved dataclips.
-    if (start.kind !== "nothing") addFile("dataclips");
+    const sandboxName = sandboxSlug(draft.name);
     if (onCreateSandbox) {
-      void onCreateSandbox(sandboxName, start).then(
-        () => selectSandbox(sandboxName),
-        (e: unknown) => setStatusNote(`Sandbox not made: ${firstProblemOf(e)}`),
-      );
-      return;
+      // A refusal rejects, and the form shows it under its field.
+      await onCreateSandbox({ ...draft, parent: draft.parent ?? sandbox });
+    } else {
+      // A reviewed copy of a run's input comes along as a named input.
+      if (draft.runInput) addInput(draft.runInput.body, runInputName(draft.runInput.runId));
+      setNewSandboxes((current) => [...current, sandboxName]);
     }
-    // A reviewed copy of a run's input comes along as a named input.
-    if (start.kind === "run") addInput(start.body, runInputName(start.runId));
-    setNewSandboxes((current) => [...current, sandboxName]);
-    selectSandbox(sandboxName);
-  };
-
-  const joinSandbox = (sandboxName: string) => {
-    setEditInSandboxOpen(false);
+    // What it brings across shows in the sandbox's Saved dataclips.
+    if (draft.runInput) addFile("dataclips");
     selectSandbox(sandboxName);
   };
 
@@ -935,6 +937,8 @@ export default function WorkflowEditorPage({
     edit((e) => ({ edges: { ...e.edges, [edgeId]: { ...e.edges[edgeId], ...changes } } }));
 
   const changeCode = (stepId: string, body: string) => edit((e) => ({ bodies: { ...e.bodies, [stepId]: body } }));
+
+  const changeTool = (stepId: string, tool: StepTool) => edit((e) => ({ tools: { ...e.tools, [stepId]: tool } }));
 
   const addStep = () => {
     const id = crypto.randomUUID();
@@ -973,19 +977,30 @@ export default function WorkflowEditorPage({
     const source = graph.nodes.find((n) => n.id === sourceId);
     if (!source) return;
     const id = crypto.randomUUID();
+    // A tool runs on the common adaptor, with settings in place of code.
+    const tool = choice.kind === "tool" ? newStepTool(choice.tool) : undefined;
     // A service is called over HTTP, so its step is an HTTP step named for what the service does.
-    const adaptor = choice.kind === "ai" ? "claude" : choice.kind === "service" ? "http" : choice.adaptor;
+    const adaptor = choice.kind === "ai" ? "claude" : choice.kind === "service" ? "http" : choice.kind === "tool" ? "common" : choice.adaptor;
     // An adaptor the editor has no reference for (one picked while adding a system) still gets a step.
     const info = adaptors.info[adaptor] ?? { ...adaptors.info.common, name: adaptor, package: `@openfn/language-${adaptor}` };
     const firstSnippet = adaptors.snippets[adaptor]?.[0]?.code;
     const job: JobNode = {
       id,
       type: "job",
-      label: choice.kind === "ai" ? `${choice.action.label} with AI` : choice.kind === "service" ? choice.service.name : `New ${info.name} step`,
+      label:
+        choice.kind === "ai"
+          ? `${choice.action.label} with AI`
+          : choice.kind === "service"
+            ? choice.service.name
+            : choice.kind === "tool"
+              ? newStepToolLabel(choice.tool)
+              : `New ${info.name} step`,
       adaptor,
       adaptorPackage: info.package,
-      body:
-        choice.kind === "ai"
+      ...(tool && { tool, summary: toolSummary(tool) }),
+      body: tool
+        ? toolBody(tool)
+        : choice.kind === "ai"
           ? choice.action.body
           : choice.kind === "service"
             ? serviceStepBody(choice.service)
@@ -1055,7 +1070,7 @@ export default function WorkflowEditorPage({
       description={docAbout[openDoc] ?? "A doc kept alongside the workflow. The assistant reads it with the context and spec."}
       content={docText(openDoc)}
       onSave={onMain ? undefined : async (text) => setDocEdits((edits) => ({ ...edits, [`${sandbox}/${openDoc}`]: text }))}
-      onEditInSandbox={onMain ? () => setEditInSandboxOpen(true) : undefined}
+      onEditInSandbox={onMain ? () => setSandboxForm("editInSandbox") : undefined}
     />
   );
 
@@ -1196,7 +1211,7 @@ export default function WorkflowEditorPage({
       case "settings":
         return openInCode();
       case "edit-in-sandbox":
-        return setEditInSandboxOpen(true);
+        return setSandboxForm("editInSandbox");
       case "promote":
         return setPromoteOpen(true);
       case "export-yaml":
@@ -1383,6 +1398,15 @@ export default function WorkflowEditorPage({
   const openChannelDetails = openComponent?.type === "Channel" ? contents?.channels[openComponent.id] : undefined;
   const openCollection = openComponent?.type === "Collection" ? contents?.collections[openComponent.id] : undefined;
   const openContent = openComponent && isContentComponentType(openComponent.type) ? contents?.componentContents[openComponent.id] : undefined;
+  // A tool step's settings, in place of its code: edited in a sandbox, read on main.
+  const openTool = view === "code" ? focusJob?.tool : undefined;
+  const toolPane =
+    focusJob && openTool?.kind === "outcome" ? (
+      <ReportOutcomeView key={focusJob.id} tool={openTool} onChange={onMain ? undefined : (tool) => changeTool(focusJob.id, tool)} />
+    ) : focusJob && openTool?.kind === "approval" ? (
+      <ApprovalStepView key={focusJob.id} tool={openTool} onChange={onMain ? undefined : (tool) => changeTool(focusJob.id, tool)} />
+    ) : undefined;
+
   const componentPane = !openComponent ? undefined : openChannelDetails ? (
     <ChannelView
       key={openComponent.id}
@@ -1604,7 +1628,7 @@ export default function WorkflowEditorPage({
       sandboxes={allSandboxes}
       sandbox={sandbox}
       onSelectSandbox={selectSandbox}
-      onNewSandbox={() => setEditInSandboxOpen(true)}
+      onNewSandbox={() => setSandboxForm("new")}
       onViewAllSandboxes={onViewAllSandboxes}
       versions={versions}
       version={version}
@@ -1644,23 +1668,27 @@ export default function WorkflowEditorPage({
       overlays={
         <>
           <RunInputModal open={runInputOpen} onClose={() => setRunInputOpen(false)} dataclips={clips} onRun={runWithInput} />
-          <EditInSandboxModal
-            open={editInSandboxOpen}
-            onClose={() => setEditInSandboxOpen(false)}
-            sandboxes={allSandboxes.filter((s) => s !== "main")}
-            reservedNames={["main"]}
-            run={selectedRun}
-            runInput={selectedRun ? clips.find((d) => d.id === selectedRun.inputId) : undefined}
+          <SandboxFormModal
+            open={sandboxForm !== undefined}
+            title={sandboxForm === "editInSandbox" ? "Edit in sandbox" : undefined}
+            onClose={() => setSandboxForm(undefined)}
+            sandboxes={allSandboxes}
+            defaultParent={sandbox}
+            // Only "Edit in sandbox" offers to start with the loaded run's input.
+            run={
+              sandboxForm === "editInSandbox" && selectedRun
+                ? { runId: selectedRun.runId, version: selectedRun.version, input: selectedRun ? clips.find((d) => d.id === selectedRun.inputId)?.body : undefined }
+                : undefined
+            }
             latestVersion={latestVersion}
-            dataclips={clips}
-            onCreate={createSandbox}
-            onJoin={joinSandbox}
+            onSubmit={createSandbox}
           />
           <PromoteSandboxModal
             open={promoteOpen && !onMain}
             onClose={() => setPromoteOpen(false)}
             sandbox={sandbox}
-            workflowName={name}
+            target={promoteTarget}
+            changes={changes}
             nextVersion={nextVersion}
             onPromote={promote}
           />
@@ -1747,6 +1775,7 @@ export default function WorkflowEditorPage({
               catalog={catalog}
               connected={connectedAdaptors}
               services={stepServices}
+              tools={tools}
               onSelect={(choice) => addAfterId && addStepAfter(addAfterId, choice)}
               onConnectNew={
                 onAddSystem && systemAdaptors
@@ -1792,7 +1821,7 @@ export default function WorkflowEditorPage({
     >
       {view === "canvas" && (
         <CanvasLayout
-          bottom={onMain && <ReadOnlyNotice onEditInSandbox={() => setEditInSandboxOpen(true)} />}
+          bottom={onMain && <ReadOnlyNotice onEditInSandbox={() => setSandboxForm("editInSandbox")} />}
           rightOverlay={inspector}
         >
           <WorkflowCanvas
@@ -1878,7 +1907,7 @@ export default function WorkflowEditorPage({
                     ? testCasesPane
                     : file === "envVars"
                       ? envVarsPane
-                      : (docPane || componentPane)
+                      : (docPane || toolPane || componentPane)
           }
           showExplorer={layout.explorer}
           showDetails={shownLayout.details}

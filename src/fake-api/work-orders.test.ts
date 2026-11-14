@@ -98,15 +98,17 @@ describe("saved dataclips", () => {
     expect((await refusal(request("PATCH", `/api/demo/projects/${a}/dataclips/nope`, { name: "x" })))?.code).toBe("not_found");
   });
 
-  it("brings the saved dataclips asked for into a new sandbox, on its copies of their workflows", async () => {
+  it("brings every saved dataclip into a new sandbox, on its copies of their workflows", async () => {
     const id = crypto.randomUUID();
-    await request("PUT", `/api/projects/${a}/sandboxes/${id}`, { name: "try-inputs", dataclip_ids: ["saved-existing-citizen"] });
+    const saved = await clipsIn(a);
+    await request("PUT", `/api/projects/${a}/sandboxes/${id}`, { name: "try-inputs" });
     const brought = await clipsIn(id);
-    expect(brought).toHaveLength(1);
-    expect(brought[0]).toMatchObject({ name: "Sample application: existing citizen" });
-    expect(brought[0]!.id).not.toBe("saved-existing-citizen");
+    const names = (clips: { name?: string | null }[]) => [...new Set(clips.flatMap((d) => (d.name ? [d.name] : [])))].sort();
+    expect(names(brought)).toEqual(names(saved));
+    const citizen = brought.find((d) => d.name === "Sample application: existing citizen")!;
+    expect(citizen.id).not.toBe("saved-existing-citizen");
     const { workflows: copies } = await request<{ workflows: { id: string }[] }>("GET", `/api/projects/${id}/workflows`);
-    expect(copies.some((w) => w.id === brought[0]!.workflow_id)).toBe(true);
+    expect(copies.some((w) => w.id === citizen.workflow_id)).toBe(true);
   });
 
   it("lets a viewer read saved dataclips but not save one", async () => {

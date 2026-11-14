@@ -16,7 +16,7 @@ const meta: Meta<typeof HistoryFilterBar> = {
 export default meta;
 type Story = StoryObj<typeof HistoryFilterBar>;
 
-function Controlled({ initial = {}, acrossProjects = false }: { initial?: Partial<HistoryFilters>; acrossProjects?: boolean }) {
+function Controlled({ initial = {}, acrossProjects = false, showOutcomes = false }: { initial?: Partial<HistoryFilters>; acrossProjects?: boolean; showOutcomes?: boolean }) {
   const [filters, setFilters] = useState<HistoryFilters>({ ...defaultHistoryFilters, ...initial });
   return (
     <HistoryFilterBar
@@ -26,6 +26,7 @@ function Controlled({ initial = {}, acrossProjects = false }: { initial?: Partia
       channelRequests={acrossProjects ? allChannelRequests() : projectChannelRequests(project)}
       workflows={acrossProjects ? projects.flatMap(historyWorkflows) : historyWorkflows(project)}
       projects={acrossProjects ? projects.map((p) => ({ id: p.id, name: p.name })) : undefined}
+      showOutcomes={showOutcomes}
     />
   );
 }
@@ -52,3 +53,6 @@ export const AcrossProjects: Story = { render: () => <Controlled acrossProjects 
 
 /** The channel requests tab: channel and outcome. */
 export const ChannelRequests: Story = { render: () => <Controlled initial={{ tab: "channels" }} /> };
+
+/** With tools on: filter by the outcome a Report outcome step recorded. */
+export const ByOutcome: Story = { render: () => <Controlled showOutcomes initial={{ outcomes: ["rejected", "needs_follow_up"] }} /> };

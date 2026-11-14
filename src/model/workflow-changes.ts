@@ -10,6 +10,11 @@ export interface WorkflowChange {
   summary: string;
 }
 
+/** "No changes", "1 change", "3 changes". */
+export function changesLabel(count: number): string {
+  return count === 0 ? "No changes" : `${count} ${count === 1 ? "change" : "changes"}`;
+}
+
 /** A step, by its fields that going live would carry over. */
 const jobFields = (n: JobNode) => ({ body: n.body, adaptor: n.adaptorPackage, credential: n.credentialId ?? "", system: n.system ?? "" });
 

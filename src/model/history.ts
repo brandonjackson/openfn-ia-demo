@@ -7,6 +7,7 @@
 import type { ChannelType } from "./channels";
 import type { Dataclip, RunDetails, RunStatus, WorkOrder } from "./workflow";
 import { activityPeriods, periodStart, stampTime } from "./runs";
+import type { OutcomeStatus } from "./step-tools";
 
 /** A work order as History lists it: the order itself and where it belongs. */
 export interface HistoryWorkOrder {
@@ -54,6 +55,7 @@ export interface ChannelRequest {
 export const historyStatuses: { id: RunStatus; label: string }[] = [
   { id: "pending", label: "Pending" },
   { id: "running", label: "Running" },
+  { id: "waiting", label: "Waiting" },
   { id: "success", label: "Success" },
   { id: "failed", label: "Failed" },
   { id: "cancelled", label: "Cancelled" },
@@ -106,6 +108,8 @@ export interface HistoryFilters {
   workflowId: string | null;
   /** Work orders whose latest run ended in any of these; empty is any. */
   statuses: RunStatus[];
+  /** Work orders whose latest run reported any of these business outcomes (Report outcome); empty is any. */
+  outcomes: OutcomeStatus[];
   receivedAfter: string | null;
   receivedBefore: string | null;
   /** When the latest run started. */
@@ -127,6 +131,7 @@ export const defaultHistoryFilters: HistoryFilters = {
   projectId: null,
   workflowId: null,
   statuses: [],
+  outcomes: [],
   receivedAfter: null,
   receivedBefore: null,
   activityAfter: null,
@@ -152,13 +157,14 @@ export const lastActivityTime = (order: HistoryWorkOrder) => stampTime(order.wor
  * Whether `order` passes `filters`. `ignoring` leaves one filter out, so a
  * filter's options can say how many each would show.
  */
-export function matchesFilters(order: HistoryWorkOrder, filters: HistoryFilters, ignoring?: "statuses"): boolean {
+export function matchesFilters(order: HistoryWorkOrder, filters: HistoryFilters, ignoring?: "statuses" | "outcomes"): boolean {
   const f = filters;
   return (
     (!f.projectId || order.projectId === f.projectId) &&
     (!f.workflowId || order.workflowId === f.workflowId) &&
     (!f.workOrderId || order.workOrder.id === f.workOrderId) &&
     (ignoring === "statuses" || f.statuses.length === 0 || f.statuses.includes(order.workOrder.status)) &&
+    (ignoring === "outcomes" || f.outcomes.length === 0 || (!!order.workOrder.outcome && f.outcomes.includes(order.workOrder.outcome.status))) &&
     inRange(stampTime(order.receivedAt), f.receivedAfter, f.receivedBefore) &&
     inRange(lastActivityTime(order), f.activityAfter, f.activityBefore) &&
     matchesSearch(order, f.search, f.searchFields)
@@ -184,7 +190,7 @@ export function activeFilterCount(filters: HistoryFilters): number {
   const own =
     f.tab === "channels"
       ? [f.channelId, f.requestStatus]
-      : [f.workflowId, f.workOrderId, f.statuses.length > 0, f.receivedAfter || f.receivedBefore, f.activityAfter || f.activityBefore];
+      : [f.workflowId, f.workOrderId, f.statuses.length > 0, f.outcomes.length > 0, f.receivedAfter || f.receivedBefore, f.activityAfter || f.activityBefore];
   return [...shared, ...own].filter(Boolean).length;
 }
 
@@ -216,7 +222,8 @@ export function describeSearchFields(fields: HistorySearchField[]): string {
 
 /** Which actions a set of selected work orders allows, by Lightning's rules. */
 export function bulkActions(selected: HistoryWorkOrder[]): { retry: boolean; retryFrom: boolean; cancel: boolean } {
-  const finished = (o: HistoryWorkOrder) => !["pending", "running"].includes(o.workOrder.status);
+  // A run waiting on someone hasn't finished either: answer it, rather than start another.
+  const finished = (o: HistoryWorkOrder) => !["pending", "running", "waiting"].includes(o.workOrder.status);
   const sameWorkflow = new Set(selected.map((o) => o.workflowId)).size === 1;
   return {
     // Retry needs every order to have finished running.

@@ -52,8 +52,9 @@ const actionIcons: Record<string, LucideIcon> = {
 };
 
 /**
- * The picker behind a step's + on the canvas: connect the next step to a
- * system. A side menu of categories sits beside the choices, with a search
+ * The picker behind a step's + on the canvas ("Add a step"), and the shape
+ * of any "Connect a system" picker: whoever opens it gives it its title, in
+ * the `Modal` around it. A side menu of categories sits beside the choices, with a search
  * over the top that looks across all of them.
  *
  * **Connected** (the default) lists the systems this project already talks
@@ -63,12 +64,17 @@ const actionIcons: Record<string, LucideIcon> = {
  * when it's given them, lists the organisation's Live services a step can
  * call, under who offers each. The rest are every adaptor, sorted by what
  * the system does into titled groups.
+ *
+ * Given `onConnectNew`, an adaptor this project isn't connected to yet (one
+ * picked from a category, AI's models or a search, but not a built-in tool)
+ * goes to it instead of `onSelect`, so the system can be added first.
  */
 export default function ConnectSystemPicker({
   catalog,
   connected,
   services,
   onSelect,
+  onConnectNew,
   initialCategory = "connected",
 }: {
   /** Every adaptor, sorted into categories, with the built-in tools and what the AI tab offers. */
@@ -78,6 +84,8 @@ export default function ConnectSystemPicker({
   /** Published services a step can call, each under who offers it. Left out, there's no Services tab and search doesn't look at services. */
   services?: StepService[];
   onSelect?: (choice: ConnectChoice) => void;
+  /** Called instead of `onSelect` for an adaptor the project has no system for yet (not connected, not a built-in tool), to add one first. Left out, every adaptor goes to `onSelect`. */
+  onConnectNew?: (adaptor: string) => void;
   initialCategory?: string;
 }) {
   const { adaptors: adaptorCatalog, categories: catalogCategories, builtInTools, aiModels, aiActions } = catalog;
@@ -92,7 +100,10 @@ export default function ConnectSystemPicker({
   const [query, setQuery] = useState("");
   const q = query.trim().toLowerCase();
 
-  const pickAdaptor = (adaptor: string) => onSelect?.({ kind: "adaptor", adaptor });
+  const pickAdaptor = (adaptor: string) =>
+    onConnectNew && !connected.includes(adaptor) && !builtInTools.includes(adaptor)
+      ? onConnectNew(adaptor)
+      : onSelect?.({ kind: "adaptor", adaptor });
 
   const adaptorRows = (ids: string[]) =>
     ids.map((id) => {

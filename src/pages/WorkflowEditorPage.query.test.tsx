@@ -49,11 +49,11 @@ async function openWorkflowMenu() {
   fireEvent.click(button);
 }
 
-/** Opens "Connect a system" from a card's +: the last step's, or the first card's (the trigger's). */
+/** Opens "Add a step" from a card's +: the last step's, or the first card's (the trigger's). */
 async function openStepPicker(which: "last" | "first" = "last") {
   const buttons = await screen.findAllByRole("button", { name: /^Add a step after/ }, wait);
   fireEvent.click(which === "first" ? buttons[0] : buttons.at(-1)!);
-  return screen.findByRole("dialog", { name: "Connect a system" }, wait);
+  return screen.findByRole("dialog", { name: "Add a step" }, wait);
 }
 
 // The canvas measures itself and the assistant scrolls its thread; jsdom does neither.
@@ -233,7 +233,7 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
       // The workflow backs Submit a planning application, so it isn't offered a step that calls itself.
       expect(within(picker).queryByText("Submit a planning application")).toBeNull();
       fireEvent.click(within(picker).getByText("Look up a client's national ID"));
-      await waitFor(() => expect(screen.queryByRole("dialog", { name: "Connect a system" })).toBeNull(), wait);
+      await waitFor(() => expect(screen.queryByRole("dialog", { name: "Add a step" })).toBeNull(), wait);
       // It's an HTTP step named for the service, posting to its address, saved to the sandbox's copy.
       const step = () =>
         request<{ workflows: { jobs: { name: string; adaptor: string; body: string }[] }[] }>("GET", `/api/projects/${sandboxId}/workflows`).then(
@@ -241,6 +241,39 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
         );
       await waitFor(async () => expect((await step())?.adaptor).toMatch(/^@openfn\/language-http/), wait);
       expect((await step())?.body).toContain("post('https://app.openfn.org/i/malawi-chw-referrals/client-registry-lookup', {");
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
+  it("adds a system the project isn't connected to before its step, when its adaptor is picked from a category", async () => {
+    const projectId = projectIdFor("project-a");
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "new-system" });
+    act(() => setSandbox(projectId, "new-system"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+      const picker = await openStepPicker();
+      fireEvent.change(within(picker).getByRole("searchbox"), { target: { value: "Mailchimp" } });
+      fireEvent.click(within(picker).getByText("Mailchimp"));
+      // The picker gives way to adding the system, with Mailchimp already picked.
+      await waitFor(() => expect(screen.queryByRole("dialog", { name: "Add a step" })).toBeNull(), wait);
+      await screen.findByText("Configure System", undefined, wait);
+      fireEvent.click(screen.getByRole("button", { name: "Add connected system" }));
+      type Systems = { data: { id: string; attributes?: { name: string }; name?: string }[] };
+      const added = async () => {
+        const answer = await request<Systems>("GET", "/api/demo/connected_systems");
+        return answer.data.find((s) => (s.attributes?.name ?? s.name) === "Mailchimp");
+      };
+      await waitFor(async () => expect(await added()).toBeDefined(), wait);
+      const systemId = (await added())!.id;
+      // The step is added on the new system, and saved to the sandbox's copy.
+      const step = () =>
+        request<{ workflows: { jobs: { name: string; system_id?: string | null }[] }[] }>("GET", `/api/projects/${sandboxId}/workflows`).then(
+          (a) => a.workflows.flatMap((w) => w.jobs).find((j) => j.name === "New mailchimp step" || j.name === "New Mailchimp step"),
+        );
+      await waitFor(async () => expect((await step())?.system_id).toBe(systemId), wait);
     } finally {
       act(() => setSandbox(projectId, "main"));
     }

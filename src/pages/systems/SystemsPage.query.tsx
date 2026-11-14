@@ -14,7 +14,7 @@ import SystemsPage, { type SystemsPageData } from "./SystemsPage";
  * Feeds the Systems page from the demo's own routes: the organisation's
  * systems, the adaptors a new one can use, the ecosystem map and, on X-Road,
  * the directory. Adding a system (by hand or from the directory) saves it,
- * and it's on the list, its page and the editor's "Connect a system" at once.
+ * and it's on the list, its page and the editor's "Add a step" at once.
  * The list doesn't wait for the catalog, the map or the directory; each is
  * left out until it's in, or if it can't load. It suggests three systems, as
  * it always has. Without the Ecosystem map flag there's no map; without

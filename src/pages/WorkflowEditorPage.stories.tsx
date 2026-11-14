@@ -196,7 +196,7 @@ export const CodeReadOnly: Story = {
   args: { initialView: "code", initialFile: { stepId: "search" } },
 };
 
-/** The canvas in a sandbox: hover a step for the + that adds the next one, through "Connect a system". */
+/** The canvas in a sandbox: hover a step for the + that adds the next one, through "Add a step". */
 export const CanvasInSandbox: Story = {
   args: {
     sandbox: projects[0].sandboxes[1],

@@ -45,8 +45,23 @@ export const DataAndFiles: Story = { args: { initialCategory: "data" } };
 /** A project that isn't connected to anything yet. */
 export const NothingConnected: Story = { args: { connected: [] } };
 
+/** With `onConnectNew`, a system the project isn't connected to yet (here under Health) goes to adding it first. */
+export const ConnectsNewSystems: Story = { args: { initialCategory: "health", onConnectNew: () => {} } };
+
 /** As the canvas opens it, from a step's +. */
 export const InDialog: Story = {
+  decorators: [
+    (Story) => (
+      <Modal open title="Add a step" onClose={() => {}} widthClass="max-w-3xl">
+        <Story />
+      </Modal>
+    ),
+  ],
+};
+
+/** Titled for connecting a system rather than adding a step, as a systems page would open it. */
+export const ConnectASystem: Story = {
+  args: { services: undefined },
   decorators: [
     (Story) => (
       <Modal open title="Connect a system" onClose={() => {}} widthClass="max-w-3xl">

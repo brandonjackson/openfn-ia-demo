@@ -103,12 +103,12 @@ function CreateProjectModal({
       <form id={`${id}-form`} onSubmit={handleSubmit} noValidate>
         {/* Intro */}
         <div className="flex items-center gap-3 rounded-lg bg-indigo-50 border border-indigo-100 px-4 py-3 mb-6">
-          <div className="w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
-            <FolderPlus size={18} className="text-indigo-600" />
+          <div className="w-9 h-9 rounded-lg bg-badge-indigo-bg flex items-center justify-center flex-shrink-0">
+            <FolderPlus size={18} className="text-badge-indigo-fg" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-indigo-900">New project</p>
-            <p className="text-xs text-indigo-600">Projects are isolated workspaces that contain workflows.</p>
+            <p className="text-sm font-semibold text-gray-900">New project</p>
+            <p className="text-xs text-gray-600">Projects are isolated workspaces that contain workflows.</p>
           </div>
         </div>
 

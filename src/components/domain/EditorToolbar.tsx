@@ -251,7 +251,7 @@ export default function EditorToolbar({
                     </span>
                     <span
                       className={`flex-none font-mono text-xs ${
-                        version !== "latest" ? "rounded bg-amber-100 px-1 text-amber-800" : "text-gray-500"
+                        version !== "latest" ? "rounded bg-badge-yellow-bg px-1 text-badge-yellow-fg" : "text-gray-500"
                       }`}
                     >
                       {selected?.shortLabel ?? version}

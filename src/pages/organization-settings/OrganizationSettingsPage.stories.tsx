@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import OrganizationSettingsPage from "./OrganizationSettingsPage";
 import { withRouter } from "../../stories/decorators";
 import type { IANode } from "../../model/ia-tree";
-import { organizationSettingsData } from "../../fixtures/organization";
+import { organizationLogo, organizationSettingsData } from "../../fixtures/organization";
 
 const root: IANode = { id: "organization-settings", label: "Organization settings", pageType: "organization-settings" };
 const ancestors = [{ node: root, path: "/organization-settings" }];
@@ -14,8 +14,8 @@ const meta: Meta<typeof OrganizationSettingsPage> = {
   component: OrganizationSettingsPage,
   args: {
     onRename: async () => {},
-    onRequestContextAccess: async () => {},
-    onRemoveContextLayer: async () => {},
+    onSaveLogo: async () => {},
+    onRemoveLogo: async () => {},
     onInviteMember: async () => {},
     onChangeMemberRole: async () => {},
     onRemoveMember: async () => {},
@@ -33,9 +33,14 @@ export const General: Story = {
   args: { node: section("general", "General"), ancestors, currentPath: "/organization-settings/general", data: organizationSettingsData },
 };
 
-/** A member who can't change the organisation reads its name, with no Save. */
+/** With a logo uploaded: it shows in place of the initials, with Remove. */
+export const GeneralWithLogo: Story = {
+  args: { ...General.args, data: { ...organizationSettingsData, logo: organizationLogo } },
+};
+
+/** A member who can't change the organisation reads its name and logo, with no Save or upload. */
 export const GeneralReadOnly: Story = {
-  args: { ...General.args, onRename: undefined },
+  args: { ...General.args, onRename: undefined, onSaveLogo: undefined, onRemoveLogo: undefined },
 };
 
 export const Members: Story = {
@@ -58,35 +63,6 @@ export const Visibility: Story = {
 
 /** Without the right to change them, the defaults show but can't be picked or saved. */
 export const VisibilityReadOnly: Story = { args: { ...Visibility.args, onSaveVisibility: undefined } };
-
-export const Context: Story = {
-  args: { node: section("context", "Context"), ancestors, currentPath: "/organization-settings/context", data: organizationSettingsData },
-};
-
-export const ContextPendingRequest: Story = {
-  name: "Context (request awaiting approval)",
-  args: {
-    ...Context.args,
-    data: {
-      ...organizationSettingsData,
-      contextLayers: [
-        ...organizationSettingsData.contextLayers,
-        {
-          id: "layer-partner",
-          name: "partner.example.org",
-          host: "https://partner.example.org/context/health",
-          url: "https://partner.example.org/context/health",
-          status: "pending",
-        },
-      ],
-    },
-  },
-};
-
-export const NoContextLayers: Story = {
-  name: "Context (empty)",
-  args: { ...Context.args, data: { ...organizationSettingsData, contextLayers: [] } },
-};
 
 export const XRoad: Story = {
   name: "X-Road",

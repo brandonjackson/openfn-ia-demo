@@ -1,7 +1,7 @@
 import type { PageRoute } from "../../app/ia-utils";
 import Loaded from "../../app/Loaded";
 import { useFlags } from "../../app/feature-flags";
-import { useContextLayers, useOrganization, useOrganizationMembers, useOrganizationSaves, useOrganizationXRoad } from "../../api/organization";
+import { useOrganization, useOrganizationMembers, useOrganizationSaves, useOrganizationXRoad } from "../../api/organization";
 import { combine } from "../../api/status";
 import { organizationRoles } from "../../model/organization";
 import OrganizationSettingsPage from "./OrganizationSettingsPage";
@@ -11,7 +11,7 @@ import { pageFrame } from "../../app/page-frame";
 /**
  * Feeds Organization settings: its name (which admins change) and members from the API's
  * organizations, and what the demo adds (visibility defaults, who manages the
- * Security Server, context layers, billing) from the demo's own routes. The
+ * Security Server, its logo, billing) from the demo's own routes. The
  * rest of the X-Road identity is read from its own route (the X-Road operator
  * sets it, not this page). Admins get the actions; members read. Someone in
  * no organisation is told it isn't there. What the feature flags turn off is
@@ -21,11 +21,10 @@ export default function OrganizationSettingsPageQuery({ route }: { route: PageRo
   const flags = useFlags();
   const { status, organization: org } = useOrganization();
   const { status: membersStatus, members } = useOrganizationMembers(org?.id);
-  const { status: layersStatus, layers } = useContextLayers();
   const { status: xroadStatus, xroad } = useOrganizationXRoad(flags.xroad);
   const saves = useOrganizationSaves(org?.id);
   const announcing = useAnnounceOutcome();
-  const loaded = combine(status, membersStatus, layersStatus, xroadStatus);
+  const loaded = combine(status, membersStatus, xroadStatus);
 
   return (
     <Loaded status={loaded.state === "ready" && !org ? { state: "notFound" } : loaded} path={route.currentPath}>
@@ -45,7 +44,7 @@ export default function OrganizationSettingsPageQuery({ route }: { route: PageRo
                 systems: flags.connectedSystems ? o.visibility.systems : undefined,
                 services: flags.serviceCatalog ? o.visibility.services : undefined,
               },
-              contextLayers: layers,
+              logo: o.logo,
               xroad: xroad && { ...xroad, managedBy: o.managedBy },
               xroadUsage: o.xroadUsage,
               billing: o.billing,
@@ -86,8 +85,9 @@ export default function OrganizationSettingsPageQuery({ route }: { route: PageRo
                     })
                 : undefined
             }
-            onRequestContextAccess={manage ? (url) => announcing(saves.requestContextLayer(url), { success: "Access requested. It waits for approval." }) : undefined}
-            onRemoveContextLayer={manage ? (id) => announcing(saves.removeContextLayer(id), { success: "Context layer removed.", failure: "The context layer wasn't removed" }) : undefined}
+            // The logo's field says why it was refused, so only success is announced.
+            onSaveLogo={manage ? (logo) => announcing(saves.saveLogo(logo), { success: "Your organisation's logo is updated." }) : undefined}
+            onRemoveLogo={manage ? () => announcing(saves.removeLogo(), { success: "Logo removed. Your organisation's initials show in its place.", failure: "The logo wasn't removed" }) : undefined}
           />
         );
       }}

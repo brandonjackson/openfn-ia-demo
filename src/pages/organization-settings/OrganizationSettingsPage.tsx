@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Building2, CreditCard, Eye, Layers, Network, Plus, Save, Unplug, UserPlus, Users } from "lucide-react";
+import { Building2, CreditCard, Eye, Network, Save, Trash2, UserPlus, Users } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
 import type { OrganizationSettings } from "../../model/organization";
-import { type BillingDetails, type ContextLayer, type OrganizationInvite, type OrganizationMember, type VisibilityScope, organizationRoles } from "../../model/organization";
+import { type BillingDetails, type OrganizationInvite, type OrganizationMember, type VisibilityScope, logoProblem, LOGO_ACCEPT, organizationRoles } from "../../model/organization";
+import { instanceInitials } from "../../model/account";
 import { errorMessageOf, fieldErrorOf } from "../../model/form-error";
 import { type OrgXRoadSettings, type SecurityServer, type SecurityServerManager, type XRoadCertificate, type XRoadSubsystem, memberClassLabels, securityServerManagerLabels, clientIdOf } from "../../model/xroad";
 import SettingsLayout from "../../components/patterns/SettingsLayout";
@@ -17,12 +18,14 @@ import Callout from "../../components/primitives/Callout";
 import CopyValue from "../../components/primitives/CopyValue";
 import DataTable from "../../components/primitives/DataTable";
 import type { DataTableColumn } from "../../components/primitives/DataTable";
-import EmptyState from "../../components/primitives/EmptyState";
 import FormField from "../../components/primitives/FormField";
 import PropertyList from "../../components/primitives/PropertyList";
 import StatTile from "../../components/primitives/StatTile";
 import { RadioOption, TextInput } from "../../components/primitives/FormControls";
 import ActionMenu from "../../components/primitives/ActionMenu";
+import FileDropzone from "../../components/primitives/FileDropzone";
+import IconTile from "../../components/primitives/IconTile";
+import Text from "../../components/primitives/Text";
 import ConfirmModal from "../../components/primitives/ConfirmModal";
 import InviteOrgMemberModal from "../../components/domain/InviteOrgMemberModal";
 import Inline from "../../components/primitives/Inline";
@@ -34,7 +37,6 @@ const navItems: SettingsNavItem[] = [
   { id: "general", label: "General", icon: Building2, to: `${BASE_PATH}/general` },
   { id: "members", label: "Members", icon: Users, to: `${BASE_PATH}/members` },
   { id: "visibility", label: "Visibility", icon: Eye, to: `${BASE_PATH}/visibility` },
-  { id: "context", label: "Context", icon: Layers, to: `${BASE_PATH}/context` },
   { id: "xroad", label: "X-Road", icon: Network, to: `${BASE_PATH}/xroad` },
   { id: "billing", label: "Billing", icon: CreditCard, to: `${BASE_PATH}/billing` },
 ];
@@ -43,7 +45,86 @@ const navItems: SettingsNavItem[] = [
 /*  General                                                            */
 /* ------------------------------------------------------------------ */
 
-function GeneralSection({ name, onRename }: { name: string; onRename?: (name: string) => Promise<void> }) {
+interface LogoActions {
+  /** Sets the organisation's logo from an image, as a data URL. Rejects with what the server refused, said under the field. Left out when you can't change the organisation. */
+  onSaveLogo?: (logo: string) => Promise<void>;
+  /** Takes the logo off, so the organisation's initials show in its place. Left out when you can't change the organisation. */
+  onRemoveLogo?: () => Promise<void>;
+}
+
+/** Reads a picked file as a data URL, the way the logo is sent. */
+const readAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+
+function LogoCard({ name, logo, onSaveLogo, onRemoveLogo }: { name: string; logo?: string } & LogoActions) {
+  const [problem, setProblem] = useState<string>();
+  const [busy, setBusy] = useState<"uploading" | "removing">();
+  const upload = async (file: File | undefined) => {
+    if (!file || !onSaveLogo || busy) return;
+    // Said under the field before it's sent; the server checks the same.
+    const local = logoProblem(file);
+    setProblem(local);
+    if (local) return;
+    setBusy("uploading");
+    try {
+      await onSaveLogo(await readAsDataUrl(file));
+    } catch (refused) {
+      setProblem(fieldErrorOf(refused, "logo") ?? errorMessageOf(refused));
+    } finally {
+      setBusy(undefined);
+    }
+  };
+  const remove = async () => {
+    if (!onRemoveLogo || busy) return;
+    setProblem(undefined);
+    setBusy("removing");
+    // A refusal is said by the wrapper.
+    await onRemoveLogo().catch(() => {});
+    setBusy(undefined);
+  };
+  return (
+    <Card
+      title="Logo"
+      description="Shown in the top-left corner for everyone in the organisation. Without one, its initials stand in."
+      actions={
+        logo &&
+        onRemoveLogo && (
+          <Button variant="secondary" size="sm" icon={Trash2} aria-disabled={busy === "removing" || undefined} onClick={() => void remove()}>
+            {busy === "removing" ? "Removing…" : "Remove"}
+          </Button>
+        )
+      }
+    >
+      <Inline gap="md" align="start" stackOnMobile>
+        <IconTile size="lg" tone={logo ? "white" : "dark"} image={logo} imageAlt={`${name} logo`}>
+          {instanceInitials(name)}
+        </IconTile>
+        <Stack grow>
+          {onSaveLogo ? (
+            <FormField label={logo ? "Replace the logo" : "Upload a logo"} error={problem}>
+              <FileDropzone
+                compact
+                accept={LOGO_ACCEPT}
+                title={busy === "uploading" ? "Uploading…" : "Drop an image here or click to upload"}
+                description="PNG, JPEG, SVG or WebP, up to 256 KB. A square image looks best."
+                onFiles={(files) => void upload(files[0])}
+              />
+            </FormField>
+          ) : (
+            <Text tone="muted">{logo ? "Your organisation's logo." : "No logo yet, so its initials show."} Only admins change it.</Text>
+          )}
+        </Stack>
+      </Inline>
+    </Card>
+  );
+}
+
+function GeneralSection({ name, logo, onRename, onSaveLogo, onRemoveLogo }: { name: string; logo?: string; onRename?: (name: string) => Promise<void> } & LogoActions) {
   const [draft, setDraft] = useState(name);
   // Set when Save is pressed with no name; the field says so until one is typed.
   const [missing, setMissing] = useState(false);
@@ -58,7 +139,7 @@ function GeneralSection({ name, onRename }: { name: string; onRename?: (name: st
   const refused = save.error !== undefined ? (fieldErrorOf(save.error, "name") ?? errorMessageOf(save.error)) : undefined;
   return (
     <Stack gap="lg">
-      <SectionHeading title="General" description="How your organisation is named across OpenFn." />
+      <SectionHeading title="General" description="How your organisation is named and shown across OpenFn." />
       <Card title="Name" description="Shown to everyone in the organisation, and to anyone you share projects, systems or services with.">
         <form
           noValidate
@@ -82,6 +163,7 @@ function GeneralSection({ name, onRename }: { name: string; onRename?: (name: st
           </Inline>
         </form>
       </Card>
+      <LogoCard name={name} logo={logo} onSaveLogo={onSaveLogo} onRemoveLogo={onRemoveLogo} />
     </Stack>
   );
 }
@@ -124,7 +206,7 @@ function MembersSection({ members, name, assignableRoles = [], onInviteMember, o
         </div>
       ),
     },
-    { key: "role", header: "Role", render: (m) => <Badge label={m.role} tone={roleTones[m.role]} /> },
+    { key: "role", header: "Org role", render: (m) => <Badge label={m.role} tone={roleTones[m.role]} /> },
     { key: "joined", header: "Joined", render: (m) => m.joined },
     ...(onChangeMemberRole || onRemoveMember
       ? [
@@ -250,140 +332,6 @@ function VisibilitySection({ initial, onSave }: { initial: Visibility; onSave?: 
           </div>
         </Card>
       ))}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Context                                                            */
-/* ------------------------------------------------------------------ */
-
-interface ContextActions {
-  /** Asks for access to a source of context, by its URL; it waits for approval. Left out when you can't change the organisation. */
-  onRequestContextAccess?: (url: string) => Promise<void>;
-  /** Disconnects a source of context, or cancels a request for one. */
-  onRemoveContextLayer?: (id: string) => Promise<void>;
-}
-
-function ContextSection({
-  layers,
-  onRequestContextAccess,
-  onRemoveContextLayer,
-}: { layers: ContextLayer[] } & ContextActions) {
-  const [url, setUrl] = useState("");
-  const [error, setError] = useState<unknown>(null);
-  // Set when Request access is pressed with no URL; the field says so until one is typed.
-  const [missing, setMissing] = useState(false);
-  const [sending, setSending] = useState(false);
-
-  const requestAccess = async () => {
-    const trimmed = url.trim();
-    if (!onRequestContextAccess || sending) return;
-    setMissing(!trimmed);
-    if (focusFirstProblem([["context-layer-url", !trimmed]])) return;
-    setError(null);
-    setSending(true);
-    try {
-      await onRequestContextAccess(trimmed);
-      setUrl("");
-    } catch (refused) {
-      setError(refused);
-    } finally {
-      setSending(false);
-    }
-  };
-
-  const columns: DataTableColumn<ContextLayer>[] = [
-    {
-      key: "name",
-      header: "Context layer",
-      render: (l) => (
-        <div>
-          <p className="font-medium text-gray-900">{l.name}</p>
-          <p className="text-xs text-gray-400">{l.host}</p>
-        </div>
-      ),
-    },
-    {
-      key: "status",
-      header: "Status",
-      render: (l) =>
-        l.status === "connected" ? (
-          <Badge label="Connected" tone="green" />
-        ) : (
-          <Badge label="Awaiting approval" tone="yellow" />
-        ),
-    },
-    {
-      key: "last-fetched",
-      header: "Last fetched",
-      render: (l) => l.lastFetched ?? "Not yet fetched",
-    },
-    ...(onRemoveContextLayer
-      ? [
-          {
-            key: "actions",
-            header: "",
-            align: "right" as const,
-            render: (l: ContextLayer) => (
-              <Button variant="secondary" size="xs" icon={Unplug} onClick={() => void onRemoveContextLayer(l.id).catch(() => {})}>
-                {l.status === "connected" ? "Disconnect" : "Cancel request"}
-              </Button>
-            ),
-          },
-        ]
-      : []),
-  ];
-
-  return (
-    <div className="space-y-8">
-      <div>
-        <SectionHeading
-          title="Context layers"
-          description="Shared sources of handbook pages, systems and services that your organisation draws on."
-        />
-        {layers.length > 0 ? (
-          <DataTable columns={columns} rows={layers} getRowKey={(l) => l.id} />
-        ) : (
-          <EmptyState
-            icon={Layers}
-            title="No context layers connected"
-            description="Add one below to start drawing on shared context."
-          />
-        )}
-      </div>
-
-      {onRequestContextAccess && (
-      <Card
-        title="Add a context layer"
-        description="Paste the URL of another context layer. Its owners will need to approve the request before it's loaded here."
-      >
-        <form
-          className="flex items-end gap-2"
-          noValidate
-          onSubmit={(e) => {
-            e.preventDefault();
-            requestAccess();
-          }}
-        >
-          <div className="flex-1">
-            <FormField label="Context layer URL" htmlFor="context-layer-url" error={missing && !url.trim() ? "Enter a context layer URL" : error !== null ? (fieldErrorOf(error, "url") ?? errorMessageOf(error)) : undefined}>
-              <TextInput
-                id="context-layer-url"
-                type="url"
-                placeholder="https://example.org/context/my-layer"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-              />
-            </FormField>
-          </div>
-          {/* Enabled until it sends: pressed with no URL, it says so under the field. */}
-          <Button type="submit" icon={Plus} aria-disabled={sending}>
-            {sending ? "Requesting…" : "Request access"}
-          </Button>
-        </form>
-      </Card>
-      )}
     </div>
   );
 }
@@ -595,7 +543,7 @@ function BillingSection({ billing }: { billing: BillingDetails }) {
 /** What Organization settings shows: the organisation's settings, as the API gives them. */
 export type OrganizationSettingsPageData = OrganizationSettings;
 
-export interface OrganizationSettingsPageProps extends PageProps<OrganizationSettingsPageData>, ContextActions, MemberActions {
+export interface OrganizationSettingsPageProps extends PageProps<OrganizationSettingsPageData>, MemberActions, LogoActions {
   /** Renames the organisation. Left out when you can't change the organisation, which leaves the name to read. */
   onRename?: (name: string) => Promise<void>;
   /** Saves the defaults for what others can see. Left out when you can't change the organisation. */
@@ -606,16 +554,13 @@ export interface OrganizationSettingsPageProps extends PageProps<OrganizationSet
 
 /**
  * The organisation's settings, from the account menu: everything it sets
- * once. Its name, its members, what others can see by default, the context layers it
- * draws on, its identity on X-Road (which connected systems and published
+ * once. Its name and logo, its members, what others can see by default, its identity on X-Road (which connected systems and published
  * services reuse), and billing.
  */
 export default function OrganizationSettingsPage({
   node,
   ancestors,
   data,
-  onRequestContextAccess,
-  onRemoveContextLayer,
   assignableRoles = organizationRoles,
   onInviteMember,
   onChangeMemberRole,
@@ -623,6 +568,8 @@ export default function OrganizationSettingsPage({
   onSaveVisibility,
   onSaveSecurityServerManager,
   onRename,
+  onSaveLogo,
+  onRemoveLogo,
 }: OrganizationSettingsPageProps) {
   // Without X-Road there's no X-Road section. The /organization-settings root shows the first section.
   const items = navItems.filter((item) => item.id !== "xroad" || data.xroad);
@@ -631,11 +578,11 @@ export default function OrganizationSettingsPage({
     <SettingsLayout
       breadcrumbs={<Breadcrumbs ancestors={ancestors.map((a) => ({ label: a.node.label, path: a.path }))} current={node.label} />}
       title="Organization settings"
-      description={`Who's in the ${data.name}, what others can see, the context you draw on, ${data.xroad ? "your identity on X-Road, " : ""}and billing.`}
+      description={`Who's in the ${data.name}, what others can see, ${data.xroad ? "your identity on X-Road, " : ""}and billing.`}
       navItems={items}
       activeId={activeId}
     >
-      {activeId === "general" && <GeneralSection name={data.name} onRename={onRename} />}
+      {activeId === "general" && <GeneralSection name={data.name} logo={data.logo} onRename={onRename} onSaveLogo={onSaveLogo} onRemoveLogo={onRemoveLogo} />}
       {activeId === "members" && (
         <MembersSection
           members={data.members}
@@ -647,13 +594,6 @@ export default function OrganizationSettingsPage({
         />
       )}
       {activeId === "visibility" && <VisibilitySection initial={data.visibility} onSave={onSaveVisibility} />}
-      {activeId === "context" && (
-        <ContextSection
-          layers={data.contextLayers}
-          onRequestContextAccess={onRequestContextAccess}
-          onRemoveContextLayer={onRemoveContextLayer}
-        />
-      )}
       {activeId === "xroad" && data.xroad && <XRoadSection xroad={data.xroad} xroadUsage={data.xroadUsage} onSave={onSaveSecurityServerManager} />}
       {activeId === "billing" && <BillingSection billing={data.billing} />}
     </SettingsLayout>

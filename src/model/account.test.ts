@@ -13,9 +13,9 @@ describe("instanceName", () => {
 });
 
 describe("instanceInitials", () => {
-  it("takes the first letter of the first two words", () => {
+  it("takes the first letter of the first two words, skipping little ones", () => {
     expect(instanceInitials("Sim DTU")).toBe("SD");
-    expect(instanceInitials("Ministry of Health")).toBe("MO");
+    expect(instanceInitials("Ministry of Health")).toBe("MH");
   });
 
   it("takes the first two letters of one word, or of a host's first part", () => {

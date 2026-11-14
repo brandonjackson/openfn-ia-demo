@@ -65,6 +65,20 @@ describe("OrganizationSettingsPageQuery", () => {
     expect(await screen.findByText(/160/, {}, wait)).toBeTruthy();
   });
 
+  it("uploads a logo to the server, shows it, and takes it off again", async () => {
+    renderRoute("/organization-settings/general");
+    await screen.findByText("Upload a logo", {}, wait);
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+    fireEvent.change(input, { target: { files: [new File(["<svg xmlns='http://www.w3.org/2000/svg'/>"], "logo.svg", { type: "image/svg+xml" })] } });
+    expect(await screen.findByText("Your organisation's logo is updated.", {}, wait)).toBeTruthy();
+    expect(await screen.findByRole("img", { name: "Ministry of Health logo" }, wait)).toBeTruthy();
+    type Org = { data: { attributes: { logo: string | null } } };
+    expect((await request<Org>("GET", "/api/demo/organization")).data.attributes.logo).toMatch(/^data:image\/svg\+xml;base64,/);
+    fireEvent.click(screen.getByRole("button", { name: "Remove" }));
+    expect(await screen.findByText(/Logo removed/, {}, wait)).toBeTruthy();
+    expect((await request<Org>("GET", "/api/demo/organization")).data.attributes.logo).toBeNull();
+  });
+
   it("lists the members the server has", async () => {
     const [first] = await members();
     renderRoute();

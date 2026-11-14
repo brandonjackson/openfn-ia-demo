@@ -1,7 +1,6 @@
 /**
  * What the demo adds to an organisation on the pretend server: the defaults
- * for what others can see, its X-Road identity, the context layers it draws
- * on, and billing. The organisation itself, its name and members, is the
+ * for what others can see, its logo, its X-Road identity, and billing. The organisation itself, its name and members, is the
  * API's (`organizations.ts`, api/organizations.md); these extras aren't in it,
  * so they live under `/api/demo/` and follow api/conventions.md. They're one
  * set, for the organisation you're in.
@@ -14,8 +13,8 @@
  *   member on the organisation's X-Road instance with their subsystems and
  *   services (`GET /api/demo/organization/xroad/directory`), as the
  *   organisation's Security Server last listed it.
- * - A context layer is requested by its URL and waits for its owners'
- *   approval; it's removed (or the request cancelled) with `DELETE`.
+ * - Its logo is an image sent as a data URL (`PUT /api/demo/organization/logo`:
+ *   PNG, JPEG, SVG or WebP, up to 256 KB), and taken off with `DELETE`.
  * - Billing is read only.
  * Anyone in the organisation reads all of it; its admins change it.
  */
@@ -23,52 +22,33 @@ import { organizationSettingsData } from "../fixtures/organization";
 import { orgXRoad, xroadDirectory } from "../fixtures/xroad";
 import { mcpServerUrl } from "../fixtures/service-catalog";
 import { seedId } from "../fixtures/ids";
-import type { ContextLayer, VisibilityScope } from "../model/organization";
+import { LOGO_ACCEPT, LOGO_MAX_BYTES, type VisibilityScope } from "../model/organization";
 import { securityServerManagerLabels, type SecurityServerManager } from "../model/xroad";
-import { badId, forbidden, invalid, isUuid, json, noContent, notFound, now, ORIGIN, paged, unknownKeys, type Entry, type Handler } from "./answers";
+import { forbidden, invalid, json, noContent, notFound, now, unknownKeys, type Entry, type Handler } from "./answers";
 import { record } from "./audit";
 import { ago, seedTime, table } from "./db";
 import { managesAnOrganization as canManage } from "./organizations";
 import { systems } from "./connected-systems";
 import { services } from "./services";
 
-export interface ContextLayerRow {
-  id: string;
-  name: string;
-  host: string;
-  url: string;
-  status: ContextLayer["status"];
-  last_fetched_at: string | null;
-  inserted_at: string;
-}
-
 interface OrgRow {
   id: string;
   name: string;
   visibility: { projects: VisibilityScope; systems: VisibilityScope; services: VisibilityScope };
   security_server_managed_by: SecurityServerManager;
+  /** Its logo, as a data URL, or null for none. */
+  logo: string | null;
   updated_at: string;
 }
 
 const DAY = 86_400_000;
-
-export const contextLayers = table<ContextLayerRow>("context_layers", () =>
-  organizationSettingsData.contextLayers.map((l) => ({
-    id: seedId("context_layer", l.id),
-    name: l.name,
-    host: l.host,
-    url: l.url,
-    status: l.status,
-    last_fetched_at: l.status === "connected" ? ago(14 * 60_000) : null,
-    inserted_at: ago(90 * DAY),
-  })),
-);
 
 const orgDefaults = (): OrgRow => ({
   id: seedId("organization", organizationSettingsData.name),
   name: organizationSettingsData.name,
   visibility: { projects: "project", systems: "organization", services: "organization" },
   security_server_managed_by: "this-org",
+  logo: null,
   updated_at: now(),
 });
 
@@ -90,14 +70,9 @@ const org = table<OrgRow>(
 );
 
 const SCOPES: VisibilityScope[] = ["project", "organization", "server"];
-const URL_RE = /^https?:\/\/[^\s/]+\S*$/;
 
-const layerEntry = (l: ContextLayerRow) => ({
-  type: "context_layers",
-  id: l.id,
-  attributes: { ...l, id: undefined },
-  links: { self: `${ORIGIN}/api/demo/organization/context_layers/${l.id}` },
-});
+const LOGO_TYPES = LOGO_ACCEPT.split(",");
+const DATA_URL_RE = /^data:([a-z+/-]+);base64,([A-Za-z0-9+/]+={0,2})$/;
 
 /** The organisation's X-Road identity, as the X-Road operator set it. Read only, so seeded once. */
 interface XRoadIdentityRow {
@@ -137,6 +112,7 @@ const routes: Record<string, Handler> = {
         attributes: {
           visibility: o.visibility,
           security_server_managed_by: o.security_server_managed_by,
+          logo: o.logo ?? null,
           // How many connected systems and published services use the X-Road identity.
           xroad_usage: {
             systems: systems.rows().filter((s) => s.connection?.method === "xroad").length,
@@ -218,30 +194,28 @@ const routes: Record<string, Handler> = {
     return organizationRoutes["GET /api/demo/organization"]!({}, {}, new URLSearchParams());
   },
 
-  "GET /api/demo/organization/context_layers": (_params, _body, query) =>
-    json(200, paged("/api/demo/organization/context_layers", contextLayers.rows().map(layerEntry), query)),
-  // Asks for a layer by its URL. It waits for its owners to approve.
-  "POST /api/demo/organization/context_layers": (_params, body) => {
+  // Sets the logo from an image sent as a data URL.
+  "PUT /api/demo/organization/logo": (_params, body) => {
     if (!canManage()) return forbidden();
-    const errors: Entry[] = unknownKeys(body, ["url"]);
-    const url = typeof body["url"] === "string" ? body["url"].trim() : "";
-    if (!url) errors.push({ code: "required", detail: "can't be blank", pointer: "#/url" });
-    else if (!URL_RE.test(url)) errors.push({ code: "format", detail: "must be an http or https URL", pointer: "#/url" });
-    else if (contextLayers.rows().some((l) => l.url === url)) errors.push({ code: "taken", detail: "is already connected or requested", pointer: "#/url" });
+    const errors: Entry[] = unknownKeys(body, ["logo"]);
+    const logo = typeof body["logo"] === "string" ? body["logo"] : "";
+    const match = DATA_URL_RE.exec(logo);
+    if (!logo) errors.push({ code: "required", detail: "can't be blank", pointer: "#/logo" });
+    else if (!match) errors.push({ code: "format", detail: "must be an image sent as a base64 data URL", pointer: "#/logo" });
+    else if (!LOGO_TYPES.includes(match[1]!)) errors.push({ code: "inclusion", detail: "must be a PNG, JPEG, SVG or WebP image", pointer: "#/logo" });
+    else if (Math.floor((match[2]!.length * 3) / 4) > LOGO_MAX_BYTES) errors.push({ code: "too_large", detail: "must be 256 KB or smaller", pointer: "#/logo" });
     if (errors.length) return invalid(errors);
-    const host = new URL(url).host;
-    const row: ContextLayerRow = { id: crypto.randomUUID(), name: host, host: url, url, status: "pending", last_fetched_at: null, inserted_at: now() };
-    contextLayers.insert(row);
-    record("context_requested", { type: "organization", id: org.rows()[0]!.id, name: org.rows()[0]!.name }, { after: { url } }, true);
-    return json(201, { data: layerEntry(row) });
+    const o = org.rows()[0]!;
+    org.update(() => true, () => ({ ...o, logo, updated_at: now() }));
+    record("logo_updated", { type: "organization", id: o.id, name: o.name }, {}, true);
+    return organizationRoutes["GET /api/demo/organization"]!({}, {}, new URLSearchParams());
   },
-  "DELETE /api/demo/organization/context_layers/:id": ({ id }) => {
+  // Takes the logo off, so the organisation's initials stand in.
+  "DELETE /api/demo/organization/logo": () => {
     if (!canManage()) return forbidden();
-    if (!isUuid(id)) return badId("id");
-    const l = contextLayers.rows().find((r) => r.id === id);
-    if (!l) return notFound();
-    contextLayers.remove((r) => r.id === id);
-    record("context_removed", { type: "organization", id: org.rows()[0]!.id, name: org.rows()[0]!.name }, { before: { url: l.url } }, true);
+    const o = org.rows()[0]!;
+    org.update(() => true, () => ({ ...o, logo: null, updated_at: now() }));
+    record("logo_removed", { type: "organization", id: o.id, name: o.name }, {}, true);
     return noContent();
   },
 };

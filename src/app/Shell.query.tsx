@@ -4,6 +4,7 @@ import { ShellContext } from "../components/domain/shell-context";
 import { useProject, useProjectList } from "../api/projects";
 import { useMergePreview, useSandboxComponentChanges, useSandboxes } from "../api/workflows";
 import { useInstance, useMe } from "../api/account";
+import { useOrganization } from "../api/organization";
 import { asProject, isOpenable } from "../model/projects";
 import { sandboxNames } from "../model/sandboxes";
 import { componentChanges, previewChanges } from "../model/workflow-changes";
@@ -13,7 +14,8 @@ import { noteOpened, useRecentProjectIds } from "./recent-projects";
 import { useFlags } from "./feature-flags";
 
 /**
- * Feeds the app's chrome from the API: the instance, who you are and whether
+ * Feeds the app's chrome from the API: the instance, with Organizations the
+ * organisation you're in (its name and logo, for the top-left corner), who you are and whether
  * you're a superuser, the project the URL is inside, under its current name,
  * and your recently opened projects, keeping only those you can still open.
  * Each is left out (the instance's name blank) until it's loaded, and the
@@ -33,6 +35,14 @@ export default function ShellQuery({ children }: { children: ReactNode }) {
   // Lightning sends no name, so it goes by its URL's host; by the page's own host if it couldn't be loaded.
   const name =
     instanceStatus.state === "loading" ? "" : instanceName(instance?.name, instance?.url ?? window.location.origin);
+  // With Organizations, the corner is the organisation's: blank while it loads, and the instance's if you're in none or it can't load.
+  const flags = useFlags();
+  const { status: orgStatus, organization: org } = useOrganization(flags.organizations);
+  const organization = !flags.organizations
+    ? undefined
+    : orgStatus.state === "loading"
+      ? { name: "", initials: "" }
+      : org && { name: org.name, initials: instanceInitials(org.name), ...(org.logo && { logo: org.logo }) };
 
   useEffect(() => {
     if (details && !details.scheduledDeletion) noteOpened(details.id);
@@ -65,6 +75,7 @@ export default function ShellQuery({ children }: { children: ReactNode }) {
       value={{
         currentPath: pathname,
         instance: { name, initials: instanceInitials(name) },
+        organization,
         user: me,
         recentProjects,
         project,
@@ -78,7 +89,7 @@ export default function ShellQuery({ children }: { children: ReactNode }) {
           navigate(path);
         },
         onNavigate: (path) => navigate(path),
-        flags: useFlags(),
+        flags,
         // Unknown while you load or if you couldn't be; refused outright, you're not one.
         isSuperuser: me ? me.isSuperuser : meStatus.state === "notFound" || meStatus.state === "forbidden" ? false : undefined,
         ...(meStatus.state === "error" && { userError: meStatus.message }),

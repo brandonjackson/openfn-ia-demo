@@ -97,13 +97,18 @@ export function instanceName(name: string | undefined, url: string): string {
   }
 }
 
+/** Little words a name's initials skip ("Ministry of Health" → "MH"). */
+const SMALL_WORDS = new Set(["of", "the", "and", "for", "de", "du", "des", "la", "le"]);
+
 /**
- * The letters on the instance's tile: the first letter of each of its first
- * two words ("Sim DTU" → "SD"), or the first two of a one-word name or a
+ * The letters on the instance's or organisation's tile: the first letter of
+ * each of its first two words, skipping little ones ("Sim DTU" → "SD",
+ * "Ministry of Health" → "MH"), or the first two of a one-word name or a
  * host's first part ("demo.openfn.org" → "DE").
  */
 export function instanceInitials(name: string): string {
-  const words = name.trim().split(/\s+/).filter(Boolean);
+  const all = name.trim().split(/\s+/).filter(Boolean);
+  const words = all.length > 1 ? all.filter((w) => !SMALL_WORDS.has(w.toLowerCase())) : all;
   if (words.length > 1) return (words[0]![0]! + words[1]![0]!).toUpperCase();
   return (words[0] ?? "").split(".")[0]!.slice(0, 2).toUpperCase();
 }

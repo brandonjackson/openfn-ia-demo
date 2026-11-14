@@ -6,6 +6,8 @@ import { forgetCsrfToken, request } from "../api/client";
 import { useShell } from "../components/domain/shell-context";
 import { failNext, resetFakeApi, setWait, signInAs } from "../fake-api";
 import PageRoute from "./PageRoute";
+import { setFlags } from "./feature-flags";
+import { allFlagsOn } from "../model/feature-flags";
 import ShellQuery from "./Shell.query";
 import { setSandbox } from "./sandbox-state";
 import { projectIdFor } from "../fake-api/projects";
@@ -14,10 +16,11 @@ const wait = { timeout: 3000 };
 
 /** What the chrome is given, written out. */
 function Chrome() {
-  const { instance, user, isSuperuser } = useShell();
+  const { instance, organization, user, isSuperuser } = useShell();
   return (
     <ul>
       <li>instance: {instance.name ? `${instance.name} (${instance.initials})` : "blank"}</li>
+      <li>organization: {organization ? `${organization.name || "blank"} (${organization.initials})${organization.logo ? " with a logo" : ""}` : "none"}</li>
       <li>user: {user ? `${user.firstName} ${user.lastName}` : "none"}</li>
       <li>superuser: {isSuperuser === undefined ? "unknown" : String(isSuperuser)}</li>
     </ul>
@@ -72,6 +75,26 @@ describe("ShellQuery", () => {
     expect(await screen.findByText("instance: Sim DTU (SD)", {}, wait)).toBeTruthy();
     expect(await screen.findByText("user: Jane Doe", {}, wait)).toBeTruthy();
     expect(screen.getByText("superuser: true")).toBeTruthy();
+  });
+
+  it("gives the corner the organisation's name, its initials, and its logo once it has one", async () => {
+    draw();
+    expect(await screen.findByText("organization: Ministry of Health (MH)", {}, wait)).toBeTruthy();
+    await request("PUT", "/api/demo/organization/logo", { logo: `data:image/png;base64,${btoa("png")}` });
+    // A fresh shell reads it again.
+    draw();
+    expect(await screen.findByText("organization: Ministry of Health (MH) with a logo", {}, wait)).toBeTruthy();
+  });
+
+  it("leaves the corner to the instance without Organizations", async () => {
+    setFlags({ ...allFlagsOn, organizations: false });
+    try {
+      draw();
+      expect(await screen.findByText("instance: Sim DTU (SD)", {}, wait)).toBeTruthy();
+      expect(screen.getByText("organization: none")).toBeTruthy();
+    } finally {
+      setFlags(allFlagsOn);
+    }
   });
 
   it("says you're not a superuser when the API says so", async () => {

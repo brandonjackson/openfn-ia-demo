@@ -1,4 +1,4 @@
-import { Ban, Check, CheckCircle2, Circle, Loader2, X, XCircle } from "lucide-react";
+import { Ban, Check, CheckCircle2, Circle, Hourglass, Loader2, X, XCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { RunStatus } from "../../model/workflow";
 
@@ -11,6 +11,7 @@ const config: Record<
   running: { label: "Running", classes: "bg-indigo-100 text-indigo-600", dot: "bg-indigo-500 animate-pulse", icon: Loader2, iconClasses: "animate-spin text-indigo-500", mark: Loader2 },
   pending: { label: "Pending", classes: "bg-gray-100 text-gray-500", dot: "bg-gray-300", icon: Circle, iconClasses: "text-gray-300" },
   cancelled: { label: "Cancelled", classes: "bg-gray-100 text-gray-600", dot: "bg-gray-400", icon: Ban, iconClasses: "text-gray-400", mark: Ban },
+  waiting: { label: "Waiting", classes: "bg-amber-100 text-amber-700", dot: "bg-amber-500", icon: Hourglass, iconClasses: "text-amber-500", mark: Hourglass },
 };
 
 /**
@@ -18,7 +19,7 @@ const config: Record<
  * run inspector, just a coloured dot where space is tight, such as rows in
  * the history panel, an icon with a detail such as the step's duration, as
  * on a canvas card, or a bare mark (check, cross, spinner) at the end of an
- * explorer row.
+ * explorer row. A waiting run is paused on a Human in the loop step.
  */
 export default function StatusPill({
   status,

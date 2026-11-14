@@ -8,6 +8,9 @@ import Badge from "../primitives/Badge";
 import Button from "../primitives/Button";
 import IconButton from "../primitives/IconButton";
 import StatusPill from "./StatusPill";
+import OutcomeBadge from "./OutcomeBadge";
+import ApprovalRequestCard from "./ApprovalRequestCard";
+import type { ApprovalDecision } from "../../model/step-tools";
 
 interface Props {
   run: RunDetails;
@@ -19,14 +22,19 @@ interface Props {
   onRetryFromStep?: (run: RunDetails, step: RunStep) => void;
   /** Stops a run still waiting for a worker. */
   onCancel?: (run: RunDetails) => void;
+  /** Answers the Human in the loop step the run is waiting on; resolves once it has carried on. Left out where you can't. */
+  onAnswer?: (run: RunDetails, decision: ApprovalDecision, comment: string) => Promise<void>;
 }
 
 /**
  * One run of a work order in History: its status, when and how it started,
  * the version it ran on, and each step it took, which you can retry from.
+ * A run waiting on a Human in the loop step shows what it's asking, to
+ * approve or reject here; one that reached a Report outcome step says the
+ * outcome it recorded.
  */
-export default function RunEntry({ run, latestVersion, onInspect, onRetryFromStep, onCancel }: Props) {
-  const finished = run.status !== "pending" && run.status !== "running";
+export default function RunEntry({ run, latestVersion, onInspect, onRetryFromStep, onCancel, onAnswer }: Props) {
+  const finished = run.status !== "pending" && run.status !== "running" && run.status !== "waiting";
   const older = latestVersion !== undefined && run.version !== latestVersion;
   const how = [run.when, run.duration, `started by ${run.startedBy}`].filter(Boolean).join(" · ");
 
@@ -77,6 +85,11 @@ export default function RunEntry({ run, latestVersion, onInspect, onRetryFromSte
                       {step.error}
                     </Text>
                   )}
+                  {step.answer && (
+                    <Text tone="muted" size="xs" truncate>
+                      {`${step.answer.decision === "approved" ? "Approved" : "Rejected"} by ${step.answer.by}${step.answer.comment ? `: "${step.answer.comment}"` : ""}`}
+                    </Text>
+                  )}
                 </Inline>
                 {finished && onRetryFromStep && (
                   <IconButton
@@ -90,6 +103,23 @@ export default function RunEntry({ run, latestVersion, onInspect, onRetryFromSte
               </Inline>
             ))}
           </Stack>
+        )}
+
+        {run.waitingFor && (
+          <ApprovalRequestCard
+            request={run.waitingFor}
+            onAnswer={onAnswer ? (decision, comment) => onAnswer(run, decision, comment) : undefined}
+          />
+        )}
+
+        {run.outcome && (
+          <Inline>
+            <Text tone="muted" size="xs">
+              Outcome
+            </Text>
+            <OutcomeBadge status={run.outcome.status} />
+            <Text size="xs">{run.outcome.description}</Text>
+          </Inline>
         )}
       </Stack>
     </Card>

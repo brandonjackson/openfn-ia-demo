@@ -131,6 +131,15 @@ path in its hook file.
   state, and since when), or a rule for reading it from recent runs that
   Brandon agrees.
 
+- **Tools in workflows: Report outcome and Human in the loop** (the
+  editor's "Add a step" Tools tab, the canvas, History). Would need a job
+  `kind` and `config`, a `waiting` state for runs and work orders, a way to
+  answer a waiting run, and `outcome_status` / `outcome_description` on work
+  orders, as planned in [api-plans/step-tools.md](./api-plans/step-tools.md).
+  Demo: tool jobs ride along in the workflow document, runs wait and are
+  answered at `POST /api/demo/runs/:id/approval`, and work orders carry and
+  filter by their outcome (`src/fake-api/work-orders.ts`).
+
 ## Missing from a resource api/ covers
 
 - **Workflows: a description and who edits them** (a project's Workflows

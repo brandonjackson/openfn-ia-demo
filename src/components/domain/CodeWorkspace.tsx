@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { stepToolTypes } from "../../model/step-tools";
 import type { ReactNode } from "react";
 import { BookOpen, Calendar, Cloud, Database, ExternalLink, FlaskConical, FolderKanban, Globe, History, Layers, ListChecks, Plug, Radio, Sparkles, User, X } from "lucide-react";
 import type { Dataclip, JobNode, RunDetails, TriggerNode, Workflow, WorkflowFileContents, WorkflowSettings } from "../../model/workflow";
@@ -12,6 +13,7 @@ import { componentTypeIcons } from "../../model/component-types";
 import { draftServiceManifest } from "../../model/services";
 import Button from "../primitives/Button";
 import Badge from "../primitives/Badge";
+import IconTile from "../primitives/IconTile";
 import IconButton from "../primitives/IconButton";
 import FileDetailsPanel from "./FileDetailsPanel";
 import EntityPill from "./EntityPill";
@@ -276,7 +278,18 @@ export default function CodeWorkspace({
             ? `# ${addedDoc.replace(/\.md$/, "")}\n`
             : yaml;
 
-  const adaptorPill = step && stepAdaptor && (
+  // A tool step (Report outcome, Human in the loop) has settings instead of code: its pane is passed in, and it has no snippets.
+  const tool = step?.tool;
+  const toolType = tool && stepToolTypes[tool.kind];
+  const adaptorPill = toolType ? (
+    <EntityPill
+      name={toolType.label}
+      icon={<IconTile icon={toolType.icon} size="2xs" tone="white" round />}
+      size="xs"
+      title="Open the step's details"
+      onClick={onDetailsViewChange ? () => onDetailsViewChange("config") : undefined}
+    />
+  ) : step && stepAdaptor && (
     <EntityPill
       name={stepSystem?.name ?? stepAdaptor.name}
       adaptor={step.adaptor}
@@ -289,7 +302,9 @@ export default function CodeWorkspace({
 
   // I/O needs a loaded run; without one a step falls back to its snippets, the trigger to its config.
   const hasIO = Boolean(run && (step || file === "trigger"));
-  const view: DetailsViewId = step
+  const view: DetailsViewId = tool
+    ? detailsView === "io" && run ? "io" : "config"
+    : step
     ? detailsView === "io" && !run ? "snippets" : detailsView
     : detailsView === "io" && hasIO ? "io" : "config";
 
@@ -302,6 +317,17 @@ export default function CodeWorkspace({
         snippets={adaptors.snippets[step.adaptor] ?? []}
         onInsert={editable ? (s) => editor.current?.insert(s.code) : undefined}
         stepLabel={step.label}
+      />
+    ) : toolType && step ? (
+      <FileDetailsPanel
+        title={step.label}
+        tag={<Badge label="Tool" shape="tag" />}
+        description={toolType.description}
+        properties={[
+          { icon: toolType.icon, label: "Kind", value: toolType.label },
+          { icon: FolderKanban, label: "Project", value: workflow.project },
+        ]}
+        showHeader={false}
       />
     ) : step && stepAdaptor ? (
       <StepConfigPanel
@@ -466,7 +492,9 @@ export default function CodeWorkspace({
     </div>
   );
 
-  const statusItems = step
+  const statusItems = toolType && step
+    ? [toolType.label, step.label]
+    : step
     ? [`${step.adaptor}@${stepAdaptor?.version}`, step.label]
     : component
       ? [component.type.toLowerCase(), component.name]
@@ -522,7 +550,7 @@ export default function CodeWorkspace({
           tabs: {
             options: [
               { id: "config", label: component || doc || manifest || addedDoc || health || overview || saved || tests || envVars ? "Details" : "Config" },
-              ...(step ? [{ id: "snippets", label: "Snippets" }] : []),
+              ...(step && !tool ? [{ id: "snippets", label: "Snippets" }] : []),
               ...(hasIO ? [{ id: "io", label: "I/O" }] : []),
             ],
             value: view,

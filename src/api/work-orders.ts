@@ -6,6 +6,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Dataclip, RunDetails, RunStatus, WorkOrder } from "../model/workflow";
+import type { ApprovalDecision, OutcomeStatus } from "../model/step-tools";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
 
@@ -17,6 +18,9 @@ export interface ApiWorkOrder {
     last_activity: string;
     workflow_id: string;
     dataclip_id: string;
+    /** Planned (docs/api-plans/step-tools.md): the business outcome its latest run reported. */
+    outcome_status?: OutcomeStatus | null;
+    outcome_description?: string | null;
     /** Only with `include=runs`, which Lightning doesn't send yet (docs/api-gaps.md). */
     runs?: RunDetails[];
     input: Dataclip | null;
@@ -41,7 +45,13 @@ export interface WorkOrderRecord {
  * for Overview and Insights to add up.
  */
 export const toRecord = ({ id, attributes: a }: ApiWorkOrder, projectId: string): WorkOrderRecord => ({
-  workOrder: { id, status: a.state, lastActivity: a.last_activity, runs: a.runs ?? [] },
+  workOrder: {
+    id,
+    status: a.state,
+    lastActivity: a.last_activity,
+    runs: a.runs ?? [],
+    ...(a.outcome_status && { outcome: { status: a.outcome_status, description: a.outcome_description ?? "" } }),
+  },
   workflowId: a.workflow_id,
   projectId,
   input: a.input ?? { id: a.dataclip_id, type: "http_request", body: "{}", created: a.last_activity },
@@ -112,6 +122,9 @@ export function useRunSaves() {
       go(async () => {
         for (const [projectId, ids] of byProject(orders)) await request("POST", `/api/projects/${projectId}/work_orders/cancellations`, { work_order_ids: ids });
       }),
+    /** Answers the Human in the loop step a run is waiting on; the run carries on with the answer. */
+    answer: (runId: string, decision: ApprovalDecision, comment?: string) =>
+      go(() => request("POST", `/api/demo/runs/${runId}/approval`, { decision, ...(comment && { comment }) })),
     /** Records a run the editor made, on a new work order or as another run of one (standing in for Lightning's worker). */
     record: (projectId: string, workflowId: string, made: RunDetails, dataclips: Dataclip[], workOrderId?: string) =>
       go(() =>

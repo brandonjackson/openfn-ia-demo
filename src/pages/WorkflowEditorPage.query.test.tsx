@@ -495,6 +495,30 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     }
   });
 
+  it("adds a Report outcome from the Tools tab, saved as a tool job with its settings", async () => {
+    const projectId = projectIdFor("project-a");
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "add-outcome" });
+    act(() => setSandbox(projectId, "add-outcome"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+      const picker = await openStepPicker();
+      fireEvent.click(within(picker).getByRole("button", { name: "Tools" }));
+      fireEvent.click(within(picker).getByText("Report outcome"));
+      await waitFor(() => expect(screen.queryByRole("dialog", { name: "Add a step" })).toBeNull(), wait);
+      type Job = { name: string; kind?: string; config?: { status?: string } };
+      const step = () =>
+        request<{ workflows: { jobs: Job[] }[] }>("GET", `/api/projects/${sandboxId}/workflows`).then((a) =>
+          a.workflows.flatMap((w) => w.jobs).find((j) => j.name === "Report outcome"),
+        );
+      await waitFor(async () => expect((await step())?.kind).toBe("report_outcome"), wait);
+      expect((await step())?.config?.status).toBe("success");
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
   it("opens a path from its badge, and in a sandbox saves its label, condition and switch as Lightning's edge does", async () => {
     const projectId = projectIdFor("project-a");
     const sandboxId = crypto.randomUUID();

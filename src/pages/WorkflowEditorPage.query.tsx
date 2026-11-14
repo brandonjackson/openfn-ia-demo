@@ -13,7 +13,7 @@ import { useSandbox } from "../app/sandbox-state";
 import Loaded from "../app/Loaded";
 import { useProject } from "../api/projects";
 import { useProjectCredentials } from "../api/credentials";
-import { useConnectedSystems } from "../api/connected-systems";
+import { useAdaptors, useConnectedSystems, useSystemSaves } from "../api/connected-systems";
 import { useDataclips, useRunSaves, useWorkOrders } from "../api/work-orders";
 import { useDataclipSaves } from "../api/dataclips";
 import { runInputName, savedDataclips } from "../model/dataclips";
@@ -47,7 +47,7 @@ const adaptorReference: Omit<AdaptorReference, "credentials"> = {
   choices: adaptorChoices,
 };
 
-/** Every adaptor, for "Connect a system". */
+/** Every adaptor, for "Add a step". */
 const catalog: AdaptorCatalog = {
   adaptors: adaptorCatalog,
   categories: catalogCategories,
@@ -214,6 +214,9 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   // Sandboxes share their project's credentials: a step anywhere in the tree picks from the project's links.
   const { credentials } = useProjectCredentials(root.id);
   const { systems } = useConnectedSystems();
+  // An adaptor picked in "Add a step" that the project has no system for is added as one first.
+  const { adaptors: systemAdaptors } = useAdaptors(flags.connectedSystems && editable);
+  const systemSaves = useSystemSaves();
   const adaptors: AdaptorReference = { ...adaptorReference, credentials };
 
   const slug = fixtureWorkflow(main.id)?.slug;
@@ -381,6 +384,12 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       adaptors={adaptors}
       catalog={catalog}
       systems={systemsFor(flags, systems)}
+      systemAdaptors={flags.connectedSystems && editable ? systemAdaptors : undefined}
+      onAddSystem={
+        flags.connectedSystems && editable
+          ? (input) => systemSaves.add({ name: input.name, description: input.description, adaptor: input.adaptor, endpointUrl: input.endpointUrl, docsUrl: input.docsUrl })
+          : undefined
+      }
       stepServices={stepServices}
       showWorkflowFiles={flags.workflowDocs}
       showComponents={flags.components}

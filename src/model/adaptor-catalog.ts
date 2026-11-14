@@ -35,7 +35,7 @@ export interface AiAction {
   body: string;
 }
 
-/** Everything the "Connect a system" picker offers. */
+/** Everything the "Add a step" picker offers. */
 export interface AdaptorCatalog {
   /** Every adaptor a step can use. */
   adaptors: CatalogAdaptor[];

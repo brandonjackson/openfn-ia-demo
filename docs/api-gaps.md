@@ -32,7 +32,7 @@ path in its hook file.
   system's leave with it. Without the service catalog
   flag the pages leave services out and load nothing.
 - **Connected systems and their access grants** (Systems, a system's page,
-  Overview, the editor's "Connect a system"). Would need a
+  Overview, the editor's "Add a step"). Would need a
   `connected_systems` resource with its environments and grants. Demo:
   `/api/demo/connected_systems` (`src/api/connected-systems.ts`).
 - **The catalog a new system is picked from, and the ecosystem map**

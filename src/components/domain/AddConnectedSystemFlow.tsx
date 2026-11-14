@@ -21,6 +21,8 @@ interface Props {
   adaptors: Adaptor[];
   /** Pre-select a system by name (e.g. from "Suggested to add") */
   preselectedSystem?: string;
+  /** Pre-select a system by its adaptor's id (e.g. an adaptor picked in the editor's "Add a step"). Wins over `preselectedSystem`. */
+  preselectedAdaptor?: string;
   /**
    * Adds the system. The form waits for it, and shows why if it's refused.
    * Left out, adding just shows the success state (for stories).
@@ -272,10 +274,13 @@ export default function AddConnectedSystemFlow({
   onClose,
   adaptors,
   preselectedSystem,
+  preselectedAdaptor,
   onAdd,
 }: Props) {
   const findPreselected = () =>
-    preselectedSystem
+    preselectedAdaptor
+      ? adaptors.find((a) => a.id === preselectedAdaptor) ?? null
+      : preselectedSystem
       ? adaptors.find(
           (a) => a.name.toLowerCase() === preselectedSystem.toLowerCase()
         ) ?? null
@@ -283,12 +288,12 @@ export default function AddConnectedSystemFlow({
   const [selectedAdaptor, setSelectedAdaptor] = useState<Adaptor | null>(findPreselected);
 
   // Re-sync when the modal opens or preselectedSystem changes while open
-  const [synced, setSynced] = useState({ open, preselectedSystem });
-  if (synced.open !== open || synced.preselectedSystem !== preselectedSystem) {
-    setSynced({ open, preselectedSystem });
+  const [synced, setSynced] = useState({ open, preselectedSystem, preselectedAdaptor });
+  if (synced.open !== open || synced.preselectedSystem !== preselectedSystem || synced.preselectedAdaptor !== preselectedAdaptor) {
+    setSynced({ open, preselectedSystem, preselectedAdaptor });
     if (open) {
       const match = findPreselected();
-      if (match || !preselectedSystem) setSelectedAdaptor(match);
+      if (match || (!preselectedSystem && !preselectedAdaptor)) setSelectedAdaptor(match);
     }
   }
 

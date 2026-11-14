@@ -61,15 +61,54 @@ describe("ProjectWorkflowsPageQuery", () => {
     for (const w of workflows) expect(screen.getByText(w.name)).toBeTruthy();
   });
 
-  it("badges a workflow with the status of the service it backs, and leaves badges out without the catalog", async () => {
+  it("files a workflow that backs a service under Published services, and doesn't without the catalog", async () => {
     const { data } = await request<Many>("GET", "/api/demo/services?page_size=100");
     const backed = data.find((s) => s.attributes["project_id"] === projectId && s.attributes["workflow_id"])!;
     const workflow = (await serverWorkflows()).find((w) => w.id === backed.attributes["workflow_id"])!;
     renderRoute();
-    expect(within(await row(workflow.name)).getByText(backed.attributes["status"] as string)).toBeTruthy();
+    await row(workflow.name);
+    expect(within(screen.getByRole("region", { name: "Published services" })).getByText(workflow.name)).toBeTruthy();
 
     act(() => setFlag("serviceCatalog", false));
-    await waitFor(() => expect(within(screen.getByText(workflow.name).closest("a")!).queryByText(/^(Live|Draft)$/)).toBeNull(), wait);
+    await waitFor(() => expect(screen.queryByRole("region", { name: "Published services" })).toBeNull(), wait);
+    expect(screen.getByText(workflow.name)).toBeTruthy();
+  });
+
+  it("swaps a workflow's Live pill for Paused when its switch is flipped off, and back again", async () => {
+    const live = (await request<{ workflows: (Workflow & { triggers: { enabled: boolean }[] })[] }>("GET", `/api/projects/${projectId}/workflows`)).workflows.find(
+      (w) => w.triggers.some((t) => t.enabled),
+    )!;
+    renderRoute();
+    expect(within(await row(live.name)).getByText("Live")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("switch", { name: `${live.name} enabled` }));
+    await waitFor(() => expect(within(screen.getByText(live.name).closest("a")!).getByText("Paused")).toBeTruthy(), wait);
+    expect(within(screen.getByText(live.name).closest("a")!).queryByText("Live")).toBeNull();
+    const stored = (await request<{ workflow: { triggers: { enabled: boolean }[] } }>("GET", `/api/workflows/${live.id}`)).workflow;
+    expect(stored.triggers.some((t) => t.enabled)).toBe(false);
+
+    fireEvent.click(screen.getByRole("switch", { name: `${live.name} enabled` }));
+    await waitFor(() => expect(within(screen.getByText(live.name).closest("a")!).getByText("Live")).toBeTruthy(), wait);
+  });
+
+  it("makes a paused copy of a workflow on the server, says so, and lists it", async () => {
+    const [first] = await serverWorkflows();
+    renderRoute();
+    fireEvent.click(within(await row(first!.name)).getByRole("button", { name: `Actions for ${first!.name}` }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Make a copy" }));
+    expect(await screen.findByText(`Made "${first!.name} (copy)".`, {}, wait)).toBeTruthy();
+    expect(within(screen.getByRole("region", { name: "Paused workflows" })).getByText(`${first!.name} (copy)`)).toBeTruthy();
+    expect((await serverWorkflows()).some((w) => w.name === `${first!.name} (copy)`)).toBe(true);
+  });
+
+  it("says why when the server refuses a copy", async () => {
+    failNext("POST /api/demo/projects/:project_id/workflows/:id/copies", { status: 403, code: "forbidden", detail: "You can't change workflows in this project." });
+    const [first] = await serverWorkflows();
+    renderRoute();
+    fireEvent.click(within(await row(first!.name)).getByRole("button", { name: `Actions for ${first!.name}` }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Make a copy" }));
+    const alert = await screen.findByRole("alert", {}, wait);
+    expect(within(alert).getByText(`"${first!.name}" wasn't copied`)).toBeTruthy();
   });
 
   it("still lists the workflows when services can't load, without their badges", async () => {

@@ -17,14 +17,14 @@ const workflow = (name: string, more: Partial<WorkflowListItem> = {}): WorkflowL
   ...more,
 });
 
-const frame: Omit<ProjectWorkflowsPageProps, "data" | "onNewWorkflow" | "onToggleWorkflow" | "onDeleteWorkflow"> = {
+const frame: Omit<ProjectWorkflowsPageProps, "data" | "onNewWorkflow" | "onToggleWorkflow" | "onCopyWorkflow" | "onDeleteWorkflow"> = {
   node: { id: "workflows", label: "Workflows", description: "Every workflow in this project." },
   ancestors: [],
   currentPath: "/projects/p/workflows",
 };
 
 const draw = (workflows: WorkflowListItem[]) =>
-  renderPage(ProjectWorkflowsPage, { ...frame, data: { projectId: "p", workflows } }, ["onNewWorkflow", "onToggleWorkflow", "onDeleteWorkflow"]);
+  renderPage(ProjectWorkflowsPage, { ...frame, data: { projectId: "p", workflows } }, ["onNewWorkflow", "onToggleWorkflow", "onCopyWorkflow", "onDeleteWorkflow"]);
 
 /** A workflow's row, found by its name. */
 const row = (name: string) => screen.getByText(name).closest("a")!.parentElement!;
@@ -50,10 +50,49 @@ describe("ProjectWorkflowsPage", () => {
     expect(screen.getByText("Never run")).toBeTruthy();
   });
 
-  it("shows members and a service's status when it's given them", () => {
-    draw([workflow("Intake", { members: ["Jane Doe"], serviceStatus: "Live" })]);
+  it("shows members when it's given them", () => {
+    draw([workflow("Intake", { members: ["Jane Doe"] })]);
     expect(screen.getByText("Members")).toBeTruthy();
-    expect(screen.getByText("Live")).toBeTruthy();
+  });
+
+  it("files workflows under Published services, Live workflows and Paused workflows, leaving out empty sections", () => {
+    draw([workflow("Intake", { published: true }), workflow("Payroll"), workflow("Archive", { enabled: false })]);
+    const section = (title: string) => screen.getByRole("region", { name: title });
+    expect(within(section("Published services")).getByText("Intake")).toBeTruthy();
+    expect(within(section("Live workflows")).getByText("Payroll")).toBeTruthy();
+    expect(within(section("Paused workflows")).getByText("Archive")).toBeTruthy();
+  });
+
+  it("leaves out a section with nothing in it", () => {
+    draw([workflow("Intake")]);
+    expect(screen.getByRole("region", { name: "Live workflows" })).toBeTruthy();
+    expect(screen.queryByRole("region", { name: "Published services" })).toBeNull();
+    expect(screen.queryByRole("region", { name: "Paused workflows" })).toBeNull();
+  });
+
+  it("pills a workflow Live when its switch is on, and Paused (in grey) when it's off", () => {
+    draw([workflow("Intake"), workflow("Archive", { enabled: false })]);
+    expect(within(row("Intake")).getByText("Live")).toBeTruthy();
+    expect(within(row("Intake")).queryByText("Paused")).toBeNull();
+    const paused = within(row("Archive")).getByText("Paused");
+    expect(paused.getAttribute("data-tone")).toBe("gray");
+    expect(within(row("Archive")).queryByText("Off")).toBeNull();
+  });
+
+  it("makes a copy from a row's menu, ignoring a second press while it runs", async () => {
+    const host = draw([workflow("Intake")]);
+    const copy = () => {
+      fireEvent.click(within(row("Intake")).getByRole("button", { name: "Actions for Intake" }));
+      fireEvent.click(screen.getByRole("menuitem", { name: "Make a copy" }));
+    };
+    copy();
+    copy();
+    expect(host.calls("onCopyWorkflow")).toEqual([["Intake"]]);
+    await host.resolve("onCopyWorkflow");
+    copy();
+    expect(host.calls("onCopyWorkflow")).toHaveLength(2);
+    await host.reject("onCopyWorkflow", new FormError("Only an editor can copy workflows."));
+    expect(screen.getByText("Intake")).toBeTruthy();
   });
 
   it("offers to create the first workflow when there are none", () => {
@@ -87,11 +126,12 @@ describe("ProjectWorkflowsPage", () => {
     expect(screen.getByText("Intake")).toBeTruthy();
   });
 
-  it("leaves out the switch and Delete when the viewer can't use them", () => {
+  it("leaves out the switch, Make a copy and Delete when the viewer can't use them", () => {
     renderPage(ProjectWorkflowsPage, { ...frame, data: { projectId: "p", workflows: [workflow("Intake")] } }, ["onNewWorkflow"]);
     expect(screen.queryByRole("switch")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Actions for Intake" }));
     expect(screen.getByRole("menuitem", { name: "Open" })).toBeTruthy();
     expect(screen.queryByRole("menuitem", { name: "Delete" })).toBeNull();
+    expect(screen.queryByRole("menuitem", { name: "Make a copy" })).toBeNull();
   });
 });

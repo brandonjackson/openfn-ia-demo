@@ -96,6 +96,40 @@ describe("workflows", () => {
     expect((await list()).length).toBeGreaterThan(0);
     expect((await refusal(request("PATCH", `/api/projects/${a}/workflows/${planning}`, { name: "x" })))?.code).toBe("forbidden");
     expect((await refusal(request("DELETE", `/api/projects/${a}/workflows/${planning}`)))?.code).toBe("forbidden");
+    expect((await refusal(request("POST", `/api/demo/projects/${a}/workflows/${planning}/copies`, {})))?.code).toBe("forbidden");
+  });
+
+  it("makes a copy beside the original: fresh ids, triggers off, a name of its own", async () => {
+    const copies = `/api/demo/projects/${a}/workflows/${planning}/copies`;
+    const original = await get(planning);
+    const { workflow: copy } = await request<{ workflow: WorkflowDocument }>("POST", copies, {});
+    expect(copy.name).toBe(`${original.name} (copy)`);
+    expect(copy.project_id).toBe(a);
+    expect(copy.lock_version).toBe(1);
+    expect(copy.jobs.map((j) => j.name)).toEqual(original.jobs.map((j) => j.name));
+    const oldIds = new Set([original.id, ...original.jobs.map((j) => j.id), ...original.triggers.map((t) => t.id), ...original.edges.map((e) => e.id)]);
+    expect([copy.id, ...copy.jobs.map((j) => j.id), ...copy.triggers.map((t) => t.id), ...copy.edges.map((e) => e.id)].some((id) => oldIds.has(id))).toBe(false);
+    // Its edges join its own steps, and it waits to be turned on.
+    const own = new Set([...copy.jobs.map((j) => j.id), ...copy.triggers.map((t) => t.id)]);
+    expect(copy.edges.every((e) => own.has(e.target_job_id) && own.has((e.source_trigger_id ?? e.source_job_id)!))).toBe(true);
+    expect(copy.triggers.every((t) => !t.enabled && !t.custom_path)).toBe(true);
+    // The original is untouched; another copy gets the next name.
+    expect((await get(planning)).lock_version).toBe(original.lock_version);
+    expect((await request<{ workflow: WorkflowDocument }>("POST", copies, {})).workflow.name).toBe(`${original.name} (copy 2)`);
+    expect((await list()).filter((w) => w.name.startsWith(`${original.name} (copy`))).toHaveLength(2);
+    // It has its first version, and a deleted workflow can't be copied.
+    expect((await request<{ data: unknown[] }>("GET", `/api/workflows/${copy.id}/snapshots`)).data).toHaveLength(1);
+    await request("DELETE", `/api/projects/${a}/workflows/${planning}`);
+    expect((await refusal(request("POST", copies, {})))?.code).toBe("not_found");
+  });
+
+  it("makes a copy in a sandbox, in that sandbox", async () => {
+    const sandbox = sandboxIdFor("project-a", "intake-validation-v2");
+    const [w] = await list(sandbox);
+    const { workflow: copy } = await request<{ workflow: WorkflowDocument }>("POST", `/api/demo/projects/${sandbox}/workflows/${w!.id}/copies`, {});
+    expect(copy.project_id).toBe(sandbox);
+    expect((await list(sandbox)).some((x) => x.id === copy.id)).toBe(true);
+    expect((await list()).some((x) => x.id === copy.id)).toBe(false);
   });
 });
 

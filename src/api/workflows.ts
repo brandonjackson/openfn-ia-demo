@@ -202,6 +202,12 @@ export function useWorkflowSaves() {
     mutationFn: (doc: Pick<WorkflowDocument, "id" | "project_id">) => request("DELETE", `/api/projects/${doc.project_id}/workflows/${doc.id}`),
     onSuccess: refresh,
   });
+  const copy = useMutation({
+    // The demo's own route: api/ has no copy.
+    mutationFn: (doc: Pick<WorkflowDocument, "id" | "project_id">) =>
+      request<{ workflow: WorkflowDocument }>("POST", `/api/demo/projects/${doc.project_id}/workflows/${doc.id}/copies`, {}).then((a) => a.workflow),
+    onSuccess: refresh,
+  });
 
   return {
     /** Makes a workflow from a graph, its trigger on or off, and answers with it as stored (fresh ids throughout). */
@@ -214,6 +220,8 @@ export function useWorkflowSaves() {
     /** Changes its settings (concurrency, keeping job logs). */
     saveSettings: async (doc: WorkflowDocument, settings: { concurrency: number | null; enable_job_logs: boolean }) =>
       void (await patch.mutateAsync({ doc, body: settings })),
+    /** Makes a copy in its project, paused and named "… (copy)", and answers with it as stored. */
+    copy: (doc: Pick<WorkflowDocument, "id" | "project_id">) => copy.mutateAsync(doc),
     /** Marks it deleted: its triggers go off, and it leaves every list. */
     remove: async (doc: Pick<WorkflowDocument, "id" | "project_id">) => void (await remove.mutateAsync(doc)),
   };

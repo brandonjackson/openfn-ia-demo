@@ -126,6 +126,15 @@ path in its hook file.
   `description` on the workflow (Lightning has one on templates only) and
   its recent editors, say from its snapshots' authors.
 
+- **Workflows: making a copy** (a workflow's ⋮ menu on a project's
+  Workflows list and Overview; api/workflows.md). The API can create a
+  workflow from a document, but has no copy, so a client would have to fetch
+  the workflow and post it back with every id changed. Would need
+  `POST /api/projects/:id/workflows/:id/copies`, answering with the new
+  workflow. Demo: `POST /api/demo/projects/:id/workflows/:id/copies`
+  (`useWorkflowSaves().copy`): fresh ids, triggers off and no custom webhook
+  path, named "… (copy)" (or "… (copy 2)") so the name stays unique.
+
 - **Workflows: who made a version and what they said about it** (the
   editor's version picker; api/workflows.md, snapshots). A snapshot has its
   `lock_version`, `inserted_at` and whether it's the `latest`, but no author

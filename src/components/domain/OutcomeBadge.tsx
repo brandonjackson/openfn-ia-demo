@@ -6,9 +6,9 @@ const tones: Record<OutcomeTone, BadgeTone> = { green: "green", red: "red", ambe
 
 /**
  * A run's business outcome, as a Report outcome step recorded it: Success,
- * Rejected, Needs follow-up and the rest, each in its own colour. It's a
+ * Refused, Needs follow-up and the rest, each in its own colour. It's a
  * different thing from the run's status, which `StatusPill` draws: a refusal
- * sent without a hitch is a successful run with a Rejected outcome.
+ * sent without a hitch is a successful run with a Refused outcome.
  */
 export default function OutcomeBadge({
   status,

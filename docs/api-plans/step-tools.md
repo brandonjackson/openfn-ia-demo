@@ -51,7 +51,7 @@ and passes an approval straight through rather than failing.
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `status` | `"success"` \| `"rejected"` \| `"failure"` \| `"needs_follow_up"` \| `"partial"` \| `"withdrawn"` | Required (`invalid` otherwise). |
+| `status` | `"success"` \| `"refused"` \| `"failure"` \| `"needs_follow_up"` \| `"partial"` \| `"withdrawn"` | Required (`invalid` otherwise). |
 | `description` | string | One line for History. `{{ path }}` is filled in from the step's input state when the step runs. |
 
 ### `approval` config
@@ -174,7 +174,7 @@ is. Lightning sets them when a `report_outcome` step completes (the worker
 emits `step:complete` as usual; Lightning sees the job's kind and reads the
 step's output `outcome`). If a run passes more than one, the last wins.
 
-- **Filters.** `GET /api/projects/:project_id/work_orders?outcome_status=rejected,needs_follow_up`
+- **Filters.** `GET /api/projects/:project_id/work_orders?outcome_status=refused,needs_follow_up`
   (comma separated, as `state` is), and the same on `GET /api/work_orders`
   and on bulk actions' `filter`.
 - **Exports.** History exports gain the two columns.
@@ -183,10 +183,10 @@ step's output `outcome`). If a run passes more than one, the last wins.
   remove it: Lightning should blank `outcome_description` when the work
   order's dataclips are wiped under the project's retention policy, and keep
   `outcome_status`, which carries nothing personal.
-- **A word to settle.** Work orders already have a `rejected` state: a work
-  order whose run was never created (`workorder.ex`). An outcome of
-  "Rejected" is a different thing, which is why it's a separate field; if
-  the two read too alike in History, the outcome could be "Refused".
+- **Why "Refused".** Work orders already have a `rejected` state: a work
+  order whose run was never created (`workorder.ex`). A refused application
+  is a different thing, so the outcome is called `refused` to keep the two
+  apart in History and in the API.
 
 ## What the demo does today
 

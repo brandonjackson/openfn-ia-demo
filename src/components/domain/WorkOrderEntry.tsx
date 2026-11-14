@@ -38,7 +38,7 @@ interface Props {
  * A work order in History: the workflow that received it, its id, when it
  * came in and with what, and the status of its latest run, beside the
  * business outcome it reported, if any (a refusal sent without a hitch is a
- * successful run with a Rejected outcome). Opening it shows every run made
+ * successful run with a Refused outcome). Opening it shows every run made
  * for it, newest first.
  */
 export default function WorkOrderEntry({

@@ -164,10 +164,10 @@ describe("HistoryPage", () => {
     });
 
     it("shows a work order's outcome beside its status, and filters by it", () => {
-      const refused: HistoryWorkOrder = { ...order("ddd444", "success"), workOrder: { ...order("ddd444", "success").workOrder, outcome: { status: "rejected", description: "Not eligible" } } };
-      draw([refused, order("eee555", "success")], { ...defaultHistoryFilters, outcomes: ["rejected"] });
+      const refused: HistoryWorkOrder = { ...order("ddd444", "success"), workOrder: { ...order("ddd444", "success").workOrder, outcome: { status: "refused", description: "Not eligible" } } };
+      draw([refused, order("eee555", "success")], { ...defaultHistoryFilters, outcomes: ["refused"] });
       expect(screen.getByText("1 work order of 2, newest first")).toBeTruthy();
-      expect(screen.getByText("Rejected")).toBeTruthy();
+      expect(screen.getByText("Refused")).toBeTruthy();
     });
   });
 });

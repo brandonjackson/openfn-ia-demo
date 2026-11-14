@@ -55,4 +55,4 @@ export const AcrossProjects: Story = { render: () => <Controlled acrossProjects 
 export const ChannelRequests: Story = { render: () => <Controlled initial={{ tab: "channels" }} /> };
 
 /** With tools on: filter by the outcome a Report outcome step recorded. */
-export const ByOutcome: Story = { render: () => <Controlled showOutcomes initial={{ outcomes: ["rejected", "needs_follow_up"] }} /> };
+export const ByOutcome: Story = { render: () => <Controlled showOutcomes initial={{ outcomes: ["refused", "needs_follow_up"] }} /> };

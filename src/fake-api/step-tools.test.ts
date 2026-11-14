@@ -55,14 +55,14 @@ describe("Human in the loop", () => {
     expect((await refusal(answer(run.runId, { decision: "approved" })))?.code).toBe("not_waiting");
   });
 
-  it("asks why before rejecting, when the step says so; a rejected run succeeds with a Rejected outcome", async () => {
+  it("asks why before rejecting, when the step says so; a rejected run succeeds with a Refused outcome", async () => {
     const run = (await waiting()).attributes.runs[0]!;
     const bare = await refusal(answer(run.runId, { decision: "rejected" }));
     expect(bare?.fieldError("comment")).toBeTruthy();
     expect((await refusal(answer(run.runId, { decision: "maybe" })))?.fieldError("decision")).toBeTruthy();
     const after = await answer(run.runId, { decision: "rejected", comment: "Had a grant in March" });
     expect(after.attributes.state).toBe("success");
-    expect(after.attributes.outcome_status).toBe("rejected");
+    expect(after.attributes.outcome_status).toBe("refused");
     expect(after.attributes.outcome_description).toMatch(/: Had a grant in March$/);
   });
 
@@ -78,11 +78,11 @@ describe("Human in the loop", () => {
 
 describe("Report outcome", () => {
   it("gives each work order its latest run's outcome, and filters by it", async () => {
-    const rejected = await orders(`&workflow_id=${nationalId}&outcome_status=rejected`);
-    expect(rejected.length).toBeGreaterThan(0);
+    const refused = await orders(`&workflow_id=${nationalId}&outcome_status=refused`);
+    expect(refused.length).toBeGreaterThan(0);
     // An applicant who already holds an ID was refused, though the run went fine.
-    expect(rejected.every((o) => o.attributes.outcome_status === "rejected" && o.attributes.state === "success")).toBe(true);
-    expect(rejected[0]!.attributes.outcome_description).toMatch(/already holds a national ID$/);
+    expect(refused.every((o) => o.attributes.outcome_status === "refused" && o.attributes.state === "success")).toBe(true);
+    expect(refused[0]!.attributes.outcome_description).toMatch(/already holds a national ID$/);
     const issued = await orders(`&workflow_id=${nationalId}&outcome_status=success`);
     expect(issued.length).toBeGreaterThan(0);
     expect(issued[0]!.attributes.outcome_description).toMatch(/^National ID NID-2026-\w+ issued to /);

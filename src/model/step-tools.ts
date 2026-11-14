@@ -2,7 +2,7 @@
  * Tools: steps that aren't code. A Report outcome step records what a run
  * meant for the person it served (an application approved, refused, waiting
  * on someone), which is often not the run's status: a refusal sent without a
- * hitch is a successful run with a "Rejected" outcome. A Human in the loop
+ * hitch is a successful run with a "Refused" outcome. A Human in the loop
  * step stops the run and asks someone to approve or reject it, then carries
  * on with their answer on state.
  *
@@ -19,7 +19,7 @@ import type { Workflow, WorkOrder } from "./workflow";
 /* ------------------------------------------------------------------ */
 
 /** What a run meant for the person or case it served. */
-export type OutcomeStatus = "success" | "failure" | "rejected" | "needs_follow_up" | "partial" | "withdrawn";
+export type OutcomeStatus = "success" | "failure" | "refused" | "needs_follow_up" | "partial" | "withdrawn";
 
 /** How an outcome is drawn: its colour, from the theme. */
 export type OutcomeTone = "green" | "red" | "amber" | "blue" | "gray";
@@ -27,7 +27,7 @@ export type OutcomeTone = "green" | "red" | "amber" | "blue" | "gray";
 /** The outcomes a Report outcome step can record, in the order they're offered. */
 export const outcomeStatuses: { id: OutcomeStatus; label: string; description: string; tone: OutcomeTone }[] = [
   { id: "success", label: "Success", description: "The service was delivered: the application approved, the record made.", tone: "green" },
-  { id: "rejected", label: "Rejected", description: "Refused under the rules: not eligible, a duplicate, or incomplete.", tone: "red" },
+  { id: "refused", label: "Refused", description: "Refused under the rules: not eligible, a duplicate, or incomplete.", tone: "red" },
   { id: "failure", label: "Failure", description: "The service couldn't be delivered, however well the run went.", tone: "red" },
   { id: "needs_follow_up", label: "Needs follow-up", description: "Someone has to pick it up: a case to review, a document to chase.", tone: "amber" },
   { id: "partial", label: "Partially completed", description: "Some of it was done, say the ID issued but the SMS not sent.", tone: "blue" },
@@ -139,7 +139,7 @@ export type StepToolKind = StepTool["kind"];
 export const stepToolTypes: Record<StepToolKind, { label: string; description: string; icon: LucideIcon }> = {
   outcome: {
     label: "Report outcome",
-    description: "Record what the run meant for the person it served: approved, rejected, needs follow-up.",
+    description: "Record what the run meant for the person it served: approved, refused, needs follow-up.",
     icon: Flag,
   },
   approval: {

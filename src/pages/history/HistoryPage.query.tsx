@@ -21,7 +21,7 @@ import { useFlags } from "../../app/feature-flags";
  * `?in=id,body`, `?received_after=` / `_before=` and `?activity_after=` /
  * `_before=` (datetime-local values), and on the channel requests tab
  * (`?type=channels`; Insights links it as `Channel+Request`) `?channel=` and
- * `?request_status=ok|failed`. With tools on, `?outcome=rejected,needs_follow_up`. Anything missing or unknown is left unfiltered.
+ * `?request_status=ok|failed`. With tools on, `?outcome=refused,needs_follow_up`. Anything missing or unknown is left unfiltered.
  */
 function filtersFrom(params: URLSearchParams): HistoryFilters {
   const list = (key: string) => (params.get(key) ?? "").split(",").map((v) => v.trim().toLowerCase()).filter(Boolean);

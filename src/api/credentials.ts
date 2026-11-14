@@ -312,3 +312,26 @@ export function useCredentialSaves(existing: UserCredential[]) {
     deleteOAuthClient: (id: string) => go(() => request("DELETE", `/api/oauth_clients/${id}`)),
   };
 }
+
+/**
+ * Makes a credential from a workflow step's New credential, shared with the
+ * projects the form says. Resolves with its link to `projectId`, which the
+ * step is given, or nothing when it wasn't shared there, once the project's
+ * credentials have reloaded; rejects with what the server said.
+ */
+export function useCreateStepCredential(projectId: string) {
+  const queryClient = useQueryClient();
+  const run = useMutation({
+    mutationFn: (draft: CredentialDraft) =>
+      request<{ credential: ApiCredential }>("POST", "/api/credentials", {
+        name: draft.name,
+        schema: draft.schema,
+        ...(draft.externalId && { external_id: draft.externalId }),
+        credential_bodies: draft.environments.map((e) => ({ name: e.environment, body: e.values })),
+        project_credentials: draft.projectIds.map((project_id) => ({ project_id })),
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: credentialKeys.all }),
+  });
+  return (draft: CredentialDraft) =>
+    run.mutateAsync(draft).then(({ credential }) => credential.project_credentials.find((l) => l.project_id === projectId)?.id);
+}

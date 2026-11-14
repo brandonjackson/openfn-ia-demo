@@ -39,6 +39,10 @@ interface Props {
   onClose: () => void;
   /** Skips the type picker with this type already chosen, e.g. "dhis2". */
   initialSchema?: string;
+  /** The projects a new credential starts out shared with, e.g. the one whose step it's for. */
+  initialProjectIds?: string[];
+  /** The environment a new credential starts with values for, e.g. the sandbox's whose step it's for. Production when left out. */
+  initialEnvironment?: Environment;
 }
 
 /** Where the picked type's fields are: on their way, here, or refused. */
@@ -102,7 +106,7 @@ function FieldInput({
  * staging, mock, each on its own tab), and which projects can use it.
  * Secrets are never shown back: a blank one keeps what's saved.
  */
-export default function CredentialFormModal({ open, credential, schemas, projects, onSave, onLoadSchema, onClose, initialSchema }: Props) {
+export default function CredentialFormModal({ open, credential, schemas, projects, onSave, onLoadSchema, onClose, initialSchema, initialProjectIds = [], initialEnvironment = "production" }: Props) {
   const formId = useId();
   const startSchema = credential?.schema ?? initialSchema ?? "";
   const [step, setStep] = useState<"type" | "form">(startSchema ? "form" : "type");
@@ -118,9 +122,9 @@ export default function CredentialFormModal({ open, credential, schemas, project
 
   const [name, setName] = useState(credential?.name ?? "");
   const [externalId, setExternalId] = useState(credential?.externalId ?? "");
-  const [projectIds, setProjectIds] = useState<string[]>(credential?.projectIds ?? []);
+  const [projectIds, setProjectIds] = useState<string[]>(credential?.projectIds ?? initialProjectIds);
   const [environments, setEnvironments] = useState<CredentialEnvironmentValues[]>(
-    credential?.environments ?? [{ environment: "production", values: defaults(schema) }]
+    credential?.environments ?? [{ environment: initialEnvironment, values: defaults(schema) }]
   );
   const [currentEnv, setCurrentEnv] = useState<Environment>(environments[0].environment);
   const [attempted, setAttempted] = useState(false);
@@ -148,8 +152,8 @@ export default function CredentialFormModal({ open, credential, schemas, project
         if (!isCurrent()) return;
         setLoad({ state: "ready", schema: loaded });
         if (isNew) {
-          setEnvironments([{ environment: "production", values: defaults(loaded) }]);
-          setCurrentEnv("production");
+          setEnvironments([{ environment: initialEnvironment, values: defaults(loaded) }]);
+          setCurrentEnv(initialEnvironment);
         }
       },
       (refused) => isCurrent() && setLoad({ state: "error", message: errorMessageOf(refused) }),
@@ -176,8 +180,8 @@ export default function CredentialFormModal({ open, credential, schemas, project
     try {
       const loaded = await onLoadSchema(pickedId);
       setLoad({ state: "ready", schema: loaded });
-      setEnvironments([{ environment: "production", values: defaults(loaded) }]);
-      setCurrentEnv("production");
+      setEnvironments([{ environment: initialEnvironment, values: defaults(loaded) }]);
+      setCurrentEnv(initialEnvironment);
       setAttempted(false);
       setStep("form");
     } catch (refused) {

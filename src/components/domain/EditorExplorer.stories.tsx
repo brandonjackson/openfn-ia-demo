@@ -6,6 +6,7 @@ import type { ExplorerFile } from "./EditorExplorer";
 import { nationalIdWorkflow } from "../../fixtures/workflow";
 import { failedRun } from "../../fixtures/runs";
 import { projects } from "../../fixtures/projects";
+import { connectedSystems } from "../../fixtures/connected-systems";
 
 const components = projects[0].components.filter((c) => c.type !== "Workflow");
 
@@ -24,7 +25,7 @@ const meta: Meta<typeof EditorExplorer> = {
       </div>
     ),
   ],
-  args: { workflow: nationalIdWorkflow, file: { stepId: "search" }, components },
+  args: { workflow: nationalIdWorkflow, systems: connectedSystems, file: { stepId: "search" }, components },
   render: (args) => <Stateful {...args} />,
 };
 
@@ -76,3 +77,6 @@ export const NoComponentsEditable: Story = { args: { components: [], onAddStep: 
 
 /** With the Workflow docs and Components flags off: just the trigger and steps. */
 export const StepsOnly: Story = { args: { showWorkflowFiles: false, showComponents: false, onAddStep: () => {} } };
+
+/** Without connected systems: steps show only their adaptor's logo and name. */
+export const WithoutSystems: Story = { args: { systems: [] } };

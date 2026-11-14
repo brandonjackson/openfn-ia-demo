@@ -8,7 +8,7 @@ const a = projectIdFor("project-a");
 const refusal = (p: Promise<unknown>) => p.then(() => undefined, (e: unknown) => e as ApiError);
 type Credential = { id: string; name: string; projects: { id: string }[]; project_credentials: { id: string; project_id: string }[]; transfer_status: string | null };
 const mine = () => request<{ credentials: Credential[] }>("GET", "/api/credentials").then((r) => r.credentials);
-const inProject = (id: string) => request<{ credentials: Credential[] }>("GET", `/api/projects/${id}/credentials`).then((r) => r.credentials);
+const inProject = (id: string) => request<{ credentials: Credential[] }>("GET", `/api/projects/${id}/credentials?page_size=100`).then((r) => r.credentials);
 
 const draft = {
   name: "Registry API",

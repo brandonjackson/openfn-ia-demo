@@ -137,17 +137,15 @@ export const adaptorSnippets: Record<AdaptorKind, Snippet[]> = {
 };
 
 export const projectCredentials: ProjectCredential[] = [
-  { id: "cred-identity-prod", name: "Identity API (production)", adaptor: "http", owner: "Brandon Jackson" },
-  { id: "cred-identity-staging", name: "Identity API (staging)", adaptor: "http", owner: "Brandon Jackson" },
-  { id: "cred-notify", name: "Notification gateway", adaptor: "http", owner: "Amara Okafor" },
-  { id: "cred-opencrvs", name: "OpenCRVS (Farajaland)", adaptor: "opencrvs", owner: "Brandon Jackson" },
-  { id: "cred-twilio", name: "Twilio SMS", adaptor: "twilio", owner: "Amara Okafor" },
-  { id: "cred-pg-citizens", name: "Citizens database", adaptor: "postgresql", owner: "Brandon Jackson" },
-  { id: "cred-dhis2-play", name: "DHIS2 play", adaptor: "dhis2", owner: "Jane Doe" },
-  { id: "cred-sf-sandbox", name: "Salesforce sandbox", adaptor: "salesforce", owner: "Jane Doe" },
+  { id: "cred-identity-prod", name: "Identity API (production)", adaptor: "http", owner: "Brandon Jackson", environments: ["production"] },
+  { id: "cred-identity-staging", name: "Identity API (staging)", adaptor: "http", owner: "Brandon Jackson", environments: ["staging", "mock"] },
+  { id: "cred-notify", name: "Notification gateway", adaptor: "http", owner: "Amara Okafor", environments: ["production", "staging"] },
+  { id: "cred-opencrvs", name: "OpenCRVS (Farajaland)", adaptor: "opencrvs", owner: "Brandon Jackson", environments: ["production", "mock"] },
+  { id: "cred-opencrvs-staging", name: "OpenCRVS staging", adaptor: "opencrvs", owner: "Jane Doe", environments: ["staging"] },
+  { id: "cred-twilio", name: "Twilio SMS", adaptor: "twilio", owner: "Amara Okafor", environments: ["production", "staging", "mock"] },
+  { id: "cred-pg-citizens", name: "Citizens database", adaptor: "postgresql", owner: "Brandon Jackson", environments: ["production"] },
+  { id: "cred-dhis2-play", name: "DHIS2 play", adaptor: "dhis2", owner: "Jane Doe", environments: ["staging", "mock"] },
+  { id: "cred-dhis2-national", name: "National DHIS2", adaptor: "dhis2", owner: "Jane Doe", environments: ["production"] },
+  { id: "cred-dhis2-malaria", name: "Malaria programme DHIS2", adaptor: "dhis2", owner: "Jane Doe", environments: ["production", "staging"] },
+  { id: "cred-sf-sandbox", name: "Salesforce sandbox", adaptor: "salesforce", owner: "Jane Doe", environments: ["staging"] },
 ];
-
-/** The credentials a step on `adaptor` can pick from. */
-export function credentialsFor(adaptor: AdaptorKind): ProjectCredential[] {
-  return projectCredentials.filter((c) => c.adaptor === adaptor);
-}

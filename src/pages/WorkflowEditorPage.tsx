@@ -25,6 +25,9 @@ import type { ActivityPeriod, RunProgress, RunRequest } from "../model/runs";
 import type { AdaptorInfo, AdaptorReference } from "../model/adaptor-reference";
 import type { AdaptorCatalog } from "../model/adaptor-catalog";
 import type { ConnectedSystem } from "../model/connected-systems";
+import { ENVIRONMENTS, type CredentialDraft, type CredentialSchema, type CredentialSchemaSummary, type ProjectOption } from "../model/credentials";
+import { stepMissingCredential } from "../model/step-credentials";
+import CredentialFormModal from "../components/domain/CredentialFormModal";
 import { serviceStepBody, type StepService } from "../model/services";
 import type {
   AssistantConversation,
@@ -308,6 +311,10 @@ export default function WorkflowEditorPage({
   onUpdateTestCase,
   onDeleteTestCase,
   onGenerateTestCases,
+  credentialSchemas,
+  onLoadCredentialSchema,
+  credentialProjects = [],
+  onCreateCredential,
 }: {
   workflow: Workflow;
   /** Recent work orders, newest first. */
@@ -490,6 +497,18 @@ export default function WorkflowEditorPage({
   onDeleteTestCase?: (id: string) => Promise<void>;
   /** Has the assistant sync the tests with spec.md, writing deterministic tests for what nothing covers. Left out where you can't. */
   onGenerateTestCases?: () => Promise<TestGeneration>;
+  /** Every kind of credential, for the form a step's New credential opens. Left out, a step has no New credential. */
+  credentialSchemas?: CredentialSchemaSummary[];
+  /** Fetches one kind of credential in full, with its fields, for that form. */
+  onLoadCredentialSchema?: (id: string) => Promise<CredentialSchema>;
+  /** The projects a new credential can be shared with; the first, the workflow's project, is ticked to start. */
+  credentialProjects?: ProjectOption[];
+  /**
+   * Makes a credential from a step's New credential; resolves with its link
+   * to the workflow's project, which the step is then given, or nothing when
+   * it wasn't shared there. Left out, a step has no New credential.
+   */
+  onCreateCredential?: (draft: CredentialDraft) => Promise<string | undefined>;
 }) {
   // ---- Where we are ---------------------------------------------------------
 
@@ -685,6 +704,17 @@ export default function WorkflowEditorPage({
     setSelectedId(node.id);
     openInCode(node.id);
   };
+
+  // Connect, on a step that needs a credential and has none: its code, with the details column on Config, scrolled to the credential.
+  const [focusCredential, setFocusCredential] = useState(0);
+  const connectStep = (jobId: string) => {
+    setSelectedId(jobId);
+    openInCode(jobId);
+    changeLayout({ details: true, detailsView: "config" });
+    setFocusCredential((n) => n + 1);
+  };
+  // The step whose New credential opened the credential form.
+  const [newCredentialFor, setNewCredentialFor] = useState<string>();
 
   const [runInputOpen, setRunInputOpen] = useState(defaultRunInputOpen);
   const [editInSandboxOpen, setEditInSandboxOpen] = useState(defaultEditInSandboxOpen);
@@ -1077,6 +1107,16 @@ export default function WorkflowEditorPage({
   /** Why a step can't be deleted, as Lightning has it: other steps run after it, or it's the first. */
   const deleteBlocked = (stepId: string) => stepDeleteBlockedReason(graph, stepId);
 
+  // A step that needs a credential and has none offers Connect on its card, in a sandbox.
+  const missingCredential = (stepId: string) => {
+    const job = graph.nodes.find((n): n is JobNode => n.type === "job" && n.id === stepId);
+    const system = job?.system ? systems.find((s) => s.id === job.system) : undefined;
+    return !!job && stepMissingCredential(adaptors.info[job.adaptor], system, job.credentialId);
+  };
+  // The environment a step's credential needs values for: the sandbox's, or production where it names none of them (main).
+  const credentialEnvironment = ENVIRONMENTS.find((e) => e === environment) ?? "production";
+  const newCredentialStep = graph.nodes.find((n): n is JobNode => n.type === "job" && n.id === newCredentialFor);
+
   const deleteStep = (stepId: string) => {
     if (deleteBlocked(stepId)) return;
     edit((e) => ({ removed: [...e.removed, stepId] }));
@@ -1418,7 +1458,7 @@ export default function WorkflowEditorPage({
         key={focusNode.id}
         node={focusNode}
         adaptor={focusJob ? adaptors.info[focusJob.adaptor] : undefined}
-        credentials={focusJob ? adaptors.credentials.filter((c) => c.adaptor === focusJob.adaptor) : undefined}
+        credentials={focusJob ? adaptors.credentials : undefined}
         system={focusJob?.system ? systems.find((s) => s.id === focusJob.system) : undefined}
         codeSummary={focusJob ? codeSummary?.(focusJob) : undefined}
         credentialId={focusJob?.credentialId}
@@ -1427,6 +1467,7 @@ export default function WorkflowEditorPage({
         live={live}
         onToggleLive={setLive}
         onChange={focusJob && !onMain ? (c) => changeStep(focusJob.id, c) : undefined}
+        onConnect={focusJob && !onMain ? () => connectStep(focusJob.id) : undefined}
         onOpenCode={focusJob ? () => openInCode(focusJob.id) : undefined}
         onRunFromHere={focusJob ? () => runFresh(focusJob.id) : undefined}
         onDelete={focusJob && !onMain ? () => deleteStep(focusJob.id) : undefined}
@@ -1604,6 +1645,24 @@ export default function WorkflowEditorPage({
               else await onCreateTestCase?.(draft);
             }}
           />
+          {newCredentialStep && credentialSchemas && onLoadCredentialSchema && onCreateCredential && (
+            <CredentialFormModal
+              open
+              schemas={credentialSchemas}
+              onLoadSchema={onLoadCredentialSchema}
+              projects={credentialProjects}
+              // Set to the system's kind of credential; where there's no such kind, the form starts by picking one.
+              initialSchema={credentialSchemas.some((k) => k.id === newCredentialStep.adaptor) ? newCredentialStep.adaptor : undefined}
+              initialProjectIds={credentialProjects.slice(0, 1).map((p) => p.id)}
+              initialEnvironment={credentialEnvironment}
+              onClose={() => setNewCredentialFor(undefined)}
+              onSave={async (draft) => {
+                const linkId = await onCreateCredential(draft);
+                if (linkId) changeStep(newCredentialStep.id, { credentialId: linkId });
+                setNewCredentialFor(undefined);
+              }}
+            />
+          )}
           <DataclipFormModal
             open={newDataclipOpen}
             defaultName={untitledDataclipName(saved)}
@@ -1712,6 +1771,8 @@ export default function WorkflowEditorPage({
             onNodeAction={onNodeAction}
             readOnly={onMain}
             deleteBlockedReason={onMain ? undefined : deleteBlocked}
+            onConnect={onMain || version !== "latest" ? undefined : connectStep}
+            needsCredential={missingCredential}
             run={selectedRun}
             activity={activity}
             onShowFailures={setSelectedId}
@@ -1755,6 +1816,9 @@ export default function WorkflowEditorPage({
             if (s.name.trim()) setName(s.name);
           }}
           credentials={Object.fromEntries(graph.nodes.flatMap((n) => (n.type === "job" ? [[n.id, n.credentialId]] : [])))}
+          environment={credentialEnvironment}
+          focusCredential={focusCredential}
+          onNewCredential={onMain || !credentialSchemas || !onCreateCredential ? undefined : setNewCredentialFor}
           onStepChange={onMain ? undefined : changeStep}
           onCodeChange={onMain ? undefined : changeCode}
           onDeleteStep={onMain ? undefined : deleteStep}

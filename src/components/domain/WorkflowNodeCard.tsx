@@ -1,4 +1,4 @@
-import { Maximize2, MoreVertical, Play, Plus, Sparkles, Trash2 } from "lucide-react";
+import { Maximize2, MoreVertical, Play, Plug, Plus, Sparkles, Trash2 } from "lucide-react";
 import type { RunStep, WorkflowNode } from "../../model/workflow";
 import { triggerTypes } from "../../model/workflow";
 import type { NodeActivity } from "../../model/runs";
@@ -12,6 +12,7 @@ import IconTile from "../primitives/IconTile";
 import StatusPill from "./StatusPill";
 import RunCountBadge from "./RunCountBadge";
 import IconButton from "../primitives/IconButton";
+import Button from "../primitives/Button";
 import Surface from "../primitives/Surface";
 
 /** The card's size, exported so the canvas can place it and anchor edges to it. */
@@ -24,7 +25,7 @@ export type NodeAction = "run" | "edit" | "improve" | "delete";
 /**
  * A node on the workflow canvas: a card with the step's connected system (or
  * its adaptor, or the trigger's kind) as a pill in its head, with a small
- * badge saying whether the system is reached directly or over X-Road, the step's name in bold, and a ⋮ menu of actions: run from here, edit
+ * badge when the system is reached over X-Road, the step's name in bold, and a ⋮ menu of actions: run from here, edit
  * (which opens the step in code), improve (which opens the assistant about this
  * step) and delete. Clicking the card selects it; selecting toggles a indigo
  * ring. Double-clicking it opens it (`onOpen`).
@@ -35,6 +36,10 @@ export type NodeAction = "run" | "edit" | "improve" | "delete";
  *
  * With `onAddAfter`, hovering the card (or tabbing to it) shows a + on its
  * bottom edge that adds a step after it.
+ *
+ * With `onConnect`, for a step that needs a credential and has none, a
+ * Connect button sits in its head, which opens the step's config at its
+ * credential.
  */
 export default function WorkflowNodeCard({
   node,
@@ -53,6 +58,7 @@ export default function WorkflowNodeCard({
   adaptorName,
   system,
   deleteBlockedReason,
+  onConnect,
 }: {
   node: WorkflowNode;
   selected?: boolean;
@@ -83,6 +89,8 @@ export default function WorkflowNodeCard({
   system?: ConnectedSystem;
   /** Why this step can't be deleted, e.g. other steps run after it: Delete stays in the menu, off, with this under it. */
   deleteBlockedReason?: string;
+  /** Opens the step's config at its credential; given only for a step that needs one and has none. */
+  onConnect?: (node: WorkflowNode) => void;
 }) {
   const job = node.type === "job" ? node : undefined;
 
@@ -126,7 +134,8 @@ export default function WorkflowNodeCard({
               <span className="flex min-w-0">
                 <EntityPill name={system?.name ?? adaptorName ?? node.adaptor} adaptor={node.adaptor} size="sm" />
               </span>
-              {system && <ConnectionMethodBadge method={connectionOf(system).method} compact />}
+              {/* Direct is the usual way; only X-Road is called out, leaving the system's name the room. */}
+              {system && connectionOf(system).method === "xroad" && <ConnectionMethodBadge method="xroad" compact />}
             </span>
           ) : (
             <EntityPill
@@ -136,9 +145,15 @@ export default function WorkflowNodeCard({
             />
           )}
           <span className="pointer-events-auto ml-auto flex flex-shrink-0 items-center gap-1">
+            {onConnect && job && (
+              <Button variant="outline-primary" size="xs" icon={Plug} onClick={() => onConnect(node)} aria-label={`Connect ${node.label}`} title="Give this step a credential">
+                Connect
+              </Button>
+            )}
             {step ? (
               <StatusPill status={step.status} variant="icon" detail={step.duration || undefined} />
-            ) : activity ? (
+            ) : activity && !(onConnect && activity.runs === 0) ? (
+              // Connect takes the room of a count that would only say "0 runs".
               <RunCountBadge activity={activity} onShowFailures={onShowFailures} />
             ) : null}
             {onAction && (

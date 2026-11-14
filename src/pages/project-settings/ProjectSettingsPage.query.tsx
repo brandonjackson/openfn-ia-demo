@@ -18,6 +18,7 @@ import type { Collaborator, ProjectDetails, ProjectMember } from "../../model/pr
 import { saveFile } from "../../components/primitives/save-file";
 import ProjectSettingsPage, { type ProjectSettingsCredential, type ProjectSettingsPageData } from "./ProjectSettingsPage";
 import { pageFrame } from "../../app/page-frame";
+import { useAnnounceOutcome } from "../../app/announce";
 
 /** What the API says you may do here, as the settings page's permissions. */
 function settingsPermissions(details: ProjectDetails): ProjectSettingsPermissions {
@@ -102,6 +103,7 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
   const { schemas } = useCredentialSchemas();
   const { me } = useMe();
   const account = useAccountSaves(me?.id ?? "");
+  const announcing = useAnnounceOutcome();
   const { connection } = useRepoConnection(details.id);
   const { installations } = useGitHubInstallations(!!me?.githubConnected);
   const github = useRepoConnectionSaves(details.id);
@@ -137,7 +139,7 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
       initialSection={hash.slice(1) || undefined}
       onSaveProjectIdentity={({ name, description }) => saves.update(details.id, { name, description })}
       onSaveConcurrency={(disabled) => saves.update(details.id, { name: details.name, description: details.description, concurrency: disabled ? 1 : null })}
-      onExportProject={() => fetchProjectYaml(details.id)}
+      onExportProject={() => announcing(fetchProjectYaml(details.id), { failure: "The project didn't export" })}
       onDeleteProject={async () => {
         await saves.scheduleDeletion(details.id);
         navigate("/projects");
@@ -177,10 +179,18 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
       onConnectGitHub={github.connect}
       onInitiateGitHubSync={github.sync}
       onDisconnectGitHub={github.disconnect}
-      onCreateHistoryExport={exportSaves.create}
-      onDownloadHistoryExport={async (exportId) => {
-        const { fileName, file } = await fetchHistoryExportFile(details.id, exportId);
-        saveFile(fileName, file);
+      onCreateHistoryExport={() =>
+        announcing(exportSaves.create(), {
+          success: { message: "Export started.", detail: "It's listed here, ready to download once it's made." },
+          failure: "The export wasn't made",
+        })
+      }
+      onDownloadHistoryExport={(exportId) => {
+        const name = data.historyExports.find((e) => e.id === exportId)?.fileName;
+        return announcing(
+          fetchHistoryExportFile(details.id, exportId).then(({ fileName, file }) => saveFile(fileName, file)),
+          { failure: name ? `${name} didn't download` : "That didn't download" },
+        );
       }}
     />
   );

@@ -7,9 +7,7 @@ import type { Ecosystem } from "../../model/ecosystem";
 import AdaptorLogo from "../../components/domain/AdaptorLogo";
 import Badge from "../../components/primitives/Badge";
 import Button from "../../components/primitives/Button";
-import Callout from "../../components/primitives/Callout";
 import Stack from "../../components/primitives/Stack";
-import { errorMessageOf } from "../../model/form-error";
 import EcosystemView from "../../components/domain/EcosystemView";
 import EmptyState from "../../components/primitives/EmptyState";
 import FeatureIntro from "../../components/patterns/FeatureIntro";
@@ -26,7 +24,7 @@ import SectionHeading from "../../components/primitives/SectionHeading";
 import XRoadAccessBadge from "../../components/domain/XRoadAccessBadge";
 import XRoadDirectory from "../../components/domain/XRoadDirectory";
 import type { ConnectionMethod, SuggestedSystem, SystemListItem } from "../../model/connected-systems";
-import { findService, routeKey, type XRoadConnectionStatus, type XRoadMember, type XRoadRoute } from "../../model/xroad";
+import { routeKey, type XRoadConnectionStatus, type XRoadMember, type XRoadRoute } from "../../model/xroad";
 
 /** What the Systems page shows. */
 export interface SystemsPageData {
@@ -112,19 +110,16 @@ export default function SystemsPage({ node, ancestors, currentPath, data, onAddX
   const [addFlowOpen, setAddFlowOpen] = useState(false);
   const [preselectedSystem, setPreselectedSystem] = useState<string | undefined>();
   const [view, setView] = useState<"list" | "ecosystem">("list");
-  const [refusal, setRefusal] = useState<{ title: string; detail: string }>();
   const [adding, setAdding] = useState<string>();
 
-  /** Adds a directory service to your systems, one at a time, saying why if the server refuses. */
+  /** Adds a directory service to your systems, one at a time; the wrapper says why if the server refuses. */
   const addFromDirectory = async (route: XRoadRoute) => {
     if (adding) return;
-    setRefusal(undefined);
     setAdding(routeKey(route));
     try {
       await onAddXRoadService(route);
-    } catch (error) {
-      const name = xroad && findService(xroad.directory, route)?.name;
-      setRefusal({ title: `${name ?? route.service} wasn't added`, detail: errorMessageOf(error) });
+    } catch {
+      // Refused: the wrapper said why.
     } finally {
       setAdding(undefined);
     }
@@ -192,11 +187,6 @@ export default function SystemsPage({ node, ancestors, currentPath, data, onAddX
                   description="Services other members publish on X-Road, from the national directory. Add one and it joins your systems with its X-Road route already filled in."
                 />
                 <Stack gap="md">
-                  {refusal && (
-                    <Callout variant="danger" title={refusal.title} role="alert">
-                      {refusal.detail}
-                    </Callout>
-                  )}
                   <XRoadDirectory
                     members={xroad.directory}
                     instance={xroad.instance}

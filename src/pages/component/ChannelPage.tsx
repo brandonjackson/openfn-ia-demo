@@ -9,7 +9,6 @@ import IconButton from "../../components/primitives/IconButton";
 import Inline from "../../components/primitives/Inline";
 import Stack from "../../components/primitives/Stack";
 import type { PageProps } from "../../model/ia-tree";
-import { errorMessageOf } from "../../model/form-error";
 import { channelTypeConfig } from "../../components/domain/channel-types";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
@@ -69,17 +68,15 @@ export default function ChannelPage({
   const enabled = channel.enabled ?? true;
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [refusal, setRefusal] = useState<{ title: string; detail: string }>();
   const pending = useRef(false);
-  /** Runs a menu action, saying why if the server refuses it; a second press while one runs is ignored. */
-  const attempt = async (title: string, action: () => Promise<void>) => {
+  /** Runs a menu action; the wrapper says why if the server refuses it. A second press while one runs is ignored. */
+  const attempt = async (action: () => Promise<void>) => {
     if (pending.current) return;
     pending.current = true;
-    setRefusal(undefined);
     try {
       await action();
-    } catch (error) {
-      setRefusal({ title, detail: errorMessageOf(error) });
+    } catch {
+      // Refused: the wrapper said why.
     } finally {
       pending.current = false;
     }
@@ -121,7 +118,7 @@ export default function ChannelPage({
                     ? setEditing(true)
                     : id === "delete"
                       ? setDeleting(true)
-                      : onSetEnabled && void attempt(`The channel wasn't turned ${enabled ? "off" : "on"}`, () => onSetEnabled(!enabled))
+                      : onSetEnabled && void attempt(() => onSetEnabled(!enabled))
                 }
                 trigger={({ toggle }) => <IconButton icon={MoreVertical} label={`Actions for ${component.name}`} onClick={toggle} />}
               />
@@ -129,11 +126,6 @@ export default function ChannelPage({
           </Inline>
         }
       />
-      {refusal && (
-        <Callout variant="danger" title={refusal.title} role="alert">
-          {refusal.detail}
-        </Callout>
-      )}
       {!enabled && (
         <Callout variant="warning" title="This channel is off">
           It refuses every request until it's turned back on.
@@ -166,7 +158,7 @@ export default function ChannelPage({
           onClose={() => setDeleting(false)}
           onConfirm={() => {
             setDeleting(false);
-            void attempt("The channel wasn't deleted", onDeleteChannel);
+            void attempt(onDeleteChannel);
           }}
         >
           Requests to it stop being forwarded straight away, and its address stops working. Workflows that call it will fail at that step.

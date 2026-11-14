@@ -6,7 +6,6 @@ import ChannelFormModal from "../../components/domain/ChannelFormModal";
 import ComponentFormModal from "../../components/domain/ComponentFormModal";
 import CollectionNameModal from "../../components/domain/CollectionNameModal";
 import Button from "../../components/primitives/Button";
-import Callout from "../../components/primitives/Callout";
 import Stack from "../../components/primitives/Stack";
 import type { PageProps } from "../../model/ia-tree";
 import AddComponentPanel from "../../components/domain/AddComponentPanel";
@@ -62,7 +61,6 @@ export default function ProjectComponentsPage({
   channelAddress = (name) => name,
 }: ProjectComponentsPageProps) {
   const [creating, setCreating] = useState<ProjectComponentType>();
-  const [created, setCreated] = useState<string>();
   const projectPath = `/projects/${data.projectId}`;
   const types = componentTypes.filter((t) => t.type !== "Workflow" && data.types.includes(t.type));
   const groups = types
@@ -94,7 +92,6 @@ export default function ProjectComponentsPage({
             }
           />
         }
-        notice={created && <Callout variant="success" title={`Created ${created}.`} />}
         intro={showPanel && <AddComponentPanel options={creatable} onSelect={(type) => setCreating(type as ProjectComponentType)} />}
         isEmpty={groups.length === 0}
         empty={
@@ -129,10 +126,7 @@ export default function ProjectComponentsPage({
           credentials={channelCredentials}
           eventAddress={channelAddress}
           onClose={() => setCreating(undefined)}
-          onSubmit={async (draft) => {
-            await onCreateChannel(draft);
-            setCreated(draft.name.trim());
-          }}
+          onSubmit={onCreateChannel}
         />
       )}
       {onCreateCollection && (
@@ -140,10 +134,7 @@ export default function ProjectComponentsPage({
           open={creating === "Collection"}
           takenNames={takenNames("Collection")}
           onClose={() => setCreating(undefined)}
-          onSave={async (name) => {
-            await onCreateCollection(name);
-            setCreated(name);
-          }}
+          onSave={onCreateCollection}
         />
       )}
       {onCreateComponent && creating && isContentComponentType(creating) && (
@@ -152,10 +143,7 @@ export default function ProjectComponentsPage({
           type={creating}
           takenNames={takenNames(creating)}
           onClose={() => setCreating(undefined)}
-          onSubmit={async (draft) => {
-            await onCreateComponent(creating, draft);
-            setCreated(draft.name.trim());
-          }}
+          onSubmit={(draft) => onCreateComponent(creating, draft)}
           onDraftWithAI={onDraftWithAI ? () => onDraftWithAI(creating) : undefined}
         />
       )}

@@ -9,6 +9,7 @@ import { useHistoryExportSaves } from "../../api/history-exports";
 import { combine } from "../../api/status";
 import { defaultHistoryFilters, historySearchFields, historyStatuses, newestFirst, type HistoryFilters, type HistoryWorkOrder } from "../../model/history";
 import HistoryPage, { type HistoryPageData } from "./HistoryPage";
+import { useAnnounceOutcome } from "../../app/announce";
 import { pageFrame } from "../../app/page-frame";
 import { isOpenable } from "../../model/projects";
 
@@ -71,6 +72,8 @@ function paramsFor(filters: HistoryFilters): URLSearchParams {
  * reads the same work orders. Exporting asks the project for a history
  * export, which appears in its settings.
  */
+const plural = (n: number, noun: string) => `${n} ${noun}${n === 1 ? "" : "s"}`;
+
 export default function HistoryPageQuery({ route }: { route: PageRoute }) {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -84,6 +87,7 @@ export default function HistoryPageQuery({ route }: { route: PageRoute }) {
   const { status: requestsStatus, requests } = useChannelRequests(scope.map((p) => ({ id: p.id, name: p.name })));
   const runs = useRunSaves();
   const exports = useHistoryExportSaves(projectId ?? "");
+  const announcing = useAnnounceOutcome();
 
   const nameOf = (id: string) => scope.find((p) => p.id === id)?.name ?? "";
   const rows: HistoryWorkOrder[] = workOrders
@@ -118,13 +122,37 @@ export default function HistoryPageQuery({ route }: { route: PageRoute }) {
           filters={filters}
           // Each change is a step Back can undo, except typing in the search, which would leave one per letter.
           onFiltersChange={(next) => setSearchParams(paramsFor(next), { replace: next.search !== filters.search })}
-          onRetry={(ids) => runs.retry(located(ids))}
-          onRetryFromStep={(ids, jobId) => runs.retry(located(ids), jobId)}
-          onCancel={(ids) => runs.cancel(located(ids))}
+          onRetry={(ids) =>
+            announcing(runs.retry(located(ids)), {
+              success: { message: `${plural(ids.length, "new run")} enqueued.`, detail: "Open a work order to follow its runs." },
+              failure: `${plural(ids.length, "work order")} not retried`,
+            })
+          }
+          onRetryFromStep={(ids, jobId) => {
+            const step = workflows.flatMap((w) => w.jobs).find((j) => j.id === jobId)?.name ?? jobId;
+            return announcing(runs.retry(located(ids), jobId), {
+              success: { message: `${plural(ids.length, "new run")} enqueued from ${step}.`, detail: "Open a work order to follow its runs." },
+              failure: `${plural(ids.length, "work order")} not retried from ${step}`,
+            });
+          }}
+          onCancel={(ids) =>
+            announcing(runs.cancel(located(ids)), {
+              success: `${plural(ids.length, "work order")} cancelled.`,
+              failure: `${plural(ids.length, "work order")} not cancelled`,
+            })
+          }
           onInspectRun={(order, run) => navigate(`/workflow-editor/${order.workflowId}?run=${run.runId}`)}
           onOpenChannelRun={(request) => request.workflowId && navigate(`/workflow-editor/${request.workflowId}?run=${request.runId}`)}
           // An export is made by the project, and shows up in its settings; History across projects has no one project to ask, so offers none.
-          onExport={projectId ? (ids) => exports.create(ids) : undefined}
+          onExport={
+            projectId
+              ? (ids) =>
+                  announcing(exports.create(ids), {
+                    success: { message: "Export started.", detail: "Download it from the project's settings, under History exports, once it's ready." },
+                    failure: "Export not started",
+                  })
+              : undefined
+          }
         />
       )}
     </Loaded>

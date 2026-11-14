@@ -16,6 +16,7 @@ import Lists from "./content/guidelines/Lists";
 import EmptyAndLoading from "./content/guidelines/EmptyAndLoading";
 import Overlays from "./content/guidelines/Overlays";
 import Accessibility from "./content/guidelines/Accessibility";
+import Notifications from "./content/guidelines/Notifications";
 import ComponentIndex from "./content/components/ComponentIndex";
 import ComponentPage from "./content/components/ComponentPage";
 import EmptyState from "../components/primitives/EmptyState";
@@ -55,6 +56,7 @@ const groups: { label: string; pages: DocsPage[] }[] = [
       { path: "guidelines/lists", title: "Lists", page: Lists },
       { path: "guidelines/empty-and-loading", title: "Empty and loading states", page: EmptyAndLoading },
       { path: "guidelines/menus-and-dialogs", title: "Menus and dialogs", page: Overlays },
+      { path: "guidelines/notifications", title: "Notifications", page: Notifications },
       { path: "guidelines/accessibility", title: "Accessibility", page: Accessibility },
     ],
   },

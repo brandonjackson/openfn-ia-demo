@@ -62,29 +62,29 @@ describe("ProjectWorkflowsPage", () => {
     expect(host.calls("onNewWorkflow")).toHaveLength(1);
   });
 
-  it("asks to turn a workflow off, and says so when the server refuses", async () => {
+  it("asks to turn a workflow off, and takes a refusal quietly (the wrapper says why)", async () => {
     const host = draw([workflow("Intake")]);
     fireEvent.click(screen.getByRole("switch", { name: "Intake enabled" }));
     expect(host.calls("onToggleWorkflow")).toEqual([["Intake", false]]);
     await host.reject("onToggleWorkflow", new FormError("You can't change workflows in this project."));
-    expect(screen.getByRole("alert").textContent).toContain("You can't change workflows in this project.");
+    expect(screen.getByRole("switch", { name: "Intake enabled" })).toBeTruthy();
   });
 
-  it("deletes a workflow once confirmed, saying so while it runs and once it's done", async () => {
+  it("deletes a workflow once confirmed, saying so while it runs", async () => {
     const host = draw([workflow("Intake")]);
     askToDelete("Intake");
     expect(host.calls("onDeleteWorkflow")).toEqual([["Intake"]]);
     expect(screen.getByRole("button", { name: "Deleting…" })).toBeTruthy();
     await host.resolve("onDeleteWorkflow");
     expect(screen.queryByRole("dialog")).toBeNull();
-    expect(screen.getByText('"Intake" deleted')).toBeTruthy();
   });
 
-  it("says why when the server refuses a delete", async () => {
+  it("closes the confirmation when the server refuses a delete (the wrapper says why)", async () => {
     const host = draw([workflow("Intake")]);
     askToDelete("Intake");
     await host.reject("onDeleteWorkflow", new FormError("Only an editor can delete workflows."));
-    expect(screen.getByRole("alert").textContent).toContain("Only an editor can delete workflows.");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByText("Intake")).toBeTruthy();
   });
 
   it("leaves out the switch and Delete when the viewer can't use them", () => {

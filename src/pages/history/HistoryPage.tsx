@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Ban, Download, History, RotateCcw } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
 import type { RunDetails } from "../../model/workflow";
-import { errorMessageOf } from "../../model/form-error";
 import {
   bulkActions,
   matchesFilters,
@@ -23,7 +22,6 @@ import Card from "../../components/primitives/Card";
 import Button from "../../components/primitives/Button";
 import Checkbox from "../../components/primitives/Checkbox";
 import ListHeader from "../../components/primitives/ListHeader";
-import Callout from "../../components/primitives/Callout";
 import EmptyState from "../../components/primitives/EmptyState";
 import SegmentedControl from "../../components/primitives/SegmentedControl";
 import SelectionBar from "../../components/primitives/SelectionBar";
@@ -78,9 +76,6 @@ export default function HistoryPage({
   const [exporting, setExporting] = useState(false);
   // The bulk action running, if any: its button says so, and every other press waits until it's done.
   const [busy, setBusy] = useState<"retry" | "retry-from" | "cancel" | "export">();
-  // Each notice gets its own key, so a screen reader reads it out even when the last one said the same thing.
-  const [notice, setNotice] = useState<{ key: number; tone: "success" | "danger"; title: string; detail?: string }>();
-  const say = (next: Omit<NonNullable<typeof notice>, "key">) => setNotice((last) => ({ ...next, key: (last?.key ?? 0) + 1 }));
 
   const { tab } = filters;
   const multiProject = !!data.projects;
@@ -96,39 +91,23 @@ export default function HistoryPage({
   const toggle = (list: string[], id: string, on: boolean) => (on ? [...list, id] : list.filter((x) => x !== id));
   const plural = (n: number, noun: string) => `${n} ${noun}${n === 1 ? "" : "s"}`;
 
-  /** Runs a bulk action and says how it went: what happened, or why the server refused it (the picks stay, to try again). */
-  async function act(kind: NonNullable<typeof busy>, ids: string[], run: (ids: string[]) => Promise<void>, failed: string, title: string, detail?: string) {
+  /** Runs a bulk action; the wrapper says how it went. The picks clear once it's done, and stay after a refusal, to try again. */
+  async function act(kind: NonNullable<typeof busy>, ids: string[], run: (ids: string[]) => Promise<void>) {
     if (busy) return;
     setBusy(kind);
     try {
       await run(ids);
-    } catch (error) {
-      say({ tone: "danger", title: failed, detail: errorMessageOf(error) });
+    } catch {
       return;
     } finally {
       setBusy(undefined);
     }
     setSelectedIds([]);
-    say({ tone: "success", title, detail });
   }
 
-  const retry =
-    onRetry &&
-    ((ids: string[]) =>
-      act("retry", ids, onRetry, `${plural(ids.length, "work order")} not retried`, `${plural(ids.length, "new run")} enqueued.`, "Open a work order to follow its runs."));
-  const retryFrom =
-    onRetryFromStep &&
-    ((ids: string[], jobId: string, label: string) =>
-      act(
-        "retry-from",
-        ids,
-        (x) => onRetryFromStep(x, jobId),
-        `${plural(ids.length, "work order")} not retried from ${label}`,
-        `${plural(ids.length, "new run")} enqueued from ${label}.`,
-        "Open a work order to follow its runs.",
-      ));
-  const cancel =
-    onCancel && ((ids: string[]) => act("cancel", ids, onCancel, `${plural(ids.length, "work order")} not cancelled`, `${plural(ids.length, "work order")} cancelled.`));
+  const retry = onRetry && ((ids: string[]) => act("retry", ids, onRetry));
+  const retryFrom = onRetryFromStep && ((ids: string[], jobId: string) => act("retry-from", ids, (x) => onRetryFromStep(x, jobId)));
+  const cancel = onCancel && ((ids: string[]) => act("cancel", ids, onCancel));
 
   return (
     <>
@@ -147,13 +126,6 @@ export default function HistoryPage({
               )
             }
           />
-        }
-        notice={
-          notice && (
-            <Callout key={notice.key} variant={notice.tone} title={notice.title} role={notice.tone === "danger" ? "alert" : "status"}>
-              {notice.detail}
-            </Callout>
-          )
         }
         toolbar={
           <Stack gap="md">
@@ -201,7 +173,7 @@ export default function HistoryPage({
                     menuTitle={`Steps of ${selectedWorkflow.name}`}
                     align="right"
                     items={selectedWorkflow.steps.map((s) => ({ id: s.id, label: s.label }))}
-                    onSelect={(jobId) => retryFrom(pickedIds, jobId, selectedWorkflow.steps.find((s) => s.id === jobId)?.label ?? jobId)}
+                    onSelect={(jobId) => retryFrom(pickedIds, jobId)}
                   />
                 ) : (
                   <Button size="sm" variant="secondary" disabled title="Pick finished work orders of one workflow to retry them from a step">
@@ -257,7 +229,7 @@ export default function HistoryPage({
                         onRetry={retry && (() => retry([id]))}
                         onCancel={cancel && (() => cancel([id]))}
                         onInspectRun={(run) => onInspectRun(order, run)}
-                        onRetryFromStep={retryFrom && ((_run, step) => retryFrom([id], step.jobId, step.label))}
+                        onRetryFromStep={retryFrom && ((_run, step) => retryFrom([id], step.jobId))}
                       />
                     );
                   })}
@@ -284,14 +256,7 @@ export default function HistoryPage({
           onClose={() => setExporting(false)}
           onConfirm={async () => {
             setExporting(false);
-            await act(
-              "export",
-              shown.map((o) => o.workOrder.id),
-              onExport,
-              "Export not started",
-              "Export started.",
-              "Download it from the project's settings, under History exports, once it's ready.",
-            );
+            await act("export", shown.map((o) => o.workOrder.id), onExport);
           }}
         >
           Every work order matching your filters, with its runs, steps and logs, goes into one file. Inputs and outputs are

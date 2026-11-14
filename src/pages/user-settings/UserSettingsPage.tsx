@@ -290,14 +290,9 @@ type CredentialDialog =
 
 function CredentialsSection(props: UserSettingsPageProps) {
   const { data } = props;
-  // UI state: the open dialog, and a note on what the last action did (Lightning's flash).
+  // UI state: the open dialog. The wrapper says what each action did (Lightning's flash).
   const [dialog, setDialog] = useState<CredentialDialog | null>(null);
-  const [notice, setNotice] = useState<string>();
   const close = () => setDialog(null);
-  const done = (message: string) => {
-    setDialog(null);
-    setNotice(message);
-  };
 
   return (
     <Stack gap="xl">
@@ -311,8 +306,6 @@ function CredentialsSection(props: UserSettingsPageProps) {
             </Button>
           }
         />
-
-        {notice && <Callout variant="success" title={notice} />}
 
         {(data.orgCredentialsOnSystems ?? true) && (
           <Callout variant="info" title="Organization credentials live in Systems">
@@ -379,7 +372,7 @@ function CredentialsSection(props: UserSettingsPageProps) {
           onClose={close}
           onSave={async (draft) => {
             await props.onSaveCredential(draft);
-            done(draft.id ? "Credential updated successfully" : "Credential created successfully");
+            close();
           }}
         />
       )}
@@ -391,11 +384,11 @@ function CredentialsSection(props: UserSettingsPageProps) {
           onClose={close}
           onTransfer={async (email) => {
             await props.onTransferCredential(dialog.credential.id, email);
-            done("Credential transfer initiated. We've emailed the new owner a link to accept it.");
+            close();
           }}
           onRevoke={async () => {
             await props.onRevokeCredentialTransfer(dialog.credential.id);
-            done("Transfer revoked successfully");
+            close();
           }}
         />
       )}
@@ -407,8 +400,9 @@ function CredentialsSection(props: UserSettingsPageProps) {
         onClose={close}
         onConfirm={async () => {
           if (dialog?.kind !== "delete-credential") return;
-          await props.onDeleteCredential(dialog.credential.id);
-          done(`"${dialog.credential.name}" deleted`);
+          // A refusal is said by the wrapper.
+          await props.onDeleteCredential(dialog.credential.id).catch(() => {});
+          close();
         }}
       >
         <p>
@@ -427,7 +421,7 @@ function CredentialsSection(props: UserSettingsPageProps) {
           onClose={close}
           onSave={async (draft) => {
             await props.onSaveOAuthClient(draft);
-            done(draft.id ? "OAuth client updated successfully" : "OAuth client created successfully");
+            close();
           }}
         />
       )}
@@ -439,8 +433,8 @@ function CredentialsSection(props: UserSettingsPageProps) {
         onClose={close}
         onConfirm={async () => {
           if (dialog?.kind !== "delete-oauth") return;
-          await props.onDeleteOAuthClient(dialog.client.id);
-          done(`"${dialog.client.name}" deleted`);
+          await props.onDeleteOAuthClient(dialog.client.id).catch(() => {});
+          close();
         }}
       >
         <p>

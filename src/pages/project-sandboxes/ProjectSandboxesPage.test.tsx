@@ -56,34 +56,32 @@ describe("ProjectSandboxesPage", () => {
     expect(screen.queryByRole("menuitem", { name: "Delete" })).toBeNull();
   });
 
-  it("makes a sandbox from the one you're in, then says so", async () => {
+  it("makes a sandbox from the one you're in, then closes the form", async () => {
     const host = draw("intake-v2");
     fireEvent.click(screen.getByRole("button", { name: "New sandbox" }));
     fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Try a fix" } });
     fireEvent.click(screen.getByRole("button", { name: "Create sandbox" }));
     expect(host.calls("onCreateSandbox")[0]![0]).toMatchObject({ name: "Try a fix", parent: "intake-v2" });
     await host.resolve("onCreateSandbox");
-    expect(screen.getByText("Created a sandbox from intake-v2.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Create sandbox" })).toBeNull();
   });
 
-  it("deletes a sandbox once it's confirmed, then says so", async () => {
+  it("deletes a sandbox once it's confirmed", async () => {
     const host = draw();
     fireEvent.click(screen.getByRole("button", { name: "Actions for dedup" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     fireEvent.click(screen.getByRole("button", { name: "Delete sandbox" }));
     expect(host.calls("onDeleteSandbox")).toEqual([["dedup"]]);
     await host.resolve("onDeleteSandbox");
-    expect(screen.getByText("Deleted dedup.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Delete sandbox" })).toBeNull();
   });
 
-  it("says why a delete was refused, and keeps the sandbox", async () => {
+  it("keeps the sandbox when a delete is refused (the wrapper says why)", async () => {
     const host = draw();
     fireEvent.click(screen.getByRole("button", { name: "Actions for dedup" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     fireEvent.click(screen.getByRole("button", { name: "Delete sandbox" }));
     await host.reject("onDeleteSandbox", new FormError("You can't delete a sandbox you didn't make."));
-    expect(screen.getByRole("alert").textContent).toContain("You can't delete a sandbox you didn't make.");
     expect(screen.getByText("dedup")).toBeTruthy();
-    expect(screen.queryByText("Deleted dedup.")).toBeNull();
   });
 });

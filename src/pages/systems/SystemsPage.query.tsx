@@ -9,6 +9,7 @@ import { connectionOf, isXRoadSystem, systemListItem } from "../../model/connect
 import { ecosystemWithoutXRoad } from "../../model/ecosystem";
 import { findMember, findService, routeKey, type XRoadRoute } from "../../model/xroad";
 import SystemsPage, { type SystemsPageData } from "./SystemsPage";
+import { useAnnounceOutcome } from "../../app/announce";
 
 /**
  * Feeds the Systems page from the demo's own routes: the organisation's
@@ -33,13 +34,15 @@ export default function SystemsPageQuery({ route }: { route: PageRoute }) {
   const { xroad: identity } = useOrganizationXRoad(flags.xroad);
   const { directory } = useXRoadDirectory(flags.xroad);
   const saves = useSystemSaves();
+  const announcing = useAnnounceOutcome();
 
   const addFromDirectory = async (xroadRoute: XRoadRoute) => {
     const member = directory && findMember(directory.members, xroadRoute.memberId);
     const service = directory && findService(directory.members, xroadRoute);
     const blank = { url: "", credential: "" };
-    await saves.addFromXRoad({
-      name: service?.name ?? xroadRoute.service,
+    const name = service?.name ?? xroadRoute.service;
+    await announcing(saves.addFromXRoad({
+      name,
       description: `${member?.name ?? xroadRoute.memberId}, ${xroadRoute.subsystem}. Added from the X-Road directory: next, agree terms with the provider.`,
       credentialType: "org",
       hasAccess: true,
@@ -56,7 +59,7 @@ export default function SystemsPageQuery({ route }: { route: PageRoute }) {
         accessCheckedAt: "Just now",
         allowedMethods: [],
       },
-    });
+    }), { success: `Added ${name} to your systems.`, failure: `${name} wasn't added` });
   };
 
   return (

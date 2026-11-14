@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { AnnouncementsProvider } from "../../app/announcements";
 import ApiProvider from "../../api/ApiProvider";
 import { forgetCsrfToken, listAll } from "../../api/client";
 import { setFlag } from "../../app/feature-flags";
@@ -24,13 +25,15 @@ function renderAt(url: string) {
   const route = { ...findNodeByPath(iaTree, path)!, currentPath: path };
   render(
     <ApiProvider retry={false}>
-      <MemoryRouter initialEntries={[url]}>
-        <Routes>
-          <Route path="/projects/:project/history" element={<HistoryPageQuery route={{ ...route, params: { project: projectId } }} />} />
-          <Route path="/history" element={<HistoryPageQuery route={route} />} />
-          <Route path="/workflow-editor/:id" element={<Opened />} />
-        </Routes>
-      </MemoryRouter>
+      <AnnouncementsProvider>
+        <MemoryRouter initialEntries={[url]}>
+          <Routes>
+            <Route path="/projects/:project/history" element={<HistoryPageQuery route={{ ...route, params: { project: projectId } }} />} />
+            <Route path="/history" element={<HistoryPageQuery route={route} />} />
+            <Route path="/workflow-editor/:id" element={<Opened />} />
+          </Routes>
+        </MemoryRouter>
+      </AnnouncementsProvider>
     </ApiProvider>,
   );
 }
@@ -65,7 +68,9 @@ describe("HistoryPageQuery", { timeout: 15000 }, () => {
     const orders = await serverOrders();
     const failed = orders.filter((o) => o.attributes.state === "failed");
     renderAt(`${projectPath}?status=failed`);
-    expect(await screen.findByText(`${failed.length} work order${failed.length === 1 ? "" : "s"} of ${orders.length}, newest first`, {}, wait)).toBeTruthy();
+    expect(
+      await screen.findByText(`${failed.length} work order${failed.length === 1 ? "" : "s"} of ${orders.length}, newest first`, {}, wait),
+    ).toBeTruthy();
   });
 
   it("retries a work order on the server, which adds a run to it", async () => {
@@ -82,10 +87,14 @@ describe("HistoryPageQuery", { timeout: 15000 }, () => {
     const [finished] = (await serverOrders()).filter((o) => !["pending", "running"].includes(o.attributes.state));
     renderAt(projectPath);
     await row(finished!.id);
-    failNext("POST /api/projects/:project_id/work_orders/retries", { status: 403, code: "forbidden", detail: "You can't run workflows in this project." });
+    failNext("POST /api/projects/:project_id/work_orders/retries", {
+      status: 403,
+      code: "forbidden",
+      detail: "You can't run workflows in this project.",
+    });
     fireEvent.click(screen.getByRole("button", { name: `Retry work order ${finished!.id}` }));
-    const alert = await screen.findByRole("alert", {}, wait);
-    expect(within(alert).getByText("You can't run workflows in this project.")).toBeTruthy();
+    await waitFor(() => expect(within(screen.getByRole("alert")).getByText("You can't run workflows in this project.")).toBeTruthy(), wait);
+    expect(within(screen.getByRole("alert")).getByText("1 work order not retried")).toBeTruthy();
   });
 
   it("opens a run in the editor", async () => {

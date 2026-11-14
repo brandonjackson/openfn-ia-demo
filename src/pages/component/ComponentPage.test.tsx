@@ -64,14 +64,15 @@ describe("ComponentPage", () => {
     expect(screen.getByRole("button", { name: "Edit" })).toBeTruthy();
   });
 
-  it("deletes a document once confirmed, and says why when the server refuses", async () => {
+  it("deletes a document once confirmed, and takes a refusal quietly (the wrapper says why)", async () => {
     const host = draw(documentData);
     openMenu("Runbook");
     fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     fireEvent.click(screen.getByRole("button", { name: "Delete document" }));
     expect(host.calls("onDelete")).toHaveLength(1);
     await host.reject("onDelete", new FormError("You can't delete components in this project."));
-    expect(screen.getByRole("alert").textContent).toContain("You can't delete components in this project.");
+    expect(screen.queryByRole("button", { name: "Delete document" })).toBeNull();
+    expect(screen.getAllByRole("heading", { name: "Runbook" }).length).toBeGreaterThan(0);
   });
 
   it("lists a collection's keys, and asks for its name before deleting it", () => {

@@ -43,7 +43,7 @@ describe("ProjectComponentsPage", () => {
     expect(screen.getByText(/building blocks of a project/)).toBeTruthy();
   });
 
-  it("makes a document from the panel, says so once it's made, and keeps the form open with the server's reason when refused", async () => {
+  it("makes a document from the panel, closes the form once it's made, and keeps the form open with the server's reason when refused", async () => {
     const host = draw([]);
     fireEvent.click(screen.getByText("Document"));
     fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Runbook" } });
@@ -54,7 +54,6 @@ describe("ProjectComponentsPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Create document" }));
     await host.resolve("onCreateComponent");
-    expect(screen.getByText("Created Runbook.")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Create document" })).toBeNull();
   });
 
@@ -65,7 +64,7 @@ describe("ProjectComponentsPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(host.calls("onCreateCollection")).toEqual([["patient-lookup"]]);
     await host.resolve("onCreateCollection");
-    expect(screen.getByText("Created patient-lookup.")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Save" })).toBeNull();
   });
 
   it("offers to hand a kind to AI from its form, with Build with AI", () => {

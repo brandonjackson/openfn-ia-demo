@@ -5,7 +5,6 @@ import ListPage from "./ListPage";
 import PageHeader from "./PageHeader";
 import FeatureIntro from "./FeatureIntro";
 import Button from "../primitives/Button";
-import Callout from "../primitives/Callout";
 import EmptyState from "../primitives/EmptyState";
 import ListGroup from "../primitives/ListGroup";
 import ListRow from "../primitives/ListRow";
@@ -142,14 +141,5 @@ export const Grouped: Story = {
         </ListGroup>
       </Stack>
     ),
-  },
-};
-
-/** What an action just did, under the header. */
-export const WithNotice: Story = {
-  args: {
-    header,
-    notice: <Callout variant="success" title={'"Supplier list" deleted'} />,
-    children: rows,
   },
 };

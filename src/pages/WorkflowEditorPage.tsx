@@ -17,6 +17,7 @@ import type {
 } from "../model/workflow";
 import { defaultWorkflowSettings, stepDeleteBlockedReason, workflowToYaml } from "../model/workflow";
 import type { WorkflowSettings } from "../model/workflow";
+import { placeAfter, ROW_GAP } from "../model/step-placement";
 import { counterpartNodeId, workflowChanges, type WorkflowChange } from "../model/workflow-changes";
 import { newDocName } from "../model/workflow-docs";
 import { lifecycleStages, type LifecycleStageId } from "../model/workflow-lifecycle";
@@ -145,22 +146,6 @@ const noEdits: Edits = {
   positions: {},
   edges: {},
 };
-
-/** How far apart steps sit on the canvas: one row down, or one branch across. */
-const ROW_GAP = 170;
-const BRANCH_GAP = 320;
-
-/** Where a step added after `source` goes: straight below it, or beside its other children as a new branch. */
-function placeAfter(workflow: Workflow, source: WorkflowNode): { x: number; y: number } {
-  const children = workflow.edges
-    .filter((e) => e.source === source.id)
-    .map((e) => workflow.nodes.find((n) => n.id === e.target))
-    .filter((n): n is WorkflowNode => n !== undefined);
-  const y = source.y + ROW_GAP;
-  let x = children.length ? Math.max(...children.map((c) => c.x)) + BRANCH_GAP : source.x;
-  while (workflow.nodes.some((n) => Math.abs(n.x - x) < BRANCH_GAP - 20 && Math.abs(n.y - y) < ROW_GAP - 40)) x += BRANCH_GAP;
-  return { x, y };
-}
 
 /** The workflow with this session's edits applied; `info` gives a re-adaptored step its package. */
 function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record<AdaptorKind, AdaptorInfo>): Workflow {
@@ -985,6 +970,8 @@ export default function WorkflowEditorPage({
     const source = graph.nodes.find((n) => n.id === sourceId);
     if (!source) return;
     const id = crypto.randomUUID();
+    // A new branch re-centres its siblings under the parent, so they sit balanced on either side of it.
+    const placement = placeAfter(graph, source.id);
     // A tool runs on the common adaptor, with settings in place of code.
     const tool = choice.kind === "tool" ? newStepTool(choice.tool) : undefined;
     // A service is called over HTTP, so its step is an HTTP step named for what the service does.
@@ -1014,7 +1001,7 @@ export default function WorkflowEditorPage({
             ? serviceStepBody(choice.service)
             : `// Connect to ${info.name}\n${firstSnippet ?? "fn(state => state);"}\n`,
       ...(system && { system }),
-      ...placeAfter(graph, source),
+      ...placement.position,
     };
     // A trigger has exactly one edge out of it, so a step added after it goes in between: the trigger's edge
     // now leads to the new step, which leads on to where the trigger did, and every step below moves down a row.
@@ -1041,6 +1028,7 @@ export default function WorkflowEditorPage({
         ...e.addedEdges,
         { id: crypto.randomUUID(), source: source.id, target: id, condition: source.type === "trigger" ? "always" : "on_success" },
       ],
+      positions: { ...e.positions, ...placement.moves },
     }));
     setAddAfterId(undefined);
     setSelectedId(id);

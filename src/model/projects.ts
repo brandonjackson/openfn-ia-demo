@@ -43,6 +43,21 @@ export interface ProjectSummary {
 }
 
 /**
+ * A project on the instance you aren't a member of: listed under "Other
+ * projects", where you can ask to join it but can't open it.
+ */
+export interface OtherProject {
+  id: string;
+  name: string;
+  description: string;
+  /** Who owns it, by name. Absent when nothing says. */
+  ownerName?: string;
+  memberCount: number;
+  /** Whether you've already asked to join. */
+  joinRequested: boolean;
+}
+
+/**
  * A project's card from the API: its counts from `include=stats`, and its
  * services' counts when it's given them (leave `services` out without the
  * service catalog, and the card shows none).

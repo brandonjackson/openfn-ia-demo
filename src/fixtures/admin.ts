@@ -185,6 +185,32 @@ export const memberships: Record<string, ProjectMembership[]> = {
   ],
 };
 
+/**
+ * Projects on the instance that Jane isn't in: the "Other projects" on
+ * Projects, which she can ask to join. They hold no workflows yet.
+ */
+export const otherProjects: { id: string; description: string; createdAt: string; members: ProjectMembership[] }[] = [
+  {
+    id: "immunization-registry",
+    description: "Syncs vaccination records from district clinics into the national immunization registry.",
+    createdAt: "4 Apr 2025",
+    members: [
+      { userId: "user-priya", role: "owner" },
+      { userId: "user-kofi", role: "editor" },
+    ],
+  },
+  {
+    id: "school-enrolment",
+    description: "Moves enrolment returns from the schools' census forms into the education management system.",
+    createdAt: "12 Sep 2025",
+    members: [
+      { userId: "user-amadou", role: "owner" },
+      { userId: "user-lena", role: "admin" },
+      { userId: "user-john", role: "viewer" },
+    ],
+  },
+];
+
 export const createdAt: Record<string, string> = {
   "project-a": "14 Mar 2024",
   "project-b": "2 Jul 2024",

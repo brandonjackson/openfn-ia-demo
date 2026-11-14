@@ -14,7 +14,7 @@
  * - Settings each have their own route: data retention, the MFA requirement
  *   and support access.
  */
-import { createdAt as fixtureCreatedAt, instanceUsers, memberships as fixtureMemberships } from "../fixtures/admin";
+import { createdAt as fixtureCreatedAt, instanceUsers, memberships as fixtureMemberships, otherProjects } from "../fixtures/admin";
 import { projectMemberships as settingsMemberships, projectSettingsRecord } from "../fixtures/project-settings";
 import { projects as fixtureProjects, projectSandboxRecords } from "../fixtures/projects";
 import { hasRole, type DigestFrequency, type ProjectRole } from "../model/project-settings";
@@ -135,6 +135,24 @@ export const projects = table<ProjectRow>("projects", () =>
       updated_at: seedTime(p.lastActivity),
     };
   }).concat(
+    // Projects Jane isn't in, for Projects' "Other projects".
+    otherProjects.map((p): ProjectRow => ({
+      id: projectIdFor(p.id),
+      name: p.id,
+      description: p.description,
+      env: "production",
+      color: null,
+      parent_id: null,
+      concurrency: null,
+      retention_policy: "retain_all",
+      history_retention_period: null,
+      dataclip_retention_period: null,
+      requires_mfa: false,
+      allow_support_access: false,
+      scheduled_deletion: null,
+      inserted_at: seedTime(p.createdAt),
+      updated_at: seedTime(p.createdAt),
+    })),
     fixtureSandboxes().map(({ sandbox, id, parentId }): ProjectRow => ({
       id,
       name: sandbox.name,
@@ -179,7 +197,17 @@ export const members = table<MemberRow>("project_members", () => {
       .map((m) => ({ ...m, project_id: id, role: m.role === "owner" ? ("admin" as const) : m.role, inserted_at: seedTime(sandbox.lastActivity, 7 * 86_400_000) })),
     { project_id: id, user_id: maker, role: "owner" as const, failure_alert: true, digest: "never" as const, inserted_at: seedTime(sandbox.lastActivity, 7 * 86_400_000) },
   ]);
-  return [...roots, ...sandboxes];
+  const others = otherProjects.flatMap((p) =>
+    p.members.map((m) => ({
+      project_id: projectIdFor(p.id),
+      user_id: userIdFor(m.userId),
+      role: m.role,
+      failure_alert: m.role === "owner",
+      digest: "never" as const,
+      inserted_at: seedTime(p.createdAt),
+    })),
+  );
+  return [...roots, ...others, ...sandboxes];
 });
 
 /* ------------------------------------------------------------------ */

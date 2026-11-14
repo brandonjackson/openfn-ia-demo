@@ -19,6 +19,20 @@ Each is answered by the fake server on a `/api/demo/` route. Turning one into
 a Lightning route is a change to `api/` (Brandon's), then to that route's
 path in its hook file.
 
+- **Projects you aren't in, and asking to join one** (Projects' "Other
+  projects", with Organizations on). `api/` lists only the projects you're a
+  member of (a superuser sees every one, but can't ask to join). Would need a
+  list of the instance's or organisation's projects you could ask to join, and
+  join requests their owners and admins answer. Demo:
+  `GET /api/demo/projects/others` and
+  `POST /api/demo/projects/:id/join_requests` (`useOtherProjects`,
+  `useProjectSaves().requestToJoin`); nobody answers a request yet.
+- **Copying a project** (a project's ⋮ menu on Projects). Would need
+  `POST /api/projects/:id/copies`. Demo: `POST /api/demo/projects/:id/copies`
+  (`useProjectSaves().copy`): a new top-level project, you its only member and
+  owner, named "<name>-copy", with copies of its workflows (paused),
+  components, environment variables and test cases, as making a sandbox
+  copies them.
 - **Published services** (Services catalog, a service's page, a project's
   card on Projects and Overview). Would need `GET /api/services` and
   `/api/projects/:id/services`, each service with its workflow, status

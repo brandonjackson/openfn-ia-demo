@@ -401,6 +401,35 @@ export const sandboxRoutes: Record<string, Handler> = {
     return json(201, { data: projectEntry(sandbox) });
   },
 
+  // The demo's own (api/ has no copy): a new top-level project made from one you're in, with its workflows (triggers
+  // off), components, environment variables and test cases, as making a sandbox copies them. You're its only member,
+  // and its owner. It's named "<name>-copy" ("-copy-2" and so on when that's taken); nothing else of the original changes.
+  "POST /api/demo/projects/:project_id/copies": ({ project_id }, body) => {
+    const original = guardProject(project_id!, "viewer");
+    if (original instanceof Response) return original;
+    if (original.parent_id !== null) return invalid([{ code: "invalid", detail: "a sandbox can't be copied as a project", pointer: "#/project_id" }]);
+    const errors = unknownKeys(body, []);
+    if (errors.length) return invalid(errors);
+    const taken = new Set(projects.rows().filter((p) => p.parent_id === null).map((p) => p.name));
+    let name = `${original.name}-copy`;
+    for (let i = 2; taken.has(name); i++) name = `${original.name}-copy-${i}`;
+    const at = now();
+    const copy: ProjectRow = { ...original, id: newId(), name, scheduled_deletion: null, inserted_at: at, updated_at: at };
+    projects.insert(copy);
+    members.insert({ project_id: copy.id, user_id: currentUserId(), role: "owner", failure_alert: true, digest: "never", inserted_at: at });
+    const copies = new Map<string, string>();
+    for (const w of liveWorkflowsIn(original.id)) {
+      const made = { ...cloneInto(w, copy.id, at), copied_from: null };
+      workflows.insert(made);
+      snapshot(made);
+      copies.set(w.id, made.id);
+    }
+    copyComponentsInto(original.id, copy.id, at);
+    copyTestCasesInto(copy.id, copies);
+    record("created", { type: "project", id: copy.id, name }, { after: { name, copied_from: original.id } });
+    return json(201, { data: projectEntry(copy) });
+  },
+
   "POST /api/projects/:project_id/sandboxes/:id/merge_previews": ({ project_id, id }, body) => {
     const found = sandboxAt(project_id!, id!);
     if (found instanceof Response) return found;

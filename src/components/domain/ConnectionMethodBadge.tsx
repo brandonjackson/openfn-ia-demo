@@ -6,13 +6,13 @@ const methods: Record<
   ConnectionMethod,
   { label: string; title: string; tone: "gray" | "indigo"; icon: typeof Network; chip: string }
 > = {
-  direct: { label: "Direct", title: "Reached directly with a credential", tone: "gray", icon: KeyRound, chip: "bg-gray-100 text-gray-600" },
+  direct: { label: "Direct", title: "Reached directly with a credential", tone: "gray", icon: KeyRound, chip: "bg-gray-100 text-gray-700" },
   xroad: {
     label: "X-Road",
     title: "Reached through your X-Road Security Server",
     tone: "indigo",
     icon: Network,
-    chip: "bg-indigo-100 text-indigo-700",
+    chip: "bg-badge-indigo-bg text-badge-indigo-fg",
   },
 };
 

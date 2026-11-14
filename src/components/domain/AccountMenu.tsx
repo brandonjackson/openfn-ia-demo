@@ -2,11 +2,12 @@ import { Building2, ChevronsUpDown, LogOut, Settings, ShieldCheck } from "lucide
 import Surface from "../primitives/Surface";
 import { usePopover } from "../primitives/use-popover";
 import NavItem from "../primitives/NavItem";
+import InstanceMark from "./InstanceMark";
 
 interface Props {
   user: { firstName: string; lastName: string; email: string };
-  /** The organisation you're signed in to; its settings live under Organization settings. */
-  instance: { name: string; initials: string };
+  /** The organisation you're in or, without Organizations, the instance: its name, and its logo (or initials), the same mark as the sidebar's corner. */
+  instance: { name: string; initials: string; logo?: string };
   /** Offer Organization settings. Off when the demo's Organizations flag is. */
   showOrganizationSettings?: boolean;
   /** Offer Admin settings, the whole instance's. Only for a superuser. */
@@ -80,9 +81,7 @@ export default function AccountMenu({
           open ? "bg-gray-100" : "hover:bg-gray-100"
         }`}
       >
-        <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-indigo-600 text-[11px] font-bold text-white">
-          {instance.initials}
-        </span>
+        <InstanceMark instance={instance} />
         <span className="min-w-0 flex-1 truncate text-sm">
           <span className="font-medium text-gray-900">{user.firstName}</span>
           <span className="text-gray-500"> · {instance.name}</span>

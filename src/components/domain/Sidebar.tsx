@@ -237,7 +237,7 @@ export default function Sidebar({ open = false, onClose }: { open?: boolean; onC
             <div className="border-t border-gray-200 pt-3">
               <AccountMenu
                 user={user}
-                instance={instance}
+                instance={organization ?? instance}
                 showOrganizationSettings={flags.organizations}
                 showAdminSettings={isSuperuser}
               />

@@ -1,4 +1,5 @@
 import Link from "../primitives/Link";
+import InstanceMark from "./InstanceMark";
 
 interface Props {
   /** Whose corner it is: the organisation you're in or, without Organizations, the instance you're signed in to. Its logo (a URL or data URL) shows when it has one, its initials otherwise. */
@@ -16,11 +17,7 @@ interface Props {
 export default function InstanceLogo({ instance, title = "Back to Overview" }: Props) {
   return (
     <Link to="/" className="flex min-w-0 items-center gap-2" title={title}>
-      {instance.logo ? (
-        <img src={instance.logo} alt="" className="h-7 w-7 flex-shrink-0 rounded-md border border-gray-200 bg-white object-contain" />
-      ) : (
-        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-indigo-600 text-xs font-bold text-white">{instance.initials}</div>
-      )}
+      <InstanceMark instance={instance} />
       <span className="truncate text-lg font-semibold text-gray-900">{instance.name}</span>
     </Link>
   );

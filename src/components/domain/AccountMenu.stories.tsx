@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import AccountMenu from "./AccountMenu";
 import { withRouter } from "../../stories/decorators";
 import { currentInstance, currentUser } from "../../fixtures/user";
+import { organizationLogo } from "../../fixtures/organization";
 
 const meta: Meta<typeof AccountMenu> = {
   title: "Domain/AccountMenu",
@@ -24,6 +25,11 @@ export default meta;
 type Story = StoryObj<typeof AccountMenu>;
 
 export const Closed: Story = {};
+
+/** An organisation with a logo: the same logo as the sidebar's corner. */
+export const WithLogo: Story = {
+  args: { instance: { name: "Ministry of Health", initials: "MH", logo: organizationLogo } },
+};
 
 export const Open: Story = {
   args: { defaultOpen: true },

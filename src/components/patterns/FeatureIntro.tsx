@@ -74,7 +74,7 @@ export default function FeatureIntro({ title, description, features, storageKey,
       <ul className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
         {features.map(({ icon: Icon, title: featureTitle, description: featureDescription }) => (
           <li key={featureTitle} className="flex items-start gap-3">
-            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-indigo-100 text-indigo-600">
+            <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-badge-indigo-bg text-badge-indigo-fg">
               <Icon size={16} />
             </span>
             <div className="min-w-0">

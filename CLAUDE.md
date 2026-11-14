@@ -132,7 +132,7 @@ Run counts on the canvas must add up down the graph: `runActivity` counts a run 
 
 ## Colours
 
-Every colour goes through the design system: Tailwind colour utilities (`bg-*`, `text-*`, `border-*`, `fill-*`, `stroke-*`), which resolve to theme tokens the demo settings' Theme section re-skins, or a named CSS variable in `src/theme/theme.css`. No hex, `rgb()` or `hsl()` literals in components or templates, including SVG `fill`/`stroke` attributes and inline styles.
+Every colour goes through the design system: Tailwind colour utilities (`bg-*`, `text-*`, `border-*`, `fill-*`, `stroke-*`), which resolve to theme tokens the demo settings' Theme section re-skins, or a named CSS variable in `src/theme/theme.css`. No hex, `rgb()` or `hsl()` literals in components or templates, including SVG `fill`/`stroke` attributes and inline styles. That includes Tailwind's `theme(colors.…)` inside an arbitrary value, which compiles to a fixed colour: use `var(--color-…)`. The Theme section offers Light mode (the default), Dark mode, Lightning v2 and GDS. Dark mode (`html[data-theme="dark"]`) flips the same tokens, turns `bg-white` into the dark surface and gives solid fills (`bg-*-600` and darker, dark grays) their own palette back, so never add `dark:` variants: use the utility that says what you mean and both modes follow.
 
 ## Storybook
 

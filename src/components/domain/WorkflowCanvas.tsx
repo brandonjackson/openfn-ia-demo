@@ -201,7 +201,7 @@ export default function WorkflowCanvas({
   return (
     <div
       ref={surfaceRef}
-      className={`relative touch-none select-none overflow-hidden bg-gray-50 bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] [background-size:22px_22px] ${
+      className={`relative touch-none select-none overflow-hidden bg-gray-50 bg-[radial-gradient(var(--color-gray-200)_1px,transparent_1px)] [background-size:22px_22px] ${
         dragging ? "cursor-grabbing" : "cursor-grab"
       }`}
       style={{ width: "100%", height: "100%", minHeight: height, backgroundPosition: `${pan.x}px ${pan.y}px` }}

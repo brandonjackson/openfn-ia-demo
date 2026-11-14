@@ -125,6 +125,15 @@ html[data-theme="lightning-v2"] {
           To add a theme, add an entry in <Code>src/theme/themes.ts</Code>, then a token block in <Code>theme.css</Code> and,
           if needed, a component layer scoped to the same <Code>data-theme</Code>.
         </P>
+        <P>
+          Dark mode is the same idea turned over: the grays run from the darkest page to the lightest text, each hue's tints
+          become dark washes of it and its deep shades its light ones, so <Code>bg-red-50 text-red-700</Code> still reads as
+          a quiet red note. Two things a token swap can't do are rules of their own: white surfaces take the dark surface
+          colour (<Code>text-white</Code> stays white), and inside a solid fill such as a primary button, a tooltip or the
+          log console the palette is Tailwind's own again, so its light text keeps reading. Body and muted text clear WCAG
+          AA on the dark surface. That's why a component never needs a <Code>dark:</Code> variant: pick the utility that
+          says what you mean (a surface, a tint, muted text) and both modes follow.
+        </P>
       </Section>
     </DocPage>
   );

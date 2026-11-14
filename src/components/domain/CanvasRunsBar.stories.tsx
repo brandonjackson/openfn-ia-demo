@@ -39,7 +39,7 @@ const meta: Meta<typeof CanvasRunsBar> = {
   parameters: { layout: "fullscreen" },
   decorators: [
     (Story) => (
-      <div className="flex h-[620px] justify-center bg-gray-50 bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] pt-3 [background-size:22px_22px]">
+      <div className="flex h-[620px] justify-center bg-gray-50 bg-[radial-gradient(var(--color-gray-200)_1px,transparent_1px)] pt-3 [background-size:22px_22px]">
         <Story />
       </div>
     ),

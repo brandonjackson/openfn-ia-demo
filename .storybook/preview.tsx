@@ -1,5 +1,6 @@
 import type { Preview, Decorator } from "@storybook/react";
 import "../src/index.css";
+import { DEFAULT_THEME_ID, THEMES } from "../src/theme/themes";
 
 /**
  * Every deploy replaces the whole published Storybook, and GitHub Pages lets
@@ -58,9 +59,7 @@ const preview: Preview = {
         title: "Theme",
         icon: "paintbrush",
         items: [
-          { value: "default", title: "Basic (default)" },
-          { value: "lightning-v2", title: "Lightning v2" },
-          { value: "gds", title: "GDS" },
+          ...THEMES.map((t) => ({ value: t.id, title: t.id === DEFAULT_THEME_ID ? `${t.name} (default)` : t.name })),
         ],
         dynamicTitle: true,
       },

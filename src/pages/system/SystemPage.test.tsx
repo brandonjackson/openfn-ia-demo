@@ -104,16 +104,16 @@ describe("SystemPage", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
   });
 
-  it("says why when the server refuses to revoke a grant", async () => {
+  it("closes the confirm and keeps the grant when the server refuses to revoke it (the wrapper says why)", async () => {
     const host = renderPage(SystemPage, frame(), actions);
     fireEvent.click(screen.getByRole("button", { name: "Revoke" }));
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Revoke" }));
     await host.reject("onRevokeGrant", new FormError("That grant is already gone."));
-    expect(screen.getByRole("alert").textContent).toContain("Project A still has access");
-    expect(screen.getByRole("alert").textContent).toContain("That grant is already gone.");
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(screen.getByText("Project A")).toBeTruthy();
   });
 
-  it("deletes the system once its name is typed, and says why if the server refuses", async () => {
+  it("deletes the system once its name is typed, waiting while it's deleted", async () => {
     const host = renderPage(SystemPage, frame(), actions);
     fireEvent.click(screen.getByRole("button", { name: "Delete system" }));
     const dialog = screen.getByRole("dialog");
@@ -122,7 +122,7 @@ describe("SystemPage", () => {
     expect(host.calls("onDeleteSystem")).toHaveLength(1);
     expect(within(dialog).getByRole("button", { name: "Deleting…" })).toBeTruthy();
     await host.reject("onDeleteSystem", new FormError("Workflows still use it."));
-    expect(screen.getByRole("alert").textContent).toContain("DHIS2 wasn't deleted");
+    expect(screen.queryByRole("dialog")).toBeNull();
   });
 
   it("edits one environment's URL from its Edit, keeping the rest of the system", async () => {

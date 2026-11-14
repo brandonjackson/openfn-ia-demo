@@ -10,6 +10,7 @@ import { connectionOf, systemsFor } from "../../model/connected-systems";
 import { findMember, findService } from "../../model/xroad";
 import NotFoundPage from "../NotFoundPage";
 import SystemPage from "./SystemPage";
+import { useAnnounceOutcome } from "../../app/announce";
 
 /**
  * Feeds a connected system's page from the demo's own connected-systems
@@ -32,6 +33,7 @@ export default function SystemPageQuery({ route }: { route: PageRoute }) {
   const { status: identityStatus, xroad: identity } = useOrganizationXRoad(overXRoad);
   const { status: directoryStatus, directory } = useXRoadDirectory(overXRoad);
   const saves = useSystemSaves();
+  const announcing = useAnnounceOutcome();
   return (
     <Loaded status={combine(status, grantsStatus)} path={route.currentPath}>
       {() => {
@@ -49,10 +51,14 @@ export default function SystemPageQuery({ route }: { route: PageRoute }) {
           <SystemPage
             {...pageFrame(route, { label: system.name, description: system.description })}
             data={{ system, xroad, accessGrants: grants }}
-            onRevokeGrant={(grantId) => saves.revokeGrant(system.id, grantId)}
-            onSaveSystem={(changes) => saves.edit(system, changes)}
+            onRevokeGrant={(grantId) => {
+              const who = grants.find((g) => g.id === grantId)?.grantedTo ?? "That grant";
+              return announcing(saves.revokeGrant(system.id, grantId), { success: `${who} no longer has access to ${system.name}.`, failure: `${who} still has access` });
+            }}
+            // The form says why under its fields if it's refused, so only success is announced.
+            onSaveSystem={(changes) => announcing(saves.edit(system, changes), { success: `Saved ${changes.name}.` })}
             onDeleteSystem={async () => {
-              await saves.remove(system.id);
+              await announcing(saves.remove(system.id), { success: `Deleted ${system.name}.`, failure: `${system.name} wasn't deleted` });
               navigate("/connected-systems");
             }}
           />

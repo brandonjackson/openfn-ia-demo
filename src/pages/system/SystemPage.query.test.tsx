@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from "@testing-library/rea
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../../api/ApiProvider";
+import { AnnouncementsProvider } from "../../app/announcements";
 import { forgetCsrfToken, request } from "../../api/client";
 import { setFlags } from "../../app/feature-flags";
 import { findNodeByPath } from "../../app/ia-utils";
@@ -26,12 +27,14 @@ function renderRoute(id: string) {
   const route = { ...findNodeByPath(iaTree, path)!, currentPath: path };
   render(
     <ApiProvider retry={false}>
-      <MemoryRouter initialEntries={[path]}>
-        <Routes>
-          <Route path="/connected-systems" element={<p>Systems list</p>} />
-          <Route path="*" element={<SystemPageQuery route={route} />} />
-        </Routes>
-      </MemoryRouter>
+      <AnnouncementsProvider>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route path="/connected-systems" element={<p>Systems list</p>} />
+            <Route path="*" element={<SystemPageQuery route={route} />} />
+          </Routes>
+        </MemoryRouter>
+      </AnnouncementsProvider>
     </ApiProvider>,
   );
 }
@@ -83,6 +86,17 @@ describe("SystemPageQuery", () => {
     fireEvent.change(screen.getByLabelText(/OpenAPI spec/), { target: { value: "not a url" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(await screen.findByText("must be an http or https URL", {}, wait)).toBeTruthy();
+  });
+
+  it("says in a toast why the server refused to revoke a grant", async () => {
+    const dhis2 = await systemNamed("DHIS2");
+    renderRoute(dhis2.id);
+    fireEvent.click((await screen.findAllByRole("button", { name: "Revoke" }, wait))[0]!);
+    failNext("DELETE /api/demo/connected_systems/:id/access_grants/:grant_id", { status: 409, code: "conflict", detail: "That grant is in use." });
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Revoke" }));
+    const alert = await screen.findByRole("alert", {}, wait);
+    expect(alert.textContent).toContain("still has access");
+    expect(alert.textContent).toContain("That grant is in use.");
   });
 
   it("revokes a grant on the server", async () => {

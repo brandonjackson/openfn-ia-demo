@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { BookOpen, FileCode, FolderOpen, Globe, KeyRound, Lock, Network, Pencil, ShieldX, Trash2, User, Users } from "lucide-react";
-import Callout from "../../components/primitives/Callout";
 import ConfirmModal from "../../components/primitives/ConfirmModal";
-import { errorMessageOf } from "../../model/form-error";
 import Text from "../../components/primitives/Text";
 import type { PageProps } from "../../model/ia-tree";
 import type { AccessGrant, ConnectedSystem, SystemChanges } from "../../model/connected-systems";
@@ -39,11 +37,11 @@ export interface SystemPageData {
 }
 
 export interface SystemPageProps extends PageProps<SystemPageData> {
-  /** Takes away one person's or project's access to the system. Without it, there's no Revoke. */
+  /** Takes away one person's or project's access to the system; the wrapper says how it went. Without it, there's no Revoke. */
   onRevokeGrant?: (grantId: string) => Promise<void>;
   /** Saves changes to the system's name, description, API docs, OpenAPI spec and environment URLs. Rejects with what the server refused. Without it, there's no Edit. */
   onSaveSystem?: (changes: SystemChanges) => Promise<void>;
-  /** Removes the system from the organisation, with everyone's access to it. Without it, there's no Delete. */
+  /** Removes the system from the organisation, with everyone's access to it; the wrapper says how it went. Without it, there's no Delete. */
   onDeleteSystem?: () => Promise<void>;
 }
 
@@ -90,17 +88,15 @@ export default function SystemPage({ node, ancestors, data, onRevokeGrant, onSav
   /** What's open to edit: the whole system, or one of its environments. */
   const [editing, setEditing] = useState<"system" | Environment>();
   const [busy, setBusy] = useState(false);
-  const [refusal, setRefusal] = useState<{ title: string; detail: string }>();
 
-  /** Runs a confirmed action once, closing its confirm, and says why if the server refuses. */
-  const confirm = async (action: () => Promise<void> | undefined, close: () => void, failed: string) => {
+  /** Runs a confirmed action once, closing its confirm. A refusal is said by the wrapper. */
+  const confirm = async (action: () => Promise<void> | undefined, close: () => void) => {
     if (busy) return;
-    setRefusal(undefined);
     setBusy(true);
     try {
       await action();
-    } catch (error) {
-      setRefusal({ title: failed, detail: errorMessageOf(error) });
+    } catch {
+      // Refused: the wrapper said why.
     } finally {
       setBusy(false);
       close();
@@ -179,12 +175,6 @@ export default function SystemPage({ node, ancestors, data, onRevokeGrant, onSav
         <PropertyList properties={properties} />
       </Stack>
 
-      {refusal && (
-        <Callout variant="danger" title={refusal.title} role="alert">
-          {refusal.detail}
-        </Callout>
-      )}
-
       {xroad && data.xroad && <XRoadConnectionDetails connection={xroad} {...data.xroad} />}
 
       {!xroad && (
@@ -222,7 +212,7 @@ export default function SystemPage({ node, ancestors, data, onRevokeGrant, onSav
         onClose={() => !busy && setRevoking(null)}
         onConfirm={() => {
           if (!revoking) return;
-          void confirm(() => onRevokeGrant?.(revoking.id), () => setRevoking(null), `${revoking.grantedTo} still has access`);
+          void confirm(() => onRevokeGrant?.(revoking.id), () => setRevoking(null));
         }}
       >
         <Text block>
@@ -238,7 +228,7 @@ export default function SystemPage({ node, ancestors, data, onRevokeGrant, onSav
         confirmPhrase={node.label}
         confirmPhraseLabel="Type the system's name to confirm"
         onClose={() => !busy && setDeleting(false)}
-        onConfirm={() => void confirm(() => onDeleteSystem?.(), () => setDeleting(false), `${node.label} wasn't deleted`)}
+        onConfirm={() => void confirm(() => onDeleteSystem?.(), () => setDeleting(false))}
       >
         <Text block>
           {node.label} is removed from the organisation, with everyone's access to it. Workflows that use it keep their

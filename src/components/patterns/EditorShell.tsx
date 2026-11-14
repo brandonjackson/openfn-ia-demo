@@ -72,7 +72,7 @@ export default function EditorShell({
 
   return (
     <div
-      className={`relative flex h-full overflow-hidden bg-gray-50 bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] [background-size:22px_22px] ${
+      className={`relative flex h-full overflow-hidden bg-gray-50 bg-[radial-gradient(var(--color-gray-200)_1px,transparent_1px)] [background-size:22px_22px] ${
         accentEdge ? "border-t-4 border-amber-400" : ""
       }`}
     >

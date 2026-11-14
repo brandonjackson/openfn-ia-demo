@@ -56,8 +56,8 @@ export default function Introduction() {
       <Section title="Where it comes from">
         <P>
           The system grew out of the redesign of Lightning, OpenFn's workflow platform, and is shaped by Lightning's API and
-          its existing screens. Themes let the same components wear today's Lightning look, the redesign, or a government
-          design system such as GOV.UK's, without changing a line of component code.
+          its existing screens. Themes let the same components wear today's Lightning look, the redesign in light or dark mode, or a
+          government design system such as GOV.UK's, without changing a line of component code.
         </P>
         <Callout title="This is a living system">
           Components get added and changed every week. When something here doesn't match the code, the code wins, and

@@ -43,7 +43,7 @@ const meta: Meta<Args> = {
   parameters: { layout: "fullscreen" },
   decorators: [
     (Story) => (
-      <div className="h-80 bg-gray-50 bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] p-4 [background-size:22px_22px]">
+      <div className="h-80 bg-gray-50 bg-[radial-gradient(var(--color-gray-200)_1px,transparent_1px)] p-4 [background-size:22px_22px]">
         <Story />
       </div>
     ),

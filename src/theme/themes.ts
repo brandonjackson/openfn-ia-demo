@@ -7,7 +7,7 @@
  * therefore two steps: a token block in `theme.css` and an entry here.
  */
 
-export type ThemeId = "default" | "lightning-v2" | "gds";
+export type ThemeId = "default" | "dark" | "lightning-v2" | "gds";
 
 export interface ThemeMeta {
   id: ThemeId;
@@ -24,10 +24,17 @@ export interface ThemeMeta {
 export const THEMES: ThemeMeta[] = [
   {
     id: "default",
-    name: "Basic",
-    description: "The original product UI — indigo on cool grays.",
+    name: "Light mode",
+    description: "The original product UI: indigo on cool grays.",
     mode: "light",
     swatches: ["#4f46e5", "#4338ca", "#111827", "#f9fafb"],
+  },
+  {
+    id: "dark",
+    name: "Dark mode",
+    description: "The same UI turned down: light text on deep cool grays, with indigo kept for actions.",
+    mode: "dark",
+    swatches: ["#818cf8", "#4f46e5", "#e5e7eb", "#16181d"],
   },
   {
     id: "lightning-v2",

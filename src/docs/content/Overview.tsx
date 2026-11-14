@@ -11,6 +11,7 @@ import Text from "../../components/primitives/Text";
 import TextLink from "../../components/primitives/TextLink";
 import { Bullets, DocPage, P, Section } from "../parts/Doc";
 import { storybookUrl } from "../links";
+import { THEMES } from "../../theme/themes";
 
 const sections = [
   {
@@ -82,7 +83,7 @@ export default function Overview() {
           <StatTile label="Primitives" value={count("primitives")} />
           <StatTile label="Patterns" value={count("patterns")} />
           <StatTile label="Domain components" value={count("domain")} />
-          <StatTile label="Themes" value={3} />
+          <StatTile label="Themes" value={THEMES.length} />
         </Grid>
         <P>
           Everything on screen is a component, and every component lives in one of three layers, by what it knows.{" "}

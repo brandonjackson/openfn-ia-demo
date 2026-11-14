@@ -53,7 +53,7 @@ const meta: Meta<typeof StepInspector> = {
   },
   decorators: [
     (Story) => (
-      <div className="relative h-[720px] bg-gray-50 bg-[radial-gradient(theme(colors.gray.200)_1px,transparent_1px)] [background-size:22px_22px]">
+      <div className="relative h-[720px] bg-gray-50 bg-[radial-gradient(var(--color-gray-200)_1px,transparent_1px)] [background-size:22px_22px]">
         <div className="absolute bottom-4 right-4 top-3 flex items-start justify-end">
           <Story />
         </div>

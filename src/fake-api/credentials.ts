@@ -101,7 +101,7 @@ export const credentials = table<CredentialRow>("credentials", () => [
     // A credential's schema is its adaptor's, whether or not the form has fields for it.
     schema: fullSchemaName(c.adaptor),
     external_id: null,
-    environments: [{ name: "production", body: {}, inserted_at: seedTime("1 Jun 2026"), updated_at: seedTime("1 Jun 2026") }],
+    environments: (c.environments ?? ["production"]).map((name) => ({ name, body: {}, inserted_at: seedTime("1 Jun 2026"), updated_at: seedTime("1 Jun 2026") })),
     scheduled_deletion: null,
     transfer_to: null,
     has_activity_in_projects: true,

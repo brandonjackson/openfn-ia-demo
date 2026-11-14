@@ -47,7 +47,8 @@ export default function Card({
           {title}
         </h3>
       )}
-      {description && <div className="text-xs text-gray-500 mb-4 space-y-2">{description}</div>}
+      {/* The gap under the description is for the card's content; a card of only a heading doesn't need it. */}
+      {description && <div className={`text-xs text-gray-500 space-y-2 ${children ? "mb-4" : ""}`}>{description}</div>}
     </>
   );
   const content = (

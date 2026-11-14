@@ -12,7 +12,7 @@ import { serviceCatalogData } from "../fixtures/service-catalog";
 import { useSandbox } from "../app/sandbox-state";
 import Loaded from "../app/Loaded";
 import { useProject } from "../api/projects";
-import { useProjectCredentials } from "../api/credentials";
+import { useCreateStepCredential, useCredentialSchemaLoader, useCredentialSchemas, useProjectCredentials } from "../api/credentials";
 import { useConnectedSystems } from "../api/connected-systems";
 import { useDataclips, useRunSaves, useWorkOrders } from "../api/work-orders";
 import { useDataclipSaves } from "../api/dataclips";
@@ -215,6 +215,10 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   const { credentials } = useProjectCredentials(root.id);
   const { systems } = useConnectedSystems();
   const adaptors: AdaptorReference = { ...adaptorReference, credentials };
+  // A step's New credential makes one shared with the project, which every sandbox in it uses too.
+  const { schemas: credentialSchemas } = useCredentialSchemas();
+  const loadCredentialSchema = useCredentialSchemaLoader();
+  const createStepCredential = useCreateStepCredential(root.id);
 
   const slug = fixtureWorkflow(main.id)?.slug;
   // "See details" opens the page of the service main's workflow backs, from the services API.
@@ -363,6 +367,10 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       // Until the parent's workflows are in, there's nothing to compare against, so say nothing rather than "new".
       baseline={parentCopy ? asGraph(parentCopy, root.name) : parentStatus.state === "ready" ? undefined : graph}
       environment={selected.env}
+      credentialSchemas={editable ? credentialSchemas : undefined}
+      onLoadCredentialSchema={loadCredentialSchema}
+      credentialProjects={[{ id: root.id, name: root.name }]}
+      onCreateCredential={editable ? createStepCredential : undefined}
       envVars={flags.envVars ? envVars : undefined}
       onCreateEnvVar={flags.envVars && canEditComponents ? envVarSaves.create : undefined}
       onUpdateEnvVar={flags.envVars && canEditComponents ? envVarSaves.update : undefined}

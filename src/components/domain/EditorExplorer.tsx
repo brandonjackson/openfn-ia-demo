@@ -2,6 +2,7 @@ import { BookOpen, Database, FileText, FlaskConical, HeartPulse, ListChecks, Plu
 import type { JobNode, RunDetails, TriggerNode, Workflow } from "../../model/workflow";
 import { triggerTypes } from "../../model/workflow";
 import type { ProjectComponent } from "../../model/projects";
+import type { ConnectedSystem } from "../../model/connected-systems";
 import { componentTypeIcons } from "../../model/component-types";
 import NavItem from "../primitives/NavItem";
 import AdaptorLogo from "./AdaptorLogo";
@@ -46,6 +47,8 @@ function explorerFileId(file: ExplorerFile): string {
 
 interface Props {
   workflow: Workflow;
+  /** The project's connected systems: a step on one is named by it under its own name. */
+  systems?: ConnectedSystem[];
   file: ExplorerFile;
   onOpen: (file: ExplorerFile) => void;
   /** The selected run; each step shows how it went. */
@@ -96,6 +99,7 @@ interface Props {
  */
 export default function EditorExplorer({
   workflow,
+  systems = [],
   file,
   onOpen,
   run,
@@ -118,6 +122,7 @@ export default function EditorExplorer({
   const listed = new Set<WorkflowFileKind>(files ?? ["context", "spec", ...(hasService ? (["service"] as const) : [])]);
   const trigger = workflow.nodes.find((n): n is TriggerNode => n.type === "trigger");
   const steps = workflow.nodes.filter((n): n is JobNode => n.type === "job");
+  const systemOf = (step: JobNode) => (step.system ? systems.find((s) => s.id === step.system) : undefined);
   const startedAtTrigger =
     run !== undefined && trigger !== undefined && workflow.edges.some((e) => e.source === trigger.id && e.target === run.steps[0]?.jobId);
 
@@ -210,6 +215,7 @@ export default function EditorExplorer({
               variant="tree"
               key={step.id}
               label={step.label}
+              description={systemOf(step)?.name}
               leading={<AdaptorLogo adaptor={step.adaptor} size="2xs" />}
               trailing={status && <StatusPill status={status} variant="mark" />}
               active={current === `step:${step.id}`}

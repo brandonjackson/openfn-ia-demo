@@ -64,6 +64,7 @@ beforeAll(() => {
     disconnect() {}
   };
   Element.prototype.scrollTo ??= () => {};
+  Element.prototype.scrollIntoView ??= () => {};
 });
 
 describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
@@ -241,6 +242,72 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
         );
       await waitFor(async () => expect((await step())?.adaptor).toMatch(/^@openfn\/language-http/), wait);
       expect((await step())?.body).toContain("post('https://app.openfn.org/i/malawi-chw-referrals/client-registry-lookup', {");
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
+  it("names each step by its connected system, with its adaptor's logo", async () => {
+    setFlag("connectedSystems", true);
+    renderEditor(apiWorkflowId("planning-application-workflow"));
+    await screen.findByRole("button", { name: "Select Search for duplicate citizens in Identity" }, wait);
+    // The Identity steps are HTTP steps, named by the system they reach rather than "HTTP".
+    expect((await screen.findAllByText("Identity", {}, wait)).length).toBe(2);
+    expect(screen.getAllByText("Twilio").length).toBe(2);
+    expect(screen.queryByText("HTTP")).toBeNull();
+    // On main nothing can be changed, so a step without a credential offers no Connect.
+    expect(screen.queryByRole("button", { name: /^Connect / })).toBeNull();
+  });
+
+  it("connects a step from its card in a sandbox: its config opens at the credential, and Add gives it one in a click", async () => {
+    setFlag("connectedSystems", true);
+    const projectId = projectIdFor("project-a");
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "connect-identity" });
+    act(() => setSandbox(projectId, "connect-identity"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+      fireEvent.click(await screen.findByRole("button", { name: "Connect Search for duplicate citizens in Identity" }, wait));
+      // Code mode, on the step, with Config showing its system and the credentials that fit it in the sandbox's environment, staging.
+      const system = (await screen.findByLabelText("System", {}, wait)) as HTMLSelectElement;
+      expect(system.value).toBe("Identity");
+      expect(screen.getByText(/Adaptor: HTTP/)).toBeTruthy();
+      expect(screen.queryByLabelText("Adaptor")).toBeNull();
+      expect(screen.queryByRole("button", { name: "Add Identity API (production)" })).toBeNull();
+      fireEvent.click(screen.getByRole("button", { name: "Add Identity API (staging)" }));
+      expect(await screen.findByRole("button", { name: "Remove Identity API (staging)" }, wait)).toBeTruthy();
+      // Saved to the sandbox's copy of the step. (Other workflows in the project borrow the same steps, so look for any that has it.)
+      const connected = () =>
+        request<{ workflows: { jobs: { name: string; project_credential_id: string | null }[] }[] }>("GET", `/api/projects/${sandboxId}/workflows?page_size=100`).then(
+          (a) => a.workflows.flatMap((w) => w.jobs).some((j) => j.name === "Search for duplicate citizens in Identity" && j.project_credential_id),
+        );
+      await waitFor(async () => expect(await connected()).toBe(true), wait);
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
+  it("makes a new credential for a step's system, shared with the project, and gives it to the step", async () => {
+    setFlag("connectedSystems", true);
+    const projectId = projectIdFor("project-a");
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "new-credential" });
+    act(() => setSandbox(projectId, "new-credential"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      await screen.findByRole("button", { name: "Triggers: paused" }, wait);
+      fireEvent.click(await screen.findByRole("button", { name: "Connect Verify birth registration in OpenCRVS" }, wait));
+      fireEvent.click(await screen.findByRole("button", { name: "New credential" }, wait));
+      const form = await screen.findByRole("dialog", { name: /credential/i }, wait);
+      fireEvent.change(await within(form).findByLabelText(/^Name/, {}, wait), { target: { value: "OpenCRVS for the sandbox" } });
+      fireEvent.change(within(form).getByLabelText(/^Domain/), { target: { value: "https://gateway.example.org" } });
+      fireEvent.change(within(form).getByLabelText(/^Client ID/), { target: { value: "sandbox" } });
+      fireEvent.change(within(form).getByLabelText(/^Client secret/), { target: { value: "s3cret" } });
+      fireEvent.click(within(form).getByRole("button", { name: "Save credential" }));
+      expect(await screen.findByRole("button", { name: "Remove OpenCRVS for the sandbox" }, wait)).toBeTruthy();
+      const linked = await listAll<{ name: string; schema: string }>(`/api/projects/${projectId}/credentials`, "credentials");
+      expect(linked.find((c) => c.name === "OpenCRVS for the sandbox")?.schema).toMatch(/opencrvs/);
     } finally {
       act(() => setSandbox(projectId, "main"));
     }

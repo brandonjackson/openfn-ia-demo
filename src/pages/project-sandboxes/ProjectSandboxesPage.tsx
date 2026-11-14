@@ -3,7 +3,6 @@ import { Check, FlaskConical, GitMerge, Pencil, Plus, Trash2 } from "lucide-reac
 import type { PageProps } from "../../model/ia-tree";
 import { sandboxIcon, type SandboxDraft, type SandboxItem, type SandboxMerge } from "../../model/sandboxes";
 import { timeAgo } from "../../model/time";
-import { errorMessageOf } from "../../model/form-error";
 import Badge from "../../components/primitives/Badge";
 import ListPage from "../../components/patterns/ListPage";
 import PageHeader from "../../components/patterns/PageHeader";
@@ -11,7 +10,6 @@ import Breadcrumbs from "../../components/domain/Breadcrumbs";
 import SandboxFormModal from "../../components/domain/SandboxFormModal";
 import MergeSandboxModal from "../../components/domain/MergeSandboxModal";
 import Button from "../../components/primitives/Button";
-import Callout from "../../components/primitives/Callout";
 import ConfirmModal from "../../components/primitives/ConfirmModal";
 import EmptyState from "../../components/primitives/EmptyState";
 import ListRow from "../../components/primitives/ListRow";
@@ -37,7 +35,7 @@ export interface ProjectSandboxesPageProps extends PageProps<ProjectSandboxesPag
   onEditSandbox?: (name: string, draft: SandboxDraft) => Promise<void>;
   /** Brings a sandbox's changed workflows and credentials into another sandbox. */
   onMergeSandbox?: (name: string, merge: SandboxMerge) => Promise<void>;
-  /** Deletes a sandbox (never main, never the selected one). */
+  /** Deletes a sandbox (never main, never the selected one). The wrapper says how it went, refusals included. */
   onDeleteSandbox: (name: string) => Promise<void>;
 }
 
@@ -121,7 +119,6 @@ export default function ProjectSandboxesPage({
   const [editing, setEditing] = useState<SandboxItem>();
   const [merging, setMerging] = useState<SandboxItem>();
   const [pendingDelete, setPendingDelete] = useState<SandboxItem | null>(null);
-  const [notice, setNotice] = useState<{ tone: "success" | "danger"; title: string; detail?: string }>();
   const sandboxes = data.sandboxes;
   const main = sandboxes.find((s) => s.isMain);
   const selected = sandboxes.find((s) => s.name === selectedName) ?? main ?? sandboxes[0];
@@ -142,12 +139,8 @@ export default function ProjectSandboxesPage({
     const name = pendingDelete?.name;
     setPendingDelete(null);
     if (name) {
-      try {
-        await onDeleteSandbox(name);
-        setNotice({ tone: "success", title: `Deleted ${name}.` });
-      } catch (error) {
-        setNotice({ tone: "danger", title: `${name} wasn't deleted`, detail: errorMessageOf(error) });
-      }
+      // The wrapper says how it went.
+      await onDeleteSandbox(name).catch(() => {});
     }
   };
 
@@ -177,13 +170,6 @@ export default function ProjectSandboxesPage({
               )
             }
           />
-        }
-        notice={
-          notice && (
-            <Callout variant={notice.tone} title={notice.title} role={notice.tone === "danger" ? "alert" : undefined}>
-              {notice.detail}
-            </Callout>
-          )
         }
       >
         <Stack gap="xl">
@@ -228,10 +214,7 @@ export default function ProjectSandboxesPage({
           sandboxes={sandboxes}
           defaultParent={selected?.name}
           onClose={() => setCreating(false)}
-          onSubmit={async (draft) => {
-            await onCreateSandbox(draft);
-            setNotice({ tone: "success", title: `Created a sandbox from ${draft.parent}.` });
-          }}
+          onSubmit={onCreateSandbox}
         />
       )}
       {onEditSandbox && (
@@ -248,10 +231,7 @@ export default function ProjectSandboxesPage({
           sandbox={merging}
           targets={mergeTargets}
           onClose={() => setMerging(undefined)}
-          onMerge={async (merge) => {
-            await onMergeSandbox(merging!.name, merge);
-            setNotice({ tone: "success", title: `Merged ${merging!.name} into ${merge.target}. You can delete the sandbox once you're done with it.` });
-          }}
+          onMerge={(merge) => onMergeSandbox(merging!.name, merge)}
         />
       )}
 

@@ -8,6 +8,7 @@ import { failNext, resetFakeApi, setWait } from "../../fake-api";
 import { projectIdFor } from "../../fake-api/projects";
 import { iaTree } from "../../model/ia-tree";
 import ProjectSandboxesPageQuery from "./ProjectSandboxesPage.query";
+import { AnnouncementsProvider } from "../../app/announcements";
 
 const wait = { timeout: 3000 };
 
@@ -15,9 +16,11 @@ function draw(path = `/projects/${projectIdFor("project-a")}/sandboxes`) {
   const route = { ...findNodeByPath(iaTree, path)!, currentPath: path };
   render(
     <ApiProvider retry={false}>
-      <MemoryRouter initialEntries={[path]}>
-        <ProjectSandboxesPageQuery route={route} />
-      </MemoryRouter>
+      <AnnouncementsProvider>
+        <MemoryRouter initialEntries={[path]}>
+          <ProjectSandboxesPageQuery route={route} />
+        </MemoryRouter>
+      </AnnouncementsProvider>
     </ApiProvider>,
   );
 }
@@ -47,7 +50,7 @@ describe("ProjectSandboxesPageQuery", () => {
     fireEvent.click(await screen.findByRole("button", { name: "New sandbox" }, wait));
     fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Try a fix" } });
     fireEvent.click(screen.getByRole("button", { name: "Create sandbox" }));
-    expect(await screen.findByText("Created a sandbox from main.", {}, wait)).toBeTruthy();
+    expect(await screen.findByText("Created try-a-fix from main.", {}, wait)).toBeTruthy();
     await waitFor(() => expect(within(section("Selected")).getByText("try-a-fix")).toBeTruthy(), wait);
     // The others keep what they've changed; the new one has changed nothing.
     expect(screen.getByText("2 changed workflows")).toBeTruthy();
@@ -69,7 +72,8 @@ describe("ProjectSandboxesPageQuery", () => {
     fireEvent.click(await screen.findByRole("button", { name: "Actions for decision-sync-fix" }, wait));
     fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     fireEvent.click(screen.getByRole("button", { name: "Delete sandbox" }));
-    expect((await screen.findByRole("alert", {}, wait)).textContent).toContain("decision-sync-fix wasn't deleted");
+    await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("decision-sync-fix wasn't deleted"), wait);
+    expect(screen.getByRole("alert").textContent).toContain("Only the sandbox's owner can delete it.");
     expect(screen.getByText("decision-sync-fix")).toBeTruthy();
   });
 

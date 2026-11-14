@@ -117,13 +117,13 @@ describe("OrganizationSettingsPage", () => {
     expect(screen.getByRole("dialog")).toBeTruthy();
   });
 
-  it("says what the server refused when a role change would leave no admin", async () => {
+  it("asks for a role change, and takes a refusal quietly (the wrapper says why)", async () => {
     const host = draw();
     fireEvent.click(screen.getByRole("button", { name: "Actions for Amina Diallo" }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Make member" }));
     expect(host.calls("onChangeMemberRole")).toEqual([["m1", "Member"]]);
     await host.reject("onChangeMemberRole", new FormError("The request body is not valid.", { role: ["would leave the organization with no admin"] }));
-    expect(screen.getByText("That didn't change")).toBeTruthy();
+    expect(screen.getByText("Amina Diallo")).toBeTruthy();
   });
 
   it("says what's missing under the email when someone is added without one, and sends nothing", () => {
@@ -155,14 +155,13 @@ describe("OrganizationSettingsPage", () => {
     expect(screen.getByText("Member code")).toBeTruthy();
   });
 
-  it("saves who manages the Security Server, waits while it's saved, and says why when it's refused", async () => {
+  it("saves who manages the Security Server, waits while it's saved, and lets it be saved again after a refusal", async () => {
     const host = draw("xroad", "X-Road", onXRoad);
     fireEvent.click(screen.getByLabelText(/^National operator/));
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(host.calls("onSaveSecurityServerManager")).toEqual([["national-operator"]]);
     expect(screen.getByRole("button", { name: "Saving…" }).getAttribute("aria-disabled")).toBe("true");
     await host.reject("onSaveSecurityServerManager", new Error("You are not allowed to do that."));
-    expect(screen.getByText("The X-Road settings weren't saved")).toBeTruthy();
-    expect(screen.getByText("You are not allowed to do that.")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Save" }).getAttribute("aria-disabled")).not.toBe("true");
   });
 });

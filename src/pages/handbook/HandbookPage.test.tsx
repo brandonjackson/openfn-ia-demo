@@ -60,14 +60,13 @@ describe("HandbookPage", () => {
     expect(screen.getByLabelText("Article")).toBeTruthy();
   });
 
-  it("uploads the files dropped on it, and says why when the server refuses one", async () => {
+  it("uploads the files dropped on it, and takes a refusal quietly (the wrapper says why)", async () => {
     const host = draw();
     const file = new File(["x"], "Contacts.csv", { type: "text/csv" });
     fireEvent.change(document.querySelector("input[type=file]")!, { target: { files: [file] } });
     expect(host.calls("onUploadFiles")).toEqual([[[file]]]);
     await host.reject("onUploadFiles", new FormError("The file could not be added.", { name: ["is already in the handbook"] }));
-    expect(screen.getByText("That didn't save")).toBeTruthy();
-    expect(screen.getByText(/is already in the handbook/)).toBeTruthy();
+    expect(screen.queryByText(/is already in the handbook/)).toBeNull();
   });
 
   it("removes a file", async () => {

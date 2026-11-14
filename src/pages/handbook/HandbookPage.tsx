@@ -57,12 +57,8 @@ export default function HandbookPage({ node, ancestors, data, onSaveArticle, onU
     }
   };
 
-  // A change the server refused: a file that won't fit, or one it doesn't take.
-  const [error, setError] = useState<unknown>(null);
-  const attempt = (work: () => Promise<void>) => {
-    setError(null);
-    work().catch(setError);
-  };
+  // A file the server refuses (one that won't fit, or one it doesn't take) is said by the wrapper.
+  const attempt = (work: () => Promise<void>) => void work().catch(() => {});
 
   return (
     <div className="space-y-8">
@@ -126,13 +122,6 @@ export default function HandbookPage({ node, ancestors, data, onSaveArticle, onU
             description="Agreements, contacts and reference docs that go with this handbook."
             onAdd={onUploadFiles && ((files) => attempt(() => onUploadFiles(files)))}
             onRemove={onRemoveFile && ((id) => attempt(() => onRemoveFile(id)))}
-            notice={
-              error !== null && (
-                <Callout variant="danger" title="That didn't save">
-                  {firstProblemOf(error)}
-                </Callout>
-              )
-            }
           />
         </aside>
       </div>

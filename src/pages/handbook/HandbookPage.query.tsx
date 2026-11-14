@@ -4,6 +4,7 @@ import { useHandbook, useHandbookFiles, useHandbookSaves } from "../../api/handb
 import { combine } from "../../api/status";
 import HandbookPage from "./HandbookPage";
 import { pageFrame } from "../../app/page-frame";
+import { useAnnounceOutcome } from "../../app/announce";
 
 /**
  * Feeds the Handbook from the demo's handbook routes: the article, which
@@ -14,6 +15,7 @@ export default function HandbookPageQuery({ route }: { route: PageRoute }) {
   const { status, handbook } = useHandbook();
   const { status: filesStatus, files } = useHandbookFiles();
   const saves = useHandbookSaves();
+  const announcing = useAnnounceOutcome();
   return (
     <Loaded status={combine(status, filesStatus)} path={route.currentPath}>
       {() => (
@@ -27,8 +29,8 @@ export default function HandbookPageQuery({ route }: { route: PageRoute }) {
             capacityBytes: handbook!.capacityBytes,
           }}
           onSaveArticle={handbook!.canEdit ? saves.saveArticle : undefined}
-          onUploadFiles={handbook!.canEdit ? saves.upload : undefined}
-          onRemoveFile={handbook!.canEdit ? saves.remove : undefined}
+          onUploadFiles={handbook!.canEdit ? (files) => announcing(saves.upload(files), { failure: "That didn't save" }) : undefined}
+          onRemoveFile={handbook!.canEdit ? (id) => announcing(saves.remove(id), { failure: "That file wasn't removed" }) : undefined}
         />
       )}
     </Loaded>

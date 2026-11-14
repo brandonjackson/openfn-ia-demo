@@ -14,6 +14,7 @@ import { useFlags } from "../../app/feature-flags";
 import ServicePage, { type ServicePageData } from "./ServicePage";
 import NotFoundPage from "../NotFoundPage";
 import { pageFrame } from "../../app/page-frame";
+import { useAnnounceOutcome } from "../../app/announce";
 
 /**
  * Build a published service's catalog entry. Services without a written-up
@@ -58,6 +59,7 @@ export default function ServicePageQuery({ route }: { route: PageRoute }) {
   const { status: workflowsStatus, workflows } = useProjectWorkflows(projectId);
   const { status: xroadStatus, xroad } = useOrganizationXRoad(flags.xroad);
   const saves = useServiceSaves();
+  const announcing = useAnnounceOutcome();
   return (
     <Loaded status={combine(projectStatus, status, workflowsStatus, xroadStatus)} path={route.currentPath}>
       {() => {
@@ -72,8 +74,12 @@ export default function ServicePageQuery({ route }: { route: PageRoute }) {
             data={data}
             onOpenProject={() => navigate(`/projects/${project!.id}`)}
             onOpenWorkflow={(id) => navigate(`/workflow-editor/${id}`)}
-            onEnableMcp={canChange ? () => saves.enableMcp(service) : undefined}
-            onPublishToXRoad={canChange ? () => saves.publishToXRoad(service) : undefined}
+            onEnableMcp={canChange ? () => announcing(saves.enableMcp(service), { success: "MCP is on.", failure: "MCP wasn't turned on" }) : undefined}
+            onPublishToXRoad={
+              canChange
+                ? () => announcing(saves.publishToXRoad(service), { success: `Published ${service.name} to X-Road.`, failure: "It wasn't published to X-Road" })
+                : undefined
+            }
           />
         );
       }}

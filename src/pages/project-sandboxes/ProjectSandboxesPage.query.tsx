@@ -8,6 +8,7 @@ import { type SandboxItem, sandboxColorHex, sandboxColorName, sandboxSlug } from
 import type { ProjectDetails } from "../../model/projects";
 import ProjectSandboxesPage from "./ProjectSandboxesPage";
 import { pageFrame } from "../../app/page-frame";
+import { useAnnounceOutcome } from "../../app/announce";
 
 /**
  * Feeds a project's Sandboxes page from the API. Each sandbox is a project
@@ -29,6 +30,7 @@ export default function ProjectSandboxesPageQuery({ route }: { route: PageRoute 
   const { status: changesStatus, changes } = useSandboxChanges(rootId, live);
   const saves = useSandboxSaves();
   const [selected, setSelected] = useSandbox(rootId ?? "");
+  const announcing = useAnnounceOutcome();
 
   const byName = (name: string) => (name === "main" ? root : live.find((s) => s.name === name));
   const nameOf = (id: string | null) => (id === root?.id ? "main" : live.find((s) => s.id === id)?.name);
@@ -69,7 +71,10 @@ export default function ProjectSandboxesPageQuery({ route }: { route: PageRoute 
           onSelectSandbox={setSelected}
           onCreateSandbox={async ({ name, color, parent }) => {
             const slug = sandboxSlug(name);
-            await saves.create(byName(parent ?? "main")!.id, { name: slug, color: sandboxColorHex[color] });
+            // A refusal shows under the form's fields, so only success is announced.
+            await announcing(saves.create(byName(parent ?? "main")!.id, { name: slug, color: sandboxColorHex[color] }), {
+              success: `Created ${slug} from ${parent ?? "main"}.`,
+            });
             // As in Lightning, you go straight into the sandbox you made.
             setSelected(slug);
           }}
@@ -81,10 +86,12 @@ export default function ProjectSandboxesPageQuery({ route }: { route: PageRoute 
           }}
           onMergeSandbox={async (name, merge) => {
             const sandbox = byName(name)!;
-            await saves.merge(sandbox.parentId!, sandbox.id, { targetId: byName(merge.target)!.id, workflowIds: merge.workflowIds });
+            await announcing(saves.merge(sandbox.parentId!, sandbox.id, { targetId: byName(merge.target)!.id, workflowIds: merge.workflowIds }), {
+              success: `Merged ${name} into ${merge.target}. You can delete the sandbox once you're done with it.`,
+            });
           }}
           onDeleteSandbox={async (name) => {
-            await saves.remove(byName(name)!.id);
+            await announcing(saves.remove(byName(name)!.id), { success: `Deleted ${name}.`, failure: `${name} wasn't deleted` });
             // A deleted sandbox can't stay selected.
             if (selected === name) setSelected("main");
           }}

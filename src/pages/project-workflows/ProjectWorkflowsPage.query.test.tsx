@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { AnnouncementsProvider } from "../../app/announcements";
 import ApiProvider from "../../api/ApiProvider";
 import { forgetCsrfToken, request } from "../../api/client";
 import { setFlag } from "../../app/feature-flags";
@@ -23,12 +24,14 @@ function renderRoute() {
   const route = { ...findNodeByPath(iaTree, path)!, currentPath: path };
   render(
     <ApiProvider retry={false}>
-      <MemoryRouter initialEntries={[path]}>
-        <Routes>
-          <Route path="/projects/:project/workflows" element={<ProjectWorkflowsPageQuery route={route} />} />
-          <Route path="/workflow-editor/:id" element={<Opened />} />
-        </Routes>
-      </MemoryRouter>
+      <AnnouncementsProvider>
+        <MemoryRouter initialEntries={[path]}>
+          <Routes>
+            <Route path="/projects/:project/workflows" element={<ProjectWorkflowsPageQuery route={route} />} />
+            <Route path="/workflow-editor/:id" element={<Opened />} />
+          </Routes>
+        </MemoryRouter>
+      </AnnouncementsProvider>
     </ApiProvider>,
   );
 }
@@ -88,7 +91,7 @@ describe("ProjectWorkflowsPageQuery", () => {
     fireEvent.click(within(await row(first!.name)).getByRole("button", { name: `Actions for ${first!.name}` }));
     fireEvent.click(screen.getByRole("menuitem", { name: "Delete" }));
     fireEvent.click(screen.getByRole("button", { name: "Delete workflow" }));
-    expect(await screen.findByText(`"${first!.name}" deleted`, {}, wait)).toBeTruthy();
+    expect(await screen.findByText(`Deleted "${first!.name}".`, {}, wait)).toBeTruthy();
     expect((await serverWorkflows()).some((w) => w.id === first!.id)).toBe(false);
   });
 

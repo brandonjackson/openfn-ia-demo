@@ -101,15 +101,14 @@ describe("ProjectSettingsPage", () => {
     expect(screen.getByText(/name: intake/)).toBeTruthy();
   });
 
-  it("says why the project didn't export", async () => {
+  it("offers Export project again when it's refused (the wrapper says why)", async () => {
     const page = draw();
     fireEvent.click(screen.getByRole("button", { name: "Export project" }));
     await page.reject("onExportProject", new FormError("You are not allowed to do that."));
-    expect(screen.getByRole("alert").textContent).toContain("You are not allowed to do that.");
     expect(screen.getByRole("button", { name: "Export project" })).toBeTruthy();
   });
 
-  it("says it's downloading a finished export, and why it couldn't", async () => {
+  it("says it's downloading a finished export, and offers it again after a refusal", async () => {
     const page = draw(
       { historyExports: [{ id: "e1", fileName: "intake-history.zip", requestedBy: "Ada Lovelace", createdAt: "1 Oct 2026, 09:00", status: "completed" }] },
       "history-exports",
@@ -120,16 +119,14 @@ describe("ProjectSettingsPage", () => {
     fireEvent.click(busy);
     expect(page.calls("onDownloadHistoryExport")).toEqual([["e1"]]);
     await page.reject("onDownloadHistoryExport", new FormError("Not found."));
-    expect(screen.getByRole("alert").textContent).toContain("intake-history.zip didn't download");
-    expect(screen.getByRole("alert").textContent).toContain("Not found.");
     expect(screen.getByRole("button", { name: "Download" })).toBeTruthy();
   });
 
-  it("says why an export wasn't made", async () => {
+  it("asks for an export", async () => {
     const page = draw({}, "history-exports");
     fireEvent.click(screen.getByRole("button", { name: "Create export" }));
+    expect(page.calls("onCreateHistoryExport")).toHaveLength(1);
     await page.reject("onCreateHistoryExport", new FormError("You are not allowed to do that."));
-    expect(screen.getByRole("alert").textContent).toContain("The export wasn't made");
-    expect(screen.getByRole("alert").textContent).toContain("You are not allowed to do that.");
+    expect(screen.getByRole("button", { name: "Create export" })).toBeTruthy();
   });
 });

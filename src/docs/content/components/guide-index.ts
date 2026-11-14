@@ -16,6 +16,7 @@ import {
   ListPageGuide,
   StatusPillGuide,
   EntityPillGuide,
+  ToastGuide,
 } from "./guides";
 
 /** The components with hand-written guidance in guides.tsx, by name. */
@@ -36,4 +37,5 @@ export const guides: Record<string, ComponentType> = {
   ListPage: ListPageGuide,
   StatusPill: StatusPillGuide,
   EntityPill: EntityPillGuide,
+  Toast: ToastGuide,
 };

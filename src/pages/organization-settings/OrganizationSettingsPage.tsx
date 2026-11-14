@@ -59,7 +59,6 @@ function GeneralSection({ name, onRename }: { name: string; onRename?: (name: st
   return (
     <Stack gap="lg">
       <SectionHeading title="General" description="How your organisation is named across OpenFn." />
-      {save.saved && trimmed === name && <Callout variant="success" title="Saved">Your organisation is now called {name}.</Callout>}
       <Card title="Name" description="Shown to everyone in the organisation, and to anyone you share projects, systems or services with.">
         <form
           noValidate
@@ -107,16 +106,8 @@ interface MemberActions {
 function MembersSection({ members, name, assignableRoles = [], onInviteMember, onChangeMemberRole, onRemoveMember }: { members: OrganizationMember[]; name: string } & MemberActions) {
   const [inviting, setInviting] = useState(false);
   const [removing, setRemoving] = useState<OrganizationMember>();
-  // A change the server refused, such as taking away the last admin.
-  const [error, setError] = useState<unknown>(null);
-  const attempt = async (work: () => Promise<void>) => {
-    setError(null);
-    try {
-      await work();
-    } catch (refused) {
-      setError(refused);
-    }
-  };
+  // A change the server refuses, such as taking away the last admin, is said by the wrapper.
+  const attempt = (work: () => Promise<void>) => work().catch(() => {});
   const actionsFor = (m: OrganizationMember) => {
     const roles = onChangeMemberRole ? assignableRoles.filter((r) => r !== m.role).map((r) => ({ id: `role:${r}`, label: `Make ${r.toLowerCase()}` })) : [];
     const remove = onRemoveMember ? [{ id: "remove", label: "Remove from organisation", tone: "danger" as const, divider: roles.length > 0 }] : [];
@@ -171,11 +162,6 @@ function MembersSection({ members, name, assignableRoles = [], onInviteMember, o
           )
         }
       />
-      {error !== null && (
-        <Callout variant="danger" title="That didn't change">
-          {errorMessageOf(error)}
-        </Callout>
-      )}
       <DataTable columns={columns} rows={members} getRowKey={(m) => m.id} />
       {inviting && onInviteMember && <InviteOrgMemberModal roles={assignableRoles} onInvite={onInviteMember} onClose={() => setInviting(false)} />}
       <ConfirmModal
@@ -214,7 +200,7 @@ const visibilityKinds = [
 
 type Visibility = OrganizationSettingsPageData["visibility"];
 
-/** Saves something and says how it went: the state behind each section's Save button. */
+/** Saves something: the state behind each section's Save button. The wrapper says how it went; a refusal is kept for a form to show under its field. */
 function useSave<T>(save: ((value: T) => Promise<void>) | undefined) {
   const [state, setState] = useState<{ saving?: boolean; saved?: boolean; error?: unknown }>({});
   const run = async (value: T) => {
@@ -247,12 +233,6 @@ function VisibilitySection({ initial, onSave }: { initial: Visibility; onSave?: 
           )
         }
       />
-      {save.error !== undefined && (
-        <Callout variant="danger" title="The defaults weren't saved">
-          {errorMessageOf(save.error)}
-        </Callout>
-      )}
-      {save.saved && !changed && <Callout variant="success" title="Saved">New projects, systems and services start with these defaults.</Callout>}
       {visibilityKinds.filter((kind) => initial[kind.id]).map((kind) => (
         <Card key={kind.id} title={kind.title} description={kind.description}>
           <div className="space-y-3" role="radiogroup" aria-label={`${kind.title} visible to`}>
@@ -346,7 +326,7 @@ function ContextSection({
             header: "",
             align: "right" as const,
             render: (l: ContextLayer) => (
-              <Button variant="secondary" size="xs" icon={Unplug} onClick={() => void onRemoveContextLayer(l.id)}>
+              <Button variant="secondary" size="xs" icon={Unplug} onClick={() => void onRemoveContextLayer(l.id).catch(() => {})}>
                 {l.status === "connected" ? "Disconnect" : "Cancel request"}
               </Button>
             ),
@@ -494,12 +474,6 @@ function XRoadSection({
           )
         }
       />
-      {save.error !== undefined && (
-        <Callout variant="danger" title="The X-Road settings weren't saved">
-          {errorMessageOf(save.error)}
-        </Callout>
-      )}
-      {save.saved && !changed && <Callout variant="success" title="Saved">Who manages your Security Server is updated.</Callout>}
 
       <Callout title="Set once, used everywhere">
         {xroadUsage.systems} connected systems and {xroadUsage.services} published service

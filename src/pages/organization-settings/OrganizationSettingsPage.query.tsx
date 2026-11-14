@@ -5,6 +5,7 @@ import { useContextLayers, useOrganization, useOrganizationMembers, useOrganizat
 import { combine } from "../../api/status";
 import { organizationRoles } from "../../model/organization";
 import OrganizationSettingsPage from "./OrganizationSettingsPage";
+import { useAnnounceOutcome } from "../../app/announce";
 import { pageFrame } from "../../app/page-frame";
 
 /**
@@ -23,6 +24,7 @@ export default function OrganizationSettingsPageQuery({ route }: { route: PageRo
   const { status: layersStatus, layers } = useContextLayers();
   const { status: xroadStatus, xroad } = useOrganizationXRoad(flags.xroad);
   const saves = useOrganizationSaves(org?.id);
+  const announcing = useAnnounceOutcome();
   const loaded = combine(status, membersStatus, layersStatus, xroadStatus);
 
   return (
@@ -30,6 +32,7 @@ export default function OrganizationSettingsPageQuery({ route }: { route: PageRo
       {() => {
         const o = org!;
         const manage = o.canManage;
+        const nameOf = (id: string) => members.find((m) => m.id === id)?.name ?? "That member";
         return (
           <OrganizationSettingsPage
             {...pageFrame(route)}
@@ -48,14 +51,43 @@ export default function OrganizationSettingsPageQuery({ route }: { route: PageRo
               billing: o.billing,
             }}
             assignableRoles={manage ? organizationRoles : undefined}
-            onRename={manage ? saves.rename : undefined}
-            onInviteMember={manage ? saves.invite : undefined}
-            onChangeMemberRole={manage ? saves.changeRole : undefined}
-            onRemoveMember={manage ? saves.remove : undefined}
-            onSaveVisibility={manage ? (v) => saves.saveVisibility(v) : undefined}
-            onSaveSecurityServerManager={manage ? saves.saveSecurityServerManager : undefined}
-            onRequestContextAccess={manage ? saves.requestContextLayer : undefined}
-            onRemoveContextLayer={manage ? saves.removeContextLayer : undefined}
+            // Forms show a refusal under their fields, so only their success is announced.
+            onRename={manage ? (name) => announcing(saves.rename(name), { success: `Your organisation is now called ${name}.` }) : undefined}
+            onInviteMember={manage ? (invite) => announcing(saves.invite(invite), { success: `Added ${invite.email}.` }) : undefined}
+            onChangeMemberRole={
+              manage
+                ? (id, role) =>
+                    announcing(saves.changeRole(id, role), {
+                      success: `${nameOf(id)} is now ${role === "Admin" ? "an admin" : "a member"}.`,
+                      failure: `${nameOf(id)}'s role didn't change`,
+                    })
+                : undefined
+            }
+            onRemoveMember={
+              manage
+                ? (id) => announcing(saves.remove(id), { success: `Removed ${nameOf(id)} from the organisation.`, failure: `${nameOf(id)} wasn't removed` })
+                : undefined
+            }
+            onSaveVisibility={
+              manage
+                ? (v) =>
+                    announcing(saves.saveVisibility(v), {
+                      success: "New projects, systems and services start with these defaults.",
+                      failure: "The defaults weren't saved",
+                    })
+                : undefined
+            }
+            onSaveSecurityServerManager={
+              manage
+                ? (by) =>
+                    announcing(saves.saveSecurityServerManager(by), {
+                      success: "Who manages your Security Server is updated.",
+                      failure: "The X-Road settings weren't saved",
+                    })
+                : undefined
+            }
+            onRequestContextAccess={manage ? (url) => announcing(saves.requestContextLayer(url), { success: "Access requested. It waits for approval." }) : undefined}
+            onRemoveContextLayer={manage ? (id) => announcing(saves.removeContextLayer(id), { success: "Context layer removed.", failure: "The context layer wasn't removed" }) : undefined}
           />
         );
       }}

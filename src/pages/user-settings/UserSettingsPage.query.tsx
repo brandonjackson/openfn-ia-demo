@@ -8,6 +8,7 @@ import { isOpenable } from "../../model/projects";
 import UserSettingsPage from "./UserSettingsPage";
 import { pageFrame } from "../../app/page-frame";
 import { useFlags } from "../../app/feature-flags";
+import { useAnnounceOutcome } from "../../app/announce";
 
 /**
  * Feeds User settings from the API: your profile, email, password and
@@ -31,6 +32,9 @@ export default function UserSettingsPageQuery({ route }: { route: PageRoute }) {
   const { status: codesStatus, backupCodes } = useBackupCodes();
   const credentialSaves = useCredentialSaves(credentials);
   const account = useAccountSaves(me?.id ?? "");
+  const announcing = useAnnounceOutcome();
+  const credentialName = (id: string) => credentials.find((c) => c.id === id)?.name ?? "The credential";
+  const clientName = (id: string) => oauthClients.find((c) => c.id === id)?.name ?? "The OAuth client";
 
   return (
     <Loaded status={combine(meStatus, projectsStatus, credentialsStatus, clientsStatus, schemasStatus, tokensStatus, codesStatus)} path={route.currentPath}>
@@ -62,12 +66,17 @@ export default function UserSettingsPageQuery({ route }: { route: PageRoute }) {
             await account.deleteAccount();
           }}
           onLoadCredentialSchema={loadCredentialSchema}
-          onSaveCredential={credentialSaves.save}
-          onDeleteCredential={credentialSaves.remove}
-          onTransferCredential={credentialSaves.transfer}
-          onRevokeCredentialTransfer={credentialSaves.revokeTransfer}
-          onSaveOAuthClient={credentialSaves.saveOAuthClient}
-          onDeleteOAuthClient={credentialSaves.deleteOAuthClient}
+          // Forms show a refusal under their fields, so only their success is announced.
+          onSaveCredential={(draft) => announcing(credentialSaves.save(draft), { success: draft.id ? "Credential updated." : "Credential created." })}
+          onDeleteCredential={(id) => announcing(credentialSaves.remove(id), { success: `Deleted "${credentialName(id)}".`, failure: `"${credentialName(id)}" wasn't deleted` })}
+          onTransferCredential={(id, email) =>
+            announcing(credentialSaves.transfer(id, email), { success: "Credential transfer started. We've emailed the new owner a link to accept it." })
+          }
+          onRevokeCredentialTransfer={(id) => announcing(credentialSaves.revokeTransfer(id), { success: "Transfer revoked." })}
+          onSaveOAuthClient={(draft) => announcing(credentialSaves.saveOAuthClient(draft), { success: draft.id ? "OAuth client updated." : "OAuth client created." })}
+          onDeleteOAuthClient={(id) =>
+            announcing(credentialSaves.deleteOAuthClient(id), { success: `Deleted "${clientName(id)}".`, failure: `"${clientName(id)}" wasn't deleted` })
+          }
           onGenerateToken={account.generateToken}
           onDeleteToken={account.deleteToken}
         />

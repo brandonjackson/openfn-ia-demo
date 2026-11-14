@@ -8,6 +8,7 @@ import { useProjectWorkflows, useWorkflowSaves } from "../../api/workflows";
 import { combine } from "../../api/status";
 import { useWorkOrders } from "../../api/work-orders";
 import { asListItem, byWorkflow } from "../../model/workflow-list";
+import { useAnnounceOutcome } from "../../app/announce";
 import { pageFrame } from "../../app/page-frame";
 import ProjectWorkflowsPage from "./ProjectWorkflowsPage";
 
@@ -27,6 +28,7 @@ export default function ProjectWorkflowsPageQuery({ route }: { route: PageRoute 
   const { status: workOrdersStatus, workOrders } = useWorkOrders(projectId ? [projectId] : []);
   const { status: servicesStatus, services } = useProjectServices(projectId, serviceCatalog);
   const saves = useWorkflowSaves();
+  const announcing = useAnnounceOutcome();
   const docOf = (id: string) => workflows.find((w) => w.id === id)!;
   const workOrdersOf = byWorkflow(workOrders);
   // Rows without service badges beat no rows: a failed services load leaves the badges out.
@@ -38,8 +40,8 @@ export default function ProjectWorkflowsPageQuery({ route }: { route: PageRoute 
           {...pageFrame(route, {}, project!.name)}
           data={{ projectId: project!.id, workflows: workflows.map((w) => asListItem(w, workOrdersOf(w.id), backed)) }}
           onNewWorkflow={() => navigate(`/workflow-editor/new?project=${project!.id}`)}
-          onToggleWorkflow={(id, on) => saves.setEnabled(docOf(id), on)}
-          onDeleteWorkflow={(id) => saves.remove(docOf(id))}
+          onToggleWorkflow={(id, on) => announcing(saves.setEnabled(docOf(id), on), { failure: `"${docOf(id).name}" wasn't turned ${on ? "on" : "off"}` })}
+          onDeleteWorkflow={(id) => announcing(saves.remove(docOf(id)), { success: `Deleted "${docOf(id).name}".`, failure: `"${docOf(id).name}" wasn't deleted` })}
         />
       )}
     </Loaded>

@@ -298,16 +298,14 @@ function ConcurrencyCard({ data, onSave }: SectionProps & { onSave: ProjectSetti
 function ExportProjectCard({ data, onExport }: SectionProps & { onExport: ProjectSettingsPageProps["onExportProject"] }) {
   const [yaml, setYaml] = useState<string>();
   const [exporting, setExporting] = useState(false);
-  const [error, setError] = useState<unknown>(null);
   const fileName = `${data.projectName}.yaml`;
   const exportProject = async () => {
     if (exporting) return;
     setExporting(true);
-    setError(null);
     try {
       setYaml(await onExport());
-    } catch (e) {
-      setError(e);
+    } catch {
+      // Refused: the wrapper says why.
     } finally {
       setExporting(false);
     }
@@ -318,11 +316,6 @@ function ExportProjectCard({ data, onExport }: SectionProps & { onExport: Projec
       description="Save your project as a YAML file to be edited locally, backed up, or deployed elsewhere."
     >
       <Stack gap="md">
-        {error !== null && (
-          <Callout variant="danger" title="The project didn't export" role="alert">
-            {errorMessageOf(error)}
-          </Callout>
-        )}
         <Inline>
           <Button variant="secondary" icon={FileCode2} aria-disabled={exporting || undefined} onClick={() => void exportProject()}>
             {exporting ? "Exporting…" : "Export project"}
@@ -1006,25 +999,20 @@ function HistoryExportsSection({
   onDownloadHistoryExport,
 }: Pick<ProjectSettingsPageProps, "data" | "onCreateHistoryExport" | "onDownloadHistoryExport">) {
   const busy = data.historyExports.some((e) => e.status === "enqueued" || e.status === "processing");
-  const [failure, setFailure] = useState<{ title: string; error: unknown } | null>(null);
   const [downloadingId, setDownloadingId] = useState<string>();
+  // The wrapper says why when a download or an export is refused.
   const download = async (id: string) => {
     if (downloadingId) return;
-    const file = data.historyExports.find((e) => e.id === id)?.fileName;
     setDownloadingId(id);
-    setFailure(null);
     try {
       await onDownloadHistoryExport(id);
-    } catch (error) {
-      setFailure({ title: file ? `${file} didn't download` : "That didn't download", error });
+    } catch {
+      // Said by the wrapper.
     } finally {
       setDownloadingId(undefined);
     }
   };
-  const createExport = () => {
-    setFailure(null);
-    onCreateHistoryExport().catch((error: unknown) => setFailure({ title: "The export wasn't made", error }));
-  };
+  const createExport = () => void onCreateHistoryExport().catch(() => {});
   return (
     <Stack gap="lg">
       <SectionHeading
@@ -1042,11 +1030,6 @@ function HistoryExportsSection({
           </Button>
         }
       />
-      {failure && (
-        <Callout variant="danger" title={failure.title} role="alert">
-          {errorMessageOf(failure.error)}
-        </Callout>
-      )}
       <HistoryExportTable exports={data.historyExports} onDownload={(id) => void download(id)} downloadingId={downloadingId} />
     </Stack>
   );

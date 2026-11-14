@@ -80,6 +80,33 @@ describe("ServicePageQuery", () => {
     expect(screen.getByRole("alert").textContent).toContain("MCP is off for this organisation.");
   });
 
+  it("edits the listing on the server, and says so", async () => {
+    const service = await serviceWithoutMcp();
+    renderRoute(service);
+    fireEvent.click(await screen.findByRole("button", { name: "Edit listing" }, wait));
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Check a referral" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("Saved the listing.", {}, wait)).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Check a referral" }, wait)).toBeTruthy();
+    const { data } = await request<{ data: Service }>("GET", `/api/demo/projects/${service.attributes.project_id}/services/${service.id}`);
+    expect(data.attributes.name).toBe("Check a referral");
+  });
+
+  it("shows the server's refusal under the field it names, and keeps the listing open", async () => {
+    const service = await serviceWithoutMcp();
+    renderRoute(service);
+    fireEvent.click(await screen.findByRole("button", { name: "Edit listing" }, wait));
+    failNext("PATCH /api/demo/projects/:project_id/services/:id", {
+      status: 422,
+      code: "invalid",
+      detail: "The request body is not valid.",
+      errors: [{ code: "length", detail: "should be at most 120 characters", pointer: "#/name" }],
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(await screen.findByText("should be at most 120 characters", {}, wait)).toBeTruthy();
+    expect(screen.getByRole("dialog")).toBeTruthy();
+  });
+
   it("shows the service off X-Road without the X-Road flag", async () => {
     const service = await serviceWithoutMcp();
     setFlags({ ...allFlagsOn, xroad: false });

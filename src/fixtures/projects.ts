@@ -21,7 +21,6 @@ export const projects: Project[] = [
         name: "Submit a planning application",
         description:
           "Receives planning applications from the e-planning portal and routes them to the local authority case management system.",
-        status: "Live",
         mcpEnabled: true,
         usage: { organisations: 2, calls30d: 412, trend: [9, 14, 11, 16, 12, 15, 18] },
         record: {
@@ -67,7 +66,6 @@ export const projects: Project[] = [
         name: "Send decision statuses to applicants",
         description:
           "Syncs planning decision statuses back to the applicant portal on a daily schedule.",
-        status: "Draft",
         workflowId: "decision-notification-workflow",
       },
     ],
@@ -159,7 +157,6 @@ export const projects: Project[] = [
         name: "Copy CommCare cases to the data warehouse",
         description:
           "Syncs case data from CommCare to the shared data warehouse.",
-        status: "Live",
         usage: { organisations: 1, calls30d: 6420, trend: [180, 220, 205, 240, 230, 210, 250] },
         workflowId: "case-sync-workflow",
         api: {
@@ -220,7 +217,6 @@ export const projects: Project[] = [
         id: "chw-referral-sync",
         name: "Send CHW referrals to DHIS2 Tracker",
         description: "Pushes CommCare referrals into DHIS2 Tracker every 15 minutes.",
-        status: "Live",
         workflowId: "chw-referral-workflow",
         api: {
           trigger: "schedule",
@@ -238,7 +234,6 @@ export const projects: Project[] = [
         id: "client-registry-lookup",
         name: "Look up a client's national ID",
         description: "Matches incoming patients against the national client registry.",
-        status: "Live",
         mcpEnabled: true,
         usage: { organisations: 3, calls30d: 2310, trend: [62, 70, 81, 77, 90, 84, 96] },
         record: {
@@ -278,7 +273,6 @@ export const projects: Project[] = [
         id: "district-monthly-report",
         name: "Report district monthly totals",
         description: "Aggregates referral outcomes into a monthly district report.",
-        status: "Draft",
         workflowId: "monthly-aggregate-workflow",
       },
     ],
@@ -354,7 +348,6 @@ export const projects: Project[] = [
         name: "Register a suspected case",
         description:
           "Records a suspected case of a notifiable disease reported by a facility, after checking the patient's national ID and finding or registering them in the hospital's OpenMRS.",
-        status: "Live",
         workflowId: "register-case-workflow",
         mcpEnabled: false,
         usage: { organisations: 4, calls30d: 1284, trend: [31, 38, 35, 44, 52, 47, 58] },
@@ -444,7 +437,6 @@ function summarizeProject(project: Project): ProjectSummary {
     memberCount: project.memberCount,
     workflowCount: project.components.filter((c) => c.type === "Workflow").length,
     serviceCount: project.services.length,
-    liveServiceCount: project.services.filter((s) => s.status === "Live").length,
   };
 }
 

@@ -389,7 +389,6 @@ export default function CodeWorkspace({
     ) : listing ? (
       <FileDetailsPanel
         title="service.yaml"
-        tag={<Badge label={listing.status} />}
         description="The listing other teams see: what the service catalog records about the service, how to call it and what it returns, and, once your organisation is on X-Road, how its Security Server registers it."
         properties={[
           { icon: BookOpen, label: "Service", value: listing.name },

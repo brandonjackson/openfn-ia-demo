@@ -12,10 +12,10 @@ import AddComponentPanel from "../../components/domain/AddComponentPanel";
 import ListPage from "../../components/patterns/ListPage";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
-import Card from "../../components/primitives/Card";
 import ComponentRow from "../../components/domain/ComponentRow";
 import { componentTypes, type ProjectComponentItem, type ProjectComponentType } from "../../model/component-types";
 import EmptyState from "../../components/primitives/EmptyState";
+import Modal from "../../components/primitives/Modal";
 import ListGroup from "../../components/primitives/ListGroup";
 
 /** What the Components page lists: the project's components besides its workflows, and the kinds it shows. */
@@ -42,12 +42,14 @@ export interface ProjectComponentsPageProps extends PageProps<ProjectComponentsP
 }
 
 /**
- * Every component in the project, grouped by type, under a panel for adding
- * a new one: picking a kind opens its form (a channel's, a collection's
- * name, or a name and description for the rest), and the new component
- * opens. Workflows have their own page, so they are left out here, as are
- * empty groups. Lists only the kinds in `data.types`: with just channels,
- * it's the project's Channels page, with a New channel button.
+ * Every component in the project, grouped by type, as a list page like
+ * Workflows and Projects: each a full-width row that opens it. "New
+ * component" in the header opens the kinds to pick from; picking one opens
+ * its form (a channel's, a collection's name, or a name and description for
+ * the rest), and the new component opens. Workflows have their own page, so
+ * they are left out here, as are empty groups. Lists only the kinds in
+ * `data.types`: with just channels, it's the project's Channels page, with a
+ * New channel button.
  */
 export default function ProjectComponentsPage({
   node,
@@ -61,6 +63,7 @@ export default function ProjectComponentsPage({
   channelAddress = (name) => name,
 }: ProjectComponentsPageProps) {
   const [creating, setCreating] = useState<ProjectComponentType>();
+  const [picking, setPicking] = useState(false);
   const projectPath = `/projects/${data.projectId}`;
   const types = componentTypes.filter((t) => t.type !== "Workflow" && data.types.includes(t.type));
   const groups = types
@@ -69,8 +72,8 @@ export default function ProjectComponentsPage({
   const canCreate = (type: ProjectComponentType) =>
     type === "Channel" ? !!onCreateChannel : type === "Collection" ? !!onCreateCollection : isContentComponentType(type) && !!onCreateComponent;
   const creatable = types.filter((t) => canCreate(t.type));
-  // With more than channels, the panel offers every kind; with just channels, a button does.
-  const showPanel = types.length > 1 && creatable.length > 0;
+  // With more than channels, New component offers every kind; with just channels, New channel makes one.
+  const offersKinds = types.length > 1 && creatable.length > 0;
   const takenNames = (type: ProjectComponentType) => data.components.filter((c) => c.type === type).map((c) => c.name);
 
 
@@ -83,16 +86,20 @@ export default function ProjectComponentsPage({
             title={node.label}
             description={node.description}
             actions={
-              onCreateChannel &&
-              !showPanel && (
-                <Button icon={Plus} size="sm" onClick={() => setCreating("Channel")}>
-                  New channel
+              offersKinds ? (
+                <Button icon={Plus} size="sm" onClick={() => setPicking(true)}>
+                  New component
                 </Button>
+              ) : (
+                onCreateChannel && (
+                  <Button icon={Plus} size="sm" onClick={() => setCreating("Channel")}>
+                    New channel
+                  </Button>
+                )
               )
             }
           />
         }
-        intro={showPanel && <AddComponentPanel options={creatable} onSelect={(type) => setCreating(type as ProjectComponentType)} />}
         isEmpty={groups.length === 0}
         empty={
           <EmptyState
@@ -100,8 +107,15 @@ export default function ProjectComponentsPage({
             title={`No ${node.label.toLowerCase()} yet`}
             description={
               types.length > 1
-                ? `Components are the building blocks of a project: ${types.map((t) => t.plural.toLowerCase()).join(", ")}.${showPanel ? " Add one above." : ""}`
+                ? `Components are the building blocks of a project: ${types.map((t) => t.plural.toLowerCase()).join(", ")}.`
                 : undefined
+            }
+            action={
+              offersKinds && (
+                <Button icon={Plus} onClick={() => setPicking(true)}>
+                  New component
+                </Button>
+              )
             }
           />
         }
@@ -109,15 +123,25 @@ export default function ProjectComponentsPage({
         <Stack gap="xl">
           {groups.map((group) => (
             <ListGroup key={group.type} title={group.plural} count={group.items.length} description={group.description}>
-              <Card flush className="space-y-0.5 p-1.5">
-                {group.items.map((c) => (
-                  <ComponentRow key={c.id} component={c} projectPath={projectPath} showDescription hideType />
-                ))}
-              </Card>
+              {group.items.map((c) => (
+                <ComponentRow key={c.id} component={c} projectPath={projectPath} showDescription hideType variant="row" />
+              ))}
             </ListGroup>
           ))}
         </Stack>
       </ListPage>
+
+      <Modal open={picking} title="New component" onClose={() => setPicking(false)} widthClass="max-w-2xl">
+        <AddComponentPanel
+          bare
+          columns={2}
+          options={creatable}
+          onSelect={(type) => {
+            setPicking(false);
+            setCreating(type as ProjectComponentType);
+          }}
+        />
+      </Modal>
 
       {onCreateChannel && (
         <ChannelFormModal

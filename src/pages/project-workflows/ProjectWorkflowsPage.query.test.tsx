@@ -101,6 +101,29 @@ describe("ProjectWorkflowsPageQuery", () => {
     expect((await serverWorkflows()).some((w) => w.name === `${first!.name} (copy)`)).toBe(true);
   });
 
+  it("publishes a workflow as a service on the server, says so, and files it under Published services", async () => {
+    const { data } = await request<Many>("GET", `/api/demo/projects/${projectId}/services?page_size=100`);
+    const unpublished = (await serverWorkflows()).find((w) => !data.some((s) => s.attributes["workflow_id"] === w.id))!;
+    renderRoute();
+    fireEvent.click(within(await row(unpublished.name)).getByRole("button", { name: `Actions for ${unpublished.name}` }));
+    fireEvent.click(screen.getByRole("menuitem", { name: "Publish" }));
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Apply for an ID" } });
+    fireEvent.click(screen.getByRole("button", { name: "Publish" }));
+    expect(await screen.findByText(`Published "Apply for an ID".`, {}, wait)).toBeTruthy();
+    await waitFor(() => expect(within(screen.getByRole("region", { name: "Published services" })).getByText(unpublished.name)).toBeTruthy(), wait);
+    const after = await request<Many>("GET", `/api/demo/projects/${projectId}/services?page_size=100`);
+    expect(after.data.some((s) => s.attributes["workflow_id"] === unpublished.id && s.attributes["name"] === "Apply for an ID")).toBe(true);
+  });
+
+  it("offers no Publish without the service catalog", async () => {
+    setFlag("serviceCatalog", false);
+    const [first] = await serverWorkflows();
+    renderRoute();
+    fireEvent.click(within(await row(first!.name)).getByRole("button", { name: `Actions for ${first!.name}` }));
+    expect(screen.getByRole("menuitem", { name: "Make a copy" })).toBeTruthy();
+    expect(screen.queryByRole("menuitem", { name: "Publish" })).toBeNull();
+  });
+
   it("says why when the server refuses a copy", async () => {
     failNext("POST /api/demo/projects/:project_id/workflows/:id/copies", { status: 403, code: "forbidden", detail: "You can't change workflows in this project." });
     const [first] = await serverWorkflows();

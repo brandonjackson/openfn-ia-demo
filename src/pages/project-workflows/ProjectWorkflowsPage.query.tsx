@@ -27,7 +27,8 @@ export default function ProjectWorkflowsPageQuery({ route }: { route: PageRoute 
   const { status, workflows } = useProjectWorkflows(projectId);
   const { status: workOrdersStatus, workOrders } = useWorkOrders(projectId ? [projectId] : []);
   const { status: servicesStatus, services } = useProjectServices(projectId, serviceCatalog);
-  const actions = useWorkflowListActions(workflows);
+  // Owners and admins publish a workflow as a service, with the catalog on.
+  const actions = useWorkflowListActions(workflows, serviceCatalog && !!project?.permissions?.edit_project);
   const workOrdersOf = byWorkflow(workOrders);
   // Rows without service badges beat no rows: a failed services load leaves the badges out.
   const backed = servicesStatus.state === "ready" ? services : [];

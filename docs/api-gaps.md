@@ -36,7 +36,7 @@ path in its hook file.
 - **Published services** (Services catalog, a service's page, a project's
   card on Projects and Overview). Would need `GET /api/services` and
   `/api/projects/:id/services`, each service with its workflow, status
-  (`Live`, `Draft`), code, MCP and X-Road publication, and for the catalog
+  code, MCP and X-Road publication (a workflow with a listing is published: there's no draft; publishing one is `POST /api/demo/projects/:id/services`, and its listing's name and description are edited with `PATCH`), and for the catalog
   who offers it (`section`), its MCP tool name and the organisation's MCP
   server. Demo: `/api/demo/services` (`src/api/services.ts`), and
   `mcp_server_url` on `/api/demo/organization`.

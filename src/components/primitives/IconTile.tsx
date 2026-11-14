@@ -18,6 +18,8 @@ const tones = {
   gray: "bg-gray-100 text-gray-400",
   /** Brand tint, for a feature or something selected. */
   indigo: "border border-indigo-200 bg-indigo-50 text-indigo-500",
+  /** Amber tint, for a sandbox you're working in. */
+  amber: "border border-amber-200 bg-amber-50 text-amber-600",
   /** White with a border, behind logos. */
   white: "border border-gray-200 bg-white text-gray-500",
   /** Dark, for letters standing in for a missing logo. */

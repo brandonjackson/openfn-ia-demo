@@ -83,10 +83,12 @@ function savedProblems(projectId: string, body: Body, ownId?: string): Entry[] {
 /**
  * Copies a project's saved dataclips into a sandbox made from it, under new
  * ids, each on the sandbox's copy of its workflow (`copies`, by the
- * original's id). Unknown or unnamed ids are skipped.
+ * original's id): `"all"` of them, or the ones listed. Unknown or unnamed
+ * ids are skipped.
  */
-export function copyDataclipsInto(fromProjectId: string, sandboxId: string, ids: string[], copies: Map<string, string>) {
-  for (const id of new Set(ids)) {
+export function copyDataclipsInto(fromProjectId: string, sandboxId: string, ids: string[] | "all", copies: Map<string, string>) {
+  const chosen = ids === "all" ? dataclips.rows().filter((x) => x.project_id === fromProjectId && x.name).map((x) => x.id) : ids;
+  for (const id of new Set(chosen)) {
     const d = dataclips.rows().find((x) => x.id === id && x.project_id === fromProjectId && x.name);
     if (!d) continue;
     dataclips.insert({ ...d, id: shortId(), project_id: sandboxId, workflow_id: d.workflow_id ? (copies.get(d.workflow_id) ?? null) : null, created: "just now" });

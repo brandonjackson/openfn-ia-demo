@@ -4,7 +4,8 @@ import { useSandbox } from "../../app/sandbox-state";
 import { useProject, useProjectList } from "../../api/projects";
 import { useSandboxChanges, useSandboxes, useSandboxSaves } from "../../api/workflows";
 import { combine } from "../../api/status";
-import { type SandboxItem, sandboxColorHex, sandboxColorName, sandboxSlug } from "../../model/sandboxes";
+import { type SandboxItem, sandboxSlug } from "../../model/sandboxes";
+import { componentChanges, previewChanges } from "../../model/workflow-changes";
 import type { ProjectDetails } from "../../model/projects";
 import ProjectSandboxesPage from "./ProjectSandboxesPage";
 import { pageFrame } from "../../app/page-frame";
@@ -13,10 +14,10 @@ import { useAnnounceOutcome } from "../../app/announce";
 /**
  * Feeds a project's Sandboxes page from the API. Each sandbox is a project
  * made from main (or from another sandbox); what it has changed is what a
- * merge into its parent would bring. Making one copies every workflow,
- * renaming or recolouring saves the sandbox, merging copies its changed
- * workflows into the target as new versions, and deleting takes the
- * sandboxes made from it too. The selected sandbox is still kept by the
+ * merge into its parent would bring, workflows, components and environment
+ * variables alike. Making one copies every workflow, editing saves its name
+ * and environment, promoting merges its changes into its parent as new
+ * versions, and deleting takes the sandboxes made from it too. The selected sandbox is still kept by the
  * app, shared with the project bar and the editor.
  */
 export default function ProjectSandboxesPageQuery({ route }: { route: PageRoute }) {
@@ -37,14 +38,12 @@ export default function ProjectSandboxesPageQuery({ route }: { route: PageRoute 
   const item = (s: ProjectDetails): SandboxItem => ({
     name: s.name,
     isMain: false,
-    description: s.description,
     createdBy: s.owner ? `${s.owner.firstName} ${s.owner.lastName}` : "Unknown",
     lastActivity: s.lastActivity ?? s.createdAt,
-    color: sandboxColorName(s.color),
+    env: s.env,
     parent: nameOf(s.parentId),
-    changes: (changes[s.id] ?? []).map((c) => ({ workflowId: c.sourceWorkflowId!, workflowName: c.name, diverged: c.diverged })),
-    // Credentials only the sandbox has: none until credentials move to the API.
-    credentials: [],
+    // As the sandbox chip counts them: its workflows, then its components and environment variables.
+    changes: [...previewChanges(changes[s.id]?.workflows ?? []), ...componentChanges(changes[s.id]?.components ?? [])],
   });
 
   return (
@@ -57,37 +56,39 @@ export default function ProjectSandboxesPageQuery({ route }: { route: PageRoute 
               {
                 name: "main",
                 isMain: true,
-                description: "The live version of this project. Sandboxes merge back into main.",
                 createdBy: listed?.owner ? `${listed.owner.firstName} ${listed.owner.lastName}` : "Project owner",
                 lastActivity: listed?.lastActivity ?? root!.createdAt,
-                color: "gray",
+                env: root!.env,
                 changes: [],
-                credentials: [],
               },
               ...live.map(item),
             ],
           }}
           selectedSandbox={live.some((s) => s.name === selected) ? selected : "main"}
           onSelectSandbox={setSelected}
-          onCreateSandbox={async ({ name, color, parent }) => {
+          onCreateSandbox={async ({ name, env, parent }) => {
             const slug = sandboxSlug(name);
             // A refusal shows under the form's fields, so only success is announced.
-            await announcing(saves.create(byName(parent ?? "main")!.id, { name: slug, color: sandboxColorHex[color] }), {
+            await announcing(saves.create(byName(parent ?? "main")!.id, { name: slug, color: null, env }), {
               success: `Created ${slug} from ${parent ?? "main"}.`,
             });
             // As in Lightning, you go straight into the sandbox you made.
             setSelected(slug);
           }}
-          onEditSandbox={async (oldName, { name, color }) => {
+          onEditSandbox={async (oldName, { name, env }) => {
             const sandbox = byName(oldName)!;
             const slug = sandboxSlug(name);
-            await saves.update(sandbox.id, { name: slug, description: sandbox.description, color: sandboxColorHex[color] });
+            // The colour Lightning stores is kept as it is: nothing here sets it any more.
+            await announcing(saves.update(sandbox.id, { name: slug, description: sandbox.description, color: sandbox.color, env }), {
+              success: `Saved ${slug}.`,
+            });
             if (selected === oldName) setSelected(slug);
           }}
-          onMergeSandbox={async (name, merge) => {
+          onPromoteSandbox={async (name, message) => {
             const sandbox = byName(name)!;
-            await announcing(saves.merge(sandbox.parentId!, sandbox.id, { targetId: byName(merge.target)!.id, workflowIds: merge.workflowIds }), {
-              success: `Merged ${name} into ${merge.target}. You can delete the sandbox once you're done with it.`,
+            const parent = nameOf(sandbox.parentId) ?? "main";
+            await announcing(saves.merge(sandbox.parentId!, sandbox.id, { targetId: sandbox.parentId!, message }), {
+              success: `Promoted ${name} into ${parent}. You can delete the sandbox once you're done with it.`,
             });
           }}
           onDeleteSandbox={async (name) => {

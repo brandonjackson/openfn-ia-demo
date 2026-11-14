@@ -461,9 +461,23 @@ export const recentProjects: Project[] = [
   .map((id) => projects.find((p) => p.id === id))
   .filter((p): p is Project => p !== undefined);
 
-/** Details for each sandbox shown on a project's Sandboxes list. */
-/** A sandbox as the fixtures record it: its last activity in words ("2 days ago"), as the fake server seeds it. */
-export type SandboxRecord = Omit<SandboxItem, "lastActivity"> & { lastActivity: string };
+/**
+ * A sandbox as the fixtures record it, as the fake server seeds it: its last
+ * activity in words ("2 days ago"), the colour Lightning stores (which the
+ * demo no longer sets), and the workflows it has changed.
+ */
+export interface SandboxRecord {
+  name: string;
+  isMain: boolean;
+  description: string;
+  createdBy: string;
+  lastActivity: string;
+  /** As Lightning stores it, a hex colour; null for main. */
+  color: string | null;
+  parent?: string;
+  changes: { workflowId: string; workflowName: string; diverged: boolean }[];
+  credentials: string[];
+}
 
 const sandboxDetails: Record<string, Pick<SandboxRecord, "description" | "createdBy" | "lastActivity">> = {
   "intake-validation-v2": {
@@ -498,7 +512,8 @@ const sandboxDetails: Record<string, Pick<SandboxRecord, "description" | "create
   },
 };
 
-const sandboxColors: SandboxItem["color"][] = ["green", "pink", "yellow", "indigo", "red"];
+// Lightning's sandboxes carry a colour; the seeds keep one so the API answers as it would.
+const sandboxColors = ["#22c55e", "#ec4899", "#eab308", "#6366f1", "#ef4444"];
 
 /**
  * A project's sandboxes with their details, "main" first, as the fake server
@@ -516,7 +531,7 @@ export function projectSandboxRecords(project: Project): SandboxRecord[] {
           description: "The live version of this project. Sandboxes merge back into main.",
           createdBy: "Project owner",
           lastActivity: project.lastActivity,
-          color: "gray",
+          color: null,
           changes: [],
           credentials: [],
         }
@@ -538,7 +553,15 @@ export function projectSandboxRecords(project: Project): SandboxRecord[] {
 
 /** A project's sandboxes as the Sandboxes page takes them, for stories: last activity as a timestamp. */
 export function projectSandboxes(project: Project): SandboxItem[] {
-  return projectSandboxRecords(project).map((s) => ({ ...s, lastActivity: isoAgo(s.lastActivity) }));
+  return projectSandboxRecords(project).map((s) => ({
+    name: s.name,
+    isMain: s.isMain,
+    createdBy: s.createdBy,
+    lastActivity: isoAgo(s.lastActivity),
+    env: s.isMain ? "production" : "staging",
+    parent: s.parent,
+    changes: s.changes.map((c) => ({ kind: "changed", summary: `Changed the workflow ${c.workflowName}` })),
+  }));
 }
 
 /**

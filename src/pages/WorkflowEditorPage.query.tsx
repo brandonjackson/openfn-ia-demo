@@ -5,7 +5,7 @@ import WorkflowEditorPage, { WorkflowEditorLoading } from "./WorkflowEditorPage"
 import { type Workflow, type WorkflowFileContents, type WorkOrder } from "../model/workflow";
 import { type WorkflowDocument, isLive } from "../model/workflow-document";
 import type { ProjectDetails } from "../model/projects";
-import { sandboxNames } from "../model/sandboxes";
+import { sandboxNames, sandboxSlug } from "../model/sandboxes";
 import { buildStarterWorkflow, workflowGraphs } from "../fixtures/workflow";
 import { simulateRun } from "../fixtures/runs";
 import { apiProjectId, fixtureProject, fixtureWorkflow } from "../fixtures/projects";
@@ -39,6 +39,7 @@ import { useAllServices } from "../api/services";
 import type { AdaptorReference } from "../model/adaptor-reference";
 import type { AdaptorCatalog } from "../model/adaptor-catalog";
 import { useFlags } from "../app/feature-flags";
+import { useAnnounce, useAnnounceOutcome } from "../app/announce";
 import { systemsFor } from "../model/connected-systems";
 import { componentTypesFor, componentsFor } from "../model/component-types";
 
@@ -184,6 +185,8 @@ function ExistingWorkflow({ id }: { id: string }) {
 
 function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: ProjectDetails; sandboxes: ProjectDetails[] }) {
   const navigate = useNavigate();
+  const announce = useAnnounce();
+  const announcing = useAnnounceOutcome();
   const flags = useFlags();
   const [searchParams, setSearchParams] = useSearchParams();
   // A prompt from Create is read once, then taken out of the history entry so a reload doesn't send it again.
@@ -201,6 +204,8 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
   // A sandbox as the list has it says nothing of what you may do there; its own details do.
   const { project: details } = useProject(listed.id === root.id ? undefined : listed.id);
   const selected = listed.id === root.id ? root : (details ?? listed);
+  // Where promoting takes the sandbox's changes: its parent.
+  const promoteTarget = selected.parentId === root.id ? "main" : (sandboxes.find((s) => s.id === selected.parentId)?.name ?? "main");
   const { workflows: here } = useProjectWorkflows(selected.id);
   const { workflows: onMain } = useProjectWorkflows(root.id);
   // The copy on the canvas: the selected sandbox's workflow of the same name.
@@ -359,11 +364,15 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       sandbox={selected.id === root.id ? "main" : selected.name}
       onSelectSandbox={setSandbox}
       onViewAllSandboxes={() => navigate(`/projects/${root.id}/sandboxes`)}
-      onCreateSandbox={async (name, start) => {
-        // A saved dataclip comes across with the sandbox; a reviewed copy of a run's input is saved in it once it's made.
-        const id = await sandboxSaves.create(selected.id, { name, color: null, dataclipIds: start.kind === "saved" ? [start.dataclip.id] : [] });
-        if (start.kind === "run") await dataclipSaves.create(id, { name: runInputName(start.runId), description: "", body: start.body });
+      onCreateSandbox={async ({ name, env, parent, runInput }) => {
+        const from = !parent || parent === "main" ? root : (sandboxes.find((s) => s.name === parent && !s.scheduledDeletion) ?? selected);
+        const slug = sandboxSlug(name);
+        // The project's saved dataclips come across with it; a reviewed copy of a run's input is saved in it once it's made.
+        const id = await sandboxSaves.create(from.id, { name: slug, color: null, env });
+        if (runInput) await dataclipSaves.create(id, { name: runInputName(runInput.runId), description: "", body: runInput.body });
+        announce({ tone: "success", message: `Created ${slug} from ${from.id === root.id ? "main" : from.name}.` });
       }}
+      promoteTarget={promoteTarget}
       onCreateDataclip={canSaveDataclips ? (draft) => dataclipSaves.create(shown.project_id, draft, shown.id) : undefined}
       onSaveDataclip={canSaveDataclips ? (id, changes) => dataclipSaves.update(shown.project_id, id, changes) : undefined}
       versions={snapshots.map((s) => s.version)}
@@ -372,7 +381,11 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       onToggleLive={(on) => saves.setEnabled(shown, on)}
       onPromote={
         editable && selected.parentId
-          ? (message) => sandboxSaves.merge(selected.parentId!, selected.id, { targetId: selected.parentId!, workflowIds: [shown.id], message })
+          ? (message) =>
+              // A refusal shows under the promotion request's message, so only success is announced.
+              announcing(sandboxSaves.merge(selected.parentId!, selected.id, { targetId: selected.parentId!, workflowIds: [shown.id], message }), {
+                success: `Promoted ${selected.name} into ${promoteTarget}.`,
+              })
           : undefined
       }
       // Until the parent's workflows are in, there's nothing to compare against, so say nothing rather than "new".

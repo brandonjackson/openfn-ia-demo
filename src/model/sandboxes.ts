@@ -1,4 +1,6 @@
 import { FlaskConical, Lock, type LucideIcon } from "lucide-react";
+import { ENVIRONMENTS, type Environment } from "./credentials";
+import type { WorkflowChange } from "./workflow-changes";
 
 /** How a sandbox's name becomes its slug: lower case, words joined by hyphens. */
 export function sandboxSlug(name: string): string {
@@ -26,70 +28,45 @@ export function sandboxIcon(isMain: boolean): LucideIcon {
   return isMain ? Lock : FlaskConical;
 }
 
-/** A sandbox's colour as Lightning stores it (hex), by the name the demo's swatches use. */
-export const sandboxColorHex: Record<SandboxColor, string> = {
-  indigo: "#6366f1",
-  green: "#22c55e",
-  yellow: "#eab308",
-  red: "#ef4444",
-  pink: "#ec4899",
-  gray: "#6b7280",
-};
-
-/** The swatch for a stored colour; gray when it has none, or one the swatches don't have. */
-export function sandboxColorName(hex: string | null | undefined): SandboxColor {
-  const found = (Object.entries(sandboxColorHex) as [SandboxColor, string][]).find(([, h]) => h.toLowerCase() === hex?.toLowerCase());
-  return found?.[0] ?? "gray";
-}
-
-/** The colours a sandbox can be marked with, so you can tell at a glance which one you're in. */
-export type SandboxColor = "indigo" | "green" | "yellow" | "red" | "pink" | "gray";
-
-export const SANDBOX_COLORS: SandboxColor[] = ["indigo", "green", "yellow", "red", "pink", "gray"];
-
-/** A workflow changed in a sandbox, which merging would bring into its target. */
-export interface SandboxChange {
-  workflowId: string;
-  workflowName: string;
-  /** The target has changed this workflow too since the sandbox was made, so merging overwrites those changes. */
-  diverged: boolean;
-}
-
+/** A sandbox as the Sandboxes page lists it, main included. */
 export interface SandboxItem {
   /** Its slug, e.g. "intake-validation-v2", which is how it's named everywhere. */
   name: string;
-  /** The project's main line, which every other sandbox merges back into. */
+  /** The project's main line, which every other sandbox promotes back into. */
   isMain: boolean;
-  description: string;
   createdBy: string;
   /** When it last changed (or, if nothing has, when it was made), as the API sends it; null if unknown. The page words it. */
   lastActivity: string | null;
-  color: SandboxColor;
-  /** The sandbox it was made from, and merges into by default. Main has none. */
+  /** The environment its runs load credentials from, e.g. "staging". */
+  env: string;
+  /** The sandbox it was made from, and promotes into. Main has none. */
   parent?: string;
-  /** Workflows changed in it since it was made. */
-  changes: SandboxChange[];
-  /** Credentials that exist only in this sandbox, which merging can bring along. */
-  credentials: string[];
+  /**
+   * What promoting it would bring into its parent, one line each, as the
+   * sandbox chip lists them: its new and changed workflows, components and
+   * environment variables.
+   */
+  changes: WorkflowChange[];
 }
 
-/** What creating or editing a sandbox asks for. */
+/** What making a sandbox, or editing one, asks for. */
 export interface SandboxDraft {
   /** As typed; the sandbox is named its slug. */
   name: string;
-  color: SandboxColor;
-  /** The sandbox to make it from. Only when creating. */
+  /** The environment its runs load credentials from. */
+  env: Environment;
+  /** The sandbox to make it from. Only when making one. */
   parent?: string;
+  /** A reviewed copy of a loaded run's input, saved in the new sandbox. Only from "Edit in sandbox" with a run loaded. */
+  runInput?: { runId: string; body: string };
 }
 
-/** What merging a sandbox brings, and where. */
-export interface SandboxMerge {
-  /** The sandbox to merge into, usually its parent. */
-  target: string;
-  /** The changed workflows to bring across. */
-  workflowIds: string[];
-  /** The sandbox-only credentials to bring across. */
-  credentials: string[];
+/** The environment a new sandbox runs in unless another is picked. */
+export const DEFAULT_SANDBOX_ENV: Environment = "staging";
+
+/** A stored environment as one the forms offer; staging when it's none of them (main's "main", say). */
+export function sandboxEnvironment(env: string | null | undefined): Environment {
+  return (ENVIRONMENTS as string[]).includes(env ?? "") ? (env as Environment) : DEFAULT_SANDBOX_ENV;
 }
 
 /**

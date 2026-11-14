@@ -110,7 +110,7 @@ export const projectTemplateTree: IANode[] = [
         id: "sandboxes",
         label: "Sandboxes",
         description:
-          "Isolated copies of this project for trying out changes before merging them back.",
+          "Isolated copies of this project for trying out changes before promoting them back.",
         pageType: "project-sandboxes",
         actions: ["New sandbox"],
       },

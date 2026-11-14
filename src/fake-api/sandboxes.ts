@@ -392,8 +392,9 @@ export const sandboxRoutes: Record<string, Handler> = {
       snapshot(copy);
       copies.set(w.id, copy.id);
     }
-    // The saved dataclips asked for come along, to run the copies with.
-    copyDataclipsInto(parent.id, sandbox.id, (clipIds as string[] | undefined) ?? [], copies);
+    // The parent's saved dataclips come along, to run the copies with: a sandbox is a copy of its project.
+    // (`dataclip_ids` once chose which; every saved one comes now, so it's still taken but adds nothing.)
+    copyDataclipsInto(parent.id, sandbox.id, "all", copies);
     // Its components and environment variables, as the parent has them now, and each workflow's test cases.
     copyComponentsInto(parent.id, sandbox.id, at);
     copyTestCasesInto(sandbox.id, copies);

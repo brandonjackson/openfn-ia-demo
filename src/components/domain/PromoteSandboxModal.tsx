@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowRight, FlaskConical, GitMerge } from "lucide-react";
 import Modal from "../primitives/Modal";
 import Button from "../primitives/Button";
@@ -29,7 +29,17 @@ export default function PromoteSandboxModal({ open, ...rest }: Props) {
 
 function PromoteForm({ onClose, sandbox, workflowName, nextVersion, onPromote }: Omit<Props, "open">) {
   const [message, setMessage] = useState("");
-  const canPromote = message.trim().length > 0;
+  const [missing, setMissing] = useState(false);
+  const field = useRef<HTMLTextAreaElement>(null);
+  // The button stays enabled: pressed with nothing said, it says what's missing under the field.
+  const submit = () => {
+    if (!message.trim()) {
+      setMissing(true);
+      field.current?.focus();
+      return;
+    }
+    onPromote(message.trim());
+  };
 
   return (
     <Modal
@@ -41,7 +51,7 @@ function PromoteForm({ onClose, sandbox, workflowName, nextVersion, onPromote }:
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button icon={GitMerge} disabled={!canPromote} onClick={() => onPromote(message.trim())}>
+          <Button icon={GitMerge} onClick={submit}>
             Promote to main
           </Button>
         </>
@@ -64,13 +74,17 @@ function PromoteForm({ onClose, sandbox, workflowName, nextVersion, onPromote }:
           <span className="font-medium text-gray-900">{nextVersion}</span>. The current version stays in the
           version history, so you can look back at it any time.
         </p>
-        <FormField label="What changed?" htmlFor="promote-message" hint="Shown in the version history.">
+        <FormField label="What changed?" htmlFor="promote-message" hint="Shown in the version history." error={missing ? "Say what changed" : undefined}>
           <TextArea
             id="promote-message"
+            ref={field}
             rows={3}
             autoFocus
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              setMissing(false);
+            }}
             placeholder="e.g. Adds a duplicate-application check before routing"
           />
         </FormField>

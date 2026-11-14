@@ -86,6 +86,7 @@ import { runInputName, savedDataclips, untitledDataclipName, type DataclipChange
 import WorkflowHealth from "../components/domain/WorkflowHealth";
 import WorkflowStages, { type StageLink } from "../components/domain/WorkflowStages";
 import ChannelView from "../components/domain/ChannelView";
+import WorkflowDocView from "../components/domain/WorkflowDocView";
 import ComponentView from "../components/domain/ComponentView";
 import CollectionView from "../components/domain/CollectionView";
 import ComponentFormModal from "../components/domain/ComponentFormModal";
@@ -532,8 +533,11 @@ export default function WorkflowEditorPage({
   const [newSandboxes, setNewSandboxes] = useState<string[]>([]);
   const allSandboxes = [...sandboxes, ...newSandboxes.filter((s) => !sandboxes.includes(s))];
 
-  const [localVersions, setVersions] = useState(initialVersions);
-  const versions = onPromote ? initialVersions : localVersions;
+  // The versions come from the caller, always (on main they arrive once the history loads, and a
+  // promotion's lands there once it's merged); without `onPromote`, a promotion adds one for the session on top.
+  const [sessionVersions, setSessionVersions] = useState<WorkflowVersion[]>([]);
+  const versions = [...sessionVersions, ...initialVersions];
+  const nextVersion = `v${Math.max(0, ...versions.map((v) => Number(v.id.replace(/^v/, "")) || 0)) + 1}`;
   const [version, setVersion] = useState(initialVersion);
   const latestVersion = versions[0]?.id;
 
@@ -887,7 +891,7 @@ export default function WorkflowEditorPage({
         return;
       }
     } else {
-      setVersions([{ id: `v${versions.length + 1}`, message, author: CURRENT_USER, date: "20 Oct 2026" }, ...versions]);
+      setSessionVersions((added) => [{ id: nextVersion, message, author: CURRENT_USER, date: "20 Oct 2026" }, ...added]);
     }
     setVersion("latest");
     selectSandbox("main");
@@ -1030,6 +1034,30 @@ export default function WorkflowEditorPage({
     setDocs([...docs, name]);
     setFile({ docName: name });
   };
+
+  // The workflow's Markdown files (context.md, spec.md and added docs), opened from the explorer: drawn as they
+  // read, with Edit in a sandbox. The docs aren't on the API (docs/api-gaps.md), so an edit is kept in the editor
+  // while it's open, for the sandbox it was made in.
+  const [docEdits, setDocEdits] = useState<Record<string, string>>({});
+  const openDoc =
+    file === "context" || file === "spec" ? `${file}.md` : typeof file === "object" && "docName" in file ? file.docName : undefined;
+  const docText = (name: string) =>
+    docEdits[`${sandbox}/${name}`] ??
+    (name === "context.md" ? (contents?.docs.context ?? "") : name === "spec.md" ? (contents?.docs.spec ?? "") : `# ${name.replace(/\.md$/, "")}\n`);
+  const docAbout: Record<string, string> = {
+    "context.md": "The legislation behind the workflow and the groups of citizens it affects. The assistant reads it before proposing changes.",
+    "spec.md": "What goes in, what each step writes, and when a run counts as done.",
+  };
+  const docPane = openDoc && (
+    <WorkflowDocView
+      key={`${sandbox}/${openDoc}`}
+      name={openDoc}
+      description={docAbout[openDoc] ?? "A doc kept alongside the workflow. The assistant reads it with the context and spec."}
+      content={docText(openDoc)}
+      onSave={onMain ? undefined : async (text) => setDocEdits((edits) => ({ ...edits, [`${sandbox}/${openDoc}`]: text }))}
+      onEditInSandbox={onMain ? () => setEditInSandboxOpen(true) : undefined}
+    />
+  );
 
   // The workflow's optional files: the ones it has, and any added from the Workflow group's + this session.
   const saved = savedDataclips(clips);
@@ -1633,7 +1661,7 @@ export default function WorkflowEditorPage({
             onClose={() => setPromoteOpen(false)}
             sandbox={sandbox}
             workflowName={name}
-            nextVersion={`v${versions.length + 1}`}
+            nextVersion={nextVersion}
             onPromote={promote}
           />
           <Modal open={addFileOpen} title="Add to workflow" onClose={() => setAddFileOpen(false)} widthClass="max-w-2xl">
@@ -1850,7 +1878,7 @@ export default function WorkflowEditorPage({
                     ? testCasesPane
                     : file === "envVars"
                       ? envVarsPane
-                      : componentPane
+                      : (docPane || componentPane)
           }
           showExplorer={layout.explorer}
           showDetails={shownLayout.details}

@@ -33,7 +33,8 @@ function blockToMarkdown(block: WikiBlock): string {
     case "list":
       return block.items.map((item) => `- ${inlineToText(item)}`).join("\n");
     case "facts":
-      return ["| Fact | Detail |", "| --- | --- |", ...block.rows.map((r) => `| ${cell(r.label)} | ${cell(inlineToText(r.value))} |`)].join("\n");
+      // Without a header row, each row is a label and its detail.
+      return block.rows.map((r) => `| ${cell(r.label)} | ${cell(inlineToText(r.value))} |`).join("\n");
   }
 }
 

@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { Plus, Search, Workflow } from "lucide-react";
+import { Plus, Workflow } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
 import ListPage from "../../components/patterns/ListPage";
 import PageHeader from "../../components/patterns/PageHeader";
@@ -8,9 +7,6 @@ import WorkflowList from "../../components/domain/WorkflowList";
 import type { ServiceListingDraft } from "../../components/domain/ServiceListingFormModal";
 import Button from "../../components/primitives/Button";
 import EmptyState from "../../components/primitives/EmptyState";
-import { Select } from "../../components/primitives/FormControls";
-import Inline from "../../components/primitives/Inline";
-import SearchInput from "../../components/primitives/SearchInput";
 import type { WorkflowListItem } from "../../model/workflow-list";
 
 /** What the Workflows list draws. */
@@ -35,14 +31,8 @@ export interface ProjectWorkflowsPageProps extends PageProps<ProjectWorkflowsPag
   onDeleteWorkflow?: (id: string) => Promise<void>;
 }
 
-const sorts: Record<string, (a: WorkflowListItem, b: WorkflowListItem) => number> = {
-  "Sort by: Activity": (a, b) => (b.lastRunAt ?? "").localeCompare(a.lastRunAt ?? ""),
-  "Sort by: Last updated": (a, b) => b.updatedAt.localeCompare(a.updatedAt),
-  "Sort by: Name": (a, b) => a.name.localeCompare(b.name),
-  "Sort by: Work orders": (a, b) => b.workOrders - a.workOrders,
-  "Sort by: Failed": (a, b) => b.failedWorkOrders - a.failedWorkOrders,
-};
-const sortOptions = Object.keys(sorts);
+/** Most recently run first; never run last. */
+const byActivity = (a: WorkflowListItem, b: WorkflowListItem) => (b.lastRunAt ?? "").localeCompare(a.lastRunAt ?? "");
 
 export default function ProjectWorkflowsPage({
   node,
@@ -54,13 +44,7 @@ export default function ProjectWorkflowsPage({
   onPublishWorkflow,
   onDeleteWorkflow,
 }: ProjectWorkflowsPageProps) {
-  // UI state: the sort and the search.
-  const [sort, setSort] = useState(sortOptions[0]);
-  const [query, setQuery] = useState("");
-
-  const q = query.trim().toLowerCase();
-  const workflows = data.workflows.filter((w) => !q || w.name.toLowerCase().includes(q)).sort(sorts[sort]);
-  const count = data.workflows.length;
+  const workflows = [...data.workflows].sort(byActivity);
 
   return (
     <ListPage
@@ -76,30 +60,18 @@ export default function ProjectWorkflowsPage({
           }
         />
       }
-      toolbar={
-        count > 0 && (
-          <Inline gap="sm">
-            <SearchInput compact placeholder="Search" aria-label="Search workflows" value={query} onChange={(e) => setQuery(e.target.value)} />
-            <Select aria-label="Sort workflows" fit compact options={sortOptions} value={sort} onChange={(e) => setSort(e.target.value)} />
-          </Inline>
-        )
-      }
       isEmpty={workflows.length === 0}
       empty={
-        count > 0 ? (
-          <EmptyState icon={Search} title={`No workflows match "${query.trim()}"`} description="Try another name." />
-        ) : (
-          <EmptyState
-            icon={Workflow}
-            title="No workflows yet"
-            description="Workflows move data between your connected systems."
-            action={
-              <Button icon={Plus} onClick={onNewWorkflow}>
-                Create one
-              </Button>
-            }
-          />
-        )
+        <EmptyState
+          icon={Workflow}
+          title="No workflows yet"
+          description="Workflows move data between your connected systems."
+          action={
+            <Button icon={Plus} onClick={onNewWorkflow}>
+              Create one
+            </Button>
+          }
+        />
       }
     >
       <WorkflowList workflows={workflows} onToggleWorkflow={onToggleWorkflow} onCopyWorkflow={onCopyWorkflow} onPublishWorkflow={onPublishWorkflow} onDeleteWorkflow={onDeleteWorkflow} />

@@ -76,6 +76,6 @@ describe("ProjectCreatePageQuery", () => {
 
   it("says Not Found inside a project the API doesn't have", async () => {
     draw("/projects/00000000-0000-5000-8000-000000000000/create");
-    expect(await screen.findByText("Page Not Found", {}, wait)).toBeTruthy();
+    expect(await screen.findByText("Page not found", {}, wait)).toBeTruthy();
   });
 });

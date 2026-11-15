@@ -47,11 +47,6 @@ export function findNodeByPath(
   return null;
 }
 
-export function buildPath(ancestors: { path: string }[], nodeId: string): string {
-  if (ancestors.length === 0) return "/" + nodeId;
-  return ancestors[ancestors.length - 1].path + "/" + nodeId;
-}
-
 export function getNodePath(tree: IANode[], targetId: string, prefix = ""): string | null {
   for (const node of tree) {
     const path = prefix + "/" + node.id;

@@ -128,7 +128,7 @@ path in its hook file.
 
 - **What isn't running right now** (Overview's Status tile, the Status
   page). Nothing in api/ says which systems or workflows are down or
-  degraded: the Status page still draws the fixtures' (`StatusPage.fixtures`),
+  degraded: the Status page still draws the fixtures' (`status/StatusPage.fixtures`),
   and Overview, now on the API, leaves its Status tile out on every build.
   Would need a health resource (each workflow's and connected system's
   state, and since when), or a rule for reading it from recent runs that

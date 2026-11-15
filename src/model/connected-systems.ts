@@ -1,12 +1,13 @@
 import type { Environment } from "./credentials";
 import type { FeatureFlags } from "./feature-flags";
+import type { XRoadAgreement, XRoadConnectionStatus, XRoadRoute } from "./xroad";
+
 /**
  * How OpenFn reaches a system. Workflows and adaptors reference the system,
  * never the transport: a step on an X-Road system looks the same as one on
  * a direct system, and the X-Road route and headers come from here and the
  * organisation's X-Road settings.
  */
-import type { XRoadAgreement, XRoadConnectionStatus, XRoadRoute } from "./xroad";
 export type SystemConnection =
   | { method: "direct" }
   | {

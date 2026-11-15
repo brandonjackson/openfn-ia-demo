@@ -1,9 +1,9 @@
-/** An X-Road system's environments: production goes through the Security Server, and there's no credential to add. */
-import type { OrgCredential } from "../model/page-data";
+import type { OrgCredential, Environment } from "../model/credentials";
 import { type SystemListItem, type AccessGrant, type ConnectedSystemSummary, type SystemEnvironment, type SuggestedSystem, type ConnectedSystem, systemListItem, systemSummary } from "../model/connected-systems";
-import type { Environment } from "../model/credentials";
 import type { XRoadRoute } from "../model/xroad";
 import { routeUrl } from "./xroad";
+
+/** An X-Road system's environments: production goes through the Security Server, and there's no credential to add. */
 function xroadEnvironments(route: XRoadRoute): Record<Environment, SystemEnvironment> {
   return {
     production: { url: routeUrl(route) },

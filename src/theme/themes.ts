@@ -63,7 +63,3 @@ export const THEME_IDS = THEMES.map((t) => t.id);
 export function isThemeId(value: unknown): value is ThemeId {
   return typeof value === "string" && THEME_IDS.includes(value as ThemeId);
 }
-
-export function getTheme(id: ThemeId): ThemeMeta {
-  return THEMES.find((t) => t.id === id) ?? THEMES[0];
-}

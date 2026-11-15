@@ -8,7 +8,7 @@ import { useOrganizationXRoad, useXRoadDirectory } from "../../api/organization"
 import { combine } from "../../api/status";
 import { connectionOf, systemsFor } from "../../model/connected-systems";
 import { findMember, findService } from "../../model/xroad";
-import NotFoundPage from "../NotFoundPage";
+import NotFoundPage from "../not-found/NotFoundPage";
 import SystemPage from "./SystemPage";
 import { useAnnounceOutcome } from "../../app/announce";
 

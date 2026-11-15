@@ -2,7 +2,7 @@ import type { PageRoute } from "../../app/ia-utils";
 import Loaded from "../../app/Loaded";
 import { useProject } from "../../api/projects";
 import { useConnectedSystems } from "../../api/connected-systems";
-import NotFoundPage from "../NotFoundPage";
+import NotFoundPage from "../not-found/NotFoundPage";
 import PlaceholderPage from "./PlaceholderPage";
 import { pageFrame } from "../../app/page-frame";
 

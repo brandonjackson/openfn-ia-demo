@@ -12,7 +12,7 @@ import { useOrganizationXRoad } from "../../api/organization";
 import type { XRoadIdentity } from "../../model/xroad";
 import { useFlags } from "../../app/feature-flags";
 import ServicePage, { type ServicePageData } from "./ServicePage";
-import NotFoundPage from "../NotFoundPage";
+import NotFoundPage from "../not-found/NotFoundPage";
 import { pageFrame } from "../../app/page-frame";
 import { useAnnounceOutcome } from "../../app/announce";
 

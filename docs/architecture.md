@@ -2,7 +2,7 @@
 
 This is the guide for people working on the demo. CLAUDE.md points agents here too, and adds only the agent-specific details on top, so there's one source of truth for both.
 
-The short version: **everything on screen belongs to one of four layers, and every page is fed by a wrapper beside it.** Today the wrappers read fixtures. Later the same pages can be fed by a LiveView island inside today's Lightning, or by TanStack Query on a new API, without changing the pages.
+The short version: **everything on screen belongs to one of four layers, and every page is fed by a wrapper beside it.** The wrappers read Lightning's API, answered by a pretend server in the browser or by a real Lightning. The same pages could be fed by a LiveView island inside today's Lightning without changing them.
 
 ## The layers
 
@@ -26,7 +26,7 @@ Each layer only imports from the layers below it, and patterns and domain never 
 Two more folders sit beside the layers rather than in them:
 
 - `src/model/` is the shared vocabulary: types, fixed product words (trigger types, activity periods, X-Road member classes) and pure functions over values you pass in. Every layer can use it, and it imports none of them.
-- `src/fixtures/` is the fake server: the records a backend would send. Only wrappers and stories read it.
+- `src/fixtures/` is the records a backend would send. The pretend server is seeded from them, and stories and the docs draw them. Pages and components don't read them (one `debt:` exception, under The ratchet).
 
 **Why layers.** Every large React codebase that goes bad goes bad the same way: data fetching, business rules, styling and layout end up mixed together in the same components. Then you can't change the API without touching hundreds of files, and you can't change a button without breaking a page. With layers, each kind of change has one place to happen. A new look is a change to primitives. A new data source is a change to wrappers. A new screen is a page made of parts that already exist.
 
@@ -96,25 +96,25 @@ src/pages/projects/ProjectsPage.test.tsx         what the page draws and asks fo
 src/pages/projects/ProjectsPage.query.test.tsx   the wrapper on the fake server: loads, saves, refusals
 ```
 
-Pages still moving keep the older flat layout (`src/pages/XPage.tsx` beside its wrapper); [convergence.md](./convergence.md) tracks them. The Projects page is the worked example to copy.
+The Projects page is the worked example to copy.
 
-The page takes everything as props: where it sits (`node`, `ancestors`, `currentPath`), its `data`, and an `onX` callback for each thing the user can do. Its props type, `XPageProps`, is its contract, written by hand with a comment on every prop. The page's `XPageData` is written beside it; a shape a component shares (a project's card, `ProjectSummary`) lives in its resource's `model/` file, named as in `api/` (`model/projects.ts`). Older pages still take theirs from `src/model/page-data.ts`, which is being split up that way.
+The page takes everything as props: where it sits (`node`, `ancestors`, `currentPath`), its `data`, and an `onX` callback for each thing the user can do. Its props type, `XPageProps`, is its contract, written by hand with a comment on every prop. The page's `XPageData` is written beside it; a shape a component shares (a project's card, `ProjectSummary`) lives in its resource's `model/` file, named as in `api/` (`model/projects.ts`).
 
-The wrapper is the only place that knows where data comes from. It calls the resource's hooks, reads the route, implements the callbacks, and renders the page. It never reads fixtures: what the API can't give yet is left out, and written down in [api-gaps.md](./api-gaps.md).
+The wrapper is the only place that knows where data comes from. It calls the resource's hooks, reads the route, implements the callbacks, and renders the page. It doesn't read fixtures: what the API can't give yet is left out, and written down in [api-gaps.md](./api-gaps.md). Two exceptions are listed there too: the editor's wrapper still takes its demo behaviours from fixtures, and the Status page, which the API has nothing for, is fed by `StatusPage.fixtures.tsx`.
 
 ```
-fixtures           ─┐
-LiveView island    ─┼─ props down, promises up ─→  XPage.tsx
-TanStack Query     ─┘
+TanStack Query on the API (today) ─┐
+                                   ├─ props down, promises up ─→  XPage.tsx
+LiveView island in Lightning      ─┘
 ```
 
 **Props down, promises up.** Data goes down as props. An action that would reach a server is a callback that returns a promise: `onPublishToXRoad: () => Promise<void>`. The page calls it and redraws from the props it gets back. The page never writes its own copy of the result, because **the server is the truth**, the same way LiveView re-renders after an event. Navigation isn't a server action, so it's a plain callback: `onNewWorkflow: () => void`.
 
-The fixture wrappers apply a change straight away and return an already-resolved promise. Because of that, a page can `await` an action and nothing visible changes timing: React settles the whole thing before the browser paints. A wrapper on a real API resolves when the fresh data is back. A page that needs to wait for it (a spinner, an error) just awaits.
+A wrapper's promise resolves once the server has answered and the lists it changed have reloaded, so a page that needs to wait (a pending label, an error under a field) just awaits it.
 
 **What stays in the page.** UI state stays local: which tab is open, a dropdown, a form you haven't saved yet, the editor's layout. Only things a server would hold go through the seam.
 
-**Switching a data source.** `src/app/PageRoute.tsx` holds the route table that says which wrapper feeds each kind of page. To move a page onto the API, write `XPage.query.tsx` beside the page and point its line in the table at it. The page doesn't change. `pageFrame(route, node, projectName)` (`src/app/page-frame.ts`) is where every wrapper gets the page's node and crumbs, with the project's name as the API has it.
+**The route table.** `src/app/PageRoute.tsx` says which wrapper feeds each kind of page. A new page gets its `XPage.query.tsx` beside it and a line in the table pointing at it. Feeding a page differently means writing a different wrapper; the page doesn't change. `pageFrame(route, node, projectName)` (`src/app/page-frame.ts`) is where every wrapper gets the page's node and crumbs, with the project's name as the API has it.
 
 **Tests.** A page's `XPage.test.tsx` draws it with `renderPage` (`src/test/renderPage.tsx`): it feeds props, and each `onX` returns a promise the test answers with `resolve` or `reject`, so pending, success and a refusal are each a step to check. Lint holds it to the page's rules, so it can't reach for fixtures or the API either. The wrapper's `XPage.query.test.tsx` renders it on the fake server (`ApiProvider retry={false}`, `resetFakeApi`, `setWait(0)`, and `failNext` for a refusal) and checks what the server decides. `.test.tsx` runs in jsdom, `.test.ts` in Node.
 
@@ -136,7 +136,7 @@ XPage.query.tsx ──→ src/api/<resource>.ts ──→ src/api/client.ts ─�
 - **`src/api/realtime.ts`** is the only thing that hears what the server says without being asked. `follow(topic, listener)` joins a topic on the source's socket: the fake server's (`src/fake-api/realtime.ts`), which uses today's Lightning's topics and events (`run:<id>`, `workflow:<id>`). openfn-3-poc's api/ doesn't specify the realtime surface yet (its misfits.md), so on a real Lightning there's no socket to join and `follow` calls back every two seconds instead, which is what api/ says to do meanwhile. A hook that follows something asks for its lists again on each event, so a page never knows which it was.
 - **`src/api/client.ts`** is the only thing that sends requests. A refusal throws an `ApiError`: show its `message`, branch on its `code`, and put `fieldError("name")` under the field it names. `listAll` follows a paged list to the end; `listPage` asks for one page and says how many rows the list holds, for a list too long to load whole (the audit trail). A page shown a page at a time keeps its filters and page number in the URL, read and written by its wrapper (History, Admin settings' audit trail).
 - **`src/api/<resource>.ts`** holds, in this order: the API's type (snake_case, as sent), the mapper onto the `model/` type the page takes, the query keys, the queries, and the saves. A save is a mutation that invalidates every key it changed, so it resolves once the lists have reloaded: the page's `onX` gets that promise, and the page redraws from fresh props. Only `src/api/` imports TanStack Query.
-- **`XPage.query.tsx`** replaces the page's `.fixtures.tsx` wrapper once the page's data is on the API. It calls the hooks, reads the route, and hands the page its data and callbacks, wrapped in `Loaded` (`src/app/Loaded.tsx`), which shows a spinner while the data loads and Not Found when the record isn't there. Point the page's line in `PageRoute.tsx` at it and delete the old wrapper.
+- **`XPage.query.tsx`** is the page's wrapper. It calls the hooks, reads the route, and hands the page its data and callbacks, wrapped in `Loaded` (`src/app/Loaded.tsx`), which shows a spinner while the data loads and Not Found when the record isn't there.
 - **Areas the API doesn't describe** (connected systems, X-Road, organisations, services and the rest of the demo's new features) get routes under `/api/demo/`, shaped by `api/conventions.md`, so they work the same way and are easy to tell apart from Lightning's own.
 
 Tests for the fake server's lifecycles live beside it (`*.test.ts`, `npm test`).
@@ -158,10 +158,10 @@ Follow `/projects/project-a/workflows` from the URL to the pixels. Each stop say
 1. **The route.** `src/app/App.tsx` wraps everything in `ShellQuery` and sends the URL to `PageRoute`. *The app decides what's on screen; it doesn't draw any of it.*
 2. **The route table.** `PageRoute` finds the node in the IA tree (`model/ia-tree.ts`): its `pageType` is `project-workflows`, so `ProjectWorkflowsPageQuery` gets the route. *One line per kind of page is all it takes to swap where that page's data comes from.*
 3. **The wrapper.** `ProjectWorkflowsPage.query.tsx` loads the project and its workflows from the API, and shows Not Found if the project isn't yours to see. It builds the page's data, and turns "New workflow" into opening the editor (`navigate`). *This is the only file that knows about the API and the router. A LiveView island would do the same job differently.*
-4. **The page.** `ProjectWorkflowsPage.tsx` takes `ProjectWorkflowsPageProps` and draws them. It keeps one bit of UI state, the sort order. *It draws, and nothing else, so the same file can be copied into Lightning unchanged.*
+4. **The page.** `ProjectWorkflowsPage.tsx` takes `ProjectWorkflowsPageProps` and draws them in a `ListPage`. It holds no state of its own. *It draws, and nothing else, so the same file can be copied into Lightning unchanged.*
 5. **A pattern.** `PageHeader` puts the breadcrumbs, title, description and main action where every page has them. The page hands it `<Breadcrumbs>` for the trail, because `PageHeader` doesn't know what a project is. *Patterns are shared answers to shared questions, so pages don't each invent their own.*
-6. **A domain component.** `WorkflowRow` draws one workflow: its name, whether it's a published service, its latest run as a `StatusPill`, and the people working on it. *It knows OpenFn's words, but not where the workflow came from.*
-7. **Primitives.** `Button`, `Select`, `ListRow`, `EmptyState`. *They're where accessibility and the look live, and know nothing about OpenFn.*
+6. **Domain components.** `WorkflowList` groups the workflows (published services, live, paused) and `WorkflowRow` draws one: its name, a `StatusPill` saying whether it's live, and its switch and ⋮ menu for whatever the wrapper allows. *They know OpenFn's words, but not where the workflow came from.*
+7. **Primitives.** `Button`, `ListGroup`, `ListRow`, `ToggleSwitch`, `EmptyState`. *They're where accessibility and the look live, and know nothing about OpenFn.*
 8. **Tokens.** Every colour is a Tailwind utility that resolves to a token in `src/theme/theme.css`, which the demo settings' Theme section re-skins. *Changing the look is a change here, not in pages.*
 
 ## For people who know LiveView
@@ -199,7 +199,7 @@ workflowDocs
 aiBuild, deployments, stepTools: standalone
 ```
 
-**Who reads them.** The same people who read fixtures: the route table, the shell and the wrappers. Pages and components never do (lint already stops them importing `src/app`).
+**Who reads them.** The route table, the shell and the wrappers. Pages and components never do (lint already stops them importing `src/app`).
 
 - The route table trims the IA tree (`visibleTree`): a node with a `flag` that's off is gone, along with everything under it, and its URL shows "This feature is turned off". A node with `whenOff` is renamed instead. Components becomes Channels, for example.
 - The shell passes the flags to the chrome through `ShellContext`, so the sidebar and account menu leave out what's off.

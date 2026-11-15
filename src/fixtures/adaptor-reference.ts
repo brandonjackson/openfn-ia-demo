@@ -1,8 +1,9 @@
-/** The rest of the catalog, with what the catalog knows; the adaptors below override it. */
 import type { AdaptorKind } from "../model/workflow";
 import { adaptorCatalog } from "./adaptor-catalog";
 import publishedSnippets from "./adaptor-snippets.json";
 import type { AdaptorInfo, ProjectCredential, Snippet } from "../model/adaptor-reference";
+
+/** The rest of the catalog, with what the catalog knows; the adaptors below override it. */
 const catalogInfo: Record<AdaptorKind, AdaptorInfo> = Object.fromEntries(
   adaptorCatalog.map((a) => [
     a.id,

@@ -1,7 +1,7 @@
 /** Projects and their members on Lightning's API (api/projects.md): the API's shape, its mappers, its keys, and the hooks a .query wrapper calls. */
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { DigestFrequency, ProjectRole } from "../model/project-settings";
-import { projectSummaries, type InstanceUserSummary, type OtherProject, type ProjectAction, type ProjectDetails, type ProjectMember, type ProjectSummary, type RetentionPolicy } from "../model/projects";
+import { projectSummaries, type OtherProject, type ProjectAction, type ProjectDetails, type ProjectMember, type ProjectSummary, type RetentionPolicy } from "../model/projects";
 import { useAllServices } from "./services";
 import { listAll, request } from "./client";
 import { statusOf, type LoadStatus } from "./status";
@@ -82,8 +82,6 @@ const toMember = ({ id, attributes: a }: ApiMember): ProjectMember => ({
   failureAlert: a.failure_alert,
   digest: a.digest,
 });
-
-const toUser = ({ id, attributes: a }: ApiUser): InstanceUserSummary => ({ id, email: a.email, firstName: a.first_name, lastName: a.last_name });
 
 export const projectKeys = {
   all: ["projects"] as const,
@@ -169,17 +167,6 @@ export function useProjectMembers(id: string): { status: LoadStatus; members: Pr
     select: (rows) => rows.map(toMember),
   });
   return { status: statusOf(query), members: query.data ?? [] };
-}
-
-/** Everyone on the instance (a superuser's view; planned for personal tokens). */
-export function useInstanceUsers(enabled = true): { status: LoadStatus; users: InstanceUserSummary[] } {
-  const query = useQuery({
-    queryKey: userKeys.all,
-    enabled,
-    queryFn: () => listAll<ApiUser>("/api/users"),
-    select: (rows) => rows.map(toUser),
-  });
-  return { status: statusOf(query), users: query.data ?? [] };
 }
 
 /** What a create or rename sends: the API's own field names. */

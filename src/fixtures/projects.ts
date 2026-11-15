@@ -3,7 +3,7 @@ import type { WorkflowListItem } from "../model/workflow-list";
 import { isoAgo } from "../model/time";
 import { isCallableFromStep, type StepService } from "../model/services";
 import { seedId } from "./ids";
-import type { Project, ProjectService, ProjectSummary } from "../model/projects";
+import type { Project, ProjectSummary } from "../model/projects";
 
 export const projects: Project[] = [
   {
@@ -554,23 +554,6 @@ export function projectSandboxes(project: Project): SandboxItem[] {
     parent: s.parent,
     changes: s.changes.map((c) => ({ kind: "changed", summary: `Changed the workflow ${c.workflowName}` })),
   }));
-}
-
-/**
- * The published service a workflow backs, if any, with the path to its
- * listing and the URL that starts it (webhook services only).
- */
-export function serviceForWorkflow(
-  workflowId: string
-): { project: Project; service: ProjectService; path: string; url?: string } | undefined {
-  for (const project of projects) {
-    const service = project.services.find((s) => s.workflowId === workflowId);
-    if (service) {
-      const url = service.api?.invocation.match(/https?:\/\/\S+/)?.[0];
-      return { project, service, path: `/projects/${project.id}/services/${service.id}`, url };
-    }
-  }
-  return undefined;
 }
 
 /** Every Live service a step can call, offered by its project, for stories of "Add a step". */

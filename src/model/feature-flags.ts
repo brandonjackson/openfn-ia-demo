@@ -213,12 +213,6 @@ export function flagParent(flag: FeatureFlag): FlagId | undefined {
   return flag.requires.find((r) => flagById(r).group === flag.group);
 }
 
-/** The flags `id` directly requires that aren't in effect, for "Needs Connected systems". */
-export function missingRequirements(id: FlagId, chosen: FeatureFlags): FlagId[] {
-  const effective = effectiveFlags(chosen);
-  return flagById(id).requires.filter((r) => !effective[r]);
-}
-
 /**
  * Reads a `flags` URL parameter: a preset id ("full", "redesign"), or a
  * comma-separated list of the flags to turn on, where "-id" turns one off

@@ -1,4 +1,4 @@
-import { channelEventAddress, type ChannelDetails, type ChannelType } from "../model/channels";
+import type { ChannelDetails, ChannelType } from "../model/channels";
 import type { ProjectComponent } from "../model/projects";
 
 const week = ["Wed", "Thu", "Fri", "Sat", "Sun", "Mon", "Tue"];
@@ -112,27 +112,5 @@ export function channelDetails(component: ProjectComponent): ChannelDetails {
       summary: component.description,
       body: json({ id: `rec-${1040 - i}`, submitted_at: "2026-10-20T09:00:00Z", data: {} }),
     })),
-  };
-}
-
-/** A new channel's details, from what was asked for when it was made: no traffic yet. */
-export function newChannelDetails(
-  projectId: string,
-  id: string,
-  draft: { channelType: ChannelType; system: string; destinationUrl: string; credential?: string; enabled: boolean }
-): ChannelDetails {
-  const event = draft.channelType === "event";
-  return {
-    channelType: draft.channelType,
-    system: { name: draft.system, adaptor: "http" },
-    method: draft.channelType === "read" ? "GET" : "POST",
-    endpoint: event ? channelEventAddress(projectId, id) : draft.destinationUrl,
-    auth: event ? "API key in the x-api-key header" : draft.credential ? `Project credential: ${draft.credential}` : "None",
-    payload: json({}),
-    days: days([0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0]),
-    medianMs: 0,
-    messages: [],
-    enabled: draft.enabled,
-    credential: draft.credential,
   };
 }

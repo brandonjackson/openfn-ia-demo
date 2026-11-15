@@ -97,16 +97,6 @@ export const unknownKeys = (body: Body, known: readonly string[], prefix = "") =
     .filter((key) => !known.includes(key))
     .map((key): Entry => ({ code: "unknown_key", detail: "is not a known field", pointer: `#/${prefix}${key}` }));
 
-/** A `required` entry when the value is missing or blank. */
-export const requireString = (body: Body, key: string, errors: Entry[], prefix = "") => {
-  const value = body[key];
-  if (typeof value !== "string" || value.trim() === "") {
-    errors.push({ code: "required", detail: "can't be blank", pointer: `#/${prefix}${key}` });
-    return undefined;
-  }
-  return value;
-};
-
 /** A `too_long` entry when a string is longer than `max`. */
 export const maxLength = (value: unknown, max: number, pointer: string, errors: Entry[]) => {
   if (typeof value === "string" && value.length > max) errors.push({ code: "too_long", detail: `should be at most ${max} character(s)`, pointer });

@@ -1,6 +1,6 @@
 import { Plus, Workflow } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
-import type { StatTileData } from "../../model/page-data";
+import type { StatTileData } from "../../model/runs";
 import type { WorkflowListItem } from "../../model/workflow-list";
 import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";

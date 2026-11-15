@@ -1,6 +1,7 @@
-/** Display order, icon and blurb for each kind of project component. */
 import { ArrowLeftRight, Database, FileSpreadsheet, FileText, PanelsTopLeft, ScrollText, Sparkles, Workflow, type LucideIcon } from "lucide-react";
 import type { FeatureFlags, FlagId } from "./feature-flags";
+
+/** Display order, icon and blurb for each kind of project component. */
 export const componentTypes: {
   type: ProjectComponentType;
   plural: string;

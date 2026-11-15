@@ -1,6 +1,6 @@
 import Link from "./Link";
 import { ChevronRight } from "lucide-react";
-import type { StatTileData } from "../../model/page-data";
+import type { StatTileData } from "../../model/runs";
 import Badge from "./Badge";
 import Sparkline from "./Sparkline";
 

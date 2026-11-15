@@ -125,7 +125,7 @@ describe("SystemPageQuery", () => {
     const system = await systemNamed("National ID verification");
     setFlags({ ...allFlagsOn, xroad: false });
     renderRoute(system.id);
-    expect(await screen.findByText("Page Not Found", {}, wait)).toBeTruthy();
+    expect(await screen.findByText("Page not found", {}, wait)).toBeTruthy();
   });
 
   it("still shows an X-Road system, without its route, when the directory fails to load", async () => {

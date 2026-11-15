@@ -120,8 +120,8 @@ and to mark what would change the look.
     403 on a list reads as Not Found. It changes what shows while loading, so
     it's on Waiting on Brandon. If he agrees, do it on Projects first, then
     copy it.
-- **Half-done:** nothing. Pages other than Projects are still flat in
-  `src/pages/` and still take their data shapes from page-data.ts.
+- **Half-done:** nothing. Every page has its own folder, and page-data.ts
+  is gone.
 
 ### How to move a page (from PR 1)
 
@@ -640,6 +640,19 @@ Counts are from `npm run metrics` (the ratchet) and `npm run convergence`.
   42; tests 399 → 408; the ratchet unchanged. **Lane 5 is done:** no
   wrapper of its own reads fixtures.
   ([#223](https://github.com/brandonjackson/openfn-ia-demo/pull/223))
+
+- **Tidy for the team.** page-data.ts is gone: `StatTileData` moved to
+  `model/runs.ts`, the Status page's types to a new `model/status.ts` and
+  `OrgCredential` to `model/credentials.ts` (with `scripts/move-types.py`,
+  then deleted, its job done). `NotFoundPage` and `StatusPage` moved into
+  their own folders with their first tests, and `NotFoundPage` draws every
+  case with `EmptyState` ("Page not found"). Dead exports removed, doc
+  comments that earlier moves had stranded above the imports put back on
+  their declarations, the guide's lines about wrappers reading fixtures
+  brought up to date, and the root tidied (a real README; the old
+  IA_SUMMARY.md and `shots/` removed). Counts: pages in their own folder
+  22 → 24 of 24; page-data.ts 73 → 0 lines; page and query tests 42 → 44;
+  tests 661 → 667; classNamesInPages 77 → 74.
 
 **PRs done: 17** (10 for the brief, then Brandon's decisions, then the Lightning run). Pull openfn-3-poc again at PR 10.
 

@@ -42,7 +42,7 @@ import { diff, record } from "./audit";
 import { seedTime, table } from "./db";
 import { newId, seedId } from "../fixtures/ids";
 import { currentUserId } from "./session";
-import { findUser, findUserByEmail, fullName, userIdFor, users } from "./users";
+import { findUser, findUserByEmail, userIdFor, users } from "./users";
 
 export type RetentionPolicy = "retain_all" | "retain_with_errors" | "erase_all";
 
@@ -85,7 +85,6 @@ export const projectIdFor = (slug: string) => seedId("project", slug);
 
 /** A fixture sandbox's id on the fake server, from its project's slug and its name. */
 export const sandboxIdFor = (projectSlug: string, name: string) => seedId("sandbox", `${projectSlug}/${name}`);
-
 
 /** Every fixture sandbox: each project's sandboxes but main, made from main (or from another sandbox). */
 export function fixtureSandboxes() {
@@ -314,7 +313,6 @@ export function guardProject(id: string, least: ProjectRole = "viewer", { superu
 type StatsProvider = (projectId: string) => { workflows_count?: number; last_activity?: string | null; failed_work_orders_count?: number };
 const statsProviders: StatsProvider[] = [];
 export const addProjectStats = (provider: StatsProvider) => void statsProviders.push(provider);
-
 
 const memberEntry = (m: MemberRow) => {
   const u = findUser(m.user_id);
@@ -774,9 +772,3 @@ export const projectRoutes: Record<string, Handler> = {
 type MemberRemoved = (projectId: string, userId: string) => void;
 const memberRemovedListeners: MemberRemoved[] = [];
 export const onMemberRemoved = (listener: MemberRemoved) => void memberRemovedListeners.push(listener);
-
-/** "Ada Lovelace", for a member's user id. */
-export const memberName = (userId: string) => {
-  const u = findUser(userId);
-  return u ? fullName(u) : "Unknown";
-};

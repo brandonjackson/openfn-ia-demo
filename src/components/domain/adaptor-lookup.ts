@@ -43,7 +43,3 @@ const logos = import.meta.glob<string>("../../assets/adaptors/*.png", {
 export function adaptorLogoUrl(adaptorId?: string): string | undefined {
   return adaptorId ? logos[`../../assets/adaptors/${adaptorId}.png`] : undefined;
 }
-
-export function hasAdaptorLogo(adaptorId?: string): boolean {
-  return adaptorLogoUrl(adaptorId) !== undefined;
-}

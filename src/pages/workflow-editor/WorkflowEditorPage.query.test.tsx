@@ -91,10 +91,10 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     expect(screen.getByRole("button", { name: "Workflow menu" }).getAttribute("aria-disabled")).toBe("true");
     // The project is asked for only once the workflow names it: it loads in turn, rather than reading as missing.
     while (screen.queryByText("Loading workflow…")) {
-      expect(screen.queryByText("Page Not Found")).toBeNull();
+      expect(screen.queryByText("Page not found")).toBeNull();
       await act(() => new Promise((r) => setTimeout(r, 10)));
     }
-    expect(screen.queryByText("Page Not Found")).toBeNull();
+    expect(screen.queryByText("Page not found")).toBeNull();
     expect(await screen.findByRole("button", { name: "main, read-only" }, wait)).toBeTruthy();
   });
 

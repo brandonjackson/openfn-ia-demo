@@ -1,5 +1,5 @@
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
-import type { HealthState } from "../../model/page-data";
+import type { HealthState } from "../../model/status";
 import Badge from "../primitives/Badge";
 
 const config = {

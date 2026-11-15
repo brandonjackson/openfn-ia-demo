@@ -36,12 +36,12 @@ function askToDelete(name: string) {
 }
 
 describe("ProjectWorkflowsPage", () => {
-  it("lists the workflows it's given and narrows them by name as you search", () => {
+  it("lists the workflows it's given, with no search or sort", () => {
     draw([workflow("Intake"), workflow("Payroll")]);
     expect(screen.getByText("Intake")).toBeTruthy();
-    fireEvent.change(screen.getByRole("searchbox", { name: "Search workflows" }), { target: { value: "pay" } });
     expect(screen.getByText("Payroll")).toBeTruthy();
-    expect(screen.queryByText("Intake")).toBeNull();
+    expect(screen.queryByRole("searchbox")).toBeNull();
+    expect(screen.queryByRole("combobox", { name: "Sort workflows" })).toBeNull();
   });
 
   it("draws a row as the API sends it, with no description or members", () => {

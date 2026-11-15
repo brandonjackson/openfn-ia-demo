@@ -24,8 +24,6 @@ const projectData: ProjectPageData = {
   projectId: project.id,
   tiles: activityTiles(workOrderActivity(projectHistory(project), "30d"), "30d", `/projects/${project.id}/history`),
   workflows: projectWorkflowItems(project),
-  services: project.services,
-  components: project.components.filter((c) => c.type !== "Workflow"),
 };
 
 const meta: Meta<typeof ProjectPage> = {
@@ -48,23 +46,16 @@ export const Default: Story = {
   },
 };
 
-/** A brand new project: no runs yet, no workflows, nothing published, no components. */
+/** A brand new project: no runs yet and no workflows. */
 export const EmptyProject: Story = {
   args: {
     node: { id: "new-project", label: "New Project", description: "A brand new project with nothing in it yet." },
     ancestors,
     currentPath: "/projects/new-project",
     data: {
-          projectId: "new-project",
+      projectId: "new-project",
       tiles: activityTiles(workOrderActivity([], "30d"), "30d", "/projects/new-project/history"),
       workflows: [],
-      services: [],
-      components: [],
     },
   },
-};
-
-/** With every feature flag off: how the project's running and its workflows, with no services or components. */
-export const Redesign: Story = {
-  args: { ...Default.args, data: { ...projectData, services: undefined, components: undefined } },
 };

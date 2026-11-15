@@ -83,7 +83,7 @@ import DataclipFormModal from "../components/domain/DataclipFormModal";
 import TestCasesView from "../components/domain/TestCasesView";
 import TestCaseFormModal from "../components/domain/TestCaseFormModal";
 import { draftOf, testGenerationReply, testTally, untitledTestName, type TestCase, type TestCaseDraft, type TestGeneration, type TestResult } from "../model/test-cases";
-import { runInputName, savedDataclips, untitledDataclipName, type DataclipChanges, type DataclipDraft } from "../model/dataclips";
+import { savedDataclips, untitledDataclipName, type DataclipChanges, type DataclipDraft } from "../model/dataclips";
 import WorkflowHealth from "../components/domain/WorkflowHealth";
 import WorkflowStages, { type StageLink } from "../components/domain/WorkflowStages";
 import ChannelView from "../components/domain/ChannelView";
@@ -229,15 +229,16 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
  * When the run took place on an older version, a banner offers to view the
  * version that ran. With a run selected the run button becomes Retry.
  *
- * The selected run can be controlled by the caller (`runId` + `onRunChange`,
- * e.g. to keep it in the URL) or left to the template, like the sandbox.
+ * The selected run, the selected sandbox and whether the workflow is live are
+ * the caller's: the page shows what it's given and asks for a change through
+ * `onRunChange`, `onSelectSandbox` and `onToggleLive`.
  */
 export default function WorkflowEditorPage({
   workflow,
   workOrders: initialWorkOrders = [],
   dataclips: initialDataclips = [],
   graphForVersion,
-  runId: controlledRunId,
+  runId,
   onRunChange,
   initialView = "canvas",
   initialSelectedId,
@@ -263,10 +264,10 @@ export default function WorkflowEditorPage({
   onSaveCollectionItem,
   onDeleteCollectionItem,
   sandboxes = ["main"],
-  sandbox: controlledSandbox,
+  sandbox,
   onSelectSandbox,
   onViewAllSandboxes,
-  versions: initialVersions = [],
+  versions = [],
   url,
   service,
   onSeeDetails,
@@ -294,7 +295,7 @@ export default function WorkflowEditorPage({
   assistantPrompt,
   onSaveWorkflow,
   onRunFinished,
-  live: controlledLive,
+  live,
   onToggleLive,
   onPromote,
   onCreateSandbox,
@@ -325,9 +326,10 @@ export default function WorkflowEditorPage({
   dataclips?: Dataclip[];
   /** The workflow's graph at an earlier version, for "View as executed". */
   graphForVersion?: (version: string) => Workflow | undefined;
-  /** The selected run, when the caller controls it. */
+  /** The run that's loaded, if any. */
   runId?: string;
-  onRunChange?: (runId: string | undefined) => void;
+  /** Loads a run, or unloads it with undefined. */
+  onRunChange: (runId: string | undefined) => void;
   initialView?: EditorView;
   /** The node selected on the canvas. */
   initialSelectedId?: string;
@@ -382,8 +384,10 @@ export default function WorkflowEditorPage({
   onDeleteCollectionItem?: (componentId: string, key: string) => Promise<void>;
   /** Sandboxes of the workflow's project, "main" first. */
   sandboxes?: string[];
-  sandbox?: string;
-  onSelectSandbox?: (sandbox: string) => void;
+  /** The sandbox being shown, or "main". */
+  sandbox: string;
+  /** Shows another sandbox, or main. */
+  onSelectSandbox: (sandbox: string) => void;
   onViewAllSandboxes?: () => void;
   /** Version history on main, newest first. */
   versions?: WorkflowVersion[];
@@ -458,14 +462,14 @@ export default function WorkflowEditorPage({
    * already there (a retry). The caller keeps it, so History has it too.
    */
   onRunFinished?: (run: RunDetails, dataclips: Dataclip[], retryOf?: string) => void;
-  /** Whether the workflow's trigger is on, when the caller holds it. */
-  live?: boolean;
-  /** Turns the workflow's trigger on or off. */
-  onToggleLive?: (live: boolean) => Promise<void>;
+  /** Whether the workflow's trigger is on. */
+  live: boolean;
+  /** Turns the workflow's trigger on or off. A refusal shows in the status bar. */
+  onToggleLive: (live: boolean) => Promise<void>;
   /**
    * Promotes the sandbox's changes to main as a new version, with what was
-   * said about them. Once it resolves, `versions` has the new one. Without
-   * it, promoting adds a version for the session.
+   * said about them. Once it resolves, `versions` has the new one. Left out
+   * where there's nothing to promote from (main).
    */
   onPromote?: (message: string) => Promise<void>;
   /**
@@ -476,7 +480,7 @@ export default function WorkflowEditorPage({
    * selected, its `dataclips` hold the input. A refusal shows under the
    * form's field.
    */
-  onCreateSandbox?: (draft: SandboxDraft) => Promise<void>;
+  onCreateSandbox: (draft: SandboxDraft) => Promise<void>;
   /** Where promoting the selected sandbox takes its changes: its parent. Main when left out. */
   promoteTarget?: string;
   /** Saves a new dataclip in the project, to run with; resolves with it. Without it, it lasts as long as the page. */
@@ -534,30 +538,18 @@ export default function WorkflowEditorPage({
   const settingsFile: ExplorerFile = showWorkflowFiles ? "workflow" : "trigger";
   const [file, setFile] = useState<ExplorerFile>(initialFile ?? (initialSelectedId ? { stepId: initialSelectedId } : fallbackFile));
 
-  const [localSandbox, setLocalSandbox] = useState("main");
-  const sandbox = controlledSandbox ?? localSandbox;
-  const selectSandbox = onSelectSandbox ?? setLocalSandbox;
   const onMain = sandbox === "main";
-  // Sandboxes made from the editor join the project's list for this session.
-  const [newSandboxes, setNewSandboxes] = useState<string[]>([]);
-  const allSandboxes = [...sandboxes, ...newSandboxes.filter((s) => !sandboxes.includes(s))];
 
-  // The versions come from the caller, always (on main they arrive once the history loads, and a
-  // promotion's lands there once it's merged); without `onPromote`, a promotion adds one for the session on top.
-  const [sessionVersions, setSessionVersions] = useState<WorkflowVersion[]>([]);
-  const versions = [...sessionVersions, ...initialVersions];
+  // The versions are the caller's: on main they arrive once the history loads, and a promotion's lands there once it's merged.
   const nextVersion = `v${Math.max(0, ...versions.map((v) => Number(v.id.replace(/^v/, "")) || 0)) + 1}`;
   const [version, setVersion] = useState(initialVersion);
   const latestVersion = versions[0]?.id;
 
   // ---- Edits ----------------------------------------------------------------
 
-  const [localLive, setLocalLive] = useState(true);
-  const live = controlledLive ?? localLive;
   const setLive = (next: boolean | ((l: boolean) => boolean)) => {
     const value = typeof next === "function" ? next(live) : next;
-    if (onToggleLive) void onToggleLive(value).catch((e: unknown) => setStatusNote(errorMessageOf(e)));
-    else setLocalLive(value);
+    void onToggleLive(value).catch((e: unknown) => setStatusNote(errorMessageOf(e)));
   };
   const [name, setName] = useState(workflow.name);
   const [settings, setSettings] = useState<WorkflowSettings>(() => defaultWorkflowSettings(workflow));
@@ -621,9 +613,7 @@ export default function WorkflowEditorPage({
     setGivenClips(initialDataclips);
     setClips(initialDataclips);
   }
-  const [localRunId, setLocalRunId] = useState(controlledRunId);
-  const runId = onRunChange ? controlledRunId : localRunId;
-  const setRunId = onRunChange ?? setLocalRunId;
+  const setRunId = onRunChange;
 
   const selectedRun = orders.flatMap((o) => o.runs).find((r) => r.runId === runId);
   const runVersionKnown = selectedRun !== undefined && versions.some((v) => v.id === selectedRun.version);
@@ -893,27 +883,21 @@ export default function WorkflowEditorPage({
 
   // Rejects with the server's reason, which the promotion request shows under its message.
   const promote = async (message: string) => {
-    if (onPromote) await onPromote(message);
-    else setSessionVersions((added) => [{ id: nextVersion, message, author: CURRENT_USER, date: "20 Oct 2026" }, ...added]);
+    if (!onPromote) return;
+    await onPromote(message);
     setPromoteOpen(false);
     setVersion("latest");
-    selectSandbox("main");
+    onSelectSandbox("main");
   };
 
   const createSandbox = async (draft: SandboxDraft) => {
     // Named by its slug, as the Sandboxes page names them.
     const sandboxName = sandboxSlug(draft.name);
-    if (onCreateSandbox) {
-      // A refusal rejects, and the form shows it under its field.
-      await onCreateSandbox({ ...draft, parent: draft.parent ?? sandbox });
-    } else {
-      // A reviewed copy of a run's input comes along as a named input.
-      if (draft.runInput) addInput(draft.runInput.body, runInputName(draft.runInput.runId));
-      setNewSandboxes((current) => [...current, sandboxName]);
-    }
+    // A refusal rejects, and the form shows it under its field.
+    await onCreateSandbox({ ...draft, parent: draft.parent ?? sandbox });
     // What it brings across shows in the sandbox's Saved dataclips.
     if (draft.runInput) addFile("dataclips");
-    selectSandbox(sandboxName);
+    onSelectSandbox(sandboxName);
   };
 
   // ---- Editing --------------------------------------------------------------
@@ -1628,9 +1612,9 @@ export default function WorkflowEditorPage({
       projectName={projectName}
       url={url}
       hasDetails={onSeeDetails !== undefined}
-      sandboxes={allSandboxes}
+      sandboxes={sandboxes}
       sandbox={sandbox}
-      onSelectSandbox={selectSandbox}
+      onSelectSandbox={onSelectSandbox}
       onNewSandbox={() => setSandboxForm("new")}
       onViewAllSandboxes={onViewAllSandboxes}
       versions={versions}
@@ -1675,7 +1659,7 @@ export default function WorkflowEditorPage({
             open={sandboxForm !== undefined}
             title={sandboxForm === "editInSandbox" ? "Edit in sandbox" : undefined}
             onClose={() => setSandboxForm(undefined)}
-            sandboxes={allSandboxes}
+            sandboxes={sandboxes}
             defaultParent={sandbox}
             // Only "Edit in sandbox" offers to start with the loaded run's input.
             run={

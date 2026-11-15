@@ -1,3 +1,4 @@
+import { useState, type ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowEditorPage, { WorkflowEditorLoading } from "./WorkflowEditorPage";
 import { nationalIdTestCaseRecords } from "../fixtures/test-cases";
@@ -17,6 +18,9 @@ import { orgXRoad } from "../fixtures/xroad";
 import { fixtureComponentContents } from "../fixtures/project-components";
 import type { ProjectComponent, ProjectService } from "../model/projects";
 import type { WorkflowFileContents } from "../model/workflow";
+import { sandboxSlug } from "../model/sandboxes";
+import { runInputName } from "../model/dataclips";
+import { shortId } from "../model/runs";
 
 /** The fake assistant "thinks" this long before answering. */
 const REPLY_DELAY_MS = 900;
@@ -30,6 +34,45 @@ const contentsFor = (components: ProjectComponent[], service?: ProjectService): 
   channels: Object.fromEntries(components.filter((c) => c.type === "Channel").map((c) => [c.id, channelDetails(c)])),
 });
 
+/**
+ * Stands in for the page's wrapper: it holds what a server would (the loaded
+ * run, the selected sandbox, the trigger's switch, the sandboxes and the
+ * versions), starting from the story's args, so a story can switch sandbox,
+ * load a run, pause the workflow, make a sandbox and promote one.
+ */
+function EditorWithState(args: ComponentProps<typeof WorkflowEditorPage>) {
+  const [runId, setRunId] = useState(args.runId);
+  const [sandbox, setSandbox] = useState(args.sandbox);
+  const [live, setLive] = useState(args.live);
+  const [sandboxes, setSandboxes] = useState(args.sandboxes ?? ["main"]);
+  const [versions, setVersions] = useState(args.versions ?? []);
+  const [clips, setClips] = useState(args.dataclips ?? []);
+  return (
+    <WorkflowEditorPage
+      {...args}
+      runId={runId}
+      onRunChange={setRunId}
+      sandbox={sandbox}
+      onSelectSandbox={setSandbox}
+      live={live}
+      onToggleLive={async (on) => setLive(on)}
+      sandboxes={sandboxes}
+      dataclips={clips}
+      onCreateSandbox={async (draft) => {
+        setSandboxes((current) => [...current, sandboxSlug(draft.name)]);
+        // A reviewed copy of a run's input comes along as a saved dataclip.
+        const input = draft.runInput;
+        if (input) setClips((current) => [{ id: shortId(), type: "saved_input", body: input.body, name: runInputName(input.runId), created: "just now" }, ...current]);
+      }}
+      versions={versions}
+      onPromote={async (message) => {
+        const next = `v${Math.max(0, ...versions.map((v) => Number(v.id.replace(/^v/, "")) || 0)) + 1}`;
+        setVersions((current) => [{ id: next, message, author: "Jane Doe", date: "20 Oct 2026" }, ...current]);
+      }}
+    />
+  );
+}
+
 const projectA = projects[0];
 const projectAComponents = projectA.components.filter((c) => c.type !== "Workflow");
 
@@ -37,8 +80,16 @@ const meta: Meta<typeof WorkflowEditorPage> = {
   title: "Pages/WorkflowEditorPage",
   component: WorkflowEditorPage,
   parameters: { layout: "fullscreen" },
+  render: (args) => <EditorWithState {...args} />,
   args: {
     workflow: nationalIdWorkflow,
+    // What a server would hold starts here; `EditorWithState` keeps it from then on.
+    sandbox: "main",
+    live: true,
+    onRunChange: () => {},
+    onSelectSandbox: () => {},
+    onToggleLive: async () => {},
+    onCreateSandbox: async () => {},
     workOrders,
     dataclips,
     graphForVersion: nationalIdWorkflowAt,

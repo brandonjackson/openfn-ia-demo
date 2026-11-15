@@ -6,6 +6,7 @@ import type { Project } from "../../model/projects";
 import { permissionsFor } from "../../model/project-settings";
 import { projects } from "../../fixtures/projects";
 import { orgCredentials } from "../../fixtures/connected-systems";
+import { credentialSchemas } from "../../fixtures/credential-schemas";
 import {
   collectionItems,
   projectCollaborators,
@@ -41,6 +42,7 @@ function settingsData(project: Project, record: ProjectSettingsRecord, you?: str
     credentials: orgCredentials
       .filter((c) => c.hasAccess)
       .map((c) => ({ id: c.id, name: c.name, type: c.system, environments: [c.environment], owner: c.owner })),
+    credentialSchemas: credentialSchemas.map(({ id, name, adaptor }) => ({ id, name, adaptor })),
     collections: record.collections,
     webhookAuthMethods: record.webhookAuthMethods,
     webhookTriggers: webhookTriggers(project),
@@ -85,6 +87,8 @@ const actions: Omit<ProjectSettingsPageProps, "node" | "ancestors" | "currentPat
   onSaveDataStorage: done,
   onCreateHistoryExport: done,
   onDownloadHistoryExport: async () => {},
+  onLoadCredentialSchema: async (id) => credentialSchemas.find((s) => s.id === id)!,
+  onCreateCredential: done,
 };
 
 const meta: Meta<typeof ProjectSettingsPage> = {
@@ -118,6 +122,9 @@ export const CredentialsInManyEnvironments: Story = {
     },
   },
 };
+
+/** Without a way to make one (the kinds of credential haven't loaded): no Add credential, but the note still says where to make one. */
+export const CredentialsWithoutAdd: Story = { args: { initialSection: "credentials", onCreateCredential: undefined } };
 
 export const NoCredentials: Story = { args: { initialSection: "credentials", data: { ...ownerData, credentials: [] } } };
 

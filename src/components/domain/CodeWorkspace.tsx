@@ -28,6 +28,8 @@ import type { CodeEditorHandle } from "../primitives/CodeEditor";
 import EditorStatusBar from "./EditorStatusBar";
 import StepConfigPanel from "./StepConfigPanel";
 import type { StepChanges } from "./StepConfigPanel";
+import type { TriggerEdit } from "../../model/workflow-edits";
+import type { ServiceListingDraft } from "./ServiceListingFormModal";
 import TriggerConfigPanel from "./TriggerConfigPanel";
 import type { RunDataSection } from "./panel-views";
 import WorkflowSettingsPanel from "./WorkflowSettingsPanel";
@@ -82,6 +84,12 @@ interface Props {
   /** Opens the credential form for a step's system. Left out, there's no New credential. */
   onNewCredential?: (stepId: string) => void;
   onStepChange?: (stepId: string, changes: StepChanges) => void;
+  /** The trigger's kind or schedule changed. Without it (main), the trigger's settings only read. */
+  onTriggerChange?: (triggerId: string, changes: TriggerEdit) => void;
+  /** Saves the published service's listing, from the trigger's settings. Left out for anyone who can't change it. */
+  onEditServiceListing?: (listing: ServiceListingDraft) => Promise<void>;
+  /** Publishes the workflow as a service, from the trigger's settings. Left out for anyone who can't publish. */
+  onPublishService?: (listing: ServiceListingDraft) => Promise<void>;
   /** A step's code was edited in the editor (or a snippet inserted). Without it, the code is read-only. */
   onCodeChange?: (stepId: string, code: string) => void;
   onDeleteStep?: (stepId: string) => void;
@@ -191,6 +199,9 @@ export default function CodeWorkspace({
   focusCredential,
   onNewCredential,
   onStepChange,
+  onTriggerChange,
+  onEditServiceListing,
+  onPublishService,
   onCodeChange,
   onDeleteStep,
   deleteStepBlockedReason,
@@ -478,7 +489,20 @@ export default function CodeWorkspace({
         showHeader={false}
       />
     ) : file === "trigger" && trigger ? (
-      <TriggerConfigPanel trigger={trigger} url={url} readOnly={readOnly} live={live} onToggleLive={onToggleLive} showHeader={false} service={service} showServiceAnnotations={publishesServices} />
+      <TriggerConfigPanel
+        trigger={trigger}
+        url={url}
+        readOnly={readOnly}
+        live={live}
+        onToggleLive={onToggleLive}
+        onChange={onTriggerChange ? (changes) => onTriggerChange(trigger.id, changes) : undefined}
+        showHeader={false}
+        service={service}
+        showServiceAnnotations={publishesServices}
+        onEditListing={onEditServiceListing}
+        onPublish={onPublishService}
+        workflowName={workflow.name}
+      />
     ) : (
       <WorkflowSettingsPanel workflow={workflow} settings={settings} readOnly={readOnly} onChange={onSettingsChange} showHeader={false} />
     );

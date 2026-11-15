@@ -50,6 +50,19 @@ describe("ProjectSettingsPageQuery", () => {
     for (const c of credentials) expect(await screen.findByText(c.name, {}, wait)).toBeTruthy();
   });
 
+  it("adds a credential, linked to the project, from Add credential", async () => {
+    renderRoute("#credentials");
+    fireEvent.click(await screen.findByRole("button", { name: "Add credential" }, wait));
+    fireEvent.click(within(screen.getByRole("dialog")).getByText("Raw JSON"));
+    fireEvent.click(screen.getByRole("button", { name: "Configure credential" }));
+    fireEvent.change(await screen.findByLabelText(/^Name/, {}, wait), { target: { value: "Intake raw" } });
+    fireEvent.change(screen.getByRole("textbox", { name: /JSON|Credential|Body/i }), { target: { value: '{"token":"x"}' } });
+    fireEvent.click(screen.getByRole("button", { name: "Save credential" }));
+    expect(await screen.findByText(/Added "Intake raw" to the project/, {}, wait)).toBeTruthy();
+    const { credentials } = await request<Credentials>("GET", `/api/projects/${projectId}/credentials`);
+    expect(credentials.map((c) => c.name)).toContain("Intake raw");
+  });
+
   it("still lists the credentials when their types can't be named", async () => {
     const { credentials } = await request<Credentials>("GET", `/api/projects/${projectId}/credentials`);
     failNext("GET /api/credential_schemas", { status: 503, code: "not_ready", detail: "Not ready." });

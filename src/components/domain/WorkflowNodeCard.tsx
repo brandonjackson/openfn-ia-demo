@@ -98,6 +98,8 @@ export default function WorkflowNodeCard({
   onConnect?: (node: WorkflowNode) => void;
 }) {
   const job = node.type === "job" ? node : undefined;
+  // A cron trigger says when it runs ("Every Monday at 06:00") under its name, unless the card has a note of its own.
+  const line = note ?? (node.type === "trigger" && node.triggerType === "cron" ? node.subtitle : undefined);
 
   const ringClasses = selected
     ? "ring-2 ring-indigo-500 ring-offset-2 ring-offset-gray-50"
@@ -193,12 +195,12 @@ export default function WorkflowNodeCard({
         </div>
 
         <p
-          className={`mt-1.5 text-sm leading-[18px] font-semibold text-gray-900 ${note ? "truncate" : "line-clamp-2"}`}
+          className={`mt-1.5 text-sm leading-[18px] font-semibold text-gray-900 ${line ? "truncate" : "line-clamp-2"}`}
           title={node.label}
         >
           {node.label}
         </p>
-        {note && <span className="mt-1 block truncate text-[11px] text-gray-400">{note}</span>}
+        {line && <span className="mt-1 block truncate text-[11px] text-gray-400">{line}</span>}
       </div>
 
       {onAddAfter && (

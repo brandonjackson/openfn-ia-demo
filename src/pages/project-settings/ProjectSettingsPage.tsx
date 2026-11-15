@@ -13,6 +13,7 @@ import {
   Lock,
   Layers,
   FileCode2,
+  Plus,
 } from "lucide-react";
 import type { PageProps } from "../../model/ia-tree";
 import type { ProjectSettingsPermissions } from "../../model/project-settings";
@@ -59,6 +60,8 @@ import Modal from "../../components/primitives/Modal";
 import Stack from "../../components/primitives/Stack";
 import Text from "../../components/primitives/Text";
 import TextLink from "../../components/primitives/TextLink";
+import CredentialFormModal from "../../components/domain/CredentialFormModal";
+import type { CredentialDraft, CredentialSchema, CredentialSchemaSummary } from "../../model/credentials";
 import ToggleSwitch from "../../components/primitives/ToggleSwitch";
 import DataTable from "../../components/primitives/DataTable";
 import type { DataTableColumn } from "../../components/primitives/DataTable";
@@ -117,6 +120,10 @@ export interface ProjectSettingsPageProps extends PageProps<ProjectSettingsPageD
   onCreateHistoryExport: () => Promise<void>;
   /** Downloads a completed history export. */
   onDownloadHistoryExport: (id: string) => Promise<void>;
+  /** Fetches one kind of credential in full, with the fields Add credential asks for; rejects with a message if the server says no. */
+  onLoadCredentialSchema?: (id: string) => Promise<CredentialSchema>;
+  /** Makes a credential, yours, linked to this project; rejects with why not. Left out, there's no Add credential. */
+  onCreateCredential?: (draft: CredentialDraft) => Promise<void>;
 }
 
 type SectionProps = Pick<ProjectSettingsPageProps, "data">;
@@ -418,24 +425,46 @@ const credentialColumns: DataTableColumn<ProjectSettingsCredential>[] = [
   { key: "owner", header: "Owner", render: (c) => c.owner },
 ];
 
-function CredentialsSection({ data }: SectionProps) {
+/**
+ * The credentials linked to the project. Add credential makes one here: it's
+ * yours, linked to this project, as a step's New credential in the editor
+ * makes one. The ones you own, linked anywhere, are in User settings.
+ */
+function CredentialsSection({ data, onLoadCredentialSchema, onCreateCredential }: Pick<ProjectSettingsPageProps, "data" | "onLoadCredentialSchema" | "onCreateCredential">) {
+  const [adding, setAdding] = useState(false);
+  const canAdd = !!onCreateCredential && !!onLoadCredentialSchema && !!data.credentialSchemas;
   return (
     <Stack gap="lg">
       <SectionHeading
         title="Credentials"
-        description="Manage credentials available to this project. Each credential belongs to one environment: production, staging or mock."
+        description="Credentials linked to this project, for its steps to run with. Each has values for one or more environments: production, staging or mock."
         action={
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled
-            title="User credentials are being phased out, please add credentials at the org level."
-          >
-            Add private credential
-          </Button>
+          canAdd && (
+            <Button variant="secondary" size="sm" icon={Plus} onClick={() => setAdding(true)}>
+              Add credential
+            </Button>
+          )
         }
       />
+      <Text size="sm" tone="muted">
+        A credential you add is yours, linked to this project. You can also make one from a step's Config in the workflow editor, and manage the ones you own, and which projects they're linked to, in{" "}
+        <TextLink to="/user-settings/credentials">User settings → Credentials</TextLink>.
+      </Text>
       <DataTable columns={credentialColumns} rows={data.credentials} getRowKey={(c) => c.id} emptyMessage="No credentials in this project yet." />
+      {adding && canAdd && (
+        <CredentialFormModal
+          open
+          schemas={data.credentialSchemas!}
+          onLoadSchema={onLoadCredentialSchema!}
+          projects={[{ id: data.projectId, name: data.projectName }]}
+          initialProjectIds={[data.projectId]}
+          onClose={() => setAdding(false)}
+          onSave={async (draft) => {
+            await onCreateCredential!(draft);
+            setAdding(false);
+          }}
+        />
+      )}
     </Stack>
   );
 }
@@ -1068,7 +1097,7 @@ export default function ProjectSettingsPage(props: ProjectSettingsPageProps) {
       onSelect={setActiveTab}
     >
       {activeTab === "setup" && <SetupSection {...props} />}
-      {activeTab === "credentials" && <CredentialsSection data={data} />}
+      {activeTab === "credentials" && <CredentialsSection data={data} onLoadCredentialSchema={props.onLoadCredentialSchema} onCreateCredential={props.onCreateCredential} />}
       {activeTab === "collections" && <CollectionsSection {...props} />}
       {activeTab === "webhook-security" && <WebhookSecuritySection {...props} />}
       {activeTab === "collaboration" && <CollaborationSection {...props} />}
@@ -1109,6 +1138,8 @@ export interface ProjectSettingsPageData {
   concurrencyDisabled: boolean;
   /** The credentials linked to the project. */
   credentials: ProjectSettingsCredential[];
+  /** Every kind of credential, for Add credential's type picker. Left out, there's no Add credential. */
+  credentialSchemas?: CredentialSchemaSummary[];
   collections: ProjectCollection[];
   webhookAuthMethods: WebhookAuthMethod[];
   /** The project's webhook triggers, which auth methods can be assigned to. */

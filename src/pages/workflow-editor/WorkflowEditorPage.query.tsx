@@ -34,7 +34,7 @@ import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } 
 import { codeSummary } from "../../fixtures/code-summaries";
 import { isCallableFromStep, serviceUrl, serviceYaml } from "../../model/services";
 import { useOrganizationXRoad } from "../../api/organization";
-import { useAllServices } from "../../api/services";
+import { useAllServices, useServiceSaves } from "../../api/services";
 import type { AdaptorReference } from "../../model/adaptor-reference";
 import type { AdaptorCatalog } from "../../model/adaptor-catalog";
 import { useFlags } from "../../app/feature-flags";
@@ -242,6 +242,9 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
     : undefined;
   // service.yaml lists it as X-Road registers it, once the organisation is on X-Road.
   const { xroad } = useOrganizationXRoad(flags.xroad && !!backed);
+  // Owners and admins publish the workflow and change its listing; everyone else reads it.
+  const canManageServices = flags.serviceCatalog && !!root.permissions?.edit_project;
+  const serviceSaves = useServiceSaves();
   const service = backed && { service: backed, path: `/projects/${root.id}/services/${backed.id}`, url: serviceUrl(backed) };
   // The shown copy's own run history: main's on main; a sandbox's copy starts with none, as in Lightning.
   const { workOrders: projectOrders } = useWorkOrders([shown.project_id]);
@@ -411,6 +414,16 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       url={service?.url}
       service={service?.service}
       onSeeDetails={service ? () => navigate(service.path) : undefined}
+      // The listing is the project's: owners and admins change it from the trigger, on main as in a sandbox. A form says its problems under its fields, so only success is announced.
+      onEditServiceListing={canManageServices && backed ? (listing) => announcing(serviceSaves.editListing(backed, listing), { success: "Saved the listing." }) : undefined}
+      onPublishService={
+        canManageServices && !backed
+          ? (listing) =>
+              announcing(serviceSaves.publish(root.id, main.id, listing).then(() => undefined), {
+                success: { message: `Published "${listing.name}".`, detail: "It's listed in the service catalog." },
+              })
+          : undefined
+      }
       assistantConversations={slug && !workflowGraphs[slug] ? assistantConversations : []}
       adaptors={adaptors}
       catalog={catalog}

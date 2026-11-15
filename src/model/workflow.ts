@@ -44,6 +44,8 @@ export interface TriggerNode {
   type: "trigger";
   /** Webhook / cron / kafka — only webhook is modelled visually for now. */
   triggerType: TriggerType;
+  /** A cron trigger's schedule, five fields in UTC ("0 6 * * *"); see `src/model/cron.ts`. */
+  cronExpression?: string;
   label: string;
   subtitle: string;
   /**
@@ -283,6 +285,7 @@ export function workflowToYaml(workflow: Workflow, { enabled = true }: { enabled
   if (trigger) {
     lines.push(`  ${trigger.triggerType}:`);
     lines.push(`    type: ${trigger.triggerType}`);
+    if (trigger.triggerType === "cron") lines.push(`    cron_expression: '${trigger.cronExpression ?? "0 0 * * *"}'`);
     lines.push(`    enabled: ${enabled}`);
   }
   lines.push("edges:");

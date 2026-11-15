@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import type { AdaptorInfo } from "./adaptor-reference";
 import { ROW_GAP } from "./step-placement";
 import type { AdaptorKind, JobNode, TriggerNode, Workflow, WorkflowEdge } from "./workflow";
-import { applyEdits, noEdits, withCode, withEdge, withStep, withStepAfter, withStepAtEnd, withoutStep, type NewStep } from "./workflow-edits";
+import { applyEdits, noEdits, withCode, withEdge, withStep, withStepAfter, withStepAtEnd, withTrigger, withoutStep, type NewStep } from "./workflow-edits";
+import { toDocument, fromDocument } from "./workflow-document";
 
 const trigger: TriggerNode = { id: "t", type: "trigger", label: "Webhook", triggerType: "webhook", x: 100, y: 0 } as TriggerNode;
 const step = (id: string, x: number, y: number): JobNode => ({ id, type: "job", label: id, adaptor: "http", adaptorPackage: "@openfn/language-http", body: "fn(state => state);", x, y });
@@ -19,6 +20,39 @@ const ids = () => {
 // trigger → a → b
 const base = flow([trigger, step("a", 100, 170), step("b", 100, 340)], [edge("t", "a", "always"), edge("a", "b")]);
 const job = (w: Workflow, id: string) => w.nodes.find((n): n is JobNode => n.type === "job" && n.id === id)!;
+
+describe("withTrigger", () => {
+  const webhook: TriggerNode = { id: "t", type: "trigger", label: "Webhook trigger", subtitle: "On each request received", triggerType: "webhook", x: 100, y: 0 };
+  const w = flow([webhook, step("a", 100, 170)], [edge("t", "a", "always")]);
+  const shownTrigger = (g: Workflow) => g.nodes.find((n): n is TriggerNode => n.type === "trigger")!;
+
+  it("turns a webhook into a cron, every day at midnight, and its card says so", () => {
+    const t = shownTrigger(applyEdits(w, withTrigger(noEdits, "t", { triggerType: "cron" }), w.name, info));
+    expect(t).toMatchObject({ triggerType: "cron", cronExpression: "0 0 * * *", label: "Cron trigger", subtitle: "Every day at 00:00" });
+    expect(t.summary).toBe("**Starts a run** every day at 00:00.");
+  });
+
+  it("changes a cron's schedule on top of its kind, and keeps a name it was given", () => {
+    const named = flow([{ ...webhook, label: "Nightly sync" }, step("a", 100, 170)], [edge("t", "a", "always")]);
+    const e = withTrigger(withTrigger(noEdits, "t", { triggerType: "cron" }), "t", { cronExpression: "30 6 * * 1" });
+    expect(shownTrigger(applyEdits(named, e, w.name, info))).toMatchObject({ label: "Nightly sync", cronExpression: "30 6 * * 1", subtitle: "Every Monday at 06:30" });
+  });
+
+  it("is saved as the trigger's type and schedule, and read back the same", () => {
+    const edited = applyEdits(w, withTrigger(noEdits, "t", { triggerType: "cron", cronExpression: "0 6 * * *" }), w.name, info);
+    const doc = toDocument(edited, { triggers: [{ id: "t", type: "webhook", enabled: true, cron_expression: null, custom_path: null, comment: null, webhook_reply: "before_start", webhook_auth_method_ids: ["m"] }] });
+    expect(doc.triggers[0]).toMatchObject({ type: "cron", cron_expression: "0 6 * * *", webhook_reply: null, webhook_auth_method_ids: [] });
+    const back = fromDocument({ ...doc, id: "w" }, "p");
+    expect(shownTrigger(back)).toMatchObject({ triggerType: "cron", cronExpression: "0 6 * * *" });
+  });
+
+  it("turns a cron back into a webhook, dropping its schedule", () => {
+    const e = withTrigger(withTrigger(noEdits, "t", { triggerType: "cron" }), "t", { triggerType: "webhook" });
+    const t = shownTrigger(applyEdits(w, e, w.name, info));
+    expect(t).toMatchObject({ triggerType: "webhook", label: "Webhook trigger", subtitle: "On each request received" });
+    expect(t.cronExpression).toBeUndefined();
+  });
+});
 
 describe("applyEdits", () => {
   it("gives the workflow back, renamed, when nothing was edited", () => {

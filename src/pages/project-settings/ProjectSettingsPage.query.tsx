@@ -9,7 +9,7 @@ import { fetchHistoryExportFile, useHistoryExports, useHistoryExportSaves } from
 import { useProjectWorkflows } from "../../api/workflows";
 import { useGitHubInstallations, useRepoConnection, useRepoConnectionSaves } from "../../api/github";
 import { useAccountSaves, useMe } from "../../api/account";
-import { useCredentialSchemas, useProjectCredentials } from "../../api/credentials";
+import { useCreateStepCredential, useCredentialSchemaLoader, useCredentialSchemas, useProjectCredentials } from "../../api/credentials";
 import type { ProjectCredential } from "../../model/adaptor-reference";
 import type { CredentialSchemaSummary } from "../../model/credentials";
 import { fetchProjectYaml } from "../../api/provisioning";
@@ -101,6 +101,9 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
   const { credentials } = useProjectCredentials(details.id);
   // The schemas only name each credential's type; until they load, or if they can't, its short name shows.
   const { schemas } = useCredentialSchemas();
+  const loadCredentialSchema = useCredentialSchemaLoader();
+  // A credential added here is yours, linked to this project, as a step's New credential makes one.
+  const createCredential = useCreateStepCredential(details.id);
   const { me } = useMe();
   const account = useAccountSaves(me?.id ?? "");
   const announcing = useAnnounceOutcome();
@@ -118,6 +121,8 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
     permissions: settingsPermissions(details),
     concurrencyDisabled: details.concurrency === 1,
     credentials: credentials.map((c) => asSettingsCredential(c, schemas)),
+    // Add credential offers every kind once they've loaded; until then it isn't offered.
+    credentialSchemas: schemas.length > 0 ? schemas : undefined,
     collaborators: members.map((m) => asCollaborator(m, yourRole, yourId)),
     mfaRequired: details.requiresMfa,
     collections,
@@ -137,6 +142,9 @@ function ProjectSettings({ route, details, members }: { route: PageRoute; detail
       {...pageFrame(route, {}, details.name)}
       data={data}
       initialSection={hash.slice(1) || undefined}
+      onLoadCredentialSchema={loadCredentialSchema}
+      // A form says its problems under its fields, so only success is announced.
+      onCreateCredential={(draft) => announcing(createCredential(draft).then(() => undefined), { success: `Added "${draft.name}" to the project.` })}
       onSaveProjectIdentity={({ name, description }) => saves.update(details.id, { name, description })}
       onSaveConcurrency={(disabled) => saves.update(details.id, { name: details.name, description: details.description, concurrency: disabled ? 1 : null })}
       onExportProject={() => announcing(fetchProjectYaml(details.id), { failure: "The project didn't export" })}

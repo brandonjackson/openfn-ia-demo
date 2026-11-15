@@ -17,7 +17,8 @@ import type {
 import { defaultWorkflowSettings, stepDeleteBlockedReason, workflowToYaml } from "../../model/workflow";
 import type { WorkflowSettings } from "../../model/workflow";
 import { counterpartNodeId, workflowChanges, type WorkflowChange } from "../../model/workflow-changes";
-import { withCode, withEdge, withStep, withStepAfter, withStepAtEnd, withTool, withoutStep, type NewStep } from "../../model/workflow-edits";
+import { withCode, withEdge, withStep, withStepAfter, withStepAtEnd, withTool, withTrigger, withoutStep, type NewStep, type TriggerEdit } from "../../model/workflow-edits";
+import type { ServiceListingDraft } from "../../components/domain/ServiceListingFormModal";
 import { useWorkflowEdits } from "./use-workflow-edits";
 import { useEditorPanels } from "./use-editor-panels";
 import { newDocName } from "../../model/workflow-docs";
@@ -217,6 +218,8 @@ export default function WorkflowEditorPage({
   showWorkflowFiles = true,
   showComponents = true,
   publishesServices = true,
+  onEditServiceListing,
+  onPublishService,
   contents,
   codeSummary,
   onRun,
@@ -361,6 +364,10 @@ export default function WorkflowEditorPage({
   showComponents?: boolean;
   /** Whether a workflow can be published as a service, from its webhook trigger. Defaults to true. */
   publishesServices?: boolean;
+  /** Saves the listing of the service the workflow backs (its name and description), from the trigger's settings; rejects with why not. Left out for anyone who can't change it. */
+  onEditServiceListing?: (listing: ServiceListingDraft) => Promise<void>;
+  /** Publishes the workflow as a service under a listing, from the trigger's settings; rejects with why not. Left out for anyone who can't publish. */
+  onPublishService?: (listing: ServiceListingDraft) => Promise<void>;
   /** What the workflow's docs, service listing and project components hold, for opening them in code mode. */
   contents?: WorkflowFileContents;
   /** What the assistant says a step's code does, one point per thing it does, for the inspector. */
@@ -717,6 +724,7 @@ export default function WorkflowEditorPage({
 
   const changeStep = (stepId: string, changes: StepChanges) => change((e) => withStep(e, stepId, changes));
   const changeEdge = (edgeId: string, changes: EdgeChanges) => change((e) => withEdge(e, edgeId, changes));
+  const changeTrigger = (triggerId: string, changes: TriggerEdit) => change((e) => withTrigger(e, triggerId, changes));
   const changeCode = (stepId: string, body: string) => change((e) => withCode(e, stepId, body));
   const changeTool = (stepId: string, tool: StepTool) => change((e) => withTool(e, stepId, tool));
 
@@ -1630,6 +1638,9 @@ export default function WorkflowEditorPage({
           focusCredential={focusCredential}
           onNewCredential={onMain || !credentialSchemas || !onCreateCredential ? undefined : setNewCredentialFor}
           onStepChange={onMain ? undefined : changeStep}
+          onTriggerChange={onMain ? undefined : changeTrigger}
+          onEditServiceListing={publishesServices ? onEditServiceListing : undefined}
+          onPublishService={publishesServices ? onPublishService : undefined}
           onCodeChange={onMain ? undefined : changeCode}
           onDeleteStep={onMain ? undefined : deleteStep}
           deleteStepBlockedReason={onMain ? undefined : deleteBlocked}

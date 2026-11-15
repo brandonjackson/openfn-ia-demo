@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../../api/ApiProvider";
@@ -249,6 +249,76 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     } finally {
       act(() => setSandbox(projectId, "main"));
     }
+  });
+
+  it("turns the trigger into a cron from its Change in a sandbox, and saves the schedule set beside it", async () => {
+    const projectId = projectIdFor("project-a");
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "nightly" });
+    type Trigger = { type: string; cron_expression: string | null };
+    const triggerIn = (id: string) =>
+      request<{ workflows: { name: string; triggers: Trigger[] }[] }>("GET", `/api/projects/${id}/workflows`).then(
+        (a) => a.workflows.find((w) => w.name === "planning-application-workflow")!.triggers[0]!,
+      );
+    act(() => setSandbox(projectId, "nightly"));
+    try {
+      renderEditor(apiWorkflowId("planning-application-workflow"));
+      await screen.findByRole("button", { name: "Sandbox nightly, no changes" }, wait);
+      fireEvent.click(await screen.findByRole("button", { name: "Explorer" }, wait));
+      fireEvent.click((await screen.findAllByRole("button", { name: /Webhook trigger/ }, wait))[0]!);
+      fireEvent.click(await screen.findByRole("button", { name: "Change trigger type: Webhook" }, wait));
+      fireEvent.click(within(await screen.findByRole("dialog", { name: "Change trigger type" }, wait)).getByRole("button", { name: /Cron trigger/ }));
+      await waitFor(async () => expect(await triggerIn(sandboxId)).toMatchObject({ type: "cron", cron_expression: "0 0 * * *" }), wait);
+
+      // A half-typed schedule is said under the field and never saved; one that reads is.
+      const expression = await screen.findByLabelText("Cron expression", {}, wait);
+      fireEvent.change(expression, { target: { value: "30 6 *" } });
+      fireEvent.blur(expression);
+      expect(await screen.findByText(/Enter five fields/, {}, wait)).toBeTruthy();
+      fireEvent.change(expression, { target: { value: "30 6 * * 1" } });
+      expect(await screen.findByText("Every Monday at 06:30 (UTC).", {}, wait)).toBeTruthy();
+      await waitFor(async () => expect((await triggerIn(sandboxId)).cron_expression).toBe("30 6 * * 1"), wait);
+      // Main is untouched until the sandbox is promoted.
+      expect((await triggerIn(projectId)).type).toBe("webhook");
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
+  });
+
+  it("saves the service's listing from the trigger's Edit listing, on main, for owners and admins only", async () => {
+    // A service in a project you can change, and one in a project where you're only an editor.
+    const { data } = await request<Many>("GET", "/api/demo/services?page_size=100");
+    const canEdit = async (projectId: string) =>
+      !!(await request<{ data: { attributes: { permissions: { edit_project?: boolean } } } }>("GET", `/api/projects/${projectId}`)).data.attributes.permissions.edit_project;
+    const backed = data.filter((x) => x.attributes["workflow_id"]).map((x) => ({ id: x.id, projectId: x.attributes["project_id"] as string, workflowId: x.attributes["workflow_id"] as string }));
+    const editable = await Promise.all(backed.map((b) => canEdit(b.projectId)));
+    const mine = backed[editable.indexOf(true)]!;
+    const theirs = backed[editable.indexOf(false)]!;
+
+    const openTrigger = async () => {
+      fireEvent.click(await screen.findByRole("button", { name: "Explorer" }, wait));
+      fireEvent.click((await screen.findAllByRole("button", { name: /Webhook trigger/ }, wait))[0]!);
+      await screen.findByText("The listing other teams find the service by.", { exact: false }, wait);
+    };
+
+    renderEditor(theirs.workflowId);
+    await openTrigger();
+    expect(screen.queryByRole("button", { name: "Edit listing" })).toBeNull();
+    cleanup();
+
+    renderEditor(mine.workflowId);
+    await openTrigger();
+    // On main the trigger's kind only reads, but the listing is the project's.
+    expect(screen.queryByRole("button", { name: /^Change trigger type/ })).toBeNull();
+    fireEvent.click(await screen.findByRole("button", { name: "Edit listing" }, wait));
+    const form = await screen.findByRole("dialog", {}, wait);
+    fireEvent.change(within(form).getByLabelText(/^Name/), { target: { value: "Check a planning application" } });
+    fireEvent.click(within(form).getByRole("button", { name: /Save/ }));
+    await waitFor(async () => {
+      const { data: one } = await request<{ data: { attributes: { name: string } } }>("GET", `/api/demo/projects/${mine.projectId}/services/${mine.id}`);
+      expect(one.attributes.name).toBe("Check a planning application");
+    }, wait);
+    expect(await screen.findByText("Saved the listing.", {}, wait)).toBeTruthy();
   });
 
   it("edits context.md in a sandbox from Edit, saves it in the sandbox and counts it as a change", async () => {

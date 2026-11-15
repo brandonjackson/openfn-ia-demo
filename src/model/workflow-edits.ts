@@ -8,7 +8,8 @@
 import type { AdaptorInfo } from "./adaptor-reference";
 import { placeAfter, ROW_GAP } from "./step-placement";
 import { toolBody, toolSummary, type StepTool } from "./step-tools";
-import type { AdaptorKind, JobNode, Workflow, WorkflowEdge, WorkflowNode } from "./workflow";
+import { triggerTypes, type AdaptorKind, type JobNode, type TriggerType, type Workflow, type WorkflowEdge, type WorkflowNode } from "./workflow";
+import { defaultCron, triggerSubtitle, triggerSummary } from "./cron";
 
 /** What can change about a step from its settings. */
 export interface StepEdit {
@@ -22,6 +23,12 @@ export interface StepEdit {
 
 /** What can change about a path: its condition, expression, label and whether it's on. */
 export type EdgeEdit = Partial<Pick<WorkflowEdge, "condition" | "expression" | "label" | "enabled">>;
+
+/** What can change about a trigger from its settings: what kind it is and, for a cron, its schedule. */
+export interface TriggerEdit {
+  triggerType?: TriggerType;
+  cronExpression?: string;
+}
 
 /** Edits made in this session, on top of the workflow as loaded. */
 export interface Edits {
@@ -43,6 +50,8 @@ export interface Edits {
   positions: Record<string, { x: number; y: number }>;
   /** Changes to paths, by edge id. */
   edges: Record<string, EdgeEdit>;
+  /** Changes to triggers, by trigger id. */
+  triggers: Record<string, TriggerEdit>;
 }
 
 /** Nothing changed. One object, so "are there edits" is a comparison with it. */
@@ -59,6 +68,7 @@ export const noEdits: Edits = {
   retargeted: {},
   positions: {},
   edges: {},
+  triggers: {},
 };
 
 /** The workflow with the edits applied, under `name`; `info` gives a re-adaptored step its package. */
@@ -69,7 +79,22 @@ export function applyEdits(workflow: Workflow, edits: Edits, name: string, info:
   const nodes: WorkflowNode[] = [...workflow.nodes, ...added]
     .filter((n) => !edits.removed.includes(n.id))
     .map((n) => {
-      if (n.type !== "job") return n;
+      if (n.type === "trigger") {
+        const change = edits.triggers[n.id];
+        if (!change) return n;
+        const triggerType = change.triggerType ?? n.triggerType;
+        const cronExpression = triggerType === "cron" ? (change.cronExpression ?? n.cronExpression ?? defaultCron) : undefined;
+        // A trigger that's changed kind or schedule says so on its card: a name it was given is kept, the default one follows the kind.
+        const named = n.label !== triggerTypes[n.triggerType].label;
+        return {
+          ...n,
+          triggerType,
+          cronExpression,
+          label: named ? n.label : triggerTypes[triggerType].label,
+          subtitle: triggerSubtitle(triggerType, cronExpression),
+          summary: triggerSummary(triggerType, cronExpression),
+        };
+      }
       const adaptor = edits.adaptors[n.id] ?? n.adaptor;
       // A tool step's settings, changed: the code it runs as and its summary follow them.
       const tool = edits.tools[n.id];
@@ -100,6 +125,12 @@ export const withStep = (e: Edits, stepId: string, changes: StepEdit): Edits => 
   adaptors: changes.adaptor !== undefined ? { ...e.adaptors, [stepId]: changes.adaptor } : e.adaptors,
   credentials: "credentialId" in changes ? { ...e.credentials, [stepId]: changes.credentialId } : e.credentials,
   systems: "system" in changes ? { ...e.systems, [stepId]: changes.system } : e.systems,
+});
+
+/** A trigger's kind or schedule changed, on top of any change already made to it. */
+export const withTrigger = (e: Edits, triggerId: string, changes: TriggerEdit): Edits => ({
+  ...e,
+  triggers: { ...e.triggers, [triggerId]: { ...e.triggers[triggerId], ...changes } },
 });
 
 /** A path changed, on top of any change already made to it. */

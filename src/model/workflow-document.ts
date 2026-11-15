@@ -13,7 +13,8 @@
  * and its settings in `config`, as planned in docs/api-plans/step-tools.md;
  * its `body` is the code a Lightning without tools runs it as.
  */
-import { isEdgeEnabled, type EdgeCondition, type JobNode, type TriggerNode, type TriggerType, type Workflow, type WorkflowEdge } from "./workflow";
+import { isEdgeEnabled, triggerTypes, type EdgeCondition, type JobNode, type TriggerNode, type TriggerType, type Workflow, type WorkflowEdge } from "./workflow";
+import { defaultCron, triggerSubtitle } from "./cron";
 import type { ApprovalTool, OutcomeTool, StepTool } from "./step-tools";
 
 /** What a job is: code (Lightning's only kind today), or one of the planned tools. */
@@ -120,8 +121,7 @@ export const adaptorKindOf = (adaptor: string) => adaptor.replace(/^@openfn\/lan
 /** "@openfn/language-http@latest" → "@openfn/language-http". */
 export const adaptorPackageOf = (adaptor: string) => adaptor.replace(/(.)@[^@]*$/, "$1");
 
-const triggerSubtitle = (t: Pick<WorkflowTrigger, "type" | "cron_expression">) =>
-  t.type === "cron" ? `On a schedule (${t.cron_expression ?? "0 0 * * *"})` : t.type === "kafka" ? "On each message" : "On each request received";
+const subtitleOf = (t: Pick<WorkflowTrigger, "type" | "cron_expression">) => triggerSubtitle(t.type, t.cron_expression ?? undefined);
 
 /**
  * A canvas graph as the document Lightning stores. `enabled` sets the
@@ -154,11 +154,12 @@ export function toDocument(graph: Workflow, { enabled = true, triggers = [] as W
           id: n.id,
           type: n.triggerType,
           enabled: stored?.enabled ?? enabled,
-          cron_expression: n.triggerType === "cron" ? (stored?.cron_expression ?? "0 0 * * *") : null,
+          cron_expression: n.triggerType === "cron" ? (n.cronExpression ?? stored?.cron_expression ?? defaultCron) : null,
           custom_path: stored?.custom_path ?? null,
           comment: stored?.comment ?? null,
           webhook_reply: n.triggerType === "webhook" ? (stored?.webhook_reply ?? "before_start") : null,
-          webhook_auth_method_ids: stored?.webhook_auth_method_ids ?? [],
+          // Auth methods guard webhooks: a trigger that's become a cron keeps none.
+          webhook_auth_method_ids: n.triggerType === "webhook" ? (stored?.webhook_auth_method_ids ?? []) : [],
           label: n.label,
           subtitle: n.subtitle,
           ...(n.summary !== undefined && { summary: n.summary }),
@@ -192,8 +193,9 @@ export function fromDocument(doc: Pick<WorkflowDocument, "id" | "name" | "jobs" 
           id: t.id,
           type: "trigger",
           triggerType: t.type,
-          label: t.label ?? (t.type === "cron" ? "Cron trigger" : t.type === "kafka" ? "Kafka trigger" : "Webhook trigger"),
-          subtitle: t.subtitle ?? triggerSubtitle(t),
+          ...(t.type === "cron" && { cronExpression: t.cron_expression ?? defaultCron }),
+          label: t.label ?? triggerTypes[t.type].label,
+          subtitle: t.subtitle ?? subtitleOf(t),
           ...(t.summary !== undefined && { summary: t.summary }),
           ...at(t.id, i),
         }),

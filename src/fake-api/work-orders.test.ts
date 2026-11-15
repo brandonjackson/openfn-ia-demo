@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { forgetCsrfToken, listAll, request, type ApiError } from "../api/client";
 import { apiWorkflowId } from "../fixtures/ids";
 import type { RunDetails } from "../model/workflow";
-import { resetFakeApi, setWait, signInAs } from ".";
+import { joinTopic, resetFakeApi, setStepTime, setWait, signInAs } from ".";
+import { stopRuns } from "./work-orders";
+import type { WorkflowDocument } from "../model/workflow-document";
 import { projectIdFor } from "./projects";
 
 const a = projectIdFor("project-a");
@@ -11,7 +13,17 @@ const refusal = (p: Promise<unknown>) => p.then(() => undefined, (e: unknown) =>
 type Order = { id: string; attributes: { state: string; runs: RunDetails[]; workflow_id: string } };
 const orders = (q = "") => request<{ data: Order[]; meta: { total_entries: number } }>("GET", `/api/projects/${a}/work_orders?include=runs&page_size=100${q}`);
 
+/** Starts a work order by hand on the planning workflow. */
+const start = async (body: Record<string, unknown>) => (await request<{ data: Order }>("POST", `/api/projects/${a}/workflows/${planning}/work_orders`, body)).data;
+/** The planning workflow's trigger and the job it leads to. */
+const planningIds = async () => {
+  const { workflow } = await request<{ workflow: WorkflowDocument }>("GET", `/api/projects/${a}/workflows/${planning}`);
+  const trigger = workflow.triggers[0]!.id;
+  return { trigger, job: workflow.edges.find((e) => e.source_trigger_id === trigger)!.target_job_id };
+};
+
 beforeEach(() => {
+  setStepTime(700);
   setWait(0);
   resetFakeApi();
   forgetCsrfToken();
@@ -57,14 +69,77 @@ describe("work orders and runs", () => {
     }
   });
 
-  it("records a run the editor made, as a new work order or another run of one", async () => {
-    const order = (await orders(`&workflow_id=${planning}`)).data[0]!;
-    const template = order.attributes.runs[0]!;
-    const run = { ...template, runId: "feed0001", workOrderId: "feed0000", status: "success" as const };
-    await request("POST", `/api/projects/${a}/workflows/${planning}/work_orders`, { run, dataclips: [] });
-    expect((await orders(`&workflow_id=${planning}`)).data.some((o) => o.id === "feed0000")).toBe(true);
-    await request("POST", `/api/projects/${a}/workflows/${planning}/work_orders`, { run: { ...run, runId: "feed0002" }, work_order_id: "feed0000" });
-    expect((await orders(`&workflow_id=${planning}`)).data.find((o) => o.id === "feed0000")!.attributes.runs.map((r) => r.runId)).toEqual(["feed0002", "feed0001"]);
+  it("starts a work order by hand, from the trigger or a job, on a new input or a dataclip", async () => {
+    setStepTime(0);
+    const { trigger, job } = await planningIds();
+    const first = await start({ trigger_id: trigger, body: { name: "Amina" } });
+    expect(first.attributes.workflow_id).toBe(planning);
+    expect(first.attributes.runs).toHaveLength(1);
+    expect(first.attributes.runs[0]!.status).not.toBe("running");
+    // Its new input is kept, and a second work order can start from it, at a job.
+    const inputId = first.attributes.runs[0]!.inputId;
+    const second = await start({ job_id: job, dataclip_id: inputId });
+    expect(second.id).not.toBe(first.id);
+    expect(second.attributes.runs[0]!.inputId).toBe(inputId);
+    expect(second.attributes.runs[0]!.steps[0]!.jobId).toBe(job);
+  });
+
+  it("refuses to start one from nowhere, from both, on two inputs or on a dataclip that isn't there", async () => {
+    const { trigger, job } = await planningIds();
+    expect((await refusal(start({})))?.fieldErrors["job_id"]).toBeTruthy();
+    expect((await refusal(start({ trigger_id: trigger, job_id: job })))?.fieldErrors["job_id"]).toBeTruthy();
+    expect((await refusal(start({ job_id: "not-a-job" })))?.fieldErrors["job_id"]).toBeTruthy();
+    expect((await refusal(start({ trigger_id: trigger, body: {}, dataclip_id: "x" })))?.fieldErrors["dataclip_id"]).toBeTruthy();
+    expect((await refusal(start({ trigger_id: trigger, dataclip_id: "nope" })))?.fieldErrors["dataclip_id"]).toBeTruthy();
+  });
+
+  it("runs it a step at a time, saved as it goes and announced on the run's topic", async () => {
+    setStepTime(15);
+    const { trigger } = await planningIds();
+    const heard: string[] = [];
+    const leaveHistory = joinTopic(`workflow:${planning}`, (event) => heard.push(event));
+    const started = await start({ trigger_id: trigger });
+    const run = started.attributes.runs[0]!;
+    // Answered while it's still going: the first step running, the rest to come.
+    expect(run.status).toBe("running");
+    expect(run.steps[0]!.status).toBe("running");
+    const leave = joinTopic(`run:${run.runId}`, (event) => heard.push(event));
+    const now = async () => (await orders(`&workflow_id=${planning}`)).data.find((o) => o.id === started.id)!;
+    await expect.poll(async () => (await now()).attributes.runs[0]!.status, { timeout: 5000 }).not.toBe("running");
+    leave();
+    leaveHistory();
+    const done = (await now()).attributes;
+    expect(done.state).toBe(done.runs[0]!.status);
+    expect(done.runs[0]!.steps.every((s) => s.status !== "running" && s.status !== "pending")).toBe(true);
+    expect(heard[0]).toBe("history_updated");
+    expect(heard).toContain("step:started");
+    expect(heard).toContain("step:completed");
+    expect(heard.at(-1)).toBe("run:updated");
+  });
+
+  it("retries one run as another run of its work order, from a step or from the start", async () => {
+    setStepTime(0);
+    const { trigger } = await planningIds();
+    const started = await start({ trigger_id: trigger });
+    const run = started.attributes.runs[0]!;
+    const again = await request<{ data: { id: string } }>("POST", `/api/runs/${run.runId}/retries`, {});
+    const fromStep = await request<{ data: { id: string } }>("POST", `/api/runs/${run.runId}/retries`, { step_id: run.steps[1]!.id });
+    const order = (await orders(`&workflow_id=${planning}`)).data.find((o) => o.id === started.id)!;
+    expect(order.attributes.runs.map((r) => r.runId)).toEqual([fromStep.data.id, again.data.id, run.runId]);
+    expect(order.attributes.runs[0]!.steps[0]!.jobId).toBe(run.steps[1]!.jobId);
+    expect((await refusal(request("POST", `/api/runs/${run.runId}/retries`, { step_id: "nope" })))?.fieldErrors["step_id"]).toBeTruthy();
+  });
+
+  it("fails a run nobody is running any more, as after a reload part-way through", async () => {
+    setStepTime(10_000);
+    const { trigger } = await planningIds();
+    const started = await start({ trigger_id: trigger });
+    // The worker goes away, as when the page is closed; the data stays.
+    stopRuns();
+    const order = (await orders(`&workflow_id=${planning}`)).data.find((o) => o.id === started.id)!;
+    expect(order.attributes.state).toBe("failed");
+    expect(order.attributes.runs[0]!.steps.every((s) => s.status === "cancelled")).toBe(true);
+    expect(order.attributes.runs[0]!.logs.at(-1)!.message).toMatch(/Run lost/);
   });
 
   it("lets a viewer read history but not retry", async () => {

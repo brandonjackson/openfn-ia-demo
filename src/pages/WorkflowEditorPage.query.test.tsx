@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import ApiProvider from "../api/ApiProvider";
 import { forgetCsrfToken, listAll, request } from "../api/client";
+import { AnnouncementsProvider } from "../app/announcements";
 import { setFlag } from "../app/feature-flags";
 import { setSandbox } from "../app/sandbox-state";
 import { failNext, resetFakeApi, setWait } from "../fake-api";
@@ -20,12 +21,14 @@ function Opened() {
 function renderEditor(workflowId: string) {
   render(
     <ApiProvider retry={false}>
+      <AnnouncementsProvider>
       <MemoryRouter initialEntries={[`/workflow-editor/${workflowId}`]}>
         <Routes>
           <Route path="/workflow-editor/:workflowId" element={<WorkflowEditorPageQuery />} />
           <Route path="/projects/*" element={<Opened />} />
         </Routes>
       </MemoryRouter>
+      </AnnouncementsProvider>
     </ApiProvider>,
   );
 }
@@ -143,23 +146,18 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     expect(screen.queryByRole("menuitem", { name: /See service listing/ })).toBeNull();
   });
 
-  it("keeps a run it started loaded when the server has no dataclips and won't record the run, as on Lightning", async () => {
-    // Lightning answers a project's dataclips 404 and refuses the run the editor made (docs/api-gaps.md).
-    failNext("GET /api/projects/:project_id/dataclips", { status: 404, code: "not_found", detail: "Not found." });
-    failNext("POST /api/projects/:project_id/workflows/:workflow_id/work_orders", {
-      status: 422,
-      code: "invalid",
-      detail: "The request is not valid. See errors.",
-    });
+  it("says in a toast why the server wouldn't start a run, and loads none", async () => {
+    failNext("POST /api/projects/:project_id/workflows/:workflow_id/work_orders", { status: 429, code: "too_many_runs", detail: "This project has reached its run limit." });
     const service = await backedService();
     renderEditor(service.workflowId);
     fireEvent.click(await screen.findByRole("button", { name: "Run" }, wait));
-    // Loaded while it runs, and still loaded once it's finished and the record is refused.
+    const alert = await screen.findByRole("alert", undefined, wait);
+    expect(alert.textContent).toContain("Couldn't start the run.");
+    expect(alert.textContent).toContain("This project has reached its run limit.");
+    expect(screen.queryByRole("button", { name: "Unload run" })).toBeNull();
+    // The next press goes through.
+    fireEvent.click(screen.getByRole("button", { name: "Run" }));
     expect(await screen.findByRole("button", { name: "Unload run" }, wait)).toBeTruthy();
-    await waitFor(() => expect(screen.queryAllByLabelText("Running")).toHaveLength(0), { timeout: 10000 });
-    // Give the refused record time to come back.
-    await act(() => new Promise((resolve) => setTimeout(resolve, 200)));
-    expect(screen.getByRole("button", { name: "Unload run" })).toBeTruthy();
   });
 
   /** The workflow's work orders as the server has them, newest first, each with its runs. */
@@ -168,7 +166,7 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     return data.filter((o) => o.attributes["workflow_id"] === workflowId).map((o) => ({ id: o.id, runs: o.attributes["runs"] as { runId: string; status: string; steps: unknown[] }[] }));
   };
 
-  it("follows a run it starts a step at a time, and once it's finished History has it with every step", async () => {
+  it("follows a run the server runs a step at a time, and once it's finished History has it with every step", async () => {
     const service = await backedService();
     const before = await serverOrders(service.projectId, service.workflowId);
     renderEditor(service.workflowId);
@@ -176,11 +174,12 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     // Loaded at once, with steps still to go.
     expect(await screen.findByRole("button", { name: "Unload run" }, wait)).toBeTruthy();
     await waitFor(() => expect(screen.queryAllByLabelText("Running").length).toBeGreaterThan(0), wait);
-    // Nothing is recorded while it runs.
-    expect(await serverOrders(service.projectId, service.workflowId)).toHaveLength(before.length);
+    // The server has it from the start, still running: it's the server's run, and the editor follows it.
+    const going = (await serverOrders(service.projectId, service.workflowId)).filter((o) => !before.some((b) => b.id === o.id));
+    expect(going).toHaveLength(1);
+    expect(going[0]!.runs[0]!.status).toBe("running");
     await waitFor(() => expect(screen.queryAllByLabelText("Running")).toHaveLength(0), { timeout: 10000 });
-    // Finished: a new work order with one run, which went through its steps.
-    await waitFor(async () => expect(await serverOrders(service.projectId, service.workflowId)).toHaveLength(before.length + 1), wait);
+    // Finished: the work order has one run, which went through its steps.
     const made = (await serverOrders(service.projectId, service.workflowId)).find((o) => !before.some((b) => b.id === o.id))!;
     expect(made.runs).toHaveLength(1);
     expect(made.runs[0]!.status).not.toBe("running");
@@ -194,17 +193,12 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     const before = await serverOrders(service.projectId, service.workflowId);
     renderEditor(service.workflowId);
     fireEvent.click(await screen.findByRole("button", { name: "Run" }, wait));
-    await waitFor(async () => expect(await serverOrders(service.projectId, service.workflowId)).toHaveLength(before.length + 1), { timeout: 10000 });
+    await waitFor(() => expect(screen.queryAllByLabelText("Running").length).toBeGreaterThan(0), wait);
+    await waitFor(() => expect(screen.queryAllByLabelText("Running")).toHaveLength(0), { timeout: 10000 });
     // With the run loaded and finished, the main action is Retry.
     fireEvent.click(await screen.findByRole("button", { name: "Retry" }, wait));
     await waitFor(() => expect(screen.queryAllByLabelText("Running").length).toBeGreaterThan(0), wait);
-    await waitFor(
-      async () => {
-        const made = (await serverOrders(service.projectId, service.workflowId)).find((o) => !before.some((b) => b.id === o.id))!;
-        expect(made.runs).toHaveLength(2);
-      },
-      { timeout: 10000 },
-    );
+    await waitFor(() => expect(screen.queryAllByLabelText("Running")).toHaveLength(0), { timeout: 10000 });
     // No second work order: the retry joined the first.
     const after = await serverOrders(service.projectId, service.workflowId);
     expect(after).toHaveLength(before.length + 1);

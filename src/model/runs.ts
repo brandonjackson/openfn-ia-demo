@@ -1,5 +1,5 @@
 /** A random 8-character hex id, like the short ids shown in history. */
-import type { AdaptorKind, Dataclip, RunDetails, RunStatus, RunStep, Workflow, WorkOrder } from "./workflow";
+import type { AdaptorKind, RunDetails, RunStatus, RunStep, Workflow, WorkOrder } from "./workflow";
 import type { StatTileData } from "./page-data";
 export function shortId(): string {
   return Math.floor(Math.random() * 0xffffffff)
@@ -424,23 +424,10 @@ export function workflowHealth(workflow: Workflow, workOrders: WorkOrder[], peri
 // Starting runs from the editor.
 // ---------------------------------------------------------------------------
 
-/** A run the editor starts, and how far along it is. */
-export interface RunRequest {
-  /** The workflow as it stands, edits included. */
-  workflow: Workflow;
-  version: string;
-  input: Dataclip;
-  workOrderId: string;
-  runId: string;
-  /** The step to start from when retrying from a step; the trigger otherwise. */
+/** What a run started from the editor starts from and on. */
+export interface RunStart {
+  /** The step to start at; the trigger's first step when left out. */
   fromJobId?: string;
-  startedBy: string;
-  /** How many steps have finished (0 when it has only just started); unset once the run is over. */
-  progress?: number;
-}
-
-/** A run as it stands, with the dataclips it has produced so far. */
-export interface RunProgress {
-  run: RunDetails;
-  dataclips: Dataclip[];
+  /** The input: a dataclip already in the project, or a new one, kept under `name` when it has one. `{}` when left out. */
+  input?: { dataclipId: string } | { body: string; name?: string };
 }

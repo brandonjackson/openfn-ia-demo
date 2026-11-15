@@ -18,7 +18,7 @@
  *
  * Only this file imports src/fake-api/; `client.ts` sends through `send`.
  */
-import { fakeFetch, fakeFetchBesideLightning, seedEmpty } from "../fake-api";
+import { fakeFetch, fakeFetchBesideLightning, joinTopic, seedEmpty } from "../fake-api";
 
 /** What answers the app's requests. */
 export type ApiSource = "fake" | "lightning";
@@ -69,3 +69,18 @@ export function sendFor(source: ApiSource): Send {
 
 /** How this load's requests reach their source. */
 export const send: Send = sendFor(apiSource);
+
+/** Hears each event on a topic until the returned function is called. */
+export type Join = (topic: string, listener: (event: string, payload: unknown) => void) => () => void;
+
+/**
+ * How to join a topic on the source's socket, where it has one. The fake
+ * server does. A real Lightning's realtime surface isn't specified yet
+ * (openfn-3-poc's api/misfits.md), so there's none to join there, and
+ * whoever follows something asks again every so often instead
+ * (`src/api/realtime.ts`).
+ */
+export const joinFor = (source: ApiSource): Join | undefined => (source === "fake" ? joinTopic : undefined);
+
+/** This load's socket, if its source has one. */
+export const join: Join | undefined = joinFor(apiSource);

@@ -6,7 +6,7 @@ import InstanceLogo from "../components/domain/InstanceLogo";
 import { useShell } from "../components/domain/shell-context";
 import PageRoute from "./PageRoute";
 import ShellQuery from "./Shell.query";
-import WorkflowEditorPageQuery from "../pages/WorkflowEditorPage.query";
+import WorkflowEditorPageQuery from "../pages/workflow-editor/WorkflowEditorPage.query";
 import LoadingState from "../components/primitives/LoadingState";
 
 /** The design system's docs, loaded only when someone opens them. */

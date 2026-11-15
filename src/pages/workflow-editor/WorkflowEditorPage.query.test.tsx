@@ -1,15 +1,15 @@
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import ApiProvider from "../api/ApiProvider";
-import { forgetCsrfToken, listAll, request } from "../api/client";
-import { AnnouncementsProvider } from "../app/announcements";
-import { setFlag } from "../app/feature-flags";
-import { setSandbox } from "../app/sandbox-state";
-import { failNext, resetFakeApi, setWait } from "../fake-api";
+import ApiProvider from "../../api/ApiProvider";
+import { forgetCsrfToken, listAll, request } from "../../api/client";
+import { AnnouncementsProvider } from "../../app/announcements";
+import { setFlag } from "../../app/feature-flags";
+import { setSandbox } from "../../app/sandbox-state";
+import { failNext, resetFakeApi, setWait } from "../../fake-api";
 import WorkflowEditorPageQuery from "./WorkflowEditorPage.query";
-import { apiWorkflowId } from "../fixtures/ids";
-import { projectIdFor } from "../fake-api/projects";
+import { apiWorkflowId } from "../../fixtures/ids";
+import { projectIdFor } from "../../fake-api/projects";
 
 const wait = { timeout: 5000 };
 

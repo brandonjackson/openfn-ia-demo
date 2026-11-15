@@ -1,26 +1,26 @@
 import { useEffect, useRef, useState, type ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowEditorPage, { WorkflowEditorLoading } from "./WorkflowEditorPage";
-import { nationalIdTestCaseRecords } from "../fixtures/test-cases";
-import { nationalIdWorkflow, nationalIdWorkflowAt, registerCaseWorkflow, surveillanceVersions, weeklyCaseReportWorkflow, workflowVersions } from "../fixtures/workflow";
-import { dataclips, failedRun, olderRun, runHistories, sampleRun, simulateRun, workOrders } from "../fixtures/runs";
-import { projects, stepServices } from "../fixtures/projects";
-import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../fixtures/assistant";
-import { adaptorChoices, adaptorInfo, adaptorSnippets, projectCredentials } from "../fixtures/adaptor-reference";
-import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../fixtures/adaptor-catalog";
-import { connectedSystems } from "../fixtures/connected-systems";
-import { codeSummary } from "../fixtures/code-summaries";
-import { channelDetails } from "../fixtures/channels";
-import { workflowDocs } from "../fixtures/workflow-files";
-import { projectAEnvVars } from "../fixtures/env-vars";
-import { serviceYaml } from "../model/services";
-import { orgXRoad } from "../fixtures/xroad";
-import { fixtureComponentContents } from "../fixtures/project-components";
-import type { ProjectComponent, ProjectService } from "../model/projects";
-import type { Dataclip, RunDetails, WorkflowFileContents } from "../model/workflow";
-import { sandboxSlug } from "../model/sandboxes";
-import { runInputName } from "../model/dataclips";
-import { shortId } from "../model/runs";
+import { nationalIdTestCaseRecords } from "../../fixtures/test-cases";
+import { nationalIdWorkflow, nationalIdWorkflowAt, registerCaseWorkflow, surveillanceVersions, weeklyCaseReportWorkflow, workflowVersions } from "../../fixtures/workflow";
+import { dataclips, failedRun, olderRun, runHistories, sampleRun, simulateRun, workOrders } from "../../fixtures/runs";
+import { projects, stepServices } from "../../fixtures/projects";
+import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../../fixtures/assistant";
+import { adaptorChoices, adaptorInfo, adaptorSnippets, projectCredentials } from "../../fixtures/adaptor-reference";
+import { adaptorCatalog, aiActions, aiModels, builtInTools, catalogCategories } from "../../fixtures/adaptor-catalog";
+import { connectedSystems } from "../../fixtures/connected-systems";
+import { codeSummary } from "../../fixtures/code-summaries";
+import { channelDetails } from "../../fixtures/channels";
+import { workflowDocs } from "../../fixtures/workflow-files";
+import { projectAEnvVars } from "../../fixtures/env-vars";
+import { serviceYaml } from "../../model/services";
+import { orgXRoad } from "../../fixtures/xroad";
+import { fixtureComponentContents } from "../../fixtures/project-components";
+import type { ProjectComponent, ProjectService } from "../../model/projects";
+import type { Dataclip, RunDetails, WorkflowFileContents } from "../../model/workflow";
+import { sandboxSlug } from "../../model/sandboxes";
+import { runInputName } from "../../model/dataclips";
+import { shortId } from "../../model/runs";
 
 /** The fake assistant "thinks" this long before answering. */
 const REPLY_DELAY_MS = 900;
@@ -40,8 +40,8 @@ const STEP_TIME_MS = 700;
 /**
  * Stands in for the page's wrapper and the server behind it: it holds what a
  * server would (the workflow as saved, the loaded run, the selected sandbox,
- * the trigger's switch, the sandboxes, the versions, the run history and the
- * dataclips), starting from the story's args, and plays out a run a step at
+ * the trigger's switch, the sandboxes, the versions, the run history, the
+ * dataclips and the workflow's docs), starting from the story's args, and plays out a run a step at
  * a time. So a story can edit, run, retry, switch sandbox, pause the
  * workflow, make a sandbox and promote one.
  */
@@ -54,6 +54,7 @@ function EditorWithState(args: ComponentProps<typeof WorkflowEditorPage>) {
   const [versions, setVersions] = useState(args.versions ?? []);
   const [clips, setClips] = useState(args.dataclips ?? []);
   const [orders, setOrders] = useState(args.workOrders ?? []);
+  const [docs, setDocs] = useState(args.contents?.docs ?? {});
 
   const timers = useRef<ReturnType<typeof setInterval>[]>([]);
   useEffect(() => () => timers.current.forEach(clearInterval), []);
@@ -85,6 +86,8 @@ function EditorWithState(args: ComponentProps<typeof WorkflowEditorPage>) {
     <WorkflowEditorPage
       {...args}
       workflow={workflow}
+      contents={args.contents && { ...args.contents, docs }}
+      onSaveDoc={async (name, text) => setDocs((current) => ({ ...current, [name]: text }))}
       onSaveWorkflow={async (edited) => setWorkflow(edited)}
       runId={runId}
       onRunChange={setRunId}

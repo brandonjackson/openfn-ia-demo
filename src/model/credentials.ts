@@ -222,3 +222,12 @@ export interface ProjectOption {
   id: string;
   name: string;
 }
+
+export interface OrgCredential {
+  id: string;
+  name: string;
+  system: string;
+  environment: Environment;
+  owner: string;
+  hasAccess: boolean;
+}

@@ -41,11 +41,6 @@ export function formatDateTime(iso: string | null | undefined): string {
   return `${d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}, ${d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })}`;
 }
 
-/** Whole days from now until a timestamp, at least 0. */
-export function daysUntil(iso: string, now = Date.now()): number {
-  return Math.max(0, Math.ceil((Date.parse(iso) - now) / DAY));
-}
-
 const UNIT_MS: Record<string, number> = { second: 1e3, minute: MINUTE, hour: HOUR, day: DAY, week: 7 * DAY, month: 30 * DAY, year: 365 * DAY };
 
 /**

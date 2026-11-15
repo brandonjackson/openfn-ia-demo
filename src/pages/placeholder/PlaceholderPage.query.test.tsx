@@ -38,7 +38,7 @@ describe("PlaceholderPageQuery", () => {
 
   it("says Not Found inside a project the API doesn't have", async () => {
     draw("/projects/00000000-0000-5000-8000-000000000000/deployments");
-    expect(await screen.findByText("Page Not Found", {}, wait)).toBeTruthy();
+    expect(await screen.findByText("Page not found", {}, wait)).toBeTruthy();
   });
 
   it("names a page under a connected system after the system, from the API", async () => {
@@ -48,7 +48,7 @@ describe("PlaceholderPageQuery", () => {
 
   it("says Not Found under a system the API doesn't have", async () => {
     draw("/connected-systems/00000000-0000-5000-8000-000000000000/channels");
-    expect(await screen.findByText("Page Not Found", {}, wait)).toBeTruthy();
+    expect(await screen.findByText("Page not found", {}, wait)).toBeTruthy();
   });
 
 });

@@ -107,6 +107,6 @@ describe("ProjectSandboxesPageQuery", () => {
 
   it("says Not Found for a project the API doesn't have", async () => {
     draw("/projects/00000000-0000-5000-8000-000000000000/sandboxes");
-    expect(await screen.findByText("Page Not Found", {}, wait)).toBeTruthy();
+    expect(await screen.findByText("Page not found", {}, wait)).toBeTruthy();
   });
 });

@@ -91,26 +91,6 @@ export function formatBytes(bytes: number): string {
   return `${value < 10 ? value.toFixed(1) : Math.round(value)} ${units[unit]}`;
 }
 
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-/** A day as the admin pages show it: "12 Nov 2026". */
-export function formatDay(date: Date): string {
-  return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
-}
-
-/** A moment as the admin pages show it: "5 Nov 2026, 09:14". */
-export function formatDateTime(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${formatDay(date)}, ${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
-/** The day a deletion scheduled on `from` happens, `graceDays` later. */
-export function deletionDay(from: Date, graceDays: number): string {
-  const day = new Date(from);
-  day.setDate(day.getDate() + graceDays);
-  return formatDay(day);
-}
-
 /** The events that match a query's filters, in the order given. Ignores the page. */
 export function filterAuditEvents(events: AuditEvent[], query: AuditQuery): AuditEvent[] {
   const search = query.search.trim().toLowerCase();

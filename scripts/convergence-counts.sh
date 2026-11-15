@@ -18,7 +18,5 @@ for f in $(list | grep -E '\.query\.tsx?$'); do
   show "$f" | grep -qE "$reads" && qf=$((qf + 1))
 done
 echo "wrappers reading fixtures:  $qf of $q"
-echo "page-data.ts lines:         $(show src/model/page-data.ts 2>/dev/null | wc -l)"
-echo "files importing page-data:  $(for f in $(list | grep -E '\.(ts|tsx)$'); do show "$f" | grep -qE '(model|\.)/page-data"' && echo "$f"; done | wc -l)"
 echo "pages in their own folder:  $(list | grep -E '^src/pages/[^/]+/[A-Z][A-Za-z]+Page\.tsx$' | wc -l) of $(list | grep -E '^src/pages/.*[A-Z][A-Za-z]+Page\.tsx$' | wc -l)"
 echo "page and query tests:       $(list | grep -E 'Page(\.query)?\.test\.tsx$' | wc -l)"

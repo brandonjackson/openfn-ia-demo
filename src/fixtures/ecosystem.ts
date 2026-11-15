@@ -1,8 +1,9 @@
-/** Where each system sits on the map. */
 import { directoryMember, networkLinks } from "./xroad";
 import { connectionOf } from "../model/connected-systems";
 import { connectedSystems } from "./connected-systems";
 import type { EcosystemStation, EcosystemWorkflow } from "../model/ecosystem";
+
+/** Where each system sits on the map. */
 const positions: Record<string, { col: number; row: number }> = {
   "kobo-toolbox": { col: 0, row: 1 },
   salesforce: { col: 0, row: 3 },

@@ -11,9 +11,6 @@ import { seedId } from "../fixtures/ids";
 
 const CSRF_TOKEN = "demo-csrf-token";
 
-/** The signed-in person's email: the key the fake server finds them by. */
-export const currentEmail = () => currentUser.email;
-
 const signedIn = instanceUsers.find((u) => u.email === currentUser.email);
 let actingAs: string | null = null;
 

@@ -11,7 +11,7 @@ import { connectedSystems as fixtureSystems } from "../fixtures/connected-system
 import Callout from "../components/primitives/Callout";
 import LoadingState from "../components/primitives/LoadingState";
 import { componentLinkTarget } from "./component-links";
-import NotFoundPage from "../pages/NotFoundPage";
+import NotFoundPage from "../pages/not-found/NotFoundPage";
 import OverviewPageQuery from "../pages/overview/OverviewPage.query";
 import SystemsPageQuery from "../pages/systems/SystemsPage.query";
 import SystemPageQuery from "../pages/system/SystemPage.query";
@@ -26,8 +26,8 @@ import ProjectSandboxesPageQuery from "../pages/project-sandboxes/ProjectSandbox
 import ProjectSettingsPageQuery from "../pages/project-settings/ProjectSettingsPage.query";
 import ServicePageQuery from "../pages/service/ServicePage.query";
 import ComponentPageQuery from "../pages/component/ComponentPage.query";
-import StatusPageFixtures from "../pages/StatusPage.fixtures";
-import StatusPage from "../pages/StatusPage";
+import StatusPageFixtures from "../pages/status/StatusPage.fixtures";
+import StatusPage from "../pages/status/StatusPage";
 import { apiSource } from "../api/source";
 import { pageFrame } from "./page-frame";
 import InsightsPageQuery from "../pages/insights/InsightsPage.query";

@@ -3,8 +3,7 @@
  * across every project you can open. Worked out from the work orders the API
  * sends, so the numbers are the ones History lists for the same week.
  */
-import type { StatTileData } from "./page-data";
-import { activityNow, stampTime } from "./runs";
+import { type StatTileData, activityNow, stampTime } from "./runs";
 import type { RunDetails, WorkOrder } from "./workflow";
 
 /** One day's runs, by how they ended. */

@@ -109,13 +109,6 @@ export const adaptorCatalog: CatalogAdaptor[] = [
   { id: "zoho", name: "Zoho", description: "Business software suite", version: "0.5.2" },
 ];
 
-const byId = new Map(adaptorCatalog.map((a) => [a.id, a]));
-
-/** An adaptor from the catalog, by id. */
-export function catalogAdaptor(id: string): CatalogAdaptor | undefined {
-  return byId.get(id);
-}
-
 /**
  * The picker's categories, after Connected and AI. Every adaptor in the
  * catalog sits in exactly one group, except the built-in tools, which the

@@ -1,13 +1,14 @@
-/**
- * The adaptor a job uses, by package id (e.g. "http" or "dhis2"): any adaptor
- * in `adaptorCatalog`. Drives the icon shown on the node.
- */
 import type { CollectionContents, ComponentContent } from "./project-components";
 import { Clock, Globe, Radio } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { XRoadCall } from "./xroad";
 import type { ChannelDetails } from "./channels";
 import type { ApprovalAnswer, ApprovalRequest, RunOutcome, StepTool } from "./step-tools";
+
+/**
+ * The adaptor a job uses, by package id (e.g. "http" or "dhis2"): any adaptor
+ * in `adaptorCatalog`. Drives the icon shown on the node.
+ */
 export type AdaptorKind = string;
 
 /** What starts a workflow. */
@@ -240,14 +241,6 @@ export function versionOptions(versions: WorkflowVersion[]) {
   }));
 }
 
-/** How an edge's condition reads in the step settings, e.g. "when it succeeds". */
-export const edgeConditionLabel: Record<EdgeCondition, string> = {
-  always: "always",
-  on_success: "when it succeeds",
-  on_failure: "when it fails",
-  js_expression: "when a condition is met",
-};
-
 /**
  * Why a step can't be deleted, in Lightning's words, or nothing when it can.
  * As on Lightning (`useJobDeleteValidation`), a step that other steps run
@@ -260,11 +253,6 @@ export function stepDeleteBlockedReason(workflow: Workflow, jobId: string): stri
   const fromTrigger = parents.some((e) => !isJob(e.source));
   if (fromTrigger && !parents.some((e) => isJob(e.source))) return "You can't delete the first step in a workflow.";
   return undefined;
-}
-
-/** The edge that leads into a job: what it runs after, and when. */
-export function incomingEdge(workflow: Workflow, jobId: string): WorkflowEdge | undefined {
-  return workflow.edges.find((e) => e.target === jobId);
 }
 
 /**

@@ -168,18 +168,6 @@ export const isApiError = (error: unknown, code?: string): error is ApiError =>
 /** Whether asking again might help: not for a refusal (4xx), which won't change. */
 export const canRetry = (error: unknown) => !(error instanceof ApiError && error.status >= 400 && error.status < 500);
 
-/** A body field's problem as one sentence ("Name can't be blank"), for a form that shows one message. */
-export function messageOf(error: unknown): string {
-  if (!isApiError(error)) return error instanceof Error ? error.message : "Something went wrong.";
-  const entry = error.errors[0];
-  if (error.code === "invalid" && entry) {
-    const field = (entry.pointer ?? entry.parameter ?? entry.path ?? "").replace(/^#\//, "").split("/").at(-1) ?? "";
-    const label = field.replaceAll("_", " ");
-    return label ? `${label.charAt(0).toUpperCase()}${label.slice(1)} ${entry.detail}` : entry.detail;
-  }
-  return error.message;
-}
-
 /** For tests that change the session behind the client's back: the next write asks for a fresh CSRF token. */
 export function forgetCsrfToken() {
   csrfToken = null;

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { LoadStatus } from "../api/status";
 import LoadingState from "../components/primitives/LoadingState";
 import Callout from "../components/primitives/Callout";
-import NotFoundPage from "../pages/NotFoundPage";
+import NotFoundPage from "../pages/not-found/NotFoundPage";
 
 /**
  * What a .query wrapper renders around its page: a spinner while the data

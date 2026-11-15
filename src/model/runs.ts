@@ -1,6 +1,6 @@
-/** A random 8-character hex id, like the short ids shown in history. */
 import type { AdaptorKind, RunDetails, RunStatus, RunStep, Workflow, WorkOrder } from "./workflow";
-import type { StatTileData } from "./page-data";
+
+/** A random 8-character hex id, like the short ids shown in history. */
 export function shortId(): string {
   return Math.floor(Math.random() * 0xffffffff)
     .toString(16)
@@ -430,4 +430,16 @@ export interface RunStart {
   fromJobId?: string;
   /** The input: a dataclip already in the project, or a new one, kept under `name` when it has one. `{}` when left out. */
   input?: { dataclipId: string } | { body: string; name?: string };
+}
+
+/** A headline number for a KPI row, optionally with a trend and a link. */
+export interface StatTileData {
+  label: string;
+  value: string | number;
+  /** Short supporting line under the value. */
+  detail?: string;
+  /** Recent values, oldest first, drawn as a sparkline. */
+  trend?: number[];
+  badge?: { label: string; tone: "green" | "yellow" | "red" | "indigo" | "gray" };
+  linkTo?: string;
 }

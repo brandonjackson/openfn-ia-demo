@@ -3,6 +3,7 @@
  * channels this organization already has.
  */
 import type { BuildIdea } from "../model/build-ideas";
+
 export const buildIdeas: BuildIdea[] = [
   {
     id: "birth-to-benefits",

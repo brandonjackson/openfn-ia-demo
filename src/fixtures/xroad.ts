@@ -1,5 +1,5 @@
 import type { NetworkLink, OrgXRoadSettings, XRoadMember, XRoadRoute, XRoadService } from "../model/xroad";
-import { clientIdOf, findMember, findService, openfnSubsystemOf, serviceIdOf, subsystemIdOf } from "../model/xroad";
+import { clientIdOf, findMember, findService, serviceIdOf } from "../model/xroad";
 
 export const orgXRoad: OrgXRoadSettings = {
   instance: "FJ",
@@ -33,9 +33,6 @@ export const orgXRoad: OrgXRoadSettings = {
   ],
   managedBy: "this-org",
 };
-
-/** The subsystem OpenFn publishes and calls as. */
-export const openfnSubsystem = openfnSubsystemOf(orgXRoad);
 
 /** `FJ/GOV/MOH/OPENFN`: who OpenFn is on X-Road, sent as X-Road-Client on every call it makes. */
 export const openfnClientId = clientIdOf(orgXRoad);
@@ -284,16 +281,10 @@ export function routeServiceId(route: XRoadRoute): string {
   return serviceIdOf(orgXRoad.instance, directoryMember(route.memberId), route);
 }
 
-/** `FJ/GOV/NRH/OPENMRS`, as X-Road names a member's subsystem. */
-export function subsystemId(member: XRoadMember, subsystem: string): string {
-  return subsystemIdOf(orgXRoad.instance, member, subsystem);
-}
-
 /** The URL a call goes to: the organisation's own Security Server, which forwards it to the provider's. */
 export function routeUrl(route: XRoadRoute): string {
   return `https://${orgXRoad.securityServers[0].address}/r1/${routeServiceId(route)}`;
 }
-
 
 /** Members the organisation exchanges data with over X-Road. Those that call in are drawn on the ecosystem map. */
 export const networkLinks: NetworkLink[] = [

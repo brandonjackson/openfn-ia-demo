@@ -113,19 +113,19 @@ describe("ShellQuery", () => {
     failNext("GET /api/me", { status: 500, code: "internal", detail: "Something broke." });
     draw("/admin-settings", <PageRoute />);
     expect(await screen.findByText("Something broke.", {}, wait)).toBeTruthy();
-    expect(screen.queryByText("Page Not Found")).toBeNull();
+    expect(screen.queryByText("Page not found")).toBeNull();
   });
 
   it("opens Admin settings for a superuser once the API has said so, not Not Found first", async () => {
     draw("/admin-settings", <PageRoute />);
-    expect(screen.queryByText("Page Not Found")).toBeNull();
+    expect(screen.queryByText("Page not found")).toBeNull();
     expect(await screen.findByRole("link", { name: "Users" }, wait)).toBeTruthy();
   });
 
   it("says Not Found at Admin settings to someone who isn't a superuser", async () => {
     signInAs("user-john");
     draw("/admin-settings", <PageRoute />);
-    expect(await screen.findByText("Page Not Found", {}, wait)).toBeTruthy();
+    expect(await screen.findByText("Page not found", {}, wait)).toBeTruthy();
   });
 
   describe("in a project", () => {

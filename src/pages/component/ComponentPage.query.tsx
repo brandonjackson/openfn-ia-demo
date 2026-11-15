@@ -9,7 +9,7 @@ import { combine } from "../../api/status";
 import { isContentComponentType } from "../../model/project-components";
 import ChannelPage from "./ChannelPage";
 import ComponentPage from "./ComponentPage";
-import NotFoundPage from "../NotFoundPage";
+import NotFoundPage from "../not-found/NotFoundPage";
 import { componentsFor } from "../../model/component-types";
 import { pageFrame } from "../../app/page-frame";
 import { channelDraft } from "../channel-records.query";

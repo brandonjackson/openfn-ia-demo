@@ -6,7 +6,7 @@ import ProjectCard from "../../components/domain/ProjectCard";
 import StatTile from "../../components/primitives/StatTile";
 import SectionHeading from "../../components/primitives/SectionHeading";
 import TextLink from "../../components/primitives/TextLink";
-import type { StatTileData } from "../../model/page-data";
+import type { StatTileData } from "../../model/runs";
 import type { ConnectedSystemSummary, SuggestedSystem } from "../../model/connected-systems";
 import type { ProjectSummary } from "../../model/projects";
 import type { AdaptorCatalog } from "../../model/adaptor-catalog";

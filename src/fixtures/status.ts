@@ -1,7 +1,8 @@
-/** Systems that aren't fully healthy right now. Everything else is operational. */
-import type { HealthState, StatusPageData, SystemStatus, WorkflowStatus } from "../model/page-data";
+import type { HealthState, StatusPageData, SystemStatus, WorkflowStatus } from "../model/status";
 import { connectedSystems } from "./connected-systems";
 import { projects } from "./projects";
+
+/** Systems that aren't fully healthy right now. Everything else is operational. */
 const systemIssues: Record<string, { status: HealthState; note: string }> = {
   "kobo-toolbox": {
     status: "degraded",
@@ -45,10 +46,4 @@ export const statusData: StatusPageData = {
   checkedAt: "1 minute ago",
   systems,
   workflows,
-};
-
-/** Systems and workflows that aren't operational, for the Overview. */
-export const openIssues = {
-  systems: systems.filter((s) => s.status !== "operational"),
-  workflows: workflows.filter((w) => w.status !== "operational"),
 };

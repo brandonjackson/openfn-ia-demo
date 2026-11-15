@@ -128,7 +128,7 @@ describe("OrganizationSettingsPageQuery", () => {
     failNext("GET /api/demo/organization/xroad", { status: 404, code: "not_found", detail: "Not found." });
     renderRoute("/organization-settings/xroad");
     await screen.findAllByText(/Ministry of Health/, {}, wait);
-    expect(screen.queryByText(/No data found/)).toBeNull();
+    expect(screen.queryByText(/points to isn.t there/)).toBeNull();
     expect(screen.queryByRole("link", { name: "X-Road" })).toBeNull();
   });
 

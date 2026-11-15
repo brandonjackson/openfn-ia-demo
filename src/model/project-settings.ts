@@ -180,11 +180,6 @@ export function countLabel(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
 }
 
-/** A secret with all but its last five characters hidden, as Lightning masks an API key. */
-export function maskSecret(value: string): string {
-  return "•".repeat(Math.min(15, Math.max(0, value.length - 5))) + value.slice(-5);
-}
-
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
 /* ------------------------------------------------------------------ */

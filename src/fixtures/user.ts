@@ -1,6 +1,5 @@
 import type { ApiToken, BackupCode, MfaSetup, UserProfile } from "../model/account";
 import type { OAuthClient, UserCredential } from "../model/credentials";
-import { projectOptions } from "./projects";
 
 export const currentUser: UserProfile = {
   firstName: "Jane",
@@ -20,18 +19,6 @@ export const currentInstance = {
   name: "Sim DTU",
   initials: "SD",
 };
-
-/**
- * Other people on the instance and the projects each belongs to, so a
- * credential can only be handed to someone who's in every project that uses
- * it (Lightning's rule for transfers).
- */
-export const instanceUsers: { email: string; name: string; projectIds: string[] }[] = [
-  { email: "jane.doe@example.org", name: "Jane Doe", projectIds: projectOptions.map((p) => p.id) },
-  { email: "adiallo@example.org", name: "Amadou Diallo", projectIds: projectOptions.map((p) => p.id) },
-  { email: "jsmith@example.org", name: "John Smith", projectIds: ["project-b"] },
-  { email: "bwilson@example.org", name: "Beth Wilson", projectIds: ["project-a", "project-b"] },
-];
 
 // Secret fields (passwords, tokens, keys) never come back from the server, so
 // none are here: the form shows them blank, and leaving them blank keeps them.

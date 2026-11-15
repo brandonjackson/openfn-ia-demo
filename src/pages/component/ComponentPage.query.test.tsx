@@ -124,7 +124,7 @@ describe("ComponentPageQuery", () => {
 
   it("says when there's no such component", async () => {
     renderRoute(crypto.randomUUID());
-    await waitFor(() => expect(screen.getByText(/No data found for/)).toBeTruthy(), wait);
+    await waitFor(() => expect(screen.getByText(/points to isn.t there/)).toBeTruthy(), wait);
   });
 
   it("shows the server's message in the page's place when the components fail to load", async () => {

@@ -75,6 +75,6 @@ describe("PageRoute's old links", () => {
   it("leaves a system id it doesn't know alone, to say Not Found where it was typed", async () => {
     draw("/connected-systems/dhis/channels");
     expect(where()).toBe("/connected-systems/dhis/channels");
-    expect(await screen.findByText("Page Not Found", {}, wait)).toBeTruthy();
+    expect(await screen.findByText("Page not found", {}, wait)).toBeTruthy();
   });
 });

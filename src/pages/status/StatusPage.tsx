@@ -1,14 +1,14 @@
-import type { PageProps } from "../model/ia-tree";
-import type { HealthState, StatusPageData, SystemStatus, WorkflowStatus } from "../model/page-data";
-import PageHeader from "../components/patterns/PageHeader";
-import Breadcrumbs from "../components/domain/Breadcrumbs";
-import Callout from "../components/primitives/Callout";
-import SectionHeading from "../components/primitives/SectionHeading";
-import DataTable from "../components/primitives/DataTable";
-import type { DataTableColumn } from "../components/primitives/DataTable";
-import StatusBadge from "../components/domain/StatusBadge";
-import SystemLabel from "../components/domain/SystemLabel";
-import TextLink from "../components/primitives/TextLink";
+import type { PageProps } from "../../model/ia-tree";
+import type { HealthState, StatusPageData, SystemStatus, WorkflowStatus } from "../../model/status";
+import PageHeader from "../../components/patterns/PageHeader";
+import Breadcrumbs from "../../components/domain/Breadcrumbs";
+import Callout from "../../components/primitives/Callout";
+import SectionHeading from "../../components/primitives/SectionHeading";
+import DataTable from "../../components/primitives/DataTable";
+import type { DataTableColumn } from "../../components/primitives/DataTable";
+import StatusBadge from "../../components/domain/StatusBadge";
+import SystemLabel from "../../components/domain/SystemLabel";
+import TextLink from "../../components/primitives/TextLink";
 
 export type StatusPageProps = PageProps<StatusPageData>;
 

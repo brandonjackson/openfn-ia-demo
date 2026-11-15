@@ -176,14 +176,6 @@ export interface ProjectMember {
   digest: DigestFrequency;
 }
 
-/** Someone with an account on the instance. */
-export interface InstanceUserSummary {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-}
-
 /** One user's place in a project. */
 export interface ProjectMembership {
   /** The `AdminUser.id` of the member. */

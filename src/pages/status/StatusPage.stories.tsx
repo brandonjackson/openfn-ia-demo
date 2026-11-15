@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import StatusPage from "./StatusPage";
-import { withRouter } from "../stories/decorators";
-import { mainNavTree } from "../model/ia-tree";
-import { statusData } from "../fixtures/status";
+import { withRouter } from "../../stories/decorators";
+import { mainNavTree } from "../../model/ia-tree";
+import { statusData } from "../../fixtures/status";
 
 const node = mainNavTree.find((n) => n.id === "status")!;
 const ancestors: { node: typeof node; path: string }[] = [];

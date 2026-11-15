@@ -62,17 +62,4 @@ describe("ProjectPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create one" }));
     expect(host.calls("onNewWorkflow")).toHaveLength(1);
   });
-
-  it("lists services and components when it's given them, saying so when there are none", () => {
-    draw(data({ services: [], components: [{ id: "c", name: "patients", description: "3 keys", type: "Collection" }] }));
-    expect(screen.getByText("No published services yet")).toBeTruthy();
-    expect(screen.getByText("1 building block in this project.")).toBeTruthy();
-    expect(screen.getByText("patients")).toBeTruthy();
-  });
-
-  it("leaves out services and components when it isn't given them", () => {
-    draw(data());
-    expect(screen.queryByText("Service listings")).toBeNull();
-    expect(screen.queryByText("Components")).toBeNull();
-  });
 });

@@ -36,8 +36,6 @@ function renderRoute() {
   );
 }
 
-type Many = { data: { id: string; attributes: Record<string, unknown> }[] };
-
 const serverWorkflows = async () =>
   (await request<{ workflows: { id: string; name: string; deleted_at?: string | null }[] }>("GET", `/api/projects/${projectId}/workflows`)).workflows.filter(
     (w) => !w.deleted_at,
@@ -62,15 +60,13 @@ describe("ProjectPageQuery", () => {
     expect(await screen.findByText(`${workflows.length} workflows in this project.`, {}, wait)).toBeTruthy();
   });
 
-  it("lists the project's services from the server, and leaves them out without the catalog", async () => {
-    const { data } = await request<Many>("GET", "/api/demo/services?page_size=100");
-    const service = data.find((s) => s.attributes["project_id"] === projectId)!;
+  it("groups the project's published workflows from the server's services, and drops the group without the catalog", async () => {
     renderRoute();
-    expect(await screen.findByText(service.attributes["name"] as string, {}, wait)).toBeTruthy();
+    expect(await screen.findByRole("region", { name: "Published services" }, wait)).toBeTruthy();
+    expect(screen.queryByText("Service listings")).toBeNull();
 
     act(() => setFlag("serviceCatalog", false));
-    await waitFor(() => expect(screen.queryByText("Service listings")).toBeNull(), wait);
-    expect(screen.queryByRole("region", { name: "Published services" })).toBeNull();
+    await waitFor(() => expect(screen.queryByRole("region", { name: "Published services" })).toBeNull(), wait);
   });
 
   it("makes a copy of a workflow from the Overview, which lists it there at once", async () => {
@@ -83,20 +79,10 @@ describe("ProjectPageQuery", () => {
     expect(within(screen.getByRole("region", { name: "Paused workflows" })).getByText(`${first!.name} (copy)`)).toBeTruthy();
   });
 
-  it("lists the project's components from the server, and leaves them out without components", async () => {
-    const workflows = await serverWorkflows();
-    const { data: channels } = await request<Many>("GET", `/api/projects/${projectId}/channels?page_size=100`);
+  it("doesn't list the project's components", async () => {
     renderRoute();
-    const heading = await screen.findByText("Components", {}, wait);
-    // Every channel is one, and the other kinds from the demo's routes come on top.
-    const count = Number(screen.getByText(/building blocks? in this project/).textContent!.split(" ")[0]);
-    expect(count).toBeGreaterThan(channels.length);
-    // Workflows have their own section, so they aren't listed again as components.
-    const section = within(heading.closest("section")!);
-    for (const w of workflows) expect(section.queryByText(w.name)).toBeNull();
-
-    act(() => setFlag("components", false));
-    await waitFor(() => expect(screen.queryByText("Components")).toBeNull(), wait);
+    await screen.findByRole("region", { name: "Live workflows" }, wait);
+    expect(screen.queryByText("Components")).toBeNull();
   });
 
   it("shows the server's message in the page's place when the project fails to load", async () => {

@@ -152,7 +152,7 @@ Admin settings. Every row below was opened in a browser on that Lightning.
 | Overview (home) | Works with gaps | The week's tiles say 0 runs and 0 errors: Lightning's work orders come without `runs` (`include=runs` is Planned), and the seam (`toRecord` in `src/api/work-orders.ts`) reads each as having none. Until that fix it was a blank screen, and `/v3/` with it. |
 | Project overview | Works | Lightning's workflow (Off, never run) and zero work orders, failed and runs: Lightning's work order isn't counted, as it comes without its workflow. No published services, from the demo's own routes. |
 | Workflows | Works | Lightning's workflow, Off, "Never run", for the same reason. |
-| Workflow editor | Works | Draws Lightning's workflow (cron trigger, DHIS2, HTTP), read only on main with "Edit in sandbox", 0 runs on the canvas. `GET …/dataclips` answers 404 as expected (Planned), so no saved inputs. Not tried: editing in a sandbox, running. |
+| Workflow editor | Works | Draws Lightning's workflow (cron trigger, DHIS2, HTTP), read only on main with "Edit in sandbox", 0 runs on the canvas. `GET …/dataclips` answers 404 as expected (Planned), so no saved inputs. Not tried: editing in a sandbox, running (a run is now started with api/work-orders.md's body and followed by asking again; api-gaps.md). |
 | Create | Works | The project from Lightning; the starter ideas from the demo's own route. |
 | Components | Works | "No components yet": Lightning's seed has no channels or collections, and the demo's own kinds start empty. |
 | Component (a channel, collection or other kind) | Not walked | Nothing to open: Lightning's seed has none, and this walk made no data. |

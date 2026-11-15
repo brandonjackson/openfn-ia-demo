@@ -19,9 +19,13 @@
  *
  * The demo's runs carry their steps, logs and input whole, as the editor and
  * History draw them; they ride along on each work order (`include=runs`).
- * Lightning's worker isn't part of the API, so the demo stands in for it:
- * a retry is simulated here, and a run the editor simulated is recorded here
- * when it's done. Run, work order and dataclip ids are the demo's short ones,
+ * Lightning's worker isn't part of the API, so the demo stands in for it
+ * here: a run started by hand, or one run retried, is played out a step at
+ * a time (`play`), saved as it goes and announced on the socket
+ * (realtime.ts), so whoever follows it sees it happen. Many work orders
+ * retried at once finish at once. A run still going when the page was closed
+ * has no worker left to finish it, and is failed the next time runs are read
+ * (`reapLost`). Run, work order and dataclip ids are the demo's short ones,
  * not UUIDs, because the pages show them whole.
  */
 import { projects as fixtureProjects, projectWorkflowDetails } from "../fixtures/projects";
@@ -30,11 +34,12 @@ import { workflowHistory } from "../fixtures/workflow-lookup";
 import { answerRun, simulateRun } from "../fixtures/runs";
 import type { ApprovalAnswer } from "../model/step-tools";
 import { apiNodeId, apiWorkflowId } from "../fixtures/ids";
-import type { Dataclip, RunDetails, RunStatus } from "../model/workflow";
+import type { Dataclip, RunDetails, RunStatus, Workflow } from "../model/workflow";
 import { fromDocument } from "../model/workflow-document";
 import { shortId } from "../model/runs";
 import { conflict, forbidden, invalid, isUuid, json, notFound, now, ORIGIN, paged, unknownKeys, type Body, type Entry, type Handler } from "./answers";
 import { seedTime, table } from "./db";
+import { broadcast } from "./realtime";
 import { findProject, guardProject, projectIdFor, roleIn } from "./projects";
 import type { CopyPair } from "./sandbox-copies";
 import { currentUserId } from "./session";
@@ -209,13 +214,113 @@ function current(workflowId: string): { workflow: WorkflowRow | undefined; graph
   return { workflow: w, graph: w && fromDocument(w, ""), version: `v${w?.lock_version ?? 1}` };
 }
 
-/** Adds a run to a work order: newest first, the order's state its latest run's, and any new dataclips kept. */
+/** Puts a run at the top of its work order (in place of itself, as it advances): the order's state is its latest run's, and any new dataclips are kept. */
 function addRun(order: WorkOrderRow, run: RunDetails, made: Dataclip[]) {
   workOrders.update(
     (w) => w.id === order.id,
-    (w) => ({ ...w, runs: [run, ...w.runs], state: run.status, last_activity: run.when, updated_at: now() }),
+    (w) => ({ ...w, runs: [run, ...w.runs.filter((r) => r.runId !== run.runId)], state: run.status, last_activity: run.when, updated_at: now() }),
   );
   for (const d of made) if (!dataclips.rows().some((x) => x.id === d.id)) dataclips.insert({ ...d, workflow_id: order.workflow_id, project_id: order.project_id });
+}
+
+/* ------------------------------------------------------------------ */
+/*  The worker                                                         */
+/* ------------------------------------------------------------------ */
+
+/** How long a step takes. Enough to watch a run advance; 0 finishes a run at once. */
+let stepMs = 700;
+/** The runs being played, by run id. */
+const playing = new Map<string, ReturnType<typeof setInterval>>();
+/** The runs the worker started and hasn't finished, kept with the data so a reload can tell which were cut short. */
+const inFlight = table<{ id: string }>("runs_in_flight", () => []);
+
+/** For tests: how long each step of a run takes. 0 finishes a run before its request is answered. */
+export function setStepTime(ms: number) {
+  stepMs = ms;
+}
+
+/** Stops every run being played, where it is. For a reset: the work orders they belong to are gone. */
+export function stopRuns() {
+  for (const timer of playing.values()) clearInterval(timer);
+  playing.clear();
+}
+
+/**
+ * Runs a work order on `graph`, as Lightning's worker would: the run is saved
+ * at once, started, then again as each step finishes, and every change is
+ * announced on `run:<id>`. Answers the run as it stands when the request is
+ * answered: just started, or finished when steps take no time.
+ */
+function play(order: WorkOrderRow, args: { graph: Workflow; version: string; input: Dataclip; fromJobId?: string }): RunDetails {
+  const base = { workflow: args.graph, version: args.version, input: args.input, workOrderId: order.id, runId: shortId(), fromJobId: args.fromJobId, startedBy: startedBy() };
+  const isRetry = order.runs.length > 0;
+  const put = ({ run, dataclips: made }: { run: RunDetails; dataclips: Dataclip[] }, before?: RunDetails) => {
+    addRun(order, run, made);
+    for (const step of run.steps) {
+      const was = before?.steps.find((s) => s.id === step.id)?.status;
+      if (step.status === was) continue;
+      if (step.status === "running") broadcast(`run:${run.runId}`, "step:started", { step });
+      else if (step.status !== "pending") broadcast(`run:${run.runId}`, "step:completed", { step });
+    }
+    broadcast(`run:${run.runId}`, "run:updated", { run });
+  };
+  const announce = () => broadcast(`workflow:${order.workflow_id}`, "history_updated", { work_order_id: order.id, action: isRetry ? "updated" : "created" });
+  if (stepMs <= 0) {
+    const done = simulateRun(base);
+    put(done);
+    announce();
+    return done.run;
+  }
+  let latest = simulateRun({ ...base, progress: 0 });
+  const total = latest.run.steps.length;
+  let progress = 0;
+  const timer = setInterval(() => {
+    // Reset meanwhile: there's no work order to run any more.
+    if (playing.get(base.runId) !== timer || !workOrders.rows().some((w) => w.id === order.id)) return void clearInterval(timer);
+    progress += 1;
+    const next = progress < total ? simulateRun({ ...base, progress }) : simulateRun(base);
+    if (next.run.status !== "running") {
+      clearInterval(timer);
+      playing.delete(base.runId);
+      inFlight.remove((r) => r.id === base.runId);
+    }
+    put(next, latest.run);
+    latest = next;
+  }, stepMs);
+  // The worker has it before anyone is told, so nobody reading it meanwhile takes it for lost.
+  playing.set(base.runId, timer);
+  inFlight.insert({ id: base.runId });
+  put(latest);
+  announce();
+  return latest.run;
+}
+
+/**
+ * Fails every run the worker started that nothing is playing any more: the
+ * page was closed, or reloaded, part-way through. Its unfinished steps are
+ * cancelled.
+ */
+function reapLost() {
+  const cut = inFlight.rows().filter((r) => !playing.has(r.id)).map((r) => r.id);
+  if (!cut.length) return;
+  inFlight.remove((r) => cut.includes(r.id));
+  const lost = (r: RunDetails) => r.status === "running" && cut.includes(r.runId);
+  workOrders.update(
+    (w) => w.runs.some(lost),
+    (w) => {
+      const runs = w.runs.map((r) =>
+        lost(r)
+          ? {
+              ...r,
+              status: "failed" as const,
+              steps: r.steps.map((s) => (s.status === "running" || s.status === "pending" ? { ...s, status: "cancelled" as const } : s)),
+              logs: [...r.logs, { source: "R/T" as const, message: "Run lost: the worker stopped before it finished." }],
+            }
+          : r,
+      );
+      return { ...w, runs, state: runs[0]!.status, updated_at: now() };
+    },
+  );
 }
 
 /** A new run of a work order, on the workflow as it now stands, from its first input or from a step. Undefined when it can't be retried. */
@@ -262,6 +367,7 @@ function chosen(projectId: string, body: Body): WorkOrderRow[] | Entry[] {
 /* ------------------------------------------------------------------ */
 
 function list(projectIds: string[], query: URLSearchParams, path: string) {
+  reapLost();
   const states = (query.get("state") ?? "").split(",").filter(Boolean);
   // Planned: by the business outcome its latest run reported.
   const outcomes = (query.get("outcome_status") ?? "").split(",").filter(Boolean);
@@ -358,31 +464,38 @@ export const workOrderRoutes: Record<string, Handler> = {
     if (p instanceof Response) return p;
     const w = isUuid(workflow_id) ? workflows.rows().find((x) => x.id === workflow_id && x.project_id === p.id && !x.deleted_at) : undefined;
     if (!w) return notFound();
-    const errors = unknownKeys(body, ["job_id", "trigger_id", "dataclip_id", "body", "run", "dataclips", "work_order_id"]);
+    const errors = unknownKeys(body, ["job_id", "trigger_id", "dataclip_id", "body"]);
+    const graph = fromDocument(w, "");
+    const jobId = body["job_id"];
+    const triggerId = body["trigger_id"];
+    if ((jobId === undefined) === (triggerId === undefined)) errors.push({ code: "required", detail: "send job_id or trigger_id, not both", pointer: "#/job_id" });
+    else if (jobId !== undefined && !graph.nodes.some((n) => n.type === "job" && n.id === jobId)) errors.push({ code: "not_found", detail: "isn't a job of this workflow", pointer: "#/job_id" });
+    else if (triggerId !== undefined && !graph.nodes.some((n) => n.type === "trigger" && n.id === triggerId)) errors.push({ code: "not_found", detail: "isn't a trigger of this workflow", pointer: "#/trigger_id" });
+    const given = body["body"];
+    if (body["dataclip_id"] !== undefined && given !== undefined) errors.push({ code: "exclusive", detail: "send dataclip_id or body, not both", pointer: "#/dataclip_id" });
+    else if (given !== undefined && (typeof given !== "object" || given === null || Array.isArray(given))) errors.push({ code: "type", detail: "must be an object", pointer: "#/body" });
+    const existing = body["dataclip_id"] !== undefined ? dataclips.rows().find((d) => d.id === body["dataclip_id"] && d.project_id === p.id) : undefined;
+    if (body["dataclip_id"] !== undefined && !existing) errors.push({ code: "not_found", detail: "isn't a dataclip of this project", pointer: "#/dataclip_id" });
     if (errors.length) return invalid(errors);
-    const run = body["run"] as RunDetails | undefined;
-    const made = (body["dataclips"] as Dataclip[] | undefined) ?? [];
-    const existing = typeof body["work_order_id"] === "string" ? workOrders.rows().find((o) => o.id === body["work_order_id"] && o.workflow_id === w.id) : undefined;
-    if (existing && run) {
-      addRun(existing, run, made);
-      return json(201, { data: workOrderEntry(workOrders.rows().find((o) => o.id === existing.id)!, true) });
-    }
-    if (!run) return invalid([{ code: "required", detail: "the demo records a run its editor made", pointer: "#/run" }]);
+    // A new input is kept with the workflow, so it can be picked again.
+    const input: Dataclip = existing ?? { id: shortId(), type: "saved_input", body: JSON.stringify(given ?? {}, null, 2), created: "just now" };
+    if (!existing) dataclips.insert({ ...input, workflow_id: w.id, project_id: p.id });
     const order: WorkOrderRow = {
-      id: run.workOrderId,
+      id: shortId(),
       workflow_id: w.id,
       project_id: p.id,
-      state: run.status,
-      received_at: run.started,
-      last_activity: run.when,
+      state: "running",
+      received_at: "",
+      last_activity: "just now",
       inserted_at: now(),
       updated_at: now(),
-      dataclip_id: run.inputId,
-      runs: [run],
+      dataclip_id: input.id,
+      runs: [],
     };
     workOrders.insert(order);
-    for (const d of made) if (!dataclips.rows().some((x) => x.id === d.id)) dataclips.insert({ ...d, workflow_id: w.id, project_id: p.id });
-    return json(201, { data: workOrderEntry(order, true) });
+    const run = play(order, { graph, version: `v${w.lock_version ?? 1}`, input, fromJobId: typeof jobId === "string" ? jobId : undefined });
+    workOrders.update((x) => x.id === order.id, (x) => ({ ...x, received_at: run.started }));
+    return json(201, { data: workOrderEntry(workOrders.rows().find((x) => x.id === order.id)!, true) });
   },
 
   // Each work order gets a new run, from the start or from a step. Those of a deleted workflow, or whose input is gone, are discarded.
@@ -466,9 +579,13 @@ export const workOrderRoutes: Record<string, Handler> = {
     const stepId = body["step_id"] as string | undefined;
     const step = stepId ? run.steps.find((s) => s.id === stepId || s.jobId === stepId) : undefined;
     if (stepId && !step) return invalid([{ code: "not_found", detail: "isn't a step of this run", pointer: "#/step_id" }]);
-    const { workflow } = current(order.workflow_id);
-    if (!workflow || workflow.deleted_at) return conflict("scheduled_for_deletion", "This run's workflow has been deleted.");
-    const made = retry(order, step?.jobId);
-    return made ? json(201, { data: { type: "runs", id: made.runId, attributes: { state: made.status } } }) : conflict("dataclip_wiped", "This run's input is gone.");
+    const { workflow, graph, version } = current(order.workflow_id);
+    if (!workflow || workflow.deleted_at || !graph) return conflict("scheduled_for_deletion", "This run's workflow has been deleted.");
+    // From a step, its own input; from the start (planned: `step_id` left out), the run's.
+    const input = dataclips.rows().find((d) => d.id === (step?.inputId ?? run.inputId));
+    if (!input) return conflict("dataclip_wiped", "This run's input is gone.");
+    // A step the workflow no longer has can't be started from: the run starts over.
+    const made = play(order, { graph, version, input, fromJobId: step && graph.nodes.some((n) => n.id === step.jobId) ? step.jobId : undefined });
+    return json(201, { data: { type: "runs", id: made.runId, attributes: { state: made.status } } });
   },
 };

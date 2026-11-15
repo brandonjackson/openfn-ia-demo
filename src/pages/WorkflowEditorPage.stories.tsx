@@ -1,4 +1,4 @@
-import { useState, type ComponentProps } from "react";
+import { useEffect, useRef, useState, type ComponentProps } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import WorkflowEditorPage, { WorkflowEditorLoading } from "./WorkflowEditorPage";
 import { nationalIdTestCaseRecords } from "../fixtures/test-cases";
@@ -17,7 +17,7 @@ import { serviceYaml } from "../model/services";
 import { orgXRoad } from "../fixtures/xroad";
 import { fixtureComponentContents } from "../fixtures/project-components";
 import type { ProjectComponent, ProjectService } from "../model/projects";
-import type { WorkflowFileContents } from "../model/workflow";
+import type { Dataclip, RunDetails, WorkflowFileContents } from "../model/workflow";
 import { sandboxSlug } from "../model/sandboxes";
 import { runInputName } from "../model/dataclips";
 import { shortId } from "../model/runs";
@@ -34,22 +34,58 @@ const contentsFor = (components: ProjectComponent[], service?: ProjectService): 
   channels: Object.fromEntries(components.filter((c) => c.type === "Channel").map((c) => [c.id, channelDetails(c)])),
 });
 
+/** How long a step of a run takes in a story, as on the fake server. */
+const STEP_TIME_MS = 700;
+
 /**
- * Stands in for the page's wrapper: it holds what a server would (the loaded
- * run, the selected sandbox, the trigger's switch, the sandboxes and the
- * versions), starting from the story's args, so a story can switch sandbox,
- * load a run, pause the workflow, make a sandbox and promote one.
+ * Stands in for the page's wrapper and the server behind it: it holds what a
+ * server would (the workflow as saved, the loaded run, the selected sandbox,
+ * the trigger's switch, the sandboxes, the versions, the run history and the
+ * dataclips), starting from the story's args, and plays out a run a step at
+ * a time. So a story can edit, run, retry, switch sandbox, pause the
+ * workflow, make a sandbox and promote one.
  */
 function EditorWithState(args: ComponentProps<typeof WorkflowEditorPage>) {
+  const [workflow, setWorkflow] = useState(args.workflow);
   const [runId, setRunId] = useState(args.runId);
   const [sandbox, setSandbox] = useState(args.sandbox);
   const [live, setLive] = useState(args.live);
   const [sandboxes, setSandboxes] = useState(args.sandboxes ?? ["main"]);
   const [versions, setVersions] = useState(args.versions ?? []);
   const [clips, setClips] = useState(args.dataclips ?? []);
+  const [orders, setOrders] = useState(args.workOrders ?? []);
+
+  const timers = useRef<ReturnType<typeof setInterval>[]>([]);
+  useEffect(() => () => timers.current.forEach(clearInterval), []);
+
+  /** The server's worker: a new run of a work order, saved as each step finishes. */
+  const play = (workOrderId: string, input: Dataclip, fromJobId?: string) => {
+    const base = { workflow, version: versions[0]?.id ?? "draft", input, workOrderId, runId: shortId(), fromJobId, startedBy: "Jane Doe" };
+    const put = ({ run, dataclips: made }: { run: RunDetails; dataclips: Dataclip[] }) => {
+      setOrders((current) => {
+        const runs = [run, ...(current.find((o) => o.id === workOrderId)?.runs.filter((r) => r.runId !== run.runId) ?? [])];
+        return [{ id: workOrderId, status: run.status, lastActivity: run.when, runs }, ...current.filter((o) => o.id !== workOrderId)];
+      });
+      setClips((current) => [...current, ...made.filter((d) => !current.some((c) => c.id === d.id))]);
+    };
+    const started = simulateRun({ ...base, progress: 0 });
+    put(started);
+    let progress = 0;
+    const timer = setInterval(() => {
+      progress += 1;
+      const next = progress < started.run.steps.length ? simulateRun({ ...base, progress }) : simulateRun(base);
+      put(next);
+      if (next.run.status !== "running") clearInterval(timer);
+    }, STEP_TIME_MS);
+    timers.current.push(timer);
+    return { runId: base.runId };
+  };
+
   return (
     <WorkflowEditorPage
       {...args}
+      workflow={workflow}
+      onSaveWorkflow={async (edited) => setWorkflow(edited)}
       runId={runId}
       onRunChange={setRunId}
       sandbox={sandbox}
@@ -57,7 +93,27 @@ function EditorWithState(args: ComponentProps<typeof WorkflowEditorPage>) {
       live={live}
       onToggleLive={async (on) => setLive(on)}
       sandboxes={sandboxes}
+      workOrders={orders}
       dataclips={clips}
+      onRun={async ({ fromJobId, input }) => {
+        const existing = input && "dataclipId" in input ? clips.find((d) => d.id === input.dataclipId) : undefined;
+        const made: Dataclip = existing ?? { id: shortId(), type: "saved_input", body: input && "body" in input ? input.body : "{}", name: input && "name" in input ? input.name : undefined, created: "just now" };
+        if (!existing) setClips((current) => [made, ...current]);
+        return play(shortId(), made, fromJobId);
+      }}
+      onRetryRun={async (id, fromJobId) => {
+        const run = orders.flatMap((o) => o.runs).find((r) => r.runId === id);
+        const step = run?.steps.find((s) => s.jobId === fromJobId);
+        const input = clips.find((d) => d.id === (step?.inputId ?? run?.inputId));
+        if (!run || !input) throw new Error("This run's input is gone.");
+        return play(run.workOrderId, input, fromJobId);
+      }}
+      onCreateDataclip={async (draft) => {
+        const made: Dataclip = { id: shortId(), type: "saved_input", created: "just now", ...draft, description: draft.description || undefined };
+        setClips((current) => [made, ...current]);
+        return made;
+      }}
+      onSaveDataclip={async (id, changes) => setClips((current) => current.map((c) => (c.id === id ? { ...c, name: changes.name, description: changes.description || undefined } : c)))}
       onCreateSandbox={async (draft) => {
         setSandboxes((current) => [...current, sandboxSlug(draft.name)]);
         // A reviewed copy of a run's input comes along as a saved dataclip.
@@ -130,7 +186,8 @@ const meta: Meta<typeof WorkflowEditorPage> = {
     stepServices,
     contents: contentsFor(projectAComponents, projectA.services[0]),
     codeSummary,
-    onRun: simulateRun,
+    // `EditorWithState` plays runs out; this only says the story can run.
+    onRun: async () => ({}),
     assistantSuggestions,
     onAssistantSend: (prompt, jobLabel, mode) => later(() => assistantReply(prompt, jobLabel, mode)),
     onAssistantCarryOutPlan: (plan) => later(() => assistantPlanResult(plan)),
@@ -209,7 +266,7 @@ export const Health: Story = {
 
 /** Saved dataclips, opened from the explorer's Workflow group: each with Run as its main action, and its title and description to edit. */
 export const SavedDataclips: Story = {
-  args: { initialView: "code", initialFile: "dataclips", onCreateDataclip: undefined },
+  args: { initialView: "code", initialFile: "dataclips", },
 };
 
 /** The workflow's test cases, under Saved dataclips in the explorer: Run all tests at the top, each with its own Run, and Generate from spec. */

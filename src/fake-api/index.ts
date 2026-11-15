@@ -30,7 +30,7 @@ import { credentialRoutes } from "./credentials";
 import { credentialSchemaRoutes } from "./credential-schemas";
 import { accountRoutes } from "./account";
 import { channelRoutes } from "./channels";
-import { workOrderRoutes } from "./work-orders";
+import { stopRuns, workOrderRoutes } from "./work-orders";
 import { githubRoutes } from "./github-sync";
 import { systemRoutes } from "./connected-systems";
 import { ecosystemRoutesTable } from "./ecosystem";
@@ -47,6 +47,8 @@ import { workflowDocRoutes } from "./workflow-docs";
 
 export type { Problem } from "./answers";
 export { signInAs } from "./session";
+export { joinTopic } from "./realtime";
+export { setStepTime } from "./work-orders";
 
 /** How long each answer takes. Enough to see a pending state, short enough not to drag a demo. */
 let waitMs = 120;
@@ -83,6 +85,7 @@ const routes: Record<string, Handler> = {
   ...workflowDocRoutes,
   // The demo's own: back to the fixtures.
   "POST /api/demo/reset": () => {
+    stopRuns();
     resetDb();
     return noContent();
   },
@@ -171,6 +174,7 @@ export function setWait(ms: number) {
 
 /** For tests: the starting data, nothing set to fail. */
 export function resetFakeApi() {
+  stopRuns();
   resetDb();
   signInAs(null);
   failures.clear();

@@ -7,7 +7,6 @@ import { type WorkflowDocument, isLive } from "../model/workflow-document";
 import type { ProjectDetails } from "../model/projects";
 import { sandboxNames, sandboxSlug } from "../model/sandboxes";
 import { buildStarterWorkflow, workflowGraphs } from "../fixtures/workflow";
-import { simulateRun } from "../fixtures/runs";
 import { apiProjectId, fixtureProject, fixtureWorkflow } from "../fixtures/projects";
 import { apiWorkflowId, seedId } from "../fixtures/ids";
 import { serviceCatalogData } from "../fixtures/service-catalog";
@@ -16,7 +15,7 @@ import Loaded from "../app/Loaded";
 import { useProject } from "../api/projects";
 import { useCreateStepCredential, useCredentialSchemaLoader, useCredentialSchemas, useProjectCredentials } from "../api/credentials";
 import { useAdaptors, useConnectedSystems, useSystemSaves } from "../api/connected-systems";
-import { useDataclips, useRunSaves, useWorkOrders } from "../api/work-orders";
+import { useDataclips, useFollowRun, useFollowWorkflowRuns, useRunSaves, useWorkOrders } from "../api/work-orders";
 import { useDataclipSaves } from "../api/dataclips";
 import { runInputName, savedDataclips } from "../model/dataclips";
 import { useProjectComponents } from "./component-records.query";
@@ -101,9 +100,10 @@ function freeName(taken: string[]): string {
  * in the project's lists from the start. Opened from Create's Build, the
  * prompt rides along in router state and the assistant opens on it.
  *
- * Run history and dataclips are still the fixtures' until runs move to the
- * API, drawn on whichever copy is shown. The selected run is kept in the URL
- * as `?run=<id>`. The feature flags decide what else the editor is handed,
+ * Run history and dataclips are the shown copy's own, from the API. A run
+ * is the server's to run: Run and Retry ask for one, and while the loaded
+ * run is going the socket says how, which brings the history in again. The
+ * selected run is kept in the URL as `?run=<id>`. The feature flags decide what else the editor is handed,
  * as before.
  */
 export default function WorkflowEditorPageQuery() {
@@ -314,6 +314,11 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       },
       { replace: true },
     );
+  // The server runs a run and says how it's going: while the loaded one is still going, each thing it says
+  // brings the history in again, and so does a work order made or run again on this workflow by anyone.
+  const loaded = history.workOrders.flatMap((o) => o.runs).find((r) => r.runId === runId);
+  useFollowRun(loaded?.status === "running" ? runId : undefined);
+  useFollowWorkflowRuns(shown.id);
   const back = () => navigate(`/projects/${root.id}/workflows`);
 
   return (
@@ -324,9 +329,6 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
         return flags.stepTools ? orders : withoutToolResults(orders);
       }, [history, flags.xroad, flags.stepTools])}
       dataclips={history.dataclips}
-      // Lightning's worker runs workflows, so it refuses a run the editor made (docs/api-gaps.md): the run then
-      // stays in the editor, loaded, until it's reopened.
-      onRunFinished={(made, clips, retryOf) => void runSaves.record(shown.project_id, shown.id, made, clips, retryOf).catch(() => undefined)}
       graphForVersion={versionGraph}
       runId={runId}
       onRunChange={setRunId}
@@ -426,7 +428,19 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       publishesServices={flags.serviceCatalog}
       contents={contents}
       codeSummary={codeSummary}
-      onRun={simulateRun}
+      onRun={async ({ fromJobId, input }) => {
+        const trigger = shown.triggers[0];
+        if (!fromJobId && !trigger) throw new Error("This workflow has no trigger to start from.");
+        // A new input given a name is saved under it first, where you can save dataclips, so it can be picked again.
+        const on =
+          input && "body" in input
+            ? input.name && canSaveDataclips
+              ? { dataclipId: (await dataclipSaves.create(shown.project_id, { name: input.name, description: "", body: input.body }, shown.id)).id }
+              : { body: JSON.parse(input.body) as unknown }
+            : input;
+        return announcing(runSaves.start(shown.project_id, shown.id, fromJobId ? { jobId: fromJobId } : { triggerId: trigger!.id }, on), { failure: "Couldn't start the run." });
+      }}
+      onRetryRun={(id, fromJobId) => announcing(runSaves.retryRun(id, fromJobId), { failure: "Couldn't retry the run." })}
       assistantSuggestions={assistantSuggestions}
       onAssistantSend={(prompt, jobLabel, mode) => later(() => assistantReply(prompt, jobLabel, mode))}
       onAssistantCarryOutPlan={(plan) => later(() => assistantPlanResult(plan))}

@@ -123,8 +123,7 @@ path in its hook file.
   `adaptor-reference.ts`; would need a list of adaptors with their
   credential schemas and docs), the assistant's summaries, replies and past
   conversations (`code-summaries.ts`, `assistant.ts`; api/ai-assistant.md
-  plans AI sessions), a run started in the editor (`simulateRun`; would need
-  Lightning's worker behind `POST` a work order), and the
+  plans AI sessions), and the
   starter workflow and channel for "New workflow" from the Services catalog.
 
 - **What isn't running right now** (Overview's Status tile, the Status
@@ -313,8 +312,15 @@ each needs nothing here once Lightning sends it.
   saved inputs to run from. The hooks read a missing list as one empty list
   that stays the same, since the editor takes a new list as new history and
   would drop a run it's in the middle of (it did: Run reverted to the canvas).
-- **Recording a run the editor made** (`run` and `dataclips` on
-  `POST /api/projects/:id/workflows/:id/work_orders`, the demo's stand-in for
-  the worker). Lightning's worker runs workflows, so it refuses the body (422).
-  On Lightning the editor's run plays out and stays loaded, but isn't saved:
-  reopening the workflow or History doesn't show it.
+- **Following a run** (the realtime surface, api/misfits.md: not specified
+  yet). The editor starts a run as api/work-orders.md has it (`job_id` or
+  `trigger_id`, `dataclip_id` or `body`) and retries one with
+  `POST /api/runs/:id/retries`; the server runs it. The fake server announces
+  each step on its socket, with today's Lightning's topics and events
+  (`run:<id>`, `workflow:<id>`); on Lightning there's no socket to join yet,
+  so the editor asks for the history again every two seconds while the run
+  it has loaded is going (`follow` in `src/api/realtime.ts`). Not tried on
+  Lightning: its work orders also come without their runs (`include=runs`,
+  above), so a run started there has no id to load and nothing to follow
+  until that lands. Retrying from the start (`step_id` left out) is Planned
+  in api/runs.md; the fake server answers it as planned.

@@ -23,7 +23,7 @@ import { newDocName } from "../model/workflow-docs";
 import { lifecycleStages, type LifecycleStageId } from "../model/workflow-lifecycle";
 import type { EnvVar, EnvVarDraft } from "../model/env-vars";
 import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../model/runs";
-import type { ActivityPeriod, RunProgress, RunRequest } from "../model/runs";
+import type { ActivityPeriod, RunStart } from "../model/runs";
 import type { AdaptorInfo, AdaptorReference } from "../model/adaptor-reference";
 import type { AdaptorCatalog } from "../model/adaptor-catalog";
 import type { ConnectedSystem } from "../model/connected-systems";
@@ -108,7 +108,6 @@ import { componentTypes } from "../model/component-types";
 const CURRENT_USER = "Jane Doe";
 
 /** How long each step of a simulated run takes, so the run can be watched going. */
-const STEP_TIME_MS = 700;
 
 /** Edits made in this session, on top of the workflow as loaded. */
 interface Edits {
@@ -225,7 +224,9 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
  *
  * Loading a run draws it on the canvas, marks each step in
  * the explorer and fills the Log, Input and Output views for the step in
- * focus. A run started from the editor is drawn live, one step at a time.
+ * focus. A run started from the editor is the server's to run: the page asks
+ * for it (`onRun`), loads the run it's told was started, and draws it as
+ * `workOrders` brings each step in.
  * When the run took place on an older version, a banner offers to view the
  * version that ran. With a run selected the run button becomes Retry.
  *
@@ -235,8 +236,8 @@ function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record
  */
 export default function WorkflowEditorPage({
   workflow,
-  workOrders: initialWorkOrders = [],
-  dataclips: initialDataclips = [],
+  workOrders: orders = [],
+  dataclips: clips = [],
   graphForVersion,
   runId,
   onRunChange,
@@ -294,7 +295,7 @@ export default function WorkflowEditorPage({
   onAssistantCarryOutPlan,
   assistantPrompt,
   onSaveWorkflow,
-  onRunFinished,
+  onRetryRun,
   live,
   onToggleLive,
   onPromote,
@@ -435,11 +436,17 @@ export default function WorkflowEditorPage({
   /** What the assistant says a step's code does, one point per thing it does, for the inspector. */
   codeSummary?: (step: JobNode) => string[];
   /**
-   * Runs the workflow: the run as it stands once `progress` steps have finished, or done when
-   * `progress` is unset. Called to start a run and again for each step, to follow it live.
-   * Synchronous, so a run shows the moment it's started. Without it nothing runs.
+   * Starts a run of the workflow as it's saved: from the start or from a step, on a dataclip, a new
+   * input or `{}`. Resolves with the run the server started, which the page loads; `workOrders` and
+   * `dataclips` then bring it in, a step at a time. Rejects when it couldn't start; the caller has
+   * said why. Without it nothing runs.
    */
-  onRun?: (request: RunRequest) => RunProgress;
+  onRun?: (start: RunStart) => Promise<{ runId?: string }>;
+  /**
+   * Runs a run's input again, as another run of its work order: from one of its steps (by the step's
+   * job) or from the start. Resolves and rejects as `onRun` does.
+   */
+  onRetryRun?: (runId: string, fromJobId?: string) => Promise<{ runId?: string }>;
   /** Suggested first questions for the assistant. */
   assistantSuggestions?: AssistantSuggestions;
   /** Sends a message to the assistant; resolves with its reply. */
@@ -456,12 +463,6 @@ export default function WorkflowEditorPage({
    * Without it, edits last as long as the page.
    */
   onSaveWorkflow?: (graph: Workflow) => Promise<void>;
-  /**
-   * A run started here has finished: the run, the dataclips it used and made
-   * (its input first), and whether it's another run of a work order that was
-   * already there (a retry). The caller keeps it, so History has it too.
-   */
-  onRunFinished?: (run: RunDetails, dataclips: Dataclip[], retryOf?: string) => void;
   /** Whether the workflow's trigger is on. */
   live: boolean;
   /** Turns the workflow's trigger on or off. A refusal shows in the status bar. */
@@ -483,7 +484,7 @@ export default function WorkflowEditorPage({
   onCreateSandbox: (draft: SandboxDraft) => Promise<void>;
   /** Where promoting the selected sandbox takes its changes: its parent. Main when left out. */
   promoteTarget?: string;
-  /** Saves a new dataclip in the project, to run with; resolves with it. Without it, it lasts as long as the page. */
+  /** Saves a new dataclip in the project, to run with; resolves with it, and `dataclips` then has it. Left out where you can't. */
   onCreateDataclip?: (draft: DataclipDraft) => Promise<Dataclip>;
   /** Changes a saved dataclip's title and description. Without it, the change lasts as long as the page. */
   onSaveDataclip?: (id: string, changes: DataclipChanges) => Promise<void>;
@@ -586,6 +587,8 @@ export default function WorkflowEditorPage({
   useEffect(() => {
     if (!onSaveWorkflow || onMain || (edits === noEdits && name === workflow.name)) return;
     const timer = setTimeout(() => {
+      // A run about to start is saving them itself.
+      if (starting.current) return;
       const saving = edits;
       onSaveWorkflow(applyEdits(workflow, saving, name, adaptors.info)).then(
         () => {
@@ -600,21 +603,7 @@ export default function WorkflowEditorPage({
 
   // ---- Runs -----------------------------------------------------------------
 
-  const [orders, setOrders] = useState(initialWorkOrders);
-  const [clips, setClips] = useState(initialDataclips);
-  // When the caller's history changes (a run recorded, a retry from History, another copy shown), it's the truth again.
-  const [givenOrders, setGivenOrders] = useState(initialWorkOrders);
-  if (givenOrders !== initialWorkOrders) {
-    setGivenOrders(initialWorkOrders);
-    setOrders(initialWorkOrders);
-  }
-  const [givenClips, setGivenClips] = useState(initialDataclips);
-  if (givenClips !== initialDataclips) {
-    setGivenClips(initialDataclips);
-    setClips(initialDataclips);
-  }
   const setRunId = onRunChange;
-
   const selectedRun = orders.flatMap((o) => o.runs).find((r) => r.runId === runId);
   const runVersionKnown = selectedRun !== undefined && versions.some((v) => v.id === selectedRun.version);
   const showMismatch = runVersionKnown && viewingVersion !== undefined && selectedRun!.version !== viewingVersion;
@@ -773,83 +762,55 @@ export default function WorkflowEditorPage({
     });
   };
 
-  /** Put a run at the top of its work order, and its work order at the top. */
-  const upsertRun = (run: RunDetails) => {
-    setOrders((current) => {
-      const existing = current.find((o) => o.id === run.workOrderId);
-      const runs = [run, ...(existing?.runs.filter((r) => r.runId !== run.runId) ?? [])];
-      const order = { id: run.workOrderId, status: run.status, lastActivity: run.when, runs };
-      return [order, ...current.filter((o) => o.id !== run.workOrderId)];
-    });
-  };
+  // A run being started: a second press waits for the first, and the save that goes before it is the only one.
+  const starting = useRef(false);
 
-  /** Dataclips a running run has produced so far join the project as they arrive. */
-  const addClips = (incoming: Dataclip[]) =>
-    setClips((current) => [...current, ...incoming.filter((d) => !current.some((c) => c.id === d.id))]);
-
-  // Timers advancing simulated runs, stopped if the editor goes away mid-run.
-  const runTimers = useRef<ReturnType<typeof setInterval>[]>([]);
-  useEffect(() => () => runTimers.current.forEach(clearInterval), []);
-
-  /** Start a run on the latest version and follow it live, a step at a time, until its results are in. */
-  const startRun = ({ workOrderId, input, fromJobId }: { workOrderId: string; input: Dataclip; fromJobId?: string }) => {
-    if (!onRun) return;
-    const retryOf = orders.some((o) => o.id === workOrderId) ? workOrderId : undefined;
-    const made: Dataclip[] = [];
-    const latest = applyEdits(workflow, edits, name, adaptors.info);
-    const args = {
-      workflow: latest,
-      version: latestVersion ?? "draft",
-      input,
-      workOrderId,
-      runId: shortId(),
-      fromJobId: latest.nodes.some((n) => n.id === fromJobId) ? fromJobId : undefined,
-      startedBy: CURRENT_USER,
-    };
-    const started = onRun({ ...args, progress: 0 });
-    upsertRun(started.run);
-    setVersion("latest");
-    setRunId(args.runId);
-    updateLayout({ detailsView: "io" });
-    if (view === "code" && layout.panel && focusJob) showPanel("log");
-    let progress = 0;
-    const timer = setInterval(() => {
-      progress += 1;
-      const next = progress < started.run.steps.length ? onRun({ ...args, progress }) : onRun(args);
-      upsertRun(next.run);
-      addClips(next.dataclips);
-      made.push(...next.dataclips.filter((d) => !made.some((m) => m.id === d.id)));
-      if (next.run.status !== "running") {
-        clearInterval(timer);
-        runTimers.current = runTimers.current.filter((t) => t !== timer);
-        onRunFinished?.(next.run, [input, ...made.filter((d) => d.id !== input.id)], retryOf);
+  /**
+   * Starts a run and loads it. Edits not yet saved go first, since the server runs the workflow as
+   * it's saved: a refused save shows in the status bar, as any does, and nothing runs. A refused run
+   * loads nothing; the caller says why.
+   */
+  const startRun = async (ask: () => Promise<{ runId?: string }> | undefined) => {
+    if (starting.current) return;
+    starting.current = true;
+    try {
+      if (onSaveWorkflow && !onMain && (edits !== noEdits || name !== workflow.name)) {
+        const saving = edits;
+        try {
+          await onSaveWorkflow(applyEdits(workflow, saving, name, adaptors.info));
+        } catch (e) {
+          return setStatusNote(`Not saved: ${firstProblemOf(e)}`);
+        }
+        setStatusNote(undefined);
+        setEdits((current) => (current === saving ? noEdits : current));
       }
-    }, STEP_TIME_MS);
-    runTimers.current.push(timer);
+      const started = await ask();
+      if (!started) return;
+      setVersion("latest");
+      if (started.runId) setRunId(started.runId);
+      updateLayout({ detailsView: "io" });
+      if (view === "code" && layout.panel && focusJob) showPanel("log");
+    } catch {
+      // Refused: the caller said why, and no run is loaded.
+    } finally {
+      starting.current = false;
+    }
   };
 
-  /** Keep a new input in the project so it can be picked again. */
-  const addInput = (body: string, inputName?: string): Dataclip => {
-    const clip: Dataclip = { id: shortId(), type: "saved_input", body, name: inputName, created: "just now" };
-    setClips((current) => [clip, ...current]);
-    return clip;
-  };
-
-  const runFresh = (fromJobId?: string) => startRun({ workOrderId: shortId(), input: addInput("{}"), fromJobId });
+  const runFresh = (fromJobId?: string) => void startRun(() => onRun?.({ fromJobId: graph.nodes.some((n) => n.id === fromJobId) ? fromJobId : undefined }));
 
   const runWithInput = (input: RunInput) => {
     setRunInputOpen(false);
-    const clip =
-      input.kind === "existing" ? input.dataclip : input.kind === "new" ? addInput(input.body, input.name) : addInput("{}");
-    startRun({ workOrderId: shortId(), input: clip });
+    void startRun(() =>
+      onRun?.({ input: input.kind === "existing" ? { dataclipId: input.dataclip.id } : input.kind === "new" ? { body: input.body, name: input.name } : undefined }),
+    );
   };
 
   /** Run the selected run's input again: from the step in focus, or from the start. */
   const retry = () => {
     if (!selectedRun) return;
-    const input = clips.find((d) => d.id === (focusStep ? focusStep.inputId : selectedRun.inputId));
-    if (!input) return;
-    startRun({ workOrderId: selectedRun.workOrderId, input, fromJobId: focusStep?.jobId });
+    const run = selectedRun;
+    void startRun(() => onRetryRun?.(run.runId, focusStep?.jobId));
   };
 
   const retryControl =
@@ -1104,22 +1065,19 @@ export default function WorkflowEditorPage({
 
   /** Save a new dataclip in the project and open Saved dataclips, where it now shows. */
   const createDataclip = async (draft: DataclipDraft) => {
-    const made: Dataclip = onCreateDataclip
-      ? await onCreateDataclip(draft)
-      : { id: shortId(), type: "saved_input", created: "just now", ...draft, description: draft.description || undefined };
-    setClips((current) => [made, ...current.filter((c) => c.id !== made.id)]);
+    if (!onCreateDataclip) return;
+    await onCreateDataclip(draft);
     addFile("dataclips");
     openFile("dataclips");
   };
 
   const saveDataclip = async (id: string, changes: DataclipChanges) => {
     await onSaveDataclip?.(id, changes);
-    setClips((current) => current.map((c) => (c.id === id ? { ...c, name: changes.name, description: changes.description || undefined } : c)));
   };
 
   /** Run the workflow with a saved dataclip, and show its log under the list. */
   const runSaved = (clip: Dataclip) => {
-    startRun({ workOrderId: shortId(), input: clip });
+    void startRun(() => onRun?.({ input: { dataclipId: clip.id } }));
     showPanel("log");
   };
 

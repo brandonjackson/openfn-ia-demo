@@ -1,9 +1,8 @@
-import { sandboxSlug, type SandboxDraft } from "../model/sandboxes";
-import { errorMessageOf, firstProblemOf } from "../model/form-error";
+import { sandboxSlug, type SandboxDraft } from "../../model/sandboxes";
+import { errorMessageOf } from "../../model/form-error";
 import { useEffect, useRef, useState } from "react";
 import { BookOpen, Database, FilePlus, FileText, FlaskConical, Sparkles } from "lucide-react";
 import type {
-  AdaptorKind,
   Dataclip,
   JobNode,
   RunDetails,
@@ -14,23 +13,24 @@ import type {
   WorkflowNode,
   WorkflowVersion,
   WorkOrder,
-} from "../model/workflow";
-import { defaultWorkflowSettings, stepDeleteBlockedReason, workflowToYaml } from "../model/workflow";
-import type { WorkflowSettings } from "../model/workflow";
-import { placeAfter, ROW_GAP } from "../model/step-placement";
-import { counterpartNodeId, workflowChanges, type WorkflowChange } from "../model/workflow-changes";
-import { newDocName } from "../model/workflow-docs";
-import { lifecycleStages, type LifecycleStageId } from "../model/workflow-lifecycle";
-import type { EnvVar, EnvVarDraft } from "../model/env-vars";
-import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../model/runs";
-import type { ActivityPeriod, RunStart } from "../model/runs";
-import type { AdaptorInfo, AdaptorReference } from "../model/adaptor-reference";
-import type { AdaptorCatalog } from "../model/adaptor-catalog";
-import type { ConnectedSystem } from "../model/connected-systems";
-import { ENVIRONMENTS, type CredentialDraft, type CredentialSchema, type CredentialSchemaSummary, type ProjectOption } from "../model/credentials";
-import { stepMissingCredential } from "../model/step-credentials";
-import CredentialFormModal from "../components/domain/CredentialFormModal";
-import { serviceStepBody, type StepService } from "../model/services";
+} from "../../model/workflow";
+import { defaultWorkflowSettings, stepDeleteBlockedReason, workflowToYaml } from "../../model/workflow";
+import type { WorkflowSettings } from "../../model/workflow";
+import { counterpartNodeId, workflowChanges, type WorkflowChange } from "../../model/workflow-changes";
+import { withCode, withEdge, withStep, withStepAfter, withStepAtEnd, withTool, withoutStep, type NewStep } from "../../model/workflow-edits";
+import { useWorkflowEdits } from "./use-workflow-edits";
+import { newDocName } from "../../model/workflow-docs";
+import { lifecycleStages, type LifecycleStageId } from "../../model/workflow-lifecycle";
+import type { EnvVar, EnvVarDraft } from "../../model/env-vars";
+import { failureReasons, filterWorkOrders, runActivity, shortId, workflowHealth } from "../../model/runs";
+import type { ActivityPeriod, RunStart } from "../../model/runs";
+import type { AdaptorReference } from "../../model/adaptor-reference";
+import type { AdaptorCatalog } from "../../model/adaptor-catalog";
+import type { ConnectedSystem } from "../../model/connected-systems";
+import { ENVIRONMENTS, type CredentialDraft, type CredentialSchema, type CredentialSchemaSummary, type ProjectOption } from "../../model/credentials";
+import { stepMissingCredential } from "../../model/step-credentials";
+import CredentialFormModal from "../../components/domain/CredentialFormModal";
+import { serviceStepBody, type StepService } from "../../model/services";
 import type {
   AssistantConversation,
   AssistantMessage,
@@ -38,145 +38,74 @@ import type {
   AssistantPlan,
   AssistantReference,
   AssistantSuggestions,
-} from "../model/assistant";
-import type { ProjectComponent, ProjectService } from "../model/projects";
-import EditorShell from "../components/patterns/EditorShell";
-import CanvasLayout from "../components/patterns/CanvasLayout";
-import CodeLayout from "../components/patterns/CodeLayout";
-import EditorTray from "../components/patterns/EditorTray";
-import EditorTopBar from "../components/patterns/EditorTopBar";
-import EditorToolbar from "../components/domain/EditorToolbar";
-import EnvVarsView from "../components/domain/EnvVarsView";
-import type { EditorView } from "../components/domain/EditorToolbar";
-import type { WorkflowMenuAction } from "../components/domain/WorkflowFileMenu";
-import EditorPanel from "../components/patterns/EditorPanel";
-import LayoutMenu from "../components/domain/LayoutMenu";
-import { useEditorLayout, resetLayout } from "../components/domain/editor-layout";
-import type { EditorLayout, PanelViewId } from "../components/domain/editor-layout";
-import WorkflowCanvas from "../components/domain/WorkflowCanvas";
-import type { NodeAction } from "../components/domain/WorkflowNodeCard";
-import CodeWorkspace from "../components/domain/CodeWorkspace";
-import type { ExplorerFile, WorkflowFileKind } from "../components/domain/EditorExplorer";
-import VersionMismatchBanner from "../components/domain/VersionMismatchBanner";
-import StepRunDetails from "../components/domain/StepRunDetails";
-import StepInspector from "../components/domain/StepInspector";
-import { panelViews, type RunDataSection } from "../components/domain/panel-views";
-import CanvasRunsBar from "../components/domain/CanvasRunsBar";
-import ReadOnlyNotice from "../components/domain/ReadOnlyNotice";
-import FailureBreakdown from "../components/domain/FailureBreakdown";
-import type { FailureScope } from "../components/domain/FailureBreakdown";
-import RunHistoryList from "../components/domain/RunHistoryList";
-import type { StepChanges } from "../components/domain/StepConfigPanel";
-import EdgeInspector, { type EdgeChanges } from "../components/domain/EdgeInspector";
-import AIAssistantPanel from "../components/domain/AIAssistantPanel";
-import RunLabel from "../components/domain/RunLabel";
-import RunInputModal from "../components/domain/RunInputModal";
-import type { RunInput } from "../components/domain/RunInputModal";
-import SandboxFormModal from "../components/domain/SandboxFormModal";
-import PromoteSandboxModal from "../components/domain/PromoteSandboxModal";
-import ConfirmModal from "../components/primitives/ConfirmModal";
-import Modal from "../components/primitives/Modal";
-import type { ProjectComponentType } from "../model/component-types";
-import AddComponentPanel, { type AddComponentOption } from "../components/domain/AddComponentPanel";
-import SavedDataclipsView from "../components/domain/SavedDataclipsView";
-import DataclipFormModal from "../components/domain/DataclipFormModal";
-import TestCasesView from "../components/domain/TestCasesView";
-import TestCaseFormModal from "../components/domain/TestCaseFormModal";
-import { draftOf, testGenerationReply, testTally, untitledTestName, type TestCase, type TestCaseDraft, type TestGeneration, type TestResult } from "../model/test-cases";
-import { savedDataclips, untitledDataclipName, type DataclipChanges, type DataclipDraft } from "../model/dataclips";
-import WorkflowHealth from "../components/domain/WorkflowHealth";
-import WorkflowStages, { type StageLink } from "../components/domain/WorkflowStages";
-import ChannelView from "../components/domain/ChannelView";
-import WorkflowDocView from "../components/domain/WorkflowDocView";
-import ComponentView from "../components/domain/ComponentView";
-import CollectionView from "../components/domain/CollectionView";
-import ComponentFormModal from "../components/domain/ComponentFormModal";
-import ChannelFormModal from "../components/domain/ChannelFormModal";
-import CollectionNameModal from "../components/domain/CollectionNameModal";
-import { isContentComponentType, type ComponentDraft, type ContentComponentType } from "../model/project-components";
-import type { ChannelDraft } from "../model/channels";
-import ConnectSystemPicker from "../components/domain/ConnectSystemPicker";
-import type { ConnectChoice } from "../components/domain/ConnectSystemPicker";
-import AddConnectedSystemFlow, { type NewSystemInput } from "../components/domain/AddConnectedSystemFlow";
-import ReportOutcomeView from "../components/domain/ReportOutcomeView";
-import ApprovalStepView from "../components/domain/ApprovalStepView";
-import { newStepTool, newStepToolLabel, toolBody, toolSummary, type StepTool, type StepToolKind } from "../model/step-tools";
-import type { Adaptor } from "../model/adaptors";
-import { componentTypes } from "../model/component-types";
+} from "../../model/assistant";
+import type { ProjectComponent, ProjectService } from "../../model/projects";
+import EditorShell from "../../components/patterns/EditorShell";
+import CanvasLayout from "../../components/patterns/CanvasLayout";
+import CodeLayout from "../../components/patterns/CodeLayout";
+import EditorTray from "../../components/patterns/EditorTray";
+import EditorTopBar from "../../components/patterns/EditorTopBar";
+import EditorToolbar from "../../components/domain/EditorToolbar";
+import EnvVarsView from "../../components/domain/EnvVarsView";
+import type { EditorView } from "../../components/domain/EditorToolbar";
+import type { WorkflowMenuAction } from "../../components/domain/WorkflowFileMenu";
+import EditorPanel from "../../components/patterns/EditorPanel";
+import LayoutMenu from "../../components/domain/LayoutMenu";
+import { useEditorLayout, resetLayout } from "../../components/domain/editor-layout";
+import type { EditorLayout, PanelViewId } from "../../components/domain/editor-layout";
+import WorkflowCanvas from "../../components/domain/WorkflowCanvas";
+import type { NodeAction } from "../../components/domain/WorkflowNodeCard";
+import CodeWorkspace from "../../components/domain/CodeWorkspace";
+import type { ExplorerFile, WorkflowFileKind } from "../../components/domain/EditorExplorer";
+import VersionMismatchBanner from "../../components/domain/VersionMismatchBanner";
+import StepRunDetails from "../../components/domain/StepRunDetails";
+import StepInspector from "../../components/domain/StepInspector";
+import { panelViews, type RunDataSection } from "../../components/domain/panel-views";
+import CanvasRunsBar from "../../components/domain/CanvasRunsBar";
+import ReadOnlyNotice from "../../components/domain/ReadOnlyNotice";
+import FailureBreakdown from "../../components/domain/FailureBreakdown";
+import type { FailureScope } from "../../components/domain/FailureBreakdown";
+import RunHistoryList from "../../components/domain/RunHistoryList";
+import type { StepChanges } from "../../components/domain/StepConfigPanel";
+import EdgeInspector, { type EdgeChanges } from "../../components/domain/EdgeInspector";
+import AIAssistantPanel from "../../components/domain/AIAssistantPanel";
+import RunLabel from "../../components/domain/RunLabel";
+import RunInputModal from "../../components/domain/RunInputModal";
+import type { RunInput } from "../../components/domain/RunInputModal";
+import SandboxFormModal from "../../components/domain/SandboxFormModal";
+import PromoteSandboxModal from "../../components/domain/PromoteSandboxModal";
+import ConfirmModal from "../../components/primitives/ConfirmModal";
+import Modal from "../../components/primitives/Modal";
+import type { ProjectComponentType } from "../../model/component-types";
+import AddComponentPanel, { type AddComponentOption } from "../../components/domain/AddComponentPanel";
+import SavedDataclipsView from "../../components/domain/SavedDataclipsView";
+import DataclipFormModal from "../../components/domain/DataclipFormModal";
+import TestCasesView from "../../components/domain/TestCasesView";
+import TestCaseFormModal from "../../components/domain/TestCaseFormModal";
+import { draftOf, testGenerationReply, testTally, untitledTestName, type TestCase, type TestCaseDraft, type TestGeneration, type TestResult } from "../../model/test-cases";
+import { savedDataclips, untitledDataclipName, type DataclipChanges, type DataclipDraft } from "../../model/dataclips";
+import WorkflowHealth from "../../components/domain/WorkflowHealth";
+import WorkflowStages, { type StageLink } from "../../components/domain/WorkflowStages";
+import ChannelView from "../../components/domain/ChannelView";
+import WorkflowDocView from "../../components/domain/WorkflowDocView";
+import ComponentView from "../../components/domain/ComponentView";
+import CollectionView from "../../components/domain/CollectionView";
+import ComponentFormModal from "../../components/domain/ComponentFormModal";
+import ChannelFormModal from "../../components/domain/ChannelFormModal";
+import CollectionNameModal from "../../components/domain/CollectionNameModal";
+import { isContentComponentType, type ComponentDraft, type ContentComponentType } from "../../model/project-components";
+import type { ChannelDraft } from "../../model/channels";
+import ConnectSystemPicker from "../../components/domain/ConnectSystemPicker";
+import type { ConnectChoice } from "../../components/domain/ConnectSystemPicker";
+import AddConnectedSystemFlow, { type NewSystemInput } from "../../components/domain/AddConnectedSystemFlow";
+import ReportOutcomeView from "../../components/domain/ReportOutcomeView";
+import ApprovalStepView from "../../components/domain/ApprovalStepView";
+import { newStepTool, newStepToolLabel, toolBody, toolSummary, type StepTool, type StepToolKind } from "../../model/step-tools";
+import type { Adaptor } from "../../model/adaptors";
+import { componentTypes } from "../../model/component-types";
 
 /** Who starts runs and retries in the prototype. */
 const CURRENT_USER = "Jane Doe";
-
-/** How long each step of a simulated run takes, so the run can be watched going. */
-
-/** Edits made in this session, on top of the workflow as loaded. */
-interface Edits {
-  labels: Record<string, string>;
-  adaptors: Record<string, AdaptorKind>;
-  bodies: Record<string, string>;
-  credentials: Record<string, string | undefined>;
-  /** The connected system each step talks to, where it was changed. */
-  systems: Record<string, string | undefined>;
-  /** A tool step's settings, where they were changed. */
-  tools: Record<string, StepTool>;
-  removed: string[];
-  added: JobNode[];
-  /** The edges into added steps. */
-  addedEdges: WorkflowEdge[];
-  /** Existing edges pointed at a different step, by edge id: the trigger's, when a step goes in after it. */
-  retargeted: Record<string, string>;
-  /** Where steps were moved to, by id: those below a step put in after the trigger move down a row. */
-  positions: Record<string, { x: number; y: number }>;
-  /** Changes to paths, by edge id: their condition, expression, label and whether they're on. */
-  edges: Record<string, EdgeChanges>;
-}
-
-const noEdits: Edits = {
-  labels: {},
-  adaptors: {},
-  bodies: {},
-  credentials: {},
-  systems: {},
-  tools: {},
-  removed: [],
-  added: [],
-  addedEdges: [],
-  retargeted: {},
-  positions: {},
-  edges: {},
-};
-
-/** The workflow with this session's edits applied; `info` gives a re-adaptored step its package. */
-function applyEdits(workflow: Workflow, edits: Edits, name: string, info: Record<AdaptorKind, AdaptorInfo>): Workflow {
-  // Edits already saved are in the workflow too: adding them again changes nothing.
-  const added = edits.added.filter((a) => !workflow.nodes.some((n) => n.id === a.id));
-  const addedEdges = edits.addedEdges.filter((a) => !workflow.edges.some((e) => e.id === a.id));
-  const nodes: WorkflowNode[] = [...workflow.nodes, ...added]
-    .filter((n) => !edits.removed.includes(n.id))
-    .map((n) => {
-      if (n.type !== "job") return n;
-      const adaptor = edits.adaptors[n.id] ?? n.adaptor;
-      // A tool step's settings, changed: the code it runs as and its summary follow them.
-      const tool = edits.tools[n.id];
-      return {
-        ...n,
-        ...(tool && { tool, body: toolBody(tool), summary: toolSummary(tool) }),
-        ...edits.positions[n.id],
-        label: edits.labels[n.id] ?? n.label,
-        adaptor,
-        adaptorPackage: info[adaptor]?.package ?? n.adaptorPackage,
-        body: tool ? toolBody(tool) : (edits.bodies[n.id] ?? n.body),
-        system: n.id in edits.systems ? edits.systems[n.id] : n.system,
-        credentialId: n.id in edits.credentials ? edits.credentials[n.id] : n.credentialId,
-      };
-    });
-  const ids = new Set(nodes.map((n) => n.id));
-  const edges = [...workflow.edges, ...addedEdges]
-    .map((e) => (e.id in edits.retargeted ? { ...e, target: edits.retargeted[e.id] } : e))
-    .map((e) => (e.id in edits.edges ? { ...e, ...edits.edges[e.id] } : e))
-    .filter((e) => ids.has(e.source) && ids.has(e.target));
-  return { ...workflow, name, nodes, edges };
-}
 
 /**
  * The workflow editor: one toolbar, two views, and an IDE-style layout of
@@ -552,54 +481,29 @@ export default function WorkflowEditorPage({
     const value = typeof next === "function" ? next(live) : next;
     void onToggleLive(value).catch((e: unknown) => setStatusNote(errorMessageOf(e)));
   };
-  const [name, setName] = useState(workflow.name);
   const [settings, setSettings] = useState<WorkflowSettings>(() => defaultWorkflowSettings(workflow));
-  const [edits, setEdits] = useState<Edits>(noEdits);
   const [statusNote, setStatusNote] = useState<string>();
-  const edit = (patch: (e: Edits) => Partial<Edits>) => setEdits((e) => ({ ...e, ...patch(e) }));
+  // Unsaved work: in a sandbox it's saved a moment after each change. On another copy of the workflow (another
+  // sandbox, or main), what's open stays open: the same step (or trigger) in the new copy, found by name since
+  // ids differ between copies, or the default where the new copy hasn't got it.
+  const { edits, change, name, setName, latest, saveNow } = useWorkflowEdits({
+    workflow,
+    info: adaptors.info,
+    onSave: onMain ? undefined : onSaveWorkflow,
+    onNote: setStatusNote,
+    onOtherCopy: (previous) => {
+      const counterpart = (id: string) => counterpartNodeId(previous, workflow, id);
+      if (typeof file === "object" && "stepId" in file) {
+        const id = counterpart(file.stepId);
+        setFile(id ? { stepId: id } : fallbackFile);
+      }
+      if (selectedId) setSelectedId(counterpart(selectedId));
+    },
+  });
 
   // The graph on the canvas: the latest with this session's edits, or an earlier version being viewed.
-  const graph =
-    version === "latest"
-      ? applyEdits(workflow, edits, name, adaptors.info)
-      : (graphForVersion?.(version) ?? applyEdits(workflow, edits, name, adaptors.info));
+  const graph = version === "latest" ? latest : (graphForVersion?.(version) ?? latest);
   const viewingVersion = version === "latest" ? latestVersion : version;
-
-  // Another copy of the workflow (another sandbox, or main): its own edits start afresh.
-  // What's open stays open: the same step (or trigger) in the new copy, found by name since ids differ
-  // between copies, or the default where the new copy hasn't got it.
-  const [shownWorkflow, setShownWorkflow] = useState(workflow);
-  if (shownWorkflow.id !== workflow.id) {
-    const previous = applyEdits(shownWorkflow, edits, name, adaptors.info);
-    const counterpart = (id: string) => counterpartNodeId(previous, workflow, id);
-    setShownWorkflow(workflow);
-    setEdits(noEdits);
-    setName(workflow.name);
-    if (typeof file === "object" && "stepId" in file) {
-      const id = counterpart(file.stepId);
-      setFile(id ? { stepId: id } : fallbackFile);
-    }
-    if (selectedId) setSelectedId(counterpart(selectedId));
-  }
-
-  // In a sandbox, edits are saved a moment after they're made. Once saved they're in `workflow`,
-  // so they're cleared here unless more were made meanwhile.
-  useEffect(() => {
-    if (!onSaveWorkflow || onMain || (edits === noEdits && name === workflow.name)) return;
-    const timer = setTimeout(() => {
-      // A run about to start is saving them itself.
-      if (starting.current) return;
-      const saving = edits;
-      onSaveWorkflow(applyEdits(workflow, saving, name, adaptors.info)).then(
-        () => {
-          setStatusNote(undefined);
-          setEdits((current) => (current === saving ? noEdits : current));
-        },
-        (e: unknown) => setStatusNote(`Not saved: ${firstProblemOf(e)}`),
-      );
-    }, 700);
-    return () => clearTimeout(timer);
-  }, [edits, name, workflow, onMain, onSaveWorkflow, adaptors.info]);
 
   // ---- Runs -----------------------------------------------------------------
 
@@ -774,16 +678,7 @@ export default function WorkflowEditorPage({
     if (starting.current) return;
     starting.current = true;
     try {
-      if (onSaveWorkflow && !onMain && (edits !== noEdits || name !== workflow.name)) {
-        const saving = edits;
-        try {
-          await onSaveWorkflow(applyEdits(workflow, saving, name, adaptors.info));
-        } catch (e) {
-          return setStatusNote(`Not saved: ${firstProblemOf(e)}`);
-        }
-        setStatusNote(undefined);
-        setEdits((current) => (current === saving ? noEdits : current));
-      }
+      if (!(await saveNow())) return;
       const started = await ask();
       if (!started) return;
       setVersion("latest");
@@ -863,38 +758,22 @@ export default function WorkflowEditorPage({
 
   // ---- Editing --------------------------------------------------------------
 
-  const changeStep = (stepId: string, changes: StepChanges) =>
-    edit((e) => ({
-      labels: changes.label !== undefined ? { ...e.labels, [stepId]: changes.label } : e.labels,
-      adaptors: changes.adaptor !== undefined ? { ...e.adaptors, [stepId]: changes.adaptor } : e.adaptors,
-      credentials: "credentialId" in changes ? { ...e.credentials, [stepId]: changes.credentialId } : e.credentials,
-      systems: "system" in changes ? { ...e.systems, [stepId]: changes.system } : e.systems,
-    }));
-
-  const changeEdge = (edgeId: string, changes: EdgeChanges) =>
-    edit((e) => ({ edges: { ...e.edges, [edgeId]: { ...e.edges[edgeId], ...changes } } }));
-
-  const changeCode = (stepId: string, body: string) => edit((e) => ({ bodies: { ...e.bodies, [stepId]: body } }));
-
-  const changeTool = (stepId: string, tool: StepTool) => edit((e) => ({ tools: { ...e.tools, [stepId]: tool } }));
+  const changeStep = (stepId: string, changes: StepChanges) => change((e) => withStep(e, stepId, changes));
+  const changeEdge = (edgeId: string, changes: EdgeChanges) => change((e) => withEdge(e, edgeId, changes));
+  const changeCode = (stepId: string, body: string) => change((e) => withCode(e, stepId, body));
+  const changeTool = (stepId: string, tool: StepTool) => change((e) => withTool(e, stepId, tool));
 
   const addStep = () => {
     const id = crypto.randomUUID();
-    const last = graph.nodes.filter((n): n is JobNode => n.type === "job").at(-1);
-    const job: JobNode = {
+    const step: NewStep = {
       id,
       type: "job",
       label: "Untitled step",
       adaptor: "common",
       adaptorPackage: adaptors.info.common.package,
       body: "// Start writing your step here\nfn(state => state);",
-      x: last?.x ?? 490,
-      y: (last?.y ?? 70) + 170,
     };
-    edit((e) => ({
-      added: [...e.added, job],
-      addedEdges: last ? [...e.addedEdges, { id: crypto.randomUUID(), source: last.id, target: id, condition: "on_success" }] : e.addedEdges,
-    }));
+    change((e) => withStepAtEnd(e, graph, step, () => crypto.randomUUID()));
     setFile({ stepId: id });
     setView("code");
   };
@@ -912,11 +791,8 @@ export default function WorkflowEditorPage({
   const [newSystem, setNewSystem] = useState<{ afterId: string; adaptor: string }>();
 
   const addStepAfter = (sourceId: string, choice: ConnectChoice, system?: string) => {
-    const source = graph.nodes.find((n) => n.id === sourceId);
-    if (!source) return;
+    if (!graph.nodes.some((n) => n.id === sourceId)) return;
     const id = crypto.randomUUID();
-    // A new branch re-centres its siblings under the parent, so they sit balanced on either side of it.
-    const placement = placeAfter(graph, source.id);
     // A tool runs on the common adaptor, with settings in place of code.
     const tool = choice.kind === "tool" ? newStepTool(choice.tool) : undefined;
     // A service is called over HTTP, so its step is an HTTP step named for what the service does.
@@ -924,7 +800,7 @@ export default function WorkflowEditorPage({
     // An adaptor the editor has no reference for (one picked while adding a system) still gets a step.
     const info = adaptors.info[adaptor] ?? { ...adaptors.info.common, name: adaptor, package: `@openfn/language-${adaptor}` };
     const firstSnippet = adaptors.snippets[adaptor]?.[0]?.code;
-    const job: JobNode = {
+    const step: NewStep = {
       id,
       type: "job",
       label:
@@ -946,35 +822,9 @@ export default function WorkflowEditorPage({
             ? serviceStepBody(choice.service)
             : `// Connect to ${info.name}\n${firstSnippet ?? "fn(state => state);"}\n`,
       ...(system && { system }),
-      ...placement.position,
     };
-    // A trigger has exactly one edge out of it, so a step added after it goes in between: the trigger's edge
-    // now leads to the new step, which leads on to where the trigger did, and every step below moves down a row.
-    const outOfTrigger = source.type === "trigger" ? graph.edges.filter((e) => e.source === source.id) : [];
-    const firstSteps = outOfTrigger.flatMap((e) => graph.nodes.find((n) => n.id === e.target) ?? []);
-    if (firstSteps.length) {
-      const below = graph.nodes.filter((n) => n.type === "job" && n.y > source.y);
-      edit((e) => ({
-        added: [...e.added, { ...job, x: firstSteps[0].x, y: firstSteps[0].y }],
-        addedEdges: [
-          ...e.addedEdges,
-          ...firstSteps.map((n): WorkflowEdge => ({ id: crypto.randomUUID(), source: id, target: n.id, condition: "on_success" })),
-        ],
-        retargeted: { ...e.retargeted, ...Object.fromEntries(outOfTrigger.map((edge) => [edge.id, id])) },
-        positions: { ...e.positions, ...Object.fromEntries(below.map((n) => [n.id, { x: n.x, y: n.y + ROW_GAP }])) },
-      }));
-      setAddAfterId(undefined);
-      setSelectedId(id);
-      return;
-    }
-    edit((e) => ({
-      added: [...e.added, job],
-      addedEdges: [
-        ...e.addedEdges,
-        { id: crypto.randomUUID(), source: source.id, target: id, condition: source.type === "trigger" ? "always" : "on_success" },
-      ],
-      positions: { ...e.positions, ...placement.moves },
-    }));
+    // Where it goes, and what moves to make room, is the model's (`withStepAfter`).
+    change((e) => withStepAfter(e, graph, sourceId, step, () => crypto.randomUUID()) ?? e);
     setAddAfterId(undefined);
     setSelectedId(id);
   };
@@ -1096,7 +946,7 @@ export default function WorkflowEditorPage({
 
   const deleteStep = (stepId: string) => {
     if (deleteBlocked(stepId)) return;
-    edit((e) => ({ removed: [...e.removed, stepId] }));
+    change((e) => withoutStep(e, stepId));
     if (selectedId === stepId) setSelectedId(undefined);
     if (typeof file === "object" && "stepId" in file && file.stepId === stepId) setFile(fallbackFile);
   };
@@ -1133,9 +983,7 @@ export default function WorkflowEditorPage({
       focusJob ??
       graph.nodes.find((n): n is JobNode => n.type === "job");
     if (!target) return;
-    edit((e) => ({
-      bodies: { ...e.bodies, [target.id]: `// Assistant: ${plan.steps[0]}\n${e.bodies[target.id] ?? target.body}` },
-    }));
+    change((e) => withCode(e, target.id, `// Assistant: ${plan.steps[0]}\n${e.bodies[target.id] ?? target.body}`));
     setStatusNote("Tested by the assistant");
   };
 

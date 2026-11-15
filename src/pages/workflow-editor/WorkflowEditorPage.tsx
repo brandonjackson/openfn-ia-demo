@@ -292,7 +292,7 @@ export default function WorkflowEditorPage({
   fileChanges?: WorkflowChange[];
   /**
    * Saves one of the workflow's docs (context.md, spec.md or one added beside them) by file name, making it if
-   * it's new; `contents` then holds what was saved. Left out, edits last while the editor is open.
+   * it's new; `contents` then holds what was saved. Left out where you can't change them: they're drawn to read.
    */
   onSaveDoc?: (name: string, content: string) => Promise<void>;
   /** Makes a channel from the code explorer's +; resolves with its id, and it opens. Left out where you can't. */
@@ -790,14 +790,9 @@ export default function WorkflowEditorPage({
 
   // The workflow's Markdown files (context.md, spec.md and added docs), opened from the explorer: drawn as they
   // read, with Edit in a sandbox. Each is a file the sandbox keeps, so a save goes to the server (`onSaveDoc`),
-  // where it's one of the sandbox's changes. Without it, an edit is kept while the editor is open, for the
-  // sandbox it was made in.
-  const [docEdits, setDocEdits] = useState<Record<string, string>>({});
-  const docText = (name: string) => docEdits[`${sandbox}/${name}`] ?? contents?.docs[name] ?? (/^(context|spec)\.md$/.test(name) ? "" : `# ${name.replace(/\.md$/, "")}\n`);
-  const saveDoc = async (name: string, text: string) => {
-    if (onSaveDoc) await onSaveDoc(name, text);
-    else setDocEdits((edits) => ({ ...edits, [`${sandbox}/${name}`]: text }));
-  };
+  // where it's one of the sandbox's changes, and `contents` brings it back.
+  const docText = (name: string) => contents?.docs[name] ?? (/^(context|spec)\.md$/.test(name) ? "" : `# ${name.replace(/\.md$/, "")}\n`);
+  const saveDoc = async (name: string, text: string) => void (await onSaveDoc?.(name, text));
   // Docs beside context.md and spec.md: the workflow's own, and any added this session that aren't saved yet.
   const [addedDocs, setAddedDocs] = useState<string[]>([]);
   const docs = [...new Set([...Object.keys(contents?.docs ?? {}), ...addedDocs])].filter((n) => n !== "context.md" && n !== "spec.md");
@@ -820,7 +815,7 @@ export default function WorkflowEditorPage({
       name={openDoc}
       description={docAbout[openDoc] ?? "A doc kept alongside the workflow. The assistant reads it with the context and spec."}
       content={docText(openDoc)}
-      onSave={onMain ? undefined : (text) => saveDoc(openDoc, text)}
+      onSave={onMain || !onSaveDoc ? undefined : (text) => saveDoc(openDoc, text)}
       onEditInSandbox={onMain ? () => setSandboxForm("editInSandbox") : undefined}
     />
   );

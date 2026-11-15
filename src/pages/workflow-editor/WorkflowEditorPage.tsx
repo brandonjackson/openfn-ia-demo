@@ -19,6 +19,7 @@ import type { WorkflowSettings } from "../../model/workflow";
 import { counterpartNodeId, workflowChanges, type WorkflowChange } from "../../model/workflow-changes";
 import { withCode, withEdge, withStep, withStepAfter, withStepAtEnd, withTool, withoutStep, type NewStep } from "../../model/workflow-edits";
 import { useWorkflowEdits } from "./use-workflow-edits";
+import { useEditorPanels } from "./use-editor-panels";
 import { newDocName } from "../../model/workflow-docs";
 import { lifecycleStages, type LifecycleStageId } from "../../model/workflow-lifecycle";
 import type { EnvVar, EnvVarDraft } from "../../model/env-vars";
@@ -51,7 +52,7 @@ import type { EditorView } from "../../components/domain/EditorToolbar";
 import type { WorkflowMenuAction } from "../../components/domain/WorkflowFileMenu";
 import EditorPanel from "../../components/patterns/EditorPanel";
 import LayoutMenu from "../../components/domain/LayoutMenu";
-import { useEditorLayout, resetLayout } from "../../components/domain/editor-layout";
+import { resetLayout } from "../../components/domain/editor-layout";
 import type { EditorLayout, PanelViewId } from "../../components/domain/editor-layout";
 import WorkflowCanvas from "../../components/domain/WorkflowCanvas";
 import type { NodeAction } from "../../components/domain/WorkflowNodeCard";
@@ -529,63 +530,19 @@ export default function WorkflowEditorPage({
 
   // ---- Layout ---------------------------------------------------------------
 
-  const [savedLayout, setLayout] = useEditorLayout();
-  // Stories pin a layout; the app remembers the reader's.
-  // Opened to build something (from Create), the assistant is shown, already working on it.
-  const [override, setOverride] = useState<Partial<EditorLayout>>(() => ({ ...(assistantPrompt && { assistant: true }), ...initialLayout }));
-  const layout: EditorLayout = { ...savedLayout, ...override };
-  const updateLayout = (requested: Partial<EditorLayout>) => {
-    // The panel always opens at its smaller size on the runs tab; it's maximised, or on another view, only on request.
-    const patch = requested.panel && !layout.panel ? { panelMaximized: false, panelView: "runs" as const, ...requested } : requested;
-    setLayout(patch);
-    setOverride((o) => {
-      const next = { ...o };
-      for (const key of Object.keys(patch) as (keyof EditorLayout)[]) delete next[key];
-      return next;
-    });
-  };
-
-  // A page in the code view's main pane (Overview, Health, Saved dataclips, Test cases, Environment variables) opens with the bottom and right panels
-  // hidden, so it has the room. Showing them there lasts until you leave the page, and leaves the
-  // remembered layout alone, so opening a code item brings the panels back as they were.
+  // A page in the code view's main pane (Overview, Health, Saved dataclips, Test cases, Environment variables).
   const isPage = (f: ExplorerFile) => f === "overview" || f === "health" || f === "dataclips" || f === "testCases" || f === "envVars";
-  const onPage = view === "code" && isPage(file);
-  const [pagePanels, setPagePanels] = useState({ panel: false, details: false });
-  const shownLayout: EditorLayout = onPage ? { ...layout, ...pagePanels } : layout;
-  const changeLayout = (patch: Partial<EditorLayout>) => {
-    if (!onPage) return updateLayout(patch);
-    const { panel, details, ...rest } = patch;
-    if (panel !== undefined || details !== undefined) {
-      setPagePanels((p) => ({ panel: panel ?? p.panel, details: details ?? p.details }));
-    }
-    if (Object.keys(rest).length > 0) updateLayout(rest);
-  };
+  // Stories pin a layout; the app remembers the reader's. Opened to build something (from Create), the
+  // assistant is shown, already working on it.
+  const { layout, shownLayout, updateLayout, changeLayout, showPanel, togglePanel, toggleAssistant, hidePagePanels } = useEditorPanels({
+    initial: { ...(assistantPrompt && { assistant: true }), ...initialLayout },
+    onPage: view === "code" && isPage(file),
+    inCode: view === "code",
+  });
   const openFile = (f: ExplorerFile) => {
-    if (isPage(f) && f !== file) setPagePanels({ panel: false, details: false });
+    if (isPage(f) && f !== file) hidePagePanels();
     setFile(f);
   };
-
-  /** Show the panel on a view, e.g. a step's log when a run is loaded. */
-  const showPanel = (panelView: PanelViewId) => changeLayout({ panel: true, panelView });
-  const togglePanel = () => changeLayout({ panel: !shownLayout.panel });
-  const toggleAssistant = () => updateLayout({ assistant: !layout.assistant });
-  const toggleExplorer = () => updateLayout({ explorer: !layout.explorer });
-
-  // IDE-style shortcuts: Ctrl/⌘ + B explorer, J panel, K assistant.
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey)) return;
-      const key = e.key.toLowerCase();
-      if (key === "k") toggleAssistant();
-      else if (key === "j") togglePanel();
-      else if (key === "b" && view === "code") toggleExplorer();
-      else return;
-      e.preventDefault();
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [layout, view, file, pagePanels]);
 
   const selectNode = (node: WorkflowNode) => {
     setSelectedEdgeId(undefined);

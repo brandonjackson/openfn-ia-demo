@@ -30,14 +30,21 @@ const MOCK_NOW = new Date(2026, 9, 20, 10, 0, 0).getTime();
 /** The time run history counts back from: the mock's "now". Runs started after it count as just now. */
 export const activityNow = () => MOCK_NOW;
 
+const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 /**
- * The time a stamp names: the fixtures' "dd/mm/yyyy, HH:MM:SS", or an ISO
- * timestamp as Lightning sends it. The mock's "now" if it's neither.
+ * The time a stamp names: the fixtures' "dd/mm/yyyy, HH:MM:SS", a channel
+ * message's "20 Oct, 09:52" (in the mock's year), or an ISO timestamp as
+ * Lightning sends it. The mock's "now" if it's none of them.
  */
 export function stampTime(stamp: string): number {
   const m = /^(\d{2})\/(\d{2})\/(\d{4}), (\d{2}):(\d{2}):(\d{2})$/.exec(stamp);
-  if (!m) return /^\d{4}-\d{2}-\d{2}T/.test(stamp) ? Date.parse(stamp) : MOCK_NOW;
-  return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5], +m[6]).getTime();
+  if (m) return new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5], +m[6]).getTime();
+  const short = /^(\d{1,2}) ([A-Z][a-z]{2}), (\d{2}):(\d{2})$/.exec(stamp);
+  if (short && monthNames.includes(short[2]!)) {
+    return new Date(new Date(MOCK_NOW).getFullYear(), monthNames.indexOf(short[2]!), +short[1]!, +short[3]!, +short[4]!).getTime();
+  }
+  return /^\d{4}-\d{2}-\d{2}T/.test(stamp) ? Date.parse(stamp) : MOCK_NOW;
 }
 
 /** When a run started. */

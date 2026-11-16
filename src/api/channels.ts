@@ -141,7 +141,7 @@ export function useChannelSaves(projectId: string, credentialLink: (name: string
   };
 }
 
-/** Every request the channels of these projects carried, newest first, as History's channel requests tab lists them. */
+/** Every request the channels of these projects carried, newest first, as History lists them beside the work orders. */
 export function useChannelRequests(projects: { id: string; name: string }[]): { status: LoadStatus; requests: ChannelRequest[] } {
   const ids = projects.map((p) => p.id);
   const query = useQuery({

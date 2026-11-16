@@ -54,3 +54,22 @@ export const WithDetailRow: Story = {
 export const Empty: Story = {
   args: { columns, rows: [], getRowKey: (c) => c.id, emptyMessage: "You have no credentials yet." },
 };
+
+/**
+ * Rows that open on a click (or Enter), with picked rows tinted, a column
+ * that shrinks to its content and one left out on a phone.
+ */
+export const ClickableRows: Story = {
+  args: {
+    columns: [
+      { ...columns[0], shrink: true },
+      { ...columns[1], fill: true },
+      { ...columns[2], hideOnMobile: true },
+    ],
+    rows: userCredentials,
+    getRowKey: (c) => c.id,
+    onRowClick: () => {},
+    selectedKeys: userCredentials.slice(0, 1).map((c) => c.id),
+    rowLabel: (c) => `Credential ${c.name}`,
+  },
+};

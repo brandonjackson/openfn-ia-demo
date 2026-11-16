@@ -1,8 +1,8 @@
 /**
  * History: every work order a project's workflows received, with the runs
- * made for each, and every request its channels carried. The vocabulary for
- * filtering them lives here too, since it is the same whatever server sends
- * the records.
+ * made for each, and every request its channels carried, in one list. The
+ * vocabulary for filtering them and the columns they can show live here too,
+ * since they are the same whatever server sends the records.
  */
 import type { ChannelType } from "./channels";
 import type { Dataclip, RunDetails, RunStatus, WorkOrder } from "./workflow";
@@ -97,16 +97,17 @@ export function matchesSearch(order: HistoryWorkOrder, term: string, fields: His
  * datetime-local values ("2026-10-13T09:00"), in local time.
  */
 export interface HistoryFilters {
-  tab: "work-orders" | "channels";
+  /** Only workflow runs or only channel logs; null is both. */
+  kind: HistoryKind | null;
   /** Words to look for; empty finds everything. */
   search: string;
   /** Where the words are looked for. */
   searchFields: HistorySearchField[];
   /** One project's records, in History across every project. */
   projectId: string | null;
-  /** One workflow's work orders. */
+  /** One workflow's work orders (and no channel's requests). */
   workflowId: string | null;
-  /** Work orders whose latest run ended in any of these; empty is any. */
+  /** Records that ended in any of these (a work order by its latest run, a request by `requestStatus`); empty is any. */
   statuses: RunStatus[];
   /** Work orders whose latest run reported any of these business outcomes (Report outcome); empty is any. */
   outcomes: OutcomeStatus[];
@@ -117,15 +118,13 @@ export interface HistoryFilters {
   activityBefore: string | null;
   /** One work order, from a link to it: shown alone, and opened. */
   workOrderId: string | null;
-  /** One channel's requests. */
+  /** One channel's requests (and no workflow's work orders). */
   channelId: string | null;
-  /** Requests that succeeded (under 400) or failed. */
-  requestStatus: "ok" | "failed" | null;
 }
 
 /** History unfiltered, as it opens. */
 export const defaultHistoryFilters: HistoryFilters = {
-  tab: "work-orders",
+  kind: null,
   search: "",
   searchFields: ["id", "dataclipName"],
   projectId: null,
@@ -138,7 +137,6 @@ export const defaultHistoryFilters: HistoryFilters = {
   activityBefore: null,
   workOrderId: null,
   channelId: null,
-  requestStatus: null,
 };
 
 /** What Received and Last activity offer before a range of your own: Lightning's quick periods. */
@@ -160,6 +158,8 @@ export const lastActivityTime = (order: HistoryWorkOrder) => stampTime(order.wor
 export function matchesFilters(order: HistoryWorkOrder, filters: HistoryFilters, ignoring?: "statuses" | "outcomes"): boolean {
   const f = filters;
   return (
+    f.kind !== "channel" &&
+    !f.channelId &&
     (!f.projectId || order.projectId === f.projectId) &&
     (!f.workflowId || order.workflowId === f.workflowId) &&
     (!f.workOrderId || order.workOrder.id === f.workOrderId) &&
@@ -171,27 +171,50 @@ export function matchesFilters(order: HistoryWorkOrder, filters: HistoryFilters,
   );
 }
 
-/** Whether a channel request passes `filters`: its project, channel, outcome and the search, in any of its words. */
-export function matchesRequestFilters(request: ChannelRequest, filters: HistoryFilters): boolean {
+/**
+ * Whether a channel request passes `filters`: its project, channel, status,
+ * when it happened (for both Received and Last activity) and the search, in
+ * any of its words. A filter only work orders have (a workflow, an outcome, a
+ * work order) leaves every request out.
+ */
+export function matchesRequestFilters(request: ChannelRequest, filters: HistoryFilters, ignoring?: "statuses"): boolean {
   const f = filters;
   const needle = f.search.trim().toLowerCase();
+  const time = requestTime(request);
   return (
+    f.kind !== "workflow" &&
+    !f.workflowId &&
+    !f.workOrderId &&
+    f.outcomes.length === 0 &&
     (!f.projectId || request.projectId === f.projectId) &&
     (!f.channelId || request.channelId === f.channelId) &&
-    (!f.requestStatus || (f.requestStatus === "failed") === request.status >= 400) &&
-    (!needle || [request.channelName, request.endpoint, request.summary, request.runId ?? ""].some((v) => v.toLowerCase().includes(needle)))
+    (ignoring === "statuses" || f.statuses.length === 0 || f.statuses.includes(requestStatus(request))) &&
+    inRange(time, f.receivedAfter, f.receivedBefore) &&
+    inRange(time, f.activityAfter, f.activityBefore) &&
+    (!needle || [request.id, request.channelName, request.endpoint, request.summary, request.runId ?? ""].some((v) => v.toLowerCase().includes(needle)))
   );
 }
 
-/** How many filters narrow the tab that's showing, the search included, to offer clearing them. */
+/** Whether a record passes `filters`, whichever kind it is. */
+export function matchesEntry(entry: HistoryEntry, filters: HistoryFilters, ignoring?: "statuses"): boolean {
+  return entry.kind === "workflow" ? matchesFilters(entry.order, filters, ignoring) : matchesRequestFilters(entry.request, filters, ignoring);
+}
+
+/** How many filters narrow History, the search included, to offer clearing them. */
 export function activeFilterCount(filters: HistoryFilters): number {
   const f = filters;
-  const shared = [f.search.trim(), f.projectId];
-  const own =
-    f.tab === "channels"
-      ? [f.channelId, f.requestStatus]
-      : [f.workflowId, f.workOrderId, f.statuses.length > 0, f.outcomes.length > 0, f.receivedAfter || f.receivedBefore, f.activityAfter || f.activityBefore];
-  return [...shared, ...own].filter(Boolean).length;
+  return [
+    f.search.trim(),
+    f.kind,
+    f.projectId,
+    f.workflowId,
+    f.channelId,
+    f.workOrderId,
+    f.statuses.length > 0,
+    f.outcomes.length > 0,
+    f.receivedAfter || f.receivedBefore,
+    f.activityAfter || f.activityBefore,
+  ].filter(Boolean).length;
 }
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -246,3 +269,60 @@ export interface HistoryWorkflowOption {
   /** Its latest version, so runs on an older one can be told apart. */
   latestVersion: string;
 }
+
+/** What made a record in History: a workflow's run, or a channel's request. */
+export type HistoryKind = "workflow" | "channel";
+
+/**
+ * One row of History, as the database holds it: a work order, or a request
+ * a channel carried. They're separate records, even when a request started a
+ * run, so History lists them side by side.
+ */
+export type HistoryEntry =
+  | { kind: "workflow"; key: string; order: HistoryWorkOrder }
+  | { kind: "channel"; key: string; request: ChannelRequest };
+
+/** When a channel request happened. */
+export const requestTime = (request: ChannelRequest) => stampTime(request.at);
+
+/** A channel request's status in History's words: under 400 it succeeded, otherwise it failed. */
+export const requestStatus = (request: ChannelRequest): RunStatus => (request.status < 400 ? "success" : "failed");
+
+/** When a record last moved: a work order's latest run, or the request itself. */
+export const entryTime = (entry: HistoryEntry) => (entry.kind === "workflow" ? lastActivityTime(entry.order) : requestTime(entry.request));
+
+/** A record's status: a work order's latest run's, or a request's (`requestStatus`). */
+export const entryStatus = (entry: HistoryEntry): RunStatus =>
+  entry.kind === "workflow" ? entry.order.workOrder.status : requestStatus(entry.request);
+
+/** Work orders and channel requests in one list, the most recently active first. */
+export function historyEntries(workOrders: HistoryWorkOrder[], requests: ChannelRequest[]): HistoryEntry[] {
+  return [
+    ...workOrders.map((order): HistoryEntry => ({ kind: "workflow", key: `workflow:${order.workOrder.id}`, order })),
+    ...requests.map((request): HistoryEntry => ({ kind: "channel", key: `channel:${request.id}`, request })),
+  ].sort((a, b) => entryTime(b) - entryTime(a));
+}
+
+/** The columns History can add beyond its own two (the name and the status, which always show). */
+export type HistoryColumnId = "project" | "received" | "outcome" | "runs" | "input" | "system" | "endpoint" | "duration";
+
+/** History's optional columns, grouped by the records that have a value in them. */
+export const historyColumns: { id: HistoryColumnId; label: string; group?: "Workflows" | "Channels" }[] = [
+  { id: "project", label: "Project" },
+  { id: "received", label: "Received" },
+  { id: "outcome", label: "Outcome", group: "Workflows" },
+  { id: "runs", label: "Runs", group: "Workflows" },
+  { id: "input", label: "Input", group: "Workflows" },
+  { id: "system", label: "System", group: "Channels" },
+  { id: "endpoint", label: "Endpoint", group: "Channels" },
+  { id: "duration", label: "Duration", group: "Channels" },
+];
+
+/** A time as History's columns show it, the same for both kinds of record: "20 Oct, 09:40". */
+export function shortTime(time: number): string {
+  const d = new Date(time);
+  return `${d.getDate()} ${months[d.getMonth()]}, ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+/** When a record came in: a work order's received time, or the request's. */
+export const receivedTime = (entry: HistoryEntry) => (entry.kind === "workflow" ? stampTime(entry.order.receivedAt) : requestTime(entry.request));

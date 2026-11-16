@@ -157,7 +157,7 @@ Admin settings. Every row below was opened in a browser on that Lightning.
 | Components | Works | "No components yet": Lightning's seed has no channels or collections, and the demo's own kinds start empty. |
 | Component (a channel, collection or other kind) | Not walked | Nothing to open: Lightning's seed has none, and this walk made no data. |
 | Sandboxes | Works | Only main; Lightning's seed has no sandboxes. Not tried: making one. |
-| History (project, all) | Works with gaps | Draws, with filters and tabs, but lists "No work orders yet" though Lightning has one: work orders come without `workflow_id` (Planned), so each is dropped as belonging to no workflow. Channel requests: none. |
+| History (project, all) | Works with gaps | Draws, with filters, but lists no work orders though Lightning has one: work orders come without `workflow_id` (Planned), so each is dropped as belonging to no workflow. Channel requests: none. |
 | Insights (project, all) | Works with gaps | Zero runs every day, as Overview: no `runs` on Lightning's work orders. Was a blank screen until the seam's fix. |
 | Deployments | Placeholder | The page's description only, on any build. |
 | Settings | Works with gaps | Setup draws Lightning's project, read only ("You cannot modify this project's basic settings") until `permissions`. `GET …/repo_connection` answers 404 as there's no GitHub connection, and the page still draws. Not opened: the other sections. |

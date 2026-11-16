@@ -31,7 +31,7 @@ function Controlled({ initial = {}, acrossProjects = false, showOutcomes = false
   );
 }
 
-/** A project's work orders, nothing filtered yet. */
+/** A project's history, nothing filtered yet. */
 export const Default: Story = { render: () => <Controlled /> };
 
 /** Some filters set, each chip tinted with an × to clear it, and "Clear filters" for all of them. */
@@ -51,8 +51,10 @@ export const OneWorkOrder: Story = {
 /** Across every project, with a project filter. */
 export const AcrossProjects: Story = { render: () => <Controlled acrossProjects /> };
 
-/** The channel requests tab: channel and outcome. */
-export const ChannelRequests: Story = { render: () => <Controlled initial={{ tab: "channels" }} /> };
+/** Only channel logs, from one channel. */
+export const ChannelLogs: Story = {
+  render: () => <Controlled initial={{ kind: "channel", channelId: projectChannelRequests(project)[0]?.channelId ?? null }} />,
+};
 
 /** With tools on: filter by the outcome a Report outcome step recorded. */
 export const ByOutcome: Story = { render: () => <Controlled showOutcomes initial={{ outcomes: ["refused", "needs_follow_up"] }} /> };

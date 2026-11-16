@@ -43,12 +43,21 @@ type ApiWorkOrder = { id: string; attributes: { state: string; workflow_id: stri
 /** Every work order the server has at `path`, across its pages. */
 const serverOrders = (path = `/api/projects/${projectId}/work_orders?include=runs`) => listAll<ApiWorkOrder>(path);
 
-/** The button that opens a work order's row, by its id. */
-const row = (id: string) => screen.findByRole("button", { name: new RegExp(`^Work order ${id},`) }, wait);
+type ApiChannelRequest = { id: string; attributes: { status: number } };
+
+/** Every request the project's channels carried, as the server has them. */
+const serverRequests = () => listAll<ApiChannelRequest>(`/api/projects/${projectId}/channel_requests`);
+
+/** A work order's row, which opens it, by its id. */
+const row = (id: string) => screen.findByRole("row", { name: new RegExp(`^Work order ${id},`) }, wait);
+
+/** The rows showing of one kind. */
+const rowsOf = (kind: "Work order" | "Channel request") => screen.queryAllByRole("row", { name: new RegExp(`^${kind} `) });
 
 // Rendering a project's whole history (and the editor, for "opens a run") takes several seconds in jsdom, near the default 5s under a full run.
 describe("HistoryPageQuery", { timeout: 15000 }, () => {
   beforeEach(() => {
+    localStorage.removeItem("openfn-demo:history-columns");
     setWait(0);
     resetFakeApi();
     forgetCsrfToken();
@@ -56,27 +65,37 @@ describe("HistoryPageQuery", { timeout: 15000 }, () => {
   });
   afterEach(() => setFlag("organizations", true));
 
-  it("lists the project's work orders from the server", async () => {
-    const orders = await serverOrders();
+  it("lists the project's work orders and channel requests from the server, together", async () => {
+    const [orders, requests] = await Promise.all([serverOrders(), serverRequests()]);
     renderAt(projectPath);
-    expect(await screen.findByText(`${orders.length} work orders, newest first`, {}, wait)).toBeTruthy();
-    const shown = screen.getAllByRole("button", { name: /^Work order / }).map((b) => b.getAttribute("aria-label") ?? b.textContent ?? "");
+    await row(orders[0]!.id);
+    const shown = rowsOf("Work order").map((r) => r.getAttribute("aria-label") ?? "");
+    expect(shown).toHaveLength(orders.length);
     for (const o of orders) expect(shown.some((name) => name.startsWith(`Work order ${o.id},`))).toBe(true);
+    expect(rowsOf("Channel request")).toHaveLength(requests.length);
   });
 
   it("reads its filters from the URL", async () => {
-    const orders = await serverOrders();
+    const [orders, requests] = await Promise.all([serverOrders(), serverRequests()]);
     const failed = orders.filter((o) => o.attributes.state === "failed");
     renderAt(`${projectPath}?status=failed`);
-    expect(
-      await screen.findByText(`${failed.length} work order${failed.length === 1 ? "" : "s"} of ${orders.length}, newest first`, {}, wait),
-    ).toBeTruthy();
+    await row(failed[0]!.id);
+    expect(rowsOf("Work order")).toHaveLength(failed.length);
+    expect(rowsOf("Channel request")).toHaveLength(requests.filter((r) => r.attributes.status >= 400).length);
+  });
+
+  it("shows only channel logs for ?type=channel", async () => {
+    const requests = await serverRequests();
+    expect(requests.length).toBeGreaterThan(0);
+    renderAt(`${projectPath}?type=channel`);
+    await waitFor(() => expect(rowsOf("Channel request")).toHaveLength(requests.length), wait);
+    expect(rowsOf("Work order")).toHaveLength(0);
   });
 
   it("retries a work order on the server, which adds a run to it", async () => {
     const [finished] = (await serverOrders()).filter((o) => !["pending", "running"].includes(o.attributes.state));
     renderAt(projectPath);
-    await row(finished!.id);
+    fireEvent.click(await row(finished!.id));
     fireEvent.click(screen.getByRole("button", { name: `Retry work order ${finished!.id}` }));
     expect(await screen.findByText("1 new run enqueued.", {}, wait)).toBeTruthy();
     const after = (await serverOrders()).find((o) => o.id === finished!.id)!;
@@ -86,7 +105,7 @@ describe("HistoryPageQuery", { timeout: 15000 }, () => {
   it("says why when the server refuses a retry", async () => {
     const [finished] = (await serverOrders()).filter((o) => !["pending", "running"].includes(o.attributes.state));
     renderAt(projectPath);
-    await row(finished!.id);
+    fireEvent.click(await row(finished!.id));
     failNext("POST /api/projects/:project_id/work_orders/retries", {
       status: 403,
       code: "forbidden",
@@ -108,8 +127,18 @@ describe("HistoryPageQuery", { timeout: 15000 }, () => {
   it("shows every project's work orders across projects, with no Export", async () => {
     const all = await serverOrders("/api/work_orders?include=runs");
     renderAt("/history");
-    expect(await screen.findByText(new RegExp(`^${all.length} work orders, newest first`), {}, wait)).toBeTruthy();
+    await waitFor(() => expect(rowsOf("Work order")).toHaveLength(all.length), wait);
     expect(screen.queryByRole("button", { name: "Export" })).toBeNull();
+  });
+
+  it("remembers the columns you add", async () => {
+    const [first] = await serverOrders();
+    renderAt(projectPath);
+    await row(first!.id);
+    fireEvent.click(screen.getByRole("button", { name: "Columns" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Endpoint" }));
+    expect(screen.getByRole("columnheader", { name: "Endpoint" })).toBeTruthy();
+    expect(JSON.parse(localStorage.getItem("openfn-demo:history-columns") ?? "[]")).toEqual(["endpoint"]);
   });
 
   it("shows the server's message in the page's place when the work orders fail to load", async () => {

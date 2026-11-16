@@ -14,26 +14,31 @@ import { pageFrame } from "../../app/page-frame";
 import { isOpenable } from "../../model/projects";
 import { outcomeStatuses, withoutToolResults } from "../../model/step-tools";
 import { useFlags } from "../../app/feature-flags";
+import { useHistoryColumns } from "../../app/history-columns";
 
 /**
- * History's filters, from the URL: `?status=failed,cancelled`,
- * `?workflow=<id>`, `?project=<id>`, `?workorder=<id>`, `?q=` with
- * `?in=id,body`, `?received_after=` / `_before=` and `?activity_after=` /
- * `_before=` (datetime-local values), and on the channel requests tab
- * (`?type=channels`; Insights links it as `Channel+Request`) `?channel=` and
- * `?request_status=ok|failed`. With tools on, `?outcome=refused,needs_follow_up`. Anything missing or unknown is left unfiltered.
+ * History's filters, from the URL: `?type=workflow|channel` (Insights links
+ * channel logs as `Channel+Request`), `?status=failed,cancelled`,
+ * `?workflow=<id>` or `?channel=<id>`, `?project=<id>`, `?workorder=<id>`,
+ * `?q=` with `?in=id,body`, `?received_after=` / `_before=` and
+ * `?activity_after=` / `_before=` (datetime-local values). With tools on,
+ * `?outcome=refused,needs_follow_up`. An older link's
+ * `?request_status=ok|failed` reads as a status. Anything missing or unknown
+ * is left unfiltered.
  */
 function filtersFrom(params: URLSearchParams): HistoryFilters {
   const list = (key: string) => (params.get(key) ?? "").split(",").map((v) => v.trim().toLowerCase()).filter(Boolean);
   const fields = historySearchFields.filter((f) => list("in").includes(f.id.toLowerCase())).map((f) => f.id);
+  const type = params.get("type")?.toLowerCase() ?? "";
+  const statuses = historyStatuses.filter((s) => list("status").some((v) => v === s.id || v === s.label.toLowerCase())).map((s) => s.id);
   const requestStatus = params.get("request_status");
   return {
-    tab: params.get("type")?.toLowerCase().startsWith("channel") ? "channels" : "work-orders",
+    kind: type.startsWith("channel") ? "channel" : type.startsWith("workflow") || type.startsWith("work") ? "workflow" : null,
     search: params.get("q") ?? "",
     searchFields: fields.length ? fields : defaultHistoryFilters.searchFields,
     projectId: params.get("project"),
     workflowId: params.get("workflow"),
-    statuses: historyStatuses.filter((s) => list("status").some((v) => v === s.id || v === s.label.toLowerCase())).map((s) => s.id),
+    statuses: statuses.length || !requestStatus ? statuses : requestStatus === "ok" ? ["success"] : requestStatus === "failed" ? ["failed"] : [],
     outcomes: outcomeStatuses.filter((o) => list("outcome").includes(o.id)).map((o) => o.id),
     receivedAfter: params.get("received_after"),
     receivedBefore: params.get("received_before"),
@@ -41,7 +46,6 @@ function filtersFrom(params: URLSearchParams): HistoryFilters {
     activityBefore: params.get("activity_before"),
     workOrderId: params.get("workorder"),
     channelId: params.get("channel"),
-    requestStatus: requestStatus === "ok" || requestStatus === "failed" ? requestStatus : null,
   };
 }
 
@@ -49,7 +53,7 @@ function filtersFrom(params: URLSearchParams): HistoryFilters {
 function paramsFor(filters: HistoryFilters): URLSearchParams {
   const f = filters;
   const entries: [string, string | null][] = [
-    ["type", f.tab === "channels" ? "channels" : null],
+    ["type", f.kind],
     ["q", f.search || null],
     ["in", f.searchFields.join(",") === defaultHistoryFilters.searchFields.join(",") ? null : f.searchFields.join(",")],
     ["project", f.projectId],
@@ -62,14 +66,14 @@ function paramsFor(filters: HistoryFilters): URLSearchParams {
     ["activity_before", f.activityBefore],
     ["workorder", f.workOrderId],
     ["channel", f.channelId],
-    ["request_status", f.requestStatus],
   ];
   return new URLSearchParams(entries.filter((e): e is [string, string] => !!e[1]));
 }
 
 /**
  * Feeds History from the API: one project's work orders and channel
- * requests, or, outside a project, those of every project you can open.
+ * requests, or, outside a project, those of every project you can open,
+ * with the columns you've added (kept by the browser).
  * Retrying (from the start or from a step) adds a run to each work order on
  * the server, on the workflow as it now stands; cancelling stops the runs
  * that haven't started. Every page that shows runs (the editor included)
@@ -93,6 +97,7 @@ export default function HistoryPageQuery({ route }: { route: PageRoute }) {
   const runs = useRunSaves();
   const exports = useHistoryExportSaves(projectId ?? "");
   const announcing = useAnnounceOutcome();
+  const [columns, setColumns] = useHistoryColumns();
 
   const nameOf = (id: string) => scope.find((p) => p.id === id)?.name ?? "";
   const rows: HistoryWorkOrder[] = workOrders
@@ -129,6 +134,8 @@ export default function HistoryPageQuery({ route }: { route: PageRoute }) {
           filters={filters}
           // Each change is a step Back can undo, except typing in the search, which would leave one per letter.
           onFiltersChange={(next) => setSearchParams(paramsFor(next), { replace: next.search !== filters.search })}
+          columns={columns}
+          onColumnsChange={setColumns}
           onRetry={(ids) =>
             announcing(runs.retry(located(ids)), {
               success: { message: `${plural(ids.length, "new run")} enqueued.`, detail: "Open a work order to follow its runs." },

@@ -33,6 +33,8 @@ interface Props {
   nowrap?: boolean;
   /** `status` reads a change out politely, e.g. a count that a search narrows; `alert` reads it out at once, e.g. what a form is missing. */
   role?: "status" | "alert";
+  /** Leaves it out on a phone, where only the essentials fit, e.g. the timing under a status. */
+  hideOnMobile?: boolean;
   /** For a control's `aria-describedby`, e.g. the error under it. */
   id?: string;
   children?: ReactNode;
@@ -42,9 +44,9 @@ interface Props {
  * A run of text in one of the app's few tones and sizes, so components never
  * pick colours or font sizes for themselves.
  */
-export default function Text({ tone = "default", size = "sm", mono = false, truncate = false, block = false, nowrap = false, role, id, children }: Props) {
+export default function Text({ tone = "default", size = "sm", mono = false, truncate = false, block = false, nowrap = false, hideOnMobile = false, role, id, children }: Props) {
   const sizes = { xs: "text-xs", sm: "text-sm", md: "text-base" };
-  const className = `${tones[tone]} ${sizes[size]} ${mono ? "font-mono" : ""} ${truncate ? "block min-w-0 truncate" : ""} ${nowrap ? "whitespace-nowrap" : ""}`;
+  const className = `${tones[tone]} ${sizes[size]} ${mono ? "font-mono" : ""} ${truncate ? "block min-w-0 truncate" : ""} ${nowrap ? "whitespace-nowrap" : ""} ${hideOnMobile ? "max-sm:hidden" : ""}`;
   const title = truncate && typeof children === "string" ? children : undefined;
   return block ? (
     <p id={id} className={className} role={role}>

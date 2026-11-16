@@ -20,6 +20,8 @@ interface Props {
   label?: string;
   /** Takes the free width of a row it sits in, so a control inside it fills that width, e.g. a search beside filters. */
   grow?: boolean;
+  /** Lines the children up on the right, e.g. a status and its detail at the end of a table row. */
+  align?: "start" | "end";
   children?: ReactNode;
 }
 
@@ -28,12 +30,12 @@ interface Props {
  * half of the layout kit (with `Inline`), so pages and components lay
  * themselves out without styling of their own.
  */
-export default function Stack({ gap = "md", divided = false, label, grow = false, children }: Props) {
+export default function Stack({ gap = "md", divided = false, label, grow = false, align = "start", children }: Props) {
   return (
     <div
       aria-label={label}
       role={label ? "region" : undefined}
-      className={`flex min-w-0 flex-col ${divided ? "divide-y divide-gray-100" : gaps[gap]} ${grow ? "flex-1" : ""}`}
+      className={`flex min-w-0 flex-col ${divided ? "divide-y divide-gray-100" : gaps[gap]} ${grow ? "flex-1" : ""} ${align === "end" ? "items-end" : ""}`}
     >
       {children}
     </div>

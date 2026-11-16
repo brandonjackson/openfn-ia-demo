@@ -399,6 +399,8 @@ function Editor({ opened, root, sandboxes }: { opened: WorkflowDocument; root: P
       onCreateCredential={editable ? createStepCredential : undefined}
       envVars={flags.envVars ? envVars : undefined}
       onCreateEnvVar={flags.envVars && canEditComponents ? envVarSaves.create : undefined}
+      // A refused row is said under its field, so only what was saved is announced, once a save.
+      onEnvVarsCreated={(count) => announce({ tone: "success", message: `Saved ${count} ${count === 1 ? "variable" : "variables"}.` })}
       onUpdateEnvVar={flags.envVars && canEditComponents ? envVarSaves.update : undefined}
       onDeleteEnvVar={flags.envVars && canEditComponents ? envVarSaves.remove : undefined}
       testCases={flags.testCases ? testCases : undefined}

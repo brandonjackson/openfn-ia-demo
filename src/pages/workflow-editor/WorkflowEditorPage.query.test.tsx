@@ -707,7 +707,7 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
     fireEvent.change(screen.getByLabelText("Key 1"), { target: { value: "RETRY_LIMIT" } });
     fireEvent.change(screen.getByLabelText("Value 1"), { target: { value: "3" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
-    expect(await screen.findByText("Saved 1 variable.", {}, wait)).toBeTruthy();
+    expect((await screen.findByRole("status", {}, wait)).textContent).toContain("Saved 1 variable.");
     const { data } = await request<Many>("GET", `/api/demo/projects/${projectId}/env_vars?page_size=100`);
     expect(data.find((v) => v.attributes["key"] === "RETRY_LIMIT")?.attributes).toMatchObject({ value: "3", environments: ["production", "staging", "mock"] });
     expect(await screen.findByText("RETRY_LIMIT", {}, wait)).toBeTruthy();

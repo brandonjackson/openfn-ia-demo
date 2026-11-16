@@ -237,6 +237,7 @@ export default function WorkflowEditorPage({
   environment,
   envVars,
   onCreateEnvVar,
+  onEnvVarsCreated,
   onUpdateEnvVar,
   onDeleteEnvVar,
   testCases,
@@ -430,6 +431,8 @@ export default function WorkflowEditorPage({
   envVars?: EnvVar[];
   /** Makes a project environment variable. Left out where you can't. */
   onCreateEnvVar?: (draft: EnvVarDraft) => Promise<void>;
+  /** Told how many variables a save of the add form just made (one `onCreateEnvVar` each), to announce them once. */
+  onEnvVarsCreated?: (count: number) => void;
   /** Changes one; a secret's blank value keeps the stored one. Left out where you can't. */
   onUpdateEnvVar?: (id: string, draft: EnvVarDraft) => Promise<void>;
   /** Deletes one. Left out where you can't. */
@@ -1114,7 +1117,7 @@ export default function WorkflowEditorPage({
 
   // The project's environment variables, opened from the explorer's Workflow section.
   const envVarsPane = envVars && (
-    <EnvVarsView variables={envVars} projectName={projectName} onCreate={onCreateEnvVar} onUpdate={onUpdateEnvVar} onDelete={onDeleteEnvVar} />
+    <EnvVarsView variables={envVars} projectName={projectName} onCreate={onCreateEnvVar} onCreated={onEnvVarsCreated} onUpdate={onUpdateEnvVar} onDelete={onDeleteEnvVar} />
   );
 
   // A component, opened from the explorer's Components, shows in the code's place: the same view as

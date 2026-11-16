@@ -30,6 +30,8 @@ interface Props {
   existing: EnvVar[];
   /** Makes one variable; called once a row, in order. Rejects with why the server refused it. */
   onCreate: (draft: EnvVarDraft) => Promise<void>;
+  /** Told how many were made once a save ends, if any were, so whoever holds the form can say so in a toast. */
+  onSaved?: (count: number) => void;
   /** Rows to start with (useful for stories). */
   defaultRows?: { key: string; value: string }[];
 }
@@ -42,9 +44,10 @@ const row = (key = "", value = ""): Row => ({ id: nextRow++, key, value });
  * key and value, "Add another" for more, and pasting a `.env` file into a
  * key fills a row for each line. The environments and whether they're
  * secret apply to every row. Saving makes them one by one; a row the server
- * refuses stays, with why under it, and the rows before it are saved.
+ * refuses stays, with why under it, and the rows before it are saved. What
+ * was saved is reported through `onSaved` for a toast, never drawn here.
  */
-export default function EnvVarForm({ existing, onCreate, defaultRows }: Props) {
+export default function EnvVarForm({ existing, onCreate, onSaved, defaultRows }: Props) {
   const id = useId();
   const [rows, setRows] = useState<Row[]>(() => (defaultRows?.length ? defaultRows.map((r) => row(r.key, r.value)) : [row()]));
   const [environments, setEnvironments] = useState<Environment[]>(allEnvironments);
@@ -52,7 +55,6 @@ export default function EnvVarForm({ existing, onCreate, defaultRows }: Props) {
   const [secret, setSecret] = useState(false);
   const [saving, setSaving] = useState(false);
   const [failure, setFailure] = useState<string>();
-  const [saved, setSaved] = useState<number>();
 
   const keyId = (r: Row) => `${id}-key-${r.id}`;
   const valueId = (r: Row) => `${id}-value-${r.id}`;
@@ -90,7 +92,6 @@ export default function EnvVarForm({ existing, onCreate, defaultRows }: Props) {
     e.preventDefault();
     if (saving) return;
     setFailure(undefined);
-    setSaved(undefined);
     const checked = check();
     const envError = environments.length === 0 ? "Pick at least one environment" : undefined;
     setRows(checked);
@@ -119,7 +120,7 @@ export default function EnvVarForm({ existing, onCreate, defaultRows }: Props) {
         setEnvironmentsError(envProblem);
         if (!keyError && !valueError && !envProblem) setFailure(errorMessageOf(err));
         setSaving(false);
-        if (made) setSaved(made);
+        if (made) onSaved?.(made);
         focusFirstProblem([
           [keyId(r), keyError],
           [valueId(r), valueError],
@@ -128,7 +129,7 @@ export default function EnvVarForm({ existing, onCreate, defaultRows }: Props) {
       }
     }
     setSaving(false);
-    setSaved(made);
+    onSaved?.(made);
     setRows([row()]);
   };
 
@@ -215,10 +216,7 @@ export default function EnvVarForm({ existing, onCreate, defaultRows }: Props) {
 
         {failure && <Callout variant="danger" title={failure} role="alert" />}
 
-        <Inline justify="between" gap="sm">
-          <Text tone="success" size="xs" role="status">
-            {saved ? `Saved ${saved} ${saved === 1 ? "variable" : "variables"}.` : ""}
-          </Text>
+        <Inline justify="end">
           <Button type="submit" size="sm" aria-disabled={saving || undefined}>
             {saving ? "Saving…" : rows.length > 1 ? `Save ${rows.length} variables` : "Save"}
           </Button>

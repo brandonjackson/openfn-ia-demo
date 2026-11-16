@@ -24,6 +24,8 @@ interface Props {
   projectName?: string;
   /** Makes a variable. Left out where you can't add them. */
   onCreate?: (draft: EnvVarDraft) => Promise<void>;
+  /** Told how many the form just made, to say so in a toast. */
+  onCreated?: (count: number) => void;
   /** Changes one. Left out where you can't. */
   onUpdate?: (id: string, draft: EnvVarDraft) => Promise<void>;
   /** Deletes one. Left out where you can't. */
@@ -41,7 +43,7 @@ type Filter = "all" | Environment;
  * searchable and narrowed to one environment, where each opens to edit in
  * place. Modelled on Railway's and Vercel's, not a text file to edit.
  */
-export default function EnvVarsView({ variables, projectName, onCreate, onUpdate, onDelete, defaultExpandedId }: Props) {
+export default function EnvVarsView({ variables, projectName, onCreate, onCreated, onUpdate, onDelete, defaultExpandedId }: Props) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [deleting, setDeleting] = useState<EnvVar>();
@@ -65,7 +67,7 @@ export default function EnvVarsView({ variables, projectName, onCreate, onUpdate
 
         {onCreate && (
           <Card title="Add variables">
-            <EnvVarForm existing={variables} onCreate={onCreate} />
+            <EnvVarForm existing={variables} onCreate={onCreate} onSaved={onCreated} />
           </Card>
         )}
 

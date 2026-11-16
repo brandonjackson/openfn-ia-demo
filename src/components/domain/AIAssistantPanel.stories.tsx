@@ -4,7 +4,7 @@ import AIAssistantPanel from "./AIAssistantPanel";
 import EditorShell from "../patterns/EditorShell";
 import { assistantConversations, assistantPlanResult, assistantReply, assistantSuggestions } from "../../fixtures/assistant";
 import { sampleRun } from "../../fixtures/runs";
-import { testGenerationReply } from "../../model/test-cases";
+import { generateTestsPrompt, testGenerationReply } from "../../model/test-cases";
 
 /** The fake assistant "thinks" this long before answering. */
 const REPLY_DELAY_MS = 900;
@@ -69,14 +69,15 @@ export const FromCreate: Story = {
 };
 
 /**
- * In a sandbox, with no conversations yet: "Generate tests from spec" is
- * offered under the suggestions (and in the ⋮ menu), and the reply lists the
- * tests it wrote, with "Open test cases".
+ * In a sandbox, with no conversations yet: "Generate tests from spec" is one
+ * of the suggestions, and the reply lists the tests it wrote, with "Open test
+ * cases".
  */
 export const GenerateTests: Story = {
   args: {
     conversations: [],
-    onGenerateTests: () =>
+    suggestions: { ...assistantSuggestions, workflow: [...assistantSuggestions.workflow, generateTestsPrompt] },
+    onSend: () =>
       later(() => ({
         id: "reply-tests",
         role: "assistant",

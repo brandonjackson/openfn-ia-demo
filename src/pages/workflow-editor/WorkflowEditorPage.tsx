@@ -83,7 +83,7 @@ import SavedDataclipsView from "../../components/domain/SavedDataclipsView";
 import DataclipFormModal from "../../components/domain/DataclipFormModal";
 import TestCasesView from "../../components/domain/TestCasesView";
 import TestCaseFormModal from "../../components/domain/TestCaseFormModal";
-import { draftOf, testGenerationReply, testTally, untitledTestName, type TestCase, type TestCaseDraft, type TestGeneration, type TestResult } from "../../model/test-cases";
+import { asksToGenerateTests, draftOf, generateTestsPrompt, testGenerationReply, testTally, untitledTestName, type TestCase, type TestCaseDraft, type TestGeneration, type TestResult } from "../../model/test-cases";
 import { savedDataclips, untitledDataclipName, type DataclipChanges, type DataclipDraft } from "../../model/dataclips";
 import WorkflowHealth from "../../components/domain/WorkflowHealth";
 import WorkflowStages, { type StageLink } from "../../components/domain/WorkflowStages";
@@ -1322,6 +1322,22 @@ export default function WorkflowEditorPage({
       />
     ) : undefined;
 
+  // Writing the workflow's tests from its spec is one more thing to ask the
+  // assistant: a suggestion like any other, and a message answered by Generate
+  // from spec, the same as in Test cases.
+  const generateTests = testCases && onGenerateTestCases;
+  const suggestions = generateTests
+    ? { job: assistantSuggestions?.job ?? [], workflow: [...(assistantSuggestions?.workflow ?? []), generateTestsPrompt] }
+    : assistantSuggestions;
+  const sendToAssistant: typeof onAssistantSend =
+    generateTests
+      ? async (prompt, jobLabel, mode) => {
+          if (!jobLabel && asksToGenerateTests(prompt)) return { id: shortId(), role: "assistant", ...testGenerationReply(await generateTests()) };
+          if (onAssistantSend) return onAssistantSend(prompt, jobLabel, mode);
+          throw new Error("the assistant isn't available");
+        }
+      : onAssistantSend;
+
   // Always rendered so the shell can slide it out; `sideOpen` shows it.
   const assistant = (
     <AIAssistantPanel
@@ -1334,16 +1350,10 @@ export default function WorkflowEditorPage({
       onPlanAccepted={onMain ? undefined : applyPlan}
       reference={assistantReference}
       onClearReference={() => setAssistantReference(undefined)}
-      suggestions={assistantSuggestions}
-      onSend={onAssistantSend}
+      suggestions={suggestions}
+      onSend={sendToAssistant}
       onCarryOutPlan={onAssistantCarryOutPlan}
       initialPrompt={assistantPrompt}
-      // The assistant writes the workflow's test cases from its spec, the same as Generate from spec in Test cases.
-      onGenerateTests={
-        testCases && onGenerateTestCases
-          ? async () => ({ id: shortId(), role: "assistant", ...testGenerationReply(await onGenerateTestCases()) })
-          : undefined
-      }
       onOpenTests={
         testCases
           ? () => {

@@ -788,7 +788,10 @@ describe("WorkflowEditorPageQuery", { timeout: 15000 }, () => {
       renderEditor(apiWorkflowId("apply-national-id"));
       const toggle = await screen.findByRole("button", { name: "Assistant" }, wait);
       if (toggle.getAttribute("aria-pressed") !== "true") fireEvent.click(toggle);
-      fireEvent.click(await screen.findByRole("button", { name: "Generate tests from spec" }, wait));
+      // It's asked like anything else: the workflow already has conversations, so it's typed.
+      const input = await screen.findByPlaceholderText("Ask for a change, or describe what to build…", {}, wait);
+      fireEvent.change(input, { target: { value: "Generate tests from spec" } });
+      fireEvent.keyDown(input, { key: "Enter" });
       expect(await screen.findByText(/I read spec.md and wrote 1 new test/, {}, wait)).toBeTruthy();
       expect(screen.getByText("Logs never pair a name with a date of birth")).toBeTruthy();
 

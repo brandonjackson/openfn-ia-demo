@@ -12,9 +12,9 @@ interface Props {
 }
 
 /**
- * An adaptor's logo from the OpenFn adaptors repo, on a white tile: the one
- * way the app draws an adaptor or a system, on the canvas, in the explorer,
- * in pills and lists. An adaptor without a logo shows the first letters of
+ * An adaptor's logo from the OpenFn adaptors repo, at 90% saturation on a
+ * white tile: the one way the app draws an adaptor or a system, on the
+ * canvas, in the explorer, in pills and lists. An adaptor without a logo shows the first letters of
  * its name; a system we can't place shows a globe.
  */
 export default function AdaptorLogo({ adaptor, name, size = "md" }: Props) {
@@ -23,7 +23,7 @@ export default function AdaptorLogo({ adaptor, name, size = "md" }: Props) {
   if (url)
     return (
       <IconTile size={size} tone="white">
-        <img src={url} alt={name ? `${name} logo` : ""} className="h-full w-full object-contain" />
+        <img src={url} alt={name ? `${name} logo` : ""} className="h-full w-full object-contain saturate-90" />
       </IconTile>
     );
   if (adaptor)

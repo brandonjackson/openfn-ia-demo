@@ -7,9 +7,7 @@ import PageHeader from "../../components/patterns/PageHeader";
 import Breadcrumbs from "../../components/domain/Breadcrumbs";
 import Button from "../../components/primitives/Button";
 import Stack from "../../components/primitives/Stack";
-import Inline from "../../components/primitives/Inline";
 import EmptyState from "../../components/primitives/EmptyState";
-import SearchInput from "../../components/primitives/SearchInput";
 import ProjectCard from "../../components/domain/ProjectCard";
 import OtherProjectRow from "../../components/domain/OtherProjectRow";
 import ListGroup from "../../components/primitives/ListGroup";
@@ -37,16 +35,11 @@ export interface ProjectsPageProps extends PageProps<ProjectsPageData> {
  * then the rest of the instance's, which don't open and offer Request to join.
  */
 export default function ProjectsPage({ node, ancestors, data, onCreateProject, onCopyProject, onRequestToJoin }: ProjectsPageProps) {
-  const [query, setQuery] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [copying, setCopying] = useState(false);
 
-  const needle = query.trim().toLowerCase();
-  const matches = (p: { name: string; description: string }) =>
-    !needle || p.name.toLowerCase().includes(needle) || p.description.toLowerCase().includes(needle);
-  const filtered = data.projects.filter(matches);
-  const others = (data.otherProjects ?? []).filter(matches);
-  const any = data.projects.length + (data.otherProjects?.length ?? 0) > 0;
+  const projects = data.projects;
+  const others = data.otherProjects ?? [];
 
   /** Copies a project, once at a time; the wrapper says how it went. */
   const copy = async (id: string) => {
@@ -81,39 +74,24 @@ export default function ProjectsPage({ node, ancestors, data, onCreateProject, o
             }
           />
         }
-        toolbar={
-          any && (
-            <Inline>
-              <SearchInput
-                placeholder="Search projects…"
-                aria-label="Search projects"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                compact
-              />
-            </Inline>
-          )
-        }
-        isEmpty={filtered.length + others.length === 0}
+        isEmpty={projects.length + others.length === 0}
         empty={
           <EmptyState
             icon={FolderKanban}
-            title={needle ? `No projects match "${query}"` : "No projects yet"}
-            description={needle ? undefined : "Create a project to start building workflows."}
+            title="No projects yet"
+            description="Create a project to start building workflows."
             action={
-              needle ? undefined : (
-                <Button icon={Plus} size="sm" onClick={() => setCreateOpen(true)}>
-                  New project
-                </Button>
-              )
+              <Button icon={Plus} size="sm" onClick={() => setCreateOpen(true)}>
+                New project
+              </Button>
             }
           />
         }
       >
         <Stack gap="xl">
-          {filtered.length > 0 && (
-            <ListGroup title="Your projects" count={filtered.length}>
-              {filtered.map((project) => (
+          {projects.length > 0 && (
+            <ListGroup title="Your projects" count={projects.length}>
+              {projects.map((project) => (
                 <ProjectCard key={project.id} project={project} onCopy={onCopyProject && (() => void copy(project.id))} showSettings />
               ))}
             </ListGroup>

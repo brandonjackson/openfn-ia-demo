@@ -41,12 +41,11 @@ function fillInAndCreate(name: string) {
 }
 
 describe("ProjectsPage", () => {
-  it("lists every project it's given, and narrows them by name or description as you search", () => {
+  it("lists every project it's given, with no search", () => {
     draw([project("planning-intake", "Applications from the portal"), project("payroll", "Monthly runs")]);
-    expect(screen.getByText("payroll")).toBeTruthy();
-    fireEvent.change(screen.getByRole("searchbox", { name: "Search projects" }), { target: { value: "portal" } });
     expect(screen.getByText("planning-intake")).toBeTruthy();
-    expect(screen.queryByText("payroll")).toBeNull();
+    expect(screen.getByText("payroll")).toBeTruthy();
+    expect(screen.queryByRole("searchbox")).toBeNull();
   });
 
   it("splits projects into Your projects, which open, and Other projects, which don't", () => {
@@ -101,12 +100,6 @@ describe("ProjectsPage", () => {
     draw([project("payroll"), { ...project("planning-intake"), lastActivity: null }]);
     expect(screen.getByText("Active 2 days ago")).toBeTruthy();
     expect(screen.getByText("No activity yet")).toBeTruthy();
-  });
-
-  it("says when a search matches nothing", () => {
-    draw([project("payroll")]);
-    fireEvent.change(screen.getByRole("searchbox", { name: "Search projects" }), { target: { value: "zebra" } });
-    expect(screen.getByText('No projects match "zebra"')).toBeTruthy();
   });
 
   it("offers to create the first project when there are none", () => {

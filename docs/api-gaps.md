@@ -1,11 +1,11 @@
 # API gaps: what the demo needs that api/ doesn't have
 
-One entry per thing a screen here needs that openfn-3-poc's `api/` (planned
+One entry per thing a screen here needs that the API spec ([lightning-api-spec](https://github.com/OpenFn/lightning-api-spec)'s `spec/`, `api/` for short) (planned
 scope included) can't give. Each says where it shows, what the API would need
 to send, and what the page does until then. A page never fakes a gap: it
 leaves the thing out, or reads it from the demo's own routes under
 `/api/demo/`, shaped by `api/conventions.md` so it's easy to swap for a real
-route later. The template is openfn-3-poc's `docs/api-gaps.md`.
+route later. The template is openfn-3-poc's, now `notes/api-gaps.md` in lightning-api-spec.
 
 Three lists: whole areas the demo designs that `api/` has nothing for yet,
 single fields or answers missing from a resource `api/` does cover, and what

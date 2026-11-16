@@ -5,6 +5,7 @@ import { AnnouncementsProvider } from "../../app/announcements";
 import ApiProvider from "../../api/ApiProvider";
 import { forgetCsrfToken, request } from "../../api/client";
 import { setFlag } from "../../app/feature-flags";
+import { setSandbox } from "../../app/sandbox-state";
 import { findNodeByPath } from "../../app/ia-utils";
 import { failNext, resetFakeApi, setWait } from "../../fake-api";
 import { projectIdFor } from "../../fake-api/projects";
@@ -155,6 +156,21 @@ describe("ProjectWorkflowsPageQuery", () => {
     fireEvent.click(screen.getByRole("button", { name: "Delete workflow" }));
     expect(await screen.findByText(`Deleted "${first!.name}".`, {}, wait)).toBeTruthy();
     expect((await serverWorkflows()).some((w) => w.id === first!.id)).toBe(false);
+  });
+
+  it("lists the selected sandbox's workflows, including one only the sandbox has", async () => {
+    const sandboxId = crypto.randomUUID();
+    await request("PUT", `/api/projects/${projectId}/sandboxes/${sandboxId}`, { name: "list-check" });
+    const [copied] = (await request<{ workflows: Workflow[] }>("GET", `/api/projects/${sandboxId}/workflows`)).workflows;
+    await request("POST", `/api/demo/projects/${sandboxId}/workflows/${copied!.id}/copies`, {});
+    act(() => setSandbox(projectId, "list-check"));
+    try {
+      renderRoute();
+      expect(await screen.findByText(`${copied!.name} (copy)`, {}, wait)).toBeTruthy();
+      expect((await serverWorkflows()).some((w) => w.name === `${copied!.name} (copy)`)).toBe(false);
+    } finally {
+      act(() => setSandbox(projectId, "main"));
+    }
   });
 
   it("makes a new workflow in this project from New workflow", async () => {

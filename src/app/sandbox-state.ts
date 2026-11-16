@@ -1,4 +1,8 @@
 import { useSyncExternalStore } from "react";
+import { useProject } from "../api/projects";
+import { useSandboxes } from "../api/workflows";
+import { combine, type LoadStatus } from "../api/status";
+import type { ProjectDetails } from "../model/projects";
 
 /**
  * Which sandbox (branch) is selected in each project. The choice sticks as you
@@ -42,4 +46,18 @@ export function useSandbox(projectId: string): [string, (sandbox: string) => voi
     () => selected[projectId] ?? DEFAULT_SANDBOX
   );
   return [sandbox, (next) => setSandbox(projectId, next)];
+}
+
+/**
+ * The project a page inside `rootId` shows: the sandbox selected in the
+ * project bar, or the project itself on main (or when that sandbox is gone).
+ * Lists that a sandbox has its own copy of (its workflows) read from this, so
+ * what you make in a sandbox is in its lists.
+ */
+export function useSelectedProject(rootId: string | undefined): { status: LoadStatus; project: ProjectDetails | undefined; root: ProjectDetails | undefined } {
+  const [selected] = useSandbox(rootId ?? "");
+  const { status: rootStatus, project: root } = useProject(rootId);
+  const { status: sandboxStatus, sandboxes } = useSandboxes(rootId);
+  const sandbox = selected === "main" ? undefined : sandboxes.find((s) => s.name === selected && !s.scheduledDeletion);
+  return { status: combine(rootStatus, sandboxStatus), project: sandbox ?? root, root };
 }

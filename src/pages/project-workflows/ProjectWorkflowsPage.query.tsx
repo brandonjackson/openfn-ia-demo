@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import type { PageRoute } from "../../app/ia-utils";
 import Loaded from "../../app/Loaded";
 import { useFlags } from "../../app/feature-flags";
-import { useProject } from "../../api/projects";
+import { useSelectedProject } from "../../app/sandbox-state";
 import { useProjectServices } from "../../api/services";
 import { useProjectWorkflows } from "../../api/workflows";
 import { combine } from "../../api/status";
@@ -13,7 +13,8 @@ import { pageFrame } from "../../app/page-frame";
 import ProjectWorkflowsPage from "./ProjectWorkflowsPage";
 
 /**
- * Feeds a project's Workflows list from the API: each row is a workflow there,
+ * Feeds a project's Workflows list from the API, for the sandbox selected in
+ * the project bar (main's, on main): each row is a workflow there,
  * counting its work orders there, with whether it's published as a service when
  * the catalog is on. Switching one on or off goes through its trigger, and
  * deleting marks it deleted; Make a copy is the demo's own route. api/ workflows have no description or members
@@ -23,12 +24,16 @@ export default function ProjectWorkflowsPageQuery({ route }: { route: PageRoute 
   const navigate = useNavigate();
   const { serviceCatalog } = useFlags();
   const projectId = route.params["project"];
-  const { status: projectStatus, project } = useProject(projectId);
-  const { status, workflows } = useProjectWorkflows(projectId);
-  const { status: workOrdersStatus, workOrders } = useWorkOrders(projectId ? [projectId] : []);
-  const { status: servicesStatus, services } = useProjectServices(projectId, serviceCatalog);
+  const { status: projectStatus, project, root } = useSelectedProject(projectId);
+  // The selected sandbox's own copies, with their own runs; main's when you're on main.
+  const shownId = project?.id;
+  const { status, workflows } = useProjectWorkflows(shownId);
+  const { status: workOrdersStatus, workOrders } = useWorkOrders(shownId ? [shownId] : []);
+  const { status: servicesStatus, services } = useProjectServices(shownId, serviceCatalog);
   // Owners and admins publish a workflow as a service, with the catalog on.
-  const actions = useWorkflowListActions(workflows, serviceCatalog && !!project?.permissions?.edit_project);
+  // Services are published from main, never from a sandbox's copy.
+  const onMain = !!root && project?.id === root.id;
+  const actions = useWorkflowListActions(workflows, serviceCatalog && onMain && !!root?.permissions?.edit_project);
   const workOrdersOf = byWorkflow(workOrders);
   // Rows without service badges beat no rows: a failed services load leaves the badges out.
   const backed = servicesStatus.state === "ready" ? services : [];
@@ -36,9 +41,9 @@ export default function ProjectWorkflowsPageQuery({ route }: { route: PageRoute 
     <Loaded status={combine(projectStatus, status, workOrdersStatus)} path={route.currentPath}>
       {() => (
         <ProjectWorkflowsPage
-          {...pageFrame(route, {}, project!.name)}
-          data={{ projectId: project!.id, workflows: workflows.map((w) => asListItem(w, workOrdersOf(w.id), backed)) }}
-          onNewWorkflow={() => navigate(`/workflow-editor/new?project=${project!.id}`)}
+          {...pageFrame(route, {}, root!.name)}
+          data={{ projectId: root!.id, workflows: workflows.map((w) => asListItem(w, workOrdersOf(w.id), backed)) }}
+          onNewWorkflow={() => navigate(`/workflow-editor/new?project=${root!.id}`)}
           {...actions}
         />
       )}

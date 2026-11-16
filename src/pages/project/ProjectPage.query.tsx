@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import type { PageRoute } from "../../app/ia-utils";
 import Loaded from "../../app/Loaded";
 import { useFlags } from "../../app/feature-flags";
-import { useProject } from "../../api/projects";
+import { useSelectedProject } from "../../app/sandbox-state";
 import { useProjectWorkflows } from "../../api/workflows";
 import { useProjectServices } from "../../api/services";
 import { combine } from "../../api/status";
@@ -41,24 +41,27 @@ function projectPageData(
   };
 }
 
-/** Feeds a project's Overview from the API. */
+/** Feeds a project's Overview from the API, for the sandbox selected in the project bar (main's, on main). */
 export default function ProjectPageQuery({ route }: { route: PageRoute }) {
   const navigate = useNavigate();
   const flags = useFlags();
   const projectId = route.params["project"];
-  const { status, project } = useProject(projectId);
-  const { status: workflowsStatus, workflows } = useProjectWorkflows(projectId);
-  const { status: servicesStatus, services } = useProjectServices(projectId, flags.serviceCatalog);
-  const { status: workOrdersStatus, workOrders } = useWorkOrders(projectId ? [projectId] : []);
-  // Owners and admins publish a workflow as a service, with the catalog on.
-  const actions = useWorkflowListActions(workflows, flags.serviceCatalog && !!project?.permissions?.edit_project);
+  const { status, project, root } = useSelectedProject(projectId);
+  // The selected sandbox's own copies, with their own runs; main's when you're on main.
+  const shownId = project?.id;
+  const { status: workflowsStatus, workflows } = useProjectWorkflows(shownId);
+  const { status: servicesStatus, services } = useProjectServices(shownId, flags.serviceCatalog);
+  const { status: workOrdersStatus, workOrders } = useWorkOrders(shownId ? [shownId] : []);
+  // Owners and admins publish a workflow as a service, with the catalog on, from main only.
+  const onMain = !!root && project?.id === root.id;
+  const actions = useWorkflowListActions(workflows, flags.serviceCatalog && onMain && !!root?.permissions?.edit_project);
   return (
     <Loaded status={combine(status, workflowsStatus, servicesStatus, workOrdersStatus)} path={route.currentPath}>
       {() => (
         <ProjectPage
-          {...pageFrame(route, { label: project!.name, description: project!.description }, project!.name)}
-          data={projectPageData(project!, workflows, byWorkflow(workOrders), services, flags)}
-          onNewWorkflow={() => navigate(`/workflow-editor/new?project=${project!.id}`)}
+          {...pageFrame(route, { label: root!.name, description: root!.description }, root!.name)}
+          data={projectPageData(root!, workflows, byWorkflow(workOrders), services, flags)}
+          onNewWorkflow={() => navigate(`/workflow-editor/new?project=${root!.id}`)}
           {...actions}
         />
       )}

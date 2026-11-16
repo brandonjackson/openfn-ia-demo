@@ -23,9 +23,9 @@ interface Props {
   columns?: HistoryColumnId[];
   /** Each workflow's latest version, to tag runs on an older one. */
   latestVersions?: Record<string, string>;
-  /** The work orders picked for a bulk action, by id. Left out, rows have no checkboxes. */
-  selectedIds?: string[];
-  onSelectedChange?: (ids: string[]) => void;
+  /** The rows picked for a bulk action, work orders and channel requests alike, by entry key. Left out, rows have no checkboxes. */
+  selectedKeys?: string[];
+  onSelectedChange?: (keys: string[]) => void;
   /** The rows open to show their runs or request, by entry key. */
   expandedKeys: string[];
   onToggle: (key: string) => void;
@@ -116,7 +116,8 @@ const extraColumns: Record<HistoryColumnId, { header: string; render: (e: Histor
  * workflow or a channel, told apart by its icon) with its id, and, on the
  * right, its status with when it last moved; a request's HTTP code sits
  * left of the pill so the pills line up. On a phone only the name and the
- * pill show. Any optional `columns` go between the two. Opening a work
+ * pill show. Every row can be picked, whatever its kind. Any optional
+ * `columns` go between the two. Opening a work
  * order shows its runs, with retry and cancel; opening a request shows what
  * it carried, and the run it started or came from.
  */
@@ -124,7 +125,7 @@ export default function HistoryTable({
   entries,
   columns = [],
   latestVersions = {},
-  selectedIds,
+  selectedKeys,
   onSelectedChange,
   expandedKeys,
   onToggle,
@@ -136,9 +137,10 @@ export default function HistoryTable({
   onOpenChannelRun,
   emptyMessage = "Nothing here yet.",
 }: Props) {
-  const orderIds = entries.flatMap((e) => (e.kind === "workflow" ? [e.order.workOrder.id] : []));
-  const picked = selectedIds ?? [];
-  const allPicked = orderIds.length > 0 && orderIds.every((id) => picked.includes(id));
+  const keys = entries.map((e) => e.key);
+  const picked = selectedKeys ?? [];
+  const allPicked = keys.length > 0 && keys.every((key) => picked.includes(key));
+  const rowName = (e: HistoryEntry) => (e.kind === "workflow" ? `work order ${e.order.workOrder.id}` : `channel request ${e.request.id}`);
 
   const select: DataTableColumn<HistoryEntry>[] = onSelectedChange
     ? [
@@ -149,24 +151,21 @@ export default function HistoryTable({
           hideOnMobile: true,
           header: (
             <Checkbox
-              label="Select every work order shown"
+              label="Select every row shown"
               hideLabel
               checked={allPicked}
               indeterminate={picked.length > 0 && !allPicked}
-              onChange={(on) => onSelectedChange(on ? orderIds : [])}
+              onChange={(on) => onSelectedChange(on ? keys : [])}
             />
           ),
-          render: (e) =>
-            e.kind === "workflow" ? (
-              <Checkbox
-                label={`Select work order ${e.order.workOrder.id}`}
-                hideLabel
-                checked={picked.includes(e.order.workOrder.id)}
-                onChange={(on) =>
-                  onSelectedChange(on ? [...picked, e.order.workOrder.id] : picked.filter((id) => id !== e.order.workOrder.id))
-                }
-              />
-            ) : null,
+          render: (e) => (
+            <Checkbox
+              label={`Select ${rowName(e)}`}
+              hideLabel
+              checked={picked.includes(e.key)}
+              onChange={(on) => onSelectedChange(on ? [...picked, e.key] : picked.filter((key) => key !== e.key))}
+            />
+          ),
         },
       ]
     : [];
@@ -285,7 +284,7 @@ export default function HistoryTable({
       rows={entries}
       getRowKey={(e) => e.key}
       emptyMessage={emptyMessage}
-      selectedKeys={entries.filter((e) => e.kind === "workflow" && picked.includes(e.order.workOrder.id)).map((e) => e.key)}
+      selectedKeys={picked}
       onRowClick={(e) => onToggle(e.key)}
       rowLabel={(e) =>
         e.kind === "workflow" ? `Work order ${e.order.workOrder.id}, ${e.order.workOrder.status}` : `Channel request ${e.request.id}, ${requestStatus(e.request)}`

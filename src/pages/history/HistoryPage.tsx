@@ -84,7 +84,8 @@ export default function HistoryPage({
   onOpenChannelRun,
   onExport,
 }: HistoryPageProps) {
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  // Picked rows, by entry key: work orders and channel requests alike.
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   // A link to one work order opens it.
   const [expandedKeys, setExpandedKeys] = useState<string[]>(filters.workOrderId ? [`workflow:${filters.workOrderId}`] : []);
   const [exporting, setExporting] = useState(false);
@@ -95,9 +96,13 @@ export default function HistoryPage({
   const all = historyEntries(data.workOrders, data.channelRequests);
   const entries = all.filter((e) => matchesEntry(e, filters));
   const shown = entries.flatMap((e) => (e.kind === "workflow" ? [e.order] : []));
-  // Only work orders still showing stay picked, so a bulk action never reaches one the filters hide.
-  const pickedIds = selectedIds.filter((id) => shown.some((o) => o.workOrder.id === id));
-  const selected = shown.filter((o) => pickedIds.includes(o.workOrder.id));
+  // Only rows still showing stay picked, so a bulk action never reaches one the filters hide.
+  const pickedKeys = selectedKeys.filter((key) => entries.some((e) => e.key === key));
+  // The actions are a work order's: they act on the work orders picked, and leave picked channel logs as they are.
+  const selected = entries.flatMap((e) => (e.kind === "workflow" && pickedKeys.includes(e.key) ? [e.order] : []));
+  const pickedIds = selected.map((o) => o.workOrder.id);
+  const logsPicked = pickedKeys.length > pickedIds.length;
+  const onlyOrders = (why: string) => (logsPicked ? `${why}; channel logs are left as they are` : why);
   const allowed = bulkActions(selected);
   const selectedWorkflow = allowed.retryFrom ? data.workflows.find((w) => w.id === selected[0].workflowId) : undefined;
   // Outcomes are a tool's, and a project's name says nothing inside one project.
@@ -118,7 +123,7 @@ export default function HistoryPage({
     } finally {
       setBusy(undefined);
     }
-    setSelectedIds([]);
+    setSelectedKeys([]);
   }
 
   const retry = onRetry && ((ids: string[]) => act("retry", ids, onRetry));
@@ -171,7 +176,7 @@ export default function HistoryPage({
         }
       >
         <Stack gap="sm">
-          <SelectionBar count={pickedIds.length} noun="work order" onClear={() => setSelectedIds([])}>
+          <SelectionBar count={pickedKeys.length} noun="row" onClear={() => setSelectedKeys([])}>
             {cancel && (
               <Button
                 size="sm"
@@ -179,7 +184,7 @@ export default function HistoryPage({
                 icon={Ban}
                 disabled={!allowed.cancel}
                 aria-disabled={!!busy}
-                title="Only work orders still waiting to run can be cancelled"
+                title={onlyOrders("Only work orders still waiting to run can be cancelled")}
                 onClick={() => cancel(pickedIds)}
               >
                 {busy === "cancel" ? "Cancelling…" : "Cancel"}
@@ -196,12 +201,12 @@ export default function HistoryPage({
                   onSelect={(jobId) => retryFrom(pickedIds, jobId)}
                 />
               ) : (
-                <Button size="sm" variant="secondary" disabled title="Pick finished work orders of one workflow to retry them from a step">
+                <Button size="sm" variant="secondary" disabled title={onlyOrders("Pick finished work orders of one workflow to retry them from a step")}>
                   Retry from
                 </Button>
               ))}
             {retry && (
-              <Button size="sm" icon={RotateCcw} disabled={!allowed.retry} aria-disabled={!!busy} title="Only finished work orders can be retried" onClick={() => retry(pickedIds)}>
+              <Button size="sm" icon={RotateCcw} disabled={!allowed.retry} aria-disabled={!!busy} title={onlyOrders("Only finished work orders can be retried")} onClick={() => retry(pickedIds)}>
                 {busy === "retry" ? "Retrying…" : "Retry"}
               </Button>
             )}
@@ -210,8 +215,8 @@ export default function HistoryPage({
             entries={entries}
             columns={shownColumns}
             latestVersions={Object.fromEntries(data.workflows.map((w) => [w.id, w.latestVersion]))}
-            selectedIds={pickedIds}
-            onSelectedChange={setSelectedIds}
+            selectedKeys={pickedKeys}
+            onSelectedChange={setSelectedKeys}
             expandedKeys={expandedKeys}
             onToggle={(key) => setExpandedKeys((e) => toggle(e, key, !e.includes(key)))}
             onRetry={retry && ((id) => retry([id]))}

@@ -17,7 +17,7 @@ function Table({ columns = [], open = [], selectable = true }: { columns?: Histo
       entries={entries}
       columns={columns}
       latestVersions={latestVersions}
-      selectedIds={selectable ? selected : undefined}
+      selectedKeys={selectable ? selected : undefined}
       onSelectedChange={selectable ? setSelected : undefined}
       expandedKeys={expanded}
       onToggle={(key) => setExpanded((e) => (e.includes(key) ? e.filter((k) => k !== key) : [...e, key]))}

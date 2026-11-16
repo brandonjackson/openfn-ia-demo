@@ -125,16 +125,31 @@ describe("HistoryPage", () => {
 
   it("retries the picked work orders, then clears the picks", async () => {
     const host = draw([order("aaa111", "failed"), order("bbb222", "success")]);
-    fireEvent.click(screen.getByRole("checkbox", { name: "Select every work order shown" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Select every row shown" }));
     fireEvent.click(within(screen.getByRole("toolbar", { name: "Actions for 2 selected" })).getByRole("button", { name: "Retry" }));
     expect(host.calls("onRetry")).toEqual([[["aaa111", "bbb222"]]]);
     await host.resolve("onRetry");
     expect(screen.queryByRole("toolbar", { name: "Actions for 2 selected" })).toBeNull();
   });
 
+  it("picks channel logs too, retrying only the work orders among the picks", async () => {
+    const host = draw([order("aaa111", "failed")], defaultHistoryFilters, undefined, { channelRequests: [request("req-1", 500)] });
+    fireEvent.click(screen.getByRole("checkbox", { name: "Select channel request req-1" }));
+    const bar = () => screen.getByRole("toolbar", { name: /^Actions for \d selected$/ });
+    expect(bar().textContent).toContain("1 row selected");
+    // A channel log alone can't be retried.
+    expect(within(bar()).getByRole("button", { name: "Retry" }).hasAttribute("disabled")).toBe(true);
+    fireEvent.click(screen.getByRole("checkbox", { name: "Select every row shown" }));
+    expect(bar().textContent).toContain("2 rows selected");
+    fireEvent.click(within(bar()).getByRole("button", { name: "Retry" }));
+    expect(host.calls("onRetry")).toEqual([[["aaa111"]]]);
+    await host.resolve("onRetry");
+    expect(screen.queryByRole("toolbar", { name: /^Actions for/ })).toBeNull();
+  });
+
   it("keeps the picks to try again when the server refuses a retry (the wrapper says why)", async () => {
     const host = draw([order("aaa111", "failed"), order("bbb222", "success")]);
-    fireEvent.click(screen.getByRole("checkbox", { name: "Select every work order shown" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Select every row shown" }));
     fireEvent.click(within(screen.getByRole("toolbar", { name: "Actions for 2 selected" })).getByRole("button", { name: "Retry" }));
     expect(host.calls("onRetry")).toEqual([[["aaa111", "bbb222"]]]);
     await host.reject("onRetry", new FormError("This workflow has been deleted."));

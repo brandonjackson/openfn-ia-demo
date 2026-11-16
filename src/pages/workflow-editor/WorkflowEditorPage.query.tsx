@@ -10,7 +10,7 @@ import { buildStarterWorkflow, workflowGraphs } from "../../fixtures/workflow";
 import { apiProjectId, fixtureProject, fixtureWorkflow } from "../../fixtures/projects";
 import { apiWorkflowId, seedId } from "../../fixtures/ids";
 import { serviceCatalogData } from "../../fixtures/service-catalog";
-import { useSandbox } from "../../app/sandbox-state";
+import { useSandbox, useSelectedProject } from "../../app/sandbox-state";
 import Loaded from "../../app/Loaded";
 import { useProject } from "../../api/projects";
 import { useCreateStepCredential, useCredentialSchemaLoader, useCredentialSchemas, useProjectCredentials } from "../../api/credentials";
@@ -128,14 +128,12 @@ function NewWorkflow({ params }: { params: URLSearchParams }) {
   const prompt = (useLocation().state as EditorState | null)?.prompt;
   const projectParam = params.get("project") ?? "";
   const rootId = fixtureProject(projectParam) ? apiProjectId(fixtureProject(projectParam)!.id) : projectParam;
-  const [sandboxName] = useSandbox(rootId);
-  const { project: root, status: rootStatus } = useProject(rootId);
-  const { sandboxes, status: sandboxStatus } = useSandboxes(rootId);
-  const target = sandboxName === "main" ? root : (sandboxes.find((s) => s.name === sandboxName) ?? root);
+  // The same project the Workflows list shows, so the new one is listed there.
+  const { project: target, status: targetStatus } = useSelectedProject(rootId);
   const { workflows, status } = useProjectWorkflows(target?.id);
   const { create } = useWorkflowSaves();
   const started = useRef(false);
-  const ready = combine(rootStatus, sandboxStatus, status);
+  const ready = combine(targetStatus, status);
 
   useEffect(() => {
     if (started.current || ready.state !== "ready" || !target) return;

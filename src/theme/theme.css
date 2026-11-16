@@ -34,7 +34,7 @@
 /* ============================================================== */
 :root {
   /* Geist and Geist Mono, as in openfn-3-poc's Light theme. Body reads
-     var(--font-sans); Lightning v2 and GDS set their own. */
+     var(--font-sans); GDS sets its own. */
   --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
   --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas,
@@ -104,7 +104,7 @@ body {
 /* than the system stack, so type is one step lighter throughout: */
 /* medium where it was semibold, semibold for headings, with a    */
 /* slight negative tracking on headings, as in openfn-3-poc.      */
-/* The other themes bring their own type and keep their weights.  */
+/* Lightning v2 keeps Lightning's weights; GDS its own type.      */
 /* ============================================================== */
 html:not([data-theme="lightning-v2"], [data-theme="gds"]) {
   --font-weight-medium: 450;
@@ -411,19 +411,15 @@ html[data-theme="dark"] {
 /* ============================================================== */
 /* Lightning v2 — today's Lightning app (github.com/OpenFn/       */
 /* lightning, assets/css/app.css). Lightning is stock Tailwind v4 */
-/* too, so the palette mostly carries over; what changes is type  */
-/* (Inter + Fira Code), indigo as the one primary colour, the     */
-/* light gray canvas, the deep indigo side menu, the white page   */
-/* header bar and Lightning's button, field and table styles.     */
+/* too, so the palette mostly carries over. Type is Geist, as in */
+/* the other themes, at Lightning's weights. What changes is      */
+/* indigo as the one primary colour, the light gray canvas,       */
+/* the deep indigo side menu, the white page header bar and     */
+/* Lightning's button, field and table styles.                  */
 /* ============================================================== */
 html[data-theme="lightning-v2"] {
   --app-bg: var(--color-gray-100); /* bg-secondary-100 on <html> */
   --app-fg: var(--color-gray-900);
-
-  --font-sans: "Inter var", "Inter", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-mono: "Fira Code VF", "Fira Code", ui-monospace, SFMono-Regular, Menlo,
-    Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   /* Lightning's primary is indigo (--color-primary-* = indigo), which is
      already the demo's one accent, so it needs no remapping. Sky stays

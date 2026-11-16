@@ -117,8 +117,8 @@ export default function Colour() {
           tone="light"
           code={`/* src/theme/theme.css */
 html[data-theme="lightning-v2"] {
-  --font-sans: "Inter var", "Inter", ui-sans-serif, system-ui, sans-serif;
   --app-bg: var(--color-gray-100);
+  --app-fg: var(--color-gray-900);
 }`}
         />
         <P>

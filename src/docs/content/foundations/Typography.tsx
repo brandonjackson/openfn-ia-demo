@@ -80,8 +80,8 @@ export default function Typography() {
       <Section title="Fonts">
         <Bullets
           items={[
-            <><strong>Sans</strong> is the system font stack by default (<Code>--font-sans</Code>); the Lightning theme swaps in Inter.</>,
-            <><strong>Mono</strong> (<Code>--font-mono</Code>) is for ids, paths, keys and code: <Text mono>project_credential_id</Text>. Use <Code>Code</Code> for a bit of code inside a sentence, and <Code>CodeBlock</Code> for a block.</>,
+            <><strong>Sans</strong> is Geist (<Code>--font-sans</Code>), set one step lighter than Tailwind's weights; the Lightning theme swaps in Inter and GDS its own.</>,
+            <><strong>Mono</strong> (<Code>--font-mono</Code>), Geist Mono, is for ids, paths, keys and code: <Text mono>project_credential_id</Text>. Use <Code>Code</Code> for a bit of code inside a sentence, and <Code>CodeBlock</Code> for a block.</>,
           ]}
         />
       </Section>

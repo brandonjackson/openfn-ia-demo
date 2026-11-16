@@ -37,7 +37,7 @@ const core: DataTableColumn<Row> = {
   header: "Name",
   render: (r) => (
     <Inline gap="sm">
-      <IconTile icon={r.kind === "workflow" ? Workflow : ArrowLeftRight} tone={r.kind === "workflow" ? "indigo" : "white"} size="sm" />
+      <IconTile icon={r.kind === "workflow" ? Workflow : ArrowLeftRight} tone="white" size="sm" />
       <Stack gap="none">
         <Text tone="strong" size="sm" truncate>{r.name}</Text>
         <Text tone="subtle" size="xs" mono>{r.id}</Text>
@@ -46,17 +46,19 @@ const core: DataTableColumn<Row> = {
   ),
 };
 
+// Mock only: the real build needs Stack align="end" and a way to hide below sm in the primitives.
 const status: DataTableColumn<Row> = {
   key: "status",
   header: "Status",
+  align: "right",
   render: (r) => (
-    <Stack gap="none">
-      <Inline gap="xs">
+    <div className="flex flex-col items-end">
+      <Inline gap="xs" justify="end">
+        {r.code && <span className="max-sm:hidden"><Text tone="muted" size="xs" mono>{r.code}</Text></span>}
         <StatusPill status={r.status} />
-        {r.code && <Text tone="muted" size="xs" mono>{r.code}</Text>}
       </Inline>
-      <Text tone="subtle" size="xs" nowrap>{`${r.when} · ${r.timing}`}</Text>
-    </Stack>
+      <span className="max-sm:hidden"><Text tone="subtle" size="xs" nowrap>{`${r.when} · ${r.timing}`}</Text></span>
+    </div>
   ),
 };
 

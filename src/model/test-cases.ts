@@ -145,6 +145,15 @@ export function untitledTestName(taken: TestCase[]): string {
   return name;
 }
 
+/** The suggestion that asks the assistant to write a workflow's tests from its spec. */
+export const generateTestsPrompt = "Generate tests from spec";
+
+/** Whether a message to the assistant asks it to write the workflow's tests from its spec. */
+export function asksToGenerateTests(prompt: string): boolean {
+  const p = prompt.toLowerCase();
+  return /\b(generate|write|create|make|sync)\b/.test(p) && /\btests?\b/.test(p) && /\bspec(\.md)?\b/.test(p);
+}
+
 /**
  * The assistant's reply once it has synced the tests with the spec: what it
  * did in a sentence, and a line for each test it wrote, to open them from.
